@@ -30,6 +30,9 @@
                 <ComboBox Name="ComboBoxOrderType" HorizontalAlignment="Center" Margin="145,68,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
                 <Label Name="LabelIcebergCount" Content="Iceberg count" HorizontalAlignment="Center" Margin="-120,90,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
                 <ComboBox Name="ComboBoxIcebergCount" HorizontalAlignment="Center" Margin="145,90,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
+                <Label Name="LabelIcebergMillisecondsDelay" Content="Iceberg delay mls" HorizontalAlignment="Center" Margin="-120,114,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
+                <TextBox Name="TextBoxIcebergMillisecondsDelay" HorizontalAlignment="Center" Margin="145,113,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="118"/>
+
                 <TabControl Name="TabControlVolumeSettings" Grid.Column="1">
                     <TabItem Header="Volume settings">
                         <Grid >

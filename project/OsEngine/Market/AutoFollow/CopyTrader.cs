@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using OsEngine.OsTrader.Panels.Tab.Internal;
+using System.Threading;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -307,6 +308,7 @@ namespace OsEngine.Market.AutoFollow
                     writer.WriteLine(MinCurrencyQty);
                     writer.WriteLine(FailOpenOrdersReactionIsOn);
                     writer.WriteLine(FailOpenOrdersCountToReaction);
+                    writer.WriteLine(IcebergMillisecondsDelay);
                     writer.Close();
                 }
             }
@@ -344,6 +346,7 @@ namespace OsEngine.Market.AutoFollow
 
                     FailOpenOrdersReactionIsOn = Convert.ToBoolean(reader.ReadLine());
                     FailOpenOrdersCountToReaction = Convert.ToInt32(reader.ReadLine());
+                    IcebergMillisecondsDelay = Convert.ToInt32(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -424,6 +427,8 @@ namespace OsEngine.Market.AutoFollow
         public CopyTraderOrdersType OrderType = CopyTraderOrdersType.Market;
 
         public int IcebergCount = 2;
+
+        public int IcebergMillisecondsDelay = 2000;
 
         public string PanelsPosition = "1,1,1";
 
@@ -790,7 +795,7 @@ namespace OsEngine.Market.AutoFollow
 
             for(int i = 0;i < positionsToClose.Count;i++)
             {
-                ClosePosition(positionsToClose[i], positionsToClose[i].OpenVolume);
+                CloseAtMarket(positionsToClose[i], positionsToClose[i].OpenVolume);
             }
 
             // 4 открываем новые позиции если есть расбалансировка
@@ -841,7 +846,7 @@ namespace OsEngine.Market.AutoFollow
             {
                 for(int i = 0;i < positionToCopy.PositionsCopyJournal.Count;i++)
                 {
-                    ClosePosition(positionToCopy.PositionsCopyJournal[i], positionToCopy.PositionsCopyJournal[i].OpenVolume);
+                    CloseAtMarket(positionToCopy.PositionsCopyJournal[i], positionToCopy.PositionsCopyJournal[i].OpenVolume);
                 }
             }
 
@@ -874,11 +879,25 @@ namespace OsEngine.Market.AutoFollow
                     {
                         if(difference > curPosition.OpenVolume)
                         {
-                            ClosePosition(curPosition, curPosition.OpenVolume);
+                            if (OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
+                            {
+                                CloseAtMarket(curPosition, curPosition.OpenVolume);
+                            }
+                            else
+                            {
+                                CloseAtMarketIceberg(curPosition, curPosition.OpenVolume, IcebergCount, positionToCopy);
+                            }
                         }
                         else
                         {
-                            ClosePosition(curPosition, difference);
+                            if (OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
+                            {
+                                CloseAtMarket(curPosition, difference);
+                            }
+                            else
+                            {
+                                CloseAtMarketIceberg(curPosition, difference, IcebergCount, positionToCopy);
+                            }
                         }
                         _timeNoTrade = DateTime.Now.AddSeconds(5);
                         return;
@@ -887,7 +906,15 @@ namespace OsEngine.Market.AutoFollow
 
                 // 3.2. открываем лонги
 
-                BuyAtMarket(difference, security);
+                if(OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
+                {
+                    BuyAtMarket(difference, security, null);
+                }
+                else
+                {
+                    BuyAtMarketIceberg(difference, security, IcebergCount, positionToCopy);
+                }
+
                 _timeNoTrade = DateTime.Now.AddSeconds(5);
             }
 
@@ -920,11 +947,25 @@ namespace OsEngine.Market.AutoFollow
                     {
                         if (difference > curPosition.OpenVolume)
                         {
-                            ClosePosition(curPosition, curPosition.OpenVolume);
+                            if (OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
+                            {
+                                CloseAtMarket(curPosition, curPosition.OpenVolume);
+                            }
+                            else
+                            {
+                                CloseAtMarketIceberg(curPosition, curPosition.OpenVolume, IcebergCount, positionToCopy);
+                            }
                         }
                         else
                         {
-                            ClosePosition(curPosition, difference);
+                            if (OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
+                            {
+                                CloseAtMarket(curPosition, difference);
+                            }
+                            else
+                            {
+                                CloseAtMarketIceberg(curPosition, difference, IcebergCount, positionToCopy);
+                            }
                         }
                         _timeNoTrade = DateTime.Now.AddSeconds(5);
                         return;
@@ -933,7 +974,15 @@ namespace OsEngine.Market.AutoFollow
 
                 // 4.2. открываем шорты
 
-                SellAtMarket(difference, security);
+                if (OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
+                {
+                    SellAtMarket(difference, security, null);
+                }
+                else
+                {
+                    SellAtMarketIceberg(difference, security, IcebergCount, positionToCopy);
+                }
+
                 _timeNoTrade = DateTime.Now.AddSeconds(5);
             }
         }
@@ -978,6 +1027,36 @@ namespace OsEngine.Market.AutoFollow
             }
 
             return true;
+        }
+
+        private decimal GetPriceByPositionToCopy(PositionToCopy positionToCopy)
+        {
+            decimal price = 0;
+
+            for (int i = 0; i < positionToCopy.PositionsRobots.Count; i++)
+            {
+                Position pos = positionToCopy.PositionsRobots[i];
+
+                if (pos.EntryPrice != 0)
+                {
+                    price = pos.EntryPrice;
+                }
+            }
+
+            if (price == 0)
+            {
+                for (int i = 0; i < positionToCopy.PositionsCopyJournal.Count; i++)
+                {
+                    Position pos = positionToCopy.PositionsCopyJournal[i];
+
+                    if (pos.EntryPrice != 0)
+                    {
+                        price = pos.EntryPrice;
+                    }
+                }
+            }
+
+            return price;
         }
 
         private List<PositionToCopy> GetPositionsFromBots()
@@ -1102,7 +1181,7 @@ namespace OsEngine.Market.AutoFollow
                 {
                     return;
                 }
-                ClosePosition(positionsFromCopyTrader[i], positionsFromCopyTrader[i].OpenVolume);
+                CloseAtMarket(positionsFromCopyTrader[i], positionsFromCopyTrader[i].OpenVolume);
             }
         }
 
@@ -1110,7 +1189,29 @@ namespace OsEngine.Market.AutoFollow
 
         #region Trade operations
 
-        private Position BuyAtMarket(decimal volume , Security security)
+        private Position BuyAtMarketIceberg(decimal volume, Security security, int ordersCount, PositionToCopy positionToCopy)
+        {
+            List<decimal> volumes = GetVolumesArray(volume, ordersCount, security, positionToCopy);
+
+            Position myPos = null;
+
+            for(int i = 0;i < volumes.Count;i++)
+            {
+                if(myPos == null)
+                {
+                    myPos = BuyAtMarket(volumes[i], security, null);
+                }
+                else
+                {
+                    BuyAtMarket(volumes[i], security, myPos);
+                }
+                Thread.Sleep(IcebergMillisecondsDelay);
+            }
+
+            return myPos;
+        }
+
+        private Position BuyAtMarket(decimal volume , Security security, Position deal)
         {
             try
             {
@@ -1142,14 +1243,23 @@ namespace OsEngine.Market.AutoFollow
 
                 TimeSpan timeLife = TimeSpan.FromSeconds(60);
 
-                Position newDeal = _dealCreator.CreatePosition(this.NameUnique, direction, price, volume, priceType,
-                    timeLife, security, portfolio, StartProgram.IsOsTrader, orderTypeTime);
+                if(deal == null)
+                {
+                    deal = _dealCreator.CreatePosition(this.NameUnique, direction, price, volume, priceType,
+                      timeLife, security, portfolio, StartProgram.IsOsTrader, orderTypeTime);
 
-                MyJournal.SetNewDeal(newDeal);
+                    MyJournal.SetNewDeal(deal);
+                }
+                else
+                {
+                     Order newOrder =  _dealCreator.CreateOrder(security, direction, price, volume, priceType,timeLife,StartProgram.IsOsTrader,
+                        OrderPositionConditionType.Open, orderTypeTime, MyCopyServer.ServerNameUnique);
+                     deal.AddNewOpenOrder(newOrder);
+                }
 
-                MyCopyServer.ExecuteOrder(newDeal.OpenOrders[0]);
+                MyCopyServer.ExecuteOrder(deal.OpenOrders[^1]);
 
-                return newDeal;
+                return deal;
             }
             catch (Exception ex)
             {
@@ -1159,7 +1269,29 @@ namespace OsEngine.Market.AutoFollow
             return null;
         }
 
-        private Position SellAtMarket(decimal volume, Security security)
+        private Position SellAtMarketIceberg(decimal volume, Security security, int ordersCount, PositionToCopy positionToCopy)
+        {
+            List<decimal> volumes = GetVolumesArray(volume, ordersCount, security, positionToCopy);
+
+            Position myPos = null;
+
+            for (int i = 0; i < volumes.Count; i++)
+            {
+                if (myPos == null)
+                {
+                    myPos = SellAtMarket(volumes[i], security, null);
+                }
+                else
+                {
+                    SellAtMarket(volumes[i], security, myPos);
+                }
+                Thread.Sleep(IcebergMillisecondsDelay);
+            }
+
+            return myPos;
+        }
+
+        private Position SellAtMarket(decimal volume, Security security, Position deal)
         {
             try
             {
@@ -1191,14 +1323,22 @@ namespace OsEngine.Market.AutoFollow
 
                 TimeSpan timeLife = TimeSpan.FromSeconds(60);
 
-                Position newDeal = _dealCreator.CreatePosition(this.NameUnique, direction, price, volume, priceType,
-                    timeLife, security, portfolio, StartProgram.IsOsTrader, orderTypeTime);
+                if (deal == null)
+                {
+                    deal = _dealCreator.CreatePosition(this.NameUnique, direction, price, volume, priceType,
+                        timeLife, security, portfolio, StartProgram.IsOsTrader, orderTypeTime);
+                    MyJournal.SetNewDeal(deal);
+                }
+                else
+                {
+                    Order newOrder = _dealCreator.CreateOrder(security, direction, price, volume, priceType, timeLife, StartProgram.IsOsTrader,
+                       OrderPositionConditionType.Open, orderTypeTime, deal.ServerName);
+                    deal.AddNewOpenOrder(newOrder);
+                }
 
-                MyJournal.SetNewDeal(newDeal);
+                MyCopyServer.ExecuteOrder(deal.OpenOrders[^1]);
 
-                MyCopyServer.ExecuteOrder(newDeal.OpenOrders[0]);
-
-                return newDeal;
+                return deal;
             }
             catch (Exception ex)
             {
@@ -1208,7 +1348,28 @@ namespace OsEngine.Market.AutoFollow
             return null;
         }
 
-        private void ClosePosition(Position position, decimal volume)
+        private void CloseAtMarketIceberg(Position position, decimal volume, int ordersCount, PositionToCopy positionToCopy)
+        {
+            Security security = GetSecurityByName(position.SecurityName);
+
+            if (security == null)
+            {
+                SendLogMessage("Close positions number: " + position.Number
+                + "No security error. Sec in position: " + position.SecurityName, LogMessageType.Error);
+                return;
+            }
+
+            List<decimal> volumes = GetVolumesArray(volume, ordersCount, security, positionToCopy);
+
+            for (int i = 0; i < volumes.Count; i++)
+            {
+                CloseAtMarket(position, volumes[i]);
+                Thread.Sleep(IcebergMillisecondsDelay);
+            } 
+
+        }
+
+        private void CloseAtMarket(Position position, decimal volume)
         {
             try
             {
@@ -1313,6 +1474,110 @@ namespace OsEngine.Market.AutoFollow
             }
 
             return null;
+        }
+
+        private List<decimal> GetVolumesArray(decimal volume, decimal ordersCount, Security security, PositionToCopy positionToCopy)
+        {
+            // 1 бьём объём на равные части
+            List<decimal> volumes = new List<decimal>();
+            decimal allVolumeInArray = 0;
+
+            for (int i = 0; i < ordersCount; i++)
+            {
+                decimal curVolume = volume / ordersCount;
+                curVolume = Math.Round(curVolume, security.DecimalsVolume);
+
+                if (curVolume > 0)
+                {
+                    allVolumeInArray += curVolume;
+                    volumes.Add(curVolume);
+                }
+            }
+
+            // 2 если после разделения на части и обрезаний итоговый объём изменился, добавляем его в первую ячейку
+
+            if (allVolumeInArray != volume)
+            {
+                decimal residue = volume - allVolumeInArray;
+
+                if (volumes.Count == 0)
+                {
+                    volumes.Add(0);
+                }
+
+                volumes[0] = Math.Round(volumes[0] + residue, security.DecimalsVolume);
+            }
+
+            // 3 проверяем чтобы объёмы были выше минимальных 
+
+            for (int i = 0; i < volumes.Count; i++)
+            {
+                if (i + 1 == volumes.Count)
+                {
+                    break;
+                }
+
+                if (CanTradeThisVolume(volumes[i], security, GetPriceByPositionToCopy(positionToCopy)) == false)
+                {
+                    volumes[i + 1] += volumes[i];
+                    volumes.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            return volumes;
+        }
+
+        public bool CanTradeThisVolume(decimal volume, Security sec, decimal price)
+        {
+            if (volume <= 0)
+            {
+                return false;
+            }
+
+            if (sec == null)
+            {
+                return false;
+            }
+
+            if (sec.VolumeStep != 0)
+            {
+                if (volume < sec.VolumeStep)
+                {
+                    return false;
+                }
+            }
+
+            if (sec.MinTradeAmount != 0)
+            {
+                if (sec.MinTradeAmountType == MinTradeAmountType.Contract)
+                { // внутри бумаги минимальный объём одного ордера указан в контрактах
+
+                    if (sec.MinTradeAmount > volume)
+                    {
+                        return false;
+                    }
+                }
+                else if (sec.MinTradeAmountType == MinTradeAmountType.C_Currency)
+                { // внутри бумаги минимальный объём для одного ордера указан в валюте контракта
+
+                    // 1 пытаемся взять текущую цену из стакана
+                    decimal lastPrice = price;
+
+                    if (lastPrice != 0)
+                    {
+                        decimal qtyInContractCurrency = volume * lastPrice;
+
+                        if (qtyInContractCurrency < sec.MinTradeAmount)
+                        {
+                            return false;
+                        }
+
+                    }
+                }
+            }
+
+            return true;
         }
 
         #endregion

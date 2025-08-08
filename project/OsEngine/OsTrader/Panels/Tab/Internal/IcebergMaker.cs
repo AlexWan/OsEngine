@@ -352,8 +352,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private List<decimal> GetVolumesArray(decimal volume, decimal ordersCount)
         {
-            List<decimal> volumes = new List<decimal>();
 
+            // 1 бьём объём на равные части
+            List<decimal> volumes = new List<decimal>();
             decimal allVolumeInArray = 0;
 
             for (int i = 0; i < ordersCount; i++)
@@ -368,6 +369,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 }
             }
 
+            // 2 если после разделения на части и обрезаний итоговый объём изменился, добавляем его в первую ячейку
+
             if (allVolumeInArray != volume)
             {
                 decimal residue = volume - allVolumeInArray;
@@ -378,6 +381,23 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 }
 
                 volumes[0] = Math.Round(volumes[0] + residue, _bot.Security.DecimalsVolume);
+            }
+
+            // 3 проверяем чтобы объёмы были выше минимальных 
+
+            for(int i = 0;i < volumes.Count;i++)
+            {
+                if(i + 1 == volumes.Count)
+                {
+                    break;
+                }
+
+                if (_bot.CanTradeThisVolume(volumes[i]) == false)
+                {
+                    volumes[i + 1] += volumes[i];
+                    volumes.RemoveAt(i);
+                    i--;
+                }
             }
 
             return volumes;

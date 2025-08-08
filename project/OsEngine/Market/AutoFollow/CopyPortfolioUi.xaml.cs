@@ -59,6 +59,9 @@ namespace OsEngine.Market.AutoFollow
             ComboBoxIcebergCount.SelectedItem = _portfolioToCopy.IcebergCount.ToString();
             ComboBoxIcebergCount.SelectionChanged += ComboBoxIcebergCount_SelectionChanged;
 
+            TextBoxIcebergMillisecondsDelay.Text = _portfolioToCopy.IcebergMillisecondsDelay.ToString();
+            TextBoxIcebergMillisecondsDelay.TextChanged += TextBoxIcebergMillisecondsDelay_TextChanged;
+
             TextBoxMinCurrencyQty.Text = _portfolioToCopy.MinCurrencyQty.ToString();
             TextBoxMinCurrencyQty.TextChanged += TextBoxMinCurrencyQty_TextChanged;
 
@@ -88,6 +91,8 @@ namespace OsEngine.Market.AutoFollow
             LabelIsOn.Content = OsLocalization.Market.Label182;
             LabelOrderType.Content = OsLocalization.Market.Label217;
             LabelIcebergCount.Content = OsLocalization.Market.Label218;
+            LabelIcebergMillisecondsDelay.Content = OsLocalization.Market.Label235;
+
             LabelMinCurrencyQTY.Content = OsLocalization.Market.Label227;
             LabelVolumeType.Content = OsLocalization.Market.Label212;
             LabelVolumeMult.Content = OsLocalization.Market.Label213;
@@ -408,6 +413,24 @@ namespace OsEngine.Market.AutoFollow
                 _portfolioToCopy.IcebergCount = ordersCount;
                 _portfolioToCopy.Save();
 
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxIcebergMillisecondsDelay_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxIcebergMillisecondsDelay.Text))
+                {
+                    return;
+                }
+
+                _portfolioToCopy.IcebergMillisecondsDelay = Convert.ToInt32(TextBoxIcebergMillisecondsDelay.Text);
+                _portfolioToCopy.Save();
             }
             catch (Exception ex)
             {

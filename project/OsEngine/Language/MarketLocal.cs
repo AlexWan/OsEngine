@@ -973,6 +973,14 @@ namespace OsEngine.Language
          "Eng:Stop module after N orders errors_" +
          "Ru:Остановить копировщик после N ошибок_");
 
+        public string Label235 => OsLocalization.ConvertToLocString(
+         "Eng:Iceberg delay mls_" +
+         "Ru:Задержка в млс_");
+
+
+
+
+
 
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
