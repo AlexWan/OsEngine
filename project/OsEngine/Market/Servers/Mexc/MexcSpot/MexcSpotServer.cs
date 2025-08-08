@@ -1446,7 +1446,14 @@ namespace OsEngine.Market.Servers.Mexc
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                if (ex.Message.Contains("Value was either too large or too small for a Decimal."))
+                {
+
+                }
+                else
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }   
             }
         }
 
