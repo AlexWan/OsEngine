@@ -82,7 +82,7 @@ namespace OsEngine.Market.Servers.Mexc
                     _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
                     CreateWebSocketPrivateConnection();
-                    CheckActivationSockets();
+                    //CheckActivationSockets();
                 }
                 else
                 {
@@ -610,9 +610,9 @@ namespace OsEngine.Market.Servers.Mexc
 
         #region 6 WebSocket creation
 
-        private readonly string _ws = "wss://wbs.mexc.com/ws";
+        private readonly string _ws = "ws://wbs-api.mexc.com/ws";
 
-        private readonly string _wsPrivate = "wss://wbs.mexc.com/ws";
+        private readonly string _wsPrivate = "ws://wbs-api.mexc.com/ws";
 
         private List<WebSocket> _webSocketPublicSpot = new List<WebSocket>();
 
@@ -1225,7 +1225,7 @@ namespace OsEngine.Market.Servers.Mexc
 
                 if (_webSocketPublic != null)
                 {
-                    _webSocketPublic.Send($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@public.deals.v3.api.pb@{security.Name}\"] }}");
+                    _webSocketPublic.Send($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@public.aggre.deals.v3.api.pb@100ms@{security.Name}\"] }}");
                     _webSocketPublic.Send($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@public.limit.depth.v3.api.pb@{security.Name}@20\"] }}");
                 }
             }
@@ -1367,14 +1367,14 @@ namespace OsEngine.Market.Servers.Mexc
                 DealsWebSocket deals = JsonConvert.DeserializeAnonymousType(message, new DealsWebSocket());
 
                 if (deals == null
-                    || deals.publicDeals.deals == null)
+                    || deals.publicAggreDeals.deals == null)
                 {
                     return;
                 }
 
-                for (int i = 0; i < deals.publicDeals.deals.Count; i++)
+                for (int i = 0; i < deals.publicAggreDeals.deals.Count; i++)
                 {
-                    MexcDeal deal = deals.publicDeals.deals[i];
+                    MexcDeal deal = deals.publicAggreDeals.deals[i];
 
                     Trade trade = new Trade();
                     trade.SecurityNameCode = deals.symbol;
