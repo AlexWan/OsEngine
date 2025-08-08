@@ -5,7 +5,7 @@ namespace OsEngine.Market.Servers.Mexc.MexcSpot.Entity
     public class DealsWebSocket
     {
         public string channel { get; set; }
-        public MexcDeals publicDeals { get; set; }
+        public MexcDeals publicAggreDeals { get; set; }
         public string symbol { get; set; }
         public string sendTime { get; set; }
     }
