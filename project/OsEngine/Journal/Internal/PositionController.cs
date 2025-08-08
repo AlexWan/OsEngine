@@ -584,7 +584,7 @@ namespace OsEngine.Journal.Internal
                 if (isCloseOrder == false ||
                     curPosition.OpenOrders != null && curPosition.OpenOrders.Count > 0)
                 {
-                    for (int indexOpenOrd = 0; indexOpenOrd < curPosition.OpenOrders.Count; indexOpenOrd++)
+                    for (int indexOpenOrd = 0; curPosition.OpenOrders != null && indexOpenOrd < curPosition.OpenOrders.Count; indexOpenOrd++)
                     {
                         if (curPosition.OpenOrders[indexOpenOrd].NumberUser == updateOrder.NumberUser)
                         {

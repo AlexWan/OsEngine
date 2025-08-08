@@ -143,6 +143,7 @@ namespace OsEngine.Market.AutoFollow
             CheckBoxFailOpenOrdersReactionIsOn.Checked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
             CheckBoxFailOpenOrdersReactionIsOn.Unchecked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
             TextBoxFailOpenOrdersCountToReaction.TextChanged -= TextBoxFailOpenOrdersCountToReaction_TextChanged;
+            TextBoxIcebergMillisecondsDelay.TextChanged -= TextBoxIcebergMillisecondsDelay_TextChanged;
 
             _gridSecurities.CellValueChanged -= _gridSecurities_CellValueChanged;
             _gridSecurities.CellClick -= _gridSecurities_CellClick;

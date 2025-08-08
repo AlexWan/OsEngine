@@ -767,8 +767,6 @@ namespace OsEngine.Market.AutoFollow
 
             List<Position> positionsFromCopyTrader = MyJournal.OpenPositions;
 
-            List<Position> positionsToClose = new List<Position>();
-
             for(int i = 0;i < positionsFromCopyTrader.Count;i++)
             {
                 Position position = positionsFromCopyTrader[i];
@@ -787,16 +785,22 @@ namespace OsEngine.Market.AutoFollow
 
                 if (isInArray == false)
                 {
-                    positionsToClose.Add(position);
+                    // 3 закрываем позиции по инструментам которые были закрыты у робота
+
+                    if (OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
+                    {
+                        CloseAtMarket(position, position.OpenVolume);
+                    }
+                    else
+                    {
+                        CloseAtMarketIceberg(position, position.OpenVolume, IcebergCount, null);
+                    }
                 }
             }
 
-            // 3 закрываем позиции по инструментам которые были закрыты у робота
+          
 
-            for(int i = 0;i < positionsToClose.Count;i++)
-            {
-                CloseAtMarket(positionsToClose[i], positionsToClose[i].OpenVolume);
-            }
+
 
             // 4 открываем новые позиции если есть расбалансировка
 
@@ -846,7 +850,16 @@ namespace OsEngine.Market.AutoFollow
             {
                 for(int i = 0;i < positionToCopy.PositionsCopyJournal.Count;i++)
                 {
-                    CloseAtMarket(positionToCopy.PositionsCopyJournal[i], positionToCopy.PositionsCopyJournal[i].OpenVolume);
+                    if (OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
+                    {
+                        CloseAtMarket(positionToCopy.PositionsCopyJournal[i], 
+                            positionToCopy.PositionsCopyJournal[i].OpenVolume);
+                    }
+                    else
+                    {
+                        CloseAtMarketIceberg(positionToCopy.PositionsCopyJournal[i], 
+                            positionToCopy.PositionsCopyJournal[i].OpenVolume, IcebergCount, positionToCopy);
+                    }
                 }
             }
 
@@ -1191,7 +1204,7 @@ namespace OsEngine.Market.AutoFollow
 
         private Position BuyAtMarketIceberg(decimal volume, Security security, int ordersCount, PositionToCopy positionToCopy)
         {
-            List<decimal> volumes = GetVolumesArray(volume, ordersCount, security, positionToCopy);
+            List<decimal> volumes = GetVolumesArray(volume, ordersCount, security, positionToCopy, null);
 
             Position myPos = null;
 
@@ -1243,7 +1256,7 @@ namespace OsEngine.Market.AutoFollow
 
                 TimeSpan timeLife = TimeSpan.FromSeconds(60);
 
-                if(deal == null)
+                if (deal == null)
                 {
                     deal = _dealCreator.CreatePosition(this.NameUnique, direction, price, volume, priceType,
                       timeLife, security, portfolio, StartProgram.IsOsTrader, orderTypeTime);
@@ -1252,9 +1265,10 @@ namespace OsEngine.Market.AutoFollow
                 }
                 else
                 {
-                     Order newOrder =  _dealCreator.CreateOrder(security, direction, price, volume, priceType,timeLife,StartProgram.IsOsTrader,
-                        OrderPositionConditionType.Open, orderTypeTime, MyCopyServer.ServerNameUnique);
-                     deal.AddNewOpenOrder(newOrder);
+                    Order newOrder = _dealCreator.CreateOrder(security, direction, price, volume, priceType, timeLife, StartProgram.IsOsTrader,
+                       OrderPositionConditionType.Open, orderTypeTime, MyCopyServer.ServerNameUnique);
+                    newOrder.PortfolioNumber = this.PortfolioName;
+                    deal.AddNewOpenOrder(newOrder);
                 }
 
                 MyCopyServer.ExecuteOrder(deal.OpenOrders[^1]);
@@ -1271,7 +1285,7 @@ namespace OsEngine.Market.AutoFollow
 
         private Position SellAtMarketIceberg(decimal volume, Security security, int ordersCount, PositionToCopy positionToCopy)
         {
-            List<decimal> volumes = GetVolumesArray(volume, ordersCount, security, positionToCopy);
+            List<decimal> volumes = GetVolumesArray(volume, ordersCount, security, positionToCopy, null);
 
             Position myPos = null;
 
@@ -1333,6 +1347,7 @@ namespace OsEngine.Market.AutoFollow
                 {
                     Order newOrder = _dealCreator.CreateOrder(security, direction, price, volume, priceType, timeLife, StartProgram.IsOsTrader,
                        OrderPositionConditionType.Open, orderTypeTime, deal.ServerName);
+                    newOrder.PortfolioNumber = this.PortfolioName;
                     deal.AddNewOpenOrder(newOrder);
                 }
 
@@ -1359,7 +1374,7 @@ namespace OsEngine.Market.AutoFollow
                 return;
             }
 
-            List<decimal> volumes = GetVolumesArray(volume, ordersCount, security, positionToCopy);
+            List<decimal> volumes = GetVolumesArray(volume, ordersCount, security, positionToCopy, position);
 
             for (int i = 0; i < volumes.Count; i++)
             {
@@ -1415,8 +1430,9 @@ namespace OsEngine.Market.AutoFollow
                 Order closeOrder = _dealCreator.CreateCloseOrderForDeal(security, position, 0,
                     priceType, lifeTime, StartProgram.IsOsTrader,
                     orderTypeTime, MyCopyServer.ServerNameUnique);
+                closeOrder.Volume = volume;
 
-                if(closeOrder == null)
+                if (closeOrder == null)
                 {
                     return;
                 }
@@ -1476,7 +1492,7 @@ namespace OsEngine.Market.AutoFollow
             return null;
         }
 
-        private List<decimal> GetVolumesArray(decimal volume, decimal ordersCount, Security security, PositionToCopy positionToCopy)
+        private List<decimal> GetVolumesArray(decimal volume, decimal ordersCount, Security security, PositionToCopy positionToCopy, Position position)
         {
             // 1 бьём объём на равные части
             List<decimal> volumes = new List<decimal>();
@@ -1512,16 +1528,52 @@ namespace OsEngine.Market.AutoFollow
 
             for (int i = 0; i < volumes.Count; i++)
             {
-                if (i + 1 == volumes.Count)
+                if(volumes.Count == 1)
                 {
                     break;
                 }
 
-                if (CanTradeThisVolume(volumes[i], security, GetPriceByPositionToCopy(positionToCopy)) == false)
+                if (i + 1 == volumes.Count)
                 {
-                    volumes[i + 1] += volumes[i];
-                    volumes.RemoveAt(i);
-                    i--;
+                    if (positionToCopy != null)
+                    {
+                        if (CanTradeThisVolume(volumes[i], security, GetPriceByPositionToCopy(positionToCopy)) == false)
+                        {
+                            volumes[i-1] += volumes[i];
+                            volumes.RemoveAt(i);
+                            break;
+                        }
+                    }
+                    else if (position != null)
+                    {
+                        if (CanTradeThisVolume(volumes[i], security, position.EntryPrice) == false)
+                        {
+                            volumes[i-1] += volumes[i];
+                            volumes.RemoveAt(i);
+                            break;
+                        }
+                    }
+
+                    break;
+                }
+
+                if(positionToCopy != null)
+                {
+                    if (CanTradeThisVolume(volumes[i], security, GetPriceByPositionToCopy(positionToCopy)) == false)
+                    {
+                        volumes[i + 1] += volumes[i];
+                        volumes.RemoveAt(i);
+                        i--;
+                    }
+                }
+                else if(position != null)
+                {
+                    if (CanTradeThisVolume(volumes[i], security, position.EntryPrice) == false)
+                    {
+                        volumes[i + 1] += volumes[i];
+                        volumes.RemoveAt(i);
+                        i--;
+                    }
                 }
             }
 

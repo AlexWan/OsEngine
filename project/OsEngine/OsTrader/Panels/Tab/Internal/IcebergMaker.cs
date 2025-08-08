@@ -387,8 +387,19 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             for(int i = 0;i < volumes.Count;i++)
             {
+                if(volumes.Count == 1)
+                {
+                    break;
+                }
+
                 if(i + 1 == volumes.Count)
                 {
+                    if (_bot.CanTradeThisVolume(volumes[i]) == false)
+                    {
+                        volumes[i - 1] += volumes[i];
+                        volumes.RemoveAt(i);
+                    }
+
                     break;
                 }
 
