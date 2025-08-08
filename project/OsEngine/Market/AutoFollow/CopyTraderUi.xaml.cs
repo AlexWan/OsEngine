@@ -389,7 +389,7 @@ namespace OsEngine.Market.AutoFollow
 
                 List<DataGridViewRow> rowsNow = new List<DataGridViewRow>();
 
-                for(int i = 0; i < bots.Count;i++)
+                for(int i = 0; bots != null && i < bots.Count;i++)
                 {
                     List<DataGridViewRow> botRows = GetRowsByRobot(bots[i], i);
 
