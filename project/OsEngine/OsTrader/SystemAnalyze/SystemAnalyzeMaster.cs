@@ -709,8 +709,17 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
             if(_cpuCounterTotal == null)
             {
-                _cpuCounterTotal = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-                _cpuCounterOsEngine = new PerformanceCounter("Process", "% Processor Time", "OsEngine");
+                try
+                {
+                    _cpuCounterTotal = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                    _cpuCounterOsEngine = new PerformanceCounter("Process", "% Processor Time", "OsEngine");
+                }
+                catch
+                {
+                    _cpuCollectDataIsOn = false;
+                    ServerMaster.SendNewLogMessage("Can run processor data collection on this PC.", Logging.LogMessageType.Error);
+                    return;
+                }
             }
            
             SystemUsagePointCpu newPoint = new SystemUsagePointCpu();
