@@ -2862,6 +2862,10 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
         {
+            if(trades == null)
+            {
+                return;
+            }
             _allTrades = trades;
         }
 

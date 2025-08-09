@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
@@ -15,7 +14,6 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Media.Animation;
 
 /* Description
 Trading robot for osengine.

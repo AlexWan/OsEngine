@@ -1871,6 +1871,13 @@ namespace OsEngine.Market
 
         #endregion
 
+        #region Signals Follow
+
+
+
+
+        #endregion
+
         #region Robots in bot station access
 
         public static List<BotPanel> GetAllBotsFromBotStation()
@@ -1893,8 +1900,6 @@ namespace OsEngine.Market
 
             return null;
         }
-
-
 
         #endregion
 

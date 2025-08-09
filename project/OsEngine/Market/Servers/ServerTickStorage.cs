@@ -321,7 +321,8 @@ namespace OsEngine.Market.Servers
                     reader.Close();
                 }
 
-                if (TickLoadedEvent != null)
+                if (TickLoadedEvent != null
+                    && allTrades != null)
                 {
                     TickLoadedEvent(allTrades);
                 }
