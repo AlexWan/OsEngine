@@ -165,7 +165,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="securityName">security name</param>
         /// <param name="timeFrame">timeframe DateTime</param>
         /// <param name="timeFrameSpan">timeframe TimeSpan</param>
-        /// <param name="portfolioName">porrtfolio name</param>
+        /// <param name="portfolioName">portfolio name</param>
         /// <param name="serverType">server type</param>
         void _connector_ConnectorStartedReconnectEvent(string securityName, TimeFrame timeFrame, TimeSpan timeFrameSpan, string portfolioName, string serverType)
         {
