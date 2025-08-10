@@ -977,6 +977,9 @@ namespace OsEngine.Language
          "Eng:Iceberg delay mls_" +
          "Ru:Задержка в млс_");
 
+        public string Label236 => OsLocalization.ConvertToLocString(
+         "Eng:Time delay. Sec_" +
+         "Ru:Задержка в секундах_");
 
 
 

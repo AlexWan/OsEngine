@@ -38,7 +38,10 @@ namespace OsEngine.Market.Servers
             Title = OsLocalization.Market.Label137;
             CheckBoxAutoLogMessageOnError.Content = OsLocalization.Market.Label138;
             LabelVerificationPeriod.Content = OsLocalization.Market.Label139;
+            LabelTimeDelaySeconds.Content = OsLocalization.Market.Label236;
 
+            TextBoxTimeDelaySeconds.Text = comparePositionsModule.TimeDelaySeconds.ToString();
+            TextBoxTimeDelaySeconds.TextChanged += TextBoxTimeDelaySeconds_TextChanged;
 
             bool isInArray = false;
 
@@ -96,6 +99,24 @@ namespace OsEngine.Market.Servers
             catch
             {
                 // ignore
+            }
+        }
+
+        private void TextBoxTimeDelaySeconds_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(TextBoxTimeDelaySeconds.Text) == true)
+                {
+                    return;
+                }
+
+                _comparePositionsModule.TimeDelaySeconds = Convert.ToInt32(TextBoxTimeDelaySeconds.Text);
+                _comparePositionsModule.Save();
+            }
+            catch (Exception ex)
+            {
+                _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -157,7 +178,6 @@ namespace OsEngine.Market.Servers
             {
                 _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-
         }
 
         public event Action<string> GuiClosed;

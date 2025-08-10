@@ -49,6 +49,8 @@ namespace OsEngine.Market.Servers
         }
         private ComparePositionsVerificationPeriod _verificationPeriod;
 
+        public int TimeDelaySeconds = 20;
+
         public List<string> PortfoliosToWatch = new List<string>();
 
         public void Save()
@@ -57,7 +59,7 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Server.ServerNameUnique + @"CompareModule.txt", false))
                 {
-                    writer.WriteLine(_verificationPeriod);
+                    writer.WriteLine(_verificationPeriod + "#" + TimeDelaySeconds);
 
                     for(int i = 0;i < PortfoliosToWatch.Count;i++)
                     {
@@ -83,7 +85,15 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + Server.ServerNameUnique + @"CompareModule.txt"))
                 {
-                    Enum.TryParse(reader.ReadLine(), out _verificationPeriod);
+                    string[] firstSaveStr = reader.ReadLine().Split('#');
+
+                    Enum.TryParse(firstSaveStr[0], out _verificationPeriod);
+
+                    if(firstSaveStr.Length > 1 
+                        && string.IsNullOrEmpty(firstSaveStr[1]) == false)
+                    {
+                        TimeDelaySeconds = Convert.ToInt32(firstSaveStr[1]);
+                    }
 
                     while(reader.EndOfStream == false)
                     {
@@ -180,11 +190,11 @@ namespace OsEngine.Market.Servers
                         }
                     }
 
-                    // 2 вторая проверка. Через 10 секунд. Если и тут ошибка - то высылаем
+                    // 2 вторая проверка. Через N секунд. Если и тут ошибка - то высылаем
 
                     if(haveErrorInSomePortfolio == true)
                     {
-                        Thread.Sleep(10000);
+                        Thread.Sleep(TimeDelaySeconds);
 
                         portfolios = UpdateCompareData();
 
