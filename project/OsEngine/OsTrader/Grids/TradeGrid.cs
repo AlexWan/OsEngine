@@ -1175,7 +1175,8 @@ namespace OsEngine.OsTrader.Grids
                 Position position = linesWithOrdersToCloseFact[i].Position;
                 TradeGridLine currentLine = linesWithOrdersToCloseFact[i];
 
-                if (position.CloseActive) 
+                if (position.CloseActive 
+                    && currentLine.CanReplaceExitOrder == true) 
                 {
                     Order closeOrder = position.CloseOrders[^1];
 

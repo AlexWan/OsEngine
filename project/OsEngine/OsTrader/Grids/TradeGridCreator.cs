@@ -432,6 +432,8 @@ namespace OsEngine.OsTrader.Grids
 
         public decimal PriceExit;
 
+        public bool CanReplaceExitOrder;
+
         public decimal Volume;
 
         public Side Side;

@@ -279,12 +279,14 @@ namespace OsEngine.Robots.Grids
             grid.TrailingUp.TrailingUpStep = tab.RoundPrice(lastPrice * 0.002m, tab.Security, Side.Buy);
             grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.25m;
             grid.TrailingUp.TrailingUpIsOn = true;
+            grid.TrailingUp.TrailingUpCanMoveExitOrder = false;
 
             // 7 устанавливаем Trailing Down
 
             grid.TrailingUp.TrailingDownStep = tab.RoundPrice(lastPrice * 0.002m, tab.Security, Side.Sell);
             grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.25m;
             grid.TrailingUp.TrailingDownIsOn = true;
+            grid.TrailingUp.TrailingDownCanMoveExitOrder = false;
 
             // 8 сохраняем
             grid.Save();

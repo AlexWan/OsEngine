@@ -225,15 +225,17 @@ namespace OsEngine.Robots.Grids
             grid.TrailingUp.TrailingUpStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Buy);
             grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m;
             grid.TrailingUp.TrailingUpIsOn = true;
+            grid.TrailingUp.TrailingUpCanMoveExitOrder = false;
 
             // 6 устанавливаем Trailing Down
 
             grid.TrailingUp.TrailingDownStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Sell);
             grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
             grid.TrailingUp.TrailingDownIsOn = true;
+            grid.TrailingUp.TrailingDownCanMoveExitOrder = false;
 
             // 7 устанавливаем закрытие сетки по времени
- 
+
             grid.StopBy.StopGridByLifeTimeReaction = TradeGridRegime.CloseForced;
             grid.StopBy.StopGridByLifeTimeSecondsToLife = _lifeTimeSecondsGrid1.ValueInt;
             grid.StopBy.StopGridByLifeTimeIsOn = true;
@@ -291,12 +293,14 @@ namespace OsEngine.Robots.Grids
             grid.TrailingUp.TrailingUpStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Buy);
             grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m;
             grid.TrailingUp.TrailingUpIsOn = true;
+            grid.TrailingUp.TrailingUpCanMoveExitOrder = false;
 
             // 6 устанавливаем Trailing Down
 
             grid.TrailingUp.TrailingDownStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Sell);
             grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
             grid.TrailingUp.TrailingDownIsOn = true;
+            grid.TrailingUp.TrailingDownCanMoveExitOrder = false;
 
             // 7 устанавливаем закрытие сетки по времени
 

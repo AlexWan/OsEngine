@@ -137,6 +137,11 @@ namespace OsEngine.OsTrader.Grids
 
                         if (uiGrid.Number == num)
                         {
+                            if (uiGrid.Dispatcher.CheckAccess() == false)
+                            {
+                                uiGrid.Dispatcher.Invoke(new Action<int,bool>(DeleteAtNum), num,isAuto);
+                                return;
+                            }
                             uiGrid.Close();
                         }
                     }

@@ -33,11 +33,15 @@ namespace OsEngine.OsTrader.Grids
 
         public decimal TrailingUpLimit;
 
+        public bool TrailingUpCanMoveExitOrder;
+
         public bool TrailingDownIsOn;
 
         public decimal TrailingDownStep;
 
         public decimal TrailingDownLimit;
+
+        public bool TrailingDownCanMoveExitOrder;
 
         public string GetSaveString()
         {
@@ -50,6 +54,8 @@ namespace OsEngine.OsTrader.Grids
             result += TrailingDownIsOn + "@";
             result += TrailingDownStep + "@";
             result += TrailingDownLimit + "@";
+            result += TrailingUpCanMoveExitOrder + "@";
+            result += TrailingDownCanMoveExitOrder + "@";
             result += "@";
             result += "@";
             result += "@";
@@ -72,6 +78,15 @@ namespace OsEngine.OsTrader.Grids
                 TrailingDownIsOn = Convert.ToBoolean(values[3]);
                 TrailingDownStep = values[4].ToDecimal();
                 TrailingDownLimit = values[5].ToDecimal();
+
+                if(string.IsNullOrEmpty(values[6]) == false)
+                {
+                    TrailingUpCanMoveExitOrder = Convert.ToBoolean(values[6]);
+                }
+                if (string.IsNullOrEmpty(values[7]) == false)
+                {
+                    TrailingDownCanMoveExitOrder = Convert.ToBoolean(values[7]);
+                }
             }
             catch (Exception e)
             {
@@ -284,7 +299,7 @@ namespace OsEngine.OsTrader.Grids
             for(int i = 0;i < lines.Count;i++)
             {
                 TradeGridLine line = lines[i];
-
+                line.CanReplaceExitOrder = TrailingDownCanMoveExitOrder;
                 line.PriceEnter -= value;
                 line.PriceExit -= value;
             }
@@ -302,7 +317,7 @@ namespace OsEngine.OsTrader.Grids
             for (int i = 0; i < lines.Count; i++)
             {
                 TradeGridLine line = lines[i];
-
+                line.CanReplaceExitOrder = TrailingUpCanMoveExitOrder;
                 line.PriceEnter += value;
                 line.PriceExit += value;
             }
