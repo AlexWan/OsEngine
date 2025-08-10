@@ -20,7 +20,7 @@ namespace OsEngine.OsTrader.Grids
             _grid = grid;
         }
 
-        private TradeGrid _grid;
+        protected TradeGrid _grid;
 
         public void Delete()
         {
@@ -43,7 +43,7 @@ namespace OsEngine.OsTrader.Grids
 
         public bool TrailingDownCanMoveExitOrder;
 
-        public string GetSaveString()
+        public virtual string GetSaveString()
         {
             string result = "";
 
@@ -65,7 +65,7 @@ namespace OsEngine.OsTrader.Grids
             return result;
         }
 
-        public void LoadFromString(string value)
+        public virtual void LoadFromString(string value)
         {
             try
             {
@@ -98,7 +98,7 @@ namespace OsEngine.OsTrader.Grids
 
         #region Logic
 
-        public bool TryTrailingGrid()
+        public virtual bool TryTrailingGrid()
         {
             if (TrailingUpIsOn == false
                 && TrailingDownIsOn == false)
