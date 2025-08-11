@@ -3010,7 +3010,7 @@ namespace OsEngine.Market.Servers.Alor
         private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds)
         {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            DateTime result = origin.AddSeconds(seconds.ToDouble()).ToLocalTime();
+            DateTime result = origin.AddSeconds(seconds.ToDouble()).AddHours(3); // force to Moscow time zone gmt+3
 
             return result;
         }
@@ -3018,9 +3018,9 @@ namespace OsEngine.Market.Servers.Alor
         private DateTime ConvertToDateTimeFromUnixFromMilliseconds(string seconds)
         {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            DateTime result = origin.AddMilliseconds(seconds.ToDouble());
+            DateTime result = origin.AddMilliseconds(seconds.ToDouble()).AddHours(3); // force to Moscow time zone gmt+3
 
-            return result.ToLocalTime();
+            return result;
         }
 
         private DateTime ConvertToDateTimeFromTimeAlorData(string alorTime)
