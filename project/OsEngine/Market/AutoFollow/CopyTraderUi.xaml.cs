@@ -185,7 +185,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -243,7 +243,7 @@ namespace OsEngine.Market.AutoFollow
                 }
                 catch(Exception ex)
                 {
-                    CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -327,7 +327,7 @@ namespace OsEngine.Market.AutoFollow
 
         private void _gridRobots_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            CopyTraderInstance.SendLogMessage("_gridRobots_DataError \n"
+            CopyTraderInstance?.SendLogMessage("_gridRobots_DataError \n"
                 + e.Exception.ToString(), Logging.LogMessageType.Error);
         }
 
@@ -362,7 +362,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
          
@@ -420,7 +420,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -502,6 +502,11 @@ namespace OsEngine.Market.AutoFollow
 
             rowFirst.Cells.Add(new DataGridViewTextBoxCell());
             rowFirst.Cells[rowFirst.Cells.Count - 1].Value = bot.GetType().Name;
+
+            if(CopyTraderInstance == null)
+            {
+                return null;
+            }
 
             bool botIsOnToCopy = CopyTraderInstance.BotIsOnToCopy(bot);
 
@@ -627,7 +632,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
             SavePanelsPosition();
         }
@@ -643,7 +648,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
             SavePanelsPosition();
         }
@@ -769,7 +774,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -870,7 +875,7 @@ namespace OsEngine.Market.AutoFollow
 
         private void _gridSlave_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            CopyTraderInstance.SendLogMessage("_gridSlave_DataError \n"
+            CopyTraderInstance?.SendLogMessage("_gridSlave_DataError \n"
               + e.Exception.ToString(), Logging.LogMessageType.Error);
         }
 
@@ -910,7 +915,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -981,7 +986,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -995,7 +1000,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
             SavePanelsPosition();
         }
@@ -1010,7 +1015,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
             SavePanelsPosition();
         }
@@ -1061,7 +1066,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error); 
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error); 
             }
         }
 

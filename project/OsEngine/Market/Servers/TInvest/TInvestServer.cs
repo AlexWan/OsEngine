@@ -2668,6 +2668,12 @@ namespace OsEngine.Market.Servers.TInvest
                 Security security = _subscribedSecurities.Find((sec) =>
                     sec.Name == order.SecurityNameCode);
 
+                if(security == null)
+                {
+                    security = _securities.Find((sec) =>
+                    sec.Name == order.SecurityNameCode);
+                }
+
                 PostOrderRequest request = new PostOrderRequest();
                 request.Direction = order.Side == Side.Buy ? OrderDirection.Buy : OrderDirection.Sell;
                 request.OrderType = order.TypeOrder == OrderPriceType.Limit ? OrderType.Limit : OrderType.Market; // еще есть BestPrice
