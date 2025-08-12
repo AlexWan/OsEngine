@@ -1184,17 +1184,32 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
-        private void TryCloseMyPositionsRobots()
+        public void TryCloseMyPositionsRobots()
         {
-            List<Position> positionsFromCopyTrader = MyJournal.OpenPositions;
-
-            for(int i =0;i < positionsFromCopyTrader.Count;i++)
+            try
             {
-                if(MyCopyServer.ServerStatus == ServerConnectStatus.Disconnect)
+                List<Position> positionsFromCopyTrader = MyJournal.OpenPositions;
+
+                for (int i = 0; i < positionsFromCopyTrader.Count; i++)
                 {
-                    return;
+                    if (MyCopyServer.ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        return;
+                    }
+
+                    if (OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
+                    {
+                        CloseAtMarket(positionsFromCopyTrader[i], positionsFromCopyTrader[i].OpenVolume);
+                    }
+                    else
+                    {
+                        CloseAtMarketIceberg(positionsFromCopyTrader[i], positionsFromCopyTrader[i].OpenVolume, IcebergCount, null);
+                    }
                 }
-                CloseAtMarket(positionsFromCopyTrader[i], positionsFromCopyTrader[i].OpenVolume);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

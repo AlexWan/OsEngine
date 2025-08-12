@@ -153,7 +153,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -273,7 +273,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -289,7 +289,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -330,13 +330,13 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage("Save copy trader error. Proxy number: " + trader.Number + "\nError: " + ex.ToString(), Logging.LogMessageType.Error);
+                _master?.SendLogMessage("Save copy trader error. Proxy number: " + trader.Number + "\nError: " + ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
         private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            _master.SendLogMessage(e.Exception.ToString(), Logging.LogMessageType.Error);
+            _master?.SendLogMessage(e.Exception.ToString(), Logging.LogMessageType.Error);
         }
 
         #endregion
@@ -419,7 +419,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch(Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(),Logging.LogMessageType.Error);
             }
         }
 

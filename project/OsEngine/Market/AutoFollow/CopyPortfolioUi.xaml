@@ -32,7 +32,9 @@
                 <ComboBox Name="ComboBoxIcebergCount" HorizontalAlignment="Center" Margin="145,90,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
                 <Label Name="LabelIcebergMillisecondsDelay" Content="Iceberg delay mls" HorizontalAlignment="Center" Margin="-120,114,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
                 <TextBox Name="TextBoxIcebergMillisecondsDelay" HorizontalAlignment="Center" Margin="145,113,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="118"/>
-
+                <Button Name="ButtonDeleteAllPositions" Content="Delete all positions" HorizontalAlignment="Center" Margin="145,141,0,0" VerticalAlignment="Top" Width="118" Click="ButtonDeleteAllPositions_Click"/>
+                <Button Name="ButtonCLoseAllPositions" Content="Close all positions" HorizontalAlignment="Center" Margin="-130,141,0,0" VerticalAlignment="Top" Width="118" Click="ButtonCLoseAllPositions_Click"/>
+                
                 <TabControl Name="TabControlVolumeSettings" Grid.Column="1">
                     <TabItem Header="Volume settings">
                         <Grid >
@@ -60,6 +62,7 @@
                         </Grid>
                     </TabItem>
                 </TabControl>
+
 
             </Grid>
 

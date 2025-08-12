@@ -981,6 +981,16 @@ namespace OsEngine.Language
          "Eng:Time delay. Sec_" +
          "Ru:Задержка в секундах_");
 
+        public string Label237 => OsLocalization.ConvertToLocString(
+         "Eng:All positions will be closed. The copier will be disabled. Are you sure?_" +
+         "Ru:Все позиции будут закрыты. Копировщик будет отключен. Вы уверены?_");
+
+        public string Label238 => OsLocalization.ConvertToLocString(
+         "Eng:The copier's log will be cleared. The copier will be disabled. Are you sure?_" +
+         "Ru:Журнал копировщика будет очищен. Копировщик будет отключен. Вы уверены?_");
+
+
+
 
 
 

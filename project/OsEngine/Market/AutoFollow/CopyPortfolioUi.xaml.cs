@@ -203,7 +203,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -276,7 +276,7 @@ namespace OsEngine.Market.AutoFollow
                 }
                 catch(Exception ex)
                 {
-                    _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                    _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                 }
             }
         }
@@ -312,7 +312,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -334,7 +334,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -348,7 +348,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -362,7 +362,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -383,7 +383,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -401,7 +401,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -417,7 +417,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -435,7 +435,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -453,7 +453,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -467,7 +467,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch(Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -485,7 +485,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -495,6 +495,62 @@ namespace OsEngine.Market.AutoFollow
             {
                 _portfolioToCopy.FailOpenOrdersReactionIsOn = CheckBoxFailOpenOrdersReactionIsOn.IsChecked.Value;
                 _portfolioToCopy.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ButtonCLoseAllPositions_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label237);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                if(_portfolioToCopy.IsOn != false)
+                {
+                    _portfolioToCopy.IsOn = false;
+                    _portfolioToCopy.Save();
+                    ComboBoxIsOn.SelectedItem = _portfolioToCopy.IsOn.ToString();
+                }
+
+                _portfolioToCopy.TryCloseMyPositionsRobots();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ButtonDeleteAllPositions_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label238);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                if (_portfolioToCopy.IsOn != false)
+                {
+                    _portfolioToCopy.IsOn = false;
+                    _portfolioToCopy.Save();
+                    ComboBoxIsOn.SelectedItem = _portfolioToCopy.IsOn.ToString();
+                }
+
+                _portfolioToCopy.MyJournal.Clear();
             }
             catch
             {
@@ -570,7 +626,7 @@ namespace OsEngine.Market.AutoFollow
 
         private void _gridSecurities_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            _portfolioToCopy.SendLogMessage("_gridSecurities_DataError \n"
+            _portfolioToCopy?.SendLogMessage("_gridSecurities_DataError \n"
              + e.Exception.ToString(), Logging.LogMessageType.Error);
         }
 
@@ -630,7 +686,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -730,7 +786,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -757,7 +813,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -793,7 +849,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -936,7 +992,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -990,7 +1046,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1004,7 +1060,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
             SavePanelsPosition();
         }
@@ -1019,7 +1075,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
             SavePanelsPosition();
         }
@@ -1073,7 +1129,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1082,13 +1138,18 @@ namespace OsEngine.Market.AutoFollow
             try
             {
                 _journalUi.Closed -= _journalUi_Closed;
-                _journalUi.LogMessageEvent -= _portfolioToCopy.SendLogMessage;
+
+                if(_portfolioToCopy != null)
+                {
+                    _journalUi.LogMessageEvent -= _portfolioToCopy.SendLogMessage;
+                }
+                
                 _journalUi.IsErase = true;
                 _journalUi = null;
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1103,7 +1164,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
             SavePanelsPosition();
         }
@@ -1119,7 +1180,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
             SavePanelsPosition();
         }
@@ -1147,7 +1208,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
             SavePanelsPosition();
         }
@@ -1170,12 +1231,11 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
             SavePanelsPosition();
         }
 
         #endregion
-
     }
 }
