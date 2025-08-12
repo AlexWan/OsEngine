@@ -96,7 +96,7 @@ namespace OsEngine.Market.Servers.Woo
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            _subscribledSecurities.Clear();
+            _subscribedSecurities.Clear();
             _arrayChannelsAccount.Clear();
             _arrayChannelsBook.Clear();
             _arrayChannelsTrade.Clear();
@@ -653,7 +653,7 @@ namespace OsEngine.Market.Servers.Woo
                
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
@@ -1299,7 +1299,7 @@ namespace OsEngine.Market.Servers.Woo
 
         #region 12 Queries
 
-        private List<string> _subscribledSecurities = new List<string>();
+        private List<string> _subscribedSecurities = new List<string>();
 
         private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
@@ -1308,15 +1308,15 @@ namespace OsEngine.Market.Servers.Woo
                 return;
             }
 
-            for (int i = 0; i < _subscribledSecurities.Count; i++)
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
             {
-                if (_subscribledSecurities[i].Equals(security.Name))
+                if (_subscribedSecurities[i].Equals(security.Name))
                 {
                     return;
                 }
             }
 
-            _subscribledSecurities.Add(security.Name);
+            _subscribedSecurities.Add(security.Name);
 
             _arrayChannels = new List<string>();
 

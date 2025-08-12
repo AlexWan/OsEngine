@@ -84,7 +84,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            this.SetNewServiceInfo("Total Securities to subscrible: " + secs.Count);
+            this.SetNewServiceInfo("Total Securities to subscribe: " + secs.Count);
 
             DateTime endWaitTime = DateTime.Now.AddMinutes(10);
 
@@ -107,12 +107,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     }
                     else
                     {
-                        this.SetNewServiceInfo("Security subscrible: " + secs[i].Name);
+                        this.SetNewServiceInfo("Security subscribe: " + secs[i].Name);
                     }
                 }
                 catch (Exception ex)
                 {
-                    this.SetNewError("Error 5. Error on subscrible: " + ex.ToString());
+                    this.SetNewError("Error 5. Error on subscribe: " + ex.ToString());
                     break;
                 }
             }

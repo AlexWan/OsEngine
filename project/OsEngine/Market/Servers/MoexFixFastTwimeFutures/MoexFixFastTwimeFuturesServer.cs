@@ -1098,7 +1098,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         #endregion
 
-        #region  7 Security subscrible
+        #region  7 Security subscribe
 
         private Dictionary<string, string> _secNameById = new Dictionary<string, string>(); // для получения имени инструмента по коду
         private Dictionary<string, string> _secIdByName = new Dictionary<string, string>(); // для получения кода инструмента по имени

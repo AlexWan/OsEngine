@@ -781,7 +781,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(550));
 

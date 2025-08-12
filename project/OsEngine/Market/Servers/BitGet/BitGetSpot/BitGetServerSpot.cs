@@ -121,7 +121,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             try
             {
                 UnsubscribeFromAllWebSockets();
-                _subscribledSecutiries.Clear();
+                _subscribedSecutiries.Clear();
                 DeleteWebSocketConnection();
             }
             catch (Exception exception)
@@ -1242,11 +1242,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        private List<string> _subscribledSecutiries = new List<string>();
+        private List<string> _subscribedSecutiries = new List<string>();
 
         public void Subscribe(Security security)
         {
@@ -1271,18 +1271,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     return;
                 }
 
-                if (_subscribledSecutiries != null)
+                if (_subscribedSecutiries != null)
                 {
-                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    for (int i = 0; i < _subscribedSecutiries.Count; i++)
                     {
-                        if (_subscribledSecutiries.Equals(security.Name))
+                        if (_subscribedSecutiries.Equals(security.Name))
                         {
                             return;
                         }
                     }
                 }
 
-                _subscribledSecutiries.Add(security.Name);
+                _subscribedSecutiries.Add(security.Name);
 
                 if (_webSocketPublic.Count == 0)
                 {
@@ -1292,8 +1292,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
-                    && _subscribledSecutiries.Count != 0
-                    && _subscribledSecutiries.Count % 50 == 0)
+                    && _subscribedSecutiries.Count != 0
+                    && _subscribedSecutiries.Count % 50 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1366,19 +1366,19 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         {
                             if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                if (_subscribledSecutiries != null)
+                                if (_subscribedSecutiries != null)
                                 {
-                                    for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
+                                    for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i2]}\"}}]}}");
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i2]}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{_subscribledSecutiries[i2]}\"}}]}}");
+                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
                                         }
 
-                                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{_subscribledSecutiries[i2]}\"}}]}}");
+                                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
                                     }
                                 }
                             }

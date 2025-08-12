@@ -156,12 +156,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     {
                         seriesReady.AddRange(series);
                         this.SetNewServiceInfo(
-                            "Security subscrible: " + secsToTest[i].Name);
+                            "Security subscribe: " + secsToTest[i].Name);
                     }
                 }
                 catch (Exception ex)
                 {
-                    this.SetNewError("Error 7. Error on subscrible: " + ex.ToString());
+                    this.SetNewError("Error 7. Error on subscribe: " + ex.ToString());
                     return null;
                 }
             }

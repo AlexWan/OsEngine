@@ -1731,7 +1731,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         #endregion
 
-        #region 7 Security subscrible
+        #region 7 Security subscribe
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(300));
 

@@ -102,7 +102,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Security subscrible
+        #region Security subscribe
 
         /// <summary>
         /// subscribe to trades and market depth

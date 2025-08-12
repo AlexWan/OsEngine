@@ -1643,7 +1643,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
 
         #endregion
 
-        #region  9  WebSocket security subscrible
+        #region  9  WebSocket security subscribe
 
         private List<string> _subscribedSecurities = new List<string>();
 

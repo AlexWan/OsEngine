@@ -137,7 +137,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             try
             {
                 UnsubscribeFromAllWebSockets();
-                _subscribledSecutiries.Clear();
+                _subscribedSecutiries.Clear();
                 DeleteWebSocketConnection();
             }
             catch (Exception exception)
@@ -809,7 +809,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         return;
                     }
 
-                    if (_subscribledSecutiries.Count > 0)
+                    if (_subscribedSecutiries.Count > 0)
                     {
                         if (_webSocketPublic.Count == 0
                             || _webSocketPublic == null)
@@ -1081,9 +1081,9 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #endregion
 
-        #region 8 Security subscrible
+        #region 8 Security subscribe
 
-        private List<string> _subscribledSecutiries = new List<string>();
+        private List<string> _subscribedSecutiries = new List<string>();
 
         public void Subscribe(Security security)
         {
@@ -1105,9 +1105,9 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 return;
             }
 
-            for (int i = 0; i < _subscribledSecutiries.Count; i++)
+            for (int i = 0; i < _subscribedSecutiries.Count; i++)
             {
-                if (_subscribledSecutiries[i].Equals(security.Name))
+                if (_subscribedSecutiries[i].Equals(security.Name))
                 {
                     return;
                 }
@@ -1144,13 +1144,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 return;
             }
 
-            _subscribledSecutiries.Add(security.Name);
+            _subscribedSecutiries.Add(security.Name);
 
             WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
             if (webSocketPublic.ReadyState == WebSocketState.Open
-                && _subscribledSecutiries.Count != 0
-                && _subscribledSecutiries.Count % 60 == 0)
+                && _subscribedSecutiries.Count != 0
+                && _subscribedSecutiries.Count % 60 == 0)
             {
                 // creating a new socket
                 WebSocket newSocket = CreateNewPublicSocket();
@@ -1200,11 +1200,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         {
                             if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                if (_subscribledSecutiries != null)
+                                if (_subscribedSecutiries != null)
                                 {
-                                    for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
+                                    for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
                                     {
-                                        string name = _subscribledSecutiries[i2];
+                                        string name = _subscribedSecutiries[i2];
 
                                         webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
                                         webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20\" }}");

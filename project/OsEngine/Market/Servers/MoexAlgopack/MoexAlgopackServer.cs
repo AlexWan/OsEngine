@@ -285,17 +285,17 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 
                 while (true)
                 {
-                    if (ServerStatus != ServerConnectStatus.Connect || _subscribledSecurities.Count == 0)
+                    if (ServerStatus != ServerConnectStatus.Connect || _subscribedSecurities.Count == 0)
                     {
                         Thread.Sleep(2000);
                         continue;
                     }
                     
-                    for (int i = 0; i < _subscribledSecurities.Count; i++)
+                    for (int i = 0; i < _subscribedSecurities.Count; i++)
                     {
                         if (_isPaidSubscription && _isAuthorized)
                         {
-                            MarketDepth marketDepth = GetQueryDepth(_subscribledSecurities[i]);
+                            MarketDepth marketDepth = GetQueryDepth(_subscribedSecurities[i]);
                             
                             if (marketDepth != null && marketDepth.Asks.Count !=0 && marketDepth.Bids.Count != 0)
                             {
@@ -318,14 +318,14 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                             }
                         }
                         
-                        string tradeId = lastTradeId.ContainsKey(_subscribledSecurities[i].NameId) ? lastTradeId[_subscribledSecurities[i].NameId] : "0";
+                        string tradeId = lastTradeId.ContainsKey(_subscribedSecurities[i].NameId) ? lastTradeId[_subscribedSecurities[i].NameId] : "0";
                         
-                        List<Trade> lastTrades = GetQueryTrades(tradeId, _subscribledSecurities[i]);
+                        List<Trade> lastTrades = GetQueryTrades(tradeId, _subscribedSecurities[i]);
 
                         if (lastTrades == null || lastTrades.Count == 0) continue;
                         
                         tradeId = lastTrades[lastTrades.Count - 1].Id;
-                        lastTradeId[_subscribledSecurities[i].NameId] = tradeId;
+                        lastTradeId[_subscribedSecurities[i].NameId] = tradeId;
                         
                         for(int j = 0; j < lastTrades.Count; j++)
                         {
@@ -372,11 +372,11 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 
                 NewTradesEvent?.Invoke(newTrade);
 
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    if(_subscribledSecurities[i].Name.Equals(newTrade.SecurityNameCode))
+                    if(_subscribedSecurities[i].Name.Equals(newTrade.SecurityNameCode))
                     {
-                        priceStep = _subscribledSecurities[i].PriceStep;
+                        priceStep = _subscribedSecurities[i].PriceStep;
                         break;
                     }
                 }
@@ -779,21 +779,21 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             HttpClient _httpPublicClient = new HttpClient(handler);
 
-            private List<Security> _subscribledSecurities = new List<Security>();
+            private List<Security> _subscribedSecurities = new List<Security>();
 
             private void CreateSubscribedSecurityMessage(Security security)
             {
                 try
                 {
-                    for (int i = 0; i < _subscribledSecurities.Count; i++)
+                    for (int i = 0; i < _subscribedSecurities.Count; i++)
                     {
-                        if (_subscribledSecurities[i].Name == security.Name)
+                        if (_subscribedSecurities[i].Name == security.Name)
                         {
                             return;
                         }
                     }
 
-                    _subscribledSecurities.Add(security);
+                    _subscribedSecurities.Add(security);
 
                 }
                 catch (Exception exception)

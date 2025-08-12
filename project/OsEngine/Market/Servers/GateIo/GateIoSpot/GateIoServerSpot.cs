@@ -998,7 +998,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         #endregion
 
-        #region 9 WebSocket security subscrible
+        #region 9 WebSocket security subscribe
 
         private readonly Dictionary<string, Security> _subscribedSecurities = new Dictionary<string, Security>();
 

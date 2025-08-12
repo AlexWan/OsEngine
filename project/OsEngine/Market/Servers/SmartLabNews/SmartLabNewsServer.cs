@@ -203,7 +203,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
 
         #endregion
 
-        #region 3 News subscrible
+        #region 3 News subscribe
 
         public bool SubscribeNews()
         {

@@ -879,7 +879,7 @@ contract =>
 
         #endregion
 
-        #region Security subscrible
+        #region Security subscribe
 
         private List<string> _connectedContracts = new List<string>();
 

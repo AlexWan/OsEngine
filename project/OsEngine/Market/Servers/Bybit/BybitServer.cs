@@ -1982,7 +1982,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         #endregion  8
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
         private List<string> SubscribeSecuritySpot = new List<string>();
 

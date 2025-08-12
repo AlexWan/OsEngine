@@ -952,7 +952,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         #endregion
 
-        #region 6 Security subscrible
+        #region 6 Security subscribe
 
         private List<string> subscribedBook = new List<string>();
 

@@ -166,7 +166,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
                 catch (Exception ex)
                 {
-                    this.SetNewError("Error 5. Error on subscrible: " + ex.ToString());
+                    this.SetNewError("Error 5. Error on subscribe: " + ex.ToString());
                     return false;
                 }
             }

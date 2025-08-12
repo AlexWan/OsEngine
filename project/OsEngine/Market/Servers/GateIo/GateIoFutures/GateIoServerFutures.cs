@@ -211,7 +211,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             try
             {
                 UnsubscribeFromAllWebSockets();
-                _subscribledSecutiries.Clear();
+                _subscribedSecutiries.Clear();
                 _allDepths.Clear();
 
                 DeleteWebSocketConnection();
@@ -1344,9 +1344,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         #endregion
 
-        #region 9 WebSocket security subscrible
+        #region 9 WebSocket security subscribe
 
-        private List<Security> _subscribledSecutiries = new List<Security>();
+        private List<Security> _subscribedSecutiries = new List<Security>();
 
         public void Subscribe(Security security)
         {
@@ -1357,18 +1357,18 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     return;
                 }
 
-                if (_subscribledSecutiries != null)
+                if (_subscribedSecutiries != null)
                 {
-                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    for (int i = 0; i < _subscribedSecutiries.Count; i++)
                     {
-                        if (_subscribledSecutiries[i].Name.Equals(security.Name))
+                        if (_subscribedSecutiries[i].Name.Equals(security.Name))
                         {
                             return;
                         }
                     }
                 }
 
-                _subscribledSecutiries.Add(security);
+                _subscribedSecutiries.Add(security);
 
                 if (_webSocketPublic.Count == 0)
                 {
@@ -1378,8 +1378,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
-                    && _subscribledSecutiries.Count != 0
-                    && _subscribledSecutiries.Count % 50 == 0)
+                    && _subscribedSecutiries.Count != 0
+                    && _subscribedSecutiries.Count % 50 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1605,11 +1605,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         {
                             if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                if (_subscribledSecutiries != null)
+                                if (_subscribedSecutiries != null)
                                 {
-                                    for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
+                                    for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
                                     {
-                                        string name = _subscribledSecutiries[i2].Name;
+                                        string name = _subscribedSecutiries[i2].Name;
                                         long time = TimeManager.GetUnixTimeStampSeconds();
                                         string level = "1";
 
@@ -1648,9 +1648,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 {
                     UnsubscribePortfolio();
 
-                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    for (int i = 0; i < _subscribedSecutiries.Count; i++)
                     {
-                        string name = _subscribledSecutiries[i].Name;
+                        string name = _subscribedSecutiries[i].Name;
 
                         UnsubscribeOrders(name);
                         UnsubscribeMyTrades(name);

@@ -1034,7 +1034,7 @@ namespace OsEngine.Market.Servers.BitMart
 
         #endregion
 
-        #region 9 WebSocket Security subscrible
+        #region 9 WebSocket Security subscribe
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(70));
 
