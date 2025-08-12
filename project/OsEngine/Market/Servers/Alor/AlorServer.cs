@@ -1537,7 +1537,7 @@ namespace OsEngine.Market.Servers.Alor
 
         List<Security> _subscribedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

@@ -1994,7 +1994,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(150));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

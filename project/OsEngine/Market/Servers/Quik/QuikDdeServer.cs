@@ -576,7 +576,7 @@ namespace OsEngine.Market.Servers.Quik
         /// подписаться на информацию по бумаге
         /// </summary>
         /// <param name="security"></param>
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
 
         }

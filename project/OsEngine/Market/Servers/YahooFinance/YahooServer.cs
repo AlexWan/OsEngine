@@ -462,7 +462,7 @@ namespace OsEngine.Market.Servers.YahooFinance
 
         public void GetPortfolios() { }
 
-        public void Subscrible(Security security) { }
+        public void Subscribe(Security security) { }
 
         public void SendOrder(Order order) { }
 

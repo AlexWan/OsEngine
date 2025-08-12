@@ -393,7 +393,7 @@ namespace OsEngine.Market.Servers.ZB
 
         public void GetSecurities() { }
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             SubscribeMarketDepth(security.Name);
             SubscribeTrades(security.Name);

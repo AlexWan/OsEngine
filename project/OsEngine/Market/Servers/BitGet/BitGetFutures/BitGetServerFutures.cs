@@ -1471,7 +1471,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (e.Data.Contains("login"))
                 {
-                    SubscriblePrivate();
+                    SubscribePrivate();
                 }
 
                 if (FIFOListWebSocketPrivateMessage == null)
@@ -1572,16 +1572,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         #region 9 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
         private List<Security> _subscribledSecutiries = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -1589,7 +1589,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             try
             {
@@ -1763,7 +1763,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void SubscriblePrivate()
+        private void SubscribePrivate()
         {
             try
             {
@@ -1884,11 +1884,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    ResponseWebSocketMessageSubscrible SubscribleState = null;
+                    ResponseWebSocketMessageSubscribe SubscribeState = null;
 
                     try
                     {
-                        SubscribleState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscrible());
+                        SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
                     }
                     catch (Exception error)
                     {
@@ -1897,13 +1897,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    if (SubscribleState.code != null)
+                    if (SubscribeState.code != null)
                     {
-                        if (SubscribleState.code.Equals("0") == false)
+                        if (SubscribeState.code.Equals("0") == false)
                         {
                             SendLogMessage("WebSocket listener error", LogMessageType.Error);
-                            SendLogMessage(SubscribleState.code + "\n" +
-                                SubscribleState.msg, LogMessageType.Error);
+                            SendLogMessage(SubscribeState.code + "\n" +
+                                SubscribeState.msg, LogMessageType.Error);
 
                             if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
                             { // if there are problems with the web socket startup, you need to restart it
@@ -1977,11 +1977,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    ResponseWebSocketMessageSubscrible SubscribleState = null;
+                    ResponseWebSocketMessageSubscribe SubscribeState = null;
 
                     try
                     {
-                        SubscribleState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscrible());
+                        SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
                     }
                     catch (Exception error)
                     {
@@ -1990,13 +1990,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    if (SubscribleState.code != null)
+                    if (SubscribeState.code != null)
                     {
-                        if (SubscribleState.code.Equals("0") == false)
+                        if (SubscribeState.code.Equals("0") == false)
                         {
                             SendLogMessage("WebSocket listener error", LogMessageType.Error);
-                            SendLogMessage(SubscribleState.code + "\n" +
-                                SubscribleState.msg, LogMessageType.Error);
+                            SendLogMessage(SubscribeState.code + "\n" +
+                                SubscribeState.msg, LogMessageType.Error);
 
                             if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
                             { // if there are problems with the web socket startup, you need to restart it

@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
         public string tradeId;
     }
 
-    public class ResponseWebSocketMessageSubscrible
+    public class ResponseWebSocketMessageSubscribe
     {
         public string Event;
         public string code;

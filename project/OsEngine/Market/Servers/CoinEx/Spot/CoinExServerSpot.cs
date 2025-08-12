@@ -944,7 +944,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private List<Security> _currentSubscribedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

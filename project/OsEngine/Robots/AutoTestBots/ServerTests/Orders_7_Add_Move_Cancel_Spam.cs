@@ -83,7 +83,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             Server.NewMarketDepthEvent += Server_NewMarketDepthEvent;
             Server.NewOrderIncomeEvent += Server_NewOrderIncomeEvent;
 
-            Server.ServerRealization.Subscrible(mySecurity);
+            Server.ServerRealization.Subscribe(mySecurity);
 
             DateTime timeStartWait = DateTime.Now.AddMinutes(2);
 

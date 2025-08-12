@@ -957,7 +957,7 @@ namespace OsEngine.Market.Servers.QuikLua
         private List<string> subscribedBook = new List<string>();
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

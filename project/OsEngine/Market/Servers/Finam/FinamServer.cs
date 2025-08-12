@@ -716,7 +716,7 @@ namespace OsEngine.Market.Servers.Finam
 
         #region 7 Unused methods
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
 
         }

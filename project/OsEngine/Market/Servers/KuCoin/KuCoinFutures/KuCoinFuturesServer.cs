@@ -873,7 +873,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         // https://www.kucoin.com/docs/basic-info/request-rate-limit/rest-api
         private RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(220));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

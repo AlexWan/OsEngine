@@ -806,7 +806,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         private List<string> _subscribedSecurities = new List<string>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

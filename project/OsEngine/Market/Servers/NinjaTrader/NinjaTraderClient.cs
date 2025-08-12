@@ -81,9 +81,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
 		/// subscribe to depths and trades
         /// подписаться на стаканы и трейды
         /// </summary>
-        public void SubscribleTradesAndDepths(Security securityName)
+        public void SubscribeTradesAndDepths(Security securityName)
         {
-            //string message = "Subscrible@" + securityName;
+            //string message = "Subscribe@" + securityName;
             //_messagesToSend.Enqueue(message);
         }
 

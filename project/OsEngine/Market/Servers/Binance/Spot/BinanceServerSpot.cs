@@ -1456,7 +1456,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private List<Security> _subscribledSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {

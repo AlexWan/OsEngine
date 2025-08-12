@@ -1348,7 +1348,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private List<Security> _subscribledSecutiries = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

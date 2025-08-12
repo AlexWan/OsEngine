@@ -692,14 +692,14 @@ namespace OsEngine.Market.Servers.Deribit
 
         #region 9 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -780,7 +780,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                             if (action.@params.channel.Contains("user.portfolio."))
                             {
-                                UpdatePortfolioFromSubscrible(message);
+                                UpdatePortfolioFromSubscribe(message);
                                 continue;
                             }
 
@@ -814,7 +814,7 @@ namespace OsEngine.Market.Servers.Deribit
                                 {
                                     if (response.@params.data.positions.Count != 0)
                                     {
-                                        UpdatePositionFromSubscrible(message);
+                                        UpdatePositionFromSubscribe(message);
                                     }
                                 }
                             }
@@ -952,7 +952,7 @@ namespace OsEngine.Market.Servers.Deribit
             }
         }
 
-        private void UpdatePortfolioFromSubscrible(string message)
+        private void UpdatePortfolioFromSubscribe(string message)
         {
             ResponseChannelPortfolio response = JsonConvert.DeserializeObject<ResponseChannelPortfolio>(message);
 
@@ -972,7 +972,7 @@ namespace OsEngine.Market.Servers.Deribit
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
 
-        private void UpdatePositionFromSubscrible(string message)
+        private void UpdatePositionFromSubscribe(string message)
         {
             ResponseChannelUserChanges response = JsonConvert.DeserializeObject<ResponseChannelUserChanges>(message);
 
@@ -1541,7 +1541,7 @@ namespace OsEngine.Market.Servers.Deribit
 
         private List<string> _subscribledSecurities = new List<string>();
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             if (webSocket == null)
             {
@@ -1565,10 +1565,10 @@ namespace OsEngine.Market.Servers.Deribit
             arrayChannels.Add($"ticker.{security.Name}.100ms");
             arrayChannels.AddRange(_arrayChannelsAccount);
 
-            SendSubscrible(arrayChannels);
+            SendSubscribe(arrayChannels);
         }
 
-        private void SendSubscrible(List<string> arrayChannels)
+        private void SendSubscribe(List<string> arrayChannels)
         {
             JsonRequest jsonRequest = new JsonRequest();
             jsonRequest.id = 4;

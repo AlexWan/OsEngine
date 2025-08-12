@@ -869,14 +869,14 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         #region 9 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -998,7 +998,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                         if (message.Contains("auth"))
                         {
-                            SendSubscriblePrivate();
+                            SendSubscribePrivate();
                             continue;
                         }
 
@@ -1009,12 +1009,12 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         }
                         if (message.Contains("accounts."))
                         {
-                            UpdatePortfolioFromSubscrible(message);
+                            UpdatePortfolioFromSubscribe(message);
                             continue;
                         }
                         if (message.Contains("positions."))
                         {
-                            UpdatePositionFromSubscrible(message);
+                            UpdatePositionFromSubscribe(message);
                             continue;
                         }
                     }
@@ -1268,7 +1268,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             return stateType;
         }
 
-        private void UpdatePortfolioFromSubscrible(string message)
+        private void UpdatePortfolioFromSubscribe(string message)
         {
             ResponseChannelPortfolio response = JsonConvert.DeserializeObject<ResponseChannelPortfolio>(message);
 
@@ -1301,7 +1301,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
 
-        private void UpdatePositionFromSubscrible(string message)
+        private void UpdatePositionFromSubscribe(string message)
         {
             ResponseChannelUpdatePositions response = JsonConvert.DeserializeObject<ResponseChannelUpdatePositions>(message);
 
@@ -1782,7 +1782,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private List<string> _subscribledSecurities = new List<string>();
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
 
             if (_webSocketPublic == null)
@@ -1809,7 +1809,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _arrayPublicChannels.Add(topic);
         }
 
-        private void SendSubscriblePrivate()
+        private void SendSubscribePrivate()
         {
             string clientId = "";
             string channelOrders = "orders.*";

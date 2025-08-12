@@ -1106,7 +1106,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         private List<string> _subscribedSecurities = new List<string>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {

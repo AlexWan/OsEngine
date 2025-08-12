@@ -495,7 +495,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
         {
         }
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
         }
 

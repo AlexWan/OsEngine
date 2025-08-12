@@ -1586,13 +1586,13 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         private RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(2500));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
                 _rateGateSubscribed.WaitToProceed();
 
-                CreateSubscribleMessageWebSocket(security);
+                CreateSubscribeMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -1600,7 +1600,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
         }
 
-        private void CreateSubscribleMessageWebSocket(Security security)
+        private void CreateSubscribeMessageWebSocket(Security security)
         {
             try
             {

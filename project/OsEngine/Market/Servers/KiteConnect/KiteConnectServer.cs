@@ -1219,7 +1219,7 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         List<Security> _subscribledSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

@@ -1361,14 +1361,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         #region 9 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -1378,7 +1378,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private List<string> _subscribledSecurities = new List<string>();
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
@@ -1501,7 +1501,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private void SendSubscriblePrivate()
+        private void SendSubscribePrivate()
         {
             string clientId = "";
             string channelOrders = "orders.*";
@@ -1880,7 +1880,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                         if (message.Contains("auth"))
                         {
-                            SendSubscriblePrivate();
+                            SendSubscribePrivate();
                             continue;
                         }
 
@@ -1892,13 +1892,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                         if (message.Contains("accounts") || message.Contains("accounts_unify"))
                         {
-                            UpdatePortfolioFromSubscrible(message);
+                            UpdatePortfolioFromSubscribe(message);
                             continue;
                         }
 
                         if (message.Contains("positions"))
                         {
-                            UpdatePositionFromSubscrible(message);
+                            UpdatePositionFromSubscribe(message);
                             continue;
                         }
 
@@ -2259,7 +2259,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             return stateType;
         }
 
-        private void UpdatePortfolioFromSubscrible(string message)
+        private void UpdatePortfolioFromSubscribe(string message)
         {
             if (Portfolios == null)
             {
@@ -2344,7 +2344,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private void UpdatePositionFromSubscrible(string message)
+        private void UpdatePositionFromSubscribe(string message)
         {
             try
             {

@@ -636,7 +636,7 @@ namespace OsEngine.Market.Servers.Hitbtc
         /// subscribe to this security to receive depths and trades
         /// подписать данную бумагу на получение стаканов и трейдов
         /// </summary>
-        public void SubscribleTradesAndDepths(Security security)
+        public void SubscribeTradesAndDepths(Security security)
         {
             try
             {

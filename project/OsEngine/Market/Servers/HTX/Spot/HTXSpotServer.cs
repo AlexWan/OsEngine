@@ -1223,14 +1223,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         #region 9 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(400));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(400));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -1240,7 +1240,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private List<string> _subscribledSecurities = new List<string>();
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
@@ -1313,7 +1313,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
         }
 
-        private void SendSubscriblePrivate()
+        private void SendSubscribePrivate()
         {
             string chOrders = "orders#*";
             string chTrades = "trade.clearing#*#0";
@@ -1560,7 +1560,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                         if (message.Contains("auth"))
                         {
-                            SendSubscriblePrivate();
+                            SendSubscribePrivate();
                             continue;
                         }
 

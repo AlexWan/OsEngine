@@ -1087,7 +1087,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             "TQIF", // паи
         };
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             for (int i = 0; i < _subscribedSecurities.Count; i++)
             {

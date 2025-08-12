@@ -1085,11 +1085,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private List<string> _subscribledSecutiries = new List<string>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                CreateSubscribleSecurityMessageWebSocket(security);
+                CreateSubscribeSecurityMessageWebSocket(security);
                 Thread.Sleep(100);
             }
             catch (Exception exception)
@@ -1098,7 +1098,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {

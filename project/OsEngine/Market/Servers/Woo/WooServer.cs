@@ -655,14 +655,14 @@ namespace OsEngine.Market.Servers.Woo
 
         #region 9 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -787,7 +787,7 @@ namespace OsEngine.Market.Servers.Woo
 
                         if (message.Contains("auth"))
                         {                            
-                            SendSubscriblePrivate();
+                            SendSubscribePrivate();
                             continue;
                         }
 
@@ -801,11 +801,11 @@ namespace OsEngine.Market.Servers.Woo
                             }
                             if (action.topic.Equals("position"))
                             {
-                                UpdatePositionFromSubscrible(message);
+                                UpdatePositionFromSubscribe(message);
                             }
                             if (action.topic.Equals("balance"))
                             {
-                                UpdatePortfolioFromSubscrible(message);
+                                UpdatePortfolioFromSubscribe(message);
                             }
                         }      
                     }
@@ -954,7 +954,7 @@ namespace OsEngine.Market.Servers.Woo
 
         private DateTime _lastTimeMd;
 
-        private void UpdatePortfolioFromSubscrible(string message)
+        private void UpdatePortfolioFromSubscribe(string message)
         {
             ResponseChannelPortfolio response = JsonConvert.DeserializeObject<ResponseChannelPortfolio>(message);
 
@@ -982,7 +982,7 @@ namespace OsEngine.Market.Servers.Woo
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
 
-        private void UpdatePositionFromSubscrible(string message)
+        private void UpdatePositionFromSubscribe(string message)
         {
             ResponseChannelUpdatePositions response = JsonConvert.DeserializeObject<ResponseChannelUpdatePositions>(message);
 
@@ -1301,7 +1301,7 @@ namespace OsEngine.Market.Servers.Woo
 
         private List<string> _subscribledSecurities = new List<string>();
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             if (_webSocketPublic == null)
             {
@@ -1332,11 +1332,11 @@ namespace OsEngine.Market.Servers.Woo
             }
             for (int i = 0; i < _arrayChannels.Count;i++)
             {
-                SendSubscrible(_arrayChannels[i]);
+                SendSubscribe(_arrayChannels[i]);
             }           
         }
 
-        private void SendSubscrible(string channel)
+        private void SendSubscribe(string channel)
         {
             string json = JsonConvert.SerializeObject(new
             {
@@ -1347,7 +1347,7 @@ namespace OsEngine.Market.Servers.Woo
             _webSocketPublic.Send(json);
         }
 
-        private void SendSubscriblePrivate()
+        private void SendSubscribePrivate()
         {
             for (int i = 0; i < _listPrivateChannel.Count; i++)
             {

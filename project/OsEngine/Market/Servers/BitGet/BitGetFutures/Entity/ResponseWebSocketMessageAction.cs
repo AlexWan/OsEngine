@@ -19,7 +19,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string tradeId;
     }
 
-    public class ResponseWebSocketMessageSubscrible
+    public class ResponseWebSocketMessageSubscribe
     {
         public string Event;
         public string code;

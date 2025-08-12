@@ -13,7 +13,7 @@ namespace OsEngine.Market.Servers.BloFin.Entity
         public string msg { get; set; }
     }
 
-    public class ResponseWebSocketMessageSubscrible
+    public class ResponseWebSocketMessageSubscribe
     {
 
     }

@@ -965,15 +965,15 @@ namespace OsEngine.Market.Servers.BloFin
 
         #region 9 Security subscribe
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(1000));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(1000));
 
         private List<Security> _subscribledSecutiries = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
+                _rateGateSubscribe.WaitToProceed();
 
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {

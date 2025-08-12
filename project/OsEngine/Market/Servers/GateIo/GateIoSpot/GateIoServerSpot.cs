@@ -1002,11 +1002,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private readonly Dictionary<string, Security> _subscribedSecurities = new Dictionary<string, Security>();
 
-        private RateGate _rateGateSubscrible = new RateGate(2, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateSubscribe = new RateGate(2, TimeSpan.FromMilliseconds(100));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
-            _rateGateSubscrible.WaitToProceed();
+            _rateGateSubscribe.WaitToProceed();
 
             try
             {

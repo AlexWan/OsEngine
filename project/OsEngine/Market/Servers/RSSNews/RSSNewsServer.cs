@@ -340,7 +340,7 @@ namespace OsEngine.Market.Servers.RSSNews
         {
         }
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
         }
 

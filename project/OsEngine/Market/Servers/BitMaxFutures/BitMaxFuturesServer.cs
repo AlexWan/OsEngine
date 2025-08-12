@@ -95,7 +95,7 @@ namespace OsEngine.Market.Servers.BitMaxFutures
                     ServerStatus = ServerConnectStatus.Connect;
                     IsConnectedWebSocket = true;
                     IsConnectedWebSocketPrivate = true;
-                    SubscriblePrivateChanel();
+                    SubscribePrivateChanel();
                 }
                 else
                 {
@@ -488,7 +488,7 @@ namespace OsEngine.Market.Servers.BitMaxFutures
         private ConcurrentQueue<string> _newMessageWebSocket = new ConcurrentQueue<string>();
         private object lockerWs = new object();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
 
             WebSocket _wsClient;
@@ -661,7 +661,7 @@ namespace OsEngine.Market.Servers.BitMaxFutures
         private WebSocket _wsClientPrivate;
         private ConcurrentQueue<string> _newMessageWebSocketPrivate = new ConcurrentQueue<string>();
 
-        public void SubscriblePrivateChanel()
+        public void SubscribePrivateChanel()
         {
             _wsClientPrivate = new WebSocket(WebsocketPrivateChanel.Replace("<grp>", AccGroup));
 

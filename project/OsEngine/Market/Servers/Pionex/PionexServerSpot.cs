@@ -512,7 +512,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         private RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(500));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

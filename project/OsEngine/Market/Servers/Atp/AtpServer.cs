@@ -1302,7 +1302,7 @@ namespace OsEngine.Market.Servers.Atp
 
         private List<Security> _subscribeSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

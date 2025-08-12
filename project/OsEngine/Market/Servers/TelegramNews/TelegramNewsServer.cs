@@ -511,7 +511,7 @@ namespace OsEngine.Market.Servers.TelegramNews
         {
         }
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
         }
 

@@ -23,12 +23,12 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         private InteractiveBrokersServerRealization _server;
 
-        public IbContractStorageUi(List<SecurityIb> secToSubscrible, InteractiveBrokersServerRealization server)
+        public IbContractStorageUi(List<SecurityIb> secToSubscribe, InteractiveBrokersServerRealization server)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
-            SecToSubscrible = secToSubscrible;
+            SecToSubscribe = secToSubscribe;
             _server = server;
 
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
@@ -114,7 +114,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             SaveSecFromTable();
         }
 
-        public List<SecurityIb> SecToSubscrible;
+        public List<SecurityIb> SecToSubscribe;
 
         private void LoadSecOnTable()
         {
@@ -126,39 +126,39 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
             _grid.Rows.Clear();
 
-            if (SecToSubscrible == null ||
-                SecToSubscrible.Count == 0)
+            if (SecToSubscribe == null ||
+                SecToSubscribe.Count == 0)
             {
                 return;
             }
 
-            for (int i = 0; SecToSubscrible != null && SecToSubscrible.Count != 0 && i < SecToSubscrible.Count; i++)
+            for (int i = 0; SecToSubscribe != null && SecToSubscribe.Count != 0 && i < SecToSubscribe.Count; i++)
             {
 
                 DataGridViewRow nRow = new DataGridViewRow();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[0].Value = SecToSubscrible[i].Symbol;
+                nRow.Cells[0].Value = SecToSubscribe[i].Symbol;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = SecToSubscrible[i].Exchange;
+                nRow.Cells[1].Value = SecToSubscribe[i].Exchange;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = SecToSubscrible[i].SecType;
+                nRow.Cells[2].Value = SecToSubscribe[i].SecType;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[3].Value = SecToSubscrible[i].LocalSymbol;
+                nRow.Cells[3].Value = SecToSubscribe[i].LocalSymbol;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[4].Value = SecToSubscrible[i].PrimaryExch;
+                nRow.Cells[4].Value = SecToSubscribe[i].PrimaryExch;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[5].Value = SecToSubscrible[i].Currency;
+                nRow.Cells[5].Value = SecToSubscribe[i].Currency;
 
                 DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
                 cell.Items.Add(true.ToString());
                 cell.Items.Add(false.ToString());
-                cell.Value = SecToSubscrible[i].CreateMarketDepthFromTrades.ToString();
+                cell.Value = SecToSubscribe[i].CreateMarketDepthFromTrades.ToString();
 
                 nRow.Cells.Add(cell);
 
@@ -168,15 +168,15 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         private void SaveSecFromTable()
         {
-            if (SecToSubscrible == null ||
-                SecToSubscrible.Count == 0)
+            if (SecToSubscribe == null ||
+                SecToSubscribe.Count == 0)
             {
                 return;
             }
 
             for (int i = 0; i < _grid.Rows.Count; i++)
             {
-                SecurityIb security = SecToSubscrible[i];
+                SecurityIb security = SecToSubscribe[i];
 
                 security.Symbol = Convert.ToString(_grid.Rows[i].Cells[0].Value);
                 security.Exchange = Convert.ToString(_grid.Rows[i].Cells[1].Value);
@@ -226,17 +226,17 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 return;
             }
 
-            SecToSubscrible.RemoveAt(_grid.CurrentCell.RowIndex);
+            SecToSubscribe.RemoveAt(_grid.CurrentCell.RowIndex);
             LoadSecOnTable();
         }
 
         void AlertCreate_Click(object sender, EventArgs e)
         {
-            if (SecToSubscrible == null)
+            if (SecToSubscribe == null)
             {
-                SecToSubscrible = new List<SecurityIb>();
+                SecToSubscribe = new List<SecurityIb>();
             }
-            SecToSubscrible.Insert(0, new SecurityIb());
+            SecToSubscribe.Insert(0, new SecurityIb());
             LoadSecOnTable();
         }
 

@@ -174,9 +174,9 @@ namespace OsEngine.Market.Servers.ExMo
         /// subscribe
         /// подписаться 
         /// </summary>
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
-            _client.SubscribleTradesAndDepths(security);
+            _client.SubscribeTradesAndDepths(security);
         }
 
         public bool SubscribeNews()

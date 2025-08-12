@@ -2092,7 +2092,7 @@ namespace OsEngine.Market.Servers
 
                     CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
-                    ServerRealization.Subscrible(security);
+                    ServerRealization.Subscribe(security);
 
                     _candleManager.StartSeries(series);
 

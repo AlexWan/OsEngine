@@ -1349,7 +1349,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
         private bool _isPrivateSubscribed = false;
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
@@ -1361,7 +1361,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
             }
             catch (Exception exception)
             {
-                SendLogMessage($"Exception in Subscrible: {exception}", LogMessageType.Error);
+                SendLogMessage($"Exception in Subscribe: {exception}", LogMessageType.Error);
             }
         }
 

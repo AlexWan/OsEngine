@@ -808,7 +808,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

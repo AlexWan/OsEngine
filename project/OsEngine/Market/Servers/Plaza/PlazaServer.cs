@@ -1795,7 +1795,7 @@ namespace OsEngine.Market.Servers.Plaza
         /// </summary>
         private List<Security> _securitiesDepth;
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             if (_securitiesDepth == null)
             {

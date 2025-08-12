@@ -65,7 +65,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             worker1.Name = "CheckAliveFinamGrpc";
             worker1.Start();
 
-            Thread worker2 = new Thread(ReSubscribleThread);
+            Thread worker2 = new Thread(ReSubscribeThread);
             worker2.Name = "ReIssueTokenThreadFinamGrpc";
             worker2.Start();
 
@@ -824,7 +824,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         #region 7 Security subscribe
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             if (security == null)
             {
@@ -875,7 +875,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
         }
 
-        public void ReSubscrible(Security security)
+        public void ReSubscribe(Security security)
         {
             if (security == null)
             {
@@ -1506,7 +1506,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         /// <summary>
         /// Срок жизни JWT-токена 15 минут
         /// </summary>
-        private void ReSubscribleThread()
+        private void ReSubscribeThread()
         {
             int ms = Convert.ToInt32(_jwtTokenLifetime.TotalMilliseconds) - 60000;
             while (true)
@@ -1522,7 +1522,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                 for (int i = 0; i < _subscribedSecurities.Count - 1; i++)
                 {
-                    ReSubscrible(_subscribedSecurities[i]);
+                    ReSubscribe(_subscribedSecurities[i]);
                 }
             }
         }

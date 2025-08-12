@@ -560,7 +560,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                             _unsignedSecurities.Remove(security);
 
-                            Subscrible(security);
+                            Subscribe(security);
                         }
                     }
                     else
@@ -1739,7 +1739,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         private List<Security> _unsignedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {

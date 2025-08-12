@@ -842,7 +842,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     else if (CurTestType == ServerTestType.Conn_4)
                     {
                         Conn_4_Validation_Candles tester = new Conn_4_Validation_Candles();
-                        tester.SecutiesToSubscrible = C4_SecuritiesNames.ValueString;
+                        tester.SecutiesToSubscribe = C4_SecuritiesNames.ValueString;
                         tester.SecuritiesClass = C4_SecuritiesClass.ValueString;
                         tester.SecuritiesSeparator = C4_SecuritiesSeparator.ValueString;
                         tester.LogMessage += SendNewLogMessage;

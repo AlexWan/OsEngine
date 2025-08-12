@@ -198,7 +198,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         {
             IbContractStorageUi ui = new IbContractStorageUi(_secIB, this);
             ui.ShowDialog();
-            _secIB = ui.SecToSubscrible;
+            _secIB = ui.SecToSubscribe;
             GetSecurities();
         }
 
@@ -221,7 +221,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                             continue;
                         }
                         string saveStr = "";
-                        //saveStr +=  _secToSubscrible[i].ComboLegs + "@";
+                        //saveStr +=  _secToSubscribe[i].ComboLegs + "@";
                         saveStr += _secIB[i].ComboLegsDescription + "@";
                         saveStr += /*_secIB[i].ConId+ */ "@";
                         saveStr += _secIB[i].Currency + "@";
@@ -239,7 +239,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                         saveStr += _secIB[i].Symbol +  "@";
                         saveStr += /*_secIB[i].TradingClass +*/ "@";
                         saveStr += _secIB[i].CreateMarketDepthFromTrades + "@";
-                        //saveStr += _secToSubscrible[i].UnderComp + "@";
+                        //saveStr += _secToSubscribe[i].UnderComp + "@";
 
 
                         writer.WriteLine(saveStr);
@@ -887,7 +887,7 @@ contract =>
 
         private string _subLocker = "subLocker";
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             while (_securitiesIsConnect == false)
             {

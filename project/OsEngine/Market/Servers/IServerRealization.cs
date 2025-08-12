@@ -108,7 +108,7 @@ namespace OsEngine.Market.Servers
         /// subscribe to trades and market depth
         /// подписаться на трейды и стаканы
         /// </summary>
-        void Subscrible(Security security);
+        void Subscribe(Security security);
 
         /// <summary>
         /// subscribe to news
