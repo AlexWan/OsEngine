@@ -111,6 +111,12 @@ namespace OsEngine.Market.Servers
         void Subscribe(Security security);
 
         /// <summary>
+        /// unsubscribe from trades and orderbooks
+        /// отписаться от трейдов и стаканов
+        /// </summary>
+        void Unsubscribe(Security security) { } // default empty implementation
+
+        /// <summary>
         /// subscribe to news
         /// </summary>
         bool SubscribeNews();
