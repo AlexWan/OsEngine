@@ -136,6 +136,11 @@ namespace OsEngine.Market.AutoFollow
                         continue;
                     }
 
+                    if(MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
                     for(int i = 0;i < PortfolioToCopy.Count;i++)
                     {
                         PortfolioToCopy[i].Process(MasterRobotsNames);
@@ -772,19 +777,36 @@ namespace OsEngine.Market.AutoFollow
 
             List<PositionToCopy> copyPositions = GetPositionsFromBots();
 
-            // 2 берём позиции из журнала копировщика. Сортируем
+            // 2 берём позиции из журнала копировщика. 
 
             List<Position> positionsFromCopyTrader = MyJournal.OpenPositions;
 
-            for(int i = 0;i < positionsFromCopyTrader.Count;i++)
+            // 3 Если в рынке есть ордера - ждём пока исполнятся
+
+            for (int i = 0; i < positionsFromCopyTrader.Count; i++)
+            {
+                Position position = positionsFromCopyTrader[i];
+
+                if(position.OpenActive == true 
+                    || position.CloseActive == true)
+                {
+                    return;
+                }
+            }
+
+            // 4 ищем позиции копировщика, которые уже закрылись в роботах
+
+            bool haveLostPositions = false;
+
+            for (int i = 0; i < positionsFromCopyTrader.Count; i++)
             {
                 Position position = positionsFromCopyTrader[i];
 
                 bool isInArray = false;
 
-                for(int j = 0;j < copyPositions.Count;j++)
+                for (int j = 0; j < copyPositions.Count; j++)
                 {
-                    if(position.SecurityName == copyPositions[j].SlaveSecurityName)
+                    if (position.SecurityName == copyPositions[j].SlaveSecurityName)
                     {
                         isInArray = true;
                         copyPositions[j].SetPositionCopyJournal(position);
@@ -794,7 +816,7 @@ namespace OsEngine.Market.AutoFollow
 
                 if (isInArray == false)
                 {
-                    // 3 закрываем позиции по инструментам которые были закрыты у робота
+                    // 5 закрываем позиции по инструментам которые были закрыты у робота
 
                     if (OrderType == CopyTraderOrdersType.Market || IcebergCount <= 1)
                     {
@@ -804,14 +826,17 @@ namespace OsEngine.Market.AutoFollow
                     {
                         CloseAtMarketIceberg(position, position.OpenVolume, IcebergCount, null);
                     }
+                    _timeNoTrade = DateTime.Now.AddSeconds(5);
+                    haveLostPositions = true;
                 }
             }
 
-          
+            if(haveLostPositions == true)
+            {
+                return;
+            }
 
-
-
-            // 4 открываем новые позиции если есть расбалансировка
+            // 6 открываем новые позиции если есть расбалансировка
 
             for(int i = 0;i < copyPositions.Count;i++)
             {
