@@ -1296,13 +1296,13 @@ namespace OsEngine.Market.Servers.Atp
 
         #endregion
 
-        #region 8 WebSocket security subscrible
+        #region 8 WebSocket security subscribe
 
         private RateGate rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
         private List<Security> _subscribeSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

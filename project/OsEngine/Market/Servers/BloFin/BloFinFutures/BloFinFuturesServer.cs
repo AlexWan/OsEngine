@@ -110,7 +110,7 @@ namespace OsEngine.Market.Servers.BloFin
             try
             {
                 UnsubscribeFromAllWebSockets();
-                _subscribledSecutiries.Clear();
+                _subscribedSecutiries.Clear();
                 DeleteWebSocketConnection();
             }
             catch (Exception ex)
@@ -965,33 +965,33 @@ namespace OsEngine.Market.Servers.BloFin
 
         #region 9 Security subscribe
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(1000));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(1000));
 
-        private List<Security> _subscribledSecutiries = new List<Security>();
+        private List<Security> _subscribedSecutiries = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
+                _rateGateSubscribe.WaitToProceed();
 
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
                 }
 
-                if (_subscribledSecutiries != null)
+                if (_subscribedSecutiries != null)
                 {
-                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    for (int i = 0; i < _subscribedSecutiries.Count; i++)
                     {
-                        if (_subscribledSecutiries[i].Name.Equals(security.Name))
+                        if (_subscribedSecutiries[i].Name.Equals(security.Name))
                         {
                             return;
                         }
                     }
                 }
 
-                _subscribledSecutiries.Add(security);
+                _subscribedSecutiries.Add(security);
 
                 _webSocketPublic?.Send($"{{\"op\":\"subscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
                 _webSocketPublic?.Send($"{{\"op\":\"subscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");
@@ -1023,9 +1023,9 @@ namespace OsEngine.Market.Servers.BloFin
             {
                 try
                 {
-                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    for (int i = 0; i < _subscribedSecutiries.Count; i++)
                     {
-                        Security security = _subscribledSecutiries[i];
+                        Security security = _subscribedSecutiries[i];
 
                         _webSocketPublic.Send($"{{\"op\":\"unsubscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
                         _webSocketPublic.Send($"{{\"op\":\"unsubscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");

@@ -186,7 +186,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             DisposeSockets();
 
-            _subscribledSecurities.Clear();
+            _subscribedSecurities.Clear();
             _securities = new List<Security>();
             _depths.Clear();
             _queuePrivateMessages = new ConcurrentQueue<BinanceUserMessage>();
@@ -1598,27 +1598,27 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
-        private List<Security> _subscribledSecurities = new List<Security>();
+        private List<Security> _subscribedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
                 return;
             }
 
-            for (int i = 0; i < _subscribledSecurities.Count; i++)
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
             {
-                if (_subscribledSecurities[i].NameClass == security.NameClass
-                    && _subscribledSecurities[i].Name == security.Name)
+                if (_subscribedSecurities[i].NameClass == security.NameClass
+                    && _subscribedSecurities[i].Name == security.Name)
                 {
                     return;
                 }
             }
 
-            _subscribledSecurities.Add(security);
+            _subscribedSecurities.Add(security);
 
             string urlStrDepth = null;
 
@@ -1729,8 +1729,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 try
                 {
-                    if (_subscribledSecurities != null
-                    && _subscribledSecurities.Count > 0
+                    if (_subscribedSecurities != null
+                    && _subscribedSecurities.Count > 0
                     && _extendedMarketData)
                     {
                         if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
@@ -1760,9 +1760,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             try
             {
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/openInterest", new Dictionary<string, string>() { { "symbol=", _subscribledSecurities[i].Name } }, false);
+                    string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/openInterest", new Dictionary<string, string>() { { "symbol=", _subscribedSecurities[i].Name } }, false);
 
                     OpenInterestInfo response = JsonConvert.DeserializeAnonymousType(res, new OpenInterestInfo());
 

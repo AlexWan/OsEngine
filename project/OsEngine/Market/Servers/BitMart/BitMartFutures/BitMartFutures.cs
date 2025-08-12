@@ -140,7 +140,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
             FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-            _subscribledSecurities.Clear();
+            _subscribedSecurities.Clear();
             _securities = new List<Security>();
             Disconnect();
         }
@@ -1078,7 +1078,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                     if (e.Data.Contains("{\"action\":\"access\",\"success\":true}\n"))
                     {
-                        SubscriblePrivate();
+                        SubscribePrivate();
                     }
 
                     if (e.Data.Contains("pong"))
@@ -1196,33 +1196,33 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         #endregion
 
-        #region 9 WebSocket Security subscrible
+        #region 9 WebSocket Security subscribe
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
-        private List<Security> _subscribledSecurities = new List<Security>();
+        private List<Security> _subscribedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
+                _rateGateSubscribe.WaitToProceed();
 
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
                 }
 
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    if (_subscribledSecurities[i].NameClass == security.NameClass
-                    && _subscribledSecurities[i].Name == security.Name)
+                    if (_subscribedSecurities[i].NameClass == security.NameClass
+                    && _subscribedSecurities[i].Name == security.Name)
                     {
                         return;
                     }
                 }
 
-                _subscribledSecurities.Add(security);
+                _subscribedSecurities.Add(security);
 
                 if (_webSocketPublic.Count == 0)
                 {
@@ -1232,8 +1232,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
-                    && _subscribledSecurities.Count != 0
-                    && _subscribledSecurities.Count % 40 == 0)
+                    && _subscribedSecurities.Count != 0
+                    && _subscribedSecurities.Count % 40 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1316,7 +1316,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
         }
 
-        private void SubscriblePrivate()
+        private void SubscribePrivate()
         {
             try
             {
@@ -1345,11 +1345,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
                         {
                             if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                if (_subscribledSecurities != null)
+                                if (_subscribedSecurities != null)
                                 {
-                                    for (int j = 0; j < _subscribledSecurities.Count; j++)
+                                    for (int j = 0; j < _subscribedSecurities.Count; j++)
                                     {
-                                        string securityName = _subscribledSecurities[j].Name;
+                                        string securityName = _subscribedSecurities[j].Name;
 
                                         webSocketPublic.Send($" {{ \"action\":\"unsubscribe\", \"args\":[\"futures/trade:{securityName}\"]}}");
                                         webSocketPublic.Send($"{{ \"action\":\"unsubscribe\",\"args\":[\"futures/depth20:{securityName}@100ms\"]}}");
@@ -1406,8 +1406,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 try
                 {
-                    if (_subscribledSecurities != null
-                    && _subscribledSecurities.Count > 0
+                    if (_subscribedSecurities != null
+                    && _subscribedSecurities.Count > 0
                     && _extendedMarketData)
                     {
                         if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
@@ -1439,9 +1439,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
             try
             {
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    RestRequest requestRest = new RestRequest("/contract/public/details?symbol=" + _subscribledSecurities[i].Name, Method.GET);
+                    RestRequest requestRest = new RestRequest("/contract/public/details?symbol=" + _subscribedSecurities[i].Name, Method.GET);
                     RestClient client = new RestClient(_baseUrl);
                     IRestResponse response = client.Execute(requestRest);
 

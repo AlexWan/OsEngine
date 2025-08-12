@@ -936,7 +936,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         }
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
@@ -944,7 +944,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private List<Security> _currentSubscribedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

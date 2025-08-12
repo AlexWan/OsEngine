@@ -1531,13 +1531,13 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 9 WebSocket Security subscrible
+        #region 9 WebSocket Security subscribe
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         List<Security> _subscribedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

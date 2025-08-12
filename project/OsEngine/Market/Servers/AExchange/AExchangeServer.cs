@@ -844,7 +844,7 @@ namespace OsEngine.Market.Servers.AE
 
         List<Security> _subscribedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

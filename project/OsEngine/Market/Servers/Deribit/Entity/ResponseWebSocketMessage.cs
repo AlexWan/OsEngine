@@ -15,7 +15,7 @@ namespace OsEngine.Market.Servers.Deribit.Entity
      
     }
 
-    public class ResponseWebSocketMessageSubscrible
+    public class ResponseWebSocketMessageSubscribe
     {
         public string error;
     }

@@ -85,7 +85,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 3 берём стакан котировок
 
-            Server.ServerRealization.Subscrible(mySecurity);
+            Server.ServerRealization.Subscribe(mySecurity);
 
             DateTime timeStartWait = DateTime.Now.AddMinutes(2);
 

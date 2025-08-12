@@ -206,7 +206,7 @@ namespace OsEngine.Market.Servers.Lmax
 		/// subscribe to get instrument data
         /// подписаться на получение данных по инструменту
         /// </summary>
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             _client.SubscribeToPaper(security.NameId);
         }

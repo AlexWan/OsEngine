@@ -304,7 +304,7 @@ namespace OsEngine.Market.Servers.BitMax
         /// subscribe
         /// подписаться 
         /// </summary>
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             _client.SubscribeTradesAndDepths(security.Name);
         }

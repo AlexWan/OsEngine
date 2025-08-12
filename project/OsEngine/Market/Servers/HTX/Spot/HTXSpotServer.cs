@@ -129,7 +129,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            _subscribledSecurities.Clear();
+            _subscribedSecurities.Clear();
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
             Disconnect();
@@ -1221,16 +1221,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(400));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(400));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -1238,9 +1238,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
         }
 
-        private List<string> _subscribledSecurities = new List<string>();
+        private List<string> _subscribedSecurities = new List<string>();
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
@@ -1252,15 +1252,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 return;
             }
 
-            for (int i = 0; i < _subscribledSecurities.Count; i++)
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
             {
-                if (_subscribledSecurities[i].Equals(security.Name))
+                if (_subscribedSecurities[i].Equals(security.Name))
                 {
                     return;
                 }
             }
 
-            _subscribledSecurities.Add(security.Name);
+            _subscribedSecurities.Add(security.Name);
 
             if (_webSocketPublic.Count == 0)
             {
@@ -1270,8 +1270,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
             WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
             if (webSocketPublic.ReadyState == WebSocketState.Open
-                && _subscribledSecurities.Count != 0
-                && _subscribledSecurities.Count % 150 == 0)
+                && _subscribedSecurities.Count != 0
+                && _subscribedSecurities.Count % 150 == 0)
             {
                 // creating a new socket
                 WebSocket newSocket = CreateNewPublicSocket();
@@ -1313,7 +1313,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
         }
 
-        private void SendSubscriblePrivate()
+        private void SendSubscribePrivate()
         {
             string chOrders = "orders#*";
             string chTrades = "trade.clearing#*#0";
@@ -1378,11 +1378,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     {
                         if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            if (_subscribledSecurities != null)
+                            if (_subscribedSecurities != null)
                             {
-                                for (int j = 0; j < _subscribledSecurities.Count; j++)
+                                for (int j = 0; j < _subscribedSecurities.Count; j++)
                                 {
-                                    string securityName = _subscribledSecurities[j];
+                                    string securityName = _subscribedSecurities[j];
 
                                     string topic = $"market.{securityName}.mbp.refresh.20";
                                     webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
@@ -1560,7 +1560,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                         if (message.Contains("auth"))
                         {
-                            SendSubscriblePrivate();
+                            SendSubscribePrivate();
                             continue;
                         }
 

@@ -185,16 +185,16 @@ namespace OsEngine.Market.Servers.ExMo
 
         #region Подписка на дату
 
-        List<Security> _securitiesSubscrible = new List<Security>();
+        List<Security> _securitiesSubscribe = new List<Security>();
 
-        public void SubscribleTradesAndDepths(Security security)
+        public void SubscribeTradesAndDepths(Security security)
         {
-            if (_securitiesSubscrible.Find(s => s.Name == security.Name) != null)
+            if (_securitiesSubscribe.Find(s => s.Name == security.Name) != null)
             {
                 return;
             }
 
-            _securitiesSubscrible.Add(security);
+            _securitiesSubscribe.Add(security);
         }
 
         private DateTime _lastBalanceUpdTime;
@@ -224,7 +224,7 @@ namespace OsEngine.Market.Servers.ExMo
                         _lastBalanceUpdTime = DateTime.Now;
                     }
 
-                    string secStr = GetSecuritiesString(_securitiesSubscrible);
+                    string secStr = GetSecuritiesString(_securitiesSubscribe);
 
                     GetTrade(secStr);
                     GetMarketDepth(secStr);

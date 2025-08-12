@@ -1119,7 +1119,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

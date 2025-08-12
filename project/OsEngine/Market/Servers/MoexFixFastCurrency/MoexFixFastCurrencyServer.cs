@@ -848,11 +848,11 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         #endregion
 
-        #region  7 Security subscrible
+        #region  7 Security subscribe
 
         private List<string> _subscribedSecurities = new List<string>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {

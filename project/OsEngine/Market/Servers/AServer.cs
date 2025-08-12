@@ -2092,7 +2092,7 @@ namespace OsEngine.Market.Servers
 
                     CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
 
-                    ServerRealization.Subscrible(security);
+                    ServerRealization.Subscribe(security);
 
                     _candleManager.StartSeries(series);
 
@@ -2135,6 +2135,11 @@ namespace OsEngine.Market.Servers
             {
                 _candleStorage.RemoveSeries(series);
             }
+
+            Security security = series.Security;
+            ServerRealization.Unsubscribe(security);
+
+            RemoveSecurityFromSubscribed(security.Name, security.NameClass);
         }
 
         /// <summary>
@@ -2286,6 +2291,31 @@ namespace OsEngine.Market.Servers
 
             _subscribeSecurities.Add(newSubscribeSecurity);
         }
+
+        private void RemoveSecurityFromSubscribed(string securityName, string securityClass)
+        {
+            // remove security from subscribed list
+            if (_subscribeSecurities == null || _subscribeSecurities.Count == 0)
+            {
+                return;
+            }
+
+            if (securityName == null || securityClass == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _subscribeSecurities.Count; i++)
+            {
+                if (_subscribeSecurities[i].SecurityName == securityName
+                    && _subscribeSecurities[i].SecurityClass == securityClass)
+                {
+                    _subscribeSecurities.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+
 
         private void CheckDataFlowThread()
         {

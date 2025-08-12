@@ -174,7 +174,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             try
             {
                 UnsubscribeFromAllWebSockets();
-                _subscribledSecutiries.Clear();
+                _subscribedSecutiries.Clear();
                 DeleteWebSocketConnection();
             }
             catch (Exception exception)
@@ -1471,7 +1471,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (e.Data.Contains("login"))
                 {
-                    SubscriblePrivate();
+                    SubscribePrivate();
                 }
 
                 if (FIFOListWebSocketPrivateMessage == null)
@@ -1570,18 +1570,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        private List<Security> _subscribledSecutiries = new List<Security>();
+        private List<Security> _subscribedSecutiries = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -1589,7 +1589,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             try
             {
@@ -1598,18 +1598,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     return;
                 }
 
-                if (_subscribledSecutiries != null)
+                if (_subscribedSecutiries != null)
                 {
-                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    for (int i = 0; i < _subscribedSecutiries.Count; i++)
                     {
-                        if (_subscribledSecutiries[i].Name.Equals(security.Name))
+                        if (_subscribedSecutiries[i].Name.Equals(security.Name))
                         {
                             return;
                         }
                     }
                 }
 
-                _subscribledSecutiries.Add(security);
+                _subscribedSecutiries.Add(security);
 
                 if (_webSocketPublic.Count == 0)
                 {
@@ -1619,8 +1619,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
-                    && _subscribledSecutiries.Count != 0
-                    && _subscribledSecutiries.Count % 70 == 0)
+                    && _subscribedSecutiries.Count != 0
+                    && _subscribedSecutiries.Count % 70 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1763,7 +1763,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void SubscriblePrivate()
+        private void SubscribePrivate()
         {
             try
             {
@@ -1795,16 +1795,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         {
                             if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                if (_subscribledSecutiries != null)
+                                if (_subscribedSecutiries != null)
                                 {
-                                    for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
+                                    for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i2].Name}\"}}]}}");
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i2].Name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"ticker\",\"instId\": \"{_subscribledSecutiries[i2].Name}\"}}]}}");
+                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"ticker\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
                                         }
                                     }
                                 }
@@ -1884,11 +1884,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    ResponseWebSocketMessageSubscrible SubscribleState = null;
+                    ResponseWebSocketMessageSubscribe SubscribeState = null;
 
                     try
                     {
-                        SubscribleState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscrible());
+                        SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
                     }
                     catch (Exception error)
                     {
@@ -1897,13 +1897,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    if (SubscribleState.code != null)
+                    if (SubscribeState.code != null)
                     {
-                        if (SubscribleState.code.Equals("0") == false)
+                        if (SubscribeState.code.Equals("0") == false)
                         {
                             SendLogMessage("WebSocket listener error", LogMessageType.Error);
-                            SendLogMessage(SubscribleState.code + "\n" +
-                                SubscribleState.msg, LogMessageType.Error);
+                            SendLogMessage(SubscribeState.code + "\n" +
+                                SubscribeState.msg, LogMessageType.Error);
 
                             if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
                             { // if there are problems with the web socket startup, you need to restart it
@@ -1977,11 +1977,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    ResponseWebSocketMessageSubscrible SubscribleState = null;
+                    ResponseWebSocketMessageSubscribe SubscribeState = null;
 
                     try
                     {
-                        SubscribleState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscrible());
+                        SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
                     }
                     catch (Exception error)
                     {
@@ -1990,13 +1990,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    if (SubscribleState.code != null)
+                    if (SubscribeState.code != null)
                     {
-                        if (SubscribleState.code.Equals("0") == false)
+                        if (SubscribeState.code.Equals("0") == false)
                         {
                             SendLogMessage("WebSocket listener error", LogMessageType.Error);
-                            SendLogMessage(SubscribleState.code + "\n" +
-                                SubscribleState.msg, LogMessageType.Error);
+                            SendLogMessage(SubscribeState.code + "\n" +
+                                SubscribeState.msg, LogMessageType.Error);
 
                             if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
                             { // if there are problems with the web socket startup, you need to restart it
@@ -3085,8 +3085,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 try
                 {
-                    if (_subscribledSecutiries != null
-                    && _subscribledSecutiries.Count > 0
+                    if (_subscribedSecutiries != null
+                    && _subscribedSecutiries.Count > 0
                     && _extendedMarketData)
                     {
                         if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
@@ -3118,9 +3118,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             try
             {
-                for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                for (int i = 0; i < _subscribedSecutiries.Count; i++)
                 {
-                    string requestStr = $"/api/v2/mix/market/open-interest?symbol={_subscribledSecutiries[i].Name}&productType={_subscribledSecutiries[i].NameClass.ToLower()}";
+                    string requestStr = $"/api/v2/mix/market/open-interest?symbol={_subscribedSecutiries[i].Name}&productType={_subscribedSecutiries[i].NameClass.ToLower()}";
                     RestRequest requestRest = new RestRequest(requestStr, Method.GET);
 
                     RestClient client = new RestClient(BaseUrl);

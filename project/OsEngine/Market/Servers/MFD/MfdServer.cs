@@ -604,7 +604,7 @@ namespace OsEngine.Market.Servers.MFD
             return OrderStateType.None;
         }
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
 
         }

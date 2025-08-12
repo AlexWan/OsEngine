@@ -9,7 +9,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
     public class Conn_4_Validation_Candles : AServerTester
     {
-        public string SecutiesToSubscrible = "BTCUSDT_BNBUSDT_ETHUSDT_ADAUSDT";
+        public string SecutiesToSubscribe = "BTCUSDT_BNBUSDT_ETHUSDT_ADAUSDT";
 
         public string SecuritiesClass = "Futures";
 
@@ -66,7 +66,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     _lastStatus = ServerConnectStatus.Disconnect;
                     myServer.StartServer();
                     Thread.Sleep(10000);
-                    List<CandleSeries> series = Subscrible();
+                    List<CandleSeries> series = Subscribe();
 
                     if (series == null ||
                         series.Count == 0)
@@ -87,7 +87,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
         }
 
-        private List<CandleSeries> Subscrible()
+        private List<CandleSeries> Subscribe()
         {
             List<Security> secs = Server.Securities;
 
@@ -98,7 +98,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return null;
             }
 
-            string[] secsInString = SecutiesToSubscrible.Split(SecuritiesSeparator[0]);
+            string[] secsInString = SecutiesToSubscribe.Split(SecuritiesSeparator[0]);
 
             List<Security> secsToTest = new List<Security>();
 
@@ -138,7 +138,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 if (endWaitTime < DateTime.Now)
                 {
                     this.SetNewError(
-                      "Error 6. Subscrible time is over! 10 minutes");
+                      "Error 6. Subscribe time is over! 10 minutes");
                     break;
                 }
 
@@ -156,12 +156,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     {
                         seriesReady.AddRange(series);
                         this.SetNewServiceInfo(
-                            "Security subscrible: " + secsToTest[i].Name);
+                            "Security subscribe: " + secsToTest[i].Name);
                     }
                 }
                 catch (Exception ex)
                 {
-                    this.SetNewError("Error 7. Error on subscrible: " + ex.ToString());
+                    this.SetNewError("Error 7. Error on subscribe: " + ex.ToString());
                     return null;
                 }
             }
@@ -177,7 +177,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (permission.TradeTimeFramePermission.TimeFrameMin1IsOn)
             {
-                CandleSeries series = Subscrible(sec, TimeFrame.Min1);
+                CandleSeries series = Subscribe(sec, TimeFrame.Min1);
                 if (series != null)
                 {
                     seriesReady.Add(series);
@@ -185,7 +185,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             if (permission.TradeTimeFramePermission.TimeFrameMin2IsOn)
             {
-                CandleSeries series = Subscrible(sec, TimeFrame.Min2);
+                CandleSeries series = Subscribe(sec, TimeFrame.Min2);
                 if (series != null)
                 {
                     seriesReady.Add(series);
@@ -193,7 +193,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             if (permission.TradeTimeFramePermission.TimeFrameMin5IsOn)
             {
-                CandleSeries series = Subscrible(sec, TimeFrame.Min5);
+                CandleSeries series = Subscribe(sec, TimeFrame.Min5);
                 if (series != null)
                 {
                     seriesReady.Add(series);
@@ -201,7 +201,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             if (permission.TradeTimeFramePermission.TimeFrameMin10IsOn)
             {
-                CandleSeries series = Subscrible(sec, TimeFrame.Min10);
+                CandleSeries series = Subscribe(sec, TimeFrame.Min10);
                 if (series != null)
                 {
                     seriesReady.Add(series);
@@ -209,7 +209,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             if (permission.TradeTimeFramePermission.TimeFrameMin15IsOn)
             {
-                CandleSeries series = Subscrible(sec, TimeFrame.Min15);
+                CandleSeries series = Subscribe(sec, TimeFrame.Min15);
                 if (series != null)
                 {
                     seriesReady.Add(series);
@@ -217,7 +217,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             if (permission.TradeTimeFramePermission.TimeFrameMin30IsOn)
             {
-                CandleSeries series = Subscrible(sec, TimeFrame.Min30);
+                CandleSeries series = Subscribe(sec, TimeFrame.Min30);
                 if (series != null)
                 {
                     seriesReady.Add(series);
@@ -225,7 +225,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             if (permission.TradeTimeFramePermission.TimeFrameHour1IsOn)
             {
-                CandleSeries series = Subscrible(sec, TimeFrame.Hour1);
+                CandleSeries series = Subscribe(sec, TimeFrame.Hour1);
                 if (series != null)
                 {
                     seriesReady.Add(series);
@@ -233,7 +233,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             if (permission.TradeTimeFramePermission.TimeFrameHour2IsOn)
             {
-                CandleSeries series = Subscrible(sec, TimeFrame.Hour2);
+                CandleSeries series = Subscribe(sec, TimeFrame.Hour2);
                 if (series != null)
                 {
                     seriesReady.Add(series);
@@ -241,7 +241,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             if (permission.TradeTimeFramePermission.TimeFrameHour4IsOn)
             {
-                CandleSeries series = Subscrible(sec, TimeFrame.Hour4);
+                CandleSeries series = Subscribe(sec, TimeFrame.Hour4);
                 if (series != null)
                 {
                     seriesReady.Add(series);
@@ -251,7 +251,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             return seriesReady;
         }
 
-        private CandleSeries Subscrible(Security sec, TimeFrame frame)
+        private CandleSeries Subscribe(Security sec, TimeFrame frame)
         {
             DateTime endWaitTime = DateTime.Now.AddMinutes(5);
 
@@ -275,7 +275,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 if (endWaitTime < DateTime.Now)
                 {
                     this.SetNewError(
-                      "Error 8. Subscrible time is over! 5 minutes. TF: " + frame.ToString());
+                      "Error 8. Subscribe time is over! 5 minutes. TF: " + frame.ToString());
                     break;
                 }
             }

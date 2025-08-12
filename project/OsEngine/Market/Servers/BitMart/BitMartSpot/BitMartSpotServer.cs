@@ -916,7 +916,7 @@ namespace OsEngine.Market.Servers.BitMart
 
                     if (e.Data.Contains("login"))
                     {
-                        SubscriblePrivate();
+                        SubscribePrivate();
                     }
 
                     if (e.Data.Contains("pong"))
@@ -1034,17 +1034,17 @@ namespace OsEngine.Market.Servers.BitMart
 
         #endregion
 
-        #region 9 WebSocket Security subscrible
+        #region 9 WebSocket Security subscribe
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(70));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(70));
 
         private List<string> _subscribedSecurities = new List<string>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
+                _rateGateSubscribe.WaitToProceed();
 
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
@@ -1112,7 +1112,7 @@ namespace OsEngine.Market.Servers.BitMart
             }
         }
 
-        private void SubscriblePrivate()
+        private void SubscribePrivate()
         {
             try
             {

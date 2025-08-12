@@ -1066,7 +1066,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private readonly RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-            public void Subscrible(Security security)
+            public void Subscribe(Security security)
             {
                 try
                 {

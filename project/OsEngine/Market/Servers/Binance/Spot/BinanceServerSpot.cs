@@ -127,7 +127,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             DisposeSockets();
 
-            _subscribledSecurities.Clear();
+            _subscribedSecurities.Clear();
             _securities = new List<Security>();
             _depths.Clear();
             _newMessagePrivate = new ConcurrentQueue<BinanceUserMessage>();
@@ -1452,27 +1452,27 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
-        private List<Security> _subscribledSecurities = new List<Security>();
+        private List<Security> _subscribedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
                 return;
             }
 
-            for (int i = 0; i < _subscribledSecurities.Count; i++)
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
             {
-                if (_subscribledSecurities[i].NameClass == security.NameClass
-                    && _subscribledSecurities[i].Name == security.Name)
+                if (_subscribedSecurities[i].NameClass == security.NameClass
+                    && _subscribedSecurities[i].Name == security.Name)
                 {
                     return;
                 }
             }
 
-            _subscribledSecurities.Add(security);
+            _subscribedSecurities.Add(security);
 
             string urlStr = null;
 

@@ -741,7 +741,7 @@ namespace OsEngine.Market.Servers.MOEX
             return OrderStateType.None;
         }
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
 
         }

@@ -1098,7 +1098,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         #endregion
 
-        #region  7 Security subscrible
+        #region  7 Security subscribe
 
         private Dictionary<string, string> _secNameById = new Dictionary<string, string>(); // для получения имени инструмента по коду
         private Dictionary<string, string> _secIdByName = new Dictionary<string, string>(); // для получения кода инструмента по имени
@@ -1106,7 +1106,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         private List<string> _subscribedSecurities = new List<string>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {

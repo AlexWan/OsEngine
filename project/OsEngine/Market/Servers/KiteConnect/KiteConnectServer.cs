@@ -1217,9 +1217,9 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         #region 8 WebSocket Security subscribe
 
-        List<Security> _subscribledSecurities = new List<Security>();
+        List<Security> _subscribedSecurities = new List<Security>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
@@ -1235,9 +1235,9 @@ namespace OsEngine.Market.Servers.KiteConnect
                     return;
                 }
 
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    if (_subscribledSecurities[i].Equals(security.Name))
+                    if (_subscribedSecurities[i].Equals(security.Name))
                     {
                         return;
                     }
@@ -1246,8 +1246,8 @@ namespace OsEngine.Market.Servers.KiteConnect
                 WebSocket webSocket = _listWebSocket[_listWebSocket.Count - 1];
 
                 if (webSocket.ReadyState == WebSocketState.Open
-                    && _subscribledSecurities.Count != 0
-                    && _subscribledSecurities.Count % 500 == 0)
+                    && _subscribedSecurities.Count != 0
+                    && _subscribedSecurities.Count % 500 == 0)
                 {
                     // creating a new socket
                     CreateNewWebSocketConnection();
@@ -1270,7 +1270,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                     }
                 }
 
-                _subscribledSecurities.Add(security);
+                _subscribedSecurities.Add(security);
 
                 string instrumentToken = security.NameId.Split('_')[0];
 

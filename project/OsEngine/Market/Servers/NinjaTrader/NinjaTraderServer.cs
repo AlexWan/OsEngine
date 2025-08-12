@@ -124,9 +124,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
             return OrderStateType.None;
         }
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
-            _client.SubscribleTradesAndDepths(security);
+            _client.SubscribeTradesAndDepths(security);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,

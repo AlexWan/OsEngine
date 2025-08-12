@@ -102,13 +102,19 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Security subscrible
+        #region Security subscribe
 
         /// <summary>
         /// subscribe to trades and market depth
         /// подписаться на трейды и стаканы
         /// </summary>
-        void Subscrible(Security security);
+        void Subscribe(Security security);
+
+        /// <summary>
+        /// unsubscribe from trades and orderbooks
+        /// отписаться от трейдов и стаканов
+        /// </summary>
+        void Unsubscribe(Security security) { } // default empty implementation
 
         /// <summary>
         /// subscribe to news

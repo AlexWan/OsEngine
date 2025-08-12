@@ -171,7 +171,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            _subscribledSecurities.Clear();
+            _subscribedSecurities.Clear();
             _securitiesName.Clear();
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
@@ -1359,16 +1359,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
@@ -1376,9 +1376,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private List<string> _subscribledSecurities = new List<string>();
+        private List<string> _subscribedSecurities = new List<string>();
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
@@ -1390,15 +1390,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 return;
             }
 
-            for (int i = 0; i < _subscribledSecurities.Count; i++)
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
             {
-                if (_subscribledSecurities[i].Equals(security.Name))
+                if (_subscribedSecurities[i].Equals(security.Name))
                 {
                     return;
                 }
             }
 
-            _subscribledSecurities.Add(security.Name);
+            _subscribedSecurities.Add(security.Name);
 
             //SetPositionMode();
 
@@ -1410,8 +1410,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
             WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
             if (webSocketPublic.ReadyState == WebSocketState.Open
-                && _subscribledSecurities.Count != 0
-                && _subscribledSecurities.Count % 50 == 0)
+                && _subscribedSecurities.Count != 0
+                && _subscribedSecurities.Count % 50 == 0)
             {
                 // creating a new socket
                 WebSocket newSocket = CreateNewPublicSocket();
@@ -1501,7 +1501,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private void SendSubscriblePrivate()
+        private void SendSubscribePrivate()
         {
             string clientId = "";
             string channelOrders = "orders.*";
@@ -1585,11 +1585,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     {
                         if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            if (_subscribledSecurities != null)
+                            if (_subscribedSecurities != null)
                             {
-                                for (int j = 0; j < _subscribledSecurities.Count; j++)
+                                for (int j = 0; j < _subscribedSecurities.Count; j++)
                                 {
-                                    string securityName = _subscribledSecurities[j];
+                                    string securityName = _subscribedSecurities[j];
 
                                     string topic = $"market.{securityName}.depth.step0";
                                     webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
@@ -1655,8 +1655,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 try
                 {
-                    if (_subscribledSecurities != null
-                    && _subscribledSecurities.Count > 0
+                    if (_subscribedSecurities != null
+                    && _subscribedSecurities.Count > 0
                     && _extendedMarketData)
                     {
                         if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
@@ -1688,9 +1688,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             try
             {
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    string url = $"https://{_baseUrl}{_pathRest}/v1/swap_open_interest?contract_code={_subscribledSecurities[i]}";
+                    string url = $"https://{_baseUrl}{_pathRest}/v1/swap_open_interest?contract_code={_subscribedSecurities[i]}";
                     RestClient client = new RestClient(url);
                     RestRequest request = new RestRequest(Method.GET);
                     IRestResponse responseMessage = client.Execute(request);
@@ -1880,7 +1880,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                         if (message.Contains("auth"))
                         {
-                            SendSubscriblePrivate();
+                            SendSubscribePrivate();
                             continue;
                         }
 
@@ -1892,13 +1892,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                         if (message.Contains("accounts") || message.Contains("accounts_unify"))
                         {
-                            UpdatePortfolioFromSubscrible(message);
+                            UpdatePortfolioFromSubscribe(message);
                             continue;
                         }
 
                         if (message.Contains("positions"))
                         {
-                            UpdatePositionFromSubscrible(message);
+                            UpdatePositionFromSubscribe(message);
                             continue;
                         }
 
@@ -2259,7 +2259,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             return stateType;
         }
 
-        private void UpdatePortfolioFromSubscrible(string message)
+        private void UpdatePortfolioFromSubscribe(string message)
         {
             if (Portfolios == null)
             {
@@ -2344,7 +2344,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private void UpdatePositionFromSubscrible(string message)
+        private void UpdatePositionFromSubscribe(string message)
         {
             try
             {

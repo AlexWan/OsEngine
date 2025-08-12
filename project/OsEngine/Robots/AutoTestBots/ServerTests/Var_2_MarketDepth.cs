@@ -16,7 +16,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public string SecuritiesSeparator = "_";
 
-        private List<Security> _secToSubscrible = new List<Security>();
+        private List<Security> _secToSubscribe = new List<Security>();
 
         public override void Process()
         {
@@ -43,8 +43,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for (int i = 0; i < securities.Count; i++)
             {
-                Server.ServerRealization.Subscrible(securities[i]);
-                _secToSubscrible.Add(securities[i]);
+                Server.ServerRealization.Subscribe(securities[i]);
+                _secToSubscribe.Add(securities[i]);
                 _securities.Add(securities[i]);
                 SetNewServiceInfo("Start sec: " + securities[i].Name);
             }
@@ -61,9 +61,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             SetNewServiceInfo("md сount analyzed: " + mdCount);
             SetNewServiceInfo("test time minutes: " + MinutesToTest);
 
-            for (int i = 0; i < _secToSubscrible.Count; i++)
+            for (int i = 0; i < _secToSubscribe.Count; i++)
             {
-                SetNewError("MD Error 1. No MD to Security: " + _secToSubscrible[i].Name);
+                SetNewError("MD Error 1. No MD to Security: " + _secToSubscribe[i].Name);
             }
 
             TestEnded();
@@ -138,11 +138,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 5.2.6. Находясь в массиве bids - Ask должен быть равен 0
 5.2.7. Находясь в массиве asks - Bid должен быть равен 0
 */
-            for(int i = 0;i < _secToSubscrible.Count;i++)
+            for(int i = 0;i < _secToSubscribe.Count;i++)
             {
-                if (_secToSubscrible[i].Name == md.SecurityNameCode)
+                if (_secToSubscribe[i].Name == md.SecurityNameCode)
                 {
-                    _secToSubscrible.RemoveAt(i);
+                    _secToSubscribe.RemoveAt(i);
                     break;
                 }
             }

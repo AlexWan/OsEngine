@@ -998,15 +998,15 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         #endregion
 
-        #region 9 WebSocket security subscrible
+        #region 9 WebSocket security subscribe
 
         private readonly Dictionary<string, Security> _subscribedSecurities = new Dictionary<string, Security>();
 
-        private RateGate _rateGateSubscrible = new RateGate(2, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateSubscribe = new RateGate(2, TimeSpan.FromMilliseconds(100));
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
-            _rateGateSubscrible.WaitToProceed();
+            _rateGateSubscribe.WaitToProceed();
 
             try
             {

@@ -1557,7 +1557,7 @@ namespace OsEngine.Market.Servers.TInvest
         private DateTime _lastMyTradesDataTime = DateTime.MinValue;
         private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {

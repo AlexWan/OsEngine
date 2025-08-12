@@ -158,9 +158,9 @@ namespace OsEngine.Market.Servers.Hitbtc
         /// subscribe
         /// подписаться 
         /// </summary>
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
-            _client.SubscribleTradesAndDepths(security);
+            _client.SubscribeTradesAndDepths(security);
         }
 
         /// <summary>

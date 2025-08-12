@@ -31,7 +31,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             DateTime endWaitTime = DateTime.Now.AddMinutes(2);
 
-            while (_startSubscrible == false)
+            while (_startSubscribe == false)
             {
                 if (endWaitTime < DateTime.Now)
                 {
@@ -41,7 +41,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 Thread.Sleep(50);
             }
 
-            if (_startSubscrible == false)
+            if (_startSubscribe == false)
             {
                 this.SetNewError(
                   "Error 1. ServerStatus don`t be Connect by the 2 minutes ");
@@ -49,7 +49,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            TestSubscrible();
+            TestSubscribe();
             TestEnded();
         }
 
@@ -63,7 +63,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             this.SetNewError("Error 2. Error in Server: " + arg1);
         }
 
-        private void TestSubscrible()
+        private void TestSubscribe()
         {
             List<Security> securitiesAll = Server.Securities;
 
@@ -84,7 +84,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            this.SetNewServiceInfo("Total Securities to subscrible: " + secs.Count);
+            this.SetNewServiceInfo("Total Securities to subscribe: " + secs.Count);
 
             DateTime endWaitTime = DateTime.Now.AddMinutes(10);
 
@@ -107,18 +107,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     }
                     else
                     {
-                        this.SetNewServiceInfo("Security subscrible: " + secs[i].Name);
+                        this.SetNewServiceInfo("Security subscribe: " + secs[i].Name);
                     }
                 }
                 catch (Exception ex)
                 {
-                    this.SetNewError("Error 5. Error on subscrible: " + ex.ToString());
+                    this.SetNewError("Error 5. Error on subscribe: " + ex.ToString());
                     break;
                 }
             }
         }
 
-        private bool _startSubscrible;
+        private bool _startSubscribe;
 
         private void MyServer_ConnectStatusChangeEvent(string stats)
         {
@@ -128,7 +128,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (curStatus == ServerConnectStatus.Connect)
             {
-                _startSubscrible = true;
+                _startSubscribe = true;
             }
         }
     }

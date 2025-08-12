@@ -636,7 +636,7 @@ namespace OsEngine.Market.Servers.Hitbtc
         /// subscribe to this security to receive depths and trades
         /// подписать данную бумагу на получение стаканов и трейдов
         /// </summary>
-        public void SubscribleTradesAndDepths(Security security)
+        public void SubscribeTradesAndDepths(Security security)
         {
             try
             {
@@ -702,7 +702,7 @@ namespace OsEngine.Market.Servers.Hitbtc
         /// отписаться от данных
         /// </summary>
         /// <param name="security"></param>
-        public void UnsubscribleTradesAndDepths(Security security)
+        public void UnsubscribeTradesAndDepths(Security security)
         {
             // unsubscribe to depth / подписаться на стаканы
             string subscribeTrades = string.Format("{{\"method\": \"unsubscribeOrderbook\",\"params\": {{\"symbol\": \"{0}\" }},\"id\": 123}}", security.Name);

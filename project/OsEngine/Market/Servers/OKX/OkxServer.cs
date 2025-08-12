@@ -1525,7 +1525,7 @@ namespace OsEngine.Market.Servers.OKX
         //mapping: secutity name -> option (true or false)
         private Dictionary<string, bool> _subscribedSecurities = new Dictionary<string, bool>();
 
-        public void Subscrible(Security security)
+        public void Subscribe(Security security)
         {
             try
             {
