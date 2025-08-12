@@ -10,39 +10,43 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
         public T tick { get; set; }
     }
 
-    public class ResponseChannelTrades
+    public class ResponsePing
     {
-        public Tick tick { get; set; }
-
-        public string ch { get; set; }
-
-        public class Tick
-        {
-            public List<Data> data { get; set; }
-        }
-
-        public class Data
-        {
-            public string ts { get; set; }
-            public string tradeId { get; set; }
-            public string price { get; set; }
-            public string amount { get; set; }
-            public string direction { get; set; }
-        }
+        public string ping { get; set; }
     }
 
-    public class ResponseChannelBook
+    public class ResponsePingPrivate
     {
-        public string ch { get; set; }
-        public Tick tick { get; set; }
+        public string action { get; set; }
+        public PingData data { get; set; }
+    }
+
+    public class PingData
+    {
         public string ts { get; set; }
+    }
 
-        public class Tick
-        {
-            public List<List<string>> asks { get; set; }
-            public List<List<string>> bids { get; set; }
+    public class TradesData
+    {
+        public string id { get; set; }
+        public string ts { get; set; }
+        public List<ResponseTrades> data { get; set; }
+    }
 
-        }
+    public class ResponseTrades
+    {
+        public string id { get; set; }
+        public string ts { get; set; }
+        public string tradeId { get; set; }
+        public string price { get; set; }
+        public string amount { get; set; }
+        public string direction { get; set; }
+    }
+
+    public class ResponseDepth
+    {
+        public List<List<string>> asks { get; set; }
+        public List<List<string>> bids { get; set; }
     }
 
     public class ResponseChannelUpdateOrder
@@ -54,6 +58,7 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
         {
             public string eventType { get; set; } // Event type, valid value: trade
             public string symbol { get; set; } // Trading symbol
+            public string totalTradeAmount { get; set; }
             public string tradePrice { get; set; } // Trade price
             public string tradeVolume { get; set; } // Trade volume
             public string accountId { get; set; } // account ID
@@ -67,6 +72,10 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
             public string type { get; set; }  // Order type
             public string tradeTime { get; set; }  // Trade time
             public string lastActTime { get; set; } // Order trigger time
+            public string execAmt { get; set; }
+            public string remainAmt { get; set; }
+            public string canceledSource { get; set; }
+            public string canceledSourceDesc { get; set; }
         }
     }
 
