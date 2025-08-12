@@ -546,6 +546,40 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// returns whether marketdata updates for the specified security are no longer needed
+        /// </summary>
+        public bool IsSafeToUnsubscribeFromSecurityUpdates(Security security)
+        {
+            for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
+            {
+                Security curSeriesSecurity = _activeSeriesBasedOnTrades[i].Security;
+
+                if (curSeriesSecurity.Name != security.Name ||
+                    curSeriesSecurity.NameClass != security.NameClass)
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            for (int i = 0; _activeSeriesBasedOnMd != null && i < _activeSeriesBasedOnMd.Count; i++)
+            {
+                Security curSeriesSecurity = _activeSeriesBasedOnMd[i].Security;
+
+                if (curSeriesSecurity.Name != security.Name ||
+                    curSeriesSecurity.NameClass != security.NameClass)
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return true;
+        }   
+
+        /// <summary>
         /// request a series of candlesticks for an instrument with certain settings
         /// </summary>
         public CandleSeries GetSeries(TimeFrameBuilder timeFrameBuilder, Security security)
