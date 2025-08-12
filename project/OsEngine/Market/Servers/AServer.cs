@@ -2137,9 +2137,12 @@ namespace OsEngine.Market.Servers
             }
 
             Security security = series.Security;
-            ServerRealization.Unsubscribe(security);
 
-            RemoveSecurityFromSubscribed(security.Name, security.NameClass);
+            if (_candleManager.IsSafeToUnsubscribeFromSecurityUpdates(security))
+            {
+                ServerRealization.Unsubscribe(security);
+                RemoveSecurityFromSubscribed(security.Name, security.NameClass);
+            }
         }
 
         /// <summary>
