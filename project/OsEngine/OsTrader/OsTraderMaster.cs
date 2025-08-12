@@ -839,6 +839,11 @@ namespace OsEngine.OsTrader
 
             if(sec == null)
             {
+                sec = server.GetSecurityForName(secName, null);
+            }
+
+            if(sec == null)
+            {
                 return;
             }
 

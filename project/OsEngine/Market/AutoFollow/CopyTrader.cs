@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Threading;
+using System.Drawing;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -83,7 +84,9 @@ namespace OsEngine.Market.AutoFollow
 
         public void ClearDelete()
         {
-            if(DeleteEvent != null)
+            _objectIsDelete = true;
+
+            if (DeleteEvent != null)
             {
                 DeleteEvent();
             }
@@ -362,6 +365,7 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
+                IsOn = false;
                 _isDelete = true;
 
                 if (File.Exists(@"Engine\CopyTrader\" + NameUnique + ".txt"))
@@ -683,6 +687,11 @@ namespace OsEngine.Market.AutoFollow
 
         public void Process(List<string> masterRobots)
         {
+            if(_isDelete == true)
+            {
+                return;
+            }
+
             if(IsOn == false)
             {
                 if (FailOpenOrdersCountFact != 0)
@@ -1145,7 +1154,8 @@ namespace OsEngine.Market.AutoFollow
                     }
                 }
 
-                if (botInArray == false)
+                if (botInArray == false
+                    && allRobots != null)
                 {
                     BotPanel bot = allRobots.Find(b => b.NameStrategyUniq == currentBot);
 
