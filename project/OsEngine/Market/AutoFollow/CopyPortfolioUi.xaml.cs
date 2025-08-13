@@ -153,7 +153,11 @@ namespace OsEngine.Market.AutoFollow
             DataGridFactory.ClearLinks(_gridSecurities);
 
             _portfolioToCopy.LogCopyTrader.StopPaint();
-            _portfolioToCopy.MyJournal.StopPaint();
+            if(_portfolioToCopy.MyJournal != null)
+            {
+                _portfolioToCopy.MyJournal.StopPaint();
+            }
+           
             _portfolioToCopy = null;
 
             _copyTrader = null;
@@ -584,14 +588,14 @@ namespace OsEngine.Market.AutoFollow
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
             column2.HeaderText = OsLocalization.Market.Label220; // Master Name
-            column2.ReadOnly = true;
+            column2.ReadOnly = false;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridSecurities.Columns.Add(column2);
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
             column3.HeaderText = OsLocalization.Market.Label221; // Master Class
-            column3.ReadOnly = true;
+            column3.ReadOnly = false;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridSecurities.Columns.Add(column3);
 
@@ -708,7 +712,7 @@ namespace OsEngine.Market.AutoFollow
             row.Cells[row.Cells.Count - 1].Value = security.MasterSecurityName;
 
             row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[row.Cells.Count - 1].Value = security.MasterSecurityName;
+            row.Cells[row.Cells.Count - 1].Value = security.MasterSecurityClass;
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[row.Cells.Count - 1].Value = security.SlaveSecurityName;
@@ -801,6 +805,16 @@ namespace OsEngine.Market.AutoFollow
 
             try
             {
+                if (nRow.Cells[1].Value != null)
+                {
+                    security.MasterSecurityName = nRow.Cells[1].Value.ToString();
+                }
+
+                if (nRow.Cells[2].Value != null)
+                {
+                    security.MasterSecurityClass = nRow.Cells[2].Value.ToString();
+                }
+
                 if (nRow.Cells[3].Value != null)
                 {
                     security.SlaveSecurityName = nRow.Cells[3].Value.ToString();

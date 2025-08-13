@@ -14,7 +14,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Threading;
-using System.Drawing;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -1223,9 +1222,9 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
-                List<Position> positionsFromCopyTrader = MyJournal.OpenPositions;
+                Position[] positionsFromCopyTrader = MyJournal.OpenPositions.ToArray();
 
-                for (int i = 0; i < positionsFromCopyTrader.Count; i++)
+                for (int i = 0; i < positionsFromCopyTrader.Length; i++)
                 {
                     if (MyCopyServer.ServerStatus == ServerConnectStatus.Disconnect)
                     {
