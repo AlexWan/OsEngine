@@ -30,7 +30,7 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterPassword(OsLocalization.Market.ServerParamPassword, "");
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
-            CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
+            CreateParameterBoolean("Use Options", false);
             CreateParameterEnum("Demo Mode", "Off", new List<string> { "Off", "On" });
             CreateParameterBoolean("Extended Data", false);
         }
