@@ -795,7 +795,7 @@ namespace OsEngine.OsTrader.Grids
 
             // 7 попытка сместить сетку
 
-            if (baseRegime == TradeGridRegime.On)
+            if (baseRegime == TradeGridRegime.On || baseRegime == TradeGridRegime.CloseOnly)
             {
                 if(TrailingUp.TryTrailingGrid())
                 {
@@ -830,7 +830,7 @@ namespace OsEngine.OsTrader.Grids
 
             // 2 удаляем ордера стоящие не на своём месте
 
-            int countRejectOrders = TryRemoveWrongOrders();
+            int countRejectOrders = TryUpdateOrRemoveWrongOrders();
 
             if (countRejectOrders > 0)
             {
@@ -992,9 +992,9 @@ namespace OsEngine.OsTrader.Grids
             TryFindPositionsInJournalAfterReconnect();
             TryDeleteDonePositions();
 
-            // 2 удаляем ордера стоящие не на своём месте
+            // 2 обновляем ордера стоящие не на своём месте, удаляем лишние
 
-            int countRejectOrders = TryRemoveWrongOrders();
+            int countRejectOrders = TryUpdateOrRemoveWrongOrders();
 
             if (countRejectOrders > 0)
             {
@@ -1062,7 +1062,7 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        private int TryRemoveWrongOrders()
+        private int TryUpdateOrRemoveWrongOrders()
         {
             List<Candle> candles = Tab.CandlesAll;
 
@@ -1075,20 +1075,9 @@ namespace OsEngine.OsTrader.Grids
 
             List<TradeGridLine> linesAll = GridCreator.Lines;
 
-            // 1 убираем ордера на открытие и закрытие с неправильной ценой.
+            // 1 обновляем цены ордеров на открытие и закрытие с неправильной ценой.
 
-            List<Order> ordersToCancelBadPrice = GetOrdersBadPriceToGrid();
-
-            if (ordersToCancelBadPrice != null
-                && ordersToCancelBadPrice.Count > 0)
-            {
-                for (int i = 0; i < ordersToCancelBadPrice.Count; i++)
-                {
-                    Tab.CloseOrder(ordersToCancelBadPrice[i]);
-                }
-
-                return ordersToCancelBadPrice.Count;
-            }
+            UpdateOrdersBadPriceToGrid();
 
             // 2 убираем ордера лишние на открытие. Когда в сетке больше ордеров чем указал пользователь
 
@@ -1190,6 +1179,47 @@ namespace OsEngine.OsTrader.Grids
 
             return ordersToCancel;
         }
+
+        private void UpdateOrdersBadPriceToGrid()
+        {
+            var linesWithOrdersToOpenFact = GetLinesWithOpenOrdersFact();
+
+            for (int i = 0; linesWithOrdersToOpenFact != null && i < linesWithOrdersToOpenFact.Count; i++)
+            {
+                var position = linesWithOrdersToOpenFact[i].Position;
+                var currentLine = linesWithOrdersToOpenFact[i];
+
+                if (position.OpenActive)
+                {
+                    var openOrder = position.OpenOrders[^1];
+
+                    if (openOrder.Price != currentLine.PriceEnter)
+                    {
+                        Tab.ChangeOrderPrice(openOrder, currentLine.PriceEnter);
+                    }
+                }
+            }
+
+            var linesWithOrdersToCloseFact = GetLinesWithClosingOrdersFact();
+
+            for (int i = 0; linesWithOrdersToCloseFact != null && i < linesWithOrdersToCloseFact.Count; i++)
+            {
+                var position = linesWithOrdersToCloseFact[i].Position;
+                var currentLine = linesWithOrdersToCloseFact[i];
+
+                if (position.CloseActive && currentLine.CanReplaceExitOrder)
+                {
+                    var closeOrder = position.CloseOrders[^1];
+
+                    if (closeOrder.Price != currentLine.PriceExit
+                        && closeOrder.TypeOrder != OrderPriceType.Market)
+                    {
+                        Tab.ChangeOrderPrice(closeOrder, currentLine.PriceExit);
+                    }
+                }
+            }
+        }
+
 
         private List<Order> GetOrdersBadLinesMaxCount()
         {

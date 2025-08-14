@@ -1742,7 +1742,17 @@ namespace OsEngine.Market.Servers.Tester
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
+            if (order.Price == newPrice)
+            {
+                return;
+            }
 
+            var activeOrder = OrdersActive.FirstOrDefault(x => x.NumberUser == order.NumberUser);
+            if (activeOrder != null)
+            {
+                activeOrder.Price = newPrice;
+            }
+            order.Price = newPrice;
         }
 
         public void CancelOrder(Order order)
