@@ -1639,7 +1639,11 @@ namespace OsEngine.Market.Servers.Alor
 
                     string message = JsonConvert.SerializeObject(unsubscribeRequest);
 
-                    _webSocketData.Send(message);
+                    if (_webSocketData != null)
+                    {
+                        _webSocketData.Send(message);
+                    }
+
                     _subscriptionsData.Remove(sub);
                 }
             }
