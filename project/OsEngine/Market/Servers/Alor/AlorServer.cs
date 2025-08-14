@@ -1598,11 +1598,54 @@ namespace OsEngine.Market.Servers.Alor
                 string messageMdSub = JsonConvert.SerializeObject(subObjMarketDepth);
 
                 _webSocketData.Send(messageMdSub);
-
             }
             catch (Exception exception)
             {
-                SendLogMessage(exception.ToString(),LogMessageType.Error);
+                SendLogMessage($"Subscribe error {security.Name} " + exception.ToString(),LogMessageType.Error);
+            }
+        }
+
+        public void Unsubscribe(Security security)
+        {
+            try
+            {
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
+                {
+                    if (_subscribedSecurities[i].Name == security.Name)
+                    {
+                        _subscribedSecurities.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                _rateGateSubscribe.WaitToProceed();
+
+                List<AlorSocketSubscription> subsToRemove = new List<AlorSocketSubscription>();
+
+                for (int i = 0; i < _subscriptionsData.Count; i++)
+                {
+                    if (_subscriptionsData[i].ServiceInfo == security.Name)
+                    {
+                        subsToRemove.Add(_subscriptionsData[i]);
+                    }
+                }
+
+                for (int i = 0; i < subsToRemove.Count; i++)
+                {
+                    AlorSocketSubscription sub = subsToRemove[i];
+                    RequestSocketUnsubscribe unsubscribeRequest = new RequestSocketUnsubscribe();
+                    unsubscribeRequest.guid = sub.Guid;
+                    unsubscribeRequest.token = _apiTokenReal;
+
+                    string message = JsonConvert.SerializeObject(unsubscribeRequest);
+
+                    _webSocketData.Send(message);
+                    _subscriptionsData.Remove(sub);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"Unsubscribe error. {security.Name}: " + exception.ToString(), LogMessageType.Error);
             }
         }
 
