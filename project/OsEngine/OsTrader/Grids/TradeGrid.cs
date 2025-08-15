@@ -633,6 +633,11 @@ namespace OsEngine.OsTrader.Grids
                 return;
             }
 
+            if(MainWindow.ProccesIsWorked == false)
+            {
+                return;
+            }
+
             TradeGridRegime baseRegime = Regime;
 
             // 1 Авто-старт сетки, если выключено
@@ -1530,7 +1535,10 @@ namespace OsEngine.OsTrader.Grids
                     continue;
                 }
 
-                if (pos.State == PositionStateType.OpeningFail)
+                if (pos.State == PositionStateType.OpeningFail
+                    && pos.OpenVolume == 0
+                    && pos.OpenActive == false
+                    && pos.CloseActive == false)
                 {
                     TryDeletePositionsFromJournal(pos);
                 }
@@ -1550,6 +1558,17 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 if (pos.State != PositionStateType.Done)
+                {
+                    continue;
+                }
+
+                if (pos.OpenVolume != 0)
+                {
+                    continue;
+                }
+
+                if(pos.OpenActive == true
+                    || pos.CloseActive == true)
                 {
                     continue;
                 }
@@ -1605,6 +1624,12 @@ namespace OsEngine.OsTrader.Grids
                         ||
                         (line.Position.State == PositionStateType.OpeningFail
                         && line.Position.OpenActive == false))
+                    {
+                        line.Position = null;
+                        line.PositionNum = -1;
+                    }
+
+                    else if(line.Position.State == PositionStateType.Deleted)
                     {
                         line.Position = null;
                         line.PositionNum = -1;
