@@ -357,70 +357,77 @@ ContextMenuStrip menu)
 
         private void ClearDelete()
         {
-            if (_chart == null)
+            try
             {
-                return;
-            }
+                if (_chart == null)
+                {
+                    return;
+                }
 
-            if (_chart.InvokeRequired)
+                if (_chart.InvokeRequired)
+                {
+                    _chart.Invoke(new Action(ClearDelete));
+                    return;
+                }
+
+                if (_chart != null)
+                {
+                    _chart.AxisScrollBarClicked -= _chart_AxisScrollBarClicked;
+                    _chart.AxisViewChanged -= _chart_AxisViewChanged;
+                    _chart.Click -= _chart_Click;
+                    _chart.MouseDown -= _chartForCandle_MouseDown;
+                    _chart.MouseUp -= _chartForCandle_MouseUp;
+                    _chart.MouseMove -= _chartForCandle_MouseMove;
+                    _chart.MouseMove -= _chartForCandle_MouseMove2ChartElement;
+                    _chart.MouseDown -= _chartForCandle_MouseDown2ChartElement;
+                    _chart.MouseUp -= _chartForCandle_MouseUp2ChartElement;
+                    _chart.MouseLeave -= _chart_MouseLeave;
+                    _chart.Click -= _chart_Click1;
+                    _chart.MouseMove -= _chart_MouseMove;
+                    _chart.MouseMove -= _chart_MouseMove2;
+                    _chart.ClientSizeChanged -= _chart_ClientSizeChanged;
+                    _chart.AxisViewChanging -= _chart_AxisViewChanging;
+                    _chart.MouseUp -= _chart_MouseUp;
+
+                    _chart.Series.Clear();
+                    _chart.ChartAreas.Clear();
+                    _chart.Dispose();
+                    _chart = null;
+                }
+
+                if (_colorKeeper != null)
+                {
+                    _colorKeeper.LogMessageEvent -= SendLogMessage;
+                    _colorKeeper.NeedToRePaintFormEvent -= _colorKeeper_NeedToRePaintFormEvent;
+                    //_colorKeeper.Delete();
+                    _colorKeeper = null;
+                }
+
+                if (_areaPositions != null)
+                {
+                    _areaPositions.Clear();
+                    _areaPositions = null;
+                }
+
+                if (_areaSizes != null)
+                {
+                    _areaSizes.Clear();
+                    _areaSizes = null;
+                }
+
+                _myCandles = null;
+                _chartElements = null;
+                _labelSeries = null;
+                _timePoints = null;
+                _candlesToPaint = null;
+                _indicatorsToPaint = null;
+                _positions = null;
+                _alertsToPaint = null;
+            }
+            catch(Exception ex)
             {
-                _chart.Invoke(new Action(ClearDelete));
-                return;
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            if (_chart != null)
-            {
-                _chart.AxisScrollBarClicked -= _chart_AxisScrollBarClicked;
-                _chart.AxisViewChanged -= _chart_AxisViewChanged;
-                _chart.Click -= _chart_Click;
-                _chart.MouseDown -= _chartForCandle_MouseDown;
-                _chart.MouseUp -= _chartForCandle_MouseUp;
-                _chart.MouseMove -= _chartForCandle_MouseMove;
-                _chart.MouseMove -= _chartForCandle_MouseMove2ChartElement;
-                _chart.MouseDown -= _chartForCandle_MouseDown2ChartElement;
-                _chart.MouseUp -= _chartForCandle_MouseUp2ChartElement;
-                _chart.MouseLeave -= _chart_MouseLeave;
-                _chart.Click -= _chart_Click1;
-                _chart.MouseMove -= _chart_MouseMove;
-                _chart.MouseMove -= _chart_MouseMove2;
-                _chart.ClientSizeChanged -= _chart_ClientSizeChanged;
-                _chart.AxisViewChanging -= _chart_AxisViewChanging;
-                _chart.MouseUp -= _chart_MouseUp;
-
-                _chart.Series.Clear();
-                _chart.ChartAreas.Clear();
-                _chart.Dispose();
-                _chart = null;
-            }
-
-            if (_colorKeeper != null)
-            {
-                _colorKeeper.LogMessageEvent -= SendLogMessage;
-                _colorKeeper.NeedToRePaintFormEvent -= _colorKeeper_NeedToRePaintFormEvent;
-                //_colorKeeper.Delete();
-                _colorKeeper = null;
-            }
-
-            if(_areaPositions != null)
-            {
-                _areaPositions.Clear();
-                _areaPositions = null;
-            }
-
-            if (_areaSizes != null)
-            {
-                _areaSizes.Clear();
-                _areaSizes = null;
-            }
-
-            _myCandles = null;
-            _chartElements = null;
-            _labelSeries = null;
-            _timePoints = null;
-            _candlesToPaint = null;
-            _indicatorsToPaint = null;
-            _positions = null;
-            _alertsToPaint = null;
         }
 
         /// <summary>
