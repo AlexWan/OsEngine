@@ -428,12 +428,13 @@ namespace OsEngine.Entity
                     if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
                     {
                         _activeSeriesBasedOnMd.Add(series);
+                        series.IsStarted = true;
                     }
                     else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
                     {
                         _activeSeriesBasedOnTrades.Add(series);
                     }
-                    series.IsStarted = true;
+                    
                 }
             }
             catch (Exception error)

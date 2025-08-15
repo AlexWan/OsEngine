@@ -2156,8 +2156,38 @@ namespace OsEngine.Market.Servers
 
                 if (_needToSaveCandlesParam.Value == true)
                 {
-                    List<Candle> candles = _candleStorage.GetCandles(series.Specification, _needToLoadCandlesCountParam.Value);
-                    series.CandlesAll = series.CandlesAll.Merge(candles);
+                    List<Candle> candlesStorage = _candleStorage.GetCandles(series.Specification, _needToLoadCandlesCountParam.Value);
+                    series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
+
+                    List<Candle> candlesAll = series.CandlesAll;
+
+                    if(candlesStorage != null 
+                        && candlesStorage.Count > 0
+                        && candlesAll != null)
+                    {                    
+                        // копируем в новый массив данные по открытому интересу
+                        for (int i = 0, j = 0; i < candlesStorage.Count && j < candlesAll.Count; i++, j++)
+                        {
+                            Candle candleStorage = candlesStorage[i];
+                            Candle candleAll = candlesAll[j];
+
+                            if (candleStorage.TimeStart == candleAll.TimeStart)
+                            {
+                                if(candleStorage.OpenInterest > candleAll.OpenInterest)
+                                {
+                                    candleAll.OpenInterest = candleStorage.OpenInterest;
+                                }
+                            }
+                            else if (candleStorage.TimeStart > candleAll.TimeStart)
+                            {
+                                i--;
+                            }
+                            else if (candleStorage.TimeStart < candleAll.TimeStart)
+                            {
+                                j--;
+                            }
+                        }
+                    }
                 }
             }
 
