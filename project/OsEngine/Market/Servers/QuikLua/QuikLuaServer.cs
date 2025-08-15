@@ -557,33 +557,13 @@ namespace OsEngine.Market.Servers.QuikLua
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void GetPortfoliosArea()
         {
-            try
+            while (true)
             {
-                while (ServerStatus == ServerConnectStatus.Disconnect)
+                try
                 {
-                    Thread.Sleep(5000);
-                }
-
-                Char separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
-                if (_portfolios == null)
-                {
-                    _portfolios = new List<Portfolio>();
-                }
-
-                List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
-
-                while (true)
-                {
-
                     if (MainWindow.ProccesIsWorked == false)
                     {
                         return;
-                    }
-
-                    if (QuikLua == null)
-                    {
-                        Thread.Sleep(100);
-                        continue;
                     }
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -591,6 +571,20 @@ namespace OsEngine.Market.Servers.QuikLua
                         Thread.Sleep(100);
                         continue;
                     }
+
+                    if (QuikLua == null)
+                    {
+                        Thread.Sleep(100);
+                        continue;
+                    }
+                    
+                    Char separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
+                    if (_portfolios == null)
+                    {
+                        _portfolios = new List<Portfolio>();
+                    }
+
+                    List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
 
                     for (int i = 0; i < accaunts.Count; i++)
                     {
@@ -668,10 +662,10 @@ namespace OsEngine.Market.Servers.QuikLua
                         PortfolioEvent(_portfolios);
                     }
                 }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
             }
         }
 
