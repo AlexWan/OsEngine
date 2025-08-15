@@ -616,8 +616,8 @@ namespace OsEngine.Market.Servers.QuikLua
                         else if (QuikLua != null)
                             qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, _clientCode).Result;
 
-                        if (qPortfolio != null && qPortfolio.Assets == null ||
-                            qPortfolio.Assets.ToDecimal() == 0)
+                        if (qPortfolio != null && (qPortfolio.Assets == null ||
+                            qPortfolio.Assets.ToDecimal() == 0))
                         {
                             if (QuikLua == null) continue;
 
