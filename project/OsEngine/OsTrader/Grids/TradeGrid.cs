@@ -1104,7 +1104,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 for (int i = 0; i < ordersToCancelBadLines.Count; i++)
                 {
-                    //Tab.SetNewLogMessage("Отзыв ордера по количеству", LogMessageType.Error);
+                   // Tab.SetNewLogMessage("Отзыв ордера по количеству", LogMessageType.Error);
                     Tab.CloseOrder(ordersToCancelBadLines[i]);
                 }
 
@@ -1958,12 +1958,6 @@ namespace OsEngine.OsTrader.Grids
                 {
                     TradeGridLine curLine = linesAll[i];
 
-                    if(curLine.Position != null
-                        || curLine.PositionNum != -1)
-                    {
-                        continue;
-                    }
-
                     if (curLine.PriceEnter < lastPrice)
                     {
                         linesWithOrdersToOpenNeed.Add(curLine);
@@ -1980,12 +1974,6 @@ namespace OsEngine.OsTrader.Grids
                 for (int i = 0; i < linesAll.Count; i++)
                 {
                     TradeGridLine curLine = linesAll[i];
-
-                    if (curLine.Position != null
-                        || curLine.PositionNum != -1)
-                    {
-                        continue;
-                    }
 
                     if (curLine.PriceEnter > lastPrice)
                     {
