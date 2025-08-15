@@ -100,6 +100,11 @@ namespace OsEngine.OsTrader.Grids
                 TextBoxDelayInReal.TextChanged += TextBoxDelayInReal_TextChanged;
             }
 
+            ComboBoxCheckMicroVolumes.Items.Add("True");
+            ComboBoxCheckMicroVolumes.Items.Add("False");
+            ComboBoxCheckMicroVolumes.SelectedItem = tradeGrid.CheckMicroVolumes.ToString();
+            ComboBoxCheckMicroVolumes.SelectionChanged += ComboBoxCheckMicroVolumes_SelectionChanged;
+
             // non trade periods
 
             CheckBoxNonTradePeriod1OnOff.IsChecked = tradeGrid.NonTradePeriods.NonTradePeriod1OnOff;
@@ -454,6 +459,7 @@ namespace OsEngine.OsTrader.Grids
             worker.Start();
         }
 
+
         private void Localization()
         {
             Title = OsLocalization.Trader.Label444 + " # " + TradeGrid.Tab.TabName + " # " + TradeGrid.Number ;
@@ -474,6 +480,7 @@ namespace OsEngine.OsTrader.Grids
             LabelMaxOpenOrdersInMarket.Content = OsLocalization.Trader.Label508;
             LabelMaxCloseOrdersInMarket.Content = OsLocalization.Trader.Label509;
             LabelDelayInReal.Content = OsLocalization.Trader.Label569;
+            LabelCheckMicroVolumes.Content = OsLocalization.Trader.Label572;
 
             // tab controls
 
@@ -2793,6 +2800,19 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private void ComboBoxCheckMicroVolumes_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.CheckMicroVolumes = Convert.ToBoolean(ComboBoxCheckMicroVolumes.SelectedItem.ToString());
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void ComboBoxRegimeLogicEntry_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -2892,11 +2912,6 @@ namespace OsEngine.OsTrader.Grids
             {
                 TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-        }
-
-        private void ButtonSelectPositionToClose_Click(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private void TextBoxMaxOrdersInMarket_TextChanged(object sender, TextChangedEventArgs e)

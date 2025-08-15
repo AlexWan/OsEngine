@@ -2186,5 +2186,9 @@ namespace OsEngine.Language
         public string Label571 => OsLocalization.ConvertToLocString(
         "Eng:Can move exit orders_" +
         "Ru:Разрешить двигать закрывающие ордера_");
+
+        public string Label572 => OsLocalization.ConvertToLocString(
+        "Eng:Check micro volumes_" +
+        "Ru:Проверять микро объёмы_");
     }
 }

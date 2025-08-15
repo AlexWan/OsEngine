@@ -20,14 +20,12 @@ namespace OsEngine.OsTrader.Grids
             _tab = grid.Tab;
             _tab.PositionOpeningFailEvent += _tab_PositionOpeningFailEvent;
             _tab.PositionClosingFailEvent += _tab_PositionClosingFailEvent;
-            _tab.CancelOrderFailEvent += _tab_CancelOrderFailEvent;
         }
 
         public void Delete()
         {
             _tab.PositionOpeningFailEvent -= _tab_PositionOpeningFailEvent;
             _tab.PositionClosingFailEvent -= _tab_PositionClosingFailEvent;
-            _tab.CancelOrderFailEvent -= _tab_CancelOrderFailEvent;
             _tab = null;
         }
 
@@ -104,7 +102,7 @@ namespace OsEngine.OsTrader.Grids
 
             if(lastOrder.State == OrderStateType.Fail)
             {
-                FailOpenOrdersCountFact++;
+                FailCancelOrdersCountFact++;
             }
         }
 
@@ -122,11 +120,6 @@ namespace OsEngine.OsTrader.Grids
             {
                 FailOpenOrdersCountFact++;
             }
-        }
-
-        private void _tab_CancelOrderFailEvent(Order order)
-        {
-            FailCancelOrdersCountFact++;
         }
 
         #endregion

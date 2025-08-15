@@ -74,7 +74,6 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-
         public StartProgram StartProgram;
 
         public int Number;
@@ -115,6 +114,7 @@ namespace OsEngine.OsTrader.Grids
             result +=  _openPositionsBySession + "@";
             result += _firstTradeTime.ToString(CultureInfo.InvariantCulture) + "@";
             result += DelayInReal + "@";
+            result += CheckMicroVolumes + "@";
 
             result += "%";
 
@@ -178,10 +178,12 @@ namespace OsEngine.OsTrader.Grids
                 try
                 {
                     DelayInReal = Convert.ToInt32(values[11]);
+                    CheckMicroVolumes = Convert.ToBoolean(values[12]);
                 }
                 catch
                 {
                     DelayInReal = 500;
+                    CheckMicroVolumes = true;
                 }
 
                 // non trade periods
@@ -345,6 +347,8 @@ namespace OsEngine.OsTrader.Grids
         public int MaxCloseOrdersInMarket = 5;
 
         public int DelayInReal = 500;
+
+        public bool CheckMicroVolumes = true;
 
         #endregion
 
@@ -1084,6 +1088,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 for (int i = 0; i < ordersToCancelBadPrice.Count; i++)
                 {
+                    //Tab.SetNewLogMessage("Отзыв ордера по не правильной цене", LogMessageType.Error);
                     Tab.CloseOrder(ordersToCancelBadPrice[i]);
                 }
 
@@ -1099,6 +1104,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 for (int i = 0; i < ordersToCancelBadLines.Count; i++)
                 {
+                    //Tab.SetNewLogMessage("Отзыв ордера по количеству", LogMessageType.Error);
                     Tab.CloseOrder(ordersToCancelBadLines[i]);
                 }
 
@@ -1114,6 +1120,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 for (int i = 0; i < ordersToCancelOpenOrders.Count; i++)
                 {
+                    //Tab.SetNewLogMessage("Отзыв ордера по дыре в сетке", LogMessageType.Error);
                     Tab.CloseOrder(ordersToCancelOpenOrders[i]);
                 }
 
@@ -1366,7 +1373,8 @@ namespace OsEngine.OsTrader.Grids
 
                 decimal volume = pos.OpenVolume;
 
-                if (Tab.CanTradeThisVolume(volume) == false)
+                if (CheckMicroVolumes == true 
+                    && Tab.CanTradeThisVolume(volume) == false)
                 {
                     continue;
                 }
@@ -1666,7 +1674,8 @@ namespace OsEngine.OsTrader.Grids
                 if (pos.State != PositionStateType.Done
                     || pos.OpenVolume >= 0)
                 {
-                    if (Tab.CanTradeThisVolume(pos.OpenVolume) == false)
+                    if (CheckMicroVolumes == true
+                    && Tab.CanTradeThisVolume(pos.OpenVolume) == false)
                     {
                         string message = "Micro volume detected. Position deleted \n";
                         message += "Position volume: " + pos.OpenVolume + "\n";
@@ -1949,6 +1958,12 @@ namespace OsEngine.OsTrader.Grids
                 {
                     TradeGridLine curLine = linesAll[i];
 
+                    if(curLine.Position != null
+                        || curLine.PositionNum != -1)
+                    {
+                        continue;
+                    }
+
                     if (curLine.PriceEnter < lastPrice)
                     {
                         linesWithOrdersToOpenNeed.Add(curLine);
@@ -1965,6 +1980,12 @@ namespace OsEngine.OsTrader.Grids
                 for (int i = 0; i < linesAll.Count; i++)
                 {
                     TradeGridLine curLine = linesAll[i];
+
+                    if (curLine.Position != null
+                        || curLine.PositionNum != -1)
+                    {
+                        continue;
+                    }
 
                     if (curLine.PriceEnter > lastPrice)
                     {

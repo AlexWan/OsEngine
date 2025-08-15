@@ -34,7 +34,7 @@
                     <ComboBox Name="ComboBoxRegimeLogicEntry" Margin="164,66,14,0" VerticalAlignment="Top"/>
                     <Label Name="LabelRegimeLogicEntry" Content="Regime logic entry" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
 
-                    <ComboBox Name="ComboBoxAutoClearJournal" Margin="164,94,14,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxAutoClearJournal" Margin="193,94,14,0" VerticalAlignment="Top"/>
                     <Label Name="LabelAutoClearJournal" Content="Auto clear journal is on" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top"/>
 
                     <Label Name="LabelMaxClosePositionsInJournal" Content="Max close positions in journal" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
@@ -55,6 +55,8 @@
                     <Button Name="ButtonClose" Content="Close" Margin="0,0,14,10" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="124" Click="ButtonClose_Click"/>
                     <Label Name="LabelDelayInReal" Content="Waiting for an order action (MLS)" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxDelayInReal" Text="500" Margin="284,178,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxCheckMicroVolumes" Margin="193,205,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelCheckMicroVolumes" Content="Check micro volumes" HorizontalAlignment="Left" Margin="10,205,0,0" VerticalAlignment="Top"/>
 
 
                 </Grid>
@@ -158,7 +160,7 @@
                     <Label Name="LabelTrailingDownLimit" Content="Limit" HorizontalAlignment="Left" Margin="11,201,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTrailingDownLimit" Margin="164,201,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <CheckBox Name="CheckBoxTrailingDownCanMoveExitOrder" Content="Can move exit orders" HorizontalAlignment="Center" Margin="0,229,0,0" VerticalAlignment="Top" Width="316"/>
-               
+
                 </Grid>
             </TabItem>
         </TabControl>
