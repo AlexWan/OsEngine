@@ -328,7 +328,7 @@ namespace OsEngine.Market.SupportTable
 
             SupportConnection askend = new SupportConnection()
             {
-                ServerType = ServerType.AscendEx_BitMax,
+                ServerType = ServerType.AscendexSpot,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\Ascend.png",
                 LingSiteUrl = "https://ascendex.com/register?inviteCode=BPEFZZW8Q",
