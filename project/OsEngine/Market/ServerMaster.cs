@@ -16,7 +16,6 @@ using OsEngine.Market.Servers.AstsBridge;
 using OsEngine.Market.Servers.Binance.Futures;
 using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
-using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.ExMo;
 using OsEngine.Market.Servers.Finam;
@@ -292,7 +291,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.GateIoSpot);
                 serverTypes.Add(ServerType.GateIoFutures);
-                serverTypes.Add(ServerType.AscendEx_BitMax);
                 serverTypes.Add(ServerType.Deribit);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
@@ -416,7 +414,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MfdWeb);
                 serverTypes.Add(ServerType.MoexAlgopack);
                 serverTypes.Add(ServerType.MoexFixFastSpot);
-                serverTypes.Add(ServerType.AscendEx_BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BingXFutures);
@@ -658,10 +655,6 @@ namespace OsEngine.Market
                 if (type == ServerType.Exmo)
                 {
                     newServer = new ExmoServer();
-                }
-                if (type == ServerType.AscendEx_BitMax)
-                {
-                    newServer = new BitMaxProServer();
                 }
                 if (type == ServerType.Transaq)
                 {
@@ -1384,10 +1377,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new BitGetFuturesServerPermission();
                 }
-                else if (type == ServerType.AscendEx_BitMax)
-                {
-                    serverPermission = new BitmaxServerPermission();
-                }
                 else if (type == ServerType.OKX)
                 {
                     serverPermission = new OkxServerPermission();
@@ -1998,12 +1987,6 @@ namespace OsEngine.Market
         /// биржа криптовалют ZB
         /// </summary>
         Zb,
-
-        /// <summary>
-        /// BitMax exchange
-        /// биржа BitMax
-        /// </summary>
-        AscendEx_BitMax,
 
         /// <summary>
         /// transaq
