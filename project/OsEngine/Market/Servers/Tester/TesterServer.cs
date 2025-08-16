@@ -3201,7 +3201,7 @@ namespace OsEngine.Market.Servers.Tester
 
                     CultureInfo culture = CultureInfo;
 
-                    for (int i2 = 0; i2 < 50; i2++)
+                    for (int i2 = 0; i2 < 100; i2++)
                     {
                         Trade tradeN = new Trade();
                         tradeN.SetTradeFromString(reader.ReadLine());
