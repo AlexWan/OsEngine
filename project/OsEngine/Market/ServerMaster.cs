@@ -1869,6 +1869,16 @@ namespace OsEngine.Market
             }
         }
 
+        public static void ShowApiDialog()
+        {
+            if(ShowApiDialogEvent != null)
+            {
+                ShowApiDialogEvent();
+            }
+        }
+
+        public static event Action ShowApiDialogEvent;
+
         #endregion
 
         #region Robots in bot station access
