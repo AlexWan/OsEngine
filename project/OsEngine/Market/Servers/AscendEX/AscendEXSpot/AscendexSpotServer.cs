@@ -182,7 +182,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
         #region 3 Securities
 
-        private RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(2100));
+        private RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(210));
 
         public void GetSecurities()
         {
@@ -196,9 +196,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    string jsonResponse = response.Content;
-
-                    AscendexSpotSecurityResponse securityList = JsonConvert.DeserializeObject<AscendexSpotSecurityResponse>(jsonResponse);
+                    AscendexSpotSecurityResponse securityList = JsonConvert.DeserializeObject<AscendexSpotSecurityResponse>(response.Content);
 
                     if (securityList == null)
                     {
@@ -218,7 +216,6 @@ namespace OsEngine.Market.Servers.AscendexSpot
                         for (int i = 0; i < securityList.data.Count; i++)
                         {
                             string symbol = securityList.data[i].symbol;
-                            string price = securityList.data[i].tickSize;
                             string domain = securityList.data[i].domain;
                             string statusCode = securityList.data[i].statusCode;
 
@@ -235,22 +232,26 @@ namespace OsEngine.Market.Servers.AscendexSpot
                             newSecurity.Name = symbol;
                             newSecurity.NameFull = symbol;
                             newSecurity.NameClass = GetNameClass(symbol);
-                            newSecurity.NameId = symbol;
+                            newSecurity.NameId = symbol + securityList.data[i].tradingStartTime;
                             newSecurity.SecurityType = SecurityType.CurrencyPair;
-                            newSecurity.Lot = securityList.data[i].lotSize.ToDecimal();
+                            newSecurity.Lot = 1;
                             newSecurity.State = SecurityStateType.Activ;
                             newSecurity.PriceStep = securityList.data[i].tickSize.ToDecimal();
-                            newSecurity.Decimals = price.DecimalsCount() == 0 ? 1 : price.DecimalsCount();
+                            newSecurity.Decimals = Convert.ToInt32(securityList.data[i].priceScale);
                             newSecurity.PriceStepCost = newSecurity.PriceStep;
                             newSecurity.DecimalsVolume = Convert.ToInt32(securityList.data[i].qtyScale);
-                            newSecurity.MinTradeAmount = securityList.data[i].minQty.ToDecimal();
-                            newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+                            newSecurity.MinTradeAmount = securityList.data[i].minNotional.ToDecimal();
+                            newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
                             newSecurity.VolumeStep = newSecurity.DecimalsVolume.GetValueByDecimals();
 
                             securities.Add(newSecurity);
                         }
 
                         SecurityEvent?.Invoke(securities);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Securities error. {response.Content}", LogMessageType.Error);
                     }
                 }
                 else
@@ -266,9 +267,18 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
         private string GetNameClass(string security)
         {
-            if (security.EndsWith("USD")) return "USD";
-            if (security.EndsWith("USDT")) return "USDT";
-            if (security.EndsWith("BTC")) return "BTC";
+            if (security.EndsWith("USD"))
+            {
+                return "USD";
+            }
+            else if (security.EndsWith("USDT"))
+            {
+                return "USDT";
+            }
+            else if (security.EndsWith("BTC"))
+            {
+                return "BTC";
+            }
 
             return "CurrencyPair";
         }
