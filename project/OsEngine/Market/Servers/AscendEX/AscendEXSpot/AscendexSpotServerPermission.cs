@@ -116,11 +116,6 @@ namespace OsEngine.Market.Servers.AscendexSpot
             get { return true; }
         }
 
-        public bool IsTradeServer
-        {
-            get { return false; }
-        }
-
         public bool IsCanChangeOrderPrice
         {
             get { return false; }
@@ -183,7 +178,15 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "USDT"
+                };
+
+                return values;
+            }
         }
 
         public bool CanQueryOrdersAfterReconnect
