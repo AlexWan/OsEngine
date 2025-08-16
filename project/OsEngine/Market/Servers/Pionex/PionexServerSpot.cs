@@ -1,12 +1,16 @@
-﻿using Com.Lmax.Api.Internal;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Pionex.Entity;
 using RestSharp;
-using SuperSocket.ClientEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,7 +19,6 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocket4Net;
 
 namespace OsEngine.Market.Servers.Pionex
 {
@@ -23,8 +26,8 @@ namespace OsEngine.Market.Servers.Pionex
     {
         public PionexServerSpot()
         {
-             PionexServerRealization realization = new PionexServerRealization();
-             ServerRealization = realization;
+            PionexServerRealization realization = new PionexServerRealization();
+            ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
@@ -50,7 +53,7 @@ namespace OsEngine.Market.Servers.Pionex
             threadForPrivateMessages.Start();
         }
 
-        public DateTime ServerTime { get ; set ; }
+        public DateTime ServerTime { get; set; }
 
         public void Connect(WebProxy proxy)
         {
@@ -61,19 +64,8 @@ namespace OsEngine.Market.Servers.Pionex
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
-                try
-                {
-                    WebSocketPublicMessages = new ConcurrentQueue<string>();
-                    WebSocketPrivateMessages = new ConcurrentQueue<string>();
-                    CreateWebSocketConnection();
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
-                    SendLogMessage("Connection cannot be open. Pionex. Error request", LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                CreatePublicWebSocketConnect();
+                CreatePrivateWebSocketConnect();
             }
             else
             {
@@ -96,7 +88,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             try
             {
-                DeleteWebsocketConnection();
+                DeleteWebSocketConnection();
             }
             catch (Exception exception)
             {
@@ -106,31 +98,18 @@ namespace OsEngine.Market.Servers.Pionex
             _subscribedSecurities.Clear();
             _decimalsVolume.Clear();
 
-            WebSocketPublicMessages = new ConcurrentQueue<string>();
-            WebSocketPrivateMessages = new ConcurrentQueue<string>();
+            FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
+            Disconnect();
+        }
+
+        public void Disconnect()
+        {
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
-            }
-        }
-
-        private void UnsubscribeFromAllWebSockets()
-        {
-            if (_webSocketPublic == null || _webSocketPrivate == null)
-            {  return; }
-               
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
-            {
-                string securityName = _subscribedSecurities[i];
-
-                _webSocketPublic.Send($"{{\"op\": \"UNSUBSCRIBED\", \"topic\": \"TRADE\", \"symbol\": {securityName}\"}}"); // trades
-                _webSocketPublic.Send($"{{\"op\": \"UNSUBSCRIBED\",  \"topic\":  \"DEPTH\",  \"symbol\": {securityName}\", \"limit\":  10 }}"); // depth
-
-                _webSocketPrivate.Send("{\"op\": \"UNSUBSCRIBE\", \"topic\": \"BALANCE\"}"); // myportfolio
-                _webSocketPrivate.Send($"{{\"op\": \"UNSUBSCRIBE\", \"topic\": \"ORDER\", \"symbol\": \"{securityName}\"}}"); // myorders
-                _webSocketPrivate.Send($"{{\"op\": \"UNSUBSCRIBE\",  \"topic\":  \"FILL\",  \"symbol\": \"{securityName}\"}}"); // mytrades
             }
         }
 
@@ -139,7 +118,7 @@ namespace OsEngine.Market.Servers.Pionex
             get { return ServerType.PionexSpot; }
         }
 
-        public ServerConnectStatus ServerStatus { get; set ; }
+        public ServerConnectStatus ServerStatus { get; set; }
 
         public event Action ConnectEvent;
 
@@ -222,7 +201,7 @@ namespace OsEngine.Market.Servers.Pionex
                     Security newSecurity = new Security();
 
                     newSecurity.Exchange = ServerType.PionexSpot.ToString();
-                    
+
                     newSecurity.Lot = 1;
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.symbol;
@@ -233,7 +212,7 @@ namespace OsEngine.Market.Servers.Pionex
                     newSecurity.Decimals = Convert.ToInt32(item.quotePrecision);
                     newSecurity.PriceStep = newSecurity.Decimals.GetValueByDecimals();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.DecimalsVolume = Convert.ToInt32(item.basePrecision); 
+                    newSecurity.DecimalsVolume = Convert.ToInt32(item.basePrecision);
                     newSecurity.State = SecurityStateType.Activ;
 
                     securities.Add(newSecurity);
@@ -262,7 +241,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return CreateQueryCandles(security, timeFrameBuilder, candleCount,1);
+            return CreateQueryCandles(security, timeFrameBuilder, candleCount, 1);
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -280,101 +259,240 @@ namespace OsEngine.Market.Servers.Pionex
 
         #region 6 WebSocket creation
 
+        private List<WebSocket> _webSocketPublic = new List<WebSocket>();
+
         private WebSocket _webSocketPrivate;
 
-        private WebSocket _webSocketPublic;
-        
         private string _webSocketPublicUrl = "wss://ws.pionex.com/wsPub";
 
-        private void CreateWebSocketConnection()
+        private string _webSocketPrivateUrl = "wss://ws.pionex.com/ws";
+
+        private void CreatePublicWebSocketConnect()
         {
-            _webSocketPublic = new WebSocket(_webSocketPublicUrl);
-            _webSocketPublic.EnableAutoSendPing = true;
-            _webSocketPublic.AutoSendPingInterval = 15;
+            try
+            {
+                if (FIFOListWebSocketPublicMessage == null)
+                {
+                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                }
 
-            _webSocketPublic.Opened += WebSocketPublic_Opened;
-            _webSocketPublic.Closed += WebSocketPublic_Closed;
-            _webSocketPublic.DataReceived += WebSocketPublic_DataReceived;
-            _webSocketPublic.Error += WebSocketPublic_Error;
-            _webSocketPublic.Open();
-
-            _webSocketPrivate = new WebSocket(GenerateUrlForPrivateWS());
-            _webSocketPrivate.EnableAutoSendPing = true;
-            _webSocketPrivate.AutoSendPingInterval = 15;
-
-            _webSocketPrivate.Opened += WebSocketPrivate_Opened;
-            _webSocketPrivate.Closed += WebSocketPrivate_Closed;
-            _webSocketPrivate.DataReceived += WebSocketPrivate_DataReceived;
-            _webSocketPrivate.Error += WebSocketPrivate_Error;
-            _webSocketPrivate.Open();
-
+                _webSocketPublic.Add(CreateNewPublicSocket());
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
         }
 
-        private void DeleteWebsocketConnection()
+        private WebSocket CreateNewPublicSocket()
+        {
+            try
+            {
+                WebSocket webSocketPublicNew = new WebSocket(_webSocketPublicUrl);
+
+                //if (_myProxy != null)
+                //{
+                //    webSocketPublicNew.SetProxy(_myProxy);
+                //}
+
+                webSocketPublicNew.EmitOnPing = true;
+                webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
+                webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
+                webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
+                webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
+                webSocketPublicNew.Connect();
+
+                return webSocketPublicNew;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private void CreatePrivateWebSocketConnect()
+        {
+            try
+            {
+                if (_webSocketPrivate != null)
+                {
+                    return;
+                }
+
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+
+                string preHash = "/ws?key=" + _publicKey + "&timestamp=" + timestamp + "websocket_auth";
+
+                string signature = SHA256HexHashString(_secretKey, preHash);
+
+                string privateURL = $"{_webSocketPrivateUrl}?key={_publicKey}&timestamp={timestamp}&signature={signature}";
+
+                _webSocketPrivate = new WebSocket(privateURL);
+
+                //if (_myProxy != null)
+                //{
+                //    _webSocketPrivate.SetProxy(_myProxy);
+                //}
+
+                _webSocketPrivate.EmitOnPing = true;
+                _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
+                _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
+                _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
+                _webSocketPrivate.OnError += _webSocketPrivate_OnError;
+                _webSocketPrivate.Connect();
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void DeleteWebSocketConnection()
         {
             if (_webSocketPublic != null)
             {
                 try
                 {
-                    _webSocketPublic.Close();
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
+                        webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
+                        webSocketPublic.OnMessage -= WebSocketPublicNew_OnMessage;
+                        webSocketPublic.OnError -= WebSocketPublicNew_OnError;
+
+                        if (webSocketPublic.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.CloseAsync();
+                        }
+
+                        webSocketPublic = null;
+                    }
                 }
                 catch
                 {
                     // ignore
                 }
 
-                _webSocketPublic.Opened -= WebSocketPublic_Opened;
-                _webSocketPublic.Closed -= WebSocketPublic_Closed;
-                _webSocketPublic.DataReceived -= WebSocketPublic_DataReceived;
-                _webSocketPublic.Error -= WebSocketPublic_Error;
-                _webSocketPublic = null;
+                _webSocketPublic.Clear();
             }
 
             if (_webSocketPrivate != null)
             {
                 try
                 {
-                    _webSocketPrivate.Close();
+                    _webSocketPrivate.OnOpen -= _webSocketPrivate_OnOpen;
+                    _webSocketPrivate.OnClose -= _webSocketPrivate_OnClose;
+                    _webSocketPrivate.OnMessage -= _webSocketPrivate_OnMessage;
+                    _webSocketPrivate.OnError -= _webSocketPrivate_OnError;
+                    _webSocketPrivate.CloseAsync();
                 }
                 catch
                 {
                     // ignore
                 }
 
-                _webSocketPrivate.Opened -= WebSocketPrivate_Opened;
-                _webSocketPrivate.Closed -= WebSocketPrivate_Closed;
-                _webSocketPrivate.DataReceived -= WebSocketPrivate_DataReceived;
-                _webSocketPrivate.Error -= WebSocketPrivate_Error;
                 _webSocketPrivate = null;
             }
         }
 
-        private string GenerateUrlForPrivateWS()
+        private string _socketActivateLocker = "socketAcvateLocker";
+
+        private void CheckSocketsActivate()
         {
-            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            lock (_socketActivateLocker)
+            {
 
-            string preHash = "/ws" + "?key=" + _publicKey + "&timestamp=" + timestamp + "websocket_auth";
+                if (_webSocketPrivate == null
+                    || _webSocketPrivate.ReadyState != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
 
-            string signature = SHA256HexHashString(_secretKey, preHash);
+                if (_webSocketPublic.Count == 0)
+                {
+                    Disconnect();
+                    return;
+                }
 
-            return "wss://ws.pionex.com/ws" + "?key=" + _publicKey + "&timestamp=" + timestamp + "&signature=" + signature;
+                WebSocket webSocketPublic = _webSocketPublic[0];
+
+                if (webSocketPublic == null
+                    || webSocketPublic?.ReadyState != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Connect;
+
+                    if (ConnectEvent != null)
+                    {
+                        ConnectEvent();
+                    }
+                }
+            }
         }
 
         #endregion
 
         #region 7 WebSocket events
 
-        private void WebSocketPublic_Error(object sender, ErrorEventArgs e)
+        private void WebSocketPublicNew_OnClose(object arg1, CloseEventArgs e)
         {
-            ErrorEventArgs error = (ErrorEventArgs)e;
-
-            if (error.Exception != null)
+            try
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
-        private void WebSocketPublic_DataReceived(object sender, DataReceivedEventArgs e)
+        private void WebSocketPublicNew_OnError(object arg1, ErrorEventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void WebSocketPublicNew_OnMessage(object arg1, MessageEventArgs e)
         {
             try
             {
@@ -393,14 +511,19 @@ namespace OsEngine.Market.Servers.Pionex
                     return;
                 }
 
-                if (WebSocketPublicMessages == null)
+                if (FIFOListWebSocketPublicMessage == null)
                 {
                     return;
                 }
 
-                if (e.Data.GetType().ToString() == "System.Byte[]")
+                if (e.IsBinary)
                 {
-                   WebSocketPublicMessages.Enqueue(Encoding.UTF8.GetString(e.Data));
+                    FIFOListWebSocketPublicMessage.Enqueue(Encoding.UTF8.GetString(e.RawData));
+                }
+
+                if (e.IsText)
+                {
+                    FIFOListWebSocketPublicMessage.Enqueue(e.Data);
                 }
 
             }
@@ -410,39 +533,52 @@ namespace OsEngine.Market.Servers.Pionex
             }
         }
 
-        private void WebSocketPublic_Closed(object sender, EventArgs e)
+        private void WebSocketPublicNew_OnOpen(object arg1, EventArgs arg2)
         {
-            if (ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by Pionex. WebSocket Public Closed Event", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    CheckSocketsActivate();
+                    SendLogMessage("PionexSpot WebSocket Public connection open", LogMessageType.System);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
-        private void WebSocketPublic_Opened(object sender, EventArgs e)
+        private void _webSocketPrivate_OnError(object arg1, ErrorEventArgs e)
         {
-            SendLogMessage("Connection to public data is Open", LogMessageType.System);
-
-            if (ServerStatus != ServerConnectStatus.Connect
-                && _webSocketPublic != null
-                && _webSocketPublic.State == WebSocketState.Open)
+            try
             {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
-        private void WebSocketPrivate_Error(object sender, ErrorEventArgs e)
-        {
-            ErrorEventArgs error = (SuperSocket.ClientEngine.ErrorEventArgs)e;
-            if (error.Exception != null)
-            {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void WebSocketPrivate_DataReceived(object sender, DataReceivedEventArgs e)
+        private void _webSocketPrivate_OnMessage(object arg1, MessageEventArgs e)
         {
             try
             {
@@ -461,16 +597,20 @@ namespace OsEngine.Market.Servers.Pionex
                     return;
                 }
 
-                if (WebSocketPrivateMessages == null)
+                if (FIFOListWebSocketPrivateMessage == null)
                 {
                     return;
                 }
 
-                if (e.Data.GetType().ToString() == "System.Byte[]")
+                if (e.IsBinary)
                 {
-                    WebSocketPrivateMessages.Enqueue(Encoding.UTF8.GetString(e.Data));
+                    FIFOListWebSocketPrivateMessage.Enqueue(Encoding.UTF8.GetString(e.RawData));
                 }
 
+                if (e.IsText)
+                {
+                    FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
+                }
             }
             catch (Exception error)
             {
@@ -478,30 +618,39 @@ namespace OsEngine.Market.Servers.Pionex
             }
         }
 
-        private void WebSocketPrivate_Closed(object sender, EventArgs e)
+        private void _webSocketPrivate_OnClose(object arg1, CloseEventArgs arg2)
         {
-            if (ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by Pionex. WebSocket Private Closed Event", LogMessageType.Error);
-               
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
-        private void WebSocketPrivate_Opened(object sender, EventArgs e)
+        private void _webSocketPrivate_OnOpen(object arg1, EventArgs arg2)
         {
-            SendLogMessage("Connection to private data is Open", LogMessageType.System);
-
-            if (ServerStatus != ServerConnectStatus.Connect
-                && _webSocketPrivate != null
-                && _webSocketPrivate.State == WebSocketState.Open)
+            try
             {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                CheckSocketsActivate();
+                SendLogMessage("BitMartSpot WebSocket Private connection open", LogMessageType.System);
+
+                _webSocketPrivate.Send("{\"op\": \"SUBSCRIBE\", \"topic\": \"BALANCE\"}");
             }
-    
-            _webSocketPrivate.Send("{\"op\": \"SUBSCRIBE\", \"topic\": \"BALANCE\"}"); // подписка сразу на изменение портфеля
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -523,7 +672,63 @@ namespace OsEngine.Market.Servers.Pionex
                     return;
                 }
 
-                CreateSubscribedSecurityMessageWebSocket(security);
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
+                {
+                    if (_subscribedSecurities[i].Equals(security.Name))
+                    {
+                        return;
+                    }
+                }
+
+                _subscribedSecurities.Add(security.Name);
+
+                if (_webSocketPublic.Count == 0)
+                {
+                    return;
+                }
+
+                WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+                if (webSocketPublic.ReadyState == WebSocketState.Open
+                    && _subscribedSecurities.Count != 0
+                    && _subscribedSecurities.Count % 50 == 0)
+                {
+                    // creating a new socket
+                    WebSocket newSocket = CreateNewPublicSocket();
+
+                    DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                    while (newSocket.ReadyState != WebSocketState.Open)
+                    {
+                        Thread.Sleep(1000);
+
+                        if (timeEnd < DateTime.Now)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (newSocket.ReadyState == WebSocketState.Open)
+                    {
+                        _webSocketPublic.Add(newSocket);
+                        webSocketPublic = newSocket;
+                    }
+                }
+
+                if (webSocketPublic != null)
+                {
+                    webSocketPublic.Send($"{{\"op\": \"SUBSCRIBE\", \"topic\": \"TRADE\", \"symbol\": \"{security.Name}\"}}");
+                    webSocketPublic.Send($"{{\"op\": \"SUBSCRIBE\",  \"topic\":  \"DEPTH\",  \"symbol\": \"{security.Name}\", \"limit\":  10 }}");
+                }
+
+                if (_webSocketPrivate != null)
+                {
+                    _webSocketPrivate.Send($"{{\"op\": \"SUBSCRIBE\", \"topic\": \"ORDER\", \"symbol\": \"{security.Name}\"}}");
+                    _webSocketPrivate.Send($"{{\"op\": \"SUBSCRIBE\",  \"topic\":  \"FILL\",  \"symbol\": \"{security.Name}\"}}");
+                }
+
+                // собираем знаки после запятой в объеме инструмента, для корректного отображения в объеме позиции
+                _decimalsVolume.Add(security.Name, security.DecimalsVolume);
             }
             catch (Exception exception)
             {
@@ -531,32 +736,68 @@ namespace OsEngine.Market.Servers.Pionex
             }
         }
 
-        private void CreateSubscribedSecurityMessageWebSocket(Security security)
+        private void UnsubscribeFromAllWebSockets()
         {
-
-            if (ServerStatus == ServerConnectStatus.Disconnect)
+            try
             {
-                return;
-            }
-
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
-            {
-                if (_subscribedSecurities[i].Equals(security.Name))
+                if (_webSocketPublic.Count != 0
+                    && _webSocketPublic != null)
                 {
-                    return;
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        try
+                        {
+                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                            {
+                                if (_subscribedSecurities != null)
+                                {
+                                    for (int j = 0; j < _subscribedSecurities.Count; j++)
+                                    {
+                                        string securityName = _subscribedSecurities[j];
+
+                                        webSocketPublic.Send($"{{\"op\": \"UNSUBSCRIBED\", \"topic\": \"TRADE\", \"symbol\": {securityName}\"}}");
+                                        webSocketPublic.Send($"{{\"op\": \"UNSUBSCRIBED\",  \"topic\":  \"DEPTH\",  \"symbol\": {securityName}\", \"limit\":  10 }}");
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
+                    }
                 }
             }
+            catch
+            {
+                // ignore
+            }
 
-            _subscribedSecurities.Add(security.Name);
+            if (_webSocketPrivate != null
+                && _webSocketPrivate.ReadyState == WebSocketState.Open)
+            {
+                try
+                {
+                    if (_subscribedSecurities != null)
+                    {
+                        for (int j = 0; j < _subscribedSecurities.Count; j++)
+                        {
+                            string securityName = _subscribedSecurities[j];
 
-            _webSocketPublic.Send($"{{\"op\": \"SUBSCRIBE\", \"topic\": \"TRADE\", \"symbol\": \"{security.Name}\"}}"); // trades
-            _webSocketPublic.Send($"{{\"op\": \"SUBSCRIBE\",  \"topic\":  \"DEPTH\",  \"symbol\": \"{security.Name}\", \"limit\":  10 }}"); // depth https://pionex-doc.gitbook.io/apidocs/websocket/public-stream/depth
+                            _webSocketPrivate.Send($"{{\"op\": \"UNSUBSCRIBE\", \"topic\": \"ORDER\", \"symbol\": \"{securityName}\"}}"); // myorders
+                            _webSocketPrivate.Send($"{{\"op\": \"UNSUBSCRIBE\",  \"topic\":  \"FILL\",  \"symbol\": \"{securityName}\"}}"); // mytrades
+                        }
+                    }
 
-            _webSocketPrivate.Send($"{{\"op\": \"SUBSCRIBE\", \"topic\": \"ORDER\", \"symbol\": \"{security.Name}\"}}"); // myorders
-            _webSocketPrivate.Send($"{{\"op\": \"SUBSCRIBE\",  \"topic\":  \"FILL\",  \"symbol\": \"{security.Name}\"}}"); // mytrades
-
-            // собираем знаки после запятой в объеме инструмента, для корректного отображения в объеме позиции
-            _decimalsVolume.Add(security.Name, security.DecimalsVolume);
+                    _webSocketPrivate.Send("{\"op\": \"UNSUBSCRIBE\", \"topic\": \"BALANCE\"}");
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
         }
 
         public bool SubscribeNews()
@@ -570,9 +811,9 @@ namespace OsEngine.Market.Servers.Pionex
 
         #region 9 WebSocket parsing the messages
 
-        private ConcurrentQueue<string> WebSocketPublicMessages = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
 
-        private ConcurrentQueue<string> WebSocketPrivateMessages = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
         private Dictionary<string, int> _decimalsVolume = new Dictionary<string, int>();
 
@@ -584,13 +825,13 @@ namespace OsEngine.Market.Servers.Pionex
             {
                 try
                 {
-                    if (ServerStatus != ServerConnectStatus.Connect)
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(2000);
                         continue;
                     }
 
-                    if (WebSocketPublicMessages.IsEmpty)
+                    if (FIFOListWebSocketPublicMessage.IsEmpty)
                     {
                         Thread.Sleep(1);
                         continue;
@@ -598,7 +839,7 @@ namespace OsEngine.Market.Servers.Pionex
 
                     string message;
 
-                    WebSocketPublicMessages.TryDequeue(out message);
+                    FIFOListWebSocketPublicMessage.TryDequeue(out message);
 
                     if (message == null)
                     {
@@ -607,9 +848,23 @@ namespace OsEngine.Market.Servers.Pionex
 
                     if (message.Contains("PING"))
                     {
-                        string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                        string pong = $"{{\"op\": \"PONG\", \"timestamp\": {timeStamp}}}";
-                        _webSocketPublic.Send(pong);
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
+                        {
+                            WebSocket webSocketPublic = _webSocketPublic[i];
+
+                            if (webSocketPublic != null
+                                && webSocketPublic?.ReadyState == WebSocketState.Open)
+                            {
+                                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                                string pong = $"{{\"op\": \"PONG\", \"timestamp\": {timeStamp}}}";
+                                webSocketPublic.Send(pong);
+                            }
+                            else
+                            {
+                                Disconnect();
+                            }
+                        }
+
                         continue;
                     }
 
@@ -646,13 +901,13 @@ namespace OsEngine.Market.Servers.Pionex
             {
                 try
                 {
-                    if (ServerStatus != ServerConnectStatus.Connect)
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(2000);
                         continue;
                     }
 
-                    if (WebSocketPrivateMessages.IsEmpty)
+                    if (FIFOListWebSocketPrivateMessage.IsEmpty)
                     {
                         Thread.Sleep(1);
                         continue;
@@ -660,7 +915,7 @@ namespace OsEngine.Market.Servers.Pionex
 
                     string message;
 
-                    WebSocketPrivateMessages.TryDequeue(out message);
+                    FIFOListWebSocketPrivateMessage.TryDequeue(out message);
 
                     if (message == null)
                     {
@@ -697,7 +952,6 @@ namespace OsEngine.Market.Servers.Pionex
                             continue;
                         }
                     }
-
                 }
                 catch (Exception exception)
                 {
@@ -771,7 +1025,7 @@ namespace OsEngine.Market.Servers.Pionex
             marketDepth.Bids = bids;
             marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.timestamp));
 
-            if(marketDepth.Asks.Count == 0 ||
+            if (marketDepth.Asks.Count == 0 ||
                 marketDepth.Bids.Count == 0)
             {
                 return;
@@ -823,8 +1077,8 @@ namespace OsEngine.Market.Servers.Pionex
             // при покупке комиссия берется с монеты и объем уменьшается и появляются лишние знаки после запятой
             decimal preVolume = newTrade.Side == Side.Sell ? item.size.ToDecimal() : item.size.ToDecimal() - item.fee.ToDecimal();
 
-            newTrade.Volume = GetVolumeForMyTrade(item.symbol ,preVolume); 
-            
+            newTrade.Volume = GetVolumeForMyTrade(item.symbol, preVolume);
+
             MyTradeEvent(newTrade);
         }
 
@@ -837,7 +1091,7 @@ namespace OsEngine.Market.Servers.Pionex
             while (enumerator.MoveNext())
             {
                 string key = enumerator.Current.Key;
-                int value = enumerator.Current.Value;  
+                int value = enumerator.Current.Value;
 
                 if (key.Equals(symbol))
                 {
@@ -877,7 +1131,7 @@ namespace OsEngine.Market.Servers.Pionex
             newOrder.SecurityNameCode = item.symbol;
             newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createTime));
 
-            if(string.IsNullOrEmpty(item.clientOrderId))
+            if (string.IsNullOrEmpty(item.clientOrderId))
             {
                 return;
             }
@@ -1007,7 +1261,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             _pathUrl = "trade/allOrders";
 
-            string body = $"{{\"symbol\":\"{security.Name}\"}}"; 
+            string body = $"{{\"symbol\":\"{security.Name}\"}}";
 
             string signature = GenerateSignature("DELETE", _pathUrl, timestamp, body, null);
 
@@ -1071,12 +1325,12 @@ namespace OsEngine.Market.Servers.Pionex
 
         public void CancelAllOrders()
         {
-          
+
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
-            
+
         }
 
         public void GetAllActivOrders()
@@ -1117,7 +1371,7 @@ namespace OsEngine.Market.Servers.Pionex
                 {
                     if (responce.result == "true")
                     {
-                      UpdatePortfolioREST( responce.data.balances);
+                        UpdatePortfolioREST(responce.data.balances);
                     }
                     else
                     {
@@ -1129,7 +1383,7 @@ namespace OsEngine.Market.Servers.Pionex
                 else
                 {
                     SendLogMessage($"Http State Code: {json.StatusCode}", LogMessageType.Error);
-                   
+
                 }
             }
             catch (Exception exception)
@@ -1144,7 +1398,7 @@ namespace OsEngine.Market.Servers.Pionex
             portfolio.Number = "PionexSpot";
             portfolio.ValueBegin = 1;
             portfolio.ValueCurrent = 1;
-            
+
             for (int i = 0; i < balances.Length; i++)
             {
                 PositionOnBoard newPortf = new PositionOnBoard();
@@ -1218,7 +1472,7 @@ namespace OsEngine.Market.Servers.Pionex
                     {
                         List<Candle> candles = new List<Candle>();
 
-                        for (int i = responce.data.klines.Length - 1; i >= 0 ; i--)
+                        for (int i = responce.data.klines.Length - 1; i >= 0; i--)
                         {
                             Candle newCandle = new Candle();
 
@@ -1236,7 +1490,7 @@ namespace OsEngine.Market.Servers.Pionex
                     }
                     else
                     {
-                        if(taskCount >= 3)
+                        if (taskCount >= 3)
                         {
                             SendLogMessage($"CreateQueryCandles Error: {responce.code} - message: {responce.message}", LogMessageType.Error);
                             return null;
@@ -1269,7 +1523,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             return null;
         }
-        
+
         private string GenerateSignature(string method, string path, string timestamp, string body, SortedDictionary<string, string> param)
         {
             method = method.ToUpper();
@@ -1291,7 +1545,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             return SHA256HexHashString(_secretKey, preHash);
         }
-       
+
         private string SHA256HexHashString(string key, string message)
         {
             string hashString;
@@ -1305,7 +1559,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             return hashString;
         }
-        
+
         private string ToHex(byte[] bytes, bool upperCase)
         {
             StringBuilder result = new StringBuilder(bytes.Length * 2);
@@ -1317,7 +1571,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             return result.ToString();
         }
-        
+
         public string BuildParams(SortedDictionary<string, string> _params)
         {
             if (_params == null)
@@ -1339,7 +1593,7 @@ namespace OsEngine.Market.Servers.Pionex
             }
             return sb.ToString().Substring(1) + "&";
         }
-        
+
         private IRestResponse CreatePrivateRequest(string signature, string pathUrl, Method method, string timestamp, string body, SortedDictionary<string, string> _params)
         {
             RestClient client = new RestClient(_baseUrl);
