@@ -23,9 +23,9 @@ namespace OsEngine.OsTrader.Grids
 
         public bool TradeInFriday = true;
 
-        public bool TradeInSaturday = false;
+        public bool TradeInSaturday = true;
 
-        public bool TradeInSunday = false;
+        public bool TradeInSunday = true;
 
         public TradeGridRegime NonTradeDaysRegime;
 

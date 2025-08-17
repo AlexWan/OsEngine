@@ -754,6 +754,44 @@ namespace OsEngine.Market.Servers
         private ServerConnectStatus _serverConnectStatus;
 
         /// <summary>
+        /// Can do trade operations
+        /// </summary>
+        public bool IsReadyToTrade
+        {
+            get
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return false;
+                }
+
+                if (LastStartServerTime.AddSeconds(5) > DateTime.Now)
+                {
+                    return false;
+                }
+
+                if (LastStartServerTime.AddSeconds(this.WaitTimeToTradeAfterFirstStart) > DateTime.Now)
+                {
+                    return false;
+                }
+
+                if (Portfolios == null
+                    || Portfolios.Count == 0)
+                {
+                    return false;
+                }
+
+                if (Securities == null
+                 || Securities.Count == 0)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>
         /// server type
         /// </summary>
         public ServerType ServerType { get { return ServerRealization.ServerType; } }
