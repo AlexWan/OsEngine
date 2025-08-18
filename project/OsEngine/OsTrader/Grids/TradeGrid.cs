@@ -682,24 +682,6 @@ namespace OsEngine.OsTrader.Grids
                     TryDeleteDonePositions();
                 }
 
-                // отзываем ордера с рынка
-
-                int countRejectOrders = TryCancelClosingOrders();
-
-                if (countRejectOrders > 0)
-                {
-                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
-                    return;
-                }
-
-                countRejectOrders = TryCancelOpeningOrders();
-
-                if (countRejectOrders > 0)
-                {
-                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
-                    return;
-                }
-
                 // проверяем работу авто-стартера, если он включен
 
                 if (AutoStarter.AutoStartRegime == TradeGridAutoStartRegime.Off)

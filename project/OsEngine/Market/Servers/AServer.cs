@@ -3243,11 +3243,14 @@ namespace OsEngine.Market.Servers
                                     {
                                         if(string.IsNullOrEmpty(order.Order.NumberMarket) == false)
                                         {
-                                            _cancelledOrdersNumbers.Add(order.Order.NumberMarket);
-
-                                            if(_cancelledOrdersNumbers.Count > 100)
+                                            lock (_cancelledOrdersNumbersLocker)
                                             {
-                                                _cancelledOrdersNumbers.RemoveAt(0);
+                                                _cancelledOrdersNumbers.Add(order.Order.NumberMarket);
+
+                                                if (_cancelledOrdersNumbers.Count > 500)
+                                                {
+                                                    _cancelledOrdersNumbers.RemoveAt(0);
+                                                }
                                             }
                                         }
                                     }
@@ -3276,15 +3279,20 @@ namespace OsEngine.Market.Servers
             }
             bool isCancelled = false;
 
-            if (_cancelledOrdersNumbers.Find(o => o == order.NumberMarket) != null)
+            lock (_cancelledOrdersNumbersLocker)
             {
-                isCancelled = true;
+                if (_cancelledOrdersNumbers.Find(o => o == order.NumberMarket) != null)
+                {
+                    isCancelled = true;
+                }
             }
 
             return isCancelled;
         }
 
         private List<string> _cancelledOrdersNumbers = new List<string>();
+
+        private string _cancelledOrdersNumbersLocker = "_cancelledOrdersNumbersLocker";
 
         /// <summary>
         /// array for storing orders to be sent to the exchange
@@ -3512,26 +3520,35 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                OrderCounter saveOrder = null;
-
-                for (int i = 0; i < _canceledOrders.Count; i++)
+                if(IsAlreadyCancelled(order))
                 {
-                    if (_canceledOrders[i].NumberMarket == order.NumberMarket)
-                    {
-                        saveOrder = _canceledOrders[i];
-                        break;
-                    }
+                    SendLogMessage("AServer Error.   if(IsAlreadyCancelled(order)) ", LogMessageType.Error);
+                    return;
                 }
 
-                if (saveOrder == null)
-                {
-                    saveOrder = new OrderCounter();
-                    saveOrder.NumberMarket = order.NumberMarket;
-                    _canceledOrders.Add(saveOrder);
+                OrderCounter saveOrder = null;
 
-                    if (_canceledOrders.Count > 50)
+                lock (_cancelOrdersLocker)
+                {
+                    for (int i = 0; i < _canceledOrders.Count; i++)
                     {
-                        _canceledOrders.RemoveAt(0);
+                        if (_canceledOrders[i].NumberMarket == order.NumberMarket)
+                        {
+                            saveOrder = _canceledOrders[i];
+                            break;
+                        }
+                    }
+
+                    if (saveOrder == null)
+                    {
+                        saveOrder = new OrderCounter();
+                        saveOrder.NumberMarket = order.NumberMarket;
+                        _canceledOrders.Add(saveOrder);
+
+                        if (_canceledOrders.Count > 100)
+                        {
+                            _canceledOrders.RemoveAt(0);
+                        }
                     }
                 }
 
@@ -3541,7 +3558,7 @@ namespace OsEngine.Market.Servers
                 {
                     saveOrder.NumberOfErrors++;
 
-                    if (saveOrder.NumberOfErrors <= 3)
+                    if (saveOrder.NumberOfErrors <= 5)
                     {
                         SendLogMessage(
                         "AServer Error. You can't cancel order. There have already been five attempts to cancel order. "
@@ -3569,6 +3586,8 @@ namespace OsEngine.Market.Servers
         }
 
         List<OrderCounter> _canceledOrders = new List<OrderCounter>();
+
+        private string _cancelOrdersLocker = "_cancelOrdersLocker";
 
         /// <summary>
         /// cancel all orders from trading system
