@@ -7341,8 +7341,6 @@ ContextMenuStrip menu)
                     ReloadAreaSizes();
                 }
 
-                
-
                 ChartAreaSizes areaSize = _areaSizes.Find(size => size.Name == areaName);
 
                 if (areaSize == null)
@@ -7356,7 +7354,9 @@ ContextMenuStrip menu)
                 min = Math.Round(Convert.ToDouble(min - value), areaSize.Decimals);
 
                 if (min == double.MaxValue ||
+                    max == double.MinValue ||
                     max == 0 ||
+                    max == min ||
                     max <= min)
                 {
                     return;

@@ -2164,22 +2164,35 @@ namespace OsEngine.Market.Servers
         /// <param name="series"> candles series that need to stop</param>
         public void StopThisSecurity(CandleSeries series)
         {
-            if (series != null && _candleManager != null)
+            try
             {
-                _candleManager.StopSeries(series);
+                if(ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return;
+                }
+
+                if (series != null && _candleManager != null)
+                {
+                    _candleManager.StopSeries(series);
+                }
+
+                if (_candleStorage != null)
+                {
+                    _candleStorage.RemoveSeries(series);
+                }
+
+                Security security = series.Security;
+
+                if (_candleManager != null &&
+                    _candleManager.IsSafeToUnsubscribeFromSecurityUpdates(security))
+                {
+                    ServerRealization.Unsubscribe(security);
+                    RemoveSecurityFromSubscribed(security.Name, security.NameClass);
+                }
             }
-
-            if (_candleStorage != null)
+            catch(Exception ex)
             {
-                _candleStorage.RemoveSeries(series);
-            }
-
-            Security security = series.Security;
-
-            if (_candleManager.IsSafeToUnsubscribeFromSecurityUpdates(security))
-            {
-                ServerRealization.Unsubscribe(security);
-                RemoveSecurityFromSubscribed(security.Name, security.NameClass);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

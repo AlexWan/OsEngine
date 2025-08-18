@@ -549,6 +549,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ComboBoxPortfolio.Items.Clear();
 
+                if(_screener == null)
+                {
+                    return;
+                }
+
                 string portfolio = _screener.PortfolioName;
 
 
