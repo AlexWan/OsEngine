@@ -336,11 +336,25 @@ namespace OsEngine.OsTrader.Grids
 
                 if(tab.StartProgram == StartProgram.IsOsTrader)
                 {
-                    volume = Math.Round(volumeFromLine / contractPrice, tab.Security.DecimalsVolume);
+                    if(tab.Security.Lot != 0)
+                    {
+                        volume = Math.Round(volumeFromLine / contractPrice / tab.Security.Lot, tab.Security.DecimalsVolume);
+                    }
+                    else
+                    {
+                        volume = Math.Round(volumeFromLine / contractPrice, tab.Security.DecimalsVolume);
+                    }
                 }
                 else
                 {
-                    volume = Math.Round(volumeFromLine / contractPrice, 7);
+                    if (tab.Security.Lot != 0)
+                    {
+                        volume = Math.Round(volumeFromLine / contractPrice / tab.Security.Lot, 7);
+                    }
+                    else
+                    {
+                        volume = Math.Round(volumeFromLine / contractPrice, 7);
+                    }
                 }
 
                 return volume;
