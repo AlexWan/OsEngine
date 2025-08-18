@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -643,6 +642,14 @@ namespace OsEngine.OsTrader.Grids
             // 1 Авто-старт сетки, если выключено
             if (baseRegime == TradeGridRegime.Off)
             {
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    if (_vacationTime > DateTime.Now)
+                    {
+                        return;
+                    }
+                }
+
                 if (_openPositionsBySession != 0)
                 {
                     _openPositionsBySession = 0;
@@ -674,6 +681,26 @@ namespace OsEngine.OsTrader.Grids
                 {
                     TryDeleteDonePositions();
                 }
+
+                // отзываем ордера с рынка
+
+                int countRejectOrders = TryCancelClosingOrders();
+
+                if (countRejectOrders > 0)
+                {
+                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
+                    return;
+                }
+
+                countRejectOrders = TryCancelOpeningOrders();
+
+                if (countRejectOrders > 0)
+                {
+                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
+                    return;
+                }
+
+                // проверяем работу авто-стартера, если он включен
 
                 if (AutoStarter.AutoStartRegime == TradeGridAutoStartRegime.Off)
                 {
