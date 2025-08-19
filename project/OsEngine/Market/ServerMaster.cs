@@ -1807,17 +1807,31 @@ namespace OsEngine.Market
 
         private static void _painterPortfolios_ClearPositionOnBoardEvent(string sec, IServer server, string fullName)
         {
-            if (ClearPositionOnBoardEvent != null)
+            try
             {
-                ClearPositionOnBoardEvent(sec, server, fullName);
+                if (ClearPositionOnBoardEvent != null)
+                {
+                    ClearPositionOnBoardEvent(sec, server, fullName);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
         private static void _ordersStorage_RevokeOrderToEmulatorEvent(Order order)
         {
-            if (RevokeOrderToEmulatorEvent != null)
+            try
             {
-                RevokeOrderToEmulatorEvent(order);
+                if (RevokeOrderToEmulatorEvent != null)
+                {
+                    RevokeOrderToEmulatorEvent(order);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

@@ -240,12 +240,12 @@ namespace OsEngine.Market.Servers.TInvest
 
         public bool IsSupports_AsyncOrderSending
         {
-            get { return false; }
+            get { return true; }
         }
 
         public int AsyncOrderSending_RateGateLimitMls
         {
-            get { return 10; }
+            get { return 100; }
         }
 
         #endregion

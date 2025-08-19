@@ -799,9 +799,8 @@ namespace OsEngine.Market
 
                 if (ClearPositionOnBoardEvent != null)
                 {
-                    ClearPositionOnBoardEvent(trimmedSecName, myServer, secName);
+                    Task.Run(() => ClearPositionOnBoardEvent(trimmedSecName, myServer, secName));
                 }
-
             }
             catch (Exception ex )
             {

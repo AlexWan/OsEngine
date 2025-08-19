@@ -44,6 +44,7 @@ namespace OsEngine.Entity
 
             Title = OsLocalization.Entity.TitleSecuritiesUi + " " + _server.ServerType;
             LabelClass.Content = OsLocalization.Entity.SecuritiesColumn11;
+            TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
 
             this.Activate();
             this.Focus();
