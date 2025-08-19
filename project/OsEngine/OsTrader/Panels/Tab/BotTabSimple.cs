@@ -4420,14 +4420,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                List<Position> positions = _journal.OpenPositions;
+                Position[] positions = _journal.OpenPositions.ToArray();
 
                 if (positions == null)
                 {
                     return;
                 }
 
-                for (int i = 0; i < positions.Count; i++)
+                for (int i = 0; i < positions.Length; i++)
                 {
                     CloseAllOrderToPosition(positions[i]);
                 }
