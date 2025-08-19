@@ -255,7 +255,12 @@ namespace OsEngine.Market.Servers.Bybit
 
         public bool IsSupports_AsyncOrderSending
         {
-            get { return false; }
+            get { return true; }
+        }
+
+        public int AsyncOrderSending_RateGateLimitMls
+        {
+            get { return 10; }
         }
 
         #endregion

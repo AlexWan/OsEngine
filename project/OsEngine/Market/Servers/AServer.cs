@@ -140,6 +140,14 @@ namespace OsEngine.Market.Servers
                     ServerParameters[11].Comment = OsLocalization.Market.Label192;
                 }
 
+                if(ServerPermission != null 
+                    && ServerPermission.IsSupports_AsyncOrderSending)
+                {
+                    _asyncOrdersSender 
+                        = new AServerAsyncOrderSender(ServerPermission.AsyncOrderSending_RateGateLimitMls);
+                    _asyncOrdersSender.ExecuteOrderInRealizationEvent += ExecuteOrderInRealization;
+                }
+
                 _serverStandardParamsCount = ServerParameters.Count;
 
                 _serverRealization.ServerParameters = ServerParameters;
@@ -2400,7 +2408,6 @@ namespace OsEngine.Market.Servers
             }
         }
 
-
         private void CheckDataFlowThread()
         {
             while (true)
@@ -3226,43 +3233,14 @@ namespace OsEngine.Market.Servers
 
                         if (_ordersToExecute.TryDequeue(out order))
                         {
-                            if (order.OrderSendType == OrderSendType.Execute)
+                            if(_asyncOrdersSender != null)
                             {
-                                ServerRealization.SendOrder(order.Order);
+                                _asyncOrdersSender.ExecuteAsync(order);
                             }
-                            else if (order.OrderSendType == OrderSendType.Cancel)
+                            else
                             {
-                                if(IsAlreadyCancelled(order.Order) == false)
-                                {
-                                    if (ServerRealization.CancelOrder(order.Order) == false)
-                                    {
-                                        if (CancelOrderFailEvent != null)
-                                        {
-                                            CancelOrderFailEvent(order.Order);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if(string.IsNullOrEmpty(order.Order.NumberMarket) == false)
-                                        {
-                                            lock (_cancelledOrdersNumbersLocker)
-                                            {
-                                                _cancelledOrdersNumbers.Add(order.Order.NumberMarket);
-
-                                                if (_cancelledOrdersNumbers.Count > 500)
-                                                {
-                                                    _cancelledOrdersNumbers.RemoveAt(0);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            else if (order.OrderSendType == OrderSendType.ChangePrice
-                                && IsCanChangeOrderPrice)
-                            {
-                                ServerRealization.ChangeOrderPrice(order.Order, order.NewPrice);
-                            }
+                                ExecuteOrderInRealization(order);
+                            } 
                         }
                     }
                 }
@@ -3270,6 +3248,56 @@ namespace OsEngine.Market.Servers
                 {
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
+            }
+        }
+
+        private AServerAsyncOrderSender _asyncOrdersSender;
+
+        private void ExecuteOrderInRealization(OrderAserverSender order)
+        {
+            try
+            {
+                if (order.OrderSendType == OrderSendType.Execute)
+                {
+                    ServerRealization.SendOrder(order.Order);
+                }
+                else if (order.OrderSendType == OrderSendType.Cancel)
+                {
+                    if (IsAlreadyCancelled(order.Order) == false)
+                    {
+                        if (ServerRealization.CancelOrder(order.Order) == false)
+                        {
+                            if (CancelOrderFailEvent != null)
+                            {
+                                CancelOrderFailEvent(order.Order);
+                            }
+                        }
+                        else
+                        {
+                            if (string.IsNullOrEmpty(order.Order.NumberMarket) == false)
+                            {
+                                lock (_cancelledOrdersNumbersLocker)
+                                {
+                                    _cancelledOrdersNumbers.Add(order.Order.NumberMarket);
+
+                                    if (_cancelledOrdersNumbers.Count > 500)
+                                    {
+                                        _cancelledOrdersNumbers.RemoveAt(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (order.OrderSendType == OrderSendType.ChangePrice
+                    && IsCanChangeOrderPrice)
+                {
+                    ServerRealization.ChangeOrderPrice(order.Order, order.NewPrice);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 

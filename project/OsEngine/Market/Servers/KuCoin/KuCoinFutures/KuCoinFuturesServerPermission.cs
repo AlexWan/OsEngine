@@ -251,6 +251,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             get { return false; }
         }
 
+        public int AsyncOrderSending_RateGateLimitMls
+        {
+            get { return 10; }
+        }
+
         #endregion
     }
 }

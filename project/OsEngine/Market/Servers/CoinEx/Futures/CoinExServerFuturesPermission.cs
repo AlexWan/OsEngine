@@ -244,6 +244,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             get { return false; }
         }
 
+        public int AsyncOrderSending_RateGateLimitMls
+        {
+            get { return 10; }
+        }
+
         #endregion
     }
 }

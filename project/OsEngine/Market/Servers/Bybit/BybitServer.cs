@@ -4610,8 +4610,8 @@ namespace OsEngine.Market.Servers.Bybit
 
             try
             {
-                lock (_httpClientLocker)
-                {
+                //lock (_httpClientLocker)
+                //{
                     string timestamp = GetServerTime();
                     HttpRequestMessage request = null;
                     string jsonPayload = "";
@@ -4662,7 +4662,7 @@ namespace OsEngine.Market.Servers.Bybit
                         SendLogMessage($"CreatePrivateQuery> BybitUnified Client.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
                         return null;
                     }
-                }
+               // }
             }
             catch (Exception ex)
             {
@@ -4685,8 +4685,8 @@ namespace OsEngine.Market.Servers.Bybit
                     return null;
                 }
 
-                lock (_httpClientLocker)
-                {
+               // lock (_httpClientLocker)
+               // {
                     HttpRequestMessage request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?{jsonPayload}");
                     HttpResponseMessage response = httpClient?.SendAsync(request).Result;
 
@@ -4706,7 +4706,7 @@ namespace OsEngine.Market.Servers.Bybit
                         SendLogMessage($"CreatePublicQuery> BybitUnified Client.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
                         return null;
                     }
-                }
+              //  }
             }
             catch (Exception ex)
             {

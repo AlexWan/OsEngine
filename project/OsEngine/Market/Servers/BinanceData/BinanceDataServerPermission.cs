@@ -215,6 +215,11 @@ namespace OsEngine.Market.Servers.BinanceData
             get { return false; }
         }
 
+        public int AsyncOrderSending_RateGateLimitMls
+        {
+            get { return 10; }
+        }
+
         #endregion
     }
 

@@ -90,6 +90,8 @@ namespace OsEngine.Market.Servers
 
         bool IsSupports_AsyncOrderSending { get; }
 
+        int AsyncOrderSending_RateGateLimitMls { get; }
+
         #endregion
     }
 

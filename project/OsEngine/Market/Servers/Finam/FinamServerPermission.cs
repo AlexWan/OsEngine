@@ -219,6 +219,11 @@ namespace OsEngine.Market.Servers.Finam
             get { return false; }
         }
 
+        public int AsyncOrderSending_RateGateLimitMls
+        {
+            get { return 10; }
+        }
+
         #endregion
     }
 }
