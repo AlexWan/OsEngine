@@ -36,6 +36,10 @@ namespace OsEngine.OsTrader.SystemAnalyze
             CheckBoxEcqCollectDataIsOn.Checked += CheckBoxEcqCollectDataIsOn_Checked;
             CheckBoxEcqCollectDataIsOn.Unchecked += CheckBoxEcqCollectDataIsOn_Checked;
 
+            CheckBoxMoqCollectDataIsOn.IsChecked = SystemUsageAnalyzeMaster.MoqCollectDataIsOn;
+            CheckBoxMoqCollectDataIsOn.Checked += CheckBoxMoqCollectDataIsOn_Checked;
+            CheckBoxMoqCollectDataIsOn.Unchecked += CheckBoxMoqCollectDataIsOn_Checked;
+
             ComboBoxRamPeriodSavePoint.Items.Add(SavePointPeriod.OneSecond.ToString());
             ComboBoxRamPeriodSavePoint.Items.Add(SavePointPeriod.TenSeconds.ToString());
             ComboBoxRamPeriodSavePoint.Items.Add(SavePointPeriod.Minute.ToString());
@@ -54,6 +58,12 @@ namespace OsEngine.OsTrader.SystemAnalyze
             ComboBoxEcqPeriodSavePoint.SelectedItem = SystemUsageAnalyzeMaster.EcqPeriodSavePoint.ToString();
             ComboBoxEcqPeriodSavePoint.SelectionChanged += ComboBoxEcqPeriodSavePoint_SelectionChanged;
 
+            ComboBoxMoqPeriodSavePoint.Items.Add(SavePointPeriod.OneSecond.ToString());
+            ComboBoxMoqPeriodSavePoint.Items.Add(SavePointPeriod.TenSeconds.ToString());
+            ComboBoxMoqPeriodSavePoint.Items.Add(SavePointPeriod.Minute.ToString());
+            ComboBoxMoqPeriodSavePoint.SelectedItem = SystemUsageAnalyzeMaster.MoqPeriodSavePoint.ToString();
+            ComboBoxMoqPeriodSavePoint.SelectionChanged += ComboBoxMoqPeriodSavePoint_SelectionChanged;
+
             TextBoxRamPointsMax.Text = SystemUsageAnalyzeMaster.RamPointsMax.ToString();
             TextBoxRamPointsMax.TextChanged += TextBoxRamPointsMax_TextChanged;
 
@@ -63,20 +73,26 @@ namespace OsEngine.OsTrader.SystemAnalyze
             TextBoxEcqPointsMax.Text = SystemUsageAnalyzeMaster.EcqPointsMax.ToString();
             TextBoxEcqPointsMax.TextChanged += TextBoxEcqPointsMax_TextChanged;
 
+            TextBoxMoqPointsMax.Text = SystemUsageAnalyzeMaster.MoqPointsMax.ToString();
+            TextBoxMoqPointsMax.TextChanged += TextBoxMoqPointsMax_TextChanged;
+
             this.Closed += SystemAnalyzeUi_Closed;
 
             Title = OsLocalization.Trader.Label556;
             CheckBoxRamCollectDataIsOn.Content = OsLocalization.Trader.Label557;
             CheckBoxCpuCollectDataIsOn.Content = OsLocalization.Trader.Label557;
             CheckBoxEcqCollectDataIsOn.Content = OsLocalization.Trader.Label557;
+            CheckBoxMoqCollectDataIsOn.Content = OsLocalization.Trader.Label557;
 
             LabelRamPeriod.Content = OsLocalization.Trader.Label559;
             LabelCpuPeriod.Content = OsLocalization.Trader.Label559;
             LabelEcqPeriod.Content = OsLocalization.Trader.Label559;
+            LabelMoqPeriod.Content = OsLocalization.Trader.Label559;
 
             LabelRamPointsMaxCount.Content = OsLocalization.Trader.Label561;
             LabelCpuPointsMaxCount.Content = OsLocalization.Trader.Label561;
             LabelEcqPointsMaxCount.Content = OsLocalization.Trader.Label561;
+            LabelMoqPointsMaxCount.Content = OsLocalization.Trader.Label561;
 
             LabelFreeRam.Content = OsLocalization.Trader.Label564;
             LabelTotalRamOccupied.Content = OsLocalization.Trader.Label562;
@@ -88,17 +104,22 @@ namespace OsEngine.OsTrader.SystemAnalyze
             LabelMarketDepthClearingCount.Content = OsLocalization.Trader.Label566;
             LabelBidAskClearingCount.Content = OsLocalization.Trader.Label567;
 
+            LabelMoqMaxOrdersInQueue.Content = OsLocalization.Trader.Label573;
+
             CreateRamChart();
             CreateCpuChart();
             CreateEcqChart();
+            CreateMoqChart();
 
             RePaintRamValues(SystemUsageAnalyzeMaster.ValuesRam);
             RePaintCpuChart(SystemUsageAnalyzeMaster.ValuesCpu);
             RePaintEcqChart(SystemUsageAnalyzeMaster.ValuesEcq);
+            RePaintMoqChart(SystemUsageAnalyzeMaster.ValuesMoq);
 
             SystemUsageAnalyzeMaster.RamUsageCollectionChange += SystemUsageAnalyzeMaster_RamUsageCollectionChange;
             SystemUsageAnalyzeMaster.CpuUsageCollectionChange += SystemUsageAnalyzeMaster_CpuUsageCollectionChange;
             SystemUsageAnalyzeMaster.EcqUsageCollectionChange += SystemUsageAnalyzeMaster_EcqUsageCollectionChange;
+            SystemUsageAnalyzeMaster.MoqUsageCollectionChange += SystemUsageAnalyzeMaster_MoqUsageCollectionChange;
 
             Layout.StickyBorders.Listen(this);
             Layout.StartupLocation.Start_MouseInCentre(this);
@@ -109,6 +130,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             SystemUsageAnalyzeMaster.RamUsageCollectionChange -= SystemUsageAnalyzeMaster_RamUsageCollectionChange;
             SystemUsageAnalyzeMaster.CpuUsageCollectionChange -= SystemUsageAnalyzeMaster_CpuUsageCollectionChange;
             SystemUsageAnalyzeMaster.EcqUsageCollectionChange -= SystemUsageAnalyzeMaster_EcqUsageCollectionChange;
+            SystemUsageAnalyzeMaster.MoqUsageCollectionChange -= SystemUsageAnalyzeMaster_MoqUsageCollectionChange;
 
             CheckBoxRamCollectDataIsOn.Checked -= CheckBoxRamCollectDataIsOn_Checked;
             CheckBoxRamCollectDataIsOn.Unchecked -= CheckBoxRamCollectDataIsOn_Checked;
@@ -116,13 +138,31 @@ namespace OsEngine.OsTrader.SystemAnalyze
             CheckBoxCpuCollectDataIsOn.Checked -= CheckBoxCpuCollectDataIsOn_Checked;
             CheckBoxCpuCollectDataIsOn.Unchecked -= CheckBoxCpuCollectDataIsOn_Checked;
 
+            CheckBoxEcqCollectDataIsOn.Checked -= CheckBoxEcqCollectDataIsOn_Checked;
+            CheckBoxEcqCollectDataIsOn.Unchecked -= CheckBoxEcqCollectDataIsOn_Checked;
+
+            CheckBoxMoqCollectDataIsOn.Checked -= CheckBoxMoqCollectDataIsOn_Checked;
+            CheckBoxMoqCollectDataIsOn.Unchecked -= CheckBoxMoqCollectDataIsOn_Checked;
+
             ComboBoxRamPeriodSavePoint.SelectionChanged -= ComboBoxRamPeriodSavePoint_SelectionChanged;
             ComboBoxCpuPeriodSavePoint.SelectionChanged -= ComboBoxCpuPeriodSavePoint_SelectionChanged;
             ComboBoxEcqPeriodSavePoint.SelectionChanged -= ComboBoxEcqPeriodSavePoint_SelectionChanged;
+            ComboBoxMoqPeriodSavePoint.SelectionChanged -= ComboBoxMoqPeriodSavePoint_SelectionChanged;
 
             TextBoxRamPointsMax.TextChanged -= TextBoxRamPointsMax_TextChanged;
             TextBoxCpuPointsMax.TextChanged -= TextBoxCpuPointsMax_TextChanged;
             TextBoxEcqPointsMax.TextChanged -= TextBoxEcqPointsMax_TextChanged;
+            TextBoxMoqPointsMax.TextChanged -= TextBoxMoqPointsMax_TextChanged;
+
+            HostCpu.Child = null;
+            HostEcq.Child = null;
+            HostMoq.Child = null;
+            HostRam.Child = null;
+
+            _chartCpu = null;
+            _chartRam = null;
+            _chartMoq = null;
+            _chartEcq = null;
 
             this.Closed -= SystemAnalyzeUi_Closed;
         }
@@ -156,6 +196,18 @@ namespace OsEngine.OsTrader.SystemAnalyze
             try
             {
                 SystemUsageAnalyzeMaster.EcqCollectDataIsOn = CheckBoxEcqCollectDataIsOn.IsChecked.Value;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxMoqCollectDataIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SystemUsageAnalyzeMaster.MoqCollectDataIsOn = CheckBoxMoqCollectDataIsOn.IsChecked.Value;
             }
             catch
             {
@@ -206,6 +258,23 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 if (Enum.TryParse(ComboBoxEcqPeriodSavePoint.SelectedItem.ToString(), out period))
                 {
                     SystemUsageAnalyzeMaster.EcqPeriodSavePoint = period;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxMoqPeriodSavePoint_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                SavePointPeriod period;
+
+                if (Enum.TryParse(ComboBoxMoqPeriodSavePoint.SelectedItem.ToString(), out period))
+                {
+                    SystemUsageAnalyzeMaster.MoqPeriodSavePoint = period;
                 }
             }
             catch (Exception ex)
@@ -279,6 +348,30 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 }
 
                 SystemUsageAnalyzeMaster.EcqPointsMax = result;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxMoqPointsMax_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxMoqPointsMax.Text))
+                {
+                    return;
+                }
+
+                int result = Convert.ToInt32(TextBoxMoqPointsMax.Text);
+
+                if (result <= 0)
+                {
+                    result = 10;
+                }
+
+                SystemUsageAnalyzeMaster.MoqPointsMax = result;
             }
             catch
             {
@@ -693,6 +786,129 @@ namespace OsEngine.OsTrader.SystemAnalyze
             try
             {
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label568);
+                ui.ShowDialog();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
+
+        #region MOQ.
+
+        private Chart _chartMoq;
+
+        private void CreateMoqChart()
+        {
+            _chartMoq = new Chart();
+            HostMoq.Child = _chartMoq;
+            HostMoq.Child.Show();
+
+            _chartMoq.Series.Clear();
+            _chartMoq.ChartAreas.Clear();
+
+            // 1 chart area
+
+            ChartArea areaSystemValues = new ChartArea("ChartAreaSystemValues");
+            areaSystemValues.Position.Height = 100;
+            areaSystemValues.Position.Width = 100;
+            areaSystemValues.Position.Y = 0;
+            areaSystemValues.CursorX.IsUserSelectionEnabled = false;
+            areaSystemValues.CursorX.IsUserEnabled = false;
+            areaSystemValues.AxisX.Enabled = AxisEnabled.False;
+            _chartMoq.ChartAreas.Add(areaSystemValues);
+
+            // 2 series Md
+
+            Series seriesTotalCpu = new Series("SeriesMaxOrdersCount");
+            seriesTotalCpu.ChartType = SeriesChartType.Line;
+            seriesTotalCpu.BorderWidth = 3;
+            seriesTotalCpu.Color = Color.DarkOrange;
+            seriesTotalCpu.YAxisType = AxisType.Secondary;
+            seriesTotalCpu.ChartArea = "ChartAreaSystemValues";
+            seriesTotalCpu.ShadowOffset = 2;
+            _chartMoq.Series.Add(seriesTotalCpu);
+
+            _chartMoq.BackColor = Color.FromArgb(-15395563);
+
+            for (int i = 0; _chartMoq.ChartAreas != null && i < _chartMoq.ChartAreas.Count; i++)
+            {
+                _chartMoq.ChartAreas[i].BackColor = Color.FromArgb(-15395563);
+                _chartMoq.ChartAreas[i].BorderColor = Color.FromArgb(-16701360);
+                _chartMoq.ChartAreas[i].CursorY.LineColor = Color.DimGray;
+                _chartMoq.ChartAreas[i].CursorX.LineColor = Color.DimGray;
+                _chartMoq.ChartAreas[i].AxisX.TitleForeColor = Color.DimGray;
+
+                foreach (var axe in _chartMoq.ChartAreas[i].Axes)
+                {
+                    axe.LabelStyle.ForeColor = Color.DimGray;
+                }
+            }
+        }
+
+        private void RePaintMoqChart(List<SystemUsagePointMoq> values)
+        {
+            try
+            {
+                if (_chartMoq.InvokeRequired)
+                {
+                    _chartMoq.Invoke(new Action<List<SystemUsagePointMoq>>(RePaintMoqChart), values);
+                    return;
+                }
+
+                _chartMoq.Series[0].Points.ClearFast();
+
+                if (values == null
+                    || values.Count == 0)
+                {
+                    return;
+                }
+
+                decimal maxValue = 0;
+
+                for (int i = 0; i < values.Count; i++)
+                {
+                    SystemUsagePointMoq usagePoint = values[i];
+
+                    _chartMoq.Series[0].Points.AddXY(i, usagePoint.MaxOrdersInQueue);
+                    _chartMoq.Series[0].Points[^1].ToolTip = OsLocalization.Trader.Label573 + ": " + usagePoint.MaxOrdersInQueue;
+
+                    if (usagePoint.MaxOrdersInQueue > maxValue)
+                    {
+                        maxValue = usagePoint.MaxOrdersInQueue;
+                    }
+                }
+
+                if (maxValue != 0)
+                {
+                    _chartMoq.ChartAreas[0].AxisY2.Maximum = (double)maxValue;
+                    _chartMoq.ChartAreas[0].AxisY2.Minimum = 0;
+                }
+
+                SystemUsagePointMoq lastPoint = values[^1];
+
+                TextBoxMaxOrdersInQueue.Text = lastPoint.MaxOrdersInQueue.ToString();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                return;
+            }
+
+        }
+
+        private void SystemUsageAnalyzeMaster_MoqUsageCollectionChange(List<SystemUsagePointMoq> values)
+        {
+            RePaintMoqChart(values);
+        }
+
+        private void ButtonMoqToolTip_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label574);
                 ui.ShowDialog();
             }
             catch

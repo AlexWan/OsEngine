@@ -3222,10 +3222,7 @@ namespace OsEngine.Market.Servers
                     {
                         OrderAserverSender order;
 
-                        /*if(_ordersToExecute.Count > 10)
-                        {
-                            SendLogMessage(_ordersToExecute.Count.ToString(), LogMessageType.Error);
-                        }*/
+                        SystemUsageAnalyzeMaster.OrdersInQueue = _ordersToExecute.Count;
 
                         if (_ordersToExecute.TryDequeue(out order))
                         {

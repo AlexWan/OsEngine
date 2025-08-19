@@ -2190,5 +2190,14 @@ namespace OsEngine.Language
         public string Label572 => OsLocalization.ConvertToLocString(
         "Eng:Check micro volumes_" +
         "Ru:Проверять микро объёмы_");
+
+        public string Label573 => OsLocalization.ConvertToLocString(
+        "Eng:Orders in queue_" +
+        "Ru:Очередь ордеров");
+
+        public string Label574 => OsLocalization.ConvertToLocString(
+        "Eng:The maximum number of orders in the queue for sending in connectors. If you see values greater than 5, this is not a good sign._" +
+        "Ru:Максимальное кол-во ордеров в очереди на отправку в коннекторах. Если видите значения больше чем 5 - это не хорошо.");
+
     }
 }

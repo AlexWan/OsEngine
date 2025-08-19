@@ -29,6 +29,9 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 _ecqUsageAnalyze = new EcqUsageAnalyze();
                 _ecqUsageAnalyze.EcqUsageCollectionChange += _ecqUsageAnalyze_EcqUsageCollectionChange;
 
+                _moqUsageAnalyze = new MoqUsageAnalyze();
+                _moqUsageAnalyze.MoqUsageCollectionChange += _moqUsageAnalyze_MoqUsageCollectionChange;
+
                 _worker = new Thread(WorkMethod);
                 _worker.Start();
             }
@@ -44,6 +47,8 @@ namespace OsEngine.OsTrader.SystemAnalyze
         private static CpuUsageAnalyze _cpuUsageAnalyze;
 
         private static EcqUsageAnalyze _ecqUsageAnalyze;
+
+        private static MoqUsageAnalyze _moqUsageAnalyze;
 
         #endregion
 
@@ -113,6 +118,18 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
+        public static bool MoqCollectDataIsOn
+        {
+            get
+            {
+                return _moqUsageAnalyze.MoqCollectDataIsOn;
+            }
+            set
+            {
+                _moqUsageAnalyze.MoqCollectDataIsOn = value;
+            }
+        }
+
         public static SavePointPeriod RamPeriodSavePoint
         {
             get
@@ -146,6 +163,18 @@ namespace OsEngine.OsTrader.SystemAnalyze
             set
             {
                 _ecqUsageAnalyze.EcqPeriodSavePoint = value;
+            }
+        }
+
+        public static SavePointPeriod MoqPeriodSavePoint
+        {
+            get
+            {
+                return _moqUsageAnalyze.MoqPeriodSavePoint;
+            }
+            set
+            {
+                _moqUsageAnalyze.MoqPeriodSavePoint = value;
             }
         }
 
@@ -185,6 +214,18 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
+        public static int MoqPointsMax
+        {
+            get
+            {
+                return _moqUsageAnalyze.MoqPointsMax;
+            }
+            set
+            {
+                _moqUsageAnalyze.MoqPointsMax = value;
+            }
+        }
+
         #endregion
 
         #region Data
@@ -210,6 +251,14 @@ namespace OsEngine.OsTrader.SystemAnalyze
             get
             {
                 return _ecqUsageAnalyze.Values;
+            }
+        }
+
+        public static List<SystemUsagePointMoq> ValuesMoq
+        {
+            get
+            {
+                return _moqUsageAnalyze.Values;
             }
         }
 
@@ -267,6 +316,24 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
+        public static SystemUsagePointMoq LastValueMoq
+        {
+            get
+            {
+                List<SystemUsagePointMoq> values = _moqUsageAnalyze.Values;
+
+                if (values != null
+                    && values.Count > 0)
+                {
+                    return values[^1];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         public static int MarketDepthClearingCount
         {
             get
@@ -288,6 +355,18 @@ namespace OsEngine.OsTrader.SystemAnalyze
             set
             {
                 _ecqUsageAnalyze.BidAskClearingCount = value;
+            }
+        }
+
+        public static int OrdersInQueue
+        {
+            get
+            {
+                return _moqUsageAnalyze.MaxOrdersInQueue;
+            }
+            set
+            {
+                _moqUsageAnalyze.MaxOrdersInQueue = value;
             }
         }
 
@@ -313,6 +392,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
                     _ramMemoryUsageAnalyze.CalculateData();
                     _cpuUsageAnalyze.CalculateData();
                     _ecqUsageAnalyze.CalculateData();
+                    _moqUsageAnalyze.CalculateData();
                 }
                 catch(Exception ex)
                 {
@@ -370,11 +450,21 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
+        private static void _moqUsageAnalyze_MoqUsageCollectionChange(List<SystemUsagePointMoq> values)
+        {
+            if (MoqUsageCollectionChange != null)
+            {
+                MoqUsageCollectionChange(values);
+            }
+        }
+
         public static event Action<List<SystemUsagePointRam>> RamUsageCollectionChange;
 
         public static event Action<List<SystemUsagePointCpu>> CpuUsageCollectionChange;
 
         public static event Action<List<SystemUsagePointEcq>> EcqUsageCollectionChange;
+
+        public static event Action<List<SystemUsagePointMoq>> MoqUsageCollectionChange;
 
         #endregion
 
@@ -949,6 +1039,191 @@ namespace OsEngine.OsTrader.SystemAnalyze
         public event Action<List<SystemUsagePointEcq>> EcqUsageCollectionChange;
     }
 
+    public class MoqUsageAnalyze
+    {
+        public List<SystemUsagePointMoq> Values = new List<SystemUsagePointMoq>();
+
+        public MoqUsageAnalyze()
+        {
+            Load();
+        }
+
+        private void Load()
+        {
+            try
+            {
+                if (!File.Exists(@"Engine\SystemStress\MoqMemorySettings.txt"))
+                {
+                    return;
+                }
+
+                using (StreamReader reader = new StreamReader(@"Engine\SystemStress\MoqMemorySettings.txt"))
+                {
+                    _moqCollectDataIsOn = Convert.ToBoolean(reader.ReadLine());
+                    Enum.TryParse(reader.ReadLine(), out _moqPeriodSavePoint);
+                    _moqPointsMax = Convert.ToInt32(reader.ReadLine());
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void Save()
+        {
+            try
+            {
+                if (Directory.Exists("Engine\\SystemStress") == false)
+                {
+                    Directory.CreateDirectory("Engine\\SystemStress");
+                }
+
+                using (StreamWriter writer = new StreamWriter(@"Engine\SystemStress\MoqMemorySettings.txt", false))
+                {
+                    writer.WriteLine(_moqCollectDataIsOn);
+                    writer.WriteLine(_moqPeriodSavePoint);
+                    writer.WriteLine(_moqPointsMax);
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        public bool MoqCollectDataIsOn
+        {
+            get
+            {
+                return _moqCollectDataIsOn;
+            }
+            set
+            {
+                if (_moqCollectDataIsOn == value)
+                {
+                    return;
+                }
+
+                _moqCollectDataIsOn = value;
+                Save();
+            }
+        }
+        private bool _moqCollectDataIsOn;
+
+        public SavePointPeriod MoqPeriodSavePoint
+        {
+            get
+            {
+                return _moqPeriodSavePoint;
+            }
+            set
+            {
+                if (_moqPeriodSavePoint == value)
+                {
+                    return;
+                }
+
+                _moqPeriodSavePoint = value;
+                Save();
+                _nextCalculateTime = DateTime.MinValue;
+            }
+        }
+        private SavePointPeriod _moqPeriodSavePoint;
+
+        public int MoqPointsMax
+        {
+            get
+            {
+                return _moqPointsMax;
+            }
+            set
+            {
+                if (_moqPointsMax == value)
+                {
+                    return;
+                }
+
+                _moqPointsMax = value;
+                Save();
+            }
+        }
+        private int _moqPointsMax = 100;
+
+        public int MaxOrdersInQueue
+        {
+            get
+            {
+                return _maxOrdersInQueue;
+            }
+            set
+            {
+                if(value > _maxOrdersInQueue)
+                {
+                    _maxOrdersInQueue = value;
+                }
+            }
+        }
+        private int _maxOrdersInQueue;
+
+        private DateTime _nextCalculateTime;
+
+        public void CalculateData()
+        {
+            if (_moqCollectDataIsOn == false)
+            {
+                return;
+            }
+
+            if (_nextCalculateTime != DateTime.MinValue
+                && _nextCalculateTime > DateTime.Now)
+            {
+                return;
+            }
+
+            if (_moqPeriodSavePoint == SavePointPeriod.OneSecond)
+            {
+                _nextCalculateTime = DateTime.Now.AddSeconds(1);
+            }
+            else if (_moqPeriodSavePoint == SavePointPeriod.TenSeconds)
+            {
+                _nextCalculateTime = DateTime.Now.AddSeconds(10);
+            }
+            else //if (_cpuPeriodSavePoint == SavePointPeriod.Minute)
+            {
+                _nextCalculateTime = DateTime.Now.AddSeconds(60);
+            }
+
+            SystemUsagePointMoq newPoint = new SystemUsagePointMoq();
+            newPoint.Time = DateTime.Now;
+            newPoint.MaxOrdersInQueue = _maxOrdersInQueue;
+
+            _maxOrdersInQueue = 0;
+
+            SaveNewPoint(newPoint);
+        }
+
+        private void SaveNewPoint(SystemUsagePointMoq point)
+        {
+            Values.Add(point);
+
+            if (Values.Count > _moqPointsMax)
+            {
+                Values.RemoveAt(0);
+            }
+
+            if (MoqUsageCollectionChange != null)
+            {
+                MoqUsageCollectionChange (Values);
+            }
+        }
+
+        public event Action<List<SystemUsagePointMoq>> MoqUsageCollectionChange;
+    }
+
 
     public class SystemUsagePointRam
     {
@@ -975,6 +1250,14 @@ namespace OsEngine.OsTrader.SystemAnalyze
         public decimal MarketDepthClearingCount;
 
         public decimal BidAskClearingCount;
+    }
+
+    public class SystemUsagePointMoq
+    {
+        public DateTime Time;
+
+        public decimal MaxOrdersInQueue;
+
     }
 
     public enum SavePointPeriod
