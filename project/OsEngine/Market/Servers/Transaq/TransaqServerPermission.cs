@@ -234,6 +234,11 @@ namespace OsEngine.Market.Servers.Transaq
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

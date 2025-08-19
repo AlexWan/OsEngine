@@ -232,6 +232,11 @@ namespace OsEngine.Market.Servers.Bitfinex
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

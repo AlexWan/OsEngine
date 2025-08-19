@@ -215,6 +215,11 @@ namespace OsEngine.Market.Servers.Pionex
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

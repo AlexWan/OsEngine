@@ -218,6 +218,11 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

@@ -235,6 +235,11 @@ namespace OsEngine.Market.Servers.Deribit
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

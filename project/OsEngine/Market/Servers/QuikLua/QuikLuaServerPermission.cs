@@ -224,6 +224,11 @@ namespace OsEngine.Market.Servers.QuikLua
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

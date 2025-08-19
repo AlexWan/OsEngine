@@ -228,6 +228,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

@@ -236,6 +236,11 @@ namespace OsEngine.Market.Servers.Alor
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

@@ -228,6 +228,11 @@ namespace OsEngine.Market.Servers.OKX
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

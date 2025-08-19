@@ -214,6 +214,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

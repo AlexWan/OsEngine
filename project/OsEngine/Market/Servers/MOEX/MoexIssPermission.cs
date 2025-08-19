@@ -217,6 +217,11 @@ namespace OsEngine.Market.Servers.MOEX
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

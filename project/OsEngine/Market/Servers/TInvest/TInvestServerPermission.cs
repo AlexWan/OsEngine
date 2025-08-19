@@ -238,6 +238,11 @@ namespace OsEngine.Market.Servers.TInvest
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

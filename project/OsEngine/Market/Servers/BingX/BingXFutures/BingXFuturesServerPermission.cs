@@ -250,6 +250,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

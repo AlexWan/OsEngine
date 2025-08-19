@@ -240,6 +240,11 @@ namespace OsEngine.Market.Servers.BitMart
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

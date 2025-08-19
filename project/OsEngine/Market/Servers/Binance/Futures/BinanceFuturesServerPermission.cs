@@ -237,6 +237,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

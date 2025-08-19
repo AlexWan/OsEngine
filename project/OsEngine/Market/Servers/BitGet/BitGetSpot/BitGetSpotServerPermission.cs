@@ -241,6 +241,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

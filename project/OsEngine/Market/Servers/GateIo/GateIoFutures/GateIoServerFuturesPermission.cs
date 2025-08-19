@@ -252,6 +252,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

@@ -229,6 +229,11 @@ namespace OsEngine.Market.Servers.KiteConnect
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

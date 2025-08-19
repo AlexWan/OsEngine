@@ -220,6 +220,11 @@ namespace OsEngine.Market.Servers.TelegramNews
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

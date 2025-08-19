@@ -227,6 +227,11 @@ namespace OsEngine.Market.Servers.Woo
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

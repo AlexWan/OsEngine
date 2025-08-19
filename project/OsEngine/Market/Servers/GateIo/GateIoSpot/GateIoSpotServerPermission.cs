@@ -233,6 +233,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

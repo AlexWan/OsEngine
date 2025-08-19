@@ -237,6 +237,11 @@ namespace OsEngine.Market.Servers.FinamGrpc
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 } 

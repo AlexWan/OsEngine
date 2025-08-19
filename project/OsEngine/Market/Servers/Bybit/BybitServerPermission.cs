@@ -253,6 +253,11 @@ namespace OsEngine.Market.Servers.Bybit
             get { return true; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

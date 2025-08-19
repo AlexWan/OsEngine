@@ -214,6 +214,11 @@ namespace OsEngine.Market.Servers.BitMex
             get { return false; }
         }
 
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }
