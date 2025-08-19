@@ -843,7 +843,7 @@ namespace OsEngine.OsTrader.Grids
 
             // 8 вход в различную логику различных сеток
 
-            if(baseRegime == TradeGridRegime.On)
+            if(baseRegime != TradeGridRegime.Off)
             {
                 if (GridType == TradeGridPrimeType.MarketMaking)
                 {
