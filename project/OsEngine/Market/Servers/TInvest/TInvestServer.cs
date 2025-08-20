@@ -1663,6 +1663,8 @@ namespace OsEngine.Market.Servers.TInvest
 
         #region 8 Reading messages from data streams
 
+        private Dictionary<string, OpenInterest> _openInterestData = new Dictionary<string, OpenInterest>(); // save open interest data to use later in trade updates
+
         private async void DataMessageReader()
         {
             Thread.Sleep(1000);
@@ -1749,10 +1751,22 @@ namespace OsEngine.Market.Servers.TInvest
                             }
                         }
 
-                        if (NewTradesEvent != null)
+                        NewTradesEvent?.Invoke(trade);
+                    }
+
+                    if (marketDataResponse.OpenInterest != null)
+                    {
+                        Security security = GetSecurity(marketDataResponse.OpenInterest.InstrumentUid);
+                        if (security == null)
+                            continue;
+
+                        if (_filterOutNonMarketData)
                         {
-                            NewTradesEvent(trade);
+                            if (isTodayATradingDayForSecurity(security) == false)
+                                continue;
                         }
+
+                        _openInterestData[security.Name] = marketDataResponse.OpenInterest; // save open interest data to cache
                     }
 
                     if (marketDataResponse.LastPrice != null)
@@ -1801,10 +1815,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         _lastMdTime = depth.Time;
 
-                        if (MarketDepthEvent != null)
-                        {
-                            MarketDepthEvent(depth);
-                        }
+                        MarketDepthEvent?.Invoke(depth);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
