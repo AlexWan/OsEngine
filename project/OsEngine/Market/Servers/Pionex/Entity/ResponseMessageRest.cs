@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.Pionex.Entity
 
     public class ResponseSymbols
     {
-        public Symbol[] symbols;
+        public List<Symbol> symbols;
     }
 
     public class Symbol
@@ -52,9 +52,9 @@ namespace OsEngine.Market.Servers.Pionex.Entity
         public string frozen;    // Frozen balance, 8 decimal digits.
     }
 
-    public class ResponceCandles
+    public class ResponseCandles
     {
-        public Kline[] klines;
+        public List<Kline> klines;
     }
 
     public class Kline

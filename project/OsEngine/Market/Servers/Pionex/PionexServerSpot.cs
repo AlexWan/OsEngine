@@ -60,18 +60,36 @@ namespace OsEngine.Market.Servers.Pionex
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
-            HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + _prefix + "common/symbols?symbol=BTC_USDT").Result;
-
-            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            if (string.IsNullOrEmpty(_publicKey) ||
+                string.IsNullOrEmpty(_secretKey))
             {
-                CreatePublicWebSocketConnect();
-                CreatePrivateWebSocketConnect();
+                SendLogMessage("Can`t run Bitget Spot connector. No keys",
+                    LogMessageType.Error);
+                return;
             }
-            else
+
+            try
             {
-                SendLogMessage("Connection cannot be open. Pionex. Error request", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                RestRequest requestRest = new RestRequest(_prefix + "common/symbols?symbol=BTC_USDT", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    CreatePublicWebSocketConnect();
+                    CreatePrivateWebSocketConnect();
+                }
+                else
+                {
+                    SendLogMessage("Connection cannot be open. Pionex Spot. Error request", LogMessageType.Error);
+                    Disconnect();
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Connection can be open. Pionex Spot. Error request", LogMessageType.Error);
+                Disconnect();
             }
         }
 
@@ -144,40 +162,79 @@ namespace OsEngine.Market.Servers.Pionex
 
         #region 3 Securities
 
-        RateGate _rateGateGetSec = new RateGate(2, TimeSpan.FromMilliseconds(1000));
+        RateGate _rateGateGetSec = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+        private List<Security> _securities;
 
         public void GetSecurities()
         {
             _rateGateGetSec.WaitToProceed();
 
+            if (_securities == null)
+            {
+                _securities = new List<Security>();
+            }
+
             try
             {
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + _prefix + "common/symbols").Result;
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                RestRequest requestRest = new RestRequest(_prefix + "common/symbols", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
 
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
-
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    if (stateResponse.result.Equals("true") == true)
+                    ResponseMessageRest<ResponseSymbols> symbols = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseMessageRest<ResponseSymbols>());
+
+                    if (symbols.result.Equals("true") == true)
                     {
-                        UpdateSecurity(json);
+                        for (int i = 0; i < symbols.data.symbols.Count; i++)
+                        {
+                            Symbol item = symbols.data.symbols[i];
+
+                            if (item.enable != "true")
+                            {
+                                continue;
+                            }
+
+                            //bool candlesOnSecurities = CandlesOnSecurities(item.symbol);
+
+                            //if (!candlesOnSecurities)
+                            //{
+                            //    continue;
+                            //}
+
+                            Security newSecurity = new Security();
+
+                            newSecurity.Exchange = ServerType.PionexSpot.ToString();
+                            newSecurity.Lot = 1;
+                            newSecurity.Name = item.symbol;
+                            newSecurity.NameFull = item.symbol;
+                            newSecurity.NameClass = item.symbol.Split('_')[1];
+                            newSecurity.NameId = item.symbol;
+                            newSecurity.SecurityType = SecurityType.CurrencyPair;
+                            newSecurity.MinTradeAmount = item.minAmount.ToDecimal();
+                            newSecurity.Decimals = Convert.ToInt32(item.quotePrecision);
+                            newSecurity.PriceStep = newSecurity.Decimals.GetValueByDecimals();
+                            newSecurity.PriceStepCost = newSecurity.PriceStep;
+                            newSecurity.DecimalsVolume = Convert.ToInt32(item.basePrecision);
+                            newSecurity.State = SecurityStateType.Activ;
+                            newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                            newSecurity.VolumeStep = item.minTradeSize.ToDecimal();
+
+                            _securities.Add(newSecurity);
+                        }
+
+                        SecurityEvent(_securities);
                     }
                     else
                     {
-                        SendLogMessage($"Result: {stateResponse.result}\n"
-                            + $"Message: {stateResponse.message}", LogMessageType.Error);
+                        SendLogMessage($"Securities request error {symbols.result}\n"
+                            + $"Message: {symbols.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"GetSecurities> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                    if (stateResponse != null && stateResponse.code != null)
-                    {
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.message}", LogMessageType.Error);
-                    }
+                    SendLogMessage($"Securities request error. Code: {response.StatusCode} || {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -186,40 +243,50 @@ namespace OsEngine.Market.Servers.Pionex
             }
         }
 
-        private void UpdateSecurity(string json)
+        private RateGate _rateGateCandlesOnSecurities = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+        private bool CandlesOnSecurities(string name)
         {
-            ResponseMessageRest<ResponseSymbols> symbols = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseSymbols>());
+            _rateGateCandlesOnSecurities.WaitToProceed();
 
-            List<Security> securities = new List<Security>();
-
-            for (int i = 0; i < symbols.data.symbols.Length; i++)
+            try
             {
-                Symbol item = symbols.data.symbols[i];
+                DateTime EndTime = DateTime.UtcNow.AddSeconds(-10);
+                string endTimeMs = new DateTimeOffset(EndTime).ToUnixTimeMilliseconds().ToString();
+                string endPoint = _prefix + "market/klines?symbol=" + name;
 
-                if (item.enable.Equals("true"))
+                endPoint += "&interval=15M";
+                endPoint += "&endTime=" + endTimeMs;
+                endPoint += "&limit=5";
+
+                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    Security newSecurity = new Security();
+                    ResponseMessageRest<ResponseCandles> responce = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseMessageRest<ResponseCandles>());
 
-                    newSecurity.Exchange = ServerType.PionexSpot.ToString();
-
-                    newSecurity.Lot = 1;
-                    newSecurity.Name = item.symbol;
-                    newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = item.symbol.Split('_')[1];
-                    newSecurity.NameId = item.symbol;
-                    newSecurity.SecurityType = SecurityType.CurrencyPair;
-                    newSecurity.MinTradeAmount = item.minAmount.ToDecimal();
-                    newSecurity.Decimals = Convert.ToInt32(item.quotePrecision);
-                    newSecurity.PriceStep = newSecurity.Decimals.GetValueByDecimals();
-                    newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.DecimalsVolume = Convert.ToInt32(item.basePrecision);
-                    newSecurity.State = SecurityStateType.Activ;
-
-                    securities.Add(newSecurity);
+                    if (responce.result == "true")
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
                 }
             }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
 
-            SecurityEvent(securities);
+            return false;
         }
 
         public event Action<List<Security>> SecurityEvent;
@@ -1422,7 +1489,7 @@ namespace OsEngine.Market.Servers.Pionex
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                 string _pathUrl = "market/klines";
                 string interval = string.Empty;
-                string limit = candleCount <= 500 ? candleCount.ToString() : "500"; // ограничение 500 свечек
+                string limit = candleCount <= 500 ? candleCount.ToString() : "500";
 
                 switch (timeFrameBuilder.TimeFrame)
                 {
@@ -1466,13 +1533,13 @@ namespace OsEngine.Market.Servers.Pionex
 
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
-                    ResponseMessageRest<ResponceCandles> responce = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponceCandles>());
+                    ResponseMessageRest<ResponseCandles> responce = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponseCandles>());
 
                     if (responce.result == "true")
                     {
                         List<Candle> candles = new List<Candle>();
 
-                        for (int i = responce.data.klines.Length - 1; i >= 0; i--)
+                        for (int i = responce.data.klines.Count - 1; i >= 0; i--)
                         {
                             Candle newCandle = new Candle();
 
