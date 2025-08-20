@@ -129,13 +129,13 @@ namespace OsEngine.Market.Servers.Pionex
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = false,
-                TimeFrameSec2IsOn = false,
-                TimeFrameSec5IsOn = false,
-                TimeFrameSec10IsOn = false,
-                TimeFrameSec15IsOn = false,
-                TimeFrameSec20IsOn = false,
-                TimeFrameSec30IsOn = false,
+                TimeFrameSec1IsOn = true,
+                TimeFrameSec2IsOn = true,
+                TimeFrameSec5IsOn = true,
+                TimeFrameSec10IsOn = true,
+                TimeFrameSec15IsOn = true,
+                TimeFrameSec20IsOn = true,
+                TimeFrameSec30IsOn = true,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
                 TimeFrameMin3IsOn = false,
@@ -148,7 +148,7 @@ namespace OsEngine.Market.Servers.Pionex
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = false,
                 TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = false
+                TimeFrameDayIsOn = true
             };
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
@@ -158,7 +158,15 @@ namespace OsEngine.Market.Servers.Pionex
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "USDT"
+                };
+
+                return values;
+            }
         }
 
         public bool ManuallyClosePositionOnBoard_IsOn
@@ -166,19 +174,14 @@ namespace OsEngine.Market.Servers.Pionex
             get { return false; }
         }
 
-        public bool IsTradeServer
+        public bool CanQueryOrdersAfterReconnect
         {
             get { return true; }
         }
 
-        public bool CanQueryOrdersAfterReconnect
-        {
-            get { return false; }
-        }
-
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
