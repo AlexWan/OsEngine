@@ -15,10 +15,10 @@ import "common.proto";
 
 service SignalService {//Сервис для получения технических сигналов и мнений аналитиков по инструментам.
 
-  //Запросить стратегии.
+  //GetStrategies — стратегии
   rpc GetStrategies(GetStrategiesRequest) returns (GetStrategiesResponse);
 
-  //Запросить сигналы.
+  //GetSignals — сигналы
   rpc GetSignals(GetSignalsRequest) returns (GetSignalsResponse);
 }
 

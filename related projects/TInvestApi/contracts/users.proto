@@ -14,18 +14,22 @@ import "google/api/field_behavior.proto";
 import "common.proto";
 
 service UsersService { /*С помощью сервиса можно получить: <br/> 1.
-                       список счетов пользователя; <br/> 2. маржинальные показатели по счёту.*/
+                       список счетов пользователя; <br/> 2. маржинальные показатели по счeту.*/
 
-  //Получить счета пользователя.
+  //GetAccounts — счета пользователя
+  //Получить список счетов.
   rpc GetAccounts (GetAccountsRequest) returns (GetAccountsResponse);
 
-  //Рассчитать маржинальные показатели по счёту.
+  //GetMarginAttributes — маржинальные показатели по счeту
+  //Метод позволяет получить маржинальные показатели и ликвидность по заданному счeту.
   rpc GetMarginAttributes (GetMarginAttributesRequest) returns (GetMarginAttributesResponse);
 
-  //Запросить тариф пользователя.
+  //GetUserTariff — тариф пользователя
+  //Получить информацию о текущих лимитах на подклчение, согласно текущему тарифу пользователя.
   rpc GetUserTariff (GetUserTariffRequest) returns (GetUserTariffResponse);
 
-  //Получить информацию о пользователе.
+  //GetInfo — информация о пользователе
+  //Получить информацию о пользователе: тариф, признак квалификации, пройденные тесты и др.
   rpc GetInfo (GetInfoRequest) returns (GetInfoResponse);
 }
 
@@ -40,57 +44,57 @@ message GetAccountsResponse {
   repeated Account accounts = 1;
 }
 
-//Информация о счёте.
+//Информация о счeте.
 message Account {
 
-  // Идентификатор счёта.
+  // Идентификатор счeта.
   string id = 1;
 
-  // Тип счёта.
+  // Тип счeта.
   AccountType type = 2;
 
-  // Название счёта.
+  // Название счeта.
   string name = 3;
 
-  // Статус счёта.
+  // Статус счeта.
   AccountStatus status = 4;
 
-  // Дата открытия счёта в часовом поясе UTC.
+  // Дата открытия счeта в часовом поясе UTC.
   google.protobuf.Timestamp opened_date = 5;
 
-  // Дата закрытия счёта в часовом поясе UTC.
+  // Дата закрытия счeта в часовом поясе UTC.
   google.protobuf.Timestamp closed_date = 6;
 
-  // Уровень доступа к текущему счёту (определяется токеном).
+  // Уровень доступа к текущему счeту (определяется токеном).
   AccessLevel access_level = 7;
 }
 
-//Тип счёта.
+//Тип счeта.
 enum AccountType {
-  ACCOUNT_TYPE_UNSPECIFIED = 0; //Тип аккаунта не определён.
-  ACCOUNT_TYPE_TINKOFF = 1; //Брокерский счёт Т-Инвестиций.
+  ACCOUNT_TYPE_UNSPECIFIED = 0; //Тип аккаунта не определeн.
+  ACCOUNT_TYPE_TINKOFF = 1; //Брокерский счeт Т-Инвестиций.
   ACCOUNT_TYPE_TINKOFF_IIS = 2; //ИИС.
   ACCOUNT_TYPE_INVEST_BOX = 3; //Инвесткопилка.
   ACCOUNT_TYPE_INVEST_FUND = 4; //Фонд денежного рынка.
 }
 
-//Статус счёта.
+//Статус счeта.
 enum AccountStatus {
-  ACCOUNT_STATUS_UNSPECIFIED = 0; //Статус счёта не определён.
+  ACCOUNT_STATUS_UNSPECIFIED = 0; //Статус счeта не определeн.
   ACCOUNT_STATUS_NEW = 1; //Новый, в процессе открытия.
-  ACCOUNT_STATUS_OPEN = 2; //Открытый и активный счёт.
-  ACCOUNT_STATUS_CLOSED = 3; //Закрытый счёт.
+  ACCOUNT_STATUS_OPEN = 2; //Открытый и активный счeт.
+  ACCOUNT_STATUS_CLOSED = 3; //Закрытый счeт.
   ACCOUNT_STATUS_ALL = 4; //Все счета.
 }
 
-//Запрос маржинальных показателей по счёту.
+//Запрос маржинальных показателей по счeту.
 message GetMarginAttributesRequest {
 
-  // Идентификатор счёта пользователя.
+  // Идентификатор счeта пользователя.
   string account_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-//Маржинальные показатели по счёту.
+//Маржинальные показатели по счeту.
 message GetMarginAttributesResponse {
 
   // Ликвидная стоимость портфеля. [Подробнее про ликвидный портфель](https://www.tbank.ru/invest/help/brokerage/account/margin/about/#q4).
@@ -108,7 +112,7 @@ message GetMarginAttributesResponse {
   // Объем недостающих средств. Разница между стартовой маржой и ликвидной стоимости портфеля.
   MoneyValue amount_of_missing_funds = 5;
 
-  // Скорректированная маржа. Начальная маржа, в которой плановые позиции рассчитываются с учётом активных заявок на покупку позиций лонг или продажу позиций шорт.
+  // Скорректированная маржа. Начальная маржа, в которой плановые позиции рассчитываются с учeтом активных заявок на покупку позиций лонг или продажу позиций шорт.
   MoneyValue corrected_margin = 6;
 }
 
@@ -149,10 +153,10 @@ message GetInfoResponse {
   string risk_level_code = 12; // Категория риска.
 }
 
-//Уровень доступа к счёту.
+//Уровень доступа к счeту.
 enum AccessLevel {
-  ACCOUNT_ACCESS_LEVEL_UNSPECIFIED = 0; //Уровень доступа не определён.
-  ACCOUNT_ACCESS_LEVEL_FULL_ACCESS = 1; //Полный доступ к счёту.
+  ACCOUNT_ACCESS_LEVEL_UNSPECIFIED = 0; //Уровень доступа не определeн.
+  ACCOUNT_ACCESS_LEVEL_FULL_ACCESS = 1; //Полный доступ к счeту.
   ACCOUNT_ACCESS_LEVEL_READ_ONLY = 2; //Доступ с уровнем прав «только чтение».
   ACCOUNT_ACCESS_LEVEL_NO_ACCESS = 3; //Доступа нет.
 }

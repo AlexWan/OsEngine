@@ -14,9 +14,9 @@ import "google/protobuf/timestamp.proto";
 import "google/api/field_behavior.proto";
 
 service OrdersStreamService {
-  //Stream сделок пользователя.
+  //TradesStream — стрим сделок пользователя
   rpc TradesStream(TradesStreamRequest) returns (stream TradesStreamResponse);
-  //Stream поручений пользователя.
+  //OrderStateStream — стрим поручений пользователя
   //Перед работой прочитайте [статью](/invest/services/orders/orders_state_stream).
   rpc OrderStateStream(OrderStateStreamRequest) returns (stream OrderStateStreamResponse);
 }
@@ -24,28 +24,29 @@ service OrdersStreamService {
 service OrdersService {/* Сервис предназначен для работы с торговыми поручениями:<br/> **1**.
                         выставление;<br/> **2**. отмена;<br/> **3**. получение статуса;<br/> **4**.
                         расчет полной стоимости;<br/> **5**. получение списка заявок.*/
-  //Метод выставления заявки.
+  //PostOrder — выставить заявку
   rpc PostOrder(PostOrderRequest) returns (PostOrderResponse);
 
-  //Асинхронный метод выставления заявки.
+  //PostOrderAsync — выставить заявку асинхронным методом
+  //Особенности работы приведены в [статье](/invest/services/orders/async).
   rpc PostOrderAsync(PostOrderAsyncRequest) returns (PostOrderAsyncResponse);
 
-  //Метод отмены биржевой заявки.
+  //CancelOrder — отменить заявку
   rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
 
-  //Метод получения статуса торгового поручения.
+  //GetOrderState — получить статус торгового поручения
   rpc GetOrderState(GetOrderStateRequest) returns (OrderState);
 
-  //Метод получения списка активных заявок по счету.
+  //GetOrders — получить список активных заявок по счету
   rpc GetOrders(GetOrdersRequest) returns (GetOrdersResponse);
 
-  //Метод изменения выставленной заявки.
+  //ReplaceOrder — изменить выставленную заявку
   rpc ReplaceOrder(ReplaceOrderRequest) returns (PostOrderResponse);
 
-  //Расчет количества доступных для покупки/продажи лотов.
+  //GetMaxLots — расчет количества доступных для покупки/продажи лотов
   rpc GetMaxLots(GetMaxLotsRequest) returns (GetMaxLotsResponse);
 
-  //Метод получения предварительной стоимости для лимитной заявки.
+  //GetOrderPrice — получить предварительную стоимость для лимитной заявки
   rpc GetOrderPrice(GetOrderPriceRequest) returns (GetOrderPriceResponse);
 }
 
@@ -95,6 +96,7 @@ message PostOrderRequest {
   string instrument_id = 8; //Идентификатор инструмента, принимает значения Figi или Instrument_uid.
   TimeInForceType time_in_force = 9; //Алгоритм исполнения поручения, применяется только к лимитной заявке.
   PriceType price_type = 10; //Тип цены.
+  bool confirm_margin_trade = 11; // Согласие на выставление заявки, которая может привести к непокрытой позиции, по умолчанию false.
 }
 
 //Прочитайте  про ключ идемпотентности [здесь](./head-orders/)
@@ -135,6 +137,7 @@ message PostOrderAsyncRequest {
   string order_id = 7 [(google.api.field_behavior) = REQUIRED]; //Идентификатор запроса выставления поручения для целей идемпотентности в формате UID. Максимальная длина 36 символов.
   optional TimeInForceType time_in_force = 8; //Алгоритм исполнения поручения, применяется только к лимитной заявке.
   optional PriceType price_type = 9; //Тип цены.
+  bool confirm_margin_trade = 10; // Согласие на выставление заявки, которая может привести к непокрытой позиции, по умолчанию false.
 }
 
 //Результат выставления асинхронного торгового поручения.
@@ -168,6 +171,13 @@ message GetOrderStateRequest {
 //Запрос получения списка активных торговых поручений.
 message GetOrdersRequest {
   string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счета.
+  optional GetOrdersRequestFilters advanced_filters = 2; //Дополнительные фильтры.
+
+  message GetOrdersRequestFilters {
+    optional google.protobuf.Timestamp from = 1; //Дата и время, начиная с которой нужно получить информацию в часовом поясе UTC. Параметр применим только к ордерам, созданным сегодня.
+    optional google.protobuf.Timestamp to = 2; //Дата и время, до которой нужно получить информацию в часовом поясе UTC. Параметр применим только к ордерам, созданным сегодня.
+    repeated OrderExecutionReportStatus execution_status = 3; //Статусы заявок.
+  }
 }
 
 //Список активных торговых поручений.
@@ -215,6 +225,7 @@ message ReplaceOrderRequest {
   int64 quantity = 11 [(google.api.field_behavior) = REQUIRED]; //Количество лотов.
   optional Quotation price = 12; //Цена за 1 инструмент.
   optional PriceType price_type = 13; //Тип цены.
+  bool confirm_margin_trade = 14; // Согласие на выставление заявки, которая может привести к непокрытой позиции, по умолчанию false.
 }
 
 //Запрос на расчет количества доступных для покупки/продажи лотов. Если не указывать цену инструмента, то расчет произведется по текущум ценам в стакане: по лучшему предложению для покупки и по лучшему спросу для продажи.
