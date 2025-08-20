@@ -15,10 +15,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+
 
 namespace OsEngine.Market.Servers.Pionex
 {
@@ -60,18 +60,36 @@ namespace OsEngine.Market.Servers.Pionex
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
-            HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + _prefix + "common/symbols?symbol=BTC_USDT").Result;
-
-            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            if (string.IsNullOrEmpty(_publicKey) ||
+                string.IsNullOrEmpty(_secretKey))
             {
-                CreatePublicWebSocketConnect();
-                CreatePrivateWebSocketConnect();
+                SendLogMessage("Can`t run Bitget Spot connector. No keys",
+                    LogMessageType.Error);
+                return;
             }
-            else
+
+            try
             {
-                SendLogMessage("Connection cannot be open. Pionex. Error request", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                RestRequest requestRest = new RestRequest(_prefix + "common/symbols?symbol=BTC_USDT", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    CreatePublicWebSocketConnect();
+                    CreatePrivateWebSocketConnect();
+                }
+                else
+                {
+                    SendLogMessage("Connection cannot be open. Pionex Spot. Error request", LogMessageType.Error);
+                    Disconnect();
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Connection can be open. Pionex Spot. Error request", LogMessageType.Error);
+                Disconnect();
             }
         }
 
@@ -96,7 +114,6 @@ namespace OsEngine.Market.Servers.Pionex
             }
 
             _subscribedSecurities.Clear();
-            _decimalsVolume.Clear();
 
             FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
@@ -144,40 +161,79 @@ namespace OsEngine.Market.Servers.Pionex
 
         #region 3 Securities
 
-        RateGate _rateGateGetSec = new RateGate(2, TimeSpan.FromMilliseconds(1000));
+        RateGate _rateGateGetSec = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+        private List<Security> _securities;
 
         public void GetSecurities()
         {
             _rateGateGetSec.WaitToProceed();
 
+            if (_securities == null)
+            {
+                _securities = new List<Security>();
+            }
+
             try
             {
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + _prefix + "common/symbols").Result;
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                RestRequest requestRest = new RestRequest(_prefix + "common/symbols", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
 
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
-
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    if (stateResponse.result.Equals("true") == true)
+                    ResponseMessageRest<ResponseSymbols> symbols = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseMessageRest<ResponseSymbols>());
+
+                    if (symbols.result.Equals("true") == true)
                     {
-                        UpdateSecurity(json);
+                        for (int i = 0; i < symbols.data.symbols.Count; i++)
+                        {
+                            Symbol item = symbols.data.symbols[i];
+
+                            if (item.enable != "true")
+                            {
+                                continue;
+                            }
+
+                            //bool candlesOnSecurities = CandlesOnSecurities(item.symbol);
+
+                            //if (!candlesOnSecurities)
+                            //{
+                            //    continue;
+                            //}
+
+                            Security newSecurity = new Security();
+
+                            newSecurity.Exchange = ServerType.PionexSpot.ToString();
+                            newSecurity.Lot = 1;
+                            newSecurity.Name = item.symbol;
+                            newSecurity.NameFull = item.symbol;
+                            newSecurity.NameClass = item.symbol.Split('_')[1];
+                            newSecurity.NameId = item.symbol;
+                            newSecurity.SecurityType = SecurityType.CurrencyPair;
+                            newSecurity.MinTradeAmount = item.minAmount.ToDecimal();
+                            newSecurity.Decimals = Convert.ToInt32(item.quotePrecision);
+                            newSecurity.PriceStep = newSecurity.Decimals.GetValueByDecimals();
+                            newSecurity.PriceStepCost = newSecurity.PriceStep;
+                            newSecurity.DecimalsVolume = Convert.ToInt32(item.basePrecision);
+                            newSecurity.State = SecurityStateType.Activ;
+                            newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                            newSecurity.VolumeStep = item.minTradeSize.ToDecimal();
+
+                            _securities.Add(newSecurity);
+                        }
+
+                        SecurityEvent(_securities);
                     }
                     else
                     {
-                        SendLogMessage($"Result: {stateResponse.result}\n"
-                            + $"Message: {stateResponse.message}", LogMessageType.Error);
+                        SendLogMessage($"Securities request error {symbols.result}\n"
+                            + $"Message: {symbols.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"GetSecurities> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                    if (stateResponse != null && stateResponse.code != null)
-                    {
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.message}", LogMessageType.Error);
-                    }
+                    SendLogMessage($"Securities request error. Code: {response.StatusCode} || {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -186,40 +242,50 @@ namespace OsEngine.Market.Servers.Pionex
             }
         }
 
-        private void UpdateSecurity(string json)
+        private RateGate _rateGateCandlesOnSecurities = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+        private bool CandlesOnSecurities(string name)
         {
-            ResponseMessageRest<ResponseSymbols> symbols = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseSymbols>());
+            _rateGateCandlesOnSecurities.WaitToProceed();
 
-            List<Security> securities = new List<Security>();
-
-            for (int i = 0; i < symbols.data.symbols.Length; i++)
+            try
             {
-                Symbol item = symbols.data.symbols[i];
+                DateTime EndTime = DateTime.UtcNow.AddSeconds(-10);
+                string endTimeMs = new DateTimeOffset(EndTime).ToUnixTimeMilliseconds().ToString();
+                string endPoint = _prefix + "market/klines?symbol=" + name;
 
-                if (item.enable.Equals("true"))
+                endPoint += "&interval=15M";
+                endPoint += "&endTime=" + endTimeMs;
+                endPoint += "&limit=5";
+
+                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    Security newSecurity = new Security();
+                    ResponseMessageRest<ResponseCandles> responce = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseMessageRest<ResponseCandles>());
 
-                    newSecurity.Exchange = ServerType.PionexSpot.ToString();
-
-                    newSecurity.Lot = 1;
-                    newSecurity.Name = item.symbol;
-                    newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = item.symbol.Split('_')[1];
-                    newSecurity.NameId = item.symbol;
-                    newSecurity.SecurityType = SecurityType.CurrencyPair;
-                    newSecurity.MinTradeAmount = item.minAmount.ToDecimal();
-                    newSecurity.Decimals = Convert.ToInt32(item.quotePrecision);
-                    newSecurity.PriceStep = newSecurity.Decimals.GetValueByDecimals();
-                    newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.DecimalsVolume = Convert.ToInt32(item.basePrecision);
-                    newSecurity.State = SecurityStateType.Activ;
-
-                    securities.Add(newSecurity);
+                    if (responce.result == "true")
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
                 }
             }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
 
-            SecurityEvent(securities);
+            return false;
         }
 
         public event Action<List<Security>> SecurityEvent;
@@ -230,7 +296,57 @@ namespace OsEngine.Market.Servers.Pionex
 
         public void GetPortfolios()
         {
-            CreateQueryPortfolio();
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+
+                _pathUrl = "account/balances";
+
+                string _signature = GenerateSignature("GET", _pathUrl, timestamp, null, null);
+
+                IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.GET, timestamp, null, null);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<ResponseBalance> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponseBalance>());
+
+                    if (response.result == "true")
+                    {
+                        Portfolio portfolio = new Portfolio();
+                        portfolio.Number = "PionexSpotPortfolio";
+                        portfolio.ValueBegin = 1;
+                        portfolio.ValueCurrent = 1;
+
+                        for (int i = 0; i < response.data.balances.Count; i++)
+                        {
+                            PositionOnBoard newPortf = new PositionOnBoard();
+                            newPortf.SecurityNameCode = response.data.balances[i].coin;
+                            newPortf.ValueBegin = response.data.balances[i].free.ToDecimal();
+                            newPortf.ValueCurrent = response.data.balances[i].free.ToDecimal();
+                            newPortf.ValueBlocked = response.data.balances[i].frozen.ToDecimal();
+                            newPortf.PortfolioName = "PionexSpotPortfolio";
+                            portfolio.SetNewPosition(newPortf);
+                        }
+
+                        PortfolioEvent(new List<Portfolio> { portfolio });
+                    }
+                    else
+                    {
+                        SendLogMessage($"Portfolio error. Code: {response.code} - message: {response.message}", LogMessageType.Error);
+                        Disconnect();
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Portfolio error. {json.StatusCode}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -241,17 +357,153 @@ namespace OsEngine.Market.Servers.Pionex
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return CreateQueryCandles(security, timeFrameBuilder, candleCount, 1);
-        }
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime endTime = DateTime.UtcNow;
+            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
+            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            // лимит на 500 свечек по таймфрейму
+            _rateGate.WaitToProceed();
+
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+
+            if (!CheckTime(startTime, endTime, actualTime))
+            {
+                return null;
+            }
+
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+
+            if (!CheckTf(tfTotalMinutes))
+            {
+                return null;
+            }
+
+            try
+            {
+                string interval = string.Empty;
+                string limit = /*candleCount <= 500 ? candleCount.ToString() :*/ "500";
+
+                switch (timeFrameBuilder.TimeFrame)
+                {
+                    case TimeFrame.Min1:
+                        interval = "1M";
+                        break;
+                    case TimeFrame.Min5:
+                        interval = "5M";
+                        break;
+                    case TimeFrame.Min15:
+                        interval = "15M";
+                        break;
+                    case TimeFrame.Min30:
+                        interval = "30M";
+                        break;
+                    case TimeFrame.Hour1:
+                        interval = "60M";
+                        break;
+                    case TimeFrame.Hour4:
+                        interval = "4H";
+                        break;
+                    case TimeFrame.Day:
+                        interval = "1D";
+                        break;
+                    default:
+                        SendLogMessage("Incorrect timeframe", LogMessageType.Error);
+                        return null;
+                }
+
+                DateTime EndTime = DateTime.UtcNow.AddSeconds(-10);
+                string endTimeMs = new DateTimeOffset(EndTime).ToUnixTimeMilliseconds().ToString();
+                string endPoint = _prefix + "market/klines?symbol=" + security.Name;
+
+                endPoint += "&interval=" + interval;
+                endPoint += "&endTime=" + endTimeMs;
+                endPoint += "&limit=" + limit;
+
+                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<ResponseCandles> responseCandles = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseMessageRest<ResponseCandles>());
+
+                    if (responseCandles.result == "true")
+                    {
+                        List<Candle> candles = new List<Candle>();
+
+                        for (int i = responseCandles.data.klines.Count - 1; i >= 0; i--)
+                        {
+                            Candle newCandle = new Candle();
+
+                            newCandle.Open = responseCandles.data.klines[i].open.ToDecimal();
+                            newCandle.Close = responseCandles.data.klines[i].close.ToDecimal();
+                            newCandle.High = responseCandles.data.klines[i].high.ToDecimal();
+                            newCandle.Low = responseCandles.data.klines[i].low.ToDecimal();
+                            newCandle.Volume = responseCandles.data.klines[i].volume.ToDecimal();
+                            newCandle.State = CandleState.Finished;
+                            newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseCandles.data.klines[i].time));
+                            candles.Add(newCandle);
+                        }
+
+                        return candles;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Candles request error: {responseCandles.code} - message: {responseCandles.message}", LogMessageType.Error);
+                        return null;
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Candles request error: {response.StatusCode} || {response.StatusCode}", LogMessageType.Error);
+                    return null;
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
+
+        private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            if (startTime >= endTime ||
+                startTime >= DateTime.UtcNow ||
+                actualTime > endTime ||
+                actualTime > DateTime.UtcNow)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool CheckTf(int timeFrameMinutes)
+        {
+            if (timeFrameMinutes == 1
+                || timeFrameMinutes == 5
+                || timeFrameMinutes == 15
+                || timeFrameMinutes == 30
+                || timeFrameMinutes == 60
+                || timeFrameMinutes == 240
+                || timeFrameMinutes == 1440)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
             return null;
         }
 
@@ -726,9 +978,6 @@ namespace OsEngine.Market.Servers.Pionex
                     _webSocketPrivate.Send($"{{\"op\": \"SUBSCRIBE\", \"topic\": \"ORDER\", \"symbol\": \"{security.Name}\"}}");
                     _webSocketPrivate.Send($"{{\"op\": \"SUBSCRIBE\",  \"topic\":  \"FILL\",  \"symbol\": \"{security.Name}\"}}");
                 }
-
-                // собираем знаки после запятой в объеме инструмента, для корректного отображения в объеме позиции
-                _decimalsVolume.Add(security.Name, security.DecimalsVolume);
             }
             catch (Exception exception)
             {
@@ -815,8 +1064,6 @@ namespace OsEngine.Market.Servers.Pionex
 
         private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
-        private Dictionary<string, int> _decimalsVolume = new Dictionary<string, int>();
-
         private void PublicMessageReader()
         {
             Thread.Sleep(1000);
@@ -866,6 +1113,11 @@ namespace OsEngine.Market.Servers.Pionex
                         }
 
                         continue;
+                    }
+
+                    if (message.Contains("CLOSE"))
+                    {
+                        SendLogMessage("WebSocket Public CLOSE " + message, LogMessageType.Error);
                     }
 
                     ResponseWebSocketMessage<object> stream = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
@@ -963,190 +1215,222 @@ namespace OsEngine.Market.Servers.Pionex
 
         private void UpdateTrade(string message)
         {
-            ResponseWebSocketMessage<List<TradeElements>> responseTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<TradeElements>>());
-
-            if (responseTrade == null)
+            try
             {
-                return;
-            }
+                ResponseWebSocketMessage<List<TradeElements>> responseTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<TradeElements>>());
 
-            if (responseTrade.data == null)
+                if (responseTrade == null)
+                {
+                    return;
+                }
+
+                if (responseTrade.data == null)
+                {
+                    return;
+                }
+
+                Trade trade = new Trade();
+
+                trade.SecurityNameCode = responseTrade.data[0].symbol;
+                trade.Price = responseTrade.data[0].price.ToDecimal();
+                trade.Id = responseTrade.data[0].tradeId;
+                trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data[0].timestamp));
+                trade.Volume = responseTrade.data[0].size.ToDecimal();
+                trade.Side = responseTrade.data[0].side.Equals("BUY") ? Side.Buy : Side.Sell;
+
+                NewTradesEvent(trade);
+            }
+            catch (Exception ex)
             {
-                return;
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
-
-            TradeElements element = responseTrade.data[responseTrade.data.Count - 1];
-
-            Trade trade = new Trade();
-
-            trade.SecurityNameCode = element.symbol;
-            trade.Price = element.price.ToDecimal();
-            trade.Id = element.tradeId;
-            trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(element.timestamp));
-            trade.Volume = element.size.ToDecimal();
-            trade.Side = element.side.Equals("BUY") ? Side.Buy : Side.Sell;
-
-            NewTradesEvent(trade);
         }
 
         private void UpdateDepth(string message)
         {
-            ResponseWebSocketMessage<ResponseWebSocketDepthItem> responseDepth = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseWebSocketDepthItem>());
-
-            if (responseDepth.data == null)
+            try
             {
-                return;
+                ResponseWebSocketMessage<ResponseWebSocketDepthItem> responseDepth = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseWebSocketDepthItem>());
+
+                if (responseDepth.data == null)
+                {
+                    return;
+                }
+
+                MarketDepth marketDepth = new MarketDepth();
+
+                List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
+                List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+                marketDepth.SecurityNameCode = responseDepth.symbol;
+
+                for (int i = 0; i < responseDepth.data.asks.Count; i++)
+                {
+                    MarketDepthLevel newMDLevel = new MarketDepthLevel();
+                    newMDLevel.Ask = responseDepth.data.asks[i][1].ToDecimal();
+                    newMDLevel.Price = responseDepth.data.asks[i][0].ToDecimal();
+                    ascs.Add(newMDLevel);
+                }
+
+                for (int i = 0; i < responseDepth.data.bids.Count; i++)
+                {
+                    MarketDepthLevel newMDLevel = new MarketDepthLevel();
+                    newMDLevel.Bid = responseDepth.data.bids[i][1].ToDecimal();
+                    newMDLevel.Price = responseDepth.data.bids[i][0].ToDecimal();
+                    bids.Add(newMDLevel);
+                }
+
+                marketDepth.Asks = ascs;
+                marketDepth.Bids = bids;
+                marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.timestamp));
+
+                if (marketDepth.Asks.Count == 0 ||
+                    marketDepth.Bids.Count == 0)
+                {
+                    return;
+                }
+
+                MarketDepthEvent(marketDepth);
             }
-
-            MarketDepth marketDepth = new MarketDepth();
-
-            List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
-            List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
-
-            marketDepth.SecurityNameCode = responseDepth.symbol;
-
-            for (int i = 0; i < responseDepth.data.asks.Count; i++)
+            catch (Exception ex)
             {
-                MarketDepthLevel newMDLevel = new MarketDepthLevel();
-                newMDLevel.Ask = responseDepth.data.asks[i][1].ToDecimal();
-                newMDLevel.Price = responseDepth.data.asks[i][0].ToDecimal();
-                ascs.Add(newMDLevel);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
-
-            for (int i = 0; i < responseDepth.data.bids.Count; i++)
-            {
-                MarketDepthLevel newMDLevel = new MarketDepthLevel();
-                newMDLevel.Bid = responseDepth.data.bids[i][1].ToDecimal();
-                newMDLevel.Price = responseDepth.data.bids[i][0].ToDecimal();
-                bids.Add(newMDLevel);
-            }
-
-            marketDepth.Asks = ascs;
-            marketDepth.Bids = bids;
-            marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.timestamp));
-
-            if (marketDepth.Asks.Count == 0 ||
-                marketDepth.Bids.Count == 0)
-            {
-                return;
-            }
-
-            MarketDepthEvent(marketDepth);
         }
 
         private void UpdatePortfolio(string message)
         {
-            ResponseWebSocketMessage<ResponceWSBalance> responce = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponceWSBalance>());
-
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "PionexSpot";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            for (int i = 0; i < responce.data.balances.Length; i++)
+            try
             {
-                PositionOnBoard newPortf = new PositionOnBoard();
-                newPortf.SecurityNameCode = responce.data.balances[i].coin;
-                newPortf.ValueBegin = responce.data.balances[i].free.ToDecimal();
-                newPortf.ValueCurrent = responce.data.balances[i].free.ToDecimal();
-                newPortf.ValueBlocked = responce.data.balances[i].frozen.ToDecimal();
-                newPortf.PortfolioName = "PionexSpot";
-                portfolio.SetNewPosition(newPortf);
-            }
+                ResponseWebSocketMessage<ResponseWSBalance> responce = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseWSBalance>());
 
-            PortfolioEvent(new List<Portfolio> { portfolio });
+                Portfolio portfolio = new Portfolio();
+                portfolio.Number = "PionexSpotPortfolio";
+                portfolio.ValueBegin = 1;
+                portfolio.ValueCurrent = 1;
+
+                for (int i = 0; i < responce.data.balances.Count; i++)
+                {
+                    PositionOnBoard newPortf = new PositionOnBoard();
+                    newPortf.SecurityNameCode = responce.data.balances[i].coin;
+                    newPortf.ValueCurrent = responce.data.balances[i].free.ToDecimal();
+                    newPortf.ValueBlocked = responce.data.balances[i].frozen.ToDecimal();
+                    newPortf.PortfolioName = "PionexSpotPortfolio";
+                    portfolio.SetNewPosition(newPortf);
+                }
+
+                PortfolioEvent(new List<Portfolio> { portfolio });
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void UpdateMyTrade(string message)
         {
-            ResponseWebSocketMessage<MyTrades> responseTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<MyTrades>());
+            try
+            {
+                ResponseWebSocketMessage<MyTrades> responseTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<MyTrades>());
 
-            MyTrades item = responseTrades.data;
+                MyTrades item = responseTrades.data;
 
-            long time = Convert.ToInt64(item.timestamp);
+                long time = Convert.ToInt64(item.timestamp);
 
-            MyTrade newTrade = new MyTrade();
+                MyTrade newTrade = new MyTrade();
 
-            newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(time);
-            newTrade.SecurityNameCode = item.symbol;
-            newTrade.NumberOrderParent = item.orderId;
-            newTrade.Price = item.price.ToDecimal();
-            newTrade.NumberTrade = item.id;
-            newTrade.Side = item.side.Equals("SELL") ? Side.Sell : Side.Buy;
+                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(time);
+                newTrade.SecurityNameCode = item.symbol;
+                newTrade.NumberOrderParent = item.orderId;
+                newTrade.Price = item.price.ToDecimal();
+                newTrade.NumberTrade = item.id;
+                newTrade.Side = item.side.Equals("SELL") ? Side.Sell : Side.Buy;
 
-            // при покупке комиссия берется с монеты и объем уменьшается и появляются лишние знаки после запятой
-            decimal preVolume = newTrade.Side == Side.Sell ? item.size.ToDecimal() : item.size.ToDecimal() - item.fee.ToDecimal();
+                string commissionSecName = item.feeCoin;
 
-            newTrade.Volume = GetVolumeForMyTrade(item.symbol, preVolume);
+                if (newTrade.SecurityNameCode.StartsWith(commissionSecName))
+                {
+                    newTrade.Volume = item.size.ToDecimal() - item.fee.ToDecimal();
 
-            MyTradeEvent(newTrade);
+                    int decimalVolum = GetVolumeDecimals(newTrade.SecurityNameCode);
+
+                    if (decimalVolum > 0)
+                    {
+                        newTrade.Volume = Math.Floor(newTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
+                    }
+                }
+                else
+                {
+                    newTrade.Volume = item.size.ToDecimal();
+                }
+
+                MyTradeEvent(newTrade);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
         }
 
-        private decimal GetVolumeForMyTrade(string symbol, decimal preVolume)
+        private int GetVolumeDecimals(string security)
         {
-            int forTruncate = 1;
-
-            Dictionary<string, int>.Enumerator enumerator = _decimalsVolume.GetEnumerator();
-
-            while (enumerator.MoveNext())
+            for (int i = 0; i < _securities.Count; i++)
             {
-                string key = enumerator.Current.Key;
-                int value = enumerator.Current.Value;
-
-                if (key.Equals(symbol))
+                if (security == _securities[i].Name)
                 {
-                    if (value != 0)
-                    {
-                        for (int i = 0; i < value; i++)
-                        {
-                            forTruncate *= 10;
-                        }
-                    }
-                    return Math.Truncate(preVolume * forTruncate) / forTruncate; // при округлении может получиться больше доступного объема, поэтому обрезаем
+                    return _securities[i].DecimalsVolume;
                 }
             }
-            return preVolume;
+
+            return 0;
         }
 
         private void UpdateOrder(string message)
         {
-            ResponseWebSocketMessage<MyOrders> responseOrders = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<MyOrders>());
-
-            if (responseOrders.data == null)
+            try
             {
-                return;
+                ResponseWebSocketMessage<MyOrders> responseOrders = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<MyOrders>());
+
+                if (responseOrders.data == null)
+                {
+                    return;
+                }
+
+                MyOrders item = responseOrders.data;
+
+                OrderStateType stateType = GetOrderState(item.status, item.filledSize);
+
+                if (item.type.Equals("MARKET") && stateType == OrderStateType.Active)
+                {
+                    return;
+                }
+
+                Order newOrder = new Order();
+
+                newOrder.SecurityNameCode = item.symbol;
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createTime));
+
+                if (string.IsNullOrEmpty(item.clientOrderId))
+                {
+                    return;
+                }
+
+                newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                newOrder.NumberMarket = item.orderId;
+                newOrder.Side = item.side.Equals("BUY") ? Side.Buy : Side.Sell;
+                newOrder.State = stateType;
+                newOrder.TypeOrder = item.type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                newOrder.Volume = item.status.Equals("OPEN") ? item.size.ToDecimal() : item.filledSize.ToDecimal();
+                newOrder.Price = item.price.ToDecimal();
+                newOrder.ServerType = ServerType.PionexSpot;
+                newOrder.PortfolioNumber = "PionexSpotPortfolio";
+
+                MyOrderEvent(newOrder);
             }
-
-            MyOrders item = responseOrders.data;
-
-            OrderStateType stateType = GetOrderState(item.status, item.filledSize);
-
-            if (item.type.Equals("MARKET") && stateType == OrderStateType.Active)
+            catch (Exception ex)
             {
-                return;
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
-
-            Order newOrder = new Order();
-
-            newOrder.SecurityNameCode = item.symbol;
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createTime));
-
-            if (string.IsNullOrEmpty(item.clientOrderId))
-            {
-                return;
-            }
-
-            newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
-            newOrder.NumberMarket = item.orderId;
-            newOrder.Side = item.side.Equals("BUY") ? Side.Buy : Side.Sell;
-            newOrder.State = stateType;
-            newOrder.TypeOrder = item.type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
-            newOrder.Volume = item.status.Equals("OPEN") ? item.size.ToDecimal() : item.filledSize.ToDecimal();
-            newOrder.Price = item.price.ToDecimal();
-            newOrder.ServerType = ServerType.PionexSpot;
-            newOrder.PortfolioNumber = "PionexSpot";
-
-            MyOrderEvent(newOrder);
         }
 
         private OrderStateType GetOrderState(string status, string filledSize)
@@ -1181,66 +1465,73 @@ namespace OsEngine.Market.Servers.Pionex
 
         public event Action<Trade> NewTradesEvent;
 
-        #endregion
-
-        #region 10 Trade
-
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
+        #endregion
+
+        #region 10 Trade
+
         public void SendOrder(Order order)
         {
             _rateGate.WaitToProceed();
 
-            SendNewOrder data = new SendNewOrder();
-            data.clientOrderId = order.NumberUser.ToString();
-            data.symbol = order.SecurityNameCode;
-            data.side = order.Side.ToString().ToUpper();
-            data.type = order.TypeOrder.ToString().ToUpper();
-            data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
-            data.size = order.Volume.ToString().Replace(",", ".");
-            data.amount = (order.Volume * order.Price).ToString().Replace(",", "."); // для BUY MARKET ORDER указывается размер в USDT не меньше 10
-            data.IOC = false;
-
-            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-
-            _pathUrl = "trade/order";
-
-            JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
-
-            dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// если LIMIT-ордер, то игнорим параметр amount
-
-            string body = JsonConvert.SerializeObject(data, dataSerializerSettings);
-
-            string _signature = GenerateSignature("POST", _pathUrl, timestamp, body, null);
-
-            IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.POST, timestamp, body, null);
-
-            if (json.StatusCode == HttpStatusCode.OK)
+            try
             {
-                ResponseMessageRest<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponseCreateOrder>());
-                if (response.result == "true")
+                SendNewOrder data = new SendNewOrder();
+                data.clientOrderId = order.NumberUser.ToString();
+                data.symbol = order.SecurityNameCode;
+                data.side = order.Side.ToString().ToUpper();
+                data.type = order.TypeOrder.ToString().ToUpper();
+                data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
+                data.size = order.Volume.ToString().Replace(",", ".");
+                data.amount = (order.Volume * order.Price).ToString().Replace(",", "."); // для BUY MARKET ORDER указывается размер в USDT не меньше 10
+                data.IOC = false;
+
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+
+                _pathUrl = "trade/order";
+
+                JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
+
+                dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// если LIMIT-ордер, то игнорим параметр amount
+
+                string body = JsonConvert.SerializeObject(data, dataSerializerSettings);
+
+                string _signature = GenerateSignature("POST", _pathUrl, timestamp, body, null);
+
+                IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.POST, timestamp, body, null);
+
+                if (json.StatusCode == HttpStatusCode.OK)
                 {
-                    SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
-                    order.State = OrderStateType.Active;
-                    order.NumberMarket = response.data.orderId;
+                    ResponseMessageRest<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponseCreateOrder>());
+                    if (response.result == "true")
+                    {
+                        //
+                    }
+                    else
+                    {
+                        CreateOrderFail(order);
+                        SendLogMessage($"Order Fail. Code: {response.code}\nMessage: {response.message}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
                     CreateOrderFail(order);
-                    SendLogMessage($"Code: {response.code}\nMessage: {response.message}", LogMessageType.Error);
+                    SendLogMessage($"Order Fail. Status:: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                CreateOrderFail(order);
-                SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
-
-            MyOrderEvent.Invoke(order);
         }
 
         private void CreateOrderFail(Order order)
@@ -1257,32 +1548,39 @@ namespace OsEngine.Market.Servers.Pionex
         {
             _rateGate.WaitToProceed();
 
-            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-
-            _pathUrl = "trade/allOrders";
-
-            string body = $"{{\"symbol\":\"{security.Name}\"}}";
-
-            string signature = GenerateSignature("DELETE", _pathUrl, timestamp, body, null);
-
-            IRestResponse json = CreatePrivateRequest(signature, _pathUrl, Method.DELETE, timestamp, body, null);
-
-            if (json.StatusCode == HttpStatusCode.OK)
+            try
             {
-                ResponseMessageRest<object> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<object>());
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 
-                if (response.result == "true")
+                _pathUrl = "trade/allOrders";
+
+                string body = $"{{\"symbol\":\"{security.Name}\"}}";
+
+                string signature = GenerateSignature("DELETE", _pathUrl, timestamp, body, null);
+
+                IRestResponse json = CreatePrivateRequest(signature, _pathUrl, Method.DELETE, timestamp, body, null);
+
+                if (json.StatusCode == HttpStatusCode.OK)
                 {
-                    SendLogMessage($"Orders canceled", LogMessageType.Trade);
+                    ResponseMessageRest<object> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<object>());
+
+                    if (response.result == "true")
+                    {
+                        SendLogMessage($"Orders canceled", LogMessageType.Trade);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Orders cancel error: code - {response.code} | message - {response.message}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Orders cancel error: code - {response.code} | message - {response.message}", LogMessageType.Error);
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1290,35 +1588,61 @@ namespace OsEngine.Market.Servers.Pionex
         {
             _rateGate.WaitToProceed();
 
-            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-
-            _pathUrl = "trade/order";
-
-            string body = $"{{ \"symbol\":\"{order.SecurityNameCode}\",\"orderId\":{order.NumberMarket}}}";
-
-            string _signature = GenerateSignature("DELETE", _pathUrl, timestamp, body, null);
-
-            IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.DELETE, timestamp, body, null);
-
-            if (json.StatusCode == HttpStatusCode.OK)
+            try
             {
-                ResponseMessageRest<object> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<object>());
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 
-                if (response.result == "true")
+                _pathUrl = "trade/order";
+
+                string body = $"{{ \"symbol\":\"{order.SecurityNameCode}\",\"orderId\":{order.NumberMarket}}}";
+
+                string _signature = GenerateSignature("DELETE", _pathUrl, timestamp, body, null);
+
+                IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.DELETE, timestamp, body, null);
+
+                if (json.StatusCode == HttpStatusCode.OK)
                 {
-                    SendLogMessage($"The order has been cancelled", LogMessageType.Trade);
-                    return true;
+                    ResponseMessageRest<object> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<object>());
+
+                    if (response.result == "true")
+                    {
+                        SendLogMessage($"The order has been cancelled", LogMessageType.Trade);
+                        return true;
+                    }
+                    else
+                    {
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Order cancellation error: code - {response.code} | message - {response.message}", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
                 }
                 else
                 {
-                    CreateOrderFail(order);
-                    SendLogMessage($"Order cancellation error: code - {response.code} | message - {response.message}", LogMessageType.Error);
-                    return false;
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"Order cancellation error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 return false;
             }
         }
@@ -1335,23 +1659,23 @@ namespace OsEngine.Market.Servers.Pionex
 
         public void GetAllActivOrders()
         {
+            List<Order> ordersOnBoard = GetAllOpenOrders();
 
+            if (ordersOnBoard == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < ordersOnBoard.Count; i++)
+            {
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(ordersOnBoard[i]);
+                }
+            }
         }
 
-        public OrderStateType GetOrderStatus(Order order)
-        {
-            return OrderStateType.None;
-        }
-
-        #endregion
-
-        #region 11 Queries
-
-        private RateGate _rateGate = new RateGate(8, TimeSpan.FromMilliseconds(1000)); // https://pionex-doc.gitbook.io/apidocs/restful/general/rate-limit
-
-        private HttpClient _httpPublicClient = new HttpClient();
-
-        private void CreateQueryPortfolio()
+        private List<Order> GetAllOpenOrders()
         {
             _rateGate.WaitToProceed();
 
@@ -1359,105 +1683,105 @@ namespace OsEngine.Market.Servers.Pionex
             {
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 
-                _pathUrl = "account/balances";
+                _pathUrl = "trade/openOrders";
+
+                List<Order> orders = new List<Order>();
 
                 string _signature = GenerateSignature("GET", _pathUrl, timestamp, null, null);
 
                 IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.GET, timestamp, null, null);
 
-                ResponseMessageRest<ResponceBalance> responce = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponceBalance>());
-
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
-                    if (responce.result == "true")
+                    ResponseMessageRest<OrderData> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<OrderData>());
+
+                    if (response.result == "true")
                     {
-                        UpdatePortfolioREST(responce.data.balances);
+                        for (int j = 0; j < response.data.orders.Count; j++)
+                        {
+                            GetOrder item = response.data.orders[j];
+
+                            OrderStateType stateType = GetOrderState(item.status, item.filledSize);
+
+                            if (item.type.Equals("MARKET") && stateType == OrderStateType.Active)
+                            {
+                                return null;
+                            }
+
+                            Order newOrder = new Order();
+
+                            newOrder.SecurityNameCode = item.symbol;
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createTime));
+
+                            if (string.IsNullOrEmpty(item.clientOrderId))
+                            {
+                                return null;
+                            }
+
+                            newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                            newOrder.NumberMarket = item.orderId;
+                            newOrder.Side = item.side.Equals("BUY") ? Side.Buy : Side.Sell;
+                            newOrder.State = stateType;
+                            newOrder.TypeOrder = item.type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                            newOrder.Volume = item.status.Equals("OPEN") ? item.size.ToDecimal() : item.filledSize.ToDecimal();
+                            newOrder.Price = item.price.ToDecimal();
+                            newOrder.ServerType = ServerType.PionexSpot;
+                            newOrder.PortfolioNumber = "PionexSpotPortfolio";
+
+                            orders.Add(newOrder);
+                        }
                     }
                     else
                     {
-                        SendLogMessage($"Http State Code: {responce.code} - message: {responce.message}", LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        SendLogMessage($"Get open orders error: code - {response.code} | message - {response.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {json.StatusCode}", LogMessageType.Error);
-
+                    SendLogMessage($"Get open orders error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
+
+                return orders;
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
             }
         }
 
-        private void UpdatePortfolioREST(Balance[] balances)
+        public OrderStateType GetOrderStatus(Order order)
         {
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "PionexSpot";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            Order myOrder = GetOrderFromExchange(order.SecurityNameCode, order.NumberUser.ToString());
 
-            for (int i = 0; i < balances.Length; i++)
+            if (myOrder == null)
             {
-                PositionOnBoard newPortf = new PositionOnBoard();
-                newPortf.SecurityNameCode = balances[i].coin;
-                newPortf.ValueBegin = balances[i].free.ToDecimal();
-                newPortf.ValueCurrent = balances[i].free.ToDecimal();
-                newPortf.ValueBlocked = balances[i].frozen.ToDecimal();
-                newPortf.PortfolioName = "PionexSpot";
-                portfolio.SetNewPosition(newPortf);
+                return OrderStateType.None;
             }
 
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            MyOrderEvent?.Invoke(myOrder);
+
+            if (myOrder.State == OrderStateType.Done || myOrder.State == OrderStateType.Partial)
+            {
+                GetTradesForOrder(myOrder.NumberMarket);
+            }
+
+            return myOrder.State;
         }
 
-        private List<Candle> CreateQueryCandles(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount, int taskCount)
+        private Order GetOrderFromExchange(string nameSecurity, string userOrderId)
         {
             _rateGate.WaitToProceed();
 
             try
             {
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                string _pathUrl = "market/klines";
-                string interval = string.Empty;
-                string limit = candleCount <= 500 ? candleCount.ToString() : "500"; // ограничение 500 свечек
 
-                switch (timeFrameBuilder.TimeFrame)
-                {
-                    case TimeFrame.Min1:
-                        interval = "1M";
-                        break;
-                    case TimeFrame.Min5:
-                        interval = "5M";
-                        break;
-                    case TimeFrame.Min15:
-                        interval = "15M";
-                        break;
-                    case TimeFrame.Min30:
-                        interval = "30M";
-                        break;
-                    case TimeFrame.Hour1:
-                        interval = "60M";
-                        break;
-                    case TimeFrame.Hour4:
-                        interval = "4H";
-                        break;
-                    default:
-                        SendLogMessage("Incorrect timeframe", LogMessageType.Error);
-                        return null;
-                }
-
-                DateTime EndTime = DateTime.Now.AddSeconds(-10);
-                string endTimeMs = new DateTimeOffset(EndTime).ToUnixTimeMilliseconds().ToString();
+                _pathUrl = "trade/orderByClientOrderId";
 
                 SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
                 {
-                    { "symbol", security.Name },
-                    { "interval", interval },
-                    { "endTime", endTimeMs },
-                    { "limit", limit }
+                    { "clientOrderId", userOrderId }
                 };
 
                 string _signature = GenerateSignature("GET", _pathUrl, timestamp, null, parameters);
@@ -1466,110 +1790,221 @@ namespace OsEngine.Market.Servers.Pionex
 
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
-                    ResponseMessageRest<ResponceCandles> responce = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponceCandles>());
+                    ResponseMessageRest<GetOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<GetOrder>());
 
-                    if (responce.result == "true")
+                    if (response.result == "true")
                     {
-                        List<Candle> candles = new List<Candle>();
+                        GetOrder item = response.data;
 
-                        for (int i = responce.data.klines.Length - 1; i >= 0; i--)
+                        if (item.clientOrderId != userOrderId)
                         {
-                            Candle newCandle = new Candle();
-
-                            newCandle.Open = responce.data.klines[i].open.ToDecimal();
-                            newCandle.Close = responce.data.klines[i].close.ToDecimal();
-                            newCandle.High = responce.data.klines[i].high.ToDecimal();
-                            newCandle.Low = responce.data.klines[i].low.ToDecimal();
-                            newCandle.Volume = responce.data.klines[i].volume.ToDecimal();
-                            newCandle.State = CandleState.Finished;
-                            newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responce.data.klines[i].time));
-                            candles.Add(newCandle);
+                            return null;
                         }
 
-                        return candles;
+                        OrderStateType stateType = GetOrderState(item.status, item.filledSize);
+
+                        if (item.type.Equals("MARKET") && stateType == OrderStateType.Active)
+                        {
+                            return null;
+                        }
+
+                        Order newOrder = new Order();
+
+                        newOrder.SecurityNameCode = item.symbol;
+                        newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createTime));
+
+                        if (string.IsNullOrEmpty(item.clientOrderId))
+                        {
+                            return null;
+                        }
+
+                        newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                        newOrder.NumberMarket = item.orderId;
+                        newOrder.Side = item.side.Equals("BUY") ? Side.Buy : Side.Sell;
+                        newOrder.State = stateType;
+                        newOrder.TypeOrder = item.type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                        newOrder.Volume = item.status.Equals("OPEN") ? item.size.ToDecimal() : item.filledSize.ToDecimal();
+                        newOrder.Price = item.price.ToDecimal();
+                        newOrder.ServerType = ServerType.PionexSpot;
+                        newOrder.PortfolioNumber = "PionexSpotPortfolio";
+
+                        return newOrder;
                     }
                     else
                     {
-                        if (taskCount >= 3)
-                        {
-                            SendLogMessage($"CreateQueryCandles Error: {responce.code} - message: {responce.message}", LogMessageType.Error);
-                            return null;
-                        }
-                        else
-                        {
-                            taskCount++;
-                            return CreateQueryCandles(security, timeFrameBuilder, candleCount, taskCount);
-                        }
+                        SendLogMessage($"Get orders error: code - {response.code} | message - {response.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    if (taskCount >= 3)
+                    SendLogMessage($"Get orders error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private List<MyTrade> GetTradesForOrder(string orderId)
+        {
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+
+                _pathUrl = "trade/fillsByOrderId";
+
+                SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
+                {
+                    { "orderId", orderId }
+                };
+
+                string _signature = GenerateSignature("GET", _pathUrl, timestamp, null, parameters);
+
+                IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.GET, timestamp, null, parameters);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<FillData> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<FillData>());
+
+                    if (response.result == "true")
                     {
-                        SendLogMessage($"Http State Code: {json.StatusCode}", LogMessageType.Error);
-                        return null;
+                        for (int j = 0; j < response.data.fills.Count; j++)
+                        {
+                            FillItem item = response.data.fills[j];
+
+                            long time = Convert.ToInt64(item.timestamp);
+
+                            MyTrade newTrade = new MyTrade();
+
+                            newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(time);
+                            newTrade.SecurityNameCode = item.symbol;
+                            newTrade.NumberOrderParent = item.orderId;
+                            newTrade.Price = item.price.ToDecimal();
+                            newTrade.NumberTrade = item.id;
+                            newTrade.Side = item.side.Equals("SELL") ? Side.Sell : Side.Buy;
+
+                            string commissionSecName = item.feeCoin;
+
+                            if (newTrade.SecurityNameCode.StartsWith(commissionSecName))
+                            {
+                                newTrade.Volume = item.size.ToDecimal() - item.fee.ToDecimal();
+
+                                int decimalVolum = GetVolumeDecimals(newTrade.SecurityNameCode);
+
+                                if (decimalVolum > 0)
+                                {
+                                    newTrade.Volume = Math.Floor(newTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
+                                }
+                            }
+                            else
+                            {
+                                newTrade.Volume = item.size.ToDecimal();
+                            }
+
+                            MyTradeEvent(newTrade);
+                        }
                     }
                     else
                     {
-                        taskCount++;
-                        return CreateQueryCandles(security, timeFrameBuilder, candleCount, taskCount);
+                        SendLogMessage($"Order trade request error: code - {response.code} | message - {response.message}", LogMessageType.Error);
                     }
                 }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
+                else
+                {
+                    SendLogMessage($"Order trade error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                }
 
-            return null;
+                return null;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
+
+        #endregion
+
+        #region 11 Queries
+
+        private RateGate _rateGate = new RateGate(8, TimeSpan.FromMilliseconds(1000));
 
         private string GenerateSignature(string method, string path, string timestamp, string body, SortedDictionary<string, string> param)
         {
-            method = method.ToUpper();
-
-            path = string.IsNullOrEmpty(path) ? string.Empty : path + "?";
-
-            body = string.IsNullOrEmpty(body) ? string.Empty : body;
-
-            string preHash = string.Empty;
-
-            if (method == "GET")
+            try
             {
-                preHash = method + _prefix + path + BuildParams(param) + "timestamp=" + timestamp;
-            }
-            if (method == "POST" || method == "DELETE")
-            {
-                preHash = method + _prefix + path + "timestamp=" + timestamp + body;
-            }
+                method = method.ToUpper();
 
-            return SHA256HexHashString(_secretKey, preHash);
+                path = string.IsNullOrEmpty(path) ? string.Empty : path + "?";
+
+                body = string.IsNullOrEmpty(body) ? string.Empty : body;
+
+                string preHash = string.Empty;
+
+                if (method == "GET")
+                {
+                    preHash = method + _prefix + path + BuildParams(param) + "timestamp=" + timestamp;
+                }
+                if (method == "POST" || method == "DELETE")
+                {
+                    preHash = method + _prefix + path + "timestamp=" + timestamp + body;
+                }
+
+                return SHA256HexHashString(_secretKey, preHash);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
 
         private string SHA256HexHashString(string key, string message)
         {
-            string hashString;
-
-            using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key)))
+            try
             {
-                byte[] b = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+                string hashString;
 
-                hashString = ToHex(b, false);
+                using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key)))
+                {
+                    byte[] b = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+
+                    hashString = ToHex(b, false);
+                }
+
+                return hashString;
             }
-
-            return hashString;
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
 
         private string ToHex(byte[] bytes, bool upperCase)
         {
-            StringBuilder result = new StringBuilder(bytes.Length * 2);
-
-            for (int i = 0; i < bytes.Length; i++)
+            try
             {
-                result.Append(bytes[i].ToString(upperCase ? "X2" : "x2"));
-            }
+                StringBuilder result = new StringBuilder(bytes.Length * 2);
 
-            return result.ToString();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    result.Append(bytes[i].ToString(upperCase ? "X2" : "x2"));
+                }
+
+                return result.ToString();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
 
         public string BuildParams(SortedDictionary<string, string> _params)
@@ -1596,52 +2031,56 @@ namespace OsEngine.Market.Servers.Pionex
 
         private IRestResponse CreatePrivateRequest(string signature, string pathUrl, Method method, string timestamp, string body, SortedDictionary<string, string> _params)
         {
-            RestClient client = new RestClient(_baseUrl);
-
-            RestRequest request = new RestRequest(_prefix + pathUrl, method);
-
-            request.AddHeader("PIONEX-KEY", _publicKey);
-            request.AddHeader("PIONEX-SIGNATURE", signature);
-            request.AddQueryParameter("timestamp", timestamp);
-
-            if (_params != null && body == null)
+            try
             {
-                SortedDictionary<string, string>.Enumerator enumerator = _params.GetEnumerator();
+                RestClient client = new RestClient(_baseUrl);
 
-                while (enumerator.MoveNext())
+                RestRequest request = new RestRequest(_prefix + pathUrl, method);
+
+                request.AddHeader("PIONEX-KEY", _publicKey);
+                request.AddHeader("PIONEX-SIGNATURE", signature);
+                request.AddQueryParameter("timestamp", timestamp);
+
+                if (_params != null && body == null)
                 {
-                    string key = enumerator.Current.Key;
-                    string value = enumerator.Current.Value;
-                    request.AddQueryParameter(key, value);
+                    SortedDictionary<string, string>.Enumerator enumerator = _params.GetEnumerator();
+
+                    while (enumerator.MoveNext())
+                    {
+                        string key = enumerator.Current.Key;
+                        string value = enumerator.Current.Value;
+                        request.AddQueryParameter(key, value);
+                    }
                 }
-            }
 
-            if (method == Method.POST || method == Method.DELETE)
-            {
-                request.AddHeader("Content-Type", "application/json");
-            }
-            if (body != null)
-            {
-                request.AddParameter("application/json", body, ParameterType.RequestBody);
-            }
+                if (method == Method.POST || method == Method.DELETE)
+                {
+                    request.AddHeader("Content-Type", "application/json");
+                }
+                if (body != null)
+                {
+                    request.AddParameter("application/json", body, ParameterType.RequestBody);
+                }
 
-            return client.Execute(request);
+                return client.Execute(request);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
 
         #endregion
 
         #region 12 Log
 
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent(message, messageType);
         }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
     }

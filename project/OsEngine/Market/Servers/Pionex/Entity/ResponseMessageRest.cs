@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.Pionex.Entity
 {
@@ -18,7 +14,7 @@ namespace OsEngine.Market.Servers.Pionex.Entity
 
     public class ResponseSymbols
     {
-        public Symbol[] symbols;
+        public List<Symbol> symbols;
     }
 
     public class Symbol
@@ -40,9 +36,9 @@ namespace OsEngine.Market.Servers.Pionex.Entity
         public string sellFloor; // 0.9            // Minimum ratio of selling price, cannot be lower than a multiple of the latest lowest selling price.
     }
 
-    public class ResponceBalance
+    public class ResponseBalance
     {
-        public Balance[] balances;
+        public List<Balance> balances;
     }
 
     public class Balance
@@ -52,9 +48,9 @@ namespace OsEngine.Market.Servers.Pionex.Entity
         public string frozen;    // Frozen balance, 8 decimal digits.
     }
 
-    public class ResponceCandles
+    public class ResponseCandles
     {
-        public Kline[] klines;
+        public List<Kline> klines;
     }
 
     public class Kline
@@ -73,4 +69,47 @@ namespace OsEngine.Market.Servers.Pionex.Entity
         public string clientOrderId;
     }
 
+    public class OrderData
+    {
+        public List<GetOrder> orders { get; set; }
+    }
+
+    public class GetOrder
+    {
+        public string orderId { get; set; }
+        public string symbol { get; set; }
+        public string type { get; set; }
+        public string side { get; set; }
+        public string price { get; set; }
+        public string size { get; set; }
+        public string filledSize { get; set; }
+        public string filledAmount { get; set; }
+        public string fee { get; set; }
+        public string feeCoin { get; set; }
+        public string status { get; set; }
+        public string IOC { get; set; }
+        public string clientOrderId { get; set; }
+        public string source { get; set; }
+        public string createTime { get; set; }
+        public string updateTime { get; set; }
+    }
+
+    public class FillData
+    {
+        public List<FillItem> fills { get; set; }
+    }
+
+    public class FillItem
+    {
+        public string id { get; set; }
+        public string orderId { get; set; }
+        public string symbol { get; set; }
+        public string side { get; set; }
+        public string role { get; set; }
+        public string price { get; set; }
+        public string size { get; set; }
+        public string fee { get; set; }
+        public string feeCoin { get; set; }
+        public string timestamp { get; set; }
+    }
 }
