@@ -239,6 +239,11 @@ namespace OsEngine.Candles.Series
                     Volume = volume
                 };
 
+                if(CandlesAll.Count > 0)
+                {
+                    candle.OpenInterest = CandlesAll[^1].OpenInterest;
+                }
+
                 CandlesAll.Add(candle);
 
                 if (canPushUp)
@@ -330,6 +335,11 @@ namespace OsEngine.Candles.Series
                     Volume = volume
                 };
 
+                if (CandlesAll.Count > 0)
+                {
+                    newCandle.OpenInterest = CandlesAll[^1].OpenInterest;
+                }
+
                 CandlesAll.Add(newCandle);
 
                 if (canPushUp)
@@ -394,7 +404,8 @@ namespace OsEngine.Candles.Series
                     candle.Low = CandlesAll[i].Close;
                     candle.Close = CandlesAll[i].Close;
                     candle.Volume = 1;
-
+                    candle.OpenInterest = CandlesAll[i].OpenInterest;
+                    
                     CandlesAll.Insert(i + 1, candle);
                 }
             }
