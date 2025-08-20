@@ -4874,8 +4874,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 List<Trade> trades = new List<Trade>() { lastTradesSeries[i] };
                 LastTradeSeries = trades;
-                NewTradesEvent(trades);
                 NeedToCheckOrders();
+                NewTradesEvent(trades);
             }
 
             if (lastTradesSeries.Count > 0)

@@ -2545,8 +2545,8 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 List<Trade> trades = new List<Trade>() { lastTradesSeries[i] };
                 LastTradeSeries = trades;
-                NewTradesEvent(trades, _lastTradeIndexInArray, Trades.Count);
                 NeedToCheckOrders();
+                NewTradesEvent(trades, _lastTradeIndexInArray, Trades.Count);
             }
 
             if (lastTradesSeries.Count > 0)
