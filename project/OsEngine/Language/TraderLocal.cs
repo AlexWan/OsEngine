@@ -2199,5 +2199,9 @@ namespace OsEngine.Language
         "Eng:The maximum number of orders in the queue for sending in connectors. If you see values greater than 5, this is not a good sign._" +
         "Ru:Максимальное кол-во ордеров в очереди на отправку в коннекторах. Если видите значения больше чем 5 - это не хорошо.");
 
+        public string Label575 => OsLocalization.ConvertToLocString(
+        "Eng:No trade periods settings_" +
+        "Ru:Настройки не торговых периодов_");
+
     }
 }

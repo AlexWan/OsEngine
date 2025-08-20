@@ -1,0 +1,49 @@
+﻿<Window x:Class="OsEngine.Entity.NonTradePeriodsUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Entity"
+        mc:Ignorable="d"
+               Title="Securities" Height="335" Width="380" MinWidth="300" MinHeight="350" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <TabControl Margin="0,0,0,0">
+            <TabItem Name="TabItemNonTradePeriods" Header="No trade periods">
+                <Grid >
+                    <CheckBox Name="CheckBoxNonTradePeriod1OnOff" Content="No trade period 1" HorizontalAlignment="Left" Margin="21,20,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod1Start" HorizontalAlignment="Left" Margin="174,20,0,0" TextWrapping="Wrap" Text="0:0:0:0" VerticalAlignment="Top" Width="60"/>
+                    <TextBox Name="TextBoxNonTradePeriod1End" Margin="253,20,21,0" TextWrapping="Wrap" Text="7:0:0:0" VerticalAlignment="Top"/>
+
+                    <CheckBox Name="CheckBoxNonTradePeriod2OnOff" Content="No trade period 2" HorizontalAlignment="Left" Margin="21,71,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod2Start" HorizontalAlignment="Left" Margin="174,71,0,0" TextWrapping="Wrap" Text="9:0:0:0" VerticalAlignment="Top" Width="60"/>
+                    <TextBox Name="TextBoxNonTradePeriod2End" Margin="253,71,21,0" TextWrapping="Wrap" Text="10:5:0:0" VerticalAlignment="Top"/>
+
+                    <CheckBox Name="CheckBoxNonTradePeriod3OnOff" Content="No trade period 3" HorizontalAlignment="Left" Margin="21,122,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod3Start" HorizontalAlignment="Left" Margin="174,122,0,0" TextWrapping="Wrap" Text="13:54:0:0" VerticalAlignment="Top" Width="60"/>
+                    <TextBox Name="TextBoxNonTradePeriod3End" Margin="253,122,21,0" TextWrapping="Wrap" Text="14:6:0:0" VerticalAlignment="Top"/>
+
+                    <CheckBox Name="CheckBoxNonTradePeriod4OnOff" Content="No trade period 4" HorizontalAlignment="Left" Margin="20,173,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod4Start" HorizontalAlignment="Left" Margin="173,173,0,0" TextWrapping="Wrap" Text="18:40:0:0" VerticalAlignment="Top" Width="60"/>
+                    <TextBox Name="TextBoxNonTradePeriod4End" Margin="252,173,21,0" TextWrapping="Wrap" Text="19:5:0:0" VerticalAlignment="Top"/>
+
+                    <CheckBox Name="CheckBoxNonTradePeriod5OnOff" Content="No trade period 5" HorizontalAlignment="Left" Margin="21,224,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod5Start" HorizontalAlignment="Left" Margin="173,224,0,0" TextWrapping="Wrap" Text="23:40:0:0" VerticalAlignment="Top" Width="61"/>
+                    <TextBox Name="TextBoxNonTradePeriod5End" Margin="253,224,21,0" TextWrapping="Wrap" Text="23:59:0:0" VerticalAlignment="Top"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItemTradeDays" Header="Trade days">
+                <Grid >
+                    <CheckBox Name="CheckBoxTradeInMonday" Content="Trade in Monday" Margin="0,20,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInTuesday" Content="Trade in Tuesday" Margin="0,48,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInWednesday" Content="Trade in Wednesday" Margin="0,76,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInThursday" Content="Trade in Thursday" Margin="0,104,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInFriday" Content="Trade in Friday" Margin="0,132,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInSaturday" Content="Trade in Saturday" Margin="0,160,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInSunday" Content="Trade in Sunday" Margin="0,188,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="180"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+
+    </Grid>
+</Window>

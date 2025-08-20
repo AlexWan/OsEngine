@@ -290,6 +290,8 @@ namespace OsEngine.Market.AutoFollow
             MyJournal.LogMessageEvent += SendLogMessage;
             MyJournal.CanShowToolStripMenu = false;
 
+            TradePeriodsSettings = new NonTradePeriods(name);
+
             SendLogMessage("Copy Portfolio Activate.", LogMessageType.System);
         }
 
@@ -447,6 +449,8 @@ namespace OsEngine.Market.AutoFollow
         public int FailOpenOrdersCountToReaction = 10;
 
         public int FailOpenOrdersCountFact;
+
+        public NonTradePeriods TradePeriodsSettings;
 
         #endregion
 
@@ -716,6 +720,7 @@ namespace OsEngine.Market.AutoFollow
                 return;
             }
 
+
             // 1 пробуем взять коннектор
 
             if(MyCopyServer == null)
@@ -734,6 +739,18 @@ namespace OsEngine.Market.AutoFollow
 
             if(MyCopyServer.LastStartServerTime.AddSeconds(MyCopyServer.WaitTimeToTradeAfterFirstStart) 
                 > DateTime.Now)
+            {
+                return;
+            }
+
+            DateTime copyServerTime = MyCopyServer.ServerTime;
+
+            if(copyServerTime == DateTime.MinValue)
+            {
+                return;
+            }
+
+            if (TradePeriodsSettings.CanTradeThisTime(copyServerTime) == false)
             {
                 return;
             }

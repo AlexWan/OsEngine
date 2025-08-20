@@ -459,7 +459,6 @@ namespace OsEngine.OsTrader.Grids
             worker.Start();
         }
 
-
         private void Localization()
         {
             Title = OsLocalization.Trader.Label444 + " # " + TradeGrid.Tab.TabName + " # " + TradeGrid.Number ;

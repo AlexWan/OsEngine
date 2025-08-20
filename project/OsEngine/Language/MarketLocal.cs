@@ -989,10 +989,17 @@ namespace OsEngine.Language
          "Eng:The copier's log will be cleared. The copier will be disabled. Are you sure?_" +
          "Ru:Журнал копировщика будет очищен. Копировщик будет отключен. Вы уверены?_");
 
+        public string Label239 => OsLocalization.ConvertToLocString(
+         "Eng:Delete all positions_" +
+         "Ru:Удалить позиции_");
 
+        public string Label240 => OsLocalization.ConvertToLocString(
+         "Eng:Close all positions_" +
+         "Ru:Закрыть позиции_");
 
-
-
+        public string Label241 => OsLocalization.ConvertToLocString(
+         "Eng:Non trade periods_" +
+         "Ru:Не торговые периоды_");
 
 
 
