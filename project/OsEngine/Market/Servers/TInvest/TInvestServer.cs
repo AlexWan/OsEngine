@@ -1733,6 +1733,11 @@ namespace OsEngine.Market.Servers.TInvest
                         trade.Side = marketDataResponse.Trade.Direction == TradeDirection.Buy ? Side.Buy : Side.Sell;
                         trade.Volume = marketDataResponse.Trade.Quantity;
 
+                        if (_openInterestData.ContainsKey(security.Name))
+                        {
+                            trade.OpenInterest = _openInterestData[security.Name].OpenInterest_;
+                        }
+
                         if (_ignoreMorningAuctionTrades && trade.Time.Hour < 9) // process only mornings
                         {
                             if (security.SecurityType == SecurityType.Futures)
