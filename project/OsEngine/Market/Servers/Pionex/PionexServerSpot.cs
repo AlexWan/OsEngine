@@ -15,7 +15,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -358,17 +357,151 @@ namespace OsEngine.Market.Servers.Pionex
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return CreateQueryCandles(security, timeFrameBuilder, candleCount, 1);
-        }
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime endTime = DateTime.UtcNow;
+            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
+            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            // лимит на 500 свечек по таймфрейму
+            _rateGate.WaitToProceed();
+
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+
+            if (!CheckTime(startTime, endTime, actualTime))
+            {
+                return null;
+            }
+
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+
+            if (!CheckTf(tfTotalMinutes))
+            {
+                return null;
+            }
+
+            try
+            {
+                string interval = string.Empty;
+                string limit = /*candleCount <= 500 ? candleCount.ToString() :*/ "500";
+
+                switch (timeFrameBuilder.TimeFrame)
+                {
+                    case TimeFrame.Min1:
+                        interval = "1M";
+                        break;
+                    case TimeFrame.Min5:
+                        interval = "5M";
+                        break;
+                    case TimeFrame.Min15:
+                        interval = "15M";
+                        break;
+                    case TimeFrame.Min30:
+                        interval = "30M";
+                        break;
+                    case TimeFrame.Hour1:
+                        interval = "60M";
+                        break;
+                    case TimeFrame.Hour4:
+                        interval = "4H";
+                        break;
+                    case TimeFrame.Day:
+                        interval = "1D";
+                        break;
+                    default:
+                        SendLogMessage("Incorrect timeframe", LogMessageType.Error);
+                        return null;
+                }
+
+                DateTime EndTime = DateTime.UtcNow.AddSeconds(-10);
+                string endTimeMs = new DateTimeOffset(EndTime).ToUnixTimeMilliseconds().ToString();
+                string endPoint = _prefix + "market/klines?symbol=" + security.Name;
+
+                endPoint += "&interval=" + interval;
+                endPoint += "&endTime=" + endTimeMs;
+                endPoint += "&limit=" + limit;
+
+                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<ResponseCandles> responseCandles = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseMessageRest<ResponseCandles>());
+
+                    if (responseCandles.result == "true")
+                    {
+                        List<Candle> candles = new List<Candle>();
+
+                        for (int i = responseCandles.data.klines.Count - 1; i >= 0; i--)
+                        {
+                            Candle newCandle = new Candle();
+
+                            newCandle.Open = responseCandles.data.klines[i].open.ToDecimal();
+                            newCandle.Close = responseCandles.data.klines[i].close.ToDecimal();
+                            newCandle.High = responseCandles.data.klines[i].high.ToDecimal();
+                            newCandle.Low = responseCandles.data.klines[i].low.ToDecimal();
+                            newCandle.Volume = responseCandles.data.klines[i].volume.ToDecimal();
+                            newCandle.State = CandleState.Finished;
+                            newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseCandles.data.klines[i].time));
+                            candles.Add(newCandle);
+                        }
+
+                        return candles;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Candles request error: {responseCandles.code} - message: {responseCandles.message}", LogMessageType.Error);
+                        return null;
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Candles request error: {response.StatusCode} || {response.StatusCode}", LogMessageType.Error);
+                    return null;
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
+
+        private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            if (startTime >= endTime ||
+                startTime >= DateTime.UtcNow ||
+                actualTime > endTime ||
+                actualTime > DateTime.UtcNow)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool CheckTf(int timeFrameMinutes)
+        {
+            if (timeFrameMinutes == 1
+                || timeFrameMinutes == 5
+                || timeFrameMinutes == 15
+                || timeFrameMinutes == 30
+                || timeFrameMinutes == 60
+                || timeFrameMinutes == 240
+                || timeFrameMinutes == 1440)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
             return null;
         }
 
@@ -1471,120 +1604,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         #region 11 Queries
 
-        private RateGate _rateGate = new RateGate(8, TimeSpan.FromMilliseconds(1000)); // https://pionex-doc.gitbook.io/apidocs/restful/general/rate-limit
-
-        private HttpClient _httpPublicClient = new HttpClient();
-
-        private List<Candle> CreateQueryCandles(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount, int taskCount)
-        {
-            _rateGate.WaitToProceed();
-
-            try
-            {
-                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                string _pathUrl = "market/klines";
-                string interval = string.Empty;
-                string limit = candleCount <= 500 ? candleCount.ToString() : "500";
-
-                switch (timeFrameBuilder.TimeFrame)
-                {
-                    case TimeFrame.Min1:
-                        interval = "1M";
-                        break;
-                    case TimeFrame.Min5:
-                        interval = "5M";
-                        break;
-                    case TimeFrame.Min15:
-                        interval = "15M";
-                        break;
-                    case TimeFrame.Min30:
-                        interval = "30M";
-                        break;
-                    case TimeFrame.Hour1:
-                        interval = "60M";
-                        break;
-                    case TimeFrame.Hour4:
-                        interval = "4H";
-                        break;
-                    default:
-                        SendLogMessage("Incorrect timeframe", LogMessageType.Error);
-                        return null;
-                }
-
-                DateTime EndTime = DateTime.Now.AddSeconds(-10);
-                string endTimeMs = new DateTimeOffset(EndTime).ToUnixTimeMilliseconds().ToString();
-
-                SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
-                {
-                    { "symbol", security.Name },
-                    { "interval", interval },
-                    { "endTime", endTimeMs },
-                    { "limit", limit }
-                };
-
-                string _signature = GenerateSignature("GET", _pathUrl, timestamp, null, parameters);
-
-                IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.GET, timestamp, null, parameters);
-
-                if (json.StatusCode == HttpStatusCode.OK)
-                {
-                    ResponseMessageRest<ResponseCandles> responce = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponseCandles>());
-
-                    if (responce.result == "true")
-                    {
-                        List<Candle> candles = new List<Candle>();
-
-                        for (int i = responce.data.klines.Count - 1; i >= 0; i--)
-                        {
-                            Candle newCandle = new Candle();
-
-                            newCandle.Open = responce.data.klines[i].open.ToDecimal();
-                            newCandle.Close = responce.data.klines[i].close.ToDecimal();
-                            newCandle.High = responce.data.klines[i].high.ToDecimal();
-                            newCandle.Low = responce.data.klines[i].low.ToDecimal();
-                            newCandle.Volume = responce.data.klines[i].volume.ToDecimal();
-                            newCandle.State = CandleState.Finished;
-                            newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responce.data.klines[i].time));
-                            candles.Add(newCandle);
-                        }
-
-                        return candles;
-                    }
-                    else
-                    {
-                        if (taskCount >= 3)
-                        {
-                            SendLogMessage($"CreateQueryCandles Error: {responce.code} - message: {responce.message}", LogMessageType.Error);
-                            return null;
-                        }
-                        else
-                        {
-                            taskCount++;
-                            return CreateQueryCandles(security, timeFrameBuilder, candleCount, taskCount);
-                        }
-                    }
-                }
-                else
-                {
-                    if (taskCount >= 3)
-                    {
-                        SendLogMessage($"Http State Code: {json.StatusCode}", LogMessageType.Error);
-                        return null;
-                    }
-                    else
-                    {
-                        taskCount++;
-                        return CreateQueryCandles(security, timeFrameBuilder, candleCount, taskCount);
-                    }
-                }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-
-            return null;
-        }
+        private RateGate _rateGate = new RateGate(8, TimeSpan.FromMilliseconds(1000));
 
         private string GenerateSignature(string method, string path, string timestamp, string body, SortedDictionary<string, string> param)
         {
