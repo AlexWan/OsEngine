@@ -366,8 +366,8 @@ namespace OsEngine.Language
           "Ru:Закрыть_");
 
         public string Label83 => OsLocalization.ConvertToLocString(
-          "Eng: \nDo you want to delete a position on the exchange? \nRobots trading this security will be stopped!_" +
-          "Ru: \nВы хотите удалить позицию на бирже? \nРоботы торгующие эту бумагу будут остановлены!_");
+          "Eng: \nDo you want to close a position on the exchange?_" +
+          "Ru: \nВы хотите закрыть позицию на бирже?_");
 
         public string Label84 => OsLocalization.ConvertToLocString(
           "Eng:Server is not active! The operation is not possible!_" +
