@@ -2899,7 +2899,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (countTryRevokeOrder >= 2)
                     {
-                        SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityClassCode, LogMessageType.Error);
+                        SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityNameCode,
+                            LogMessageType.System);
                         return false;
                     }
 
@@ -2929,12 +2930,12 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error cancelling order. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error cancelling order. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("Order cancel request error. "
-                        + exception.Message + "  " + order.SecurityClassCode, LogMessageType.Error);
+                    SendLogMessage("Error cancelling order. Exception: "
+                        + exception.Message + "  " + order.SecurityClassCode, LogMessageType.System);
                 }
 
                 if (response != null)

@@ -13,6 +13,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.YahooFinance.Entity;
 using Point = System.Drawing.Point;
 
 namespace OsEngine.Market
@@ -111,6 +112,14 @@ namespace OsEngine.Market
         {
             try
             {
+                if (hostActiveOrders.Dispatcher.CheckAccess() == false)
+                {
+                    hostActiveOrders.Dispatcher.Invoke(new Action<WindowsFormsHost, WindowsFormsHost>(SetHostTable),
+                        hostActiveOrders, hostHistoricalOrders);
+
+                    return;
+                }
+
                 if (hostActiveOrders != null)
                 {
                     _gridActiveOrders = DataGridFactory.GetDataGridOrder();
@@ -123,6 +132,7 @@ namespace OsEngine.Market
                     _hostActiveOrders = hostActiveOrders;
                     _hostActiveOrders.Child = _gridActiveOrders;
                     _gridActiveOrders.Click += _gridOrders_Click;
+                    _gridActiveOrders.DataError += _gridOrders_DataError; 
                 }
 
                 if (hostHistoricalOrders != null)
@@ -137,6 +147,7 @@ namespace OsEngine.Market
                     }
 
                     _hostHistoricalOrders.Child = _gridHistoricalOrders;
+                    _gridHistoricalOrders.DataError += _gridOrders_DataError;
                 }
 
             }
@@ -205,12 +216,12 @@ namespace OsEngine.Market
 
                         if (_gridActiveOrders != null)
                         {
-                            PaintOrders(activeOrders, _gridActiveOrders);
+                            PaintOrders(activeOrders, _gridActiveOrders, _hostActiveOrders);
                         }
 
                         if (_gridHistoricalOrders != null)
                         {
-                            PaintOrders(historicalOrders, _gridHistoricalOrders);
+                            PaintOrders(historicalOrders, _gridHistoricalOrders, _hostHistoricalOrders);
                         }
                     }
 
@@ -357,8 +368,7 @@ namespace OsEngine.Market
                         }
                     }
 
-
-                    if (_orders.Count > 200)
+                    if (_orders.Count > 5000)
                     {
                         _orders.RemoveAt(0);
                     }
@@ -410,29 +420,52 @@ namespace OsEngine.Market
 
         private List<Order> _orders;
 
-        private void PaintOrders(List<Order> ordersToPaint, DataGridView gridToPaint)
+        private void PaintOrders(List<Order> ordersToPaint, DataGridView gridToPaint, WindowsFormsHost host)
         {
             try
             {
-                if (gridToPaint == null)
+                if (gridToPaint == null
+                    || host == null)
                 {
                     return;
                 }
 
-                if (gridToPaint.InvokeRequired)
+                if (host.Dispatcher.CheckAccess() == false)
                 {
-                    gridToPaint.Invoke(new Action<List<Order>, DataGridView>(PaintOrders), ordersToPaint, gridToPaint);
+                    host.Dispatcher.Invoke(new Action<List<Order>, DataGridView, WindowsFormsHost>(PaintOrders),
+                        ordersToPaint, gridToPaint, host);
+
                     return;
                 }
+
+                host.Child = null;
+
+                int visibleRow = 0;
+
+                if (gridToPaint.FirstDisplayedScrollingRowIndex > 0)
+                {
+                    visibleRow = gridToPaint.FirstDisplayedScrollingRowIndex;
+                }
+
                 gridToPaint.Rows.Clear();
 
-                if (ordersToPaint == null ||
-                    ordersToPaint.Count == 0)
+                if (ordersToPaint == null
+                    || ordersToPaint.Count == 0)
                 {
+                    host.Child = gridToPaint;
                     return;
                 }
 
-                for (int i = ordersToPaint.Count - 1; ordersToPaint != null && ordersToPaint.Count != 0 && i > -1; i--)
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+                TimeSpan zero = new TimeSpan(0, 0, 0, 0);
+
+                for (int i = ordersToPaint.Count - 1; 
+                    ordersToPaint != null 
+                    && ordersToPaint.Count != 0 
+                    && i > -1
+                    && i > ordersToPaint.Count - 100;
+                    i--)
                 {
                     DataGridViewRow nRow = new DataGridViewRow();
 
@@ -471,20 +504,31 @@ namespace OsEngine.Market
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
 
-                    if (ordersToPaint[i].TimeRoundTrip > new TimeSpan(0, 0, 0, 0))
+                    if (ordersToPaint[i].TimeRoundTrip > zero)
                     {
                         nRow.Cells[11].Value = ordersToPaint[i].TimeRoundTrip;
                     }
 
-                    gridToPaint.Rows.Add(nRow);
+                    rows.Add(nRow);
                 }
+
+                if (rows.Count > 0)
+                {
+                    gridToPaint.Rows.AddRange(rows.ToArray());
+                }
+
+                if (visibleRow > 0 
+                    && visibleRow < rows.Count)
+                {
+                    gridToPaint.FirstDisplayedScrollingRowIndex = visibleRow;
+                }
+
+                host.Child = gridToPaint;
             }
-            catch
+            catch(Exception ex)
             {
-                // ignore. Let us sometimes face with null-value, when deleting the original order or modification, but don't break work of mail thread
-                // игнорим. Пусть иногда натыкаемся на налл, при удалении исходного ордера или модификации
-                // зато не мешаем основному потоку работать
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                host.Child = gridToPaint;
             }
         }
 
@@ -699,7 +743,15 @@ namespace OsEngine.Market
 
         #endregion
 
-        #region Drawing work
+        #region Log
+
+        private void _gridOrders_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if(e.Exception!= null)
+            {
+                SendNewLogMessage("ServerMaster painter error. \n" + e.Exception.ToString(), LogMessageType.Error);
+            }
+        }
 
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -708,8 +760,8 @@ namespace OsEngine.Market
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // if nobody is substribed to us and there is a log error / если на нас никто не подписан и в логе ошибка
-                MessageBox.Show(message);
+            {
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 
