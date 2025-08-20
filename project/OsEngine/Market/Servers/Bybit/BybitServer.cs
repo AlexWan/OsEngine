@@ -642,7 +642,7 @@ namespace OsEngine.Market.Servers.Bybit
         private void LoadOptionInstruments(string baseCoin = "BTC")
         {
             Dictionary<string, object> parametrs = new Dictionary<string, object>();
-                parametrs.Add("limit", "1000");
+            parametrs.Add("limit", "1000");
 
             parametrs["category"] = Category.option;
             parametrs["baseCoin"] = baseCoin;
@@ -1297,8 +1297,6 @@ namespace OsEngine.Market.Servers.Bybit
                     category = Category.inverse.ToString();
                 }
 
-                
-
                 if (!supported_intervals.ContainsKey(Convert.ToInt32(tf.TotalMinutes)))
                 {
                     return null;
@@ -1585,7 +1583,7 @@ namespace OsEngine.Market.Servers.Bybit
                 if (_useOptions)
                 {
                     _webSocketPublicOption.Add(CreateNewOptionPublicSocket());
-                } 
+                }
             }
             catch (Exception ex)
             {
@@ -2658,6 +2656,11 @@ namespace OsEngine.Market.Servers.Bybit
                     SubscribeMessage subscribeMessage =
                        JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
 
+                    if (subscribeMessage.op == "pong")
+                    {
+                        continue;
+                    }
+
                     if (subscribeMessage.op != null)
                     {
                         if (subscribeMessage.success == "false")
@@ -2671,10 +2674,6 @@ namespace OsEngine.Market.Servers.Bybit
 
                         continue;
                     }
-                    /*if (subscribeMessage.op == "pong")
-                    {
-                        continue;
-                    }*/
                 }
                 catch (Exception ex)
                 {
@@ -3285,7 +3284,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (_concurrentQueueMessageOrderBookLinear?.Count < 500
                     && _concurrentQueueMessageOrderBookSpot?.Count < 500
-                    && _concurrentQueueMessageOrderBookInverse?.Count < 500 
+                    && _concurrentQueueMessageOrderBookInverse?.Count < 500
                     && _concurrentQueueMessageOrderBookOption?.Count < 500)
                 {
                     MarketDepthEvent?.Invoke(marketDepth.GetCopy());
@@ -3697,22 +3696,21 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public event Action<Order> MyOrderEvent;
+
+        public event Action<MyTrade> MyTradeEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
         public event Action<Trade> NewTradesEvent;
 
         public event Action<Funding> FundingUpdateEvent;
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
-
         #endregion 10
 
         #region 11 Trade
-
-        public event Action<Order> MyOrderEvent;
-
-        public event Action<MyTrade> MyTradeEvent;
-
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         public void SendOrder(Order order)
         {
@@ -3982,8 +3980,6 @@ namespace OsEngine.Market.Servers.Bybit
                 SendLogMessage($" Cancel Order Error. Order num {order.NumberUser}, {order.SecurityNameCode}", LogMessageType.Error);
                 return false;
             }
-
-            return false;
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -4069,7 +4065,7 @@ namespace OsEngine.Market.Servers.Bybit
             try
             {
                 Category category = Category.spot;
-                
+
 
                 if (order.SecurityNameCode.EndsWith(".P"))
                 {
@@ -4080,11 +4076,11 @@ namespace OsEngine.Market.Servers.Bybit
                     category = Category.inverse;
                 }
 
-                if(_securities != null)
+                if (_securities != null)
                 {
                     Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
 
-                    if (sec != null 
+                    if (sec != null
                         && sec.SecurityType == SecurityType.Option)
                     {
                         category = Category.option;
@@ -4612,57 +4608,63 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 //lock (_httpClientLocker)
                 //{
-                    string timestamp = GetServerTime();
-                    HttpRequestMessage request = null;
-                    string jsonPayload = "";
-                    string signature = "";
-                    httpClient = GetHttpClient();
+                string timestamp = GetServerTime();
+                HttpRequestMessage request = null;
+                string jsonPayload = "";
+                string signature = "";
+                httpClient = GetHttpClient();
 
-                    if (httpMethod == HttpMethod.Post)
+                if (httpMethod == HttpMethod.Post)
+                {
+                    signature = GeneratePostSignature(parameters, timestamp);
+                    jsonPayload = parameters.Count > 0 ? JsonConvert.SerializeObject(parameters) : "";
+                    request = new HttpRequestMessage(httpMethod, RestUrl + uri);
+                    if (parameters.Count > 0)
                     {
-                        signature = GeneratePostSignature(parameters, timestamp);
-                        jsonPayload = parameters.Count > 0 ? JsonConvert.SerializeObject(parameters) : "";
-                        request = new HttpRequestMessage(httpMethod, RestUrl + uri);
-                        if (parameters.Count > 0)
-                        {
-                            request.Content = new StringContent(jsonPayload);
-                        }
+                        request.Content = new StringContent(jsonPayload);
                     }
-                    if (httpMethod == HttpMethod.Get)
+                }
+                if (httpMethod == HttpMethod.Get)
+                {
+                    signature = GenerateGetSignature(parameters, timestamp, PublicKey);
+                    jsonPayload = parameters.Count > 0 ? GenerateQueryString(parameters) : "";
+                    request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?" + jsonPayload);
+                }
+
+                request.Headers.Add("X-BAPI-API-KEY", PublicKey);
+                request.Headers.Add("X-BAPI-SIGN", signature);
+                request.Headers.Add("X-BAPI-SIGN-TYPE", "2");
+                request.Headers.Add("X-BAPI-TIMESTAMP", timestamp);
+                request.Headers.Add("X-BAPI-RECV-WINDOW", RecvWindow);
+                request.Headers.Add("referer", "OsEngine");
+
+                HttpResponseMessage response = httpClient?.SendAsync(request).Result;
+
+                if (response == null)
+                {
+                    return null;
+                }
+
+                string response_msg = response.Content.ReadAsStringAsync().Result;
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return response_msg;
+                }
+                else
+                {
+                    if (response_msg.Contains("\"retCode\": 10006"))
                     {
-                        signature = GenerateGetSignature(parameters, timestamp, PublicKey);
-                        jsonPayload = parameters.Count > 0 ? GenerateQueryString(parameters) : "";
-                        request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?" + jsonPayload);
-                    }
-
-
-
-                    request.Headers.Add("X-BAPI-API-KEY", PublicKey);
-                    request.Headers.Add("X-BAPI-SIGN", signature);
-                    request.Headers.Add("X-BAPI-SIGN-TYPE", "2");
-                    request.Headers.Add("X-BAPI-TIMESTAMP", timestamp);
-                    request.Headers.Add("X-BAPI-RECV-WINDOW", RecvWindow);
-                    request.Headers.Add("referer", "OsEngine");
-
-                    HttpResponseMessage response = httpClient?.SendAsync(request).Result;
-
-                    if (response == null)
-                    {
-                        return null;
-                    }
-
-                    string response_msg = response.Content.ReadAsStringAsync().Result;
-
-                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        return response_msg;
+                        SendLogMessage($"Limit 1000.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
                     }
                     else
                     {
                         SendLogMessage($"CreatePrivateQuery> BybitUnified Client.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
-                        return null;
                     }
-               // }
+
+                    return null;
+                }
+                // }
             }
             catch (Exception ex)
             {
@@ -4685,28 +4687,36 @@ namespace OsEngine.Market.Servers.Bybit
                     return null;
                 }
 
-               // lock (_httpClientLocker)
-               // {
-                    HttpRequestMessage request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?{jsonPayload}");
-                    HttpResponseMessage response = httpClient?.SendAsync(request).Result;
+                // lock (_httpClientLocker)
+                // {
+                HttpRequestMessage request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?{jsonPayload}");
+                HttpResponseMessage response = httpClient?.SendAsync(request).Result;
 
-                    if (response == null)
+                if (response == null)
+                {
+                    return null;
+                }
+
+                string response_msg = response.Content.ReadAsStringAsync().Result;
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return response_msg;
+                }
+                else
+                {
+                    if (response_msg.Contains("\"retCode\": 10006"))
                     {
-                        return null;
-                    }
-
-                    string response_msg = response.Content.ReadAsStringAsync().Result;
-
-                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        return response_msg;
+                        SendLogMessage($"Limit 1000.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
                     }
                     else
                     {
                         SendLogMessage($"CreatePublicQuery> BybitUnified Client.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
-                        return null;
                     }
-              //  }
+
+                    return null;
+                }
+                //  }
             }
             catch (Exception ex)
             {
