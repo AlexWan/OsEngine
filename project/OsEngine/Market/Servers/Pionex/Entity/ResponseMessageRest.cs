@@ -40,9 +40,9 @@ namespace OsEngine.Market.Servers.Pionex.Entity
         public string sellFloor; // 0.9            // Minimum ratio of selling price, cannot be lower than a multiple of the latest lowest selling price.
     }
 
-    public class ResponceBalance
+    public class ResponseBalance
     {
-        public Balance[] balances;
+        public List<Balance> balances;
     }
 
     public class Balance

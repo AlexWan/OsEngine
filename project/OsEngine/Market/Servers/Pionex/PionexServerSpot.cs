@@ -294,10 +294,60 @@ namespace OsEngine.Market.Servers.Pionex
         #endregion
 
         #region 4 Portfolios
-
         public void GetPortfolios()
         {
-            CreateQueryPortfolio();
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+
+                _pathUrl = "account/balances";
+
+                string _signature = GenerateSignature("GET", _pathUrl, timestamp, null, null);
+
+                IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.GET, timestamp, null, null);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<ResponseBalance> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponseBalance>());
+
+                    if (response.result == "true")
+                    {
+                        Portfolio portfolio = new Portfolio();
+                        portfolio.Number = "PionexSpotPortfolio";
+                        portfolio.ValueBegin = 1;
+                        portfolio.ValueCurrent = 1;
+
+                        for (int i = 0; i < response.data.balances.Count; i++)
+                        {
+                            PositionOnBoard newPortf = new PositionOnBoard();
+                            newPortf.SecurityNameCode = response.data.balances[i].coin;
+                            newPortf.ValueBegin = response.data.balances[i].free.ToDecimal();
+                            newPortf.ValueCurrent = response.data.balances[i].free.ToDecimal();
+                            newPortf.ValueBlocked = response.data.balances[i].frozen.ToDecimal();
+                            newPortf.PortfolioName = "PionexSpotPortfolio";
+                            portfolio.SetNewPosition(newPortf);
+                        }
+
+                        PortfolioEvent(new List<Portfolio> { portfolio });
+                    }
+                    else
+                    {
+                        SendLogMessage($"Http State Code: {response.code} - message: {response.message}", LogMessageType.Error);
+                        Disconnect();
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {json.StatusCode}", LogMessageType.Error);
+
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -1103,25 +1153,32 @@ namespace OsEngine.Market.Servers.Pionex
 
         private void UpdatePortfolio(string message)
         {
-            ResponseWebSocketMessage<ResponceWSBalance> responce = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponceWSBalance>());
-
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "PionexSpot";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            for (int i = 0; i < responce.data.balances.Length; i++)
+            try
             {
-                PositionOnBoard newPortf = new PositionOnBoard();
-                newPortf.SecurityNameCode = responce.data.balances[i].coin;
-                newPortf.ValueBegin = responce.data.balances[i].free.ToDecimal();
-                newPortf.ValueCurrent = responce.data.balances[i].free.ToDecimal();
-                newPortf.ValueBlocked = responce.data.balances[i].frozen.ToDecimal();
-                newPortf.PortfolioName = "PionexSpot";
-                portfolio.SetNewPosition(newPortf);
-            }
+                ResponseWebSocketMessage<ResponseWSBalance> responce = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseWSBalance>());
 
-            PortfolioEvent(new List<Portfolio> { portfolio });
+                Portfolio portfolio = new Portfolio();
+                portfolio.Number = "PionexSpotPortfolio";
+                portfolio.ValueBegin = 1;
+                portfolio.ValueCurrent = 1;
+
+                for (int i = 0; i < responce.data.balances.Count; i++)
+                {
+                    PositionOnBoard newPortf = new PositionOnBoard();
+                    newPortf.SecurityNameCode = responce.data.balances[i].coin;
+                    //newPortf.ValueBegin = responce.data.balances[i].free.ToDecimal();
+                    newPortf.ValueCurrent = responce.data.balances[i].free.ToDecimal();
+                    newPortf.ValueBlocked = responce.data.balances[i].frozen.ToDecimal();
+                    newPortf.PortfolioName = "PionexSpotPortfolio";
+                    portfolio.SetNewPosition(newPortf);
+                }
+
+                PortfolioEvent(new List<Portfolio> { portfolio });
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void UpdateMyTrade(string message)
@@ -1417,68 +1474,6 @@ namespace OsEngine.Market.Servers.Pionex
         private RateGate _rateGate = new RateGate(8, TimeSpan.FromMilliseconds(1000)); // https://pionex-doc.gitbook.io/apidocs/restful/general/rate-limit
 
         private HttpClient _httpPublicClient = new HttpClient();
-
-        private void CreateQueryPortfolio()
-        {
-            _rateGate.WaitToProceed();
-
-            try
-            {
-                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-
-                _pathUrl = "account/balances";
-
-                string _signature = GenerateSignature("GET", _pathUrl, timestamp, null, null);
-
-                IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.GET, timestamp, null, null);
-
-                ResponseMessageRest<ResponceBalance> responce = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponceBalance>());
-
-                if (json.StatusCode == HttpStatusCode.OK)
-                {
-                    if (responce.result == "true")
-                    {
-                        UpdatePortfolioREST(responce.data.balances);
-                    }
-                    else
-                    {
-                        SendLogMessage($"Http State Code: {responce.code} - message: {responce.message}", LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
-                }
-                else
-                {
-                    SendLogMessage($"Http State Code: {json.StatusCode}", LogMessageType.Error);
-
-                }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void UpdatePortfolioREST(Balance[] balances)
-        {
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "PionexSpot";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            for (int i = 0; i < balances.Length; i++)
-            {
-                PositionOnBoard newPortf = new PositionOnBoard();
-                newPortf.SecurityNameCode = balances[i].coin;
-                newPortf.ValueBegin = balances[i].free.ToDecimal();
-                newPortf.ValueCurrent = balances[i].free.ToDecimal();
-                newPortf.ValueBlocked = balances[i].frozen.ToDecimal();
-                newPortf.PortfolioName = "PionexSpot";
-                portfolio.SetNewPosition(newPortf);
-            }
-
-            PortfolioEvent(new List<Portfolio> { portfolio });
-        }
 
         private List<Candle> CreateQueryCandles(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount, int taskCount)
         {

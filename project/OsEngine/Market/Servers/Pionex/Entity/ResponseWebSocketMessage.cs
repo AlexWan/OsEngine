@@ -34,9 +34,9 @@ namespace OsEngine.Market.Servers.Pionex.Entity
         public List<List<string>> bids;
     }
 
-    public class ResponceWSBalance
+    public class ResponseWSBalance
     {
-        public BalanceWS[] balances;
+        public List<BalanceWS> balances;
     }
 
     public class BalanceWS
