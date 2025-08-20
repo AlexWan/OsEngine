@@ -1623,7 +1623,8 @@ namespace OsEngine.Market.Servers.TInvest
                         Instruments = { tradeInstrument },
                         TradeSource = _filterOutDealerTrades
                             ? TradeSourceType.TradeSourceExchange
-                            : TradeSourceType.TradeSourceAll
+                            : TradeSourceType.TradeSourceAll,
+                        WithOpenInterest = true
                     };
                     marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
                     _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
