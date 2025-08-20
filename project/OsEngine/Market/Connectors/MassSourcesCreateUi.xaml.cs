@@ -565,20 +565,21 @@ namespace OsEngine.Market.Connectors
 
                 ComboBoxPortfolio.Items.Clear();
 
-
                 string portfolio = SourcesCreator.PortfolioName;
-
 
                 if (portfolio != null)
                 {
                     ComboBoxPortfolio.Items.Add(SourcesCreator.PortfolioName);
-                    ComboBoxPortfolio.Text = SourcesCreator.PortfolioName;
                 }
 
                 List<Portfolio> portfolios = server.Portfolios;
 
                 if (portfolios == null)
                 {
+                    if (portfolio != null)
+                    {
+                        ComboBoxPortfolio.SelectedItem = SourcesCreator.PortfolioName;
+                    }
                     return;
                 }
 
@@ -600,20 +601,18 @@ namespace OsEngine.Market.Connectors
                     }
                     ComboBoxPortfolio.Items.Add(portfolios[i].Number);
                 }
-                if (curPortfolio != null)
-                {
-                    for (int i = 0; i < ComboBoxPortfolio.Items.Count; i++)
-                    {
-                        if (ComboBoxPortfolio.Items[i].ToString() == curPortfolio)
-                        {
-                            ComboBoxPortfolio.SelectedItem = curPortfolio;
-                            break;
-                        }
-                    }
-                }
 
-                if (ComboBoxPortfolio.SelectedItem == null
-                    && ComboBoxPortfolio.Items.Count != 0)
+                if (curPortfolio != null
+                    && portfolios.Find(p => p.Number == curPortfolio) != null)
+                {
+                    ComboBoxPortfolio.SelectedItem = curPortfolio;
+                }
+                else if (portfolios.Count != 0)
+                {
+                    ComboBoxPortfolio.SelectedItem = portfolios[0].Number;
+                }
+                else if (ComboBoxPortfolio.SelectedItem == null
+                      && ComboBoxPortfolio.Items.Count != 0)
                 {
                     ComboBoxPortfolio.SelectedItem = ComboBoxPortfolio.Items[0];
                 }
