@@ -3280,7 +3280,7 @@ namespace OsEngine.Market.Servers
                                 {
                                     _cancelledOrdersNumbers.Add(order.Order.NumberMarket);
 
-                                    if (_cancelledOrdersNumbers.Count > 500)
+                                    if (_cancelledOrdersNumbers.Count > 150)
                                     {
                                         _cancelledOrdersNumbers.RemoveAt(0);
                                     }

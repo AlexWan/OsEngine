@@ -245,7 +245,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         public int AsyncOrderSending_RateGateLimitMls
         {
-            get { return 100; }
+            get { return 1; }
         }
 
         #endregion

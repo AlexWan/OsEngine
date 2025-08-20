@@ -1672,13 +1672,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        Thread.Sleep(1);
+                        Thread.Sleep(100);
                         continue;
                     }
 
                     if (_marketDataStream == null)
                     {
-                        Thread.Sleep(1);
+                        Thread.Sleep(100);
                         continue;
                     }
 
@@ -2664,10 +2664,23 @@ namespace OsEngine.Market.Servers.TInvest
         #region 9 Trade
 
         private RateGate _rateGateOrders = new RateGate(100, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
+        private string _rageGateOrdersLocker = "_rageGateOrdersLocker";
+
+        private RateGate _rateGatePostOrders = new RateGate(300, TimeSpan.FromMinutes(1));
+        private string _rageGatePostOrdersLocker = "_rageGatePostOrdersLocker";
+
+        private RateGate _rateGateCancelOrders = new RateGate(100, TimeSpan.FromMinutes(1));
+        private string _rageGateCancelOrdersLocker = "_rageGateCancelOrdersLocker";
+
+        private RateGate _rateGateStatusOrders = new RateGate(200, TimeSpan.FromMinutes(1));
+        private string _rageGateStatusOrdersLocker = "_rageGateStatusOrdersLocker";
 
         public void SendOrder(Order order)
         {
-            _rateGateOrders.WaitToProceed();
+            lock(_rageGatePostOrdersLocker)
+            {
+                _rateGatePostOrders.WaitToProceed();
+            }
 
             try
             {
@@ -2754,7 +2767,10 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
-                _rateGateOrders.WaitToProceed();
+                lock(_rageGateOrdersLocker)
+                {
+                    _rateGateOrders.WaitToProceed();
+                }
 
                 if (order.TypeOrder == OrderPriceType.Market)
                 {
@@ -2865,11 +2881,8 @@ namespace OsEngine.Market.Servers.TInvest
 
         private string _cancelOrdersLocker = "_cancelOrdersLocker";
 
-
         public bool CancelOrder(Order order)
         {
-            _rateGateOrders.WaitToProceed();
-
             try
             {
                 lock(_cancelOrdersLocker)
@@ -2896,6 +2909,11 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         _cancelOrderNums.RemoveAt(0);
                     }
+                }
+
+                lock (_rageGateCancelOrdersLocker)
+                {
+                    _rateGateCancelOrders.WaitToProceed();
                 }
 
                 CancelOrderRequest request = new CancelOrderRequest();
@@ -3010,7 +3028,10 @@ namespace OsEngine.Market.Servers.TInvest
 
         public OrderStateType GetOrderStatusWithTrades(Order order, bool processTrades)
         {
-            _rateGateOrders.WaitToProceed();
+            lock(_rageGateStatusOrdersLocker)
+            {
+                _rateGateStatusOrders.WaitToProceed();
+            }
 
             try
             {
@@ -3022,7 +3043,6 @@ namespace OsEngine.Market.Servers.TInvest
                 OrderState state = null;
                 try
                 {
-                    _rateGateOrders.WaitToProceed();
                     state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata);
                 }
                 catch (RpcException ex)
