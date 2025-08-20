@@ -1314,11 +1314,6 @@ namespace OsEngine.Market.Connectors
                     {
                         BestBidAskChangeEvent(bestBid, bestAsk);
                     }
-                    if (BestBidAskChangeEventWithSender != null
-                        && EventsIsOn == true)
-                    {
-                        BestBidAskChangeEventWithSender(this, bestBid, bestAsk);
-                    }
                 }
                 else
                 {// Tester or Optimizer
@@ -1518,10 +1513,7 @@ namespace OsEngine.Market.Connectors
                 _optionMarketData.OpenInterest = data.OpenInterest;
                 _optionMarketData.TimeCreate = data.TimeCreate;
 
-                if(AdditionalDataEvent != null)
-                {
-                    AdditionalDataEvent(_optionMarketData);
-                }
+                AdditionalDataEvent?.Invoke(_optionMarketData);
             }
             catch (Exception error)
             {
@@ -2035,11 +2027,6 @@ namespace OsEngine.Market.Connectors
         /// new additional market data event
         /// </summary>
         public event Action<OptionMarketData> AdditionalDataEvent;
-
-        /// <summary>
-        /// best bid and ask changed, with sender
-        /// </summary>
-        public event Action<ConnectorCandles, decimal, decimal> BestBidAskChangeEventWithSender;
 
         /// <summary>
         /// new trade in the trades feed
