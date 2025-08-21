@@ -214,7 +214,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public bool IsSupports_CheckDataFeedLogic
         {
-            get { return false; }
+            get { return true; }
         }
 
         public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
