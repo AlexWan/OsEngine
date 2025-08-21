@@ -1244,20 +1244,24 @@ namespace OsEngine.Market.Servers.TInvest
                         ? GetCandlesRequest.Types.CandleSource.Exchange
                         : GetCandlesRequest.Types.CandleSource.IncludeWeekend;
 
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        break; // don't try to get candles if disconnected
-                    }
-
                     candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata);
                 }
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.Error);
+
+                    if (message == "no server message")
+                        SendLogMessage($"Couldn't get candles for {security.Name}. Info: probably invalid time interval {fromDateTime}-{toDateTime}", LogMessageType.System);
+                    else
+                        SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        break; // connection broke before we could get candles
+                    }
+
                     SendLogMessage($"Error getting candles for {security.Name}: " + ex.ToString(),
                         LogMessageType.Error);
                 }
