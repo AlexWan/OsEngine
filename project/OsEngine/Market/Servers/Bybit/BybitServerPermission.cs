@@ -265,12 +265,12 @@ namespace OsEngine.Market.Servers.Bybit
 
         public bool IsSupports_AsyncCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public int AsyncCandlesStarter_RateGateLimitMls
         {
-            get { return 10; }
+            get { return 50; }
         }
 
         #endregion

@@ -61,8 +61,6 @@ namespace OsEngine.Entity
                     _asyncStarter.StartSeriesEvent += StandardStarter;
                 }
             }
-            
-
         }
 
         private CandleSeriesAsyncStarter _asyncStarter;

@@ -1264,7 +1264,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         #region 5 Data
 
-        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateGetCandleHistory = new RateGate(5, TimeSpan.FromMilliseconds(100));
+        private string _rateGateGetCandleHistoryLocker = "_rateGateGetCandleHistoryLocker";
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
@@ -1273,7 +1274,11 @@ namespace OsEngine.Market.Servers.Bybit
                 return new List<Candle>(); // no option history
             }
 
-            _rateGateGetCandleHistory.WaitToProceed();
+            lock (_rateGateGetCandleHistoryLocker)
+            {
+                _rateGateGetCandleHistory.WaitToProceed();
+            }
+           
             return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, false, DateTime.UtcNow, candleCount);
         }
 
@@ -1990,7 +1995,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private List<string> SubscribedSecurityOption = new List<string>();
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(150));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         public void Subscribe(Security security)
         {
@@ -4675,7 +4680,10 @@ namespace OsEngine.Market.Servers.Bybit
 
         public string CreatePublicQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
         {
-            _rateGate.WaitToProceed();
+            lock(_httpClientLocker)
+            {
+                _rateGate.WaitToProceed();
+            }
 
             try
             {
