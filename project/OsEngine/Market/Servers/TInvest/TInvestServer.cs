@@ -1712,6 +1712,21 @@ namespace OsEngine.Market.Servers.TInvest
                         Thread.Sleep(1);
                         continue;
                     }
+                    
+                    if (marketDataResponse.OpenInterest != null)
+                    {
+                        Security security = GetSecurity(marketDataResponse.OpenInterest.InstrumentUid);
+                        if (security == null)
+                            continue;
+
+                        if (_filterOutNonMarketData)
+                        {
+                            if (isTodayATradingDayForSecurity(security) == false)
+                                continue;
+                        }
+
+                        _openInterestData[security.Name] = marketDataResponse.OpenInterest; // save open interest data to cache
+                    }
 
                     if (marketDataResponse.Trade != null)
                     {
@@ -1759,21 +1774,7 @@ namespace OsEngine.Market.Servers.TInvest
                         NewTradesEvent?.Invoke(trade);
                     }
 
-                    if (marketDataResponse.OpenInterest != null)
-                    {
-                        Security security = GetSecurity(marketDataResponse.OpenInterest.InstrumentUid);
-                        if (security == null)
-                            continue;
-
-                        if (_filterOutNonMarketData)
-                        {
-                            if (isTodayATradingDayForSecurity(security) == false)
-                                continue;
-                        }
-
-                        _openInterestData[security.Name] = marketDataResponse.OpenInterest; // save open interest data to cache
-                    }
-
+                   
                     if (marketDataResponse.LastPrice != null)
                     {
                         ProcessLastPrice(marketDataResponse.LastPrice);
