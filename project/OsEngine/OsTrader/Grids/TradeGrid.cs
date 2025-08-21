@@ -2013,7 +2013,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     TradeGridLine curLine = linesAll[i];
 
-                    if (curLine.PriceEnter < lastPrice)
+                    if (curLine.PriceEnter <= lastPrice)
                     {
                         linesWithOrdersToOpenNeed.Add(curLine);
                     }
@@ -2030,7 +2030,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     TradeGridLine curLine = linesAll[i];
 
-                    if (curLine.PriceEnter > lastPrice)
+                    if (curLine.PriceEnter >= lastPrice)
                     {
                         linesWithOrdersToOpenNeed.Add(curLine);
                     }
