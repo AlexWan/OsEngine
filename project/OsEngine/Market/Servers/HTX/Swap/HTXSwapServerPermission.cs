@@ -213,7 +213,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public bool IsSupports_CheckDataFeedLogic
         {
-            get { return false; }
+            get { return true; }
         }
 
         public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
