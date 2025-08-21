@@ -15,36 +15,40 @@ import "google/api/field_behavior.proto";
 
 service MarketDataService {//Сервис для получения биржевой информации:<br/> 1. Свечи.<br/> 2. Стаканы.<br/> 3. Торговые статусы.<br/> 4. Лента сделок.
 
-  //Запросить исторические свечи по инструменту.
+  //GetCandles — исторические свечи по инструменту
   rpc GetCandles(GetCandlesRequest) returns (GetCandlesResponse);
 
-  //Запросить цены последних сделок по инструментам.
+  //GetLastPrices — цены последних сделок по инструментам
   rpc GetLastPrices(GetLastPricesRequest) returns (GetLastPricesResponse);
 
-  //Получить стакан по инструменту.
+  //GetOrderBook — стакан по инструменту
   rpc GetOrderBook(GetOrderBookRequest) returns (GetOrderBookResponse);
 
-  //Запросить статус торгов по инструментам.
+  //GetTradingStatus — статус торгов по инструменту
   rpc GetTradingStatus(GetTradingStatusRequest) returns (GetTradingStatusResponse);
 
-  //Запросить статус торгов по инструментам.
+  //GetTradingStatuses — статус торгов по инструментам
   rpc GetTradingStatuses(GetTradingStatusesRequest) returns (GetTradingStatusesResponse);
 
-  //Запросить обезличенные сделки за последний час.
+  //GetLastTrades — обезличенные сделки
+  //Обезличенные сделки по инструменту. Метод гарантирует получение информации за последний час.
   rpc GetLastTrades(GetLastTradesRequest) returns (GetLastTradesResponse);
 
-  //Запросить цены закрытия торговой сессии по инструментам.
+  //GetClosePrices — цены закрытия торговой сессии по инструментам
   rpc GetClosePrices(GetClosePricesRequest) returns (GetClosePricesResponse);
 
-  //Получить технические индикаторы по инструменту.
+  //GetTechAnalysis — технические индикаторы по инструменту
   rpc GetTechAnalysis(GetTechAnalysisRequest) returns (GetTechAnalysisResponse);
+
+  //GetMarketValues — рыночные данные по инструментам
+  rpc GetMarketValues(GetMarketValuesRequest) returns (GetMarketValuesResponse);
 }
 
 service MarketDataStreamService {
-  //Bidirectional-стрим предоставления биржевой информации.
+  //MarketDataStream — bidirectional стрим предоставления биржевой информации
   rpc MarketDataStream(stream MarketDataRequest) returns (stream MarketDataResponse);
 
-  //Server-side стрим предоставления биржевой информации.
+  //MarketDataServerSideStream — server-side стрим предоставления биржевой информации
   rpc MarketDataServerSideStream(MarketDataServerSideStreamRequest) returns (stream MarketDataResponse);
 }
 
@@ -85,6 +89,7 @@ message MarketDataResponse {
     Ping ping = 9; //Проверка активности стрима.
     SubscribeLastPriceResponse subscribe_last_price_response = 10; //Результат подписки на цены последние сделок по инструментам.
     LastPrice last_price = 11; //Цена последней сделки.
+    OpenInterest open_interest = 12; //Открытый интерес.
   }
 }
 
@@ -143,6 +148,7 @@ message CandleSubscription {
   bool waiting_close = 5; //Флаг ожидания закрытия временного интервала для отправки свечи.
   string stream_id = 6; //Идентификатор открытого соединения.
   string subscription_id = 7; //Идентификатор подписки в формате `UUID`.
+  SubscriptionAction subscription_action = 8; //Действие подписки.
   optional GetCandlesRequest.CandleSource candle_source_type = 9; //Источник свечей.
 }
 
@@ -190,6 +196,7 @@ message OrderBookSubscription {
   string stream_id = 5; //Идентификатор открытого соединения.
   string subscription_id = 6; //Идентификатор подписки в формате `UUID`.
   OrderBookType order_book_type = 7; //Тип стакана.
+  SubscriptionAction subscription_action = 8; //Действие подписки.
 }
 
 //Типы источников сделок.
@@ -205,6 +212,7 @@ message SubscribeTradesRequest {
   SubscriptionAction subscription_action = 1; //Изменение статуса подписки.
   repeated TradeInstrument instruments = 2; //Массив инструментов для подписки на поток обезличенных сделок.
   TradeSourceType trade_source = 3; //Тип источника сделок. Значение по умолчанию — `TRADE_SOURCE_ALL`, все сделки.
+  bool with_open_interest = 4; //Флаг открытого интереса. **true** - в стриме дополнительно передается информация об открытом интересе для фьючерсов
 }
 
 //Запрос подписки на поток обезличенных сделок.
@@ -227,6 +235,8 @@ message TradeSubscription {
   string instrument_uid = 3; //UID инструмента.
   string stream_id = 4; //Идентификатор открытого соединения.
   string subscription_id = 5; //Идентификатор подписки в формате UUID.
+  bool with_open_interest = 6; //Флаг открытого интереса. **true** - в стриме дополнительно передается информация об открытом интересе для фьючерсов
+  SubscriptionAction subscription_action = 7; //Действие подписки.
 }
 
 //Изменение статуса подписки на торговый статус инструмента.
@@ -254,6 +264,7 @@ message InfoSubscription {
   string instrument_uid = 3; //UID инструмента.
   string stream_id = 4; //Идентификатор открытого соединения.
   string subscription_id = 5; //Идентификатор подписки в формате UUID.
+  SubscriptionAction subscription_action = 6; //Действие подписки.
 }
 
 //Изменение статуса подписки на цену последней сделки по инструменту.
@@ -281,6 +292,7 @@ message LastPriceSubscription {
   string instrument_uid = 3; //UID инструмента.
   string stream_id = 4; //Идентификатор открытого соединения.
   string subscription_id = 5; //Идентификатор подписки в формате `UUID`.
+  SubscriptionAction subscription_action = 6; //Действие подписки.
 }
 
 //Пакет свечей в рамках стрима.
@@ -379,6 +391,9 @@ enum CandleInterval {
   CANDLE_INTERVAL_4_HOUR = 11; //От 4 часов до 3 месяцев. Максимальное значение `limit` — 700.
   CANDLE_INTERVAL_WEEK = 12; //От 1 недели до 5 лет. Максимальное значение `limit` — 300.
   CANDLE_INTERVAL_MONTH = 13; //От 1 месяца до 10 лет. Максимальное значение `limit` — 120.
+  CANDLE_INTERVAL_5_SEC = 14; //От 5 секунд до 200 минут. Максимальное значение `limit` — 2500.
+  CANDLE_INTERVAL_10_SEC = 15; //От 10 секунд до 200 минут. Максимальное значение `limit` — 1250.
+  CANDLE_INTERVAL_30_SEC = 16; //От 30 секунд до 20 часов. Максимальное значение `limit` — 2500.
 }
 
 enum CandleSource {
@@ -424,6 +439,12 @@ message LastPrice {
   google.protobuf.Timestamp time = 3; //Время получения последней цены в часовом поясе UTC по времени биржи.
   string instrument_uid = 11; //UID инструмента.
   LastPriceType last_price_type = 12; //Тип последней цены.
+}
+
+message OpenInterest {
+  string instrument_uid = 1; //UID инструмента.
+  google.protobuf.Timestamp time = 2; //Время получения открытого интереса в часовом поясе UTC по времени биржи.
+  int64 open_interest = 3; //Открытый интерес.
 }
 
 //Запрос стакана.
@@ -518,6 +539,7 @@ message InstrumentClosePriceResponse {
   Quotation price = 11; //Цена закрытия торговой сессии.
   Quotation evening_session_price = 12; //Цена последней сделки с вечерней сессии. Цена публикуется биржей по торговым дням и в нерабочие дни не обновляется.
   google.protobuf.Timestamp time = 21; //Дата совершения торгов.
+  google.protobuf.Timestamp evening_session_price_time = 23; //Дата цены закрытия вечерней сессии.
 }
 
 message GetTechAnalysisRequest {
@@ -589,6 +611,36 @@ message GetTechAnalysisResponse {
     optional Quotation signal = 5; //Значение сигнальной линии.
     optional Quotation macd = 6; //Значение линии MACD.
   }
+}
+
+message GetMarketValuesRequest {
+  repeated string instrument_id = 1; //Массив идентификаторов инструментов.
+  repeated MarketValueType values = 2; //Массив запрашиваемых параметров.
+}
+
+message GetMarketValuesResponse {
+  repeated MarketValueInstrument instruments = 1; //Массив значений параметров.
+}
+
+message MarketValueInstrument {
+  string instrument_uid = 1; //Идентификатор инструмента.
+  repeated MarketValue values = 2; //Массив параметров инструмента.
+}
+
+message MarketValue {
+  optional MarketValueType type = 1; //Тип параметра.
+  optional Quotation value = 2; //Значение.
+  optional google.protobuf.Timestamp time = 3; //Дата и время.
+}
+
+enum MarketValueType {
+  INSTRUMENT_VALUE_UNSPECIFIED = 0; //Не определен.
+  INSTRUMENT_VALUE_LAST_PRICE = 1; //Последняя биржевая цена.
+  INSTRUMENT_VALUE_LAST_PRICE_DEALER = 2; //Последняя цена дилера.
+  INSTRUMENT_VALUE_CLOSE_PRICE = 3; //Цена закрытия.
+  INSTRUMENT_VALUE_EVENING_SESSION_PRICE = 4; //Цена последней сделки с вечерней сессии.
+  INSTRUMENT_VALUE_OPEN_INTEREST = 5; // Открытый интерес, возвращается только для фьючерсов.
+  INSTRUMENT_VALUE_THEOR_PRICE = 6; //Теоретическая цена, возвращается только для опционов.
 }
 
 enum OrderBookType {

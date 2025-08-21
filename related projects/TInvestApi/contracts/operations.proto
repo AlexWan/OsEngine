@@ -16,35 +16,35 @@ import "google/api/field_behavior.proto";
 service OperationsService {/*С помощью методов сервиса можно получить:<br/><br/> **1**. Список операций по счету.<br/> **2**.
                               Портфель по счету.<br/> **3**. Позиции ценных бумаг на счете.<br/> **4**.
                               Доступный остаток для вывода средств.<br/> **5**. Различные отчеты.*/
-  //Получить список операций по счету.
+  //GetOperations — список операций по счету
   //При работе с методом учитывайте [особенности взаимодействия](/invest/services/operations/operations_problems).
   rpc GetOperations(OperationsRequest) returns (OperationsResponse);
 
-  //Получить портфель по счету.
+  //GetPortfolio — портфель по счету
   rpc GetPortfolio(PortfolioRequest) returns (PortfolioResponse);
 
-  //Получить список позиций по счету.
+  //GetPositions — список позиций по счету
   rpc GetPositions(PositionsRequest) returns (PositionsResponse);
 
-  //Получить доступный остаток для вывода средств.
+  //GetWithdrawLimits — доступный остаток для вывода средств
   rpc GetWithdrawLimits(WithdrawLimitsRequest) returns (WithdrawLimitsResponse);
 
-  //Получить брокерский отчет.
+  //GetBrokerReport — брокерский отчет.
   rpc GetBrokerReport(BrokerReportRequest) returns (BrokerReportResponse);
 
-  //Получить отчет «Справка о доходах за пределами РФ».
+  //GetDividendsForeignIssuer — отчет «Справка о доходах за пределами РФ»
   rpc GetDividendsForeignIssuer(GetDividendsForeignIssuerRequest) returns (GetDividendsForeignIssuerResponse);
 
-  //Получить список операций по счету с пагинацией.
+  //GetOperationsByCursor — список операций по счету с пагинацией
   //При работе с методом учитывайте [особенности взаимодействия](/invest/services/operations/operations_problems).
   rpc GetOperationsByCursor(GetOperationsByCursorRequest) returns (GetOperationsByCursorResponse);
 }
 
 service OperationsStreamService {
-  //Server-side stream обновлений портфеля.
+  //PortfolioStream — стрим обновлений портфеля
   rpc PortfolioStream(PortfolioStreamRequest) returns (stream PortfolioStreamResponse);
 
-  //Server-side stream обновлений информации по изменению позиций портфеля.
+  //PositionsStream — стрим обновлений информации по изменению позиций портфеля
   rpc PositionsStream(PositionsStreamRequest) returns (stream PositionsStreamResponse);
 }
 
@@ -169,6 +169,7 @@ message PortfolioPosition {
   MoneyValue var_margin = 26; //Вариационная маржа.
   Quotation expected_yield_fifo = 27; //Текущая рассчитанная доходность позиции.
   MoneyValue daily_yield = 31;  // Рассчитанная доходность портфеля за день.
+  string ticker = 32; //Тикер инструмента.
 }
 
 message VirtualPortfolioPosition {
@@ -184,6 +185,7 @@ message VirtualPortfolioPosition {
   MoneyValue current_price = 10; //Текущая цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента.
   MoneyValue average_position_price_fifo = 11; //Средняя цена позиции по методу FIFO. Для пересчета возможна задержка до одной секунды.
   MoneyValue daily_yield = 31;  // Рассчитанная доходность портфеля за день.
+  string ticker = 32; //Тикер инструмента.
 }
 
 //Баланс позиции ценной бумаги.
@@ -193,6 +195,7 @@ message PositionsSecurities {
   int64 balance = 3;  //Текущий незаблокированный баланс.
   string position_uid = 4; //Уникальный идентификатор позиции.
   string instrument_uid = 5; //Уникальный идентификатор инструмента.
+  string ticker = 6; //Тикер инструмента.
   bool exchange_blocked = 11; //Заблокировано на бирже.
   string instrument_type = 16; //Тип инструмента.
 }
@@ -204,12 +207,14 @@ message PositionsFutures {
   int64 balance = 3;  //Текущий незаблокированный баланс.
   string position_uid = 4; //Уникальный идентификатор позиции.
   string instrument_uid = 5; //Уникальный идентификатор  инструмента.
+  string ticker = 6; //Тикер инструмента.
 }
 
 //Баланс опциона.
 message PositionsOptions {
   string position_uid = 1; //Уникальный идентификатор позиции опциона.
   string instrument_uid = 2; //Уникальный идентификатор  инструмента.
+  string ticker = 3; //Тикер инструмента.
   int64 blocked = 11; //Количество бумаг, заблокированных выставленными заявками.
   int64 balance = 21;  //Текущий незаблокированный баланс.
 }
