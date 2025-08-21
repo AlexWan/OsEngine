@@ -84,6 +84,7 @@ using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Market.Servers.AscendexSpot;
+using OsEngine.Market.Servers.OKXData;
 
 namespace OsEngine.Market
 {
@@ -331,7 +332,8 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.TelegramNews);
                 serverTypes.Add(ServerType.BinanceData);
                 serverTypes.Add(ServerType. AscendexSpot);
-               
+                serverTypes.Add(ServerType.OKXData);
+
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
 
@@ -436,6 +438,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.CoinExFutures);
                 serverTypes.Add(ServerType.BinanceData);
                 serverTypes.Add(ServerType.AscendexSpot);
+                serverTypes.Add(ServerType.OKXData);
 
                 return serverTypes;
             }
@@ -540,6 +543,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.OKXData)
+                {
+                    newServer = new OKXDataServer();
+                }
                 if (type == ServerType.BinanceData)
                 {
                     newServer = new BinanceDataServer();
@@ -1537,6 +1544,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new AscendexSpotServerPermission();
                 }
+                else if (type == ServerType.OKXData)
+                {
+                    serverPermission = new OKXDataServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -2318,6 +2329,12 @@ namespace OsEngine.Market
         /// <summary>
         ///  AscendexSpot exchange
         /// </summary>
-        AscendexSpot
+        AscendexSpot,
+
+        /// <summary>
+        /// downloading historical data from exchange OKX
+        /// скачивание исторических данных с биржи OKX
+        /// </summary>
+        OKXData
     }
 }
