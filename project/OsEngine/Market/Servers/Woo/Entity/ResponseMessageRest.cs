@@ -1,7 +1,27 @@
 ﻿using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.Woo.Entity
-{    
+{
+    public class ResponseMessageRest<T>
+    {
+        public string success { get; set; }
+        public string timestamp { get; set; }
+        public T data { get; set; }
+    }
+
+    public class ResponseListenKey
+    {
+        public string authKey { get; set; }
+        public string expiredTime { get; set; }
+    }
+
+    public class ResponseSystemStatus
+    {
+        public string status { get; set; }
+        public string msg { get; set; }
+        public string estimatedEndTime { get; set; }
+    }
+
     public class ResponseMessageSecurities
     {
         public List<Rows> rows { get; set; }
@@ -40,14 +60,14 @@ namespace OsEngine.Market.Servers.Woo.Entity
     }
 
     public class ResponseMessagePortfolios
-    {       
+    {
         public Dictionary<string, Symbol> balances { get; set; }
 
         public class Symbol
         {
             public string holding { get; set; }
-            public string frozen { get; set; }            
-        }        
+            public string frozen { get; set; }
+        }
     }
 
     public class ResponseMessagePositions
@@ -56,7 +76,7 @@ namespace OsEngine.Market.Servers.Woo.Entity
 
         public class Data
         {
-            public List<Positions> positions { get; set; }           
+            public List<Positions> positions { get; set; }
         }
         public class Positions
         {
@@ -84,7 +104,7 @@ namespace OsEngine.Market.Servers.Woo.Entity
             public string volume { get; set; }
             public string start_timestamp { get; set; }
         }
-            
-       
-    }    
+
+
+    }
 }
