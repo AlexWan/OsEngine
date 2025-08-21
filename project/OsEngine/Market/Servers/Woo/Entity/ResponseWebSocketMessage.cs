@@ -1,94 +1,125 @@
-﻿using OsEngine.Entity;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.Woo.Entity
 {
     public class ResponseWebSocketMessage<T>
     {
-        public string topic;
+        public string topic { get; set; }
+        public string ts { get; set; }
+        public T data { get; set; }
     }
 
     public class ResponseChannelTrades
     {
-
-        public Data data { get; set; }
-        public string ts { get; set; }
-
-
-        public class Data
-        {
-            public string symbol { get; set; }
-            public string price { get; set; }
-            public string size { get; set; }
-            public string side { get; set; }
-            public string source { get; set; }
-        }
+        public string s { get; set; }       // symbol
+        public string px { get; set; }      // price
+        public string sx { get; set; }      // size
+        public string sd { get; set; }      // side
+        public int src { get; set; }        // trade source
+        public bool rpi { get; set; }
+        public long ts { get; set; }        // trade generation time
     }
 
     public class ResponseChannelBook
     {
-        public Data data { get; set; }
+        public string s { get; set; } // symbol
+        public string prevTs { get; set; } // previous orderbook generation time
+        public List<List<string>> asks { get; set; } // delta updates ask side
+        public List<List<string>> bids { get; set; } // delta updates bid side
+        public string ts { get; set; } // current orderbook generation time
+    }
 
-        public string ts { get; set; }
-
-        public class Data
-        {
-            public List<List<string>> asks { get; set; }
-            public List<List<string>> bids { get; set; }
-            public string ts { get; set; }
-            public string symbol { get; set; }
-        }
+    public class BalanceData
+    {
+        public List<ResponseChannelPortfolio> balances { get; set; }
     }
 
     public class ResponseChannelPortfolio
     {
-        public Data data { get; set; }
-
-        public class Data
-        {
-            public Dictionary<string, Symbol> balances { get; set; }
-        }
-        public class Symbol
-        {
-            public string holding { get; set; }
-            public string frozen { get; set; }
-        }
+        public string t { get; set; }     // token
+        public string h { get; set; }     // holding
+        public string f { get; set; }     // frozen
+        public string i { get; set; }     // interest
+        public string psq { get; set; }   // pending short qty
+        public string plq { get; set; }   // pending long qty
+        public string s { get; set; }     // staked
+        public string u { get; set; }     // unbonding
+        public string v { get; set; }     // vault
+        public string l { get; set; }     // launchpad vault
+        public string e { get; set; }     // earn
+        public string aop { get; set; }   // average open price
+        public string pnl { get; set; }   // 24h PnL
+        public string roi { get; set; }   // 24h PnL percentage
+        public string fee { get; set; }   // 24h fee
+        public string mp { get; set; }    // mark price
+        public string ver { get; set; }      // version
+        public string b { get; set; }     // trial fund bonus
+        public string lcr { get; set; }      // loss cover ratio
+        public string ts { get; set; }      // timestamp of balance change
     }
 
-    public class ResponseChannelUpdateOrder
+    public class ResponseChannelOrder
     {
-        public Data data { get; set; }
-        public class Data
-        {
-            public string msgType { get; set; }
-            public string symbol { get; set; }
-            public string orderId { get; set; }
-            public string side { get; set; }
-            public string quantity { get; set; }
-            public string executedPrice { get; set; }
-            public string price { get; set; }
-            public string status { get; set; }
-            public string clientOrderId { get; set; }
-            public string executedQuantity { get; set; }
-            public string type { get; set; }
-            public string timestamp { get; set; }
-            public string tradeId { get; set; }
-        }
+        public string mt { get; set; }             // message type
+        public string s { get; set; }           // symbol
+        public string cid { get; set; }            // client order id
+        public string oid { get; set; }           // order id
+        public string t { get; set; }           // order type
+        public string sd { get; set; }          // side
+        public string ps { get; set; }          // position side
+        public string sx { get; set; }          // order quantity
+        public string px { get; set; }          // order price
+        public string tid { get; set; }           // trade id
+        public string esx { get; set; }         // executed quantity
+        public string epx { get; set; }         // executed price
+        public string f { get; set; }           // transaction fee amount
+        public string fa { get; set; }          // transaction fee asset
+        public string tesx { get; set; }        // total executed quantity of the order
+        public string aepx { get; set; }        // average executed price of the order
+        public string ss { get; set; }          // status
+        public string rs { get; set; }          // reason
+        public string tg { get; set; }          // order tag
+        public string tf { get; set; }          // total fee of the order
+        public string tfc { get; set; }         // fee currency of the order
+        public string tr { get; set; }          // total rebate of the order
+        public string trc { get; set; }         // rebate currency of the order
+        public string vsx { get; set; }         // visible quantity of the order
+        public string ts { get; set; }            // executed timestamp
+        public string ro { get; set; }              // reduce only
+        public string mk { get; set; }               // whether it is a maker transaction
+        public string lv { get; set; }                 // leverage
+        public string rpi { get; set; }               // whether execution was matched against RPI order
+        public string m { get; set; }                // margin mode
     }
 
-    public class ResponseChannelUpdatePositions
+    public class PositionData
     {
-        public Data data { get; set; }
+        public List<ResponseChannelPositions> positions { get; set; }
+    }
 
-        public class Data
-        {
-            public Dictionary<string, Symbol> positions { get; set; }
-        }
-
-        public class Symbol
-        {
-            public string holding { get; set; }
-        }       
+    public class ResponseChannelPositions
+    {
+        public string s { get; set; }      // symbol
+        public string h { get; set; }      // holding
+        public string plq { get; set; }    // pending long quantity
+        public string psq { get; set; }    // pending short quantity
+        public string aop { get; set; }    // average open price
+        public string pnl { get; set; }    // 24h pnl
+        public string roi { get; set; }    // 24h pnl % change
+        public string fee { get; set; }    // 24h fee
+        public string sp { get; set; }     // last settle price
+        public string mp { get; set; }     // mark price
+        public string ot { get; set; }       // opening time
+        public string aq { get; set; }        // adl quantile
+        public string lv { get; set; }        // leverage
+        public string m { get; set; }      // margin mode
+        public string ps { get; set; }     // position side
+        public string it { get; set; }     // isolated margin token
+        public string ia { get; set; }     // isolated margin amount
+        public string il { get; set; }     // isolated margin frozen long
+        public string @is { get; set; }     // isolated margin frozen short
+        public string ver { get; set; }       // version
+        public string ts { get; set; }       // timestamp of position update      
     }
 }
 
