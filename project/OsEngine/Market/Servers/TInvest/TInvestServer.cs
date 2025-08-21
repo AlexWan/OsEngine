@@ -1742,14 +1742,14 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             if (security.SecurityType == SecurityType.Futures)
                             {
-                                if (trade.Time < trade.Time.Date.AddHours(9))
+                                if (trade.Time < trade.Time.Date.AddHours(9)) // futures start trading at 9
                                 {
                                     continue;
                                 }
                             }
                             else
                             {
-                                if (trade.Time < trade.Time.Date.AddHours(7))
+                                if (trade.Time < trade.Time.Date.AddHours(7)) // options start trading at 7
                                 {
                                     continue;
                                 }
