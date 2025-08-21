@@ -250,6 +250,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
             get { return 10; }
         }
 
+        public bool IsSupports_AsyncCandlesStarter
+        {
+            get { return false; }
+        }
+
+        public int AsyncCandlesStarter_RateGateLimitMls
+        {
+            get { return 10; }
+        }
+
         #endregion
     }
 }

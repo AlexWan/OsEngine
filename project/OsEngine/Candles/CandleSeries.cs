@@ -196,6 +196,8 @@ namespace OsEngine.Entity
         }
         private bool _isStarted;
 
+        public bool IsSendInStandardStarter;
+
         /// <summary>
         /// whether to keep loading the object
         /// </summary>

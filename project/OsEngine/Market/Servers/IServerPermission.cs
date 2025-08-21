@@ -92,6 +92,10 @@ namespace OsEngine.Market.Servers
 
         int AsyncOrderSending_RateGateLimitMls { get; }
 
+        bool IsSupports_AsyncCandlesStarter { get; }
+
+        int AsyncCandlesStarter_RateGateLimitMls { get; }
+
         #endregion
     }
 
