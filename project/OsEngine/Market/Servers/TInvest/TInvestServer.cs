@@ -1244,6 +1244,11 @@ namespace OsEngine.Market.Servers.TInvest
                         ? GetCandlesRequest.Types.CandleSource.Exchange
                         : GetCandlesRequest.Types.CandleSource.IncludeWeekend;
 
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        break; // don't try to get candles if disconnected
+                    }
+
                     candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata);
                 }
                 catch (RpcException ex)
@@ -1410,7 +1415,7 @@ namespace OsEngine.Market.Servers.TInvest
         #region 6 gRPC streams creation
 
         //private readonly string _gRPCHost = "sandbox-invest-public-api.tbank.ru:443"; // sandbox 
-        private readonly string _gRPCHost = "https://invest-public-api.tbank.ru:443"; // prod  as of v1.40
+        private readonly string _gRPCHost = "https://invest-public-api.tinkoff.ru:443"; // prod  as of v1.40 should be tbank.ru but doesn't work due to SSL certificate issue
         private Metadata _gRpcMetadata;
         private GrpcChannel _channel;
         private CancellationTokenSource _cancellationTokenSource;
