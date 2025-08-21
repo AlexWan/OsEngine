@@ -879,7 +879,7 @@ namespace OsEngine.Market.Connectors
                             for (int i = 0; i < servers.Count; i++)
                             {
                                 if (servers[i].ServerType == ServerType
-                                    && servers[i].ServerNameAndPrefix == ServerFullName)
+                                    && servers[i].ServerNameAndPrefix.StartsWith(ServerFullName))
                                 {
                                     _myServer = servers[i];
                                     break;

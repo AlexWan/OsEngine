@@ -1291,7 +1291,8 @@ namespace OsEngine.Market.Servers
 
                             for (int i = 0; i < list.Count; i++)
                             {
-                                if (_needToCheckDataFeedOnDisconnect.Value)
+                                if (_needToCheckDataFeedOnDisconnect != null
+                                    && _needToCheckDataFeedOnDisconnect.Value)
                                 {
                                     SecurityFlowTime tradeTime = new SecurityFlowTime();
                                     tradeTime.SecurityName = list[i][0].SecurityNameCode;
@@ -1386,7 +1387,8 @@ namespace OsEngine.Market.Servers
                                     NewMarketDepthEvent(depth);
                                 }
 
-                                if (_needToCheckDataFeedOnDisconnect.Value)
+                                if (_needToCheckDataFeedOnDisconnect != null
+                                    && _needToCheckDataFeedOnDisconnect.Value)
                                 {
                                     SecurityFlowTime tradeTime = new SecurityFlowTime();
                                     tradeTime.SecurityName = depth.SecurityNameCode;
@@ -1430,7 +1432,8 @@ namespace OsEngine.Market.Servers
 
                                 for (int i = 0; i < list.Count; i++)
                                 {
-                                    if (_needToCheckDataFeedOnDisconnect.Value)
+                                    if (_needToCheckDataFeedOnDisconnect != null
+                                    && _needToCheckDataFeedOnDisconnect.Value)
                                     {
                                         SecurityFlowTime tradeTime = new SecurityFlowTime();
                                         tradeTime.SecurityName = list[i].SecurityNameCode;

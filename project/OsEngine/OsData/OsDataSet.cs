@@ -149,12 +149,34 @@ namespace OsEngine.OsData
 
         public void AddNewSecurity()
         {
-            if (ServerMaster.GetServers() == null)
+            List<IServer> servers = ServerMaster.GetServers();
+
+            if(servers == null)
             {
                 return;
             }
 
-            IServer myServer = ServerMaster.GetServers().Find(server => server.ServerType == BaseSettings.Source);
+            IServer myServer = null;
+
+            for(int i = 0;i < servers.Count;i++)
+            {
+                IServer server = servers[i];
+
+                if(server.ServerType == BaseSettings.Source)
+                {
+                    if(string.IsNullOrEmpty(BaseSettings.SourceName) == false
+                        && server.ServerNameAndPrefix.StartsWith(BaseSettings.SourceName))
+                    {
+                        myServer = server;
+                        break;
+                    }
+                    else if(string.IsNullOrEmpty(BaseSettings.SourceName) == true)
+                    {
+                        myServer = server;
+                        break;
+                    }
+                }
+            }
 
             if (myServer == null)
             {
@@ -383,10 +405,21 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < servers.Count; i++)
             {
+                IServer server = servers[i];
+
                 if (servers[i].ServerType == BaseSettings.Source)
                 {
-                    _myServer = servers[i];
-                    break;
+                    if (string.IsNullOrEmpty(BaseSettings.SourceName) == false
+                        && server.ServerNameAndPrefix.StartsWith(BaseSettings.SourceName))
+                    {
+                        _myServer = server;
+                        break;
+                    }
+                    else if (string.IsNullOrEmpty(BaseSettings.SourceName) == true)
+                    {
+                        _myServer = server;
+                        break;
+                    }
                 }
             }
         }
@@ -462,6 +495,7 @@ namespace OsEngine.OsData
             SettingsToLoadSecurities.TfMarketDepthIsOn = param.TfMarketDepthIsOn;
 
             SettingsToLoadSecurities.Source = param.Source;
+            SettingsToLoadSecurities.SourceName = param.SourceName;
             SettingsToLoadSecurities.TimeStart = param.TimeStart;
             SettingsToLoadSecurities.TimeEnd = param.TimeEnd;
             SettingsToLoadSecurities.MarketDepthDepth = param.MarketDepthDepth;
@@ -1782,7 +1816,7 @@ namespace OsEngine.OsData
 
             if (loader == null)
             {
-                loader = new MarketDepthLoader(SecName, SecClass, param.Source, param.MarketDepthDepth);
+                loader = new MarketDepthLoader(SecName, SecClass, param.Source, param.SourceName, param.MarketDepthDepth);
                 loader.NewLogMessageEvent += SendNewLogMessage;
                 MdSources.Add(loader);
             }
@@ -1977,11 +2011,12 @@ namespace OsEngine.OsData
 
     public class MarketDepthLoader
     {
-        public MarketDepthLoader(string secName, string secClass, ServerType serverType, int depth)
+        public MarketDepthLoader(string secName, string secClass, ServerType serverType, string serverName, int depth)
         {
             _secName = secName;
             _secClass = secClass;
             _serverType = serverType;
+            _serverName = serverName;
             _depth = depth;
 
             CreateSource();
@@ -2017,6 +2052,8 @@ namespace OsEngine.OsData
 
         private ServerType _serverType;
 
+        private string _serverName;
+
         public int Depth
         {
             get { return _depth; }
@@ -2037,6 +2074,7 @@ namespace OsEngine.OsData
             MarketDepthSource.Connector.SecurityName = _secName;
             MarketDepthSource.Connector.SecurityClass = _secClass;
             MarketDepthSource.Connector.ServerType = _serverType;
+            MarketDepthSource.Connector.ServerFullName = _serverName;
             MarketDepthSource.TimeFrameBuilder.TimeFrame = TimeFrame.Hour1;
             MarketDepthSource.MarketDepthUpdateEvent += MarketDepthSource_MarketDepthUpdateEvent;
             MarketDepthSource.LogMessageEvent += SendNewLogMessage;
@@ -2094,6 +2132,7 @@ namespace OsEngine.OsData
             TimeStart = DateTime.Now.AddDays(-5);
             TimeEnd = DateTime.Now.AddDays(5);
             MarketDepthDepth = 5;
+
         }
 
         public void Load(string saveStr)
@@ -2144,6 +2183,15 @@ namespace OsEngine.OsData
             {
                 // ignore
             }
+
+            try
+            {
+                SourceName = saveArray[25];
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         public string GetSaveStr()
@@ -2178,6 +2226,7 @@ namespace OsEngine.OsData
             result += MarketDepthDepth + "%";
             result += NeedToUpdate + "%";
             result += TfDayIsOn + "%";
+            result += SourceName + "%";
 
             return result;
         }
@@ -2186,6 +2235,7 @@ namespace OsEngine.OsData
         public DateTime TimeStart;
         public DateTime TimeEnd;
         public ServerType Source;
+        public string SourceName;
 
         public bool Tf1SecondIsOn;
         public bool Tf2SecondIsOn;

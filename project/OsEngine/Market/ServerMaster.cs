@@ -487,6 +487,32 @@ namespace OsEngine.Market
         }
 
         /// <summary>
+        /// array of active servers names
+        /// </summary>
+        public static List<string> ActiveServersUniqueNames
+        {
+            get
+            {
+                List<string> types = new List<string>();
+
+                for (int i = 0; _servers != null && i < _servers.Count; i++)
+                {
+                    string name = _servers[i].ServerNameAndPrefix;
+
+                    if(name.Split('_').Length == 3)
+                    {
+                        string shortName = name.Split("_")[0] + "_" + name.Split("_")[1];
+                        name = shortName;
+                    }
+
+                    types.Add(name);
+                }
+
+                return types;
+            }
+        }
+
+        /// <summary>
         /// disable all servers
         /// </summary>
         public static void AbortAll()

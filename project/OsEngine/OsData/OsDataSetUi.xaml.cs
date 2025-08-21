@@ -68,16 +68,25 @@ namespace OsEngine.OsData
             CheckBoxTfDayIsOn.IsChecked = set.BaseSettings.TfDayIsOn;
             CheckBoxTfMarketDepthIsOn.IsChecked = set.BaseSettings.TfMarketDepthIsOn;
 
-            List < ServerType > serverTypes = ServerMaster.ActiveServersTypes;
+            List <string> serverTypes = ServerMaster.ActiveServersUniqueNames;
 
-            ComboBoxSource.Items.Add(ServerType.None);
+            ComboBoxSource.Items.Add(ServerType.None.ToString());
 
             for (int i = 0; i < serverTypes.Count; i++)
             {
                 ComboBoxSource.Items.Add(serverTypes[i]);
             }
 
-            ComboBoxSource.SelectedItem = _set.BaseSettings.Source;
+            if(string.IsNullOrEmpty(_set.BaseSettings.SourceName) == false)
+            {
+                ComboBoxSource.SelectedItem = _set.BaseSettings.SourceName;
+            }
+
+            if (ComboBoxSource.SelectedItem == null)
+            {
+                ComboBoxSource.Items.Add(_set.BaseSettings.SourceName);
+                ComboBoxSource.SelectedItem = _set.BaseSettings.SourceName;
+            }
 
             if (ComboBoxSource.SelectedItem == null)
             {
@@ -272,7 +281,7 @@ namespace OsEngine.OsData
                 if (ComboBoxSource.SelectedItem != null)
                 {
                     ServerType type;
-                    Enum.TryParse(ComboBoxSource.SelectedItem.ToString(), out type);
+                    Enum.TryParse(ComboBoxSource.SelectedItem.ToString().Split('_')[0], out type);
                     permission = ServerMaster.GetServerPermission(type);
                 }
 
@@ -404,7 +413,8 @@ namespace OsEngine.OsData
 
             if (ComboBoxSource.SelectedItem != null)
             {
-                Enum.TryParse(ComboBoxSource.SelectedItem.ToString(), out _set.BaseSettings.Source);
+                Enum.TryParse(ComboBoxSource.SelectedItem.ToString().Split('_')[0], out _set.BaseSettings.Source);
+                _set.BaseSettings.SourceName = ComboBoxSource.SelectedItem.ToString();
                 TextBoxFolderName.IsEnabled = false;
             }
 
