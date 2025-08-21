@@ -1249,10 +1249,19 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.Error);
+
+                    if (message == "no server message")
+                        SendLogMessage($"Couldn't get candles for {security.Name}. Info: probably invalid time interval {fromDateTime}UTC - {toDateTime}UTC", LogMessageType.System);
+                    else
+                        SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        break; // connection broke before we could get candles
+                    }
+
                     SendLogMessage($"Error getting candles for {security.Name}: " + ex.ToString(),
                         LogMessageType.Error);
                 }
@@ -1409,8 +1418,8 @@ namespace OsEngine.Market.Servers.TInvest
 
         #region 6 gRPC streams creation
 
-        //private readonly string _gRPCHost = "sandbox-invest-public-api.tinkoff.ru:443"; // sandbox 
-        private readonly string _gRPCHost = "https://invest-public-api.tinkoff.ru:443"; // prod 
+        //private readonly string _gRPCHost = "sandbox-invest-public-api.tbank.ru:443"; // sandbox 
+        private readonly string _gRPCHost = "https://invest-public-api.tinkoff.ru:443"; // prod  as of v1.40 should be tbank.ru but doesn't work due to SSL certificate issue
         private Metadata _gRpcMetadata;
         private GrpcChannel _channel;
         private CancellationTokenSource _cancellationTokenSource;
@@ -1623,7 +1632,8 @@ namespace OsEngine.Market.Servers.TInvest
                         Instruments = { tradeInstrument },
                         TradeSource = _filterOutDealerTrades
                             ? TradeSourceType.TradeSourceExchange
-                            : TradeSourceType.TradeSourceAll
+                            : TradeSourceType.TradeSourceAll,
+                        WithOpenInterest = true
                     };
                     marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
                     _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
@@ -1661,6 +1671,8 @@ namespace OsEngine.Market.Servers.TInvest
         #endregion
 
         #region 8 Reading messages from data streams
+
+        private Dictionary<string, OpenInterest> _openInterestData = new Dictionary<string, OpenInterest>(); // save open interest data to use later in trade updates
 
         private async void DataMessageReader()
         {
@@ -1709,6 +1721,21 @@ namespace OsEngine.Market.Servers.TInvest
                         Thread.Sleep(1);
                         continue;
                     }
+                    
+                    if (marketDataResponse.OpenInterest != null)
+                    {
+                        Security security = GetSecurity(marketDataResponse.OpenInterest.InstrumentUid);
+                        if (security == null)
+                            continue;
+
+                        if (_filterOutNonMarketData)
+                        {
+                            if (isTodayATradingDayForSecurity(security) == false)
+                                continue;
+                        }
+
+                        _openInterestData[security.Name] = marketDataResponse.OpenInterest; // save open interest data to cache
+                    }
 
                     if (marketDataResponse.Trade != null)
                     {
@@ -1730,30 +1757,33 @@ namespace OsEngine.Market.Servers.TInvest
                         trade.Side = marketDataResponse.Trade.Direction == TradeDirection.Buy ? Side.Buy : Side.Sell;
                         trade.Volume = marketDataResponse.Trade.Quantity;
 
+                        if (_openInterestData.ContainsKey(security.Name))
+                        {
+                            trade.OpenInterest = _openInterestData[security.Name].OpenInterest_;
+                        }
+
                         if (_ignoreMorningAuctionTrades && trade.Time.Hour < 9) // process only mornings
                         {
                             if (security.SecurityType == SecurityType.Futures)
                             {
-                                if (trade.Time < trade.Time.Date.AddHours(9))
+                                if (trade.Time < trade.Time.Date.AddHours(9)) // futures start trading at 9
                                 {
                                     continue;
                                 }
                             }
                             else
                             {
-                                if (trade.Time < trade.Time.Date.AddHours(7))
+                                if (trade.Time < trade.Time.Date.AddHours(7)) // options start trading at 7
                                 {
                                     continue;
                                 }
                             }
                         }
 
-                        if (NewTradesEvent != null)
-                        {
-                            NewTradesEvent(trade);
-                        }
+                        NewTradesEvent?.Invoke(trade);
                     }
 
+                   
                     if (marketDataResponse.LastPrice != null)
                     {
                         ProcessLastPrice(marketDataResponse.LastPrice);
@@ -1800,10 +1830,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         _lastMdTime = depth.Time;
 
-                        if (MarketDepthEvent != null)
-                        {
-                            MarketDepthEvent(depth);
-                        }
+                        MarketDepthEvent?.Invoke(depth);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)

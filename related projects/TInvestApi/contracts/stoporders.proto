@@ -15,13 +15,13 @@ import "common.proto";
 
 service StopOrdersService { /* Сервис для работы со стоп-заявками: выставление, отмена, получение списка стоп-заявок.*/
 
-  //Выставить стоп-заявку.
+  //PostStopOrder — выставить стоп-заявку
   rpc PostStopOrder(PostStopOrderRequest) returns (PostStopOrderResponse);
 
-  //Получить список активных стоп-заявок по счету.
+  //GetStopOrders — получить список активных стоп-заявок по счету
   rpc GetStopOrders(GetStopOrdersRequest) returns (GetStopOrdersResponse);
 
-  //Отменить стоп-заявку.
+  //CancelStopOrder — отменить стоп-заявку
   rpc CancelStopOrder(CancelStopOrderRequest) returns (CancelStopOrderResponse);
 }
 
@@ -42,6 +42,7 @@ message PostStopOrderRequest {
   TrailingData trailing_data = 13; //Массив с параметрами трейлинг-стопа.
   PriceType price_type = 14; //Тип цены.
   string order_id = 15 [(google.api.field_behavior) = REQUIRED]; //Идентификатор запроса выставления поручения для целей идемпотентности в формате `UID`. Максимальная длина — 36 символов.
+  bool confirm_margin_trade = 16; //Согласие на выставление заявки, которая может привести к непокрытой позиции, по умолчанию false.
   message TrailingData {
       Quotation indent = 1; //Отступ.
       TrailingValueType indent_type = 2; //Тип величины отступа.
