@@ -1001,6 +1001,19 @@ namespace OsEngine.Language
          "Eng:Non trade periods_" +
          "Ru:Не торговые периоды_");
 
+        public string Label242 => OsLocalization.ConvertToLocString(
+         "Eng:Check data feed on disconnect_" +
+         "Ru:Следить за разрывами связи_");
+
+        public string Label243 => OsLocalization.ConvertToLocString(
+         "Eng:Monitor the receipt of market depths and a tape of transactions for each signed security. In case of interruption, restart the connector. Increases the CPU load!_" +
+         "Ru:Следить за поступлением стаканов и ленты сделок по каждому подписанному инструменту. В случае прерывания - перезапускать коннектор. Увеличивает нагрузку на ЦП!_");
+
+
+
+
+
+
 
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(

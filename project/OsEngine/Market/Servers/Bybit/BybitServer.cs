@@ -4518,7 +4518,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private const string RecvWindow = "50000";
 
-        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(10));
 
         private HttpClientHandler httpClientHandler;
 
@@ -4602,12 +4602,13 @@ namespace OsEngine.Market.Servers.Bybit
 
         public string CreatePrivateQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
         {
-            _rateGate.WaitToProceed();
+            lock (_httpClientLocker)
+            {
+                _rateGate.WaitToProceed();
+            }
 
             try
             {
-                //lock (_httpClientLocker)
-                //{
                 string timestamp = GetServerTime();
                 HttpRequestMessage request = null;
                 string jsonPayload = "";
@@ -4664,7 +4665,6 @@ namespace OsEngine.Market.Servers.Bybit
 
                     return null;
                 }
-                // }
             }
             catch (Exception ex)
             {

@@ -134,10 +134,10 @@ namespace OsEngine.Market.Servers
                     proxyType.Add("Auto");
                     proxyType.Add("Manual");
                     CreateParameterEnum(OsLocalization.Market.Label171, "None", proxyType);
-                    ServerParameters[10].Comment = OsLocalization.Market.Label191;
+                    ServerParameters[ServerParameters.Count - 1].Comment = OsLocalization.Market.Label191;
 
                     CreateParameterString(OsLocalization.Market.Label172, "");
-                    ServerParameters[11].Comment = OsLocalization.Market.Label192;
+                    ServerParameters[ServerParameters.Count - 1].Comment = OsLocalization.Market.Label192;
                 }
 
                 if(ServerPermission != null 
@@ -146,6 +146,17 @@ namespace OsEngine.Market.Servers
                     _asyncOrdersSender 
                         = new AServerAsyncOrderSender(ServerPermission.AsyncOrderSending_RateGateLimitMls);
                     _asyncOrdersSender.ExecuteOrderInRealizationEvent += ExecuteOrderInRealization;
+                }
+
+                if (ServerPermission != null
+                    && ServerPermission.IsSupports_CheckDataFeedLogic)
+                {
+                    Task task4 = new Task(CheckDataFlowThread);
+                    task4.Start();
+
+                    CreateParameterBoolean(OsLocalization.Market.Label242, false);
+                    _needToCheckDataFeedOnDisconnect = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+                    ServerParameters[ServerParameters.Count-1].Comment = OsLocalization.Market.Label243;
                 }
 
                 _serverStandardParamsCount = ServerParameters.Count;
@@ -182,14 +193,6 @@ namespace OsEngine.Market.Servers
 
                 Task task3 = new Task(MyTradesBeepThread);
                 task3.Start();
-
-                if (ServerPermission != null
-                    && ServerPermission.IsSupports_CheckDataFeedLogic)
-                {
-                    _checkDataFlowIsOn = true;
-                    Task task4 = new Task(CheckDataFlowThread);
-                    task4.Start();
-                }
 
                 _serverIsCreated = true;
 
@@ -268,6 +271,8 @@ namespace OsEngine.Market.Servers
         /// whether to save the current session's trades to the file system
         /// </summary>
         private ServerParameterBool _needToSaveTicksParam;
+
+        private ServerParameterBool _needToCheckDataFeedOnDisconnect;
 
         /// <summary>
         /// parameter with the number of days for saving ticks
@@ -918,8 +923,6 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        private bool _checkDataFlowIsOn;
-
         /// <summary>
         /// alert message from client that connection is established
         /// </summary>
@@ -1288,7 +1291,7 @@ namespace OsEngine.Market.Servers
 
                             for (int i = 0; i < list.Count; i++)
                             {
-                                if (_checkDataFlowIsOn)
+                                if (_needToCheckDataFeedOnDisconnect.Value)
                                 {
                                     SecurityFlowTime tradeTime = new SecurityFlowTime();
                                     tradeTime.SecurityName = list[i][0].SecurityNameCode;
@@ -1383,7 +1386,7 @@ namespace OsEngine.Market.Servers
                                     NewMarketDepthEvent(depth);
                                 }
 
-                                if (_checkDataFlowIsOn)
+                                if (_needToCheckDataFeedOnDisconnect.Value)
                                 {
                                     SecurityFlowTime tradeTime = new SecurityFlowTime();
                                     tradeTime.SecurityName = depth.SecurityNameCode;
@@ -1427,7 +1430,7 @@ namespace OsEngine.Market.Servers
 
                                 for (int i = 0; i < list.Count; i++)
                                 {
-                                    if (_checkDataFlowIsOn)
+                                    if (_needToCheckDataFeedOnDisconnect.Value)
                                     {
                                         SecurityFlowTime tradeTime = new SecurityFlowTime();
                                         tradeTime.SecurityName = list[i].SecurityNameCode;
@@ -2349,11 +2352,6 @@ namespace OsEngine.Market.Servers
 
         private void SetSecurityInSubscribed(string securityName, string securityClass)
         {
-            if (_checkDataFlowIsOn == false)
-            {
-                return;
-            }
-
             string[] ignoreClasses = ServerPermission.CheckDataFeedLogic_ExceptionSecuritiesClass;
 
             if (ignoreClasses != null)
@@ -2414,7 +2412,7 @@ namespace OsEngine.Market.Servers
             {
                 try
                 {
-                    Thread.Sleep(3000);
+                    Thread.Sleep(1000);
 
                     if (MainWindow.ProccesIsWorked == false)
                     {
@@ -2426,12 +2424,22 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
+                    if(_needToCheckDataFeedOnDisconnect.Value == false)
+                    {
+                        continue;
+                    }
+
+                    SecurityFlowTime securityFlowTime = null;
+
+                    while (_securitiesFeedFlow.Count > 15000)
+                    {
+                        _securitiesFeedFlow.TryDequeue(out securityFlowTime);
+                    }
+
                     // 1 разбираем очередь с обновлением данных с сервера
 
                     while (_securitiesFeedFlow.Count > 0)
                     {
-                        SecurityFlowTime securityFlowTime = null;
-
                         if (_securitiesFeedFlow.TryDequeue(out securityFlowTime))
                         {
                             if (securityFlowTime.LastTimeMarketDepth != DateTime.MinValue)
