@@ -1003,7 +1003,7 @@ namespace OsEngine.Language
 
         public string Label242 => OsLocalization.ConvertToLocString(
          "Eng:Check data feed on disconnect_" +
-         "Ru:Следить за разрывами связи_");
+         "Ru:Следить за разрывами связи дополнительно_");
 
         public string Label243 => OsLocalization.ConvertToLocString(
          "Eng:Monitor the receipt of market depths and a tape of transactions for each signed security. In case of interruption, restart the connector. Increases the CPU load!_" +

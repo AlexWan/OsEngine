@@ -332,8 +332,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.TelegramNews);
                 serverTypes.Add(ServerType.BinanceData);
                 serverTypes.Add(ServerType. AscendexSpot);
-                serverTypes.Add(ServerType.OKXData);
-
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
 
