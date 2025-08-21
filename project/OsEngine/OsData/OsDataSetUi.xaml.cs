@@ -82,7 +82,8 @@ namespace OsEngine.OsData
                 ComboBoxSource.SelectedItem = _set.BaseSettings.SourceName;
             }
 
-            if (ComboBoxSource.SelectedItem == null)
+            if (ComboBoxSource.SelectedItem == null
+                && string.IsNullOrEmpty(_set.BaseSettings.SourceName) == false)
             {
                 ComboBoxSource.Items.Add(_set.BaseSettings.SourceName);
                 ComboBoxSource.SelectedItem = _set.BaseSettings.SourceName;
