@@ -6508,10 +6508,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// has the session started today?
-        /// </summary>
-        private bool _firstTickToDaySend;
+        private DateTime _firstTradeTimeInDayLastSendTime;
 
         private DateTime _lastTradeTime;
 
@@ -6582,14 +6579,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Trade trade = trades[trades.Count - 1];
 
-            if (trade != null && _firstTickToDaySend == false && FirstTickToDayEvent != null)
+            if (FirstTickToDayEvent != null
+                && trade != null
+                &&
+                (_firstTradeTimeInDayLastSendTime == DateTime.MinValue
+                || _firstTradeTimeInDayLastSendTime.Date != trade.Time.Date))
             {
-                if (trade.Time.Hour == 10
-                    && (trade.Time.Minute == 1 || trade.Time.Minute == 0))
-                {
-                    _firstTickToDaySend = true;
-                    FirstTickToDayEvent(trade);
-                }
+                _firstTradeTimeInDayLastSendTime = trade.Time;
+                FirstTickToDayEvent(trade);
             }
 
             List<Trade> newTrades = new List<Trade>();
