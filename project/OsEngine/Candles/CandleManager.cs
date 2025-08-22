@@ -370,32 +370,39 @@ namespace OsEngine.Entity
 
         private void StandardStarter(CandleSeries series)
         {
-            if (series.CandleCreateMethodType != "Simple" ||
-                series.TimeFrameSpan.TotalMinutes < 1)
+            try
             {
-                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                series.PreLoad(allTrades);
+                if (series.CandleCreateMethodType != "Simple" ||
+                    series.TimeFrameSpan.TotalMinutes < 1)
+                {
+                    List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                    series.PreLoad(allTrades);
+                }
+                else
+                {
+                    AServer aServer = (AServer)_server;
+                    int candlesToRequestCount =
+                        ((OsEngine.Market.Servers.Entity.ServerParameterInt)aServer.GetStandardServerParameter(3)).Value;
+
+                    if (candlesToRequestCount < 50)
+                    {
+                        candlesToRequestCount = 50;
+                    }
+                    List<Candle> candles = _server.GetLastCandleHistory(series.Security, series.TimeFrameBuilder, candlesToRequestCount);
+
+                    if (candles != null)
+                    {
+                        series.CandlesAll = candles;
+                    }
+                }
+
+                series.UpdateAllCandles();
+                series.IsStarted = true;
             }
-            else
+            catch(Exception ex)
             {
-                AServer aServer = (AServer)_server;
-                int candlesToRequestCount = 
-                    ((OsEngine.Market.Servers.Entity.ServerParameterInt)aServer.GetStandardServerParameter(3)).Value;
-
-                if (candlesToRequestCount < 50)
-                {
-                    candlesToRequestCount = 50;
-                }
-                List<Candle> candles = _server.GetLastCandleHistory(series.Security, series.TimeFrameBuilder, candlesToRequestCount);
-
-                if (candles != null)
-                {
-                    series.CandlesAll = candles;
-                }
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            series.UpdateAllCandles();
-            series.IsStarted = true;
         }
 
         /// <summary>
