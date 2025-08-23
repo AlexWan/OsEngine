@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Forms;
+﻿using OsEngine.Alerts;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
-using OsEngine.Language;
-using OsEngine.Alerts;
-using System.Threading;
+using OsEngine.Robots.Engines;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -29,7 +30,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         private Dictionary<string, DataGridViewRow> _uaGridRows;
         private Dictionary<decimal, DataGridViewRow> _strikeGridRows; // Maps strike to the wide row
 
-        private List<ConnectorCandles> _connectors;
+        private Dictionary<string, BotTabSimple> _simpleTabs;
+        //private List<CandleEngine> _chartEngines = new List<CandleEngine>();
         private Thread _highlightingThread;
         private bool _isDisposed;
         private BotTabOptionsUi _ui;
@@ -62,13 +64,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _allOptionsData = new List<OptionDataRow>();
             _uaData = new List<UnderlyingAssetDataRow>();
-            _connectors = new List<ConnectorCandles>();
+            _simpleTabs = new Dictionary<string, BotTabSimple>();
             _uaGridRows = new Dictionary<string, DataGridViewRow>();
             _strikeGridRows = new Dictionary<decimal, DataGridViewRow>();
 
             CreateGrids();
 
-            _highlightingThread = new Thread(HighlightingLoop) { IsBackground = true };
+            _highlightingThread = new Thread(UpdateLoop) { IsBackground = true };
             _highlightingThread.Start();
         }
 
@@ -84,8 +86,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             // Clear previous data
             _allOptionsData.Clear();
             _uaData.Clear();
-            foreach (var connector in _connectors) { connector.Delete(); }
-            _connectors.Clear();
+            foreach (var tab in _simpleTabs.Values) { tab.Delete(); }
+            _simpleTabs.Clear();
 
             var optionsToTrade = allSecurities.Where(s => s.SecurityType == SecurityType.Option && UnderlyingAssets.Contains(s.UnderlyingAsset))
                                              .OrderBy(o => o.Expiration).ToList();
@@ -94,13 +96,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             foreach (var uaSec in underlyingAssetSecurities)
             {
                 _uaData.Add(new UnderlyingAssetDataRow { Security = uaSec });
-                CreateConnector(uaSec, server);
+                CreateSimpleTab(uaSec, server);
             }
 
             foreach (var option in optionsToTrade)
             {
-                _allOptionsData.Add(new OptionDataRow { Security = option });
-                CreateConnector(option, server);
+                var tab = CreateSimpleTab(option, server);
+                _allOptionsData.Add(new OptionDataRow { Security = option, SimpleTab = tab });
             }
 
             PopulateExpirationFilter(optionsToTrade);
@@ -138,11 +140,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             string[] callHeaders = { "Theta", "Vega", "Gamma", "Delta", "Last", "Ask", "Bid", "IV", "Name" };
             string[] putHeaders = { "Bid", "Ask", "Last", "Delta", "Gamma", "Vega", "Theta", "IV", "Name" };
             foreach (var header in callHeaders) { _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = header, Name = "Call" + header, ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells }); }
+            _optionsGrid.Columns.Insert(callHeaders.Length, new DataGridViewButtonColumn { HeaderText = "Chart", Name = "CallChart", UseColumnTextForButtonValue = true, Text = "Open" });
+
             _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Strike", Name = "Strike", ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
+
             foreach (var header in putHeaders) { _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = header, Name = "Put" + header, ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells }); }
+
+            _optionsGrid.Columns.Add(new DataGridViewButtonColumn { HeaderText = "Chart", Name = "PutChart", UseColumnTextForButtonValue = true, Text = "Open" });
             _optionsGrid.Columns["CallName"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _optionsGrid.Columns["PutName"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _optionsGrid.Columns["Strike"].DefaultCellStyle.Font = new Font(_optionsGrid.Font, FontStyle.Bold);
+            _optionsGrid.CellClick += _optionsGrid_CellClick;
 
             _mainControl.Controls.Add(_uaGrid, 0, 0);
             _mainControl.Controls.Add(filterPanel, 0, 1);
@@ -214,88 +222,271 @@ namespace OsEngine.OsTrader.Panels.Tab
             { 
                 var row = new DataGridViewRow(); 
                 row.CreateCells(_optionsGrid, 
-                    data.CallData?.Theta, data.CallData?.Vega, data.CallData?.Gamma, data.CallData?.Delta, data.CallData?.LastPrice, data.CallData?.Ask, data.CallData?.Bid, data.CallIV, data.CallData?.Security.Name,
+                    data.CallData?.Theta, data.CallData?.Vega, data.CallData?.Gamma, data.CallData?.Delta, data.CallData?.LastPrice, data.CallData?.Ask, data.CallData?.Bid, data.CallIV, data.CallData?.Security.Name,"chart",
                     data.Strike,
-                    data.PutData?.Bid, data.PutData?.Ask, data.PutData?.LastPrice, data.PutData?.Delta, data.PutData?.Gamma, data.PutData?.Vega, data.PutData?.Theta, data.PutIV, data.PutData?.Security.Name);
+                    data.PutData?.Bid, data.PutData?.Ask, data.PutData?.LastPrice, data.PutData?.Delta, data.PutData?.Gamma, data.PutData?.Vega, data.PutData?.Theta, data.PutIV, data.PutData?.Security.Name, "chart");
                 _strikeGridRows.Add(data.Strike, row);
                 _optionsGrid.Rows.Add(row);
             } 
         }
+
+        private void _optionsGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var isCallChart = e.ColumnIndex == _optionsGrid.Columns["CallChart"].Index;
+            var isPutChart = e.ColumnIndex == _optionsGrid.Columns["PutChart"].Index;
+
+            if (!isCallChart && !isPutChart) return;
+
+            var strike = (decimal)_optionsGrid.Rows[e.RowIndex].Cells["Strike"].Value;
+            var strikeData = _allOptionsData.Where(o => o.Security.Strike == strike).ToList();
+            var optionData = isCallChart ? strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call) : strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
+
+            if (optionData?.SimpleTab != null)
+            {
+                ShowChart(optionData.SimpleTab);
+            }
+        }
+
+        private void ShowChart(BotTabSimple tab)
+        {
+            try
+            {
+                string botName = tab.TabName + "_Engine";
+                CandleEngine bot = new CandleEngine(botName, StartProgram);
+
+                bot.GetTabs().Clear();
+                bot.GetTabs().Add(tab);
+                bot.TabsSimple[0] = tab;
+                bot.ActiveTab = tab;
+
+                bot.ChartClosedEvent += (string nameBot) =>
+                {
+                };
+
+                bot.ShowChartDialog();
+            }
+            catch (Exception ex)
+            {
+                //SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
         #endregion
 
         #region Connectors and Data Handling
-        private void CreateConnector(Security security, IServer server) { var connector = new ConnectorCandles(TabName + security.Name, StartProgram, false); connector.ServerType = server.ServerType; connector.PortfolioName = this.PortfolioName; connector.SecurityName = security.Name; connector.SecurityClass = security.NameClass; connector.GlassChangeEvent += Connector_GlassChangeEvent; connector.AdditionalDataEvent += Connector_AdditionalDataEvent; connector.TickChangeEvent += Connector_TickChangeEvent; _connectors.Add(connector); }
-
-        private void Connector_TickChangeEvent(List<Trade> trades) { if (_isDisposed || trades == null || trades.Count == 0) return; var lastTrade = trades[trades.Count - 1]; var securityName = lastTrade.SecurityNameCode; if (UnderlyingAssets.Contains(securityName)) { var uaRow = _uaData.FirstOrDefault(u => u.Security.Name == securityName); if (uaRow != null) uaRow.LastPrice = lastTrade.Price; UpdateGridCell(_uaGridRows, securityName, "LastPrice", lastTrade.Price); } else { var optionRow = _allOptionsData.FirstOrDefault(o => o.Security.Name == securityName); if (optionRow != null) { optionRow.LastPrice = lastTrade.Price; UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, optionRow.Security.OptionType == OptionType.Call ? "CallLast" : "PutLast", lastTrade.Price); } } }
-
-        private void Connector_GlassChangeEvent(MarketDepth marketDepth)
+        private BotTabSimple CreateSimpleTab(Security security, IServer server)
         {
-            if (_isDisposed || marketDepth?.Bids?.Count == 0 || marketDepth?.Asks?.Count == 0) return;
-            var securityName = marketDepth.SecurityNameCode;
-            var bid = marketDepth.Bids[0].Price;
-            var ask = marketDepth.Asks[0].Price;
-            if (UnderlyingAssets.Contains(securityName))
+            var tab = new BotTabSimple(TabName + security.Name, StartProgram);
+            tab.Connector.ServerType = server.ServerType;
+            tab.Connector.PortfolioName = this.PortfolioName;
+            tab.Connector.SecurityName = security.Name;
+            tab.Connector.SecurityClass = security.NameClass;
+            tab.Connector.ServerFullName = server.ServerType.ToString();
+            tab.Connector.SaveTradesInCandles = false;//  SaveTradesInCandles;
+
+            //tab.CommissionType = CommissionType;
+            //tab.CommissionValue = CommissionValue;
+            
+
+            //tab.Connector.EmulatorIsOn = _emulatorIsOn;
+
+            //tab.Connector.ServerUid = ServerUid;
+
+            //newTab.TimeFrameBuilder.TimeFrame = frame;
+            //newTab.Connector.CandleMarketDataType = CandleMarketDataType;
+            //newTab.Connector.CandleCreateMethodType = CandleCreateMethodType;
+            //newTab.Connector.TimeFrame = frame;
+            //newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
+            //newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.OnStateChange(CandleSeriesState.ParametersChange);
+
+            tab.Connector.AdditionalDataEvent += Connector_AdditionalDataEvent;
+            tab.Connector.GlassChangeEvent += Connector_GlassChangeEvent;
+            tab.Connector.TickChangeEvent += Connector_TickChangeEvent;
+
+            tab.IsCreatedByScreener = true;
+
+            _simpleTabs.Add(security.Name, tab);
+            return tab;
+        }
+
+        private void Connector_AdditionalDataEvent(OptionMarketData data)
+        {
+            if (_isDisposed)
             {
-                var uaRow = _uaData.FirstOrDefault(u => u.Security.Name == securityName); if (uaRow != null) { uaRow.Bid = bid; uaRow.Ask = ask; }
-                UpdateGridCell(_uaGridRows, securityName, "Bid", bid); UpdateGridCell(_uaGridRows, securityName, "Ask", ask);
+                return;
             }
-            else { 
-                var optionRow = _allOptionsData.FirstOrDefault(o => o.Security.Name == securityName); 
-                if (optionRow != null)
+
+            if (_mainControl.InvokeRequired)
+            {
+                _mainControl.Invoke(new Action<OptionMarketData>(Connector_AdditionalDataEvent), data);
+                return;
+            }
+
+            var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == data.SecurityName);
+            if (optionData != null)
+            {
+                optionData.Delta = data.Delta;
+                optionData.Gamma = data.Gamma;
+                optionData.Vega = data.Vega;
+                optionData.Theta = data.Theta;
+
+                if (_strikeGridRows.TryGetValue(optionData.Security.Strike, out var row))
                 {
-                    if (optionRow.Security.OptionType == OptionType.Call)
+                    if (optionData.Security.OptionType == OptionType.Call)
                     {
-                        optionRow.Bid = bid; optionRow.Ask = ask;
-                        UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "CallBid", bid); 
-                        UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "CallAsk", ask);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "CallDelta", data.Delta);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "CallGamma", data.Gamma);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "CallVega", data.Vega);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "CallTheta", data.Theta);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "CallIV", data.MarkIV);
                     }
-                    else 
-                    { 
-                        optionRow.Bid = bid; 
-                        optionRow.Ask = ask; 
-                        UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "PutBid", bid); 
-                        UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "PutAsk", ask); 
+                    else
+                    {
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "PutDelta", data.Delta);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "PutGamma", data.Gamma);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "PutVega", data.Vega);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "PutTheta", data.Theta);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "PutIV", data.MarkIV);
                     }
                 }
             }
         }
 
-        private void Connector_AdditionalDataEvent(OptionMarketData data) 
-        { 
-            if (_isDisposed) return; 
-            var optionRow = _allOptionsData.FirstOrDefault(o => o.Security.Name == data.SecurityName); 
-            if (optionRow != null) 
+        private void Connector_TickChangeEvent(List<Trade> trades)
+        {
+            if (_isDisposed)
             {
-                if (optionRow.Security.OptionType == OptionType.Call) 
-                { 
-                    optionRow.Delta = data.Delta; 
-                    optionRow.Gamma = data.Gamma; 
-                    optionRow.Vega = data.Vega; 
-                    optionRow.Theta = data.Theta; 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "CallDelta", data.Delta); 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "CallGamma", data.Gamma); 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "CallVega", data.Vega); 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "CallTheta", data.Theta); 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "CallIV", data.MarkIV); 
-                } 
-                else 
-                { 
-                    optionRow.Delta = data.Delta; 
-                    optionRow.Gamma = data.Gamma; 
-                    optionRow.Vega = data.Vega; 
-                    optionRow.Theta = data.Theta; 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "PutDelta", data.Delta); 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "PutGamma", data.Gamma); 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "PutVega", data.Vega); 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "PutTheta", data.Theta); 
-                    UpdateGridCell(_strikeGridRows, optionRow.Security.Strike, "PutIV", data.MarkIV); 
-                } 
-            } 
+                return;
+            }
+
+            if (trades == null || trades.Count == 0)
+            {
+                return;
+            }
+
+            var trade = trades[trades.Count - 1];
+
+            if (_mainControl.InvokeRequired)
+            {
+                _mainControl.Invoke(new Action<List<Trade>>(Connector_TickChangeEvent), trades);
+                return;
+            }
+
+            var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == trade.SecurityNameCode);
+            if (optionData != null)
+            {
+                optionData.LastPrice = trade.Price;
+
+                if (_strikeGridRows.TryGetValue(optionData.Security.Strike, out var row))
+                {
+                    if (optionData.Security.OptionType == OptionType.Call)
+                    {
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "CallLast", trade.Price);
+                    }
+                    else
+                    {
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "PutLast", trade.Price);
+                    }
+                }
+                return;
+            }
+
+            var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == trade.SecurityNameCode);
+            if (uaData != null)
+            {
+                uaData.LastPrice = trade.Price;
+                UpdateGridCell(_uaGridRows, uaData.Security.Name, "LastPrice", uaData.LastPrice);
+            }
         }
+
+        private void Connector_GlassChangeEvent(MarketDepth marketDepth)
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            if (_mainControl.InvokeRequired)
+            {
+                _mainControl.Invoke(new Action<MarketDepth>(Connector_GlassChangeEvent), marketDepth);
+                return;
+            }
+
+            var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == marketDepth.SecurityNameCode);
+            if (optionData != null)
+            {
+                decimal bestBid = 0;
+                if (marketDepth.Bids != null && marketDepth.Bids.Count > 0)
+                {
+                    bestBid = marketDepth.Bids[0].Price;
+                }
+
+                decimal bestAsk = 0;
+                if (marketDepth.Asks != null && marketDepth.Asks.Count > 0)
+                {
+                    bestAsk = marketDepth.Asks[0].Price;
+                }
+
+                optionData.Bid = bestBid;
+                optionData.Ask = bestAsk;
+
+                if (_strikeGridRows.TryGetValue(optionData.Security.Strike, out var row))
+                {
+                    if (optionData.Security.OptionType == OptionType.Call)
+                    {
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "CallBid", bestBid);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "CallAsk", bestAsk);
+                    }
+                    else
+                    {
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "PutBid", bestBid);
+                        UpdateGridCell(_strikeGridRows, optionData.Security.Strike, "PutAsk", bestAsk);
+                    }
+                }
+                return;
+            }
+
+            var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == marketDepth.SecurityNameCode);
+            if (uaData != null)
+            {
+                decimal bestBid = 0;
+                if (marketDepth.Bids != null && marketDepth.Bids.Count > 0)
+                {
+                    bestBid = marketDepth.Bids[0].Price;
+                }
+
+                decimal bestAsk = 0;
+                if (marketDepth.Asks != null && marketDepth.Asks.Count > 0)
+                {
+                    bestAsk = marketDepth.Asks[0].Price;
+                }
+
+                uaData.Bid = bestBid;
+                uaData.Ask = bestAsk;
+                UpdateGridCell(_uaGridRows, uaData.Security.Name, "Bid", uaData.Bid);
+                UpdateGridCell(_uaGridRows, uaData.Security.Name, "Ask", uaData.Ask);
+            }
+        }
+
+        
         #endregion
 
         #region Highlighting and UI Updates
-        private void HighlightingLoop() { while (!_isDisposed) { Thread.Sleep(2000); if (_mainControl.IsHandleCreated && !_isDisposed) _mainControl.Invoke(new Action(UpdateHighlighting)); } }
+        private void UpdateLoop()
+        {
+            while (!_isDisposed)
+            {
+                Thread.Sleep(2000);
+                if (_mainControl.IsHandleCreated && !_isDisposed)
+                {
+                    _mainControl.Invoke(new Action(() =>
+                    {
+                        UpdateHighlighting();
+                    }));
+                }
+            }
+        }
 
         private void UpdateHighlighting() 
         {
@@ -337,7 +528,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region IIBotTab Implementation
         public void Clear() { }
-        public void Delete() { _isDisposed = true; if (_highlightingThread != null && _highlightingThread.IsAlive) _highlightingThread.Abort(); foreach (var connector in _connectors) connector.Delete(); TabDeletedEvent?.Invoke(); }
+        public void Delete() { _isDisposed = true; if (_highlightingThread != null && _highlightingThread.IsAlive) _highlightingThread.Abort(); foreach (var tab in _simpleTabs.Values) { tab.Connector.AdditionalDataEvent -= Connector_AdditionalDataEvent; tab.Connector.TickChangeEvent -= Connector_TickChangeEvent; tab.Connector.GlassChangeEvent -= Connector_GlassChangeEvent; tab.Delete(); } TabDeletedEvent?.Invoke(); }
         public void ShowDialog() { if (ServerMaster.GetServers() == null || ServerMaster.GetServers().Count == 0) { new AlertMessageSimpleUi(OsLocalization.Market.Message1).Show(); return; } if (_ui != null && !_ui.IsLoaded) _ui = null; if (_ui == null) { _ui = new BotTabOptionsUi(this); _ui.Closed += (sender, args) => { _ui = null; }; _ui.Show(); } else { _ui.Activate(); } }
         public void StartPaint(System.Windows.Forms.Integration.WindowsFormsHost hostChart) { hostChart.Child = _mainControl; }
         public void StopPaint() { }
@@ -345,7 +536,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region DataRow Classes
         public class StrikeDataRow { public decimal Strike { get; set; } public OptionDataRow CallData { get; set; } public OptionDataRow PutData { get; set; } public decimal CallIV { get; set; } public decimal PutIV { get; set; } }
-        public class OptionDataRow { public Security Security { get; set; } public decimal Bid { get; set; } public decimal Ask { get; set; } public decimal LastPrice { get; set; } public decimal Delta { get; set; } public decimal Gamma { get; set; } public decimal Vega { get; set; } public decimal Theta { get; set; } }
+        public class OptionDataRow { public Security Security { get; set; } public BotTabSimple SimpleTab { get; set; } public decimal Bid { get; set; } public decimal Ask { get; set; } public decimal LastPrice { get; set; } public decimal Delta { get; set; } public decimal Gamma { get; set; } public decimal Vega { get; set; } public decimal Theta { get; set; } }
         public class UnderlyingAssetDataRow { public Security Security { get; set; } public decimal Bid { get; set; } public decimal Ask { get; set; } public decimal LastPrice { get; set; } }
         #endregion
     }
