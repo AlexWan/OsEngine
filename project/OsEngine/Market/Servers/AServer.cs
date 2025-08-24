@@ -2355,15 +2355,18 @@ namespace OsEngine.Market.Servers
 
         private void SetSecurityInSubscribed(string securityName, string securityClass)
         {
-            string[] ignoreClasses = ServerPermission.CheckDataFeedLogic_ExceptionSecuritiesClass;
-
-            if (ignoreClasses != null)
+            if(ServerPermission != null)
             {
-                for (int i = 0; i < ignoreClasses.Length; i++)
+                string[] ignoreClasses = ServerPermission.CheckDataFeedLogic_ExceptionSecuritiesClass;
+
+                if (ignoreClasses != null)
                 {
-                    if (ignoreClasses[i].Equals(securityClass))
+                    for (int i = 0; i < ignoreClasses.Length; i++)
                     {
-                        return;
+                        if (ignoreClasses[i].Equals(securityClass))
+                        {
+                            return;
+                        }
                     }
                 }
             }
