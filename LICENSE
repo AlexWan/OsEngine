@@ -2,7 +2,7 @@ END USER LICENSE AGREEMENT
 
 1. SUBJECT OF THE AGREEMENT  
 1.1. The Limited Liability Company "VAN TECHNOLOGIES", registered in accordance with the legislation of the Russian Federation (BIN 1232300013593, TIN 2373023082, hereinafter referred to as the "Right Holder"), is the developer and holder of the exclusive rights to a suite of software for automating exchange trading titled Open Source Algo Trading Platform (under the trademark OSENGINE), hereinafter referred to as the "Software".  
-1.2. The current version of the Software is made available by the Right Holder on the website page o-s-a.net on the Internet (hereinafter referred to as the "Official Source").  
+1.2. The current version of the Software is made available by the Right Holder on the website page https://o-s-a.net/os-engine.html (https://gitflic.ru/project/van-tehnologii/osengine, https://github.com/AlexWan/OsEngine) on the Internet (hereinafter referred to as the "Official Source").  
 1.3. This license agreement applies to individuals and legal entities, commercial and non-commercial organizations intending to use the Software, hereinafter referred to as the "User".  
 1.4. The Right Holder grants the User a simple (non-exclusive) license to use the Software under the terms of this End User License Agreement (hereinafter referred to as the "Agreement").  
 1.5. The Agreement is deemed concluded, and its terms are considered fully and unconditionally accepted (accepted) by the User at the moment they record the Software from the Official Source into the memory of any computer.
@@ -13,8 +13,7 @@ END USER LICENSE AGREEMENT
 (1) Data - a program for loading historical trading data from various sources;  
 (2) Optimizer - a program for selecting optimal parameters for the strategy;  
 (3) Tester - a program for simultaneously testing multiple strategies based on historical data (exchange emulator);  
-(4) Miner - a program for finding profitable patterns on charts;  
-(5) Botstation - a program for launching trading robots.  
+(4) Botstation - a program for launching trading robots.  
 2.3. The Right Holder has the right to make any changes to the Software at its discretion and without prior notice to the User. Current versions of the Software with changes are made available by the Right Holder in the Official Source.
 
 3. WAYS TO USE THE SOFTWARE  
@@ -37,7 +36,7 @@ END USER LICENSE AGREEMENT
 5. EXCLUSIVE RIGHTS OF THE RIGHT HOLDER  
 5.1. The Right Holder assures the User that it is the legitimate owner of the exclusive rights to the Software and that granting the right to use the Software under the Agreement does not violate the lawful rights and interests of third parties.  
 5.2. In executing the Agreement, the Right Holder retains exclusive rights to the Software, including but not limited to the right to use and modify the Software, grant licenses for its use to third parties, and transfer the exclusive rights to the Software.  
-5.3. If the User makes modifications to the source code of the Software and publishes the resulting derivative Software on the Right Holder's page at https://github.com/AlexWan/OsEngine, the exclusive rights to the corresponding derivative Software belong to the Right Holder.  
+5.3. If the User makes modifications to the source code of the Software and publishes the resulting derivative Software on the Right Holder's page at https://github.com/AlexWan/OsEngine or https://gitflic.ru/project/van-tehnologii/osengine, the exclusive rights to the corresponding derivative Software belong to the Right Holder.  
 5.4. The Right Holder may, at its discretion, take legal measures to protect its exclusive rights to the Software and hold violators liable under civil, administrative, or criminal law.
 
 6. DISCLAIMER OF LIABILITY BY THE RIGHT HOLDER  
