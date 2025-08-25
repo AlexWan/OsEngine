@@ -30,6 +30,8 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
         private CancellationTokenSource _cts;
 
+        private string _ctsLocker = "_ctsLocker";
+
         private Task _receiveTask;
 
         public WebSocketState ReadyState;
@@ -61,27 +63,34 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     throw new InvalidOperationException("URL must be set before connecting.");
                 }
 
-                if (_cts != null)
+                CancellationToken token;
+
+                lock (_ctsLocker)
                 {
-                    _cts.Cancel();
-                    _cts.Dispose();
+                    if (_cts != null)
+                    {
+                        _cts.Cancel();
+                        _cts.Dispose();
+                    }
+
+                    _cts = new CancellationTokenSource();
+                    token = _cts.Token;
                 }
 
-                _cts = new CancellationTokenSource();
-
-                await _client.ConnectAsync(new Uri(_url), _cts.Token);
+                await _client.ConnectAsync(new Uri(_url), token);
 
                 ReadyState = WebSocketState.Open;
 
                 OnOpen?.Invoke(this, EventArgs.Empty);
 
-                _receiveTask = Task.Run(() => ReceiveLoopAsync(_cts.Token));
+                _receiveTask = Task.Run(() => ReceiveLoopAsync(token));
 
             }
             catch (Exception ex)
             {
                 ErrorEventArgs eventArgs = new ErrorEventArgs();
                 eventArgs.Exception = ex;
+
                 OnError?.Invoke(this, eventArgs);
             }
         }
@@ -90,9 +99,12 @@ namespace OsEngine.Entity.WebSocketOsEngine
         {
             try
             {
-                if (_cts != null)
+                lock (_ctsLocker)
                 {
-                    _cts.Cancel();
+                    if (_cts != null)
+                    {
+                        _cts.Cancel();
+                    }
                 }
 
                 if (_receiveTask != null)
@@ -116,10 +128,13 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     catch (Exception) { /* Ignore close errors, client might be disposed already or connection lost */ }
                 }
 
-                if (_cts != null)
+                lock (_ctsLocker)
                 {
-                    _cts.Dispose();
-                    _cts = null;
+                    if (_cts != null)
+                    {
+                        _cts.Dispose();
+                        _cts = null;
+                    }
                 }
             }
             catch
