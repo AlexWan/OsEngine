@@ -456,6 +456,36 @@ namespace OsEngine.Market.Servers.MOEX
                 List<Candle> sourseCandle = GetAllCandles(security, startTime, 60, endTime);
                 candles = ConcateCandles(sourseCandle, 60, minutesInTf);
             }
+
+            Candle previousCandle = new Candle();
+
+            for (int i = 0; i < candles.Count; i++)
+            {
+                Candle newCandle = candles[i];
+            
+                if (newCandle.TimeStart.TimeOfDay == TimeSpan.Zero)
+                {
+                    candles.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                else if (previousCandle.TimeStart == DateTime.MinValue)
+                {
+                    previousCandle = newCandle;
+                    continue;
+                }
+                else if (newCandle.TimeStart == previousCandle.TimeStart)
+                {
+                    candles.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                else
+                {
+                    previousCandle = newCandle;
+                }
+            }
+            
             return candles;
         }
 
