@@ -104,9 +104,9 @@ namespace OsEngine.OsOptimizer
 
             DatePickerStart.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
             DatePickerEnd.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
-            DatePickerStart.DisplayDate = _master.TimeStart;
-            
-            DatePickerEnd.DisplayDate = _master.TimeEnd;
+
+            DatePickerStart.SelectedDate = _master.TimeStart;
+            DatePickerEnd.SelectedDate = _master.TimeEnd;
 
             TextBoxPercentFiltration.Text = _master.PercentOnFiltration.ToString();
 
@@ -431,9 +431,6 @@ namespace OsEngine.OsOptimizer
 
             DatePickerStart.SelectedDate = _master.TimeStart;
             DatePickerEnd.SelectedDate = _master.TimeEnd;
-
-            /*DatePickerStart.Text = _master.TimeStart.ToString(_currentCulture);
-            DatePickerEnd.Text = _master.TimeEnd.ToString(_currentCulture);*/
         }
 
         #region Progress bars
