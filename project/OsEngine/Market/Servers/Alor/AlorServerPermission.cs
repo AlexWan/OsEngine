@@ -238,7 +238,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public bool IsSupports_AsyncOrderSending
         {
-            get { return false; }
+            get { return true; }
         }
 
         public int AsyncOrderSending_RateGateLimitMls
@@ -248,7 +248,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public bool IsSupports_AsyncCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public int AsyncCandlesStarter_RateGateLimitMls
