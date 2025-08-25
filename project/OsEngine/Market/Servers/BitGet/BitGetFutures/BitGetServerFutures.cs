@@ -723,7 +723,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
-            return GetCandleData(security, timeFrameBuilder, startTime, endTime, endTime, false);
+            return GetCandleData(security, timeFrameBuilder, startTime, endTime, endTime, true);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
