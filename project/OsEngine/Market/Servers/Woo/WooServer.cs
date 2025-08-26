@@ -175,60 +175,63 @@ namespace OsEngine.Market.Servers.Woo
         {
             try
             {
-                string url = $"{_baseUrl}/v1/public/info";
+                string url = $"{_baseUrl}/v3/public/instruments";
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
-                string JsonResponse = responseMessage.Content;
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    UpdateSecurity(JsonResponse);
+                    ResponseMessageRest<ResponseSecurities> response = JsonConvert.DeserializeObject<ResponseMessageRest<ResponseSecurities>>(responseMessage.Content);
+
+                    if (response.success == "true")
+                    {
+                        List<Security> securities = new List<Security>();
+
+                        for (int i = 0; i < response.data.rows.Count; i++)
+                        {
+                            Rows item = response.data.rows[i];
+
+                            if (item.status == "TRADING")
+                            {
+                                Security newSecurity = new Security();
+
+                                newSecurity.Exchange = ServerType.Woo.ToString();
+                                newSecurity.Name = item.symbol;
+                                newSecurity.NameFull = item.symbol;
+                                newSecurity.NameClass = item.symbol.StartsWith("SPOT") ? "Spot_" + item.quoteAsset : "Futures_" + item.quoteAsset;
+                                newSecurity.NameId = item.symbol;
+                                newSecurity.SecurityType = item.symbol.StartsWith("SPOT") ? SecurityType.CurrencyPair : SecurityType.Futures;
+                                newSecurity.DecimalsVolume = item.baseMin.DecimalsCount();
+                                newSecurity.Lot = 1;// item.base_min.ToDecimal();
+                                newSecurity.PriceStep = item.quoteTick.ToDecimal();
+                                newSecurity.Decimals = item.quoteTick.DecimalsCount();
+                                newSecurity.PriceStepCost = newSecurity.PriceStep;
+                                newSecurity.State = SecurityStateType.Activ;
+                                newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+                                newSecurity.MinTradeAmount = item.baseMin.ToDecimal();
+                                newSecurity.VolumeStep = item.baseMin.ToDecimal();
+
+                                securities.Add(newSecurity);
+                            }
+                        }
+
+                        SecurityEvent(securities);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Securities error. {responseMessage.Content}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                    SendLogMessage($"Securities request error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
                 }
-
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
-        }
-
-        private void UpdateSecurity(string json)
-        {
-            ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(json); ;
-
-            List<Security> securities = new List<Security>();
-
-            for (int i = 0; i < response.rows.Count; i++)
-            {
-                ResponseMessageSecurities.Rows item = response.rows[i];
-
-                if (item.status == "TRADING")
-                {
-                    Security newSecurity = new Security();
-
-                    newSecurity.Exchange = ServerType.Woo.ToString();
-                    newSecurity.Name = item.symbol;
-                    newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = item.symbol.StartsWith("SPOT") ? "Spot" : "Futures";
-                    newSecurity.NameId = item.symbol;
-                    newSecurity.SecurityType = item.symbol.StartsWith("SPOT") ? SecurityType.CurrencyPair : SecurityType.Futures;
-                    newSecurity.DecimalsVolume = item.base_min.DecimalsCount();
-                    newSecurity.Lot = item.base_min.ToDecimal();
-                    newSecurity.PriceStep = item.quote_tick.ToDecimal();
-                    newSecurity.Decimals = item.quote_tick.DecimalsCount();
-                    newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.State = SecurityStateType.Activ;
-                    newSecurity.MinTradeAmount = item.base_min.ToDecimal();
-
-                    securities.Add(newSecurity);
-                }
-            }
-            SecurityEvent(securities);
         }
 
         public event Action<List<Security>> SecurityEvent;
@@ -1197,6 +1200,11 @@ namespace OsEngine.Market.Servers.Woo
             {
                 SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        private void SnapshotDepth()
+        {
+
         }
 
         private void UpdateDepth(string message)
