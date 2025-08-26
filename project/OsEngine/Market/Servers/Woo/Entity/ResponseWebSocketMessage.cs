@@ -121,5 +121,20 @@ namespace OsEngine.Market.Servers.Woo.Entity
         public string ver { get; set; }       // version
         public string ts { get; set; }       // timestamp of position update      
     }
+
+    public class ResponseChannelAccount
+    {
+        public string m { get; set; }      // trading mode
+        public string M { get; set; }      // default margin mode for futures
+        public string P { get; set; }      // position mode
+        public string l { get; set; }      // account leverage for margin
+        public string mr { get; set; }     // margin ratio
+        public string omr { get; set; }    // open margin ratio
+        public string imr { get; set; }    // initial margin ratio
+        public string mmr { get; set; }    // maintenance margin ratio
+        public string tc { get; set; }     // total collateral
+        public string fc { get; set; }     // free collateral
+        public string v { get; set; }      // account total value
+    }
 }
 

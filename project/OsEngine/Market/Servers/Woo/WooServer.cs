@@ -190,7 +190,7 @@ namespace OsEngine.Market.Servers.Woo
 
                         for (int i = 0; i < response.data.rows.Count; i++)
                         {
-                            Rows item = response.data.rows[i];
+                            RowsSymbol item = response.data.rows[i];
 
                             if (item.status == "TRADING")
                             {
@@ -203,7 +203,7 @@ namespace OsEngine.Market.Servers.Woo
                                 newSecurity.NameId = item.symbol;
                                 newSecurity.SecurityType = item.symbol.StartsWith("SPOT") ? SecurityType.CurrencyPair : SecurityType.Futures;
                                 newSecurity.DecimalsVolume = item.baseMin.DecimalsCount();
-                                newSecurity.Lot = 1;// item.base_min.ToDecimal();
+                                newSecurity.Lot = 1;
                                 newSecurity.PriceStep = item.quoteTick.ToDecimal();
                                 newSecurity.Decimals = item.quoteTick.DecimalsCount();
                                 newSecurity.PriceStepCost = newSecurity.PriceStep;
@@ -244,9 +244,213 @@ namespace OsEngine.Market.Servers.Woo
 
         private RateGate _rateGatePositions = new RateGate(1, TimeSpan.FromMilliseconds(6000));
 
+        private List<Portfolio> _portfolios;
+
         public void GetPortfolios()
         {
+            CreateACommonPortfolio();
             CreateQueryPortfolio(true);
+        }
+
+        private void CreateACommonPortfolio()
+        {
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                string requestPath = "/v3/account/info";
+                string requestBody = null;
+                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                string signString = $"{timestamp}GET{requestPath}{requestBody}";
+
+                string apiSignature;
+                using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_secretKey)))
+                {
+                    byte[] hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(signString));
+                    apiSignature = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                }
+
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest(requestPath, Method.GET);
+
+                request.AddHeader("x-api-key", _apiKey);
+                request.AddHeader("x-api-signature", apiSignature);
+                request.AddHeader("x-api-timestamp", timestamp.ToString());
+                //request.AddHeader("Content-Type", "application/json");
+
+                request.AddParameter("application/json", requestBody, ParameterType.RequestBody);
+
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<ResponseCommonPortfolio> response = JsonConvert.DeserializeObject<ResponseMessageRest<ResponseCommonPortfolio>>(responseMessage.Content);
+
+                    if (response.success == "true")
+                    {
+                        _portfolios = new List<Portfolio>();
+
+                        Portfolio portfolio = new Portfolio();
+                        portfolio.Number = "WooPortfolio";
+                        portfolio.ValueBegin = response.data.totalAccountValue.ToDecimal();
+                        portfolio.ValueCurrent = response.data.totalTradingValue.ToDecimal();
+                        _portfolios.Add(portfolio);
+
+                        PortfolioEvent(_portfolios);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Common portfolio error. {responseMessage.Content}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Common portfolio request error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CreateQueryPortfolio(bool IsUpdateValueBegin)
+        {
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                string requestPath = "/v3/asset/balances";
+                string requestBody = null;
+                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                string signString = $"{timestamp}GET{requestPath}{requestBody}";
+
+                string apiSignature;
+                using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_secretKey)))
+                {
+                    byte[] hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(signString));
+                    apiSignature = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                }
+
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest(requestPath, Method.GET);
+
+                request.AddHeader("x-api-key", _apiKey);
+                request.AddHeader("x-api-signature", apiSignature);
+                request.AddHeader("x-api-timestamp", timestamp.ToString());
+                //request.AddHeader("Content-Type", "application/json");
+
+                request.AddParameter("application/json", requestBody, ParameterType.RequestBody);
+
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<ResponsePortfolios> response = JsonConvert.DeserializeObject<ResponseMessageRest<ResponsePortfolios>>(responseMessage.Content);
+
+                    if (response.success == "true")
+                    {
+                        Portfolio portfolio = _portfolios[0];
+
+                        for (int i = 0; i < response.data.holding.Count; i++)
+                        {
+                            Holding balanceDetails = response.data.holding[i];
+
+                            PositionOnBoard pos = new PositionOnBoard();
+
+                            pos.PortfolioName = "WooPortfolio";
+                            pos.SecurityNameCode = balanceDetails.token;
+                            pos.ValueBlocked = balanceDetails.frozen.ToDecimal();
+                            pos.ValueCurrent = balanceDetails.holding.ToDecimal();
+                            pos.UnrealizedPnl = balanceDetails.pnl24H.ToDecimal();
+
+                            if (IsUpdateValueBegin)
+                            {
+                                pos.ValueBegin = balanceDetails.holding.ToDecimal();
+                            }
+
+                            portfolio.SetNewPosition(pos);
+                        }
+
+                        PortfolioEvent(_portfolios);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Portfolio error. {responseMessage.Content}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Portfolio request error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CreateQueryPosition(bool IsUpdateValueBegin)
+        {
+            _rateGatePositions.WaitToProceed();
+
+            try
+            {
+                string timeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+                string data = $"{timeStamp}GET/v3/positions";
+                string signature = GenerateSignature(data);
+
+                RestClient client = new RestClient($"{_baseUrl}/v3/positions");
+                RestRequest request = new RestRequest(Method.GET);
+                request.AddHeader("x-api-timestamp", timeStamp);
+                request.AddHeader("x-api-key", _apiKey);
+                request.AddHeader("x-api-signature", signature);
+
+                IRestResponse responseMessage = client.Execute(request);
+                string JsonResponse = responseMessage.Content;
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    UpdatePosition(JsonResponse, IsUpdateValueBegin);
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code1: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdatePosition(string json, bool IsUpdateValueBegin)
+        {
+            ResponseMessagePositions response = JsonConvert.DeserializeObject<ResponseMessagePositions>(json);
+
+            Portfolio portfolio = new Portfolio();
+            portfolio.Number = "WooPortfolio";
+            portfolio.ValueBegin = 1;
+            portfolio.ValueCurrent = 1;
+
+            List<ResponseMessagePositions.Positions> item = response.data.positions;
+
+            for (int i = 0; i < item.Count; i++)
+            {
+                PositionOnBoard pos = new PositionOnBoard();
+
+                pos.PortfolioName = "WooPortfolio";
+                pos.SecurityNameCode = item[i].symbol;
+                pos.ValueBlocked = 0;
+                pos.ValueCurrent = item[i].holding.ToDecimal();
+
+                if (IsUpdateValueBegin)
+                {
+                    pos.ValueBegin = item[i].holding.ToDecimal();
+                }
+                portfolio.SetNewPosition(pos);
+            }
+            PortfolioEvent(new List<Portfolio> { portfolio });
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -826,7 +1030,7 @@ namespace OsEngine.Market.Servers.Woo
                 CheckSocketsActivate();
                 SendLogMessage("BitMartSpot WebSocket Private connection open", LogMessageType.System);
 
-                _webSocketPrivate.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"balance\", \"position\", \"executionreport\"]}}");
+                _webSocketPrivate.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"account\",\"balance\", \"position\", \"executionreport\"]}}");
             }
             catch (Exception error)
             {
@@ -1013,7 +1217,7 @@ namespace OsEngine.Market.Servers.Woo
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"balance\", \"position\", \"executionreport\"]}}");
+                    _webSocketPrivate.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"account\",\"balance\", \"position\", \"executionreport\"]}}");
                 }
                 catch
                 {
@@ -1141,17 +1345,28 @@ namespace OsEngine.Market.Servers.Woo
                         continue;
                     }
 
+                    if (message.Contains("account"))
+                    {
+                        UpdateAccount(message);
+                        continue;
+                    }
+
                     if (message.Contains("executionreport"))
                     {
                         UpdateOrder(message);
+                        continue;
                     }
+
                     if (message.Contains("position"))
                     {
                         UpdatePositionFromSubscribe(message);
+                        continue;
                     }
+
                     if (message.Contains("balance"))
                     {
                         UpdatePortfolioFromSubscribe(message);
+                        continue;
                     }
 
                     if (message.Contains("ERROR"))
@@ -1318,16 +1533,38 @@ namespace OsEngine.Market.Servers.Woo
 
         private DateTime _lastTimeMd;
 
+        private void UpdateAccount(string message)
+        {
+            if (_portfolios == null)
+            {
+                return;
+            }
+
+            try
+            {
+                ResponseWebSocketMessage<ResponseChannelAccount> responseBalance = JsonConvert.DeserializeObject<ResponseWebSocketMessage<ResponseChannelAccount>>(message);
+
+                Portfolio portfolio = _portfolios[0];
+
+                portfolio.ValueBegin = responseBalance.data.v.ToDecimal();
+                portfolio.ValueCurrent = responseBalance.data.fc.ToDecimal();
+                portfolio.ValueBlocked = responseBalance.data.tc.ToDecimal() - responseBalance.data.fc.ToDecimal();
+
+                PortfolioEvent(_portfolios);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
         private void UpdatePortfolioFromSubscribe(string message)
         {
             try
             {
                 ResponseWebSocketMessage<BalanceData> responseBalance = JsonConvert.DeserializeObject<ResponseWebSocketMessage<BalanceData>>(message);
 
-                Portfolio portfolio = new Portfolio();
-                portfolio.Number = "WooPortfolio";
-                portfolio.ValueBegin = 1;
-                portfolio.ValueCurrent = 1;
+                Portfolio portfolio = _portfolios[0];
 
                 for (int i = 0; i < responseBalance.data.balances.Count; i++)
                 {
@@ -1343,8 +1580,7 @@ namespace OsEngine.Market.Servers.Woo
                     portfolio.SetNewPosition(pos);
                 }
 
-
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent(_portfolios);
             }
             catch (Exception ex)
             {
@@ -1359,10 +1595,7 @@ namespace OsEngine.Market.Servers.Woo
 
                 ResponseWebSocketMessage<PositionData> responsePositions = JsonConvert.DeserializeObject<ResponseWebSocketMessage<PositionData>>(message);
 
-                Portfolio portfolio = new Portfolio();
-                portfolio.Number = "WooPortfolio";
-                portfolio.ValueBegin = 1;
-                portfolio.ValueCurrent = 1;
+                Portfolio portfolio = _portfolios[0];
 
                 for (int i = 0; i < responsePositions.data.positions.Count; i++)
                 {
@@ -1379,7 +1612,7 @@ namespace OsEngine.Market.Servers.Woo
                     portfolio.SetNewPosition(pos);
                 }
 
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent(_portfolios);
             }
             catch (Exception ex)
             {
@@ -1757,137 +1990,7 @@ namespace OsEngine.Market.Servers.Woo
             }
         }
 
-        private void CreateQueryPortfolio(bool IsUpdateValueBegin)
-        {
-            _rateGatePortfolio.WaitToProceed();
-
-            try
-            {
-                string timeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
-                string data = $"application_id={_appID}|{timeStamp}";
-                string signature = GenerateSignature(data);
-
-                RestClient client = new RestClient($"{_baseUrl}/v1/sub_account/asset_detail?application_id={_appID}");
-                RestRequest request = new RestRequest(Method.GET);
-                request.AddHeader("x-api-timestamp", timeStamp);
-                request.AddHeader("x-api-key", _apiKey);
-                request.AddHeader("x-api-signature", signature);
-
-                IRestResponse responseMessage = client.Execute(request);
-                string JsonResponse = responseMessage.Content;
-
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    UpdatePorfolio(JsonResponse, IsUpdateValueBegin);
-                    CreateQueryPosition(true);
-                }
-
-                else
-                {
-                    SendLogMessage($"Http State Code1: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
-                }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void UpdatePorfolio(string json, bool IsUpdateValueBegin)
-        {
-            ResponseMessagePortfolios response = JsonConvert.DeserializeObject<ResponseMessagePortfolios>(json);
-
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "WooPortfolio";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            IDictionaryEnumerator enumerator = response.balances.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                ResponseMessagePortfolios.Symbol balanceDetails = (ResponseMessagePortfolios.Symbol)enumerator.Value;
-
-                PositionOnBoard pos = new PositionOnBoard();
-
-                pos.PortfolioName = "WooPortfolio";
-                pos.SecurityNameCode = enumerator.Key.ToString();
-                pos.ValueBlocked = balanceDetails.frozen.ToDecimal();
-                pos.ValueCurrent = balanceDetails.holding.ToDecimal();
-
-                if (IsUpdateValueBegin)
-                {
-                    pos.ValueBegin = balanceDetails.holding.ToDecimal();
-                }
-
-                portfolio.SetNewPosition(pos);
-            }
-            enumerator.Reset();
-
-            PortfolioEvent(new List<Portfolio> { portfolio });
-        }
-
-        private void CreateQueryPosition(bool IsUpdateValueBegin)
-        {
-            _rateGatePositions.WaitToProceed();
-
-            try
-            {
-                string timeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
-                string data = $"{timeStamp}GET/v3/positions";
-                string signature = GenerateSignature(data);
-
-                RestClient client = new RestClient($"{_baseUrl}/v3/positions");
-                RestRequest request = new RestRequest(Method.GET);
-                request.AddHeader("x-api-timestamp", timeStamp);
-                request.AddHeader("x-api-key", _apiKey);
-                request.AddHeader("x-api-signature", signature);
-
-                IRestResponse responseMessage = client.Execute(request);
-                string JsonResponse = responseMessage.Content;
-
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    UpdatePosition(JsonResponse, IsUpdateValueBegin);
-                }
-                else
-                {
-                    SendLogMessage($"Http State Code1: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
-                }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void UpdatePosition(string json, bool IsUpdateValueBegin)
-        {
-            ResponseMessagePositions response = JsonConvert.DeserializeObject<ResponseMessagePositions>(json);
-
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "WooPortfolio";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            List<ResponseMessagePositions.Positions> item = response.data.positions;
-
-            for (int i = 0; i < item.Count; i++)
-            {
-                PositionOnBoard pos = new PositionOnBoard();
-
-                pos.PortfolioName = "WooPortfolio";
-                pos.SecurityNameCode = item[i].symbol;
-                pos.ValueBlocked = 0;
-                pos.ValueCurrent = item[i].holding.ToDecimal();
-
-                if (IsUpdateValueBegin)
-                {
-                    pos.ValueBegin = item[i].holding.ToDecimal();
-                }
-                portfolio.SetNewPosition(pos);
-            }
-            PortfolioEvent(new List<Portfolio> { portfolio });
-        }
+      
 
         private string GenerateSignature(string data)
         {
