@@ -22,41 +22,36 @@ namespace OsEngine.Market.Servers.Woo.Entity
         public string estimatedEndTime { get; set; }
     }
 
-    public class ResponseMessageSecurities
+    public class ResponseSecurities
     {
         public List<Rows> rows { get; set; }
+    }
 
-        public class Rows
-        {
-            public string symbol { get; set; }
-            public string status { get; set; }
-            public string bid_cap_ratio { get; set; }
-            public string bid_floor_ratio { get; set; }
-            public string ask_cap_ratio { get; set; }
-            public string ask_floor_ratio { get; set; }
-            public string quote_min { get; set; }
-            public string quote_max { get; set; }
-            public string quote_tick { get; set; }
-            public string base_min { get; set; }
-            public string base_max { get; set; }
-            public string base_tick { get; set; }
-            public string min_notional { get; set; }
-            public string price_range { get; set; }
-            public string price_scope { get; set; }
-            public string created_time { get; set; }
-            public string updated_time { get; set; }
-            public string is_stable { get; set; }
-            public string is_trading { get; set; }
-            public List<string> precisions { get; set; }
-            public string is_prediction { get; set; }
-            public string base_mmr { get; set; }
-            public string base_imr { get; set; }
-            public string funding_interval_hours { get; set; }
-            public string funding_cap { get; set; }
-            public string funding_floor { get; set; }
-            public string order_mode { get; set; }
-            public string base_asset_multiplier { get; set; }
-        }
+    public class Rows
+    {
+        public string symbol { get; set; }
+        public string status { get; set; }
+        public string baseAsset { get; set; }
+        public string baseAssetMultiplier { get; set; }
+        public string quoteAsset { get; set; }
+        public string quoteMin { get; set; }
+        public string quoteMax { get; set; }
+        public string quoteTick { get; set; }
+        public string baseMin { get; set; }
+        public string baseMax { get; set; }
+        public string baseTick { get; set; }
+        public string minNotional { get; set; }
+        public string bidCapRatio { get; set; }
+        public string bidFloorRatio { get; set; }
+        public string askCapRatio { get; set; }
+        public string askFloorRatio { get; set; }
+        public string fundingIntervalHours { get; set; }
+        public string fundingCap { get; set; }
+        public string fundingFloor { get; set; }
+        public string orderMode { get; set; }
+        public string baseIMR { get; set; }
+        public string baseMMR { get; set; }
+        public string isAllowedRpi { get; set; }
     }
 
     public class ResponseMessagePortfolios
