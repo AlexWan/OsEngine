@@ -1009,6 +1009,12 @@ namespace OsEngine.Language
          "Eng:Monitor the receipt of market depths and a tape of transactions for each signed security. In case of interruption, restart the connector. Increases the CPU load!_" +
          "Ru:Следить за поступлением стаканов и ленты сделок по каждому подписанному инструменту. В случае прерывания - перезапускать коннектор. Увеличивает нагрузку на ЦП!_");
 
+        public string Label244 => OsLocalization.ConvertToLocString(
+         "Eng:The data set was found _" +
+         "Ru:Найден сет данных _");
+
+
+
 
 
 
