@@ -818,6 +818,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             for (int ctr = 0; ctr < itemCount; ctr++)
             {
                 string date = TcpReadString();
+                date = date.Replace("  ", " ");
                 double open = TcpReadDouble();
                 double high = TcpReadDouble();
                 double low = TcpReadDouble();
@@ -836,7 +837,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     Candle candle = new Candle();
                     if (date.Length == 8)
                     {
-                        candle.TimeStart = DateTime.ParseExact(date, "yyyyMMdd", CultureInfo.CurrentCulture);
+                        candle.TimeStart = DateTime.ParseExact(date, "yyyyMMdd", CultureInfo.InvariantCulture);
                     }
                     else
                     {
@@ -858,6 +859,12 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     {
                         candle.Volume = 1;
                     }
+
+                    if (candle.TimeStart == DateTime.MinValue)
+                    {
+                        continue;
+                    }
+
                     series.CandlesArray.Add(candle);
                 }
                 catch

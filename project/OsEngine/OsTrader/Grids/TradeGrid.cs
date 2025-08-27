@@ -1378,8 +1378,11 @@ namespace OsEngine.OsTrader.Grids
 
                 Order order = lines[i].Position.OpenOrders[^1];
 
-                Tab.CloseOrder(order);
-                cancelledOrders++;
+                if(order.NumberMarket != null)
+                {
+                    Tab.CloseOrder(order);
+                    cancelledOrders++;
+                }
             }
 
             return cancelledOrders;
@@ -1436,7 +1439,8 @@ namespace OsEngine.OsTrader.Grids
 
                 Order order = lines[i].Position.CloseOrders[^1];
 
-                if(order.TypeOrder != OrderPriceType.Market)
+                if(order.NumberMarket != null 
+                   && order.TypeOrder != OrderPriceType.Market)
                 {
                     Tab.CloseOrder(order);
                     cancelledOrders++;

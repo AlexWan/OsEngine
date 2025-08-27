@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace OsEngine.Market.Servers.Alor
 {
@@ -2598,6 +2599,7 @@ namespace OsEngine.Market.Servers.Alor
         }
 
         List<string> _cancelOrderNums = new List<string>();
+        private string _cancelOrderNumsLocker = "_cancelOrderNumsLocker";
 
         public bool CancelOrder(Order order)
         {
@@ -2607,27 +2609,45 @@ namespace OsEngine.Market.Servers.Alor
 
             try
             {
+                if(order.NumberMarket == null)
+                {
+                    return false;
+                }
+
                 int countTryRevokeOrder = 0;
 
-                for(int i = 0; i< _cancelOrderNums.Count;i++)
+                lock (_cancelOrderNumsLocker)
                 {
-                    if (_cancelOrderNums[i].Equals(order.NumberMarket))
+                    for (int i = 0; i < _cancelOrderNums.Count; i++)
                     {
-                        countTryRevokeOrder++;
+                        if(_cancelOrderNums[i] == null)
+                        {
+                            continue;
+                        }
+                        if (_cancelOrderNums[i].Equals(order.NumberMarket))
+                        {
+                            countTryRevokeOrder++;
+                        }
                     }
                 }
 
-                if(countTryRevokeOrder >= 2)
+                if(countTryRevokeOrder >= 5)
                 {
                     SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityClassCode, LogMessageType.Error);
                     return false;
                 }
 
-                _cancelOrderNums.Add(order.NumberMarket);
-
-                while(_cancelOrderNums.Count > 100)
+                lock (_cancelOrderNumsLocker)
                 {
-                    _cancelOrderNums.RemoveAt(0);
+                    if (order.NumberMarket != null)
+                    {
+                        _cancelOrderNums.Add(order.NumberMarket);
+                    }
+
+                    while (_cancelOrderNums.Count > 100)
+                    {
+                        _cancelOrderNums.RemoveAt(0);
+                    }
                 }
 
                 string portfolio = order.PortfolioNumber.Split('_')[0];
