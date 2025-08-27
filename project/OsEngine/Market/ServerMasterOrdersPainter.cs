@@ -7,7 +7,6 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.YahooFinance.Entity;
 using OsEngine.OsTrader.Gui;
 using System;
 using System.Collections.Generic;
@@ -21,6 +20,14 @@ using Point = System.Drawing.Point;
 
 namespace OsEngine.Market
 {
+    public enum StartUiToPainter
+    {
+        IsTester,
+        IsTesterLight,
+        IsOsTrader,
+        IsOsTraderLight
+    }
+
     public class ServerMasterOrdersPainter
     {
         public ServerMasterOrdersPainter()
@@ -32,7 +39,7 @@ namespace OsEngine.Market
             task.Start();
         }
 
-        private StartAllProgram _startAllProgram;
+        private StartUiToPainter _startAllProgram;
 
         private CultureInfo _currentCulture;
 
@@ -113,7 +120,15 @@ namespace OsEngine.Market
 
         }
 
-        public void SetHostTable(WindowsFormsHost hostActiveOrders, WindowsFormsHost hostHistoricalOrders, StartAllProgram startFourProgram)
+        public void SetHostTable(WindowsFormsHost hostActiveOrders, 
+            WindowsFormsHost hostHistoricalOrders, 
+            StartUiToPainter startFourProgram,
+            System.Windows.Controls.ComboBox comboBoxActiveOrders,
+            System.Windows.Controls.Button buttonLeftActiveOrders,
+            System.Windows.Controls.Button buttonRightActiveOrders,
+            System.Windows.Controls.ComboBox comboBoxHistoryOrders,
+            System.Windows.Controls.Button buttonLeftHistoryOrders,
+            System.Windows.Controls.Button buttonRightHistoryOrders)
         {
             try
             {
@@ -121,10 +136,66 @@ namespace OsEngine.Market
 
                 if (hostActiveOrders.Dispatcher.CheckAccess() == false)
                 {
-                    hostActiveOrders.Dispatcher.Invoke(new Action<WindowsFormsHost, WindowsFormsHost, StartAllProgram>(SetHostTable),
-                        hostActiveOrders, hostHistoricalOrders, startFourProgram);
-
+                    hostActiveOrders.Dispatcher.Invoke(
+                        new Action<WindowsFormsHost,
+                        WindowsFormsHost,
+                        StartUiToPainter,
+                        System.Windows.Controls.ComboBox,
+                        System.Windows.Controls.Button,
+                        System.Windows.Controls.Button,
+                        System.Windows.Controls.ComboBox,
+                        System.Windows.Controls.Button,
+                        System.Windows.Controls.Button>(SetHostTable),
+                        hostActiveOrders, hostHistoricalOrders, startFourProgram,
+                        comboBoxActiveOrders, buttonLeftActiveOrders, buttonRightActiveOrders,
+                        comboBoxHistoryOrders,buttonLeftHistoryOrders, buttonRightHistoryOrders);
+ 
                     return;
+                }
+
+                if(comboBoxHistoryOrders != null)
+                {
+                    comboBoxHistoryOrders.Items.Add("20");
+                    comboBoxHistoryOrders.Items.Add("50");
+                    comboBoxHistoryOrders.Items.Add("100");
+                    comboBoxHistoryOrders.Items.Add("150");
+                    comboBoxHistoryOrders.Items.Add("200");
+                    comboBoxHistoryOrders.Items.Add("250");
+                    comboBoxHistoryOrders.SelectedIndex = 0;
+
+                    comboBoxHistoryOrders.SelectionChanged += OnComboBoxSelectionItem;
+                }
+
+                if(comboBoxActiveOrders!= null)
+                {
+                    comboBoxActiveOrders.Items.Add("20");
+                    comboBoxActiveOrders.Items.Add("50");
+                    comboBoxActiveOrders.Items.Add("100");
+                    comboBoxActiveOrders.Items.Add("150");
+                    comboBoxActiveOrders.Items.Add("200");
+                    comboBoxActiveOrders.Items.Add("250");
+                    comboBoxActiveOrders.SelectedIndex = 0;
+                    comboBoxActiveOrders.SelectionChanged += OnComboBoxSelectionItem;
+                }
+
+                if(buttonLeftActiveOrders != null)
+                {
+                    buttonLeftActiveOrders.Click += OnBackPageClickActive;
+                }
+               
+                if(buttonRightActiveOrders != null)
+                {
+                    buttonRightActiveOrders.Click += OnNextPageClickActive;
+                }
+                
+                if(buttonLeftHistoryOrders != null)
+                {
+                    buttonLeftHistoryOrders.Click += OnBackPageClickHistorical;
+                }
+                
+                if(buttonRightHistoryOrders != null)
+                {
+                    buttonRightHistoryOrders.Click += OnNextPageClickHistorical;
                 }
 
                 if (hostActiveOrders != null)
@@ -232,7 +303,7 @@ namespace OsEngine.Market
                             int ActivePageSize = 20;
 
                             // active orders BotStation Light
-                            if (_startAllProgram == StartAllProgram.IsOsTraderLight)
+                            if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
                             {
                                 RobotUiLight.Instance?.Dispatcher.Invoke(() =>
                                 {
@@ -263,7 +334,7 @@ namespace OsEngine.Market
                             }
 
                             // active orders BotStation
-                            if (_startAllProgram == StartAllProgram.IsOsTrader)
+                            if (_startAllProgram == StartUiToPainter.IsOsTrader)
                             {
                                 RobotUi.Instance?.Dispatcher.Invoke(() =>
                                 {
@@ -294,7 +365,7 @@ namespace OsEngine.Market
                             }
 
                             // active orders Tester Light
-                            if (_startAllProgram == StartAllProgram.IsTesterLight)
+                            if (_startAllProgram == StartUiToPainter.IsTesterLight)
                             {
                                 TesterUiLight.Instance?.Dispatcher.Invoke(() =>
                                 {
@@ -325,7 +396,7 @@ namespace OsEngine.Market
                             }
 
                             // active orders Tester
-                            if (_startAllProgram == StartAllProgram.IsTester)
+                            if (_startAllProgram == StartUiToPainter.IsTester)
                             {
                                 TesterUi.Instance?.Dispatcher.Invoke(() =>
                                 {
@@ -362,7 +433,7 @@ namespace OsEngine.Market
                             int HistoricalPageSize = 20;
 
                             // history orders BotStation Light
-                            if (_startAllProgram == StartAllProgram.IsOsTraderLight)
+                            if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
                             {
                                 RobotUiLight.Instance?.Dispatcher.Invoke(() =>
                                 {
@@ -393,7 +464,7 @@ namespace OsEngine.Market
                             }
 
                             // history orders Tester Light
-                            if (_startAllProgram == StartAllProgram.IsTesterLight)
+                            if (_startAllProgram == StartUiToPainter.IsTesterLight)
                             {
                                 TesterUiLight.Instance?.Dispatcher.Invoke(() =>
                                 {
@@ -437,7 +508,7 @@ namespace OsEngine.Market
         {
             try
             {
-                if (_startAllProgram == StartAllProgram.IsTesterLight)
+                if (_startAllProgram == StartUiToPainter.IsTesterLight)
                 {
                     if (Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content) > 1)
                     {
@@ -448,7 +519,7 @@ namespace OsEngine.Market
                     }
                 }
 
-                if (_startAllProgram == StartAllProgram.IsTester)
+                if (_startAllProgram == StartUiToPainter.IsTester)
                 {
                     if (Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content) > 1)
                     {
@@ -459,7 +530,7 @@ namespace OsEngine.Market
                     }
                 }
 
-                if (_startAllProgram == StartAllProgram.IsOsTraderLight)
+                if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
                 {
                     if (Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content) > 1)
                     {
@@ -470,7 +541,7 @@ namespace OsEngine.Market
                     }
                 }
 
-                if (_startAllProgram == StartAllProgram.IsOsTrader)
+                if (_startAllProgram == StartUiToPainter.IsOsTrader)
                 {
                     if (Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content) > 1)
                     {
@@ -491,7 +562,7 @@ namespace OsEngine.Market
         {
             try
             {
-                if (_startAllProgram == StartAllProgram.IsTesterLight)
+                if (_startAllProgram == StartUiToPainter.IsTesterLight)
                 {
                     if (Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content) !=
                         Convert.ToInt32(TesterUiLight.Instance.LabelNumberAllPageActive.Content))
@@ -503,7 +574,7 @@ namespace OsEngine.Market
                     }
                 }
 
-                if (_startAllProgram == StartAllProgram.IsTester)
+                if (_startAllProgram == StartUiToPainter.IsTester)
                 {
                     if (Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content) !=
                         Convert.ToInt32(TesterUi.Instance.LabelNumberAllPageActive.Content))
@@ -515,7 +586,7 @@ namespace OsEngine.Market
                     }
                 }
 
-                if (_startAllProgram == StartAllProgram.IsOsTraderLight)
+                if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
                 {
                     if (Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content) !=
                         Convert.ToInt32(RobotUiLight.Instance.LabelNumberAllPageActive.Content))
@@ -527,7 +598,7 @@ namespace OsEngine.Market
                     }
                 }
 
-                if (_startAllProgram == StartAllProgram.IsOsTrader)
+                if (_startAllProgram == StartUiToPainter.IsOsTrader)
                 {
                     if (Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content) !=
                         Convert.ToInt32(RobotUi.Instance.LabelNumberAllPageActive.Content))
@@ -549,7 +620,7 @@ namespace OsEngine.Market
         {
             try
             {
-                if (_startAllProgram == StartAllProgram.IsTesterLight)
+                if (_startAllProgram == StartUiToPainter.IsTesterLight)
                 {
                     if (Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content) > 1)
                     {
@@ -560,7 +631,7 @@ namespace OsEngine.Market
                     }
                 }
 
-                if (_startAllProgram == StartAllProgram.IsOsTraderLight)
+                if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
                 {
                     if (Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content) > 1)
                     {
@@ -581,7 +652,7 @@ namespace OsEngine.Market
         {
             try
             {
-                if (_startAllProgram == StartAllProgram.IsTesterLight)
+                if (_startAllProgram == StartUiToPainter.IsTesterLight)
                 {
                     if (Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content) !=
                         Convert.ToInt32(TesterUiLight.Instance.LabelNumberAllPageHistorical.Content))
@@ -593,7 +664,7 @@ namespace OsEngine.Market
                     }
                 }
 
-                if (_startAllProgram == StartAllProgram.IsOsTraderLight)
+                if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
                 {
                     if (Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content) !=
                         Convert.ToInt32(RobotUiLight.Instance.LabelNumberAllPageHistorical.Content))

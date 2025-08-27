@@ -24,7 +24,10 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-            ServerMaster.SetHostTable(HostPortfolios, HostActiveOrders, HostHistoricalOrders, StartAllProgram.IsOsTraderLight);
+            ServerMaster.SetHostTable(HostPortfolios, HostActiveOrders, HostHistoricalOrders, StartUiToPainter.IsOsTraderLight, 
+                ComboBoxQuantityPerPageActive, BackButtonActiveList, NextButtonActiveList, ComboBoxQuantityPerPageHistorical, 
+                BackButtonHistoricalList, NextButtonHistoricalList);
+
             ServerMaster.GetServers();
 
             _strategyKeeper = new OsTraderMaster(null,
@@ -72,22 +75,6 @@ namespace OsEngine.OsTrader.Gui
             ImagePadlockOpen.MouseLeave += ImagePadlockOpen_MouseLeave;
             ImagePadlockOpen.MouseDown += ImagePadlockOpen_MouseDown;
 
-            ComboBoxQuantityPerPageHistorical.Items.Add("20");
-            ComboBoxQuantityPerPageHistorical.Items.Add("50");
-            ComboBoxQuantityPerPageHistorical.Items.Add("100");
-            ComboBoxQuantityPerPageHistorical.Items.Add("150");
-            ComboBoxQuantityPerPageHistorical.Items.Add("200");
-            ComboBoxQuantityPerPageHistorical.Items.Add("250");
-            ComboBoxQuantityPerPageHistorical.SelectedIndex = 0;
-
-            ComboBoxQuantityPerPageActive.Items.Add("20");
-            ComboBoxQuantityPerPageActive.Items.Add("50");
-            ComboBoxQuantityPerPageActive.Items.Add("100");
-            ComboBoxQuantityPerPageActive.Items.Add("150");
-            ComboBoxQuantityPerPageActive.Items.Add("200");
-            ComboBoxQuantityPerPageActive.Items.Add("250");
-            ComboBoxQuantityPerPageActive.SelectedIndex = 0;
-
             HistoricalListPanel.Visibility = Visibility.Collapsed;
             ActiveListPanel.Visibility = Visibility.Collapsed;
 
@@ -99,15 +86,7 @@ namespace OsEngine.OsTrader.Gui
             UnBlockInterface();
             this.Closing += RobotsUiLightUnblock_Closing;
 
-            Instance = this;
-
-            BackButtonActiveList.Click += _ordersPainter.OnBackPageClickActive;
-            NextButtonActiveList.Click += _ordersPainter.OnNextPageClickActive;
-            ComboBoxQuantityPerPageActive.SelectionChanged += _ordersPainter.OnComboBoxSelectionItem;
-
-            BackButtonHistoricalList.Click += _ordersPainter.OnBackPageClickHistorical;
-            NextButtonHistoricalList.Click += _ordersPainter.OnNextPageClickHistorical;
-            ComboBoxQuantityPerPageHistorical.SelectionChanged += _ordersPainter.OnComboBoxSelectionItem;
+            Instance = this;            
         }
 
         public static RobotUiLight Instance;

@@ -24,7 +24,9 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard, null, StartAllProgram.IsTester);
+            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard, null, StartUiToPainter.IsTester,
+                ComboBoxQuantityPerPageActive, BackButtonActiveList, NextButtonActiveList, null,
+                null, null);
             ServerMaster.CreateServer(ServerType.Tester,false);
             ServerMaster.GetServers();
 
@@ -45,14 +47,6 @@ namespace OsEngine.OsTrader.Gui
             Local();
             TabControlControl.SelectedIndex = 3;
 
-            ComboBoxQuantityPerPageActive.Items.Add("20");
-            ComboBoxQuantityPerPageActive.Items.Add("50");
-            ComboBoxQuantityPerPageActive.Items.Add("100");
-            ComboBoxQuantityPerPageActive.Items.Add("150");
-            ComboBoxQuantityPerPageActive.Items.Add("200");
-            ComboBoxQuantityPerPageActive.Items.Add("250");
-            ComboBoxQuantityPerPageActive.SelectedIndex = 0;
-
             this.Activate();
             this.Focus();
 
@@ -60,10 +54,6 @@ namespace OsEngine.OsTrader.Gui
 
             _ordersPainter = ServerMaster._ordersStorage;
             Instance = this;
-
-            BackButtonActiveList.Click += _ordersPainter.OnBackPageClickActive;
-            NextButtonActiveList.Click += _ordersPainter.OnNextPageClickActive;
-            ComboBoxQuantityPerPageActive.SelectionChanged += _ordersPainter.OnComboBoxSelectionItem;
         }
 
         private ServerMasterOrdersPainter _ordersPainter;

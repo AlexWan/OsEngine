@@ -85,6 +85,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Market.Servers.AscendexSpot;
 using OsEngine.Market.Servers.OKXData;
+using System.Windows.Controls;
 
 namespace OsEngine.Market
 {
@@ -1809,8 +1810,17 @@ namespace OsEngine.Market
         /// <summary>
         /// add items on which portfolios and orders will be drawn
         /// </summary>
-        public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostActiveOrders,
-            WindowsFormsHost hostHistoricalOrders, StartAllProgram startFourProgram)
+        public static void SetHostTable(WindowsFormsHost hostPortfolio, 
+            WindowsFormsHost hostActiveOrders, 
+            WindowsFormsHost hostHistoricalOrders, 
+            StartUiToPainter startUi,
+            ComboBox comboBoxActiveOrders,
+            Button buttonLeftActiveOrders,
+            Button buttonRightActiveOrders,
+            ComboBox comboBoxHistoryOrders,
+            Button buttonLeftHistoryOrders,
+            Button buttonRightHistoryOrders
+            )
         {
             if (_painterPortfolios == null)
             {
@@ -1824,7 +1834,9 @@ namespace OsEngine.Market
             {
                 _ordersStorage = new ServerMasterOrdersPainter();
                 _ordersStorage.LogMessageEvent += SendNewLogMessage;
-                _ordersStorage.SetHostTable(hostActiveOrders, hostHistoricalOrders, startFourProgram);
+                _ordersStorage.SetHostTable(hostActiveOrders, hostHistoricalOrders, startUi,
+                comboBoxActiveOrders,buttonLeftActiveOrders,buttonRightActiveOrders,
+                comboBoxHistoryOrders,buttonLeftHistoryOrders, buttonRightHistoryOrders);
                 _ordersStorage.RevokeOrderToEmulatorEvent += _ordersStorage_RevokeOrderToEmulatorEvent;
             }
         }
