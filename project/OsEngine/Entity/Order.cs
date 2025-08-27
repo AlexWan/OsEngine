@@ -424,7 +424,7 @@ namespace OsEngine.Entity
             result.Append(State + "@");
             result.Append(TypeOrder + "@");
             result.Append(TimeCallBack.ToString(CultureInfo) + "@");
-            result.Append(SecurityNameCode + "@");
+            result.Append(SecurityNameCode.Replace('@', '%') + "@");
 
             if(PortfolioNumber != null)
             {
@@ -501,7 +501,7 @@ namespace OsEngine.Entity
             Enum.TryParse(saveArray[9], true, out TypeOrder);
             TimeCallBack = Convert.ToDateTime(saveArray[10], CultureInfo);
 
-            SecurityNameCode = saveArray[11];
+            SecurityNameCode = saveArray[11].Replace('%', '@');
             PortfolioNumber = saveArray[12].Replace('%', '@');
 
 
