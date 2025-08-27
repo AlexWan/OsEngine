@@ -24,7 +24,7 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-            ServerMaster.SetHostTable(HostPortfolios, HostActiveOrders, HostHistoricalOrders);
+            ServerMaster.SetHostTable(HostPortfolios, HostActiveOrders, HostHistoricalOrders, StartAllProgram.IsOsTraderLight);
             ServerMaster.GetServers();
 
             _strategyKeeper = new OsTraderMaster(null,
@@ -72,9 +72,47 @@ namespace OsEngine.OsTrader.Gui
             ImagePadlockOpen.MouseLeave += ImagePadlockOpen_MouseLeave;
             ImagePadlockOpen.MouseDown += ImagePadlockOpen_MouseDown;
 
+            ComboBoxQuantityPerPageHistorical.Items.Add("20");
+            ComboBoxQuantityPerPageHistorical.Items.Add("50");
+            ComboBoxQuantityPerPageHistorical.Items.Add("100");
+            ComboBoxQuantityPerPageHistorical.Items.Add("150");
+            ComboBoxQuantityPerPageHistorical.Items.Add("200");
+            ComboBoxQuantityPerPageHistorical.Items.Add("250");
+            ComboBoxQuantityPerPageHistorical.SelectedIndex = 0;
+
+            ComboBoxQuantityPerPageActive.Items.Add("20");
+            ComboBoxQuantityPerPageActive.Items.Add("50");
+            ComboBoxQuantityPerPageActive.Items.Add("100");
+            ComboBoxQuantityPerPageActive.Items.Add("150");
+            ComboBoxQuantityPerPageActive.Items.Add("200");
+            ComboBoxQuantityPerPageActive.Items.Add("250");
+            ComboBoxQuantityPerPageActive.SelectedIndex = 0;
+
+            HistoricalListPanel.Visibility = Visibility.Collapsed;
+            ActiveListPanel.Visibility = Visibility.Collapsed;
+
+            _ordersPainter = ServerMaster._ordersStorage;
+
+            HostActiveOrders.Margin = new Thickness(0, 0, 0, 0);
+            HostHistoricalOrders.Margin = new Thickness(0, 0, 0, 0);
+
             UnBlockInterface();
             this.Closing += RobotsUiLightUnblock_Closing;
+
+            Instance = this;
+
+            BackButtonActiveList.Click += _ordersPainter.OnBackPageClickActive;
+            NextButtonActiveList.Click += _ordersPainter.OnNextPageClickActive;
+            ComboBoxQuantityPerPageActive.SelectionChanged += _ordersPainter.OnComboBoxSelectionItem;
+
+            BackButtonHistoricalList.Click += _ordersPainter.OnBackPageClickHistorical;
+            NextButtonHistoricalList.Click += _ordersPainter.OnNextPageClickHistorical;
+            ComboBoxQuantityPerPageHistorical.SelectionChanged += _ordersPainter.OnComboBoxSelectionItem;
         }
+
+        public static RobotUiLight Instance;
+
+        private ServerMasterOrdersPainter _ordersPainter;
 
         ServerMasterSourcesPainter _painterServer;
 
@@ -97,6 +135,12 @@ namespace OsEngine.OsTrader.Gui
             ButtonSupportTable.Content = OsLocalization.Market.Label81;
             ButtonProxy.Content = OsLocalization.Market.Label172;
             ButtonSystemStress.Content = OsLocalization.Trader.Label560;
+            LabelPageActive.Content = OsLocalization.Trader.Label576;
+            LabelFromActive.Content = OsLocalization.Trader.Label577;
+            LabelCountActive.Content = OsLocalization.Trader.Label578;
+            LabelPageHistorical.Content = OsLocalization.Trader.Label576;
+            LabelFromHistorical.Content = OsLocalization.Trader.Label577;
+            LabelCountHistorical.Content = OsLocalization.Trader.Label578;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -136,10 +180,22 @@ namespace OsEngine.OsTrader.Gui
             if (GreedChartPanel.Cursor == System.Windows.Input.Cursors.ScrollN)
             {
                 GridPrime.RowDefinitions[1].Height = new GridLength(500, GridUnitType.Pixel);
+
+                HistoricalListPanel.Visibility = Visibility.Visible;
+                ActiveListPanel.Visibility = Visibility.Visible;
+
+                HostActiveOrders.Margin = new Thickness(0, 28, 0, 0);
+                HostHistoricalOrders.Margin = new Thickness(0, 28, 0, 0);
             }
             else if (GreedChartPanel.Cursor == System.Windows.Input.Cursors.ScrollS)
             {
                 GridPrime.RowDefinitions[1].Height = new GridLength(190, GridUnitType.Pixel);
+
+                HistoricalListPanel.Visibility = Visibility.Collapsed;
+                ActiveListPanel.Visibility = Visibility.Collapsed;
+
+                HostActiveOrders.Margin = new Thickness(0, 0, 0, 0);
+                HostHistoricalOrders.Margin = new Thickness(0, 0, 0, 0);
             }
         }
 

@@ -39,11 +39,31 @@
                         <TabControl>
                             <TabItem Name="TabActiveOrders" Header="Active orders" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5">
+                                    <StackPanel x:Name="ActiveListPanel" Orientation="Horizontal" Margin="0,0,5,0" VerticalAlignment="Top" Height="28">
+                                        <Label x:Name="LabelPageActive" Content="Page" />
+                                        <Label x:Name="LabelNumberThisPageActive" Content="1" />
+                                        <Label x:Name="LabelFromActive" Content="from" />
+                                        <Label x:Name="LabelNumberAllPageActive" Content="1" />
+                                        <Button x:Name="BackButtonActiveList" Content="&lt;" Margin="10,0,0,0" Width="25"/>
+                                        <Button x:Name="NextButtonActiveList" Content="&gt;" Margin="5,0,0,0" Width="25"/>
+                                        <Label x:Name="LabelCountActive" Content="Quantity per page" Margin="20,0,0,0" />
+                                        <ComboBox x:Name="ComboBoxQuantityPerPageActive" Width="80" ItemsSource="{Binding MyListItems}"/>
+                                    </StackPanel>
                                     <WindowsFormsHost Name="HostActiveOrders" Margin="0,0,0,0"/>
                                 </Grid>
                             </TabItem>
                             <TabItem Name="TabHistoricalOrders" Header="Historical orders" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5" >
+                                    <StackPanel x:Name="HistoricalListPanel" Orientation="Horizontal" Margin="0,0,5,0" VerticalAlignment="Top" Height="28">
+                                        <Label x:Name="LabelPageHistorical" Content="Page" />
+                                        <Label x:Name="LabelNumberThisPageHistorical" Content="1" />
+                                        <Label x:Name="LabelFromHistorical" Content="from" />
+                                        <Label x:Name="LabelNumberAllPageHistorical" Content="1" />
+                                        <Button x:Name="BackButtonHistoricalList" Content="&lt;" Margin="10,0,0,0" Width="25"/>
+                                        <Button x:Name="NextButtonHistoricalList" Content="&gt;" Margin="5,0,0,0" Width="25"/>
+                                        <Label x:Name="LabelCountHistorical" Content="Quantity per page" Margin="20,0,0,0" />
+                                        <ComboBox x:Name="ComboBoxQuantityPerPageHistorical" Width="80" ItemsSource="{Binding MyListItems}"/>
+                                    </StackPanel>
                                     <WindowsFormsHost Name="HostHistoricalOrders" Margin="0,0,0,0"/>
                                 </Grid>
                             </TabItem>

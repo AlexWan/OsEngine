@@ -24,7 +24,7 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard,null);
+            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard, null, StartAllProgram.IsTester);
             ServerMaster.CreateServer(ServerType.Tester,false);
             ServerMaster.GetServers();
 
@@ -45,11 +45,30 @@ namespace OsEngine.OsTrader.Gui
             Local();
             TabControlControl.SelectedIndex = 3;
 
+            ComboBoxQuantityPerPageActive.Items.Add("20");
+            ComboBoxQuantityPerPageActive.Items.Add("50");
+            ComboBoxQuantityPerPageActive.Items.Add("100");
+            ComboBoxQuantityPerPageActive.Items.Add("150");
+            ComboBoxQuantityPerPageActive.Items.Add("200");
+            ComboBoxQuantityPerPageActive.Items.Add("250");
+            ComboBoxQuantityPerPageActive.SelectedIndex = 0;
+
             this.Activate();
             this.Focus();
 
             GlobalGUILayout.Listen(this, "testerUi");
+
+            _ordersPainter = ServerMaster._ordersStorage;
+            Instance = this;
+
+            BackButtonActiveList.Click += _ordersPainter.OnBackPageClickActive;
+            NextButtonActiveList.Click += _ordersPainter.OnNextPageClickActive;
+            ComboBoxQuantityPerPageActive.SelectionChanged += _ordersPainter.OnComboBoxSelectionItem;
         }
+
+        private ServerMasterOrdersPainter _ordersPainter;
+
+        public static TesterUi Instance;
 
         private void Local()
         {
@@ -87,6 +106,9 @@ namespace OsEngine.OsTrader.Gui
             ButtonAddVisualAlert.Content = OsLocalization.Trader.Label440;
             ButtonAddPriceAlert.Content = OsLocalization.Trader.Label441;
             TabItemGrids.Header = OsLocalization.Trader.Label437;
+            LabelPageActive.Content = OsLocalization.Trader.Label576;
+            LabelFromActive.Content = OsLocalization.Trader.Label577;
+            LabelCountActive.Content = OsLocalization.Trader.Label578;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
