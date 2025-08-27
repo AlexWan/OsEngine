@@ -24,10 +24,10 @@ namespace OsEngine.Market.Servers.Woo.Entity
 
     public class ResponseSecurities
     {
-        public List<Rows> rows { get; set; }
+        public List<RowsSymbol> rows { get; set; }
     }
 
-    public class Rows
+    public class RowsSymbol
     {
         public string symbol { get; set; }
         public string status { get; set; }
@@ -54,15 +54,54 @@ namespace OsEngine.Market.Servers.Woo.Entity
         public string isAllowedRpi { get; set; }
     }
 
-    public class ResponseMessagePortfolios
+    public class ResponseCommonPortfolio
     {
-        public Dictionary<string, Symbol> balances { get; set; }
+        public string applicationId { get; set; }
+        public string account { get; set; }
+        public string alias { get; set; }
+        public string otpauth { get; set; }
+        public string accountMode { get; set; }
+        public string positionMode { get; set; }
+        public string leverage { get; set; }
+        public string marginRatio { get; set; }
+        public string openMarginRatio { get; set; }
+        public string initialMarginRatio { get; set; }
+        public string maintenanceMarginRatio { get; set; }
+        public string totalCollateral { get; set; }
+        public string freeCollateral { get; set; }
+        public string totalAccountValue { get; set; }
+        public string totalTradingValue { get; set; }
+        public string totalVaultValue { get; set; }
+        public string totalStakingValue { get; set; }
+        public string totalEarnValue { get; set; }
+        public string totalLaunchpadValue { get; set; }
+        public string referrerID { get; set; }
+        public string accountType { get; set; }
+    }
 
-        public class Symbol
-        {
-            public string holding { get; set; }
-            public string frozen { get; set; }
-        }
+    public class ResponsePortfolios
+    {
+        public List<Holding> holding { get; set; }
+    }
+
+    public class Holding
+    {
+        public string token { get; set; }
+        public string holding { get; set; }
+        public string frozen { get; set; }
+        public string staked { get; set; }
+        public string unbonding { get; set; }
+        public string vault { get; set; }
+        public string interest { get; set; }
+        public string earn { get; set; }
+        public string pendingShortQty { get; set; }
+        public string pendingLongQty { get; set; }
+        public string availableBalance { get; set; }
+        public string averageOpenPrice { get; set; }
+        public string markPrice { get; set; }
+        public string pnl24H { get; set; }
+        public string fee24H { get; set; }
+        public string timestamp { get; set; }
     }
 
     public class ResponseMessagePositions
