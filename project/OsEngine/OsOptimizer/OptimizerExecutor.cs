@@ -108,24 +108,24 @@ namespace OsEngine.OsOptimizer
                     ReportsToFazes.Add(report);
 
                     StartAsuncBotFactoryInSample(countBots, _master.StrategyName, _master.IsScript, "InSample");
+
                     StartOptimizeFazeInSample(_master.Fazes[i], report, _parameters, _parametersOn);
+
+                    EndOfFazeFiltration(ReportsToFazes[ReportsToFazes.Count - 1]);
                 }
                 else
                 {
 
-                    SendLogMessage("ReportsCount" + ReportsToFazes[ReportsToFazes.Count - 1].Reports.Count.ToString(), LogMessageType.System);
-
-                    OptimizerFazeReport reportFiltred = new OptimizerFazeReport();
-                    EndOfFazeFiltration(ReportsToFazes[ReportsToFazes.Count - 1], reportFiltred);
+                    SendLogMessage("ReportsCount " + ReportsToFazes[ReportsToFazes.Count - 1].Reports.Count.ToString(), LogMessageType.System);
 
                     OptimizerFazeReport report = new OptimizerFazeReport();
                     report.Faze = _master.Fazes[i];
 
                     ReportsToFazes.Add(report);
 
-                    StartAsuncBotFactoryOutOfSample(reportFiltred, _master.StrategyName, _master.IsScript, "OutOfSample");
+                    StartAsuncBotFactoryOutOfSample(ReportsToFazes[ReportsToFazes.Count - 2], _master.StrategyName, _master.IsScript, "OutOfSample");
 
-                    StartOptimizeFazeOutOfSample(report, reportFiltred);
+                    StartOptimizeFazeOutOfSample(report, ReportsToFazes[ReportsToFazes.Count - 2]);
                 }
             }
 
@@ -618,7 +618,7 @@ namespace OsEngine.OsOptimizer
             return newParameters;
         }
 
-        private void EndOfFazeFiltration(OptimizerFazeReport bots, OptimizerFazeReport botsToOutOfSample)
+        private void EndOfFazeFiltration(OptimizerFazeReport bots)
         {
             try
             {
@@ -628,26 +628,30 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
+                OptimizerFazeReport botsFiltered = new OptimizerFazeReport();
+
                 int startCount = bots.Reports.Count;
 
                 for (int i = 0; i < bots.Reports.Count; i++)
                 {
                     if (_master.IsAcceptedByFilter(bots.Reports[i]))
                     {
-                        botsToOutOfSample.Reports.Add(bots.Reports[i]);
+                        botsFiltered.Reports.Add(bots.Reports[i]);
                     }
                 }
 
-                if (botsToOutOfSample.Reports.Count == 0)
+                if (botsFiltered.Reports.Count == 0)
                 {
                     /* SendLogMessage(OsLocalization.Optimizer.Message8, LogMessageType.System);
                      MessageBox.Show(OsLocalization.Optimizer.Message8);
                      NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);*/
                 }
-                else if (startCount != botsToOutOfSample.Reports.Count)
+                else if (startCount != botsFiltered.Reports.Count)
                 {
-                    SendLogMessage(OsLocalization.Optimizer.Message9 + (startCount - botsToOutOfSample.Reports.Count), LogMessageType.System);
+                    SendLogMessage(OsLocalization.Optimizer.Message9 + (startCount - botsFiltered.Reports.Count), LogMessageType.System);
                 }
+
+                bots.Reports = botsFiltered.Reports;
             }
             catch (Exception ex)
             {
