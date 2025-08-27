@@ -6,7 +6,7 @@ using OsEngine.Entity;
 namespace OsEngine.Indicators
 {
     [Indicator("Momentum")]
-    public class Momentum:Aindicator
+    public class Momentum : Aindicator
     {
         private IndicatorParameterInt _length;
 
@@ -38,24 +38,45 @@ namespace OsEngine.Indicators
             }
 
             decimal value = 0;
+
             if (_candlePoint.ValueString == "Close")
             {
-                value = (candles[index].Close / candles[index - _length.ValueInt].Close) * 100;
+                decimal divider = candles[index - _length.ValueInt].Close * 100;
+
+                if (divider != 0)
+                {
+                    value = (candles[index].Close / divider);
+                }
             }
             if (_candlePoint.ValueString == "Open")
             {
-                value = candles[index].Open / candles[index - _length.ValueInt].Open * 100;
+                decimal divider = candles[index - _length.ValueInt].Open * 100;
+
+                if (divider != 0)
+                {
+                    value = candles[index].Open;
+                }
             }
             if (_candlePoint.ValueString == "High")
             {
-                value = candles[index].High / candles[index - _length.ValueInt].High * 100;
+                decimal divider = candles[index - _length.ValueInt].High * 100;
+
+                if (divider != 0)
+                {
+                    value = candles[index].High / divider;
+                }
             }
             if (_candlePoint.ValueString == "Low")
             {
-                value = candles[index].Low / candles[index - _length.ValueInt].Low * 100;
+                decimal divider = candles[index - _length.ValueInt].High * 100;
+
+                if (divider != 0)
+                {
+                    value = candles[index].Low / divider;
+                }
             }
 
-            return Math.Round(value, 2);
+            return Math.Round(value, 6);
         }
     }
 }

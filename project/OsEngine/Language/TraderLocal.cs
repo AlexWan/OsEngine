@@ -1121,7 +1121,7 @@ namespace OsEngine.Language
 
         public string Label304 => OsLocalization.ConvertToLocString(
          "Eng:You have not selected a strategy type. You need to click on the table. It will turn orange_" +
-         "Ru:Вы не выбрали тип стратегии. Нужно клацнуть по таблице. Загориться оранжевым_");
+         "Ru:Вы не выбрали тип стратегии. Нужно клацнуть по таблице. Загорится оранжевым_");
 
         public string Label305 => OsLocalization.ConvertToLocString(
          "Eng:Updating the robots involves building and testing them one by one. This will take some time_" +
