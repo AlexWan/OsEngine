@@ -116,7 +116,7 @@ namespace OsEngine.Market.Servers
             }
             catch (Exception ex)
             {
-                _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _comparePositionsModule?.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -159,7 +159,7 @@ namespace OsEngine.Market.Servers
             }
             catch (Exception ex)
             {
-                _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _comparePositionsModule?.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -176,7 +176,7 @@ namespace OsEngine.Market.Servers
             }
             catch (Exception ex)
             {
-                _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _comparePositionsModule?.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -367,7 +367,7 @@ namespace OsEngine.Market.Servers
             }
             catch (Exception ex)
             {
-                _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _comparePositionsModule?.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -522,7 +522,7 @@ namespace OsEngine.Market.Servers
             }
             catch (Exception ex)
             {
-                _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _comparePositionsModule?.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
