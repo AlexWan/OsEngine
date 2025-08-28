@@ -24,10 +24,10 @@ namespace OsEngine.Market.Servers.Woo.Entity
 
     public class ResponseSecurities
     {
-        public List<RowsSymbol> rows { get; set; }
+        public List<RowSymbols> rows { get; set; }
     }
 
-    public class RowsSymbol
+    public class RowSymbols
     {
         public string symbol { get; set; }
         public string status { get; set; }
@@ -131,26 +131,22 @@ namespace OsEngine.Market.Servers.Woo.Entity
         }
     }
 
-    public class ResponseMessageCandles
+    public class ResponseCandles
     {
-        public Data data { get; set; }
+        public List<RowCandles> rows { get; set; }
+    }
 
-        public class Data
-        {
-            public List<Rows> rows { get; set; }
-
-        }
-
-        public class Rows
-        {
-            public string open { get; set; }
-            public string close { get; set; }
-            public string high { get; set; }
-            public string low { get; set; }
-            public string volume { get; set; }
-            public string start_timestamp { get; set; }
-        }
-
-
+    public class RowCandles
+    {
+        public string symbol { get; set; }
+        public string open { get; set; }
+        public string close { get; set; }
+        public string high { get; set; }
+        public string low { get; set; }
+        public string volume { get; set; }
+        public string amount { get; set; }
+        public string type { get; set; }
+        public string startTimestamp { get; set; }
+        public string endTimestamp { get; set; }
     }
 }
