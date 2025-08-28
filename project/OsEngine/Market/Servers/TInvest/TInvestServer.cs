@@ -630,17 +630,15 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
 
-                    newSecurity.NameClass = SecurityType.Index.ToString() + " " + item.Currency;
+                    newSecurity.NameClass = SecurityType.Fund.ToString() + " " + item.Currency;
 
-                    newSecurity.SecurityType = SecurityType.Index;
+                    newSecurity.SecurityType = SecurityType.Fund;
                     newSecurity.Lot = item.Lot;
                     newSecurity.VolumeStep = 1;
-
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
                 }
-
             }
             catch (Exception e)
             {
