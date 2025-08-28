@@ -2644,7 +2644,7 @@ namespace OsEngine.Market.Servers.Alor
                         _cancelOrderNums.Add(order.NumberMarket);
                     }
 
-                    while (_cancelOrderNums.Count > 100)
+                    while (_cancelOrderNums.Count > 1000)
                     {
                         _cancelOrderNums.RemoveAt(0);
                     }
