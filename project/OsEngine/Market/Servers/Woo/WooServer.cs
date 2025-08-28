@@ -165,7 +165,6 @@ namespace OsEngine.Market.Servers.Woo
 
         private string _baseUrl = "https://api.woox.io";
 
-        private int _limitCandles = 100;
 
         #endregion
 
@@ -190,7 +189,7 @@ namespace OsEngine.Market.Servers.Woo
 
                         for (int i = 0; i < response.data.rows.Count; i++)
                         {
-                            RowsSymbol item = response.data.rows[i];
+                            RowSymbols item = response.data.rows[i];
 
                             if (item.status == "TRADING")
                             {
@@ -459,14 +458,21 @@ namespace OsEngine.Market.Servers.Woo
 
         #region 5 Data
 
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return null;
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime endTime = DateTime.UtcNow;
+            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
+
+            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
 
             if (!CheckTime(startTime, endTime, actualTime))
             {
@@ -492,7 +498,8 @@ namespace OsEngine.Market.Servers.Woo
 
                 List<Candle> candles = RequestCandleHistory(security.Name, interval, from);
 
-                if (candles == null || candles.Count == 0)
+                if (candles == null
+                    || candles.Count == 0)
                 {
                     break;
                 }
@@ -514,7 +521,7 @@ namespace OsEngine.Market.Servers.Woo
 
                 allCandles.AddRange(candles);
 
-                startTimeData = startTimeData.AddMinutes(tfTotalMinutes * _limitCandles);
+                startTimeData = startTimeData.AddMinutes(tfTotalMinutes * 100);
 
                 if (startTimeData >= DateTime.UtcNow)
                 {
@@ -529,10 +536,9 @@ namespace OsEngine.Market.Servers.Woo
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime >= endTime ||
-                startTime >= DateTime.Now ||
+                startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
-                actualTime > DateTime.Now ||
-                endTime < DateTime.UtcNow.AddYears(-20))
+                actualTime > DateTime.UtcNow)
             {
                 return false;
             }
@@ -560,9 +566,13 @@ namespace OsEngine.Market.Servers.Woo
             {
                 return $"{timeFrame.Minutes}m";
             }
-            else
+            else if (timeFrame.Hours != 0)
             {
                 return $"{timeFrame.Hours}h";
+            }
+            else
+            {
+                return $"{timeFrame.Days}d";
             }
         }
 
@@ -574,23 +584,57 @@ namespace OsEngine.Market.Servers.Woo
 
             try
             {
-                string queryParam = $"start_time={fromTimeStamp}&";
+                string queryParam = $"after={fromTimeStamp}&";
                 queryParam += $"symbol={security}&";
+                queryParam += $"limit=100&";
                 queryParam += $"type={resolution}";
 
-                string url = "https://api-pub.woo.org/v1/hist/kline?" + queryParam;
+                string url = $"{_baseUrl}/v3/public/klineHistory?" + queryParam;
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
-                string JsonResponse = responseMessage.Content;
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    return ConvertCandles(JsonResponse);
+                    ResponseMessageRest<ResponseCandles> response = JsonConvert.DeserializeObject<ResponseMessageRest<ResponseCandles>>(responseMessage.Content);
+
+                    if (response.success == "true")
+                    {
+                        List<Candle> candles = new List<Candle>();
+
+                        for (int i = 0; i < response.data.rows.Count; i++)
+                        {
+                            RowCandles item = response.data.rows[i];
+
+                            if (CheckCandlesToZeroData(item))
+                            {
+                                continue;
+                            }
+
+                            Candle candle = new Candle();
+
+                            candle.State = CandleState.Finished;
+                            candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.startTimestamp));
+                            candle.Volume = item.volume.ToDecimal();
+                            candle.Close = response.data.rows[i].close.ToDecimal();
+                            candle.High = item.high.ToDecimal();
+                            candle.Low = item.low.ToDecimal();
+                            candle.Open = item.open.ToDecimal();
+
+                            candles.Add(candle);
+                        }
+
+                        candles.Reverse();
+                        return candles;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Candles error. {responseMessage.Content}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode} - {JsonResponse}", LogMessageType.Error);
+                    SendLogMessage($"Candles request error: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -601,39 +645,7 @@ namespace OsEngine.Market.Servers.Woo
             return null;
         }
 
-        private List<Candle> ConvertCandles(string json)
-        {
-            ResponseMessageCandles response = JsonConvert.DeserializeObject<ResponseMessageCandles>(json);
-
-            List<Candle> candles = new List<Candle>();
-
-            List<ResponseMessageCandles.Rows> item = response.data.rows;
-
-            for (int i = 0; i < item.Count; i++)
-            {
-
-                if (CheckCandlesToZeroData(item[i]))
-                {
-                    continue;
-                }
-
-                Candle candle = new Candle();
-
-                candle.State = CandleState.Finished;
-                candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].start_timestamp));
-                candle.Volume = item[i].volume.ToDecimal();
-                candle.Close = response.data.rows[i].close.ToDecimal();
-                candle.High = item[i].high.ToDecimal();
-                candle.Low = item[i].low.ToDecimal();
-                candle.Open = item[i].open.ToDecimal();
-
-                candles.Add(candle);
-            }
-
-            return candles;
-        }
-
-        private bool CheckCandlesToZeroData(ResponseMessageCandles.Rows item)
+        private bool CheckCandlesToZeroData(RowCandles item)
         {
             if (item.close.ToDecimal() == 0 ||
                 item.open.ToDecimal() == 0 ||
@@ -645,13 +657,9 @@ namespace OsEngine.Market.Servers.Woo
             return false;
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
-            DateTime endTime = DateTime.Now;
-            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
-
-            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
+            return null;
         }
 
         #endregion
