@@ -104,6 +104,18 @@ namespace OsEngine.Market.Servers.Woo.Entity
         public string timestamp { get; set; }
     }
 
+    public class MarketDepthData
+    {
+        public List<OrderLevel> asks { get; set; }
+        public List<OrderLevel> bids { get; set; }
+    }
+
+    public class OrderLevel
+    {
+        public string price { get; set; }
+        public string quantity { get; set; }
+    }
+
     public class ResponseMessagePositions
     {
         public Data data { get; set; }
