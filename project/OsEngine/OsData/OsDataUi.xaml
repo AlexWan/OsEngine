@@ -15,6 +15,7 @@
         <Grid Margin="0,5,5,172" HorizontalAlignment="Right" Width="305" Grid.RowSpan="2">
             <Rectangle/>
             <Label Name="Label4" Content="Source" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,0,0,0" FontSize="18" Height="31" />
+            <TextBox Name="TextBoxSearchSource" VerticalAlignment="Top" Margin="196,4,36,0" Height="21" Text="search..."/>
             <WindowsFormsHost Name="HostSource" Height="155" Margin="5,31,5,0" VerticalAlignment="Top"/>
             <Label Name="Label24" Content="Sets" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,188,0,0" FontSize="18" />
             <WindowsFormsHost Name="HostSet" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,246,7,5" Width="293"/>
