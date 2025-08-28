@@ -12,13 +12,13 @@ using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Woo.Entity;
 using RestSharp;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+
 
 
 namespace OsEngine.Market.Servers.Woo
@@ -1417,19 +1417,108 @@ namespace OsEngine.Market.Servers.Woo
             }
         }
 
-        private void SnapshotDepth()
-        {
+        private List<MarketDepth> _marketDepths = new List<MarketDepth>();
 
+        private DateTime _lastTimeMd = DateTime.MinValue;
+
+
+        private void SnapshotDepth(string nameSecurity)
+        {
+            try
+            {
+                string url = $"{_baseUrl}/v3/public/orderbook?maxLevel=25&symbol={nameSecurity}";
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<MarketDepthData> response = JsonConvert.DeserializeObject<ResponseMessageRest<MarketDepthData>>(responseMessage.Content);
+
+                    if (response.success == "true")
+                    {
+                        MarketDepth marketDepth = null;
+
+                        for (int i = 0; i < _marketDepths.Count; i++)
+                        {
+                            if (_marketDepths[i].SecurityNameCode == nameSecurity)
+                            {
+                                marketDepth = _marketDepths[i];
+                                break;
+                            }
+                        }
+
+                        if (marketDepth == null)
+                        {
+                            marketDepth = new MarketDepth();
+                            _marketDepths.Add(marketDepth);
+                        }
+                        else
+                        {
+                            marketDepth.Asks.Clear();
+                            marketDepth.Bids.Clear();
+                        }
+
+                        List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
+                        List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+                        marketDepth.SecurityNameCode = nameSecurity;
+
+                        if (response.data.asks != null)
+                        {
+                            for (int i = 0; i < response.data.asks.Count; i++)
+                            {
+                                asks.Add(new MarketDepthLevel()
+                                {
+                                    Ask = response.data.asks[i].quantity.ToDecimal(),
+                                    Price = response.data.asks[i].price.ToDecimal(),
+                                });
+                            }
+                        }
+
+                        if (response.data.bids.Count != null)
+                        {
+                            for (int i = 0; i < response.data.bids.Count; i++)
+                            {
+                                bids.Add(new MarketDepthLevel()
+                                {
+                                    Bid = response.data.bids[i].quantity.ToDecimal(),
+                                    Price = response.data.bids[i].price.ToDecimal(),
+                                });
+                            }
+                        }
+
+                        marketDepth.Asks = asks;
+                        marketDepth.Bids = bids;
+
+                        marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.timestamp));
+
+                        if (MarketDepthEvent != null)
+                        {
+                            MarketDepthEvent(marketDepth.GetCopy());
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"MarketDepth snapshot error. {responseMessage.Content}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"MarketDepth snapshot request error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void UpdateDepth(string message)
         {
             try
             {
-                //Thread.Sleep(1);
-
                 ResponseWebSocketMessage<ResponseChannelBook> responseDepth = JsonConvert.DeserializeObject<ResponseWebSocketMessage<ResponseChannelBook>>(message);
-
                 ResponseChannelBook item = responseDepth.data;
 
                 if (item == null)
@@ -1437,93 +1526,79 @@ namespace OsEngine.Market.Servers.Woo
                     return;
                 }
 
-                if (item.asks.Count == 0
-                    && item.bids.Count == 0)
+                if (_marketDepths == null
+                       || _marketDepths.Count == 0)
                 {
+                    SnapshotDepth(item.s);
                     return;
                 }
 
-                MarketDepth marketDepth = new MarketDepth();
+                MarketDepth marketDepth = null;
 
-                List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
-                List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
-
-                marketDepth.SecurityNameCode = item.s;
-
-                if (item.asks.Count > 0)
+                for (int i = 0; i < _marketDepths.Count; i++)
                 {
-                    for (int i = 0; i < 25 && i < item.asks.Count; i++)
+                    if (_marketDepths[i].SecurityNameCode == responseDepth.data.s)
                     {
-                        if (item.asks[i].Count < 2)
-                        {
-                            continue;
-                        }
-
-                        decimal ask = item.asks[i][1].ToString().ToDecimal();
-                        decimal price = item.asks[i][0].ToString().ToDecimal();
-
-                        if (ask == 0 ||
-                            price == 0)
-                        {
-                            continue;
-                        }
-
-                        MarketDepthLevel level = new MarketDepthLevel();
-                        level.Ask = ask;
-                        level.Price = price;
-                        ascs.Add(level);
+                        marketDepth = _marketDepths[i];
+                        break;
                     }
                 }
 
-                if (item.bids.Count > 0)
+                if (marketDepth == null)
                 {
-                    for (int i = 0; i < 25 && i < item.bids.Count; i++)
-                    {
-                        if (item.bids[i].Count < 2)
-                        {
-                            continue;
-                        }
-
-                        decimal bid = item.bids[i][1].ToString().ToDecimal();
-                        decimal price = item.bids[i][0].ToString().ToDecimal();
-
-                        if (bid == 0 ||
-                            price == 0)
-                        {
-                            continue;
-                        }
-
-                        MarketDepthLevel level = new MarketDepthLevel();
-                        level.Bid = bid;
-                        level.Price = price;
-                        bids.Add(level);
-                    }
-                }
-
-                if (ascs.Count == 0 ||
-                    bids.Count == 0)
-                {
+                    SnapshotDepth(item.s);
                     return;
                 }
 
-                marketDepth.Asks = ascs;
-                marketDepth.Bids = bids;
-                marketDepth.Time
-                    = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.ts));
-
-                if (marketDepth.Time < _lastTimeMd)
+                if (marketDepth.Asks.Count == 0
+                    || marketDepth.Bids.Count == 0)
                 {
+                    SnapshotDepth(item.s);
+                    return;
+                }
+
+                marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts));
+
+                if (marketDepth.Time <= _lastTimeMd)
+                {
+                    _lastTimeMd = _lastTimeMd.AddTicks(1);
                     marketDepth.Time = _lastTimeMd;
                 }
-                else if (marketDepth.Time == _lastTimeMd)
+                else
                 {
-                    _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
-                    marketDepth.Time = _lastTimeMd;
+                    _lastTimeMd = marketDepth.Time;
                 }
 
                 _lastTimeMd = marketDepth.Time;
 
-                MarketDepthEvent(marketDepth);
+                ApplyLevels(item.bids, marketDepth.Bids, isBid: true);
+                ApplyLevels(item.asks, marketDepth.Asks, isBid: false);
+
+                List<MarketDepthLevel> topBids = new List<MarketDepthLevel>();
+
+                for (int i = 0; i < marketDepth.Bids.Count && i < 25; i++)
+                {
+                    topBids.Add(marketDepth.Bids[i]);
+                }
+
+                marketDepth.Bids = topBids;
+
+                List<MarketDepthLevel> topAsks = new List<MarketDepthLevel>();
+
+                for (int i = 0; i < marketDepth.Asks.Count && i < 25; i++)
+                {
+                    topAsks.Add(marketDepth.Asks[i]);
+                }
+
+                marketDepth.Asks = topAsks;
+
+                if (marketDepth.Bids.Count == 0
+                    || marketDepth.Asks.Count == 0)
+                {
+                    return;
+                }
+
+                MarketDepthEvent?.Invoke(marketDepth.GetCopy());
             }
             catch (Exception ex)
             {
@@ -1531,7 +1606,63 @@ namespace OsEngine.Market.Servers.Woo
             }
         }
 
-        private DateTime _lastTimeMd;
+        private void ApplyLevels(List<List<string>> updates, List<MarketDepthLevel> levels, bool isBid)
+        {
+            for (int i = 0; i < updates.Count; i++)
+            {
+                decimal price = updates[i][0].ToDecimal();
+                decimal size = updates[i][1].ToDecimal();
+
+                MarketDepthLevel existing = levels.Find(x => x.Price == price);
+
+                if (size == 0)
+                {
+                    if (existing != null)
+                    {
+                        levels.Remove(existing);
+                    }
+                }
+                else
+                {
+                    if (existing != null)
+                    {
+                        if (isBid)
+                        {
+                            existing.Bid = size;
+                        }
+                        else
+                        {
+                            existing.Ask = size;
+                        }
+                    }
+                    else
+                    {
+                        MarketDepthLevel level = new MarketDepthLevel { Price = price };
+
+                        if (isBid)
+                        {
+                            level.Bid = size;
+                        }
+                        else
+                        {
+                            level.Ask = size;
+                        }
+
+                        levels.Add(level);
+                    }
+                }
+            }
+
+            if (isBid)
+            {
+                levels.Sort((a, b) => b.Price.CompareTo(a.Price));
+            }
+            else
+            {
+                levels.Sort((a, b) => a.Price.CompareTo(b.Price));
+            }
+        }
+
 
         private void UpdateAccount(string message)
         {
@@ -1990,7 +2121,7 @@ namespace OsEngine.Market.Servers.Woo
             }
         }
 
-      
+
 
         private string GenerateSignature(string data)
         {
