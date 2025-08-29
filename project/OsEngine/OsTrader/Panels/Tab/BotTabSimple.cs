@@ -1367,9 +1367,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void ShowConnectorDialog()
         {
             _connector.ShowDialog(true);
-
-            _journal.CommissionType = _connector.CommissionType;
-            _journal.CommissionValue = _connector.CommissionValue;
         }
 
         private void _connector_DialogClosed()
@@ -1379,7 +1376,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 DialogClosed();
             }
 
-            _journal.Save();
+            _journal.CommissionType = _connector.CommissionType;
+            _journal.CommissionValue = _connector.CommissionValue;
         }
 
         public event Action DialogClosed;

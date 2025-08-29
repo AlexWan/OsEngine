@@ -105,8 +105,7 @@ namespace OsEngine.Journal.Internal
 
         private void Load()
         {
-            if (_startProgram == StartProgram.IsOsOptimizer
-                || _startProgram == StartProgram.IsTester)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -344,8 +343,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (_startProgram == StartProgram.IsOsOptimizer
-                || _startProgram == StartProgram.IsTester)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -354,11 +352,11 @@ namespace OsEngine.Journal.Internal
 
             try
             {
-                string positionsString = PositionsToString();
+                string saveString = GetSaveString();
 
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealController.txt", false))
                 {
-                    writer.Write(positionsString);
+                    writer.Write(saveString);
                 }
             }
             catch (Exception error)
@@ -367,7 +365,7 @@ namespace OsEngine.Journal.Internal
             }
         }
 
-        private string PositionsToString()
+        private string GetSaveString()
         {
             StringBuilder result = new StringBuilder();
 
