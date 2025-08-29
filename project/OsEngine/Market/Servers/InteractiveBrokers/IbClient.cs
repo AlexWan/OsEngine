@@ -493,7 +493,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
 
                 // paramsList.AddParameter extended order fields
-                TcpWrite(null); // null
+                TcpWrite("GTC"); // null
                 TcpWrite("");
                 TcpWrite(order.PortfolioNumber);
                 TcpWrite("");
@@ -505,7 +505,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 TcpWrite(false);
                 TcpWrite(0);
                 TcpWrite(0);
-                TcpWrite(false);
+                TcpWrite(true);
                 TcpWrite(false);
                 TcpWrite("");
 
