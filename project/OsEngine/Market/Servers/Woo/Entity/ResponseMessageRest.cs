@@ -149,4 +149,76 @@ namespace OsEngine.Market.Servers.Woo.Entity
         public string startTimestamp { get; set; }
         public string endTimestamp { get; set; }
     }
+
+    public class OrderData
+    {
+        public string orderId { get; set; }
+        public string type { get; set; }
+        public string price { get; set; }
+        public string quantity { get; set; }
+        public string amount { get; set; }
+        public string clientOrderId { get; set; }
+        public string bidAskLevel { get; set; }
+    }
+
+    public class OpenOrdersData
+    {
+        public MetaPages meta { get; set; }
+        public List<RowOpenOrders> rows { get; set; }
+    }
+
+    public class MetaPages
+    {
+        public string total { get; set; }
+        public string recordsPerPage { get; set; }
+        public string currentPage { get; set; }
+    }
+
+    public class RowOpenOrders
+    {
+        public string symbol { get; set; }
+        public string status { get; set; }
+        public string side { get; set; }
+        public string positionSide { get; set; }
+        public string createdTime { get; set; }
+        public string orderId { get; set; }
+        public string orderTag { get; set; }
+        public string price { get; set; }
+        public string type { get; set; }
+        public string quantity { get; set; }
+        public string amount { get; set; }
+        public string visible { get; set; }
+        public string executed { get; set; }
+        public string totalFee { get; set; }
+        public string feeAsset { get; set; }
+        public string totalRebate { get; set; }
+        public string rebateCurrency { get; set; }
+        public string clientOrderId { get; set; }
+        public string reduceOnly { get; set; }
+        public string realizedPnl { get; set; }
+        public string averageExecutedPrice { get; set; }
+    }
+
+    public class MyTradeData
+    {
+        public List<RowMyTrade> rows { get; set; }
+        public MetaPages meta { get; set; }
+    }
+
+    public class RowMyTrade
+    {
+        public string id { get; set; }
+        public string symbol { get; set; }
+        public string orderId { get; set; }
+        public string orderTag { get; set; }
+        public string executedPrice { get; set; }
+        public string executedQuantity { get; set; }
+        public string isMaker { get; set; }
+        public string isMatchRpi { get; set; }
+        public string side { get; set; }
+        public string fee { get; set; }
+        public string feeAsset { get; set; }
+        public string realizedPnl { get; set; }
+        public string executedTimestamp { get; set; }
+    }
 }
