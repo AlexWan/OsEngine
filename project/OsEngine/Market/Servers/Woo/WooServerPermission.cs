@@ -179,7 +179,7 @@ namespace OsEngine.Market.Servers.Woo
             {
                 string[] values = new string[]
                 {
-
+                    "USDT"
                 };
 
                 return values;
@@ -198,12 +198,12 @@ namespace OsEngine.Market.Servers.Woo
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
