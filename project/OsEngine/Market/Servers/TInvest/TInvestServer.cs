@@ -1803,7 +1803,16 @@ namespace OsEngine.Market.Servers.TInvest
                         depth.SecurityNameCode = security.Name;
                         depth.Time = marketDataResponse.Orderbook.Time.ToDateTime().AddHours(3);// convert to MSK
 
-
+                        if(marketDataResponse.Orderbook.LimitUp != null)
+                        {
+                            security.PriceLimitHigh = GetValue(marketDataResponse.Orderbook.LimitUp);
+                        }
+                        
+                        if(marketDataResponse.Orderbook.LimitDown != null)
+                        {
+                            security.PriceLimitLow = GetValue(marketDataResponse.Orderbook.LimitDown);
+                        }
+   
                         for (int i = 0; i < marketDataResponse.Orderbook.Bids.Count; i++)
                         {
                             MarketDepthLevel newBid = new MarketDepthLevel();
