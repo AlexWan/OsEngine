@@ -192,6 +192,11 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
+            if(_server.IsReadyToTrade == false)
+            {
+                return;
+            }
+
             if (_lastDisconnectTime.AddSeconds(_secondsToWaitRequest) < DateTime.Now)
             {
                 _checkOrdersAfterLastConnect = true;
@@ -202,7 +207,7 @@ namespace OsEngine.Market.Servers
 
                     if (_fullLogIsOn)
                     {
-                        SendLogMessage("Event: GetAllActivOrdersOnReconnectEvent", LogMessageType.System);
+                        SendLogMessage("Event: GetAllActiveOrdersOnReconnectEvent", LogMessageType.System);
                     }
                 }
             }
