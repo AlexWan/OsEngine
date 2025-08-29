@@ -2025,6 +2025,16 @@ namespace OsEngine.OsTrader.Grids
                         continue;
                     }
 
+                    if(Tab.Security.PriceLimitHigh != 0 
+                        && Tab.Security.PriceLimitLow != 0)
+                    {
+                        if(curLine.PriceEnter > Tab.Security.PriceLimitHigh 
+                            || curLine.PriceEnter <  Tab.Security.PriceLimitLow)
+                        {
+                            continue;
+                        }
+                    }
+
                     if (curLine.PriceEnter <= lastPrice)
                     {
                         linesWithOrdersToOpenNeed.Add(curLine);
@@ -2048,6 +2058,16 @@ namespace OsEngine.OsTrader.Grids
                         && position.OpenVolume > 0)
                     {
                         continue;
+                    }
+
+                    if (Tab.Security.PriceLimitHigh != 0
+                        && Tab.Security.PriceLimitLow != 0)
+                    {
+                        if (curLine.PriceEnter > Tab.Security.PriceLimitHigh
+                            || curLine.PriceEnter < Tab.Security.PriceLimitLow)
+                        {
+                            continue;
+                        }
                     }
 
                     if (curLine.PriceEnter >= lastPrice)
