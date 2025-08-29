@@ -162,8 +162,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             TimeNow = _storages[0].TimeStart;
 
-            TimeNow = new DateTime(TimeNow.Year, TimeNow.Month, TimeNow.Day, 
-                10, 0, 0);
+            TimeNow = new DateTime(TimeNow.Year, TimeNow.Month, TimeNow.Day, 0, 0, 0);
 
             if (TypeTesterData == TesterDataType.TickAllCandleState ||
     TypeTesterData == TesterDataType.TickOnlyReadyCandle)
