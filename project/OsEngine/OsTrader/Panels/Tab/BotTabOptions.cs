@@ -52,8 +52,26 @@ namespace OsEngine.OsTrader.Panels.Tab
         #endregion
 
         #region Events
+        // Existing events
         public event Action<string, LogMessageType> LogMessageEvent;
         public event Action TabDeletedEvent;
+
+        // Market Data Events
+        public event Action<MarketDepth, BotTabSimple> NewMarketDepthEvent;
+        public event Action<List<Trade>, BotTabSimple> NewTickEvent;
+        public event Action<MyTrade, BotTabSimple> NewMyTradeEvent;
+        public event Action<OptionMarketData, BotTabSimple> NewOptionsDataEvent;
+
+        // Position Events
+        public event Action<Position, BotTabSimple> PositionOpeningSuccessEvent;
+        public event Action<Position, BotTabSimple> PositionOpeningFailEvent;
+        public event Action<Position, BotTabSimple> PositionClosingSuccessEvent;
+        public event Action<Position, BotTabSimple> PositionClosingFailEvent;
+        public event Action<Position, BotTabSimple> PositionStopActivateEvent;
+        public event Action<Position, BotTabSimple> PositionProfitActivateEvent;
+
+        // Order Events
+        public event Action<Order, BotTabSimple> OrderUpdateEvent;
         #endregion
 
         #region Constructor and Initialization
@@ -275,6 +293,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         #endregion
 
         #region Connectors and Data Handling
+
         private BotTabSimple CreateSimpleTab(Security security, IServer server)
         {
             var tab = new BotTabSimple(TabName + security.Name, StartProgram);
@@ -300,9 +319,39 @@ namespace OsEngine.OsTrader.Panels.Tab
             //newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
             //newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.OnStateChange(CandleSeriesState.ParametersChange);
 
-            tab.Connector.AdditionalDataEvent += Connector_AdditionalDataEvent;
-            tab.Connector.GlassChangeEvent += Connector_GlassChangeEvent;
-            tab.Connector.TickChangeEvent += Connector_TickChangeEvent;
+            // Market Data Events from Connector
+            tab.Connector.GlassChangeEvent += (MarketDepth marketDepth) =>
+            {
+                NewMarketDepthEvent?.Invoke(marketDepth, tab);
+                Connector_GlassChangeEvent(marketDepth);
+            };
+            tab.Connector.TickChangeEvent += (List<Trade> trades) =>
+            {
+                NewTickEvent?.Invoke(trades, tab);
+                Connector_TickChangeEvent(trades);
+            };
+            tab.Connector.AdditionalDataEvent += (OptionMarketData data) =>
+            {
+                if (_simpleTabs.TryGetValue(data.SecurityName, out var simpleTab))
+                {
+                    NewOptionsDataEvent?.Invoke(data, simpleTab);
+                }
+                Connector_AdditionalDataEvent(data);
+            };
+            tab.Connector.MyTradeEvent += (MyTrade myTrade) =>
+            {
+                NewMyTradeEvent?.Invoke(myTrade, tab);
+            };
+
+            // Order and Position Events from Tab
+            tab.OrderUpdateEvent += (Order order) => { OrderUpdateEvent?.Invoke(order, tab); };
+            tab.PositionOpeningSuccesEvent += (Position pos) => { PositionOpeningSuccessEvent?.Invoke(pos, tab); };
+            tab.PositionOpeningFailEvent += (Position pos) => { PositionOpeningFailEvent?.Invoke(pos, tab); };
+            tab.PositionClosingSuccesEvent += (Position pos) => { PositionClosingSuccessEvent?.Invoke(pos, tab); };
+            tab.PositionClosingFailEvent += (Position pos) => { PositionClosingFailEvent?.Invoke(pos, tab); };
+            tab.PositionStopActivateEvent += (Position pos) => { PositionStopActivateEvent?.Invoke(pos, tab); };
+            tab.PositionProfitActivateEvent += (Position pos) => { PositionProfitActivateEvent?.Invoke(pos, tab); };
+
 
             tab.IsCreatedByScreener = true;
 
@@ -528,7 +577,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region IIBotTab Implementation
         public void Clear() { }
-        public void Delete() { _isDisposed = true; if (_highlightingThread != null && _highlightingThread.IsAlive) _highlightingThread.Abort(); foreach (var tab in _simpleTabs.Values) { tab.Connector.AdditionalDataEvent -= Connector_AdditionalDataEvent; tab.Connector.TickChangeEvent -= Connector_TickChangeEvent; tab.Connector.GlassChangeEvent -= Connector_GlassChangeEvent; tab.Delete(); } TabDeletedEvent?.Invoke(); }
+        public void Delete() { _isDisposed = true; if (_highlightingThread != null && _highlightingThread.IsAlive) _highlightingThread.Abort(); foreach (var tab in _simpleTabs.Values) { tab.Delete(); } TabDeletedEvent?.Invoke(); }
         public void ShowDialog() { if (ServerMaster.GetServers() == null || ServerMaster.GetServers().Count == 0) { new AlertMessageSimpleUi(OsLocalization.Market.Message1).Show(); return; } if (_ui != null && !_ui.IsLoaded) _ui = null; if (_ui == null) { _ui = new BotTabOptionsUi(this); _ui.Closed += (sender, args) => { _ui = null; }; _ui.Show(); } else { _ui.Activate(); } }
         public void StartPaint(System.Windows.Forms.Integration.WindowsFormsHost hostChart) { hostChart.Child = _mainControl; }
         public void StopPaint() { }
