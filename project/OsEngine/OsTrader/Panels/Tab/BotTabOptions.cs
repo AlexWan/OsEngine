@@ -156,25 +156,97 @@ namespace OsEngine.OsTrader.Panels.Tab
             _strikesToShowNumericUpDown.ValueChanged += (sender, args) => RefreshOptionsGrid();
             filterPanel.Controls.Add(_strikesToShowNumericUpDown);
 
-            _optionsGrid = CreateNewGrid();
-            string[] callHeaders = { "Theta", "Vega", "Gamma", "Delta", "Last", "Ask", "Bid", "IV", "Name" };
-            string[] putHeaders = { "Bid", "Ask", "Last", "Delta", "Gamma", "Vega", "Theta", "IV", "Name" };
-            foreach (var header in callHeaders) { _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = header, Name = "Call" + header, ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells }); }
-            _optionsGrid.Columns.Insert(callHeaders.Length, new DataGridViewButtonColumn { HeaderText = "Chart", Name = "CallChart", UseColumnTextForButtonValue = true, Text = "Open" });
+            var buildChartButton = new Button() { Text = "Build PNL Chart", Margin = new Padding(25, 3, 0, 0), ForeColor = Color.FromArgb(154, 156, 158),  };
+            buildChartButton.Click += BuildChartButton_Click;
+            filterPanel.Controls.Add(buildChartButton);
 
+            _optionsGrid = CreateNewGrid();
+
+            // Call side
+            _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Qty", Name = "CallQty", ReadOnly = false, Width = 40 });
+            string[] callHeaders = { "Theta", "Vega", "Gamma", "Delta", "Last", "Ask", "Bid", "IV", "Name" };
+            foreach (var header in callHeaders) { _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = header, Name = "Call" + header, ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells }); }
+            _optionsGrid.Columns.Add(new DataGridViewButtonColumn { HeaderText = "Chart", Name = "CallChart", UseColumnTextForButtonValue = true, Text = "Open" });
+            _optionsGrid.Columns.Add(new DataGridViewButtonColumn { HeaderText = "PNL", Name = "CallPnl", UseColumnTextForButtonValue = true, Text = "Profile" });
+
+            // Center
             _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Strike", Name = "Strike", ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
 
+            // Put side
+            string[] putHeaders = { "Bid", "Ask", "Last", "Delta", "Gamma", "Vega", "Theta", "IV", "Name" };
             foreach (var header in putHeaders) { _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = header, Name = "Put" + header, ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells }); }
-
             _optionsGrid.Columns.Add(new DataGridViewButtonColumn { HeaderText = "Chart", Name = "PutChart", UseColumnTextForButtonValue = true, Text = "Open" });
+            _optionsGrid.Columns.Add(new DataGridViewButtonColumn { HeaderText = "PNL", Name = "PutPnl", UseColumnTextForButtonValue = true, Text = "Profile" });
+            _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Qty", Name = "PutQty", ReadOnly = false, Width = 40 });
             _optionsGrid.Columns["CallName"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _optionsGrid.Columns["PutName"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _optionsGrid.Columns["Strike"].DefaultCellStyle.Font = new Font(_optionsGrid.Font, FontStyle.Bold);
             _optionsGrid.CellClick += _optionsGrid_CellClick;
+            _optionsGrid.CellValueChanged += _optionsGrid_CellValueChanged;
 
             _mainControl.Controls.Add(_uaGrid, 0, 0);
             _mainControl.Controls.Add(filterPanel, 0, 1);
             _mainControl.Controls.Add(_optionsGrid, 0, 2);
+        }
+
+        private void _optionsGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var grid = (DataGridView)sender;
+            var colName = grid.Columns[e.ColumnIndex].Name;
+
+            if (colName != "CallQty" && colName != "PutQty") return;
+
+            try
+            {
+                var strike = (decimal)grid.Rows[e.RowIndex].Cells["Strike"].Value;
+                var valueStr = grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
+
+                if (!int.TryParse(valueStr, out int quantity))
+                {
+                    // Optional: handle invalid input, for now we just ignore
+                    return;
+                }
+
+                OptionDataRow optionData = null;
+                if (colName == "CallQty")
+                {
+                    optionData = _allOptionsData.FirstOrDefault(o => o.Security.Strike == strike && o.Security.OptionType == OptionType.Call);
+                }
+                else // PutQty
+                {
+                    optionData = _allOptionsData.FirstOrDefault(o => o.Security.Strike == strike && o.Security.OptionType == OptionType.Put);
+                }
+
+                if (optionData != null)
+                {
+                    optionData.Quantity = quantity;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessageEvent?.Invoke(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void BuildChartButton_Click(object sender, EventArgs e)
+        {
+            var strategyLegs = _allOptionsData.Where(o => o.Quantity != 0).ToList();
+            if (strategyLegs.Count == 0)
+            {
+                MessageBox.Show("No position selected. Please enter a quantity for one or more options.");
+                return;
+            }
+
+            var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
+            var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == selectedUaName);
+
+            if (uaData != null)
+            {
+                StrategyPnlChartUi ui = new StrategyPnlChartUi(strategyLegs, uaData);
+                ui.Show();
+            }
         }
 
         private void _uaGrid_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -257,9 +329,32 @@ namespace OsEngine.OsTrader.Panels.Tab
             { 
                 var row = new DataGridViewRow(); 
                 row.CreateCells(_optionsGrid, 
-                    data.CallData?.Theta, data.CallData?.Vega, data.CallData?.Gamma, data.CallData?.Delta, data.CallData?.LastPrice, data.CallData?.Ask, data.CallData?.Bid, data.CallIV, data.CallData?.Security.Name,"chart",
+                    data.CallData?.Quantity, // Call Qty
+                    data.CallData?.Theta, 
+                    data.CallData?.Vega, 
+                    data.CallData?.Gamma, 
+                    data.CallData?.Delta, 
+                    data.CallData?.LastPrice, 
+                    data.CallData?.Ask, 
+                    data.CallData?.Bid, 
+                    data.CallIV, 
+                    data.CallData?.Security.Name,
+                    "Open", // CallChart
+                    "Profile", // CallPnl
                     data.Strike,
-                    data.PutData?.Bid, data.PutData?.Ask, data.PutData?.LastPrice, data.PutData?.Delta, data.PutData?.Gamma, data.PutData?.Vega, data.PutData?.Theta, data.PutIV, data.PutData?.Security.Name, "chart");
+                    data.PutData?.Bid, 
+                    data.PutData?.Ask, 
+                    data.PutData?.LastPrice, 
+                    data.PutData?.Delta, 
+                    data.PutData?.Gamma, 
+                    data.PutData?.Vega, 
+                    data.PutData?.Theta, 
+                    data.PutIV, 
+                    data.PutData?.Security.Name, 
+                    "Open", // PutChart
+                    "Profile", // PutPnl
+                    data.PutData?.Quantity // Put Qty
+                    );
                 _strikeGridRows.Add(data.Strike, row);
                 _optionsGrid.Rows.Add(row);
             } 
@@ -271,16 +366,32 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             var isCallChart = e.ColumnIndex == _optionsGrid.Columns["CallChart"].Index;
             var isPutChart = e.ColumnIndex == _optionsGrid.Columns["PutChart"].Index;
+            var isCallPnl = e.ColumnIndex == _optionsGrid.Columns["CallPnl"].Index;
+            var isPutPnl = e.ColumnIndex == _optionsGrid.Columns["PutPnl"].Index;
 
-            if (!isCallChart && !isPutChart) return;
+            if (!isCallChart && !isPutChart && !isCallPnl && !isPutPnl) return;
 
             var strike = (decimal)_optionsGrid.Rows[e.RowIndex].Cells["Strike"].Value;
             var strikeData = _allOptionsData.Where(o => o.Security.Strike == strike).ToList();
-            var optionData = isCallChart ? strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call) : strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
 
-            if (optionData?.SimpleTab != null)
+            if (isCallPnl || isPutPnl)
             {
-                ShowChart(optionData.SimpleTab);
+                var optionData = isCallPnl ? strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call) : strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
+                var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
+                var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == selectedUaName);
+                if (optionData != null && uaData != null)
+                {
+                    OptionPnlChartUi ui = new OptionPnlChartUi(optionData, uaData);
+                    ui.Show();
+                }
+                return; // Prevent falling through to ShowChart logic
+            }
+
+            var optionDataChart = isCallChart ? strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call) : strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
+
+            if (optionDataChart?.SimpleTab != null)
+            {
+                ShowChart(optionDataChart.SimpleTab);
             }
         }
 
@@ -602,7 +713,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region DataRow Classes
         public class StrikeDataRow { public decimal Strike { get; set; } public OptionDataRow CallData { get; set; } public OptionDataRow PutData { get; set; } public decimal CallIV { get; set; } public decimal PutIV { get; set; } }
-        public class OptionDataRow { public Security Security { get; set; } public BotTabSimple SimpleTab { get; set; } public decimal Bid { get; set; } public decimal Ask { get; set; } public decimal LastPrice { get; set; } public decimal Delta { get; set; } public decimal Gamma { get; set; } public decimal Vega { get; set; } public decimal Theta { get; set; } }
+        public class OptionDataRow { public Security Security { get; set; } public BotTabSimple SimpleTab { get; set; } public decimal Bid { get; set; } public decimal Ask { get; set; } public decimal LastPrice { get; set; } public decimal Delta { get; set; } public decimal Gamma { get; set; } public decimal Vega { get; set; } public decimal Theta { get; set; } public int Quantity { get; set; } }
         public class UnderlyingAssetDataRow { public Security Security { get; set; } public decimal Bid { get; set; } public decimal Ask { get; set; } public decimal LastPrice { get; set; } }
         #endregion
     }
