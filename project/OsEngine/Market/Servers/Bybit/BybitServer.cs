@@ -1101,7 +1101,7 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                     else
                     {
-                        SendLogMessage($"GetPositionsLinear>. Position error. Code: {responsePositionOnBoard.retCode}\n"
+                        SendLogMessage($"GetPositionsInverse>. Position error. Code: {responsePositionOnBoard.retCode}\n"
                                 + $"Message: {responsePositionOnBoard.retMsg}", LogMessageType.Error);
                     }
 
@@ -4523,7 +4523,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private const string RecvWindow = "50000";
 
-        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(10));
+        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(15));
 
         private HttpClientHandler httpClientHandler;
 
