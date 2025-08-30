@@ -168,6 +168,15 @@ namespace OsEngine.OsTrader.Grids
                     curStep = Math.Round(curStep, tab.Security.Decimals);
                 }
             }
+            else if (TypeStep == TradeGridValueType.Absolute)
+            {
+                curStep = LineStep;
+
+                if (tab.Security != null)
+                {
+                    curStep = Math.Round(curStep, tab.Security.Decimals);
+                }
+            }
 
             for (int i = 0; i < LineCountStart; i++)
             {
