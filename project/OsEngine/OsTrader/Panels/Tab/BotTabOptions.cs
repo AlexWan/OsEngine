@@ -142,7 +142,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Bid", Name = "Bid", ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Ask", Name = "Ask", ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Last Price", Name = "LastPrice", ReadOnly = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
+            _uaGrid.Columns.Add(new DataGridViewButtonColumn { HeaderText = "Chart", Name = "UaChart", UseColumnTextForButtonValue = true, Text = "Open" });
             _uaGrid.SelectionChanged += (sender, args) => RefreshOptionsGrid();
+            _uaGrid.CellClick += _uaGrid_CellClick;
 
             var filterPanel = new FlowLayoutPanel() { Dock = DockStyle.Fill, BackColor = Color.FromArgb(21, 26, 30) };
             filterPanel.Controls.Add(new Label() { Text = "Expiration:", Margin = new Padding(5, 6, 0, 0), ForeColor = Color.FromArgb(154, 156, 158), AutoSize = true });
@@ -175,9 +177,24 @@ namespace OsEngine.OsTrader.Panels.Tab
             _mainControl.Controls.Add(_optionsGrid, 0, 2);
         }
 
+        private void _uaGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex != _uaGrid.Columns["UaChart"].Index)
+            {
+                return;
+            }
+
+            var uaName = _uaGrid.Rows[e.RowIndex].Cells["Name"].Value.ToString();
+
+            if (_simpleTabs.TryGetValue(uaName, out var tab))
+            {
+                ShowChart(tab);
+            }
+        }
+
         private DataGridView CreateNewGrid() { var grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells); grid.Dock = DockStyle.Fill; grid.MultiSelect = false; grid.ScrollBars = ScrollBars.Both; return grid; }
 
-        private void InitializeUaGrid() { if (_uaGrid.InvokeRequired) { _uaGrid.Invoke(new Action(InitializeUaGrid)); return; } _uaGrid.Rows.Clear(); _uaGridRows.Clear(); foreach (var data in _uaData) { var row = new DataGridViewRow(); row.CreateCells(_uaGrid, data.Security.Name, data.Bid, data.Ask, data.LastPrice); _uaGridRows.Add(data.Security.Name, row); _uaGrid.Rows.Add(row); } }
+        private void InitializeUaGrid() { if (_uaGrid.InvokeRequired) { _uaGrid.Invoke(new Action(InitializeUaGrid)); return; } _uaGrid.Rows.Clear(); _uaGridRows.Clear(); foreach (var data in _uaData) { var row = new DataGridViewRow(); row.CreateCells(_uaGrid, data.Security.Name, data.Bid, data.Ask, data.LastPrice, "Open"); _uaGridRows.Add(data.Security.Name, row); _uaGrid.Rows.Add(row); } }
 
         private void PopulateExpirationFilter(List<Security> options) { if (_expirationComboBox.InvokeRequired) { _expirationComboBox.Invoke(new Action<List<Security>>(PopulateExpirationFilter), options); return; } var dates = options.Select(o => o.Expiration.Date).Distinct().OrderBy(d => d).ToList(); _expirationComboBox.Items.Clear(); _expirationComboBox.Items.Add("All"); foreach (var date in dates) { _expirationComboBox.Items.Add(date.ToShortDateString()); } if (_expirationComboBox.Items.Count > 1) { _expirationComboBox.SelectedIndex = 1; } else { _expirationComboBox.SelectedItem = "All"; } }
 
