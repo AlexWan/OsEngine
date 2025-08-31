@@ -416,16 +416,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(exMo);
 
-            SupportConnection zb = new SupportConnection()
-            {
-                ServerType = ServerType.Zb,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Zb.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(zb);
-
             return supportList;
         }
     }

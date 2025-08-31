@@ -28,7 +28,6 @@ using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
-using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.TInvest;
@@ -301,7 +300,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.KuCoinFutures);
                 serverTypes.Add(ServerType.Exmo);
-                serverTypes.Add(ServerType.Zb);
                 serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
@@ -673,10 +671,6 @@ namespace OsEngine.Market
                 if (type == ServerType.Bybit)
                 {
                     newServer = new BybitServer(uniqueNum);
-                }
-                if (type == ServerType.Zb)
-                {
-                    newServer = new ZbServer();
                 }
                 if (type == ServerType.Exmo)
                 {
@@ -2030,12 +2024,6 @@ namespace OsEngine.Market
         /// Фьючерсы биржи криптовалют Gate.io
         /// </summary>
         GateIoFutures,
-
-        /// <summary>
-        /// cryptocurrency exchange ZB
-        /// биржа криптовалют ZB
-        /// </summary>
-        Zb,
 
         /// <summary>
         /// transaq
