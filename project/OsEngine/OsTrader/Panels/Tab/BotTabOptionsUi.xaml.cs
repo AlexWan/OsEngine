@@ -143,7 +143,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             foreach (var security in securities)
             {
                 var row = new DataGridViewRow();
-                row.Cells.Add(new DataGridViewCheckBoxCell());
+                
+                bool isChecked = _tab.UnderlyingAssets != null && _tab.UnderlyingAssets.Contains(security.Name);
+
+                var checkCell = new DataGridViewCheckBoxCell { Value = isChecked };
+
+                row.Cells.Add(checkCell);
                 row.Cells.Add(new DataGridViewTextBoxCell { Value = security.Name });
                 row.Cells.Add(new DataGridViewTextBoxCell { Value = security.NameClass });
                 row.Tag = security;
