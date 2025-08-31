@@ -280,8 +280,24 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             PopulateExpirationFilter(optionsToTrade);
             InitializeUaGrid();
-            RefreshOptionsGrid();
+            SelectFirstUnderlyingAsset();
+
             SaveSettings();
+        }
+
+        private void SelectFirstUnderlyingAsset()
+        {
+            if (_mainControl.InvokeRequired)
+            {
+                _mainControl.Invoke(new Action(SelectFirstUnderlyingAsset));
+                return;
+            }
+
+            if (_uaGrid.Rows.Count > 0)
+            {
+                _uaGrid.Rows[0].Selected = true;
+                RefreshOptionsGrid();
+            }
         }
         #endregion
 
@@ -437,7 +453,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
             DateTime? selectedDate = null;
             string selectedExpirationStr = null;
-            _expirationComboBox.Invoke((MethodInvoker)(() => selectedExpirationStr = _expirationComboBox.SelectedItem?.ToString()));
+            if (_expirationComboBox.IsHandleCreated)
+            {
+                if (_expirationComboBox.InvokeRequired)
+                {
+                    _expirationComboBox.Invoke((MethodInvoker)(() => selectedExpirationStr = _expirationComboBox.SelectedItem?.ToString()));
+                }
+                else
+                {
+                    selectedExpirationStr = _expirationComboBox.SelectedItem?.ToString();
+                }
+            }
             if (!string.IsNullOrEmpty(selectedExpirationStr) && selectedExpirationStr != "All") { selectedDate = Convert.ToDateTime(selectedExpirationStr); }
 
             // Step 1: Filter master list
