@@ -9,6 +9,7 @@ using OsEngine.Robots.Engines;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
@@ -40,6 +41,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         #region Properties
         public List<string> UnderlyingAssets { get; private set; }
         public string PortfolioName { get; private set; }
+        public ServerType ServerType { get; set; }
+        public string ServerName { get; set; }
         public string TabName { get; set; }
         public int TabNum { get; set; }
         public BotTabType TabType => BotTabType.Options;
@@ -74,6 +77,69 @@ namespace OsEngine.OsTrader.Panels.Tab
         public event Action<Order, BotTabSimple> OrderUpdateEvent;
         #endregion
 
+        #region Settings
+
+        private string SettingsFilePath => $"Engine\\{TabName}\\OptionsSettings.txt";
+        private string SettingsFolderPath => $"Engine\\{TabName}";
+
+        public void SaveSettings()
+        {
+            try
+            {
+                if (!Directory.Exists(SettingsFolderPath))
+                {
+                    Directory.CreateDirectory(SettingsFolderPath);
+                }
+
+                using (var writer = new StreamWriter(SettingsFilePath, false))
+                {
+                    writer.WriteLine($"{nameof(PortfolioName)}:{PortfolioName}");
+                    writer.WriteLine($"{nameof(UnderlyingAssets)}:{string.Join(",", UnderlyingAssets ?? new List<string>())}");
+                    writer.WriteLine($"StrikesToShow:{_strikesToShowNumericUpDown.Value}");
+                    writer.WriteLine($"{nameof(ServerType)}:{ServerType}");
+                    writer.WriteLine($"{nameof(ServerName)}:{ServerName}");
+                }
+            }
+            catch (Exception e)
+            {
+                LogMessageEvent?.Invoke(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void LoadSettings()
+        {
+            if (!File.Exists(SettingsFilePath))
+            {
+                return;
+            }
+            try
+            {
+                using (var reader = new StreamReader(SettingsFilePath))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine()?.Split(':');
+                        if (line == null || line.Length < 2) continue;
+
+                        var key = line[0];
+                        var value = string.Join(":", line.Skip(1));
+
+                        if (key == nameof(PortfolioName)) { PortfolioName = value; }
+                        else if (key == nameof(UnderlyingAssets)) { UnderlyingAssets = value.Split(',').ToList(); }
+                        else if (key == "StrikesToShow") { _strikesToShowNumericUpDown.Value = Convert.ToDecimal(value); }
+                        else if (key == nameof(ServerType)) { Enum.TryParse(value, out ServerType serverType); ServerType = serverType; }
+                        else if (key == nameof(ServerName)) { ServerName = value; }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                LogMessageEvent?.Invoke(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
         #region Constructor and Initialization
         public BotTabOptions(string name, StartProgram startProgram)
         {
@@ -90,13 +156,102 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _highlightingThread = new Thread(UpdateLoop) { IsBackground = true };
             _highlightingThread.Start();
+
+            LoadSettings();
+            TryToReloadTabsFromSettings();
+        }
+
+        private void TryToReloadTabsFromSettings()
+        {
+            if (UnderlyingAssets == null || UnderlyingAssets.Count == 0 || string.IsNullOrEmpty(PortfolioName) || ServerType == ServerType.None)
+            {
+                return;
+            }
+
+            List<IServer> servers = ServerMaster.GetServers();
+            IServer server = null;
+            if (servers != null)
+            {
+                server = servers.Find(s => s.ServerType == ServerType && s.ServerNameAndPrefix == ServerName);
+            }
+
+            if (server != null && server.ServerStatus == ServerConnectStatus.Connect)
+            {
+                SetUnderlyingAssetsAndStart(UnderlyingAssets, PortfolioName, server);
+            }
+            else if(server != null)
+            {
+                server.ConnectStatusChangeEvent += ServerOnConnectStatusChangeEvent;
+            }
+            else
+            {
+                ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
+            }
+
+            ServerMaster.SetServerToAutoConnection(ServerType, ServerName);
+        }
+
+        private void ServerMaster_ServerCreateEvent(IServer newServer)
+        {
+            if (newServer.ServerType == ServerType && newServer.ServerNameAndPrefix == ServerName)
+            {
+                newServer.ConnectStatusChangeEvent += ServerOnConnectStatusChangeEvent;
+                ServerMaster.ServerCreateEvent -= ServerMaster_ServerCreateEvent;
+            }
+        }
+
+        private void ServerOnConnectStatusChangeEvent(string status)
+        {
+            if (status == ServerConnectStatus.Connect.ToString())
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+                IServer server = null;
+                if (servers != null)
+                {
+                    server = servers.Find(s => s.ServerType == ServerType && s.ServerNameAndPrefix == ServerName);
+                }
+
+                if (server != null)
+                {
+                    if (server.Securities != null && server.Securities.Count > 0)
+                    {
+                        SetUnderlyingAssetsAndStart(UnderlyingAssets, PortfolioName, server);
+                    }
+                    else
+                    {
+                        server.SecuritiesChangeEvent += Server_SecuritiesChangeEvent;
+                    }
+
+                    server.ConnectStatusChangeEvent -= ServerOnConnectStatusChangeEvent;
+                }
+            }
+        }
+
+        private void Server_SecuritiesChangeEvent(List<Security> securities)
+        {
+            List<IServer> servers = ServerMaster.GetServers();
+            IServer server = null;
+            if (servers != null)
+            {
+                server = servers.Find(s => s.ServerType == ServerType && s.ServerNameAndPrefix == ServerName);
+            }
+
+            if (server != null)
+            {
+                SetUnderlyingAssetsAndStart(UnderlyingAssets, PortfolioName, server);
+                server.SecuritiesChangeEvent -= Server_SecuritiesChangeEvent;
+            }
         }
 
         public void SetUnderlyingAssetsAndStart(List<string> underlyingAssets, string portfolioName, IServer server)
         {
             UnderlyingAssets = underlyingAssets;
             PortfolioName = portfolioName;
+
             if (server == null) return;
+
+            ServerName = server.ServerNameAndPrefix;
+            ServerType = server.ServerType;
 
             var allSecurities = server.Securities;
             if (allSecurities == null) return;
@@ -126,6 +281,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             PopulateExpirationFilter(optionsToTrade);
             InitializeUaGrid();
             RefreshOptionsGrid();
+            SaveSettings();
         }
         #endregion
 
@@ -153,7 +309,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             filterPanel.Controls.Add(_expirationComboBox);
             filterPanel.Controls.Add(new Label() { Text = "Strikes:", Margin = new Padding(15, 6, 0, 0), ForeColor = Color.FromArgb(154, 156, 158), AutoSize = true });
             _strikesToShowNumericUpDown = new NumericUpDown() { Minimum = 0, Maximum = 100, Value = 4, Margin = new Padding(0, 3, 0, 0), BackColor = Color.FromArgb(21, 26, 30), ForeColor = Color.FromArgb(154, 156, 158), BorderStyle = BorderStyle.FixedSingle };
-            _strikesToShowNumericUpDown.ValueChanged += (sender, args) => RefreshOptionsGrid();
+            _strikesToShowNumericUpDown.ValueChanged += (sender, args) => 
+            { 
+                RefreshOptionsGrid(); 
+                SaveSettings();
+            };
             filterPanel.Controls.Add(_strikesToShowNumericUpDown);
 
             var buildChartButton = new Button() { Text = "Build PNL Chart", Margin = new Padding(25, 3, 0, 0), ForeColor = Color.FromArgb(154, 156, 158),  };
