@@ -12,7 +12,6 @@ using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.ZB;
-using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.BitMaxFutures;
 using OsEngine.Candles;
@@ -296,27 +295,6 @@ namespace OsEngine.Entity
                             {
                                 List<Candle> candles = zbServer.GetCandleHistory(series.Security.Name, series.TimeFrameSpan);
 
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
-                        else if (serverType == ServerType.Hitbtc)
-                        {
-                            HitbtcServer hitbtc = (HitbtcServer)_server;
-                            if (series.CandleCreateMethodType != "Simple" ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                List<Candle> candles = hitbtc.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
                                 if (candles != null)
                                 {
                                     series.CandlesAll = candles;

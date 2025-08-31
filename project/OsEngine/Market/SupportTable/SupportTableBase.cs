@@ -416,16 +416,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(exMo);
 
-            SupportConnection hitBtc = new SupportConnection()
-            {
-                ServerType = ServerType.Hitbtc,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\HitBtc.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(hitBtc);
-
             SupportConnection zb = new SupportConnection()
             {
                 ServerType = ServerType.Zb,
@@ -438,7 +428,6 @@ namespace OsEngine.Market.SupportTable
 
             return supportList;
         }
-
     }
 
     public class SupportConnection
@@ -452,7 +441,6 @@ namespace OsEngine.Market.SupportTable
         public string LingSiteUrl;
 
         public int Discount;
-
     }
 
     public enum SupportServerType
