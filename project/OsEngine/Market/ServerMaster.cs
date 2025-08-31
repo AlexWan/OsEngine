@@ -29,7 +29,6 @@ using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
-using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.TInvest;
@@ -303,7 +302,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.KuCoinFutures);
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.Zb);
-                serverTypes.Add(ServerType.Hitbtc);
                 serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
@@ -663,10 +661,6 @@ namespace OsEngine.Market
                 if (type == ServerType.TInvest)
                 {
                     newServer = new TInvestServer(uniqueNum);
-                }
-                if (type == ServerType.Hitbtc)
-                {
-                    newServer = new HitbtcServer();
                 }
                 if (type == ServerType.GateIoSpot)
                 {
@@ -2024,12 +2018,6 @@ namespace OsEngine.Market
         /// подключение к Т-Инвестициям (версия 3 коннектора)
         /// </summary>
         TInvest,
-
-        /// <summary>
-        /// cryptocurrency exchange Hitbtc
-        /// биржа криптовалют Hitbtc
-        /// </summary>
-        Hitbtc,
 
         /// <summary>
         /// cryptocurrency exchange Gate.io
