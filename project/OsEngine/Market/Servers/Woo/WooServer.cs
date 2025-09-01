@@ -33,6 +33,13 @@ namespace OsEngine.Market.Servers.Woo
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterString("Application ID", "");
+            CreateParameterBoolean("Hedge Mode", true);
+            ServerParameters[3].ValueChange += WooServer_ValueChange;
+        }
+
+        private void WooServer_ValueChange()
+        {
+            ((WooServerRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
         }
     }
 
@@ -65,6 +72,15 @@ namespace OsEngine.Market.Servers.Woo
             _apiKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _appID = ((ServerParameterString)ServerParameters[2]).Value;
+            HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
+
+            if (string.IsNullOrEmpty(_apiKey)
+                || string.IsNullOrEmpty(_secretKey)
+                || string.IsNullOrEmpty(_appID))
+            {
+                SendLogMessage("Can`t run WooX connector. No keys or appID", LogMessageType.Error);
+                return;
+            }
 
             try
             {
@@ -164,6 +180,89 @@ namespace OsEngine.Market.Servers.Woo
         private string _appID;
 
         private string _baseUrl = "https://api.woox.io";
+
+        public bool HedgeMode
+        {
+            get { return _hedgeMode; }
+            set
+            {
+                if (value == _hedgeMode)
+                {
+                    return;
+                }
+                _hedgeMode = value;
+
+                SetPositionMode();
+            }
+        }
+
+        private bool _hedgeMode;
+
+        private bool _extendedMarketData;
+
+        public void SetPositionMode()
+        {
+            _rateGateSendOrder.WaitToProceed();
+
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                string requestPath = "/v3/futures/positionMode";
+
+                string positionMode = "ONE_WAY";
+
+                if (HedgeMode)
+                {
+                    positionMode = "HEDGE_MODE";
+                }
+
+                Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+                jsonContent.Add("positionMode", positionMode);
+
+                string requestBody = JsonConvert.SerializeObject(jsonContent);
+                IRestResponse responseMessage = CreatePrivateQuery(requestPath, Method.PUT, requestBody);
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<object> response = JsonConvert.DeserializeObject<ResponseMessageRest<object>>(responseMessage.Content);
+
+                    if (response.success == "true")
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        if (responseMessage.Content.Contains("{\"success\":false,\"error_code\":111000,\"message\":\"Position mode remains unchanged as it is already set to your selection.\"}"))
+                        {
+                            //
+                        }
+                        else
+                        {
+                            SendLogMessage($"Position mode error. {responseMessage.Content}", LogMessageType.Error);
+                        }    
+                    }
+                }
+                else
+                {
+                    if (responseMessage.Content.Contains("{\"success\":false,\"error_code\":111000,\"message\":\"Position mode remains unchanged as it is already set to your selection.\"}"))
+                    {
+                        //
+                    }
+                    else
+                    {
+                        SendLogMessage($"Position mode request error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                    }    
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
 
         #endregion
 
@@ -756,6 +855,8 @@ namespace OsEngine.Market.Servers.Woo
                     {
                         ConnectEvent();
                     }
+
+                    SetPositionMode();
                 }
             }
         }
@@ -1639,7 +1740,6 @@ namespace OsEngine.Market.Servers.Woo
         {
             try
             {
-
                 ResponseWebSocketMessage<PositionData> responsePositions = JsonConvert.DeserializeObject<ResponseWebSocketMessage<PositionData>>(message);
 
                 Portfolio portfolio = _portfolios[0];
@@ -1651,7 +1751,20 @@ namespace OsEngine.Market.Servers.Woo
                     PositionOnBoard pos = new PositionOnBoard();
 
                     pos.PortfolioName = "WooPortfolio";
-                    pos.SecurityNameCode = balanceDetails.s;
+
+                    if (balanceDetails.ps.Contains("LONG"))
+                    {
+                        pos.SecurityNameCode = balanceDetails.s + "_LONG";
+                    }
+                    else if (balanceDetails.ps.Contains("SHORT"))
+                    {
+                        pos.SecurityNameCode = balanceDetails.s + "_SHORT";
+                    }
+                    else
+                    {
+                        pos.SecurityNameCode = balanceDetails.s;
+                    }
+                    
                     pos.ValueBlocked = 0;
                     pos.ValueCurrent = balanceDetails.h.ToDecimal();
                     pos.UnrealizedPnl = balanceDetails.pnl.ToDecimal();
@@ -1837,11 +1950,25 @@ namespace OsEngine.Market.Servers.Woo
             {
                 string requestPath = "/v3/trade/order";
 
+                string posSide = "BOTH";
+
+                if (HedgeMode 
+                    && order.SecurityNameCode.StartsWith("PERP"))
+                {
+                    posSide = order.Side == Side.Buy ? "LONG" : "SHORT";
+
+                    if (order.PositionConditionType == OrderPositionConditionType.Close)
+                    {
+                        posSide = order.Side == Side.Buy ? "SHORT" : "LONG";
+                    }
+                }
+
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
                 jsonContent.Add("symbol", order.SecurityNameCode);
                 jsonContent.Add("side", order.Side.ToString() == "Buy" ? "BUY" : "SELL");
                 jsonContent.Add("type", order.TypeOrder.ToString() == "Limit" ? "LIMIT" : "MARKET");
                 jsonContent.Add("clientOrderId", order.NumberUser.ToString());
+                jsonContent.Add("positionSide", posSide);
                 jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
                 jsonContent.Add("quantity", order.Volume.ToString().Replace(",", "."));
 
