@@ -57,7 +57,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             chart.Legends[0].BackColor = Color.Black;
             chart.Legends[0].ForeColor = Color.White;
 
-            var pnlSeries = new Series("Strategy PNL") { ChartType = SeriesChartType.Line, Color = Color.MediumVioletRed, BorderWidth = 2 };
+            var expirationPnlSeries = new Series("PNL at Expiration") { ChartType = SeriesChartType.Line, Color = Color.MediumVioletRed, BorderWidth = 2 };
+            var currentPnlSeries = new Series("Current PNL") { ChartType = SeriesChartType.Line, Color = Color.CornflowerBlue, BorderWidth = 2 };
 
             decimal avgStrike = _strategyLegs.Average(leg => leg.Security.Strike);
             decimal currentUaPrice = _uaData.LastPrice > 0 ? _uaData.LastPrice : (_uaData.Bid + _uaData.Ask) / 2;
@@ -79,19 +80,43 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             for (double price = minPrice; price <= maxPrice; price += step)
             {
-                decimal totalPnl = 0;
+                decimal totalExpirationPnl = 0;
+                decimal totalCurrentPnl = 0;
+
                 foreach (var leg in _strategyLegs)
                 {
                     decimal premium = leg.LastPrice > 0 ? leg.LastPrice : (leg.Bid + leg.Ask) / 2;
+                    if (premium == 0)
+                    {
+                        premium = leg.Security.PriceStep;
+                    }
+                    // 1. Expiration PNL
                     decimal intrinsicValue = (leg.Security.OptionType == OptionType.Call)
                         ? Math.Max(0, (decimal)price - leg.Security.Strike)
                         : Math.Max(0, leg.Security.Strike - (decimal)price);
-                    totalPnl += (intrinsicValue - premium) * leg.Quantity;
+                    totalExpirationPnl += (intrinsicValue - premium) * leg.Quantity;
+
+                    // 2. Current PNL
+                    double timeToExpiration = (leg.Security.Expiration - DateTime.UtcNow).TotalDays / 365.0;
+                    double riskFreeRate = 0.0; // Hardcoded as per plan
+                    double volatility = (double)leg.IV/100;
+
+                    decimal theoreticalPrice = BlackScholes.CalculateOptionPrice(
+                        leg.Security.OptionType,
+                        (decimal)price,
+                        leg.Security.Strike,
+                        timeToExpiration,
+                        riskFreeRate,
+                        volatility);
+
+                    totalCurrentPnl += (theoreticalPrice - premium) * leg.Quantity;
                 }
-                pnlSeries.Points.AddXY(price, (double)totalPnl);
+                expirationPnlSeries.Points.AddXY(price, (double)totalExpirationPnl);
+                currentPnlSeries.Points.AddXY(price, (double)totalCurrentPnl);
             }
 
-            chart.Series.Add(pnlSeries);
+            chart.Series.Add(expirationPnlSeries);
+            chart.Series.Add(currentPnlSeries);
 
             var zeroLine = new HorizontalLineAnnotation { AxisX = chartArea.AxisX, AxisY = chartArea.AxisY, LineColor = Color.Gray, LineWidth = 1, LineDashStyle = ChartDashStyle.Dot, Y = 0, IsInfinitive = true, ClipToChartArea = "MainArea" };
             chart.Annotations.Add(zeroLine);
@@ -104,7 +129,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             chartArea.AxisX.LabelStyle.Interval = interval;
             chartArea.AxisX.MajorTickMark.Interval = interval;
 
-            chartArea.AxisX.Title = "Underlying Asset Price at Expiration";
+            chartArea.AxisX.Title = "Underlying Asset Price";
             chartArea.AxisY.Title = "Total Profit / Loss";
         }
     }

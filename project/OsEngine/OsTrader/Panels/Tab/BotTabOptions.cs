@@ -1263,5 +1263,60 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         #endregion
+
+        public static class BlackScholes
+        {
+            public static decimal CalculateOptionPrice(
+                OptionType optionType,
+                decimal underlyingPrice,
+                decimal strikePrice,
+                double timeToExpiration,
+                double riskFreeRate,
+                double volatility)
+            {
+                if (timeToExpiration <= 0 || volatility <= 0)
+                {
+                    // At expiration, the option price is its intrinsic value
+                    if (optionType == OptionType.Call)
+                    {
+                        return Math.Max(0, underlyingPrice - strikePrice);
+                    }
+                    else // Put
+                    {
+                        return Math.Max(0, strikePrice - underlyingPrice);
+                    }
+                }
+
+                double d1 = (Math.Log((double)underlyingPrice / (double)strikePrice) + (riskFreeRate + 0.5 * Math.Pow(volatility, 2)) * timeToExpiration) / (volatility * Math.Sqrt(timeToExpiration));
+                double d2 = d1 - volatility * Math.Sqrt(timeToExpiration);
+
+                if (optionType == OptionType.Call)
+                {
+                    return (decimal)((double)underlyingPrice * Cdf(d1) - (double)strikePrice * Math.Exp(-riskFreeRate * timeToExpiration) * Cdf(d2));
+                }
+                else // Put
+                {
+                    return (decimal)((double)strikePrice * Math.Exp(-riskFreeRate * timeToExpiration) * Cdf(-d2) - (double)underlyingPrice * Cdf(-d1));
+                }
+            }
+
+            // Cumulative Distribution Function for standard normal distribution
+            private static double Cdf(double z)
+            {
+                // Using the error function approximation
+                double p = 0.3275911;
+                double a1 = 0.254829592;
+                double a2 = -0.284496736;
+                double a3 = 1.421413741;
+                double a4 = -1.453152027;
+                double a5 = 1.061405429;
+
+                int sign = (z < 0) ? -1 : 1;
+                double x = Math.Abs(z) / Math.Sqrt(2.0);
+                double t = 1.0 / (1.0 + p * x);
+                double erf = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
+                return 0.5 * (1.0 + sign * erf);
+            }
+        } 
     }
 }
