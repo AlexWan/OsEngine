@@ -557,7 +557,7 @@ namespace OsEngine.Entity
                 ServerName = saveArray[21];
             }
 
-            if(saveArray.Length > 23)
+            if(saveArray.Length >= 23)
             {
                 string[] cancelling = saveArray[22].Split("&");
 
