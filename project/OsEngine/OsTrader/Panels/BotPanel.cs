@@ -2065,7 +2065,7 @@ position => position.State != PositionStateType.OpeningFail
                     }
                     else if (ActiveTab.TabType == BotTabType.Options)
                     {
-                        ((BotTabOptions)ActiveTab).StartPaint(_hostChart);
+                        ((BotTabOptions)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
                     }
                     else if (ActiveTab.TabType == BotTabType.Pair)
                     {

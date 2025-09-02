@@ -1,4 +1,4 @@
-﻿using OsEngine.Alerts;
+using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -13,6 +13,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using OsEngine.OsTrader;
+using OsEngine.Journal;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -39,6 +41,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private BotTabOptionsUi _ui;
         private System.Threading.Timer _updateTimer;
         private readonly object _locker = new object();
+        private GlobalPositionViewer _positionViewer;
 
         #endregion
 
@@ -100,8 +103,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Settings
 
-        private string SettingsFilePath => $"Engine\\{TabName}\\OptionsSettings.txt";
-        private string SettingsFolderPath => $"Engine\\{TabName}";
+        private string SettingsFilePath => $@"Engine\{TabName}\OptionsSettings.txt";
+        private string SettingsFolderPath => $@"Engine\{TabName}";
 
         private void SaveSettings()
         {
@@ -442,6 +445,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             PopulateExpirationFilter(optionsToTrade);
             InitializeUaGrid();
             SelectFirstUnderlyingAsset();
+            SetJournalsInPosViewer(); // Add this call
 
             SaveSettings();
         }
@@ -1191,6 +1195,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.Delete();
             }
 
+            if(_positionViewer != null)
+            {
+                _positionViewer.LogMessageEvent -= LogMessageEvent;
+                _positionViewer.Delete();
+            }
+
             TabDeletedEvent?.Invoke();
         }
 
@@ -1235,9 +1245,48 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        public void StartPaint(System.Windows.Forms.Integration.WindowsFormsHost hostChart)
+        public void StartPaint(System.Windows.Forms.Integration.WindowsFormsHost hostChart, System.Windows.Forms.Integration.WindowsFormsHost hostOpenDeals, System.Windows.Forms.Integration.WindowsFormsHost hostCloseDeals)
         {
             hostChart.Child = _mainControl;
+
+            if (_positionViewer == null)
+            {
+                _positionViewer = new GlobalPositionViewer(StartProgram);
+                _positionViewer.LogMessageEvent += LogMessageEvent;
+            }
+
+            SetJournalsInPosViewer();
+            _positionViewer.StartPaint(hostOpenDeals, hostCloseDeals);
+        }
+
+        private void SetJournalsInPosViewer()
+        {
+            if (_positionViewer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                List<Journal.Journal> journals = new List<Journal.Journal>();
+
+                foreach (var tab in _simpleTabs.Values)
+                {
+                    if (tab != null)
+                    {
+                        journals.Add(tab.GetJournal());
+                    }
+                }
+
+                if (journals.Count > 0)
+                {
+                    _positionViewer.SetJournals(journals);
+                }
+            }
+            catch (Exception error)
+            {
+                LogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
+            }
         }
 
         public void StopPaint()
