@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 using OsEngine.Market;
 
@@ -266,6 +265,21 @@ namespace OsEngine.Entity
         /// </summary>
         public bool IsStopOrProfit;
 
+        /// <summary>
+        /// Already been canceled at least once
+        /// </summary>
+        public bool IsSendToCancel;
+
+        /// <summary>
+        /// Number of attempts to revoke the order
+        /// </summary>
+        public int CancellingTryCount;
+
+        /// <summary>
+        /// The last time an attempt was made to withdraw an order
+        /// </summary>
+        public DateTime LastCancelTryLocalTime;
+
         public ServerType ServerType;
 
         public string ServerName;
@@ -469,6 +483,8 @@ namespace OsEngine.Entity
 
             result.Append(ServerName + "@");
 
+            result.Append(IsSendToCancel + "&" + CancellingTryCount + "&" + LastCancelTryLocalTime.ToString(CultureInfo.InvariantCulture));
+
             if (State == OrderStateType.Done && Volume == VolumeExecute &&
                 _trades != null && _trades.Count > 0)
             {
@@ -503,7 +519,6 @@ namespace OsEngine.Entity
 
             SecurityNameCode = saveArray[11].Replace('%', '@');
             PortfolioNumber = saveArray[12].Replace('%', '@');
-
 
             TimeCreate = Convert.ToDateTime(saveArray[13], CultureInfo);
             TimeCancel = Convert.ToDateTime(saveArray[14], CultureInfo);
@@ -540,6 +555,18 @@ namespace OsEngine.Entity
             if (saveArray.Length > 22)
             {
                 ServerName = saveArray[21];
+            }
+
+            if(saveArray.Length > 23)
+            {
+                string[] cancelling = saveArray[22].Split("&");
+
+                if(cancelling.Length == 3)
+                {
+                    IsSendToCancel = Convert.ToBoolean(cancelling[0]);
+                    CancellingTryCount = Convert.ToInt32(cancelling[1]);
+                    LastCancelTryLocalTime = Convert.ToDateTime(cancelling[2],CultureInfo.InvariantCulture);
+                }
             }
         }
     }

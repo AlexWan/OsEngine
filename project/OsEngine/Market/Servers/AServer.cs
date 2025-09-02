@@ -3564,7 +3564,19 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                if(IsAlreadyCancelled(order))
+                if(order.IsSendToCancel == true 
+                    && IsAlreadyCancelled(order))
+                {
+                    return;
+                }
+
+                if(order.CancellingTryCount > 10)
+                {
+                    return;
+                }
+
+
+                if (order.CancellingTryCount > 1)
                 {
                     return;
                 }
@@ -3573,6 +3585,10 @@ namespace OsEngine.Market.Servers
 
                 lock (_cancelOrdersLocker)
                 {
+                    order.IsSendToCancel = true;
+                    order.CancellingTryCount++;
+                    order.LastCancelTryLocalTime = DateTime.Now;
+
                     for (int i = 0; i < _canceledOrders.Count; i++)
                     {
                         if (_canceledOrders[i].NumberMarket == order.NumberMarket)

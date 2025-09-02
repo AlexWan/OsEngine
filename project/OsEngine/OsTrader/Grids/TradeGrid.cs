@@ -684,6 +684,11 @@ namespace OsEngine.OsTrader.Grids
 
                 // отзываем ордера с рынка
 
+                if (HaveOrdersTryToCancelLastSecond())
+                {
+                    return;
+                }
+
                 int countRejectOrders = TryCancelClosingOrders();
 
                 if (countRejectOrders > 0)
@@ -776,6 +781,11 @@ namespace OsEngine.OsTrader.Grids
             if (StartProgram == StartProgram.IsOsTrader)
             {
                 if (HaveOrdersWithNoMarketOrders())
+                {
+                    return;
+                }
+
+                if(HaveOrdersTryToCancelLastSecond())
                 {
                     return;
                 }
@@ -1818,6 +1828,48 @@ namespace OsEngine.OsTrader.Grids
                         if (string.IsNullOrEmpty(position.CloseOrders[^1].NumberMarket))
                         {
                             return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool HaveOrdersTryToCancelLastSecond()
+        {
+            // возвращает true - если есть ордер который уже отослан на отзыв но всё ещё в статусе Active. За последние 3 секунды.
+            // если true - значит последние операции ещё не завершены по снятию ордеров
+
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            for (int i = 0; linesAll != null && i < linesAll.Count; i++)
+            {
+                if (linesAll[i].Position != null)
+                {
+                    Position position = linesAll[i].Position;
+
+                    if (position.OpenActive)
+                    {
+                        if (position.OpenOrders[^1].State == OrderStateType.Active 
+                            && position.OpenOrders[^1].IsSendToCancel == true)
+                        {
+                            if (position.OpenOrders[^1].LastCancelTryLocalTime.AddSeconds(3) > DateTime.Now)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+
+                    if (position.CloseActive)
+                    {
+                        if (position.CloseOrders[^1].State == OrderStateType.Active
+                            && position.CloseOrders[^1].IsSendToCancel == true)
+                        {
+                            if(position.CloseOrders[^1].LastCancelTryLocalTime.AddSeconds(3) > DateTime.Now)
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
