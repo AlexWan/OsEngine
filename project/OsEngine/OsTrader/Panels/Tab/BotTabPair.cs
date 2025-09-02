@@ -567,7 +567,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Delete a trading pair
         /// </summary>
         /// <param name="numberInArray"></param>
-        public void DeletePair(int numberInArray)
+        public void DeletePair(int numberInArray, bool needToRepaint)
         {
             try
             {
@@ -583,7 +583,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                         Pairs[i].Delete();
                         Pairs.RemoveAt(i);
                         SavePairNames();
-                        RePaintGrid();
+
+                        if (needToRepaint)
+                        {
+                            RePaintGrid();
+                        }
+
                         return;
                     }
                 }
@@ -592,6 +597,25 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// Delete all pairs
+        /// </summary>
+        public void DeleteAllPairs()
+        {
+            if (Pairs.Count == 0)
+            {
+                return;
+            }
+
+            PairToTrade[] pairs = Pairs.ToArray();
+
+            for (int i = 0; i < pairs.Length; i++)
+            {
+                DeletePair(pairs[i].PairNum, false);
+            }
+            RePaintGrid();
         }
 
         /// <summary>
@@ -1561,7 +1585,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            DataGridViewButtonCell button0 = new DataGridViewButtonCell(); // удалить все пары
+            button0.Value = OsLocalization.Trader.Label579;
+            nRow.Cells.Add(button0);
 
             DataGridViewButtonCell button1 = new DataGridViewButtonCell(); // авто создание пар
             button1.Value = OsLocalization.Trader.Label257;
@@ -1788,7 +1814,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (ui.UserAcceptAction)
                     {
-                        DeletePair(tabNum);
+                        DeletePair(tabNum,true);
                     }
                 }
                 else if (column == 1)
@@ -1851,6 +1877,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _commonSettingsUi = new BotTabPairCommonSettingsUi(this);
                     _commonSettingsUi.Show();
                     _commonSettingsUi.Closed += _commonSettingsUi_Closed;
+                }
+                else if (column == 2 && row == 0)
+                { // кнопка удаления всех пар
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label580);
+
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptAction)
+                    {
+                        DeleteAllPairs();
+                    }
                 }
                 else if (column == 3 && row == 0)
                 { // кнопка открытия окна авто генерации пар

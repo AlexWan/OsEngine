@@ -2215,5 +2215,13 @@ namespace OsEngine.Language
         "Eng:Quantity per page:_" +
         "Ru:Количество на странице:_");
 
+        public string Label579 => OsLocalization.ConvertToLocString(
+        "Eng:Delete all pairs_" +
+        "Ru:Удалить все пары_");
+
+        public string Label580 => OsLocalization.ConvertToLocString(
+        "Eng:Delete all Pairs?_" +
+        "Ru:Удалить все пары?_");
+
     }
 }
