@@ -52,7 +52,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         public int TabNum { get; set; }
         public BotTabType TabType => BotTabType.Options;
         public StartProgram StartProgram { get; set; }
-        public bool EmulatorIsOn { get; set; }
+        public bool EmulatorIsOn
+        {
+            get { return _emulatorIsOn; }
+            set
+            {
+                if (_emulatorIsOn == value) return;
+                _emulatorIsOn = value;
+                foreach (var tab in _simpleTabs.Values)
+                {
+                    tab.Connector.EmulatorIsOn = value;
+                }
+                SaveSettings();
+            }
+        }
+        private bool _emulatorIsOn;
         public bool IsConnected { get; private set; }
         public bool IsReadyToTrade { get; private set; }
         public DateTime LastTimeCandleUpdate { get; set; }
@@ -106,6 +120,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine($"StrikesToShow:{_strikesToShowNumericUpDown.Value}");
                     writer.WriteLine($"{nameof(ServerType)}:{ServerType}");
                     writer.WriteLine($"{nameof(ServerName)}:{ServerName}");
+                    writer.WriteLine($"EmulatorIsOn:{_emulatorIsOn}");
                 }
             }
             catch (Exception e)
@@ -154,6 +169,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             ServerName = value;
                         }
+                        else if (key == "EmulatorIsOn") { _emulatorIsOn = Convert.ToBoolean(value); }
                     }
                 }
             }
@@ -925,7 +941,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             //tab.CommissionValue = CommissionValue;
 
 
-            //tab.Connector.EmulatorIsOn = _emulatorIsOn;
+            tab.Connector.EmulatorIsOn = _emulatorIsOn;
 
             //tab.Connector.ServerUid = ServerUid;
 
@@ -1317,6 +1333,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 double erf = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
                 return 0.5 * (1.0 + sign * erf);
             }
-        } 
+        }
     }
 }
