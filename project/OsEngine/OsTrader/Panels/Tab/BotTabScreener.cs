@@ -1991,7 +1991,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                                         }
                                         if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
                                         {
-                                            ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Parameters[i2]);
+                                            ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = ind.Parameters[i2].ToDecimal();
                                         }
                                         if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool)
                                         {
@@ -2031,9 +2031,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                                             parametersChanged = true;
                                         }
                                         if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal
-                                            && ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal != Convert.ToDecimal(ind.Parameters[i2]))
+                                            && ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal != ind.Parameters[i2].ToDecimal())
                                         {
-                                            ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Parameters[i2]);
+                                            ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = ind.Parameters[i2].ToDecimal();
                                             parametersChanged = true;
                                         }
                                         if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool
@@ -2098,7 +2098,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                                 }
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
                                 {
-                                    ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Parameters[i2]);
+                                    ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = ind.Parameters[i2].ToDecimal();
                                 }
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool)
                                 {
