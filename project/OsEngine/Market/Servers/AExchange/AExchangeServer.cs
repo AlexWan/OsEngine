@@ -6,23 +6,24 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.AE.Json;
 using OsEngine.Market.Servers.Entity;
-using System;
-using System.IO;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
-using OsEngine.Entity.WebSocketOsEngine;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using OptionType = OsEngine.Entity.OptionType;
 using Order = OsEngine.Entity.Order;
 using Position = OsEngine.Entity.Position;
-using System.Net;
-using System.Security.Cryptography;
 
 namespace OsEngine.Market.Servers.AE
 {
@@ -213,7 +214,10 @@ namespace OsEngine.Market.Servers.AE
 
                 newSecurity.DecimalsVolume = 0;
 
-                _securities.Add(newSecurity);
+                if (!_securities.Any(s => s.NameId == newSecurity.NameId))
+                {
+                    _securities.Add(newSecurity);
+                }
             }
 
             SecurityEvent!(_securities);
