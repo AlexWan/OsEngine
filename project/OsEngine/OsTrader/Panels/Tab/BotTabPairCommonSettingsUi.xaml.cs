@@ -134,7 +134,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             try
             {
                 SaveSettingsFromUi();
-                _tabPair.ApplySettingsFromStandartToAll();
+                _tabPair.ApplySettingsFromStandardToAll();
             }
             catch (Exception error)
             {

@@ -681,7 +681,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Apply the default settings to all pairs
         /// </summary>
-        public void ApplySettingsFromStandartToAll()
+        public void ApplySettingsFromStandardToAll()
         {
             try
             {
