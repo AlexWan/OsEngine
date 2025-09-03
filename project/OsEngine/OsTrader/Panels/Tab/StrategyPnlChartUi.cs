@@ -33,7 +33,58 @@ namespace OsEngine.OsTrader.Panels.Tab
             chart.ChartAreas.Add(new ChartArea("MainArea"));
             chart.Legends.Add(new Legend("MainLegend"));
 
+            Panel buttonPanel = new Panel();
+            buttonPanel.Height = 40;
+            buttonPanel.Dock = DockStyle.Bottom;
+
+            Button buyButton = new Button();
+            buyButton.Text = "Buy Market";
+            buyButton.Location = new Point(10, 5);
+            buyButton.Click += BuyButton_Click;
+
+            Button sellButton = new Button();
+            sellButton.Text = "Sell Market";
+            sellButton.Location = new Point(buyButton.Right + 5, 5);
+            sellButton.Click += SellButton_Click;
+
+            buttonPanel.Controls.Add(buyButton);
+            buttonPanel.Controls.Add(sellButton);
+
             this.Controls.Add(chart);
+            this.Controls.Add(buttonPanel);
+            chart.BringToFront();
+        }
+
+        private void BuyButton_Click(object sender, EventArgs e)
+        {
+            foreach (var leg in _strategyLegs)
+            {
+                if (leg.Quantity > 0)
+                {
+                    leg.SimpleTab.BuyAtMarket(leg.Quantity);
+                }
+                else if (leg.Quantity < 0)
+                {
+                    leg.SimpleTab.SellAtMarket(Math.Abs(leg.Quantity));
+                }
+            }
+            MessageBox.Show("Buy Market order sent for strategy.");
+        }
+
+        private void SellButton_Click(object sender, EventArgs e)
+        {
+            foreach (var leg in _strategyLegs)
+            {
+                if (leg.Quantity > 0)
+                {
+                    leg.SimpleTab.SellAtMarket(leg.Quantity);
+                }
+                else if (leg.Quantity < 0)
+                {
+                    leg.SimpleTab.BuyAtMarket(Math.Abs(leg.Quantity));
+                }
+            }
+            MessageBox.Show("Sell Market order sent for strategy.");
         }
 
         private void CalculateAndDrawPnlProfile()
