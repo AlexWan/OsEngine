@@ -38,7 +38,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             buttonPanel.Dock = DockStyle.Bottom;
 
             Button buyButton = new Button();
-            buyButton.Text = "Buy at Market";
+            buyButton.Text = "Buy Market";
             buyButton.Location = new Point(10, 5);
             buyButton.Click += BuyButton_Click;
 

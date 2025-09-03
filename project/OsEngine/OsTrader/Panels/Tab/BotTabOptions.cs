@@ -42,6 +42,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         private System.Threading.Timer _updateTimer;
         private readonly object _locker = new object();
         private GlobalPositionViewer _positionViewer;
+        private System.Threading.Timer _dailyReloadTimer;
+        private IServer _server;
 
         #endregion
 
@@ -421,12 +423,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        public void SetUnderlyingAssetsAndStart(List<string> underlyingAssets, string portfolioName, IServer server)
+                public void SetUnderlyingAssetsAndStart(List<string> underlyingAssets, string portfolioName, IServer server)
         {
             UnderlyingAssets = underlyingAssets;
             PortfolioName = portfolioName;
 
             if (server == null) return;
+
+            _server = server; // Store the server instance
+            _server.SecuritiesChangeEvent += OnSecuritiesChanged; // Subscribe to event
 
             ServerName = server.ServerNameAndPrefix;
             ServerType = server.ServerType;
@@ -466,6 +471,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             SelectFirstUnderlyingAsset();
             SetJournalsInPosViewer(); // Add this call
 
+            InitializeDailyReloadTimer(); // Call new method to set up the timer
             SaveSettings();
         }
 
@@ -481,6 +487,85 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _uaGrid.Rows[0].Selected = true;
                 RefreshOptionsGrid();
+            }
+        }
+
+        private void InitializeDailyReloadTimer()
+        {
+            if (_dailyReloadTimer != null)
+            {
+                _dailyReloadTimer.Dispose();
+            }
+
+            var now = DateTime.UtcNow;
+            var nineAmUtc = DateTime.UtcNow.Date.AddHours(9).AddMinutes(5);
+            if (now > nineAmUtc)
+            {
+                nineAmUtc = nineAmUtc.AddDays(1);
+            }
+
+            var initialDelay = nineAmUtc - now;
+            var twentyFourHours = TimeSpan.FromHours(24);
+
+            _dailyReloadTimer = new System.Threading.Timer(
+                DailyReloadCallback,
+                null,
+                initialDelay,
+                twentyFourHours
+            );
+        }
+
+        private void DailyReloadCallback(object state)
+        {
+            try
+            {
+                if (_server != null && _server.ServerStatus == ServerConnectStatus.Connect)
+                {
+                    LogMessageEvent?.Invoke("Executing daily securities reload.", LogMessageType.System);
+                    ((AServer)_server).ReloadSecurities();
+                }
+            }
+            catch (Exception e)
+            {
+                LogMessageEvent?.Invoke($"Error during daily securities reload: {e.Message}", LogMessageType.Error);
+            }
+        }
+
+        private void OnSecuritiesChanged(List<Security> securities)
+        {
+            if (_isDisposed || UnderlyingAssets == null || UnderlyingAssets.Count == 0)
+            {
+                return;
+            }
+
+            lock (_locker)
+            {
+                var newOptions = securities.Where(s =>
+                    s.SecurityType == SecurityType.Option &&
+                    UnderlyingAssets.Contains(s.UnderlyingAsset) &&
+                    _allOptionsData.All(o => o.Security.Name != s.Name) // Ensure it's a new option
+                ).ToList();
+
+                if (newOptions.Count == 0)
+                {
+                    return;
+                }
+
+                LogMessageEvent?.Invoke($"Discovered {newOptions.Count} new options.", LogMessageType.System);
+
+                foreach (var option in newOptions)
+                {
+                    var tab = CreateSimpleTab(option, _server);
+                    _allOptionsData.Add(new OptionDataRow { Security = option, SimpleTab = tab });
+                }
+
+                // Update expiration filter on the UI thread
+                _mainControl.Invoke(new Action(() =>
+                {
+                    var allOptions = _allOptionsData.Select(o => o.Security).ToList();
+                    PopulateExpirationFilter(allOptions);
+                    RefreshOptionsGrid();
+                }));
             }
         }
 
@@ -1208,7 +1293,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void Delete()
         {
             _isDisposed = true;
-            _updateTimer.Dispose();
+            _updateTimer?.Dispose();
+            _dailyReloadTimer?.Dispose(); // Dispose the new timer
+
+            if (_server != null)
+            {
+                _server.SecuritiesChangeEvent -= OnSecuritiesChanged; // Unsubscribe
+            }
+
             foreach (var tab in _simpleTabs.Values)
             {
                 tab.Delete();
