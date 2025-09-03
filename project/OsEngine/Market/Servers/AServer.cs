@@ -1794,6 +1794,14 @@ namespace OsEngine.Market.Servers
         private List<Security> _securities = new List<Security>();
 
         /// <summary>
+        /// Request securities from server again.
+        /// </summary>
+        public void ReloadSecurities()
+        {
+            ServerRealization.GetSecurities();
+        }
+
+        /// <summary>
         /// often used securities. optimizes access to securities
         /// </summary>
         private List<Security> _frequentlyUsedSecurities = new List<Security>();
