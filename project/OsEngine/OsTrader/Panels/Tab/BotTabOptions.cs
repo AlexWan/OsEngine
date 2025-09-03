@@ -73,7 +73,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         public bool IsConnected { get; private set; }
         public bool IsReadyToTrade { get; private set; }
         public DateTime LastTimeCandleUpdate { get; set; }
-        public bool EventsIsOn { get; set; }
+        private bool _eventsOn = true;
+        public bool EventsIsOn
+        {
+            get { return _eventsOn; }
+            set
+            {
+                if (_eventsOn == value) return;
+                _eventsOn = value;
+                foreach (var tab in _simpleTabs.Values)
+                {
+                    tab.EventsIsOn = value;
+                }
+                SaveSettings();
+            }
+        }
 
         #endregion
 
@@ -124,6 +138,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine($"{nameof(ServerType)}:{ServerType}");
                     writer.WriteLine($"{nameof(ServerName)}:{ServerName}");
                     writer.WriteLine($"EmulatorIsOn:{_emulatorIsOn}");
+                    writer.WriteLine($"EventsIsOn:{_eventsOn}");
                 }
             }
             catch (Exception e)
@@ -173,6 +188,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                             ServerName = value;
                         }
                         else if (key == "EmulatorIsOn") { _emulatorIsOn = Convert.ToBoolean(value); }
+                        else if (key == "EventsIsOn")
+                        {
+                            _eventsOn = Convert.ToBoolean(value);
+                        }
                     }
                 }
             }
@@ -952,7 +971,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             //newTab.TimeFrameBuilder.TimeFrame = frame;
             //newTab.Connector.CandleMarketDataType = CandleMarketDataType;
             //newTab.Connector.CandleCreateMethodType = CandleCreateMethodType;
-            //newTab.Connector.TimeFrame = frame;
+            tab.Connector.TimeFrame = TimeFrame.Min1;
             //newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
             //newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.OnStateChange(CandleSeriesState.ParametersChange);
 
