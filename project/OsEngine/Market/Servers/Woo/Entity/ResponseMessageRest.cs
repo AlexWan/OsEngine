@@ -116,19 +116,26 @@ namespace OsEngine.Market.Servers.Woo.Entity
         public string quantity { get; set; }
     }
 
-    public class ResponseMessagePositions
+    public class ResponseFuturesPositions
     {
-        public Data data { get; set; }
+        public List<FuturesPosition> positions { get; set; }
+    }
 
-        public class Data
-        {
-            public List<Positions> positions { get; set; }
-        }
-        public class Positions
-        {
-            public string symbol { get; set; }
-            public string holding { get; set; }
-        }
+    public class FuturesPosition
+    {
+        public string symbol { get; set; }
+        public string holding { get; set; }
+        public string positionSide { get; set; }
+        public string pendingLongQty { get; set; }
+        public string pendingShortQty { get; set; }
+        public string settlePrice { get; set; }
+        public string averageOpenPrice { get; set; }
+        public string pnl24H { get; set; }
+        public string fee24H { get; set; }
+        public string markPrice { get; set; }
+        public string estLiqPrice { get; set; }
+        public string adlQuantile { get; set; }
+        public string timestamp { get; set; }
     }
 
     public class ResponseCandles

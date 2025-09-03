@@ -200,11 +200,6 @@ namespace OsEngine.Market.Servers.Woo
             get { return false; }
         }
 
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
         public bool CanQueryOrdersAfterReconnect
         {
             get { return true; }
