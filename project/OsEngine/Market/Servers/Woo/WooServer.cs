@@ -3,7 +3,6 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Entity.WebSocketOsEngine;
@@ -243,7 +242,7 @@ namespace OsEngine.Market.Servers.Woo
                         else
                         {
                             SendLogMessage($"Position mode error. {responseMessage.Content}", LogMessageType.Error);
-                        }    
+                        }
                     }
                 }
                 else
@@ -255,7 +254,7 @@ namespace OsEngine.Market.Servers.Woo
                     else
                     {
                         SendLogMessage($"Position mode request error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
-                    }    
+                    }
                 }
             }
             catch (Exception ex)
@@ -270,12 +269,16 @@ namespace OsEngine.Market.Servers.Woo
 
         private List<Security> _securities;
 
+        private RateGate _rateGateSecurities = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
         public void GetSecurities()
         {
             if (_securities == null)
             {
                 _securities = new List<Security>();
             }
+
+            _rateGateSecurities.WaitToProceed();
 
             try
             {
@@ -294,38 +297,42 @@ namespace OsEngine.Market.Servers.Woo
                         {
                             RowSymbols item = response.data.rows[i];
 
-                            if (item.status == "TRADING")
+                            if (item.status != "TRADING"
+                                || (item.minNotional == "0"
+                                && item.baseMin == "0"))
                             {
-                                Security newSecurity = new Security();
-
-                                newSecurity.Exchange = ServerType.Woo.ToString();
-                                newSecurity.Name = item.symbol;
-                                newSecurity.NameFull = item.symbol;
-                                newSecurity.NameClass = item.symbol.StartsWith("SPOT") ? "Spot_" + item.quoteAsset : "Futures_" + item.quoteAsset;
-                                newSecurity.NameId = item.symbol;
-                                newSecurity.SecurityType = item.symbol.StartsWith("SPOT") ? SecurityType.CurrencyPair : SecurityType.Futures;
-                                newSecurity.DecimalsVolume = item.baseTick.DecimalsCount();
-                                newSecurity.Lot = 1;
-                                newSecurity.PriceStep = item.quoteTick.ToDecimal();
-                                newSecurity.Decimals = item.quoteTick.DecimalsCount();
-                                newSecurity.PriceStepCost = newSecurity.PriceStep;
-                                newSecurity.State = SecurityStateType.Activ;
-
-                                if (item.symbol.StartsWith("SPOT"))
-                                {
-                                    newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
-                                    newSecurity.MinTradeAmount = item.minNotional.ToDecimal();
-                                }
-                                else
-                                {
-                                    newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
-                                    newSecurity.MinTradeAmount = item.baseMin.ToDecimal();
-                                }
-
-                                newSecurity.VolumeStep = item.baseTick.ToDecimal();
-
-                                _securities.Add(newSecurity);
+                                continue;
                             }
+
+                            Security newSecurity = new Security();
+
+                            newSecurity.Exchange = ServerType.Woo.ToString();
+                            newSecurity.Name = item.symbol;
+                            newSecurity.NameFull = item.symbol;
+                            newSecurity.NameClass = item.symbol.StartsWith("SPOT") ? "Spot_" + item.quoteAsset : "Futures_" + item.quoteAsset;
+                            newSecurity.NameId = item.symbol;
+                            newSecurity.SecurityType = item.symbol.StartsWith("SPOT") ? SecurityType.CurrencyPair : SecurityType.Futures;
+                            newSecurity.DecimalsVolume = item.baseTick.DecimalsCount();
+                            newSecurity.Lot = 1;
+                            newSecurity.PriceStep = item.quoteTick.ToDecimal();
+                            newSecurity.Decimals = item.quoteTick.DecimalsCount();
+                            newSecurity.PriceStepCost = newSecurity.PriceStep;
+                            newSecurity.State = SecurityStateType.Activ;
+
+                            if (item.minNotional != "0")
+                            {
+                                newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                                newSecurity.MinTradeAmount = item.minNotional.ToDecimal();
+                            }
+                            else
+                            {
+                                newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+                                newSecurity.MinTradeAmount = item.baseMin.ToDecimal();
+                            }
+
+                            newSecurity.VolumeStep = item.baseTick.ToDecimal();
+
+                            _securities.Add(newSecurity);
                         }
 
                         SecurityEvent(_securities);
@@ -360,6 +367,7 @@ namespace OsEngine.Market.Servers.Woo
         {
             CreateACommonPortfolio();
             CreateQueryPortfolio(true);
+            CreateFuturesPositions();
         }
 
         private void CreateACommonPortfolio()
@@ -382,8 +390,8 @@ namespace OsEngine.Market.Servers.Woo
 
                         Portfolio portfolio = new Portfolio();
                         portfolio.Number = "WooPortfolio";
-                        portfolio.ValueBegin = response.data.totalAccountValue.ToDecimal();
-                        portfolio.ValueCurrent = response.data.totalTradingValue.ToDecimal();
+                        portfolio.ValueBegin = Math.Round(response.data.totalAccountValue.ToDecimal(), 5);
+                        portfolio.ValueCurrent = Math.Round(response.data.totalTradingValue.ToDecimal(), 5);
                         _portfolios.Add(portfolio);
 
                         PortfolioEvent(_portfolios);
@@ -404,9 +412,11 @@ namespace OsEngine.Market.Servers.Woo
             }
         }
 
+        private RateGate _rateGateBalance = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
         private void CreateQueryPortfolio(bool IsUpdateValueBegin)
         {
-            _rateGatePortfolio.WaitToProceed();
+            _rateGateBalance.WaitToProceed();
 
             try
             {
@@ -430,14 +440,66 @@ namespace OsEngine.Market.Servers.Woo
 
                             pos.PortfolioName = "WooPortfolio";
                             pos.SecurityNameCode = balanceDetails.token;
-                            pos.ValueBlocked = balanceDetails.frozen.ToDecimal();
-                            pos.ValueCurrent = balanceDetails.holding.ToDecimal();
-                            pos.UnrealizedPnl = balanceDetails.pnl24H.ToDecimal();
+                            pos.ValueBlocked = Math.Round(balanceDetails.frozen.ToDecimal(), 5);
+                            pos.ValueCurrent = Math.Round(balanceDetails.holding.ToDecimal(), 5);
+                            pos.UnrealizedPnl = Math.Round(balanceDetails.pnl24H.ToDecimal(), 5);
 
                             if (IsUpdateValueBegin)
                             {
-                                pos.ValueBegin = balanceDetails.holding.ToDecimal();
+                                pos.ValueBegin = Math.Round(balanceDetails.holding.ToDecimal(), 5);
                             }
+
+                            portfolio.SetNewPosition(pos);
+                        }
+
+                        PortfolioEvent(_portfolios);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Portfolio error. {responseMessage.Content}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Portfolio request error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private RateGate _rateGateFuturesPosition = new RateGate(3, TimeSpan.FromMilliseconds(1000));
+
+        private void CreateFuturesPositions()
+        {
+            _rateGateFuturesPosition.WaitToProceed();
+
+            try
+            {
+                string requestPath = "/v3/futures/positions";
+
+                IRestResponse responseMessage = CreatePrivateQuery(requestPath, Method.GET);
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<ResponseFuturesPositions> response = JsonConvert.DeserializeObject<ResponseMessageRest<ResponseFuturesPositions>>(responseMessage.Content);
+
+                    if (response.success == "true")
+                    {
+                        Portfolio portfolio = _portfolios[0];
+
+                        for (int i = 0; i < response.data.positions.Count; i++)
+                        {
+                            FuturesPosition balanceDetails = response.data.positions[i];
+
+                            PositionOnBoard pos = new PositionOnBoard();
+
+                            pos.PortfolioName = "WooPortfolio";
+                            pos.SecurityNameCode = balanceDetails.symbol;
+                            pos.ValueCurrent = balanceDetails.holding.ToDecimal();
+                            pos.UnrealizedPnl = balanceDetails.pnl24H.ToDecimal();
 
                             portfolio.SetNewPosition(pos);
                         }
@@ -515,7 +577,6 @@ namespace OsEngine.Market.Servers.Woo
                 Candle last = candles[candles.Count - 1];
 
                 if (last.TimeStart >= endTime)
-
                 {
                     for (int i = 0; i < candles.Count; i++)
                     {
@@ -538,15 +599,33 @@ namespace OsEngine.Market.Servers.Woo
 
             } while (true);
 
+            for (int i = 0; i < allCandles.Count; i++)
+            {
+                if (allCandles[i].TimeStart > endTime)
+                {
+                    allCandles.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            for (int i = 1; i < allCandles.Count; i++)
+            {
+                if (allCandles[i - 1].TimeStart >= allCandles[i].TimeStart)
+                {
+                    allCandles.RemoveAt(i);
+                    i--;
+                }
+            }
+
             return allCandles;
         }
 
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            if (startTime >= endTime ||
-                startTime >= DateTime.UtcNow ||
-                actualTime > endTime ||
-                actualTime > DateTime.UtcNow)
+            if (startTime >= endTime
+                || startTime >= DateTime.UtcNow
+                || actualTime > endTime
+                || actualTime > DateTime.UtcNow)
             {
                 return false;
             }
@@ -585,11 +664,11 @@ namespace OsEngine.Market.Servers.Woo
             }
         }
 
-        private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateCandleData = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
         private List<Candle> RequestCandleHistory(string security, string resolution, long fromTimeStamp)
         {
-            _rgCandleData.WaitToProceed();
+            _rateGateCandleData.WaitToProceed();
 
             try
             {
@@ -1694,8 +1773,8 @@ namespace OsEngine.Market.Servers.Woo
 
                 Portfolio portfolio = _portfolios[0];
 
-                portfolio.ValueBegin = responseBalance.data.v.ToDecimal();
-                portfolio.ValueCurrent = responseBalance.data.fc.ToDecimal();
+                portfolio.ValueBegin = Math.Round(responseBalance.data.v.ToDecimal(), 5);
+                portfolio.ValueCurrent = Math.Round(responseBalance.data.fc.ToDecimal(), 5);
                 portfolio.ValueBlocked = responseBalance.data.tc.ToDecimal() - responseBalance.data.fc.ToDecimal();
 
                 PortfolioEvent(_portfolios);
@@ -1722,9 +1801,9 @@ namespace OsEngine.Market.Servers.Woo
 
                     pos.PortfolioName = "WooPortfolio";
                     pos.SecurityNameCode = balanceDetails.t;
-                    pos.ValueBlocked = balanceDetails.f.ToDecimal();
-                    pos.ValueCurrent = balanceDetails.h.ToDecimal();
-                    pos.UnrealizedPnl = balanceDetails.pnl.ToDecimal();
+                    pos.ValueBlocked = Math.Round(balanceDetails.f.ToDecimal(), 5);
+                    pos.ValueCurrent = Math.Round(balanceDetails.h.ToDecimal(), 5);
+                    pos.UnrealizedPnl = Math.Round(balanceDetails.pnl.ToDecimal(), 5);
                     portfolio.SetNewPosition(pos);
                 }
 
@@ -1764,10 +1843,10 @@ namespace OsEngine.Market.Servers.Woo
                     {
                         pos.SecurityNameCode = balanceDetails.s;
                     }
-                    
+
                     pos.ValueBlocked = 0;
-                    pos.ValueCurrent = balanceDetails.h.ToDecimal();
-                    pos.UnrealizedPnl = balanceDetails.pnl.ToDecimal();
+                    pos.ValueCurrent = Math.Round(balanceDetails.h.ToDecimal(), 5);
+                    pos.UnrealizedPnl = Math.Round(balanceDetails.pnl.ToDecimal(), 5);
 
                     portfolio.SetNewPosition(pos);
                 }
@@ -1952,7 +2031,7 @@ namespace OsEngine.Market.Servers.Woo
 
                 string posSide = "BOTH";
 
-                if (HedgeMode 
+                if (HedgeMode
                     && order.SecurityNameCode.StartsWith("PERP"))
                 {
                     posSide = order.Side == Side.Buy ? "LONG" : "SHORT";
