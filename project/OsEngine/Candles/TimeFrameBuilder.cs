@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using OsEngine.Candles;
+using OsEngine.Candles.Factory;
 using OsEngine.Candles.Series;
 
 namespace OsEngine.Entity
@@ -373,6 +374,20 @@ namespace OsEngine.Entity
                         {
                             TimeShiftCandle simple = CandleSeriesRealization as TimeShiftCandle;
                             simple.TimeFrame = value;
+                        }
+
+                        if (CandleSeriesRealization != null)
+                        {
+                            for (int i = 0; i < CandleSeriesRealization.Parameters.Count; i++)
+                            {
+                                ICandleSeriesParameter param = CandleSeriesRealization.Parameters[i];
+
+                                if (param.SysName == "TimeFrame"
+                                    && param.Type == CandlesParameterType.StringCollection)
+                                {
+                                    ((CandlesParameterString)param).ValueString = value.ToString();
+                                }
+                            }
                         }
 
                         Save();
