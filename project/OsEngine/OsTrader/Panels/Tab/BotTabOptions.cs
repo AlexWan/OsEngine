@@ -1329,6 +1329,163 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
+        #region Public Methods
+
+        /// <summary>
+        /// Gets the BotTabSimple corresponding to the underlying asset.
+        /// </summary>
+        /// <param name="underlyingAssetTicker">The ticker of the underlying asset.</param>
+        /// <returns>The BotTabSimple for the underlying asset, or null if not found.</returns>
+        public BotTabSimple GetUnderlyingAssetTab(string underlyingAssetTicker)
+        {
+            var ua = _uaData.FirstOrDefault(x => x.Security.Name == underlyingAssetTicker);
+            if (ua == null)
+            {
+                return null;
+            }
+
+            _simpleTabs.TryGetValue(ua.Security.Name, out var tab);
+            return tab;
+        }
+
+        /// <summary>
+        /// Gets the BotTabSimple for a specific option contract.
+        /// </summary>
+        /// <param name="underlyingAssetTicker">The ticker of the underlying asset.</param>
+        /// <param name="optionType">The type of the option (Call or Put).</param>
+        /// <param name="strike">The strike price of the option.</param>
+        /// <param name="expiration">The expiration date of the option.</param>
+        /// <returns>The BotTabSimple for the specified option, or null if not found.</returns>
+        public BotTabSimple GetOptionTab(string underlyingAssetTicker, OptionType optionType, decimal strike, DateTime expiration)
+        {
+            var optionData = _allOptionsData.FirstOrDefault(o =>
+                o.Security.UnderlyingAsset == underlyingAssetTicker &&
+                o.Security.OptionType == optionType &&
+                o.Security.Strike == strike &&
+                o.Security.Expiration.Date == expiration.Date);
+
+            return optionData?.SimpleTab;
+        }
+
+        /// <summary>
+        /// Gets a list of BotTabSimple for options within a specified strike range.
+        /// </summary>
+        /// <param name="underlyingAssetTicker">The ticker of the underlying asset.</param>
+        /// <param name="minStrike">The minimum strike price.</param>
+        /// <param name="maxStrike">The maximum strike price.</param>
+        /// <param name="expiration">The expiration date of the options.</param>
+        /// <returns>A list of BotTabSimple for the options in the specified strike range.</returns>
+        public List<BotTabSimple> GetOptionTabs(string underlyingAssetTicker, decimal minStrike, decimal maxStrike, DateTime expiration)
+        {
+            return _allOptionsData
+                .Where(o =>
+                    o.Security.UnderlyingAsset == underlyingAssetTicker &&
+                    o.Security.Expiration.Date == expiration.Date &&
+                    o.Security.Strike >= minStrike &&
+                    o.Security.Strike <= maxStrike)
+                .Select(o => o.SimpleTab)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Gets the BotTabSimple for a straddle strategy (long a call and a put with the same strike and expiration).
+        /// </summary>
+        public List<BotTabSimple> GetStraddleTabs(string underlyingAssetTicker, decimal strike, DateTime expiration)
+        {
+            var tabs = new List<BotTabSimple>();
+            var callTab = GetOptionTab(underlyingAssetTicker, OptionType.Call, strike, expiration);
+            var putTab = GetOptionTab(underlyingAssetTicker, OptionType.Put, strike, expiration);
+            if (callTab != null) tabs.Add(callTab);
+            if (putTab != null) tabs.Add(putTab);
+            return tabs;
+        }
+
+        /// <summary>
+        /// Gets the BotTabSimple for a strangle strategy (long a call and a put with different strikes and the same expiration).
+        /// </summary>
+        public List<BotTabSimple> GetStrangleTabs(string underlyingAssetTicker, decimal putStrike, decimal callStrike, DateTime expiration)
+        {
+            var tabs = new List<BotTabSimple>();
+            var callTab = GetOptionTab(underlyingAssetTicker, OptionType.Call, callStrike, expiration);
+            var putTab = GetOptionTab(underlyingAssetTicker, OptionType.Put, putStrike, expiration);
+            if (callTab != null) tabs.Add(callTab);
+            if (putTab != null) tabs.Add(putTab);
+            return tabs;
+        }
+
+        /// <summary>
+        /// Gets the BotTabSimple for a vertical spread strategy (buying and selling options of the same type and expiration but different strikes).
+        /// </summary>
+        public List<BotTabSimple> GetVerticalSpreadTabs(string underlyingAssetTicker, OptionType optionType, decimal longStrike, decimal shortStrike, DateTime expiration)
+        {
+            var tabs = new List<BotTabSimple>();
+            var longTab = GetOptionTab(underlyingAssetTicker, optionType, longStrike, expiration);
+            var shortTab = GetOptionTab(underlyingAssetTicker, optionType, shortStrike, expiration);
+            if (longTab != null) tabs.Add(longTab);
+            if (shortTab != null) tabs.Add(shortTab);
+            return tabs;
+        }
+
+        /// <summary>
+        /// Gets the BotTabSimple for a ratio spread strategy.
+        /// </summary>
+        public List<BotTabSimple> GetRatioSpreadTabs(string underlyingAssetTicker, OptionType optionType, decimal longStrike, decimal shortStrike, DateTime expiration)
+        {
+            var tabs = new List<BotTabSimple>();
+            var longTab = GetOptionTab(underlyingAssetTicker, optionType, longStrike, expiration);
+            var shortTab = GetOptionTab(underlyingAssetTicker, optionType, shortStrike, expiration);
+            if (longTab != null) tabs.Add(longTab);
+            if (shortTab != null) tabs.Add(shortTab);
+            return tabs;
+        }
+
+        /// <summary>
+        /// Gets the BotTabSimple for a horizontal (calendar) spread strategy (buying and selling options of the same type and strike but different expirations).
+        /// </summary>
+        public List<BotTabSimple> GetHorizontalSpreadTabs(string underlyingAssetTicker, OptionType optionType, decimal strike, DateTime nearExpiration, DateTime farExpiration)
+        {
+            var tabs = new List<BotTabSimple>();
+            var nearTab = GetOptionTab(underlyingAssetTicker, optionType, strike, nearExpiration);
+            var farTab = GetOptionTab(underlyingAssetTicker, optionType, strike, farExpiration);
+            if (nearTab != null) tabs.Add(nearTab);
+            if (farTab != null) tabs.Add(farTab);
+            return tabs;
+        }
+
+        /// <summary>
+        /// Gets the BotTabSimple for a butterfly strategy.
+        /// </summary>
+        public List<BotTabSimple> GetButterflyTabs(string underlyingAssetTicker, OptionType optionType, decimal lowerStrike, decimal middleStrike, decimal upperStrike, DateTime expiration)
+        {
+            var tabs = new List<BotTabSimple>();
+            var lowerTab = GetOptionTab(underlyingAssetTicker, optionType, lowerStrike, expiration);
+            var middleTab = GetOptionTab(underlyingAssetTicker, optionType, middleStrike, expiration);
+            var upperTab = GetOptionTab(underlyingAssetTicker, optionType, upperStrike, expiration);
+            if (lowerTab != null) tabs.Add(lowerTab);
+            if (middleTab != null) tabs.Add(middleTab);
+            if (upperTab != null) tabs.Add(upperTab);
+            return tabs;
+        }
+
+        /// <summary>
+        /// Gets the BotTabSimple for a condor strategy.
+        /// </summary>
+        public List<BotTabSimple> GetCondorTabs(string underlyingAssetTicker, OptionType optionType, decimal strike1, decimal strike2, decimal strike3, decimal strike4, DateTime expiration)
+        {
+            var tabs = new List<BotTabSimple>();
+            var tab1 = GetOptionTab(underlyingAssetTicker, optionType, strike1, expiration);
+            var tab2 = GetOptionTab(underlyingAssetTicker, optionType, strike2, expiration);
+            var tab3 = GetOptionTab(underlyingAssetTicker, optionType, strike3, expiration);
+            var tab4 = GetOptionTab(underlyingAssetTicker, optionType, strike4, expiration);
+            if (tab1 != null) tabs.Add(tab1);
+            if (tab2 != null) tabs.Add(tab2);
+            if (tab3 != null) tabs.Add(tab3);
+            if (tab4 != null) tabs.Add(tab4);
+            return tabs;
+        }
+
+        #endregion
+
         public static class BlackScholes
         {
             public static decimal CalculateOptionPrice(
