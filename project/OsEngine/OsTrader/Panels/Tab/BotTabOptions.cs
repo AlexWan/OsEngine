@@ -262,7 +262,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                         row.Cells["CallGamma"].Value = callData.Gamma;
                         row.Cells["CallVega"].Value = callData.Vega;
                         row.Cells["CallTheta"].Value = callData.Theta;
-                        row.Cells["CallIV"].Value = callData.IV;
                     }
 
                     if (putData != null)
@@ -274,8 +273,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                         row.Cells["PutGamma"].Value = putData.Gamma;
                         row.Cells["PutVega"].Value = putData.Vega;
                         row.Cells["PutTheta"].Value = putData.Theta;
-                        row.Cells["PutIV"].Value = putData.IV;
                     }
+
+                    row.Cells["IV"].Value = callData?.IV ?? putData?.IV;
                 }
 
                 // Update underlying assets grid
@@ -649,7 +649,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             // Call side
             _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
                 { HeaderText = "Qty", Name = "CallQty", ReadOnly = false, Width = 40 });
-            string[] callHeaders = { "Theta", "Vega", "Gamma", "Delta", "Last", "Ask", "Bid", "IV", "Name" };
+            string[] callHeaders = { "Theta", "Vega", "Gamma", "Delta", "Last", "Ask", "Bid", "Name" };
             foreach (var header in callHeaders)
             {
                 _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
@@ -670,9 +670,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 HeaderText = "Strike", Name = "Strike", ReadOnly = true,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
             });
+            _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "IV", Name = "IV", ReadOnly = true,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
+            });
 
             // Put side
-            string[] putHeaders = { "Bid", "Ask", "Last", "Delta", "Gamma", "Vega", "Theta", "IV", "Name" };
+            string[] putHeaders = { "Bid", "Ask", "Last", "Delta", "Gamma", "Vega", "Theta", "Name" };
             foreach (var header in putHeaders)
             {
                 _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
@@ -946,11 +951,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     data.CallData?.LastPrice,
                     data.CallData?.Ask,
                     data.CallData?.Bid,
-                    data.CallData?.IV,
                     data.CallData?.Security.Name,
                     "Open", // CallChart
                     "Profile", // CallPnl
                     data.Strike,
+                    data.CallData?.IV ?? data.PutData?.IV,
                     data.PutData?.Bid,
                     data.PutData?.Ask,
                     data.PutData?.LastPrice,
@@ -958,7 +963,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     data.PutData?.Gamma,
                     data.PutData?.Vega,
                     data.PutData?.Theta,
-                    data.PutData?.IV,
                     data.PutData?.Security.Name,
                     "Open", // PutChart
                     "Profile", // PutPnl
