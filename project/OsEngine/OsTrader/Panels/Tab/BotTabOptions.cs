@@ -456,8 +456,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             foreach (var uaSec in underlyingAssetSecurities)
             {
-                _uaData.Add(new UnderlyingAssetDataRow { Security = uaSec });
-                CreateSimpleTab(uaSec, server);
+                var tab = CreateSimpleTab(uaSec, server);
+                _uaData.Add(new UnderlyingAssetDataRow { Security = uaSec, SimpleTab = tab });
             }
 
             foreach (var option in optionsToTrade)
@@ -603,8 +603,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             });
             _uaGrid.Columns.Add(new DataGridViewButtonColumn
                 { HeaderText = "Chart", Name = "UaChart", UseColumnTextForButtonValue = true, Text = "Open" });
+            _uaGrid.Columns.Add(new DataGridViewTextBoxColumn
+                { HeaderText = "Qty", Name = "UaQty", ReadOnly = false, Width = 40 });
             _uaGrid.SelectionChanged += (sender, args) => RefreshOptionsGrid();
             _uaGrid.CellClick += _uaGrid_CellClick;
+            _uaGrid.CellValueChanged += _uaGrid_CellValueChanged; // Add this line
 
             var filterPanel = new FlowLayoutPanel() { Dock = DockStyle.Fill, BackColor = Color.FromArgb(21, 26, 30) };
             filterPanel.Controls.Add(new Label()
@@ -750,19 +753,49 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void BuildChartButton_Click(object sender, EventArgs e)
         {
             var strategyLegs = _allOptionsData.Where(o => o.Quantity != 0).ToList();
-            if (strategyLegs.Count == 0)
-            {
-                MessageBox.Show("No position selected. Please enter a quantity for one or more options.");
-                return;
-            }
-
             var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
             var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == selectedUaName);
 
+            if (strategyLegs.Count == 0 && (uaData == null || uaData.Quantity == 0))
+            {
+                MessageBox.Show("No position selected. Please enter a quantity for the underlying asset or one or more options.");
+                return;
+            }
+
             if (uaData != null)
             {
+                // The StrategyPnlChartUi constructor will need to be updated to handle this scenario
                 StrategyPnlChartUi ui = new StrategyPnlChartUi(strategyLegs, uaData);
                 ui.Show();
+            }
+        }
+
+        private void _uaGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var grid = (DataGridView)sender;
+            if (grid.Columns[e.ColumnIndex].Name != "UaQty") return;
+
+            try
+            {
+                var uaName = grid.Rows[e.RowIndex].Cells["Name"].Value.ToString();
+                var valueStr = grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
+
+                if (!int.TryParse(valueStr, out int quantity))
+                {
+                    return;
+                }
+
+                var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == uaName);
+                if (uaData != null)
+                {
+                    uaData.Quantity = quantity;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessageEvent?.Invoke(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -804,7 +837,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             foreach (var data in _uaData)
             {
                 var row = new DataGridViewRow();
-                row.CreateCells(_uaGrid, data.Security.Name, data.Bid, data.Ask, data.LastPrice, "Open");
+                row.CreateCells(_uaGrid, data.Security.Name, data.Bid, data.Ask, data.LastPrice, "Open", data.Quantity);
                 _uaGridRows.Add(data.Security.Name, row);
                 _uaGrid.Rows.Add(row);
             }
@@ -1437,9 +1470,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         public class UnderlyingAssetDataRow
         {
             public Security Security { get; set; }
+            public BotTabSimple SimpleTab { get; set; }
             public decimal Bid { get; set; }
             public decimal Ask { get; set; }
             public decimal LastPrice { get; set; }
+            public int Quantity { get; set; }
         }
 
         #endregion

@@ -51,6 +51,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BuyButton_Click(object sender, EventArgs e)
         {
+            // Handle underlying asset
+            if (_uaData != null && _uaData.Quantity != 0 && _uaData.SimpleTab != null)
+            {
+                if (_uaData.Quantity > 0)
+                {
+                    _uaData.SimpleTab.BuyAtMarket(_uaData.Quantity);
+                }
+                else if (_uaData.Quantity < 0)
+                {
+                    _uaData.SimpleTab.SellAtMarket(Math.Abs(_uaData.Quantity));
+                }
+            }
+
+            // Handle option legs
             foreach (var leg in _strategyLegs)
             {
                 if (leg.Quantity > 0)
@@ -111,6 +125,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 decimal totalExpirationPnl = 0;
                 decimal totalCurrentPnl = 0;
+
+                // Add PNL from the underlying asset if it's part of the strategy
+                if (_uaData != null && _uaData.Quantity != 0)
+                {
+                    decimal uaPnl = _uaData.Quantity * ((decimal)price - currentUaPrice);
+                    totalExpirationPnl += uaPnl;
+                    totalCurrentPnl += uaPnl;
+                }
 
                 foreach (var leg in _strategyLegs)
                 {
