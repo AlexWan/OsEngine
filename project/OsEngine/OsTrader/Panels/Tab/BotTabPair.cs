@@ -818,6 +818,141 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// PositionsCount[0] - longs count, PositionsCount[1] - shorts count
+        /// </summary>
+        public List<int> PositionsDirectionsCount
+        {
+            get
+            {
+                List<int> count = new List<int>();
+
+                if (Pairs.Count == 0)
+                {
+                    return count;
+                }
+
+                int longCount = 0;
+                int shortCount = 0;
+
+                for (int i = 0; i < Pairs.Count; i++)
+                {
+                    PairToTrade curPair = Pairs[i];
+
+                    List<Position> posesTab1 = curPair.Tab1.PositionsOpenAll;
+                    List<Position> posesTab2 = curPair.Tab2.PositionsOpenAll;
+
+                    if (posesTab1.Count > 0)
+                    {
+                        for (int j = 0; j < posesTab1.Count; j++)
+                        {
+                            Position pos = posesTab1[j];
+
+                            if (pos.Direction == Side.Buy)
+                            {
+                                longCount++;
+                            }
+                            else if (pos.Direction == Side.Sell)
+                            {
+                                shortCount++;
+                            }
+                        }
+                    }
+                    if (posesTab2.Count > 0)
+                    {
+                        for (int j = 0; j < posesTab2.Count; j++)
+                        {
+                            Position pos = posesTab2[j];
+
+                            if (pos.Direction == Side.Buy)
+                            {
+                                longCount++;
+                            }
+                            else if (pos.Direction == Side.Sell)
+                            {
+                                shortCount++;
+                            }
+                        }
+                    }
+                }
+
+                count.Add(longCount);
+                count.Add(shortCount);
+
+                return count;
+            }
+        }
+
+        /// <summary>
+        /// PositionsCount[0] - longs count, PositionsCount[1] - shorts count
+        /// </summary>
+        public List<int> PositionsDirectionsCountBySecurity(string security)
+        {
+
+            List<int> count = new List<int>();
+
+            if (Pairs.Count == 0)
+            {
+                return count;
+            }
+
+            int longCount = 0;
+            int shortCount = 0;
+
+            for (int i = 0; i < Pairs.Count; i++)
+            {
+                PairToTrade curPair = Pairs[i];
+
+                if (curPair.Tab1.Security.Name == security)
+                {
+                    List<Position> posesTab1 = curPair.Tab1.PositionsOpenAll;
+                    if (posesTab1.Count > 0)
+                    {
+                        for (int j = 0; j < posesTab1.Count; j++)
+                        {
+                            Position pos = posesTab1[j];
+
+                            if (pos.Direction == Side.Buy)
+                            {
+                                longCount++;
+                            }
+                            else if (pos.Direction == Side.Sell)
+                            {
+                                shortCount++;
+                            }
+                        }
+                    }
+                }
+
+                if (curPair.Tab2.Security.Name == security)
+                {
+                    List<Position> posesTab2 = curPair.Tab2.PositionsOpenAll;
+                    if (posesTab2.Count > 0)
+                    {
+                        for (int j = 0; j < posesTab2.Count; j++)
+                        {
+                            Position pos = posesTab2[j];
+
+                            if (pos.Direction == Side.Buy)
+                            {
+                                longCount++;
+                            }
+                            else if (pos.Direction == Side.Sell)
+                            {
+                                shortCount++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            count.Add(longCount);
+            count.Add(shortCount);
+
+            return count;
+        }
+
+
         #endregion
 
         #region Automatic creation of trading pairs
