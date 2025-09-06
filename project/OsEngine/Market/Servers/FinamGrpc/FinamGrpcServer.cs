@@ -1070,7 +1070,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                         for (int i = 0; i < latestTradesResponse.Trades.Count; i++)
                         {
                             FTrade newTrade = latestTradesResponse.Trades[i];
-                            if (newTrade == null) continue;
+                            if (newTrade == null || newTrade.Price == null) continue;
                             Trade trade = new Trade();
                             trade.SecurityNameCode = security.Name;
                             trade.Price = newTrade.Price.Value.ToString().ToDecimal();
