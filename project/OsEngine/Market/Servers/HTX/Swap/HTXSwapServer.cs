@@ -2207,7 +2207,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
 
                 newOrder.PortfolioNumber = $"HTXSwapPortfolio";
-                //newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
                 newOrder.Volume = response.volume.ToDecimal();
 
                 MyOrderEvent(newOrder);
@@ -2402,7 +2402,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         pos.ValueCurrent = -item[i].volume.ToDecimal();
                     }
 
-                    pos.ValueBlocked = item[i].frozen.ToDecimal();
+                    //pos.ValueBlocked = item[i].frozen.ToDecimal();
                     pos.UnrealizedPnl = Math.Round(item[i].profit_unreal.ToDecimal(), 5);
                     //resultPnL += pos.UnrealizedPnl;
 
@@ -2744,7 +2744,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newOrder.TypeOrder = OrderPriceType.Market;
                             }
 
-                            //newOrder.PositionConditionType = item.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                            newOrder.PositionConditionType = item.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
 
                             orders.Add(newOrder);
                         }
@@ -2901,7 +2901,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newOrder.TypeOrder = OrderPriceType.Market;
                             }
 
-                            //newOrder.PositionConditionType = item[0].offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                            newOrder.PositionConditionType = item.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
                         }
 
                         return newOrder;
