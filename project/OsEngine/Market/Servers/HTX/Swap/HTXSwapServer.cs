@@ -2151,7 +2151,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.trade[i].created_at));
                 myTrade.NumberOrderParent = response.order_id;
-                myTrade.NumberTrade = response.trade[i].id;
+
+                string num = response.trade[i].trade_id;
+                //if (num.Split('-').Length < 2)
+                //{
+                //    continue;
+                //}
+
+                myTrade.NumberTrade = num;
                 myTrade.Price = response.trade[i].trade_price.ToDecimal();
                 myTrade.SecurityNameCode = response.contract_code;
                 myTrade.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
@@ -2207,7 +2214,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
 
                 newOrder.PortfolioNumber = $"HTXSwapPortfolio";
-                newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                //newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
                 newOrder.Volume = response.volume.ToDecimal();
 
                 MyOrderEvent(newOrder);
@@ -2744,7 +2751,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newOrder.TypeOrder = OrderPriceType.Market;
                             }
 
-                            newOrder.PositionConditionType = item.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                            //newOrder.PositionConditionType = item.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
 
                             orders.Add(newOrder);
                         }
@@ -2901,7 +2908,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newOrder.TypeOrder = OrderPriceType.Market;
                             }
 
-                            newOrder.PositionConditionType = item.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                            //newOrder.PositionConditionType = item.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
                         }
 
                         return newOrder;
@@ -2956,7 +2963,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             {
                                 MyTrade newTrade = new MyTrade();
                                 newTrade.SecurityNameCode = response.data.contract_code;
-                                newTrade.NumberTrade = response.data.trades[i].trade_id;
+
+                                string num = response.data.trades[i].trade_id;
+                                //if(num.Split('-').Length < 2)
+                                //{
+                                //    continue;
+                                //}
+
+                                newTrade.NumberTrade = num;
                                 newTrade.NumberOrderParent = response.data.order_id;
                                 newTrade.Volume = response.data.trades[i].trade_volume.ToDecimal();
                                 newTrade.Price = response.data.trades[i].trade_price.ToDecimal();
