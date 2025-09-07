@@ -25,7 +25,7 @@ using System.Globalization;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using System.Windows.Forms.DataVisualization.Charting;
-using System.Drawing;
+using System.Windows.Media;
 
 namespace OsEngine.OsOptimizer
 {
@@ -1297,10 +1297,26 @@ namespace OsEngine.OsOptimizer
 
                 BotPanel bot = _master.BotToTest;
 
+                if(bot == null)
+                {
+                    return;
+                }
+
                 List<IIBotTab> sources = bot.GetTabs();
 
-                if (rowIndex >= sources.Count)
+                if (sources == null 
+                    || sources.Count == 0
+                    || rowIndex >= sources.Count)
                 {
+                    return;
+                }
+
+                if(_master.Storage == null 
+                    || _master.Storage.Securities == null 
+                    || _master.Storage.Securities.Count == 0)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Label70);
+                    ui.ShowDialog();
                     return;
                 }
 
@@ -2683,7 +2699,7 @@ namespace OsEngine.OsOptimizer
 
             _gridResults.Columns[2].HeaderText = "Pos Count";
 
-            Color cellColor = Color.Black;
+            System.Drawing.Color cellColor = System.Drawing.Color.Black;
 
             for (int i = 0; i < _gridResults.Columns.Count; i++)
             {
@@ -3080,7 +3096,7 @@ namespace OsEngine.OsOptimizer
                 {
                     for (int i = 0; i < row.Cells.Count; i++)
                     {
-                        row.Cells[i].Style.ForeColor = Color.FromArgb(255, 83, 0);
+                        row.Cells[i].Style.ForeColor = System.Drawing.Color.FromArgb(255, 83, 0);
                     }
                 }
                 else
@@ -3107,22 +3123,22 @@ namespace OsEngine.OsOptimizer
 
             _chartSeriesResult.ChartAreas.Clear();
             _chartSeriesResult.ChartAreas.Add(area);
-            _chartSeriesResult.BackColor = Color.FromArgb(21, 26, 30);
-            _chartSeriesResult.ChartAreas[0].AxisX.TitleForeColor = Color.FromArgb(149, 159, 176);
+            _chartSeriesResult.BackColor = System.Drawing.Color.FromArgb(21, 26, 30);
+            _chartSeriesResult.ChartAreas[0].AxisX.TitleForeColor = System.Drawing.Color.FromArgb(149, 159, 176);
 
             for (int i = 0; _chartSeriesResult.ChartAreas != null && i < _chartSeriesResult.ChartAreas.Count; i++)
             {
                 _chartSeriesResult.ChartAreas[i].CursorX.IsUserSelectionEnabled = false;
                 _chartSeriesResult.ChartAreas[i].CursorX.IsUserEnabled = true;
-                _chartSeriesResult.ChartAreas[i].CursorX.LineColor = Color.FromArgb(255, 83, 0);
+                _chartSeriesResult.ChartAreas[i].CursorX.LineColor = System.Drawing.Color.FromArgb(255, 83, 0);
                 _chartSeriesResult.ChartAreas[i].CursorX.LineWidth = 2;
-                _chartSeriesResult.ChartAreas[i].BackColor = Color.FromArgb(21, 26, 30);
-                _chartSeriesResult.ChartAreas[i].BorderColor = Color.FromArgb(17, 18, 23);
-                _chartSeriesResult.ChartAreas[i].CursorY.LineColor = Color.FromArgb(149, 159, 176);
+                _chartSeriesResult.ChartAreas[i].BackColor = System.Drawing.Color.FromArgb(21, 26, 30);
+                _chartSeriesResult.ChartAreas[i].BorderColor = System.Drawing.Color.FromArgb(17, 18, 23);
+                _chartSeriesResult.ChartAreas[i].CursorY.LineColor = System.Drawing.Color.FromArgb(149, 159, 176);
 
                 foreach (var axe in _chartSeriesResult.ChartAreas[i].Axes)
                 {
-                    axe.LabelStyle.ForeColor = Color.FromArgb(149, 159, 176);
+                    axe.LabelStyle.ForeColor = System.Drawing.Color.FromArgb(149, 159, 176);
                 }
             }
 
@@ -3165,7 +3181,7 @@ namespace OsEngine.OsOptimizer
                         continue;
                     }
                     _chartSeriesResult.Series[0].Points[i].Label = null;
-                    _chartSeriesResult.Series[0].Points[i].LabelForeColor = Color.White;
+                    _chartSeriesResult.Series[0].Points[i].LabelForeColor = System.Drawing.Color.White;
                 }
 
                 if (index >= _chartSeriesResult.Series[0].Points.Count)
@@ -3348,7 +3364,7 @@ namespace OsEngine.OsOptimizer
                     for (int i = 0; i < _chartSeriesResult.Series[0].Points.Count; i++)
                     {
                         _chartSeriesResult.Series[0].Points[i].Label = null;
-                        _chartSeriesResult.Series[0].Points[i].LabelForeColor = Color.White;
+                        _chartSeriesResult.Series[0].Points[i].LabelForeColor = System.Drawing.Color.White;
                     }
 
                     int index = (int)_chartSeriesResult.ChartAreas[0].CursorX.Position;
@@ -3380,7 +3396,7 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < resultValues.Count; i++)
             {
-                resultValues[i].Color = Color.Gray;
+                resultValues[i].Color = System.Drawing.Color.Gray;
             }
 
             if (resultValues.Count <= 1)
@@ -3400,15 +3416,15 @@ namespace OsEngine.OsOptimizer
             {
                 if (i < first15PercentMaxNum)
                 {
-                    sortedValue[i].Color = Color.Green;
+                    sortedValue[i].Color = System.Drawing.Color.Green;
                 }
                 else if (i < first30PercentMaxNum)
                 {
-                    sortedValue[i].Color = Color.DarkGreen;
+                    sortedValue[i].Color = System.Drawing.Color.DarkGreen;
                 }
                 else
                 {
-                    resultValues[i].Color = Color.Gray;
+                    resultValues[i].Color = System.Drawing.Color.Gray;
                 }
             }
         }

@@ -462,5 +462,9 @@ namespace OsEngine.Language
         public string Label69 => OsLocalization.ConvertToLocString(
            "Eng:Value_" +
            "Ru:Значение_");
+
+        public string Label70 => OsLocalization.ConvertToLocString(
+           "Eng:There are no connection securities. You must first configure the data server._" +
+           "Ru:Отсутствуют бумаги для подключения. Сначала нужно настроить сервер данных._");
     }
 }
