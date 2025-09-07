@@ -878,11 +878,14 @@ namespace OsEngine.Market.Connectors
                         {
                             for (int i = 0; i < servers.Count; i++)
                             {
-                                if (servers[i].ServerType == ServerType
-                                    && servers[i].ServerNameAndPrefix.StartsWith(ServerFullName))
+                                if (servers[i].ServerType == ServerType)
                                 {
-                                    _myServer = servers[i];
-                                    break;
+                                    if(string.IsNullOrEmpty(ServerFullName) == true
+                                        || servers[i].ServerNameAndPrefix.StartsWith(ServerFullName))
+                                    {
+                                        _myServer = servers[i];
+                                        break;
+                                    }
                                 }
                                 else if (string.IsNullOrEmpty(ServerFullName) &&
                                     servers[i].ServerType == ServerType)
