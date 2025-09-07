@@ -2736,7 +2736,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
                             newOrder.ServerType = ServerType.HTXSwap;
                             newOrder.SecurityNameCode = item.contract_code;
-                            newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+                            }
+                            catch
+                            {
+
+                            }
+
                             newOrder.NumberMarket = item.order_id.ToString();
                             newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
                             newOrder.State = GetOrderState(item.status);
