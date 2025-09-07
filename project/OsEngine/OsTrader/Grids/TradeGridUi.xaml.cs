@@ -48,6 +48,7 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxGridType.SelectionChanged += ComboBoxGridType_SelectionChanged;
 
             ComboBoxRegime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxRegime.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
             ComboBoxRegime.Items.Add(TradeGridRegime.On.ToString());
             ComboBoxRegime.Items.Add(TradeGridRegime.CloseOnly.ToString());
             ComboBoxRegime.Items.Add(TradeGridRegime.CloseForced.ToString());
@@ -158,30 +159,35 @@ namespace OsEngine.OsTrader.Grids
             TextBoxNonTradePeriod5End.TextChanged += TextBoxNonTradePeriod5End_TextChanged;
 
             ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
             ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
             ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxNonTradePeriod1Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod1Regime.ToString();
             ComboBoxNonTradePeriod1Regime.SelectionChanged += ComboBoxNonTradePeriod1Regime_SelectionChanged;
 
             ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
             ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
             ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxNonTradePeriod2Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod2Regime.ToString();
             ComboBoxNonTradePeriod2Regime.SelectionChanged += ComboBoxNonTradePeriod2Regime_SelectionChanged;
 
             ComboBoxNonTradePeriod3Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod3Regime.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
             ComboBoxNonTradePeriod3Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
             ComboBoxNonTradePeriod3Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxNonTradePeriod3Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod3Regime.ToString();
             ComboBoxNonTradePeriod3Regime.SelectionChanged += ComboBoxNonTradePeriod3Regime_SelectionChanged;
 
             ComboBoxNonTradePeriod4Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod4Regime.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
             ComboBoxNonTradePeriod4Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
             ComboBoxNonTradePeriod4Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxNonTradePeriod4Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod4Regime.ToString();
             ComboBoxNonTradePeriod4Regime.SelectionChanged += ComboBoxNonTradePeriod4Regime_SelectionChanged;
 
             ComboBoxNonTradePeriod5Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod5Regime.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
             ComboBoxNonTradePeriod5Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
             ComboBoxNonTradePeriod5Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxNonTradePeriod5Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod5Regime.ToString();
@@ -190,6 +196,7 @@ namespace OsEngine.OsTrader.Grids
             // trade days 
 
             ComboBoxNonTradeDaysRegime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradeDaysRegime.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
             ComboBoxNonTradeDaysRegime.Items.Add(TradeGridRegime.CloseOnly.ToString());
             ComboBoxNonTradeDaysRegime.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxNonTradeDaysRegime.SelectedItem = tradeGrid.NonTradeDays.NonTradeDaysRegime.ToString();

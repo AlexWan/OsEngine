@@ -4238,17 +4238,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceOrder">order price</param>
         public void CloseAtTrailingStop(Position position, decimal priceActivation, decimal priceOrder)
         {
-            if (position.StopOrderIsActive &&
-                position.Direction == Side.Buy &&
-                position.StopOrderPrice > priceOrder)
+            if (position.Direction == Side.Buy &&
+                position.StopOrderRedLine > priceActivation)
             {
+                position.StopOrderIsActive = true;
                 return;
             }
 
-            if (position.StopOrderIsActive &&
-                position.Direction == Side.Sell &&
-                position.StopOrderPrice < priceOrder)
+            if (position.Direction == Side.Sell &&
+                position.StopOrderRedLine != 0 && 
+                position.StopOrderRedLine < priceActivation)
             {
+                position.StopOrderIsActive = true;
                 return;
             }
 
@@ -4275,17 +4276,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
         public void CloseAtTrailingStopMarket(Position position, decimal priceActivation)
         {
-            if (position.StopOrderIsActive &&
-                position.Direction == Side.Buy &&
+            if (position.Direction == Side.Buy &&
                 position.StopOrderRedLine > priceActivation)
             {
+                position.StopOrderIsActive = true;
                 return;
             }
 
-            if (position.StopOrderIsActive &&
-                position.Direction == Side.Sell &&
+            if (position.Direction == Side.Sell &&
+                position.StopOrderRedLine != 0 &&
                 position.StopOrderRedLine < priceActivation)
             {
+                position.StopOrderIsActive = true;
                 return;
             }
 

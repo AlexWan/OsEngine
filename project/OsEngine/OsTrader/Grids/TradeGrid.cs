@@ -640,7 +640,8 @@ namespace OsEngine.OsTrader.Grids
             TradeGridRegime baseRegime = Regime;
 
             // 1 Авто-старт сетки, если выключено
-            if (baseRegime == TradeGridRegime.Off)
+            if (baseRegime == TradeGridRegime.Off ||
+                baseRegime == TradeGridRegime.OffAndCancelOrders)
             {
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -689,20 +690,23 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                int countRejectOrders = TryCancelClosingOrders();
-
-                if (countRejectOrders > 0)
+                if (baseRegime == TradeGridRegime.OffAndCancelOrders)
                 {
-                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
-                    return;
-                }
+                    int countRejectOrders = TryCancelClosingOrders();
 
-                countRejectOrders = TryCancelOpeningOrders();
+                    if (countRejectOrders > 0)
+                    {
+                        _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
+                        return;
+                    }
 
-                if (countRejectOrders > 0)
-                {
-                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
-                    return;
+                    countRejectOrders = TryCancelOpeningOrders();
+
+                    if (countRejectOrders > 0)
+                    {
+                        _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
+                        return;
+                    }
                 }
 
                 // проверяем работу авто-стартера, если он включен
@@ -853,7 +857,9 @@ namespace OsEngine.OsTrader.Grids
 
             // 8 вход в различную логику различных сеток
 
-            if(baseRegime != TradeGridRegime.Off)
+            if(baseRegime == TradeGridRegime.On
+                || baseRegime == TradeGridRegime.CloseOnly
+                || baseRegime == TradeGridRegime.CloseForced)
             {
                 if (GridType == TradeGridPrimeType.MarketMaking)
                 {
@@ -862,6 +868,24 @@ namespace OsEngine.OsTrader.Grids
                 else if (GridType == TradeGridPrimeType.OpenPosition)
                 {
                     GridTypeOpenPositionLogic(baseRegime);
+                }
+            }
+            else if(baseRegime == TradeGridRegime.OffAndCancelOrders)
+            {
+                int countRejectOrders = TryCancelClosingOrders();
+
+                if (countRejectOrders > 0)
+                {
+                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
+                    return;
+                }
+
+                countRejectOrders = TryCancelOpeningOrders();
+
+                if (countRejectOrders > 0)
+                {
+                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
+                    return;
                 }
             }
         }
@@ -2200,6 +2224,7 @@ namespace OsEngine.OsTrader.Grids
     public enum TradeGridRegime
     {
         Off,
+        OffAndCancelOrders,
         On,
         CloseOnly,
         CloseForced
