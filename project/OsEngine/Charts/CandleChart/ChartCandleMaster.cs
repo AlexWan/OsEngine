@@ -880,6 +880,12 @@ namespace OsEngine.Charts.CandleChart
 
                 int num = Convert.ToInt32(item.ToolTipText.Split('*')[1]);
 
+                if(_indicators == null 
+                    || num >= _indicators.Count)
+                {
+                    return;
+                }
+
                 _indicators[num].ShowDialog();
                 _indicators[num].Save();
 
