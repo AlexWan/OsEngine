@@ -2541,6 +2541,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     jsonContent.Add("order_price_type", "market");
                 }
 
+                jsonContent.Add("channel_code", "AAe2ccbd47");
+
                 string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order");
 
                 RestClient client = new RestClient(url);
@@ -2734,7 +2736,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
                             newOrder.ServerType = ServerType.HTXSwap;
                             newOrder.SecurityNameCode = item.contract_code;
-                            newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+                            }
+                            catch
+                            {
+
+                            }
+
                             newOrder.NumberMarket = item.order_id.ToString();
                             newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
                             newOrder.State = GetOrderState(item.status);
