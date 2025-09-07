@@ -1881,13 +1881,18 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     newOrder.ServerType = ServerType.HTXSpot;
                     newOrder.SecurityNameCode = item.symbol;
 
-                    try
+                    if (item.clientOrderId != null)
                     {
-                        newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
-                    }
-                    catch
-                    {
-                        // ignore
+                        try
+                        {
+                            string numberFull = item.clientOrderId;
+                            string numUser = numberFull.Replace("AAe2ccbd47", "");
+                            newOrder.NumberUser = Convert.ToInt32(numUser);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
                     }
 
                     newOrder.NumberMarket = item.orderId.ToString();
@@ -2023,7 +2028,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
 
                 jsonContent.Add("source", source_portfolio);
-                jsonContent.Add("client-order-id", order.NumberUser.ToString());
+                jsonContent.Add("client-order-id", "AAe2ccbd47" + order.NumberUser.ToString());
 
                 string url = _privateUriBuilder.Build("POST", $"/v1/order/orders/place");
 
@@ -2208,7 +2213,21 @@ namespace OsEngine.Market.Servers.HTX.Spot
                                 newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
                                 newOrder.ServerType = ServerType.HTXSpot;
                                 newOrder.SecurityNameCode = item[i].symbol;
-                                newOrder.NumberUser = Convert.ToInt32(item[i].client_order_id);
+
+                                if(item[i].client_order_id != null)
+                                {
+                                    try
+                                    {
+                                        string numberFull = item[i].client_order_id;
+                                        string numUser = numberFull.Replace("AAe2ccbd47", "");
+                                        newOrder.NumberUser = Convert.ToInt32(numUser);
+                                    }
+                                    catch
+                                    {
+                                        // ignore
+                                    }
+                                }
+
                                 newOrder.NumberMarket = item[i].id.ToString();
                                 newOrder.State = GetOrderState(item[i].state);
                                 newOrder.Volume = item[i].amount.ToDecimal();
@@ -2369,7 +2388,21 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
                     newOrder.ServerType = ServerType.HTXSpot;
                     newOrder.SecurityNameCode = item.symbol;
-                    newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+
+                    if (item.client_order_id != null)
+                    {
+                        try
+                        {
+                            string numberFull = item.client_order_id;
+                            string numUser = numberFull.Replace("AAe2ccbd47", "");
+                            newOrder.NumberUser = Convert.ToInt32(numUser);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+
                     newOrder.NumberMarket = item.id.ToString();
                     newOrder.State = GetOrderState(item.state);
                     newOrder.Volume = item.amount.ToDecimal();
