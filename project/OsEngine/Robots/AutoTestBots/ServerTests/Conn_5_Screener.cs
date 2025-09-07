@@ -1,4 +1,5 @@
-﻿using OsEngine.Entity;
+﻿
+using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
@@ -25,7 +26,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             AServer myServer = Server;
 
-            if(myServer == null ||
+            if (myServer == null ||
                 myServer.ServerStatus == ServerConnectStatus.Disconnect)
             {
                 this.SetNewError("Error 1. Connection server status disconnect");
@@ -35,21 +36,21 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Permission = ServerMaster.GetServerPermission(myServer.ServerType);
 
-            if(Permission == null)
+            if (Permission == null)
             {
                 this.SetNewError("Error 2. No serverPermission to server: " + myServer.ServerType);
                 TestEnded();
                 return;
             }
 
-            if(SecuritiesCount < 15)
+            if (SecuritiesCount < 15)
             {
-                this.SetNewError("Error 3. You indicated the number of papers is less than 15. You can't do that." );
+                this.SetNewError("Error 3. You indicated the number of papers is less than 15. You can't do that.");
                 TestEnded();
                 return;
             }
 
-            if(string.IsNullOrEmpty(SecuritiesClass))
+            if (string.IsNullOrEmpty(SecuritiesClass))
             {
                 this.SetNewError("Error 4. You did not specify the class of securities to be subscribed to");
                 TestEnded();
@@ -63,7 +64,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 _botToShowDialog.Delete();
             }
 
-            if(_screener != null)
+            if (_screener != null)
             {
                 _screener.Delete();
             }
@@ -75,12 +76,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public void ShowDialog()
         {
-            if(_screener == null)
+            if (_screener == null)
             {
                 return;
             }
 
-            if(_botToShowDialog == null)
+            if (_botToShowDialog == null)
             {
                 _botToShowDialog = new CandleEngine(DateTime.Now.Ticks.ToString(), StartProgram.IsOsTrader);
                 _botToShowDialog.TabsScreener.Add(_screener);
@@ -102,7 +103,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Enum.TryParse(TimeFrame, out myTimeFrame);
 
-            if(myTimeFrame == Entity.TimeFrame.Min1
+            if (myTimeFrame == Entity.TimeFrame.Min1
                 && Permission.TradeTimeFramePermission.TimeFrameMin1IsOn == false)
             {
                 this.SetNewError("Error 5. No permission to this timeFrame: " + myTimeFrame);
@@ -233,9 +234,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             List<Portfolio> portfolios = _myServer.Portfolios;
 
-            if(_myServer.Portfolios.Count == 0)
+            if (_myServer.Portfolios.Count == 0)
             {
-                this.SetNewError("Error 26. No portfolio in server." );
+                this.SetNewError("Error 26. No portfolio in server.");
                 return;
             }
 
@@ -247,23 +248,23 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             List<Security> securitiesToStart = new List<Security>();
 
-            for(int i = 0;securitiesAll != null && i < securitiesAll.Count;i++)
+            for (int i = 0; securitiesAll != null && i < securitiesAll.Count; i++)
             {
                 if (securitiesAll[i].NameClass == SecuritiesClass)
                 {
                     securitiesToStart.Add(securitiesAll[i]);
 
-                    if(securitiesToStart.Count >= SecuritiesCount)
+                    if (securitiesToStart.Count >= SecuritiesCount)
                     {
                         break;
                     }
                 }
             }
 
-            if(securitiesToStart.Count < SecuritiesCount)
+            if (securitiesToStart.Count < SecuritiesCount)
             {
                 this.SetNewError(
-                    "Error 27. There are no securities in the class you specified. Class: " + SecuritiesClass 
+                    "Error 27. There are no securities in the class you specified. Class: " + SecuritiesClass
                     + ". SecCount: " + securitiesToStart.Count);
                 return;
             }
@@ -274,11 +275,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             DateTime timeStart = DateTime.Now;
 
-            while(true)
+            while (true)
             {
                 Thread.Sleep(1000);
 
-                if(timeStart.AddMinutes(10) < DateTime.Now)
+                if (timeStart.AddMinutes(10) < DateTime.Now)
                 {
                     this.SetNewServiceInfo("End by time awaiting");
                     break;
@@ -286,12 +287,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 bool allDataIsReady = true;
 
-                for(int i = 0;i < _awaitableSecurities.Count;i++)
+                for (int i = 0; i < _awaitableSecurities.Count; i++)
                 {
                     AwaitableSecurities sec = _awaitableSecurities[i];
 
-                    if(sec.TradesIsIncome == false 
-                        ||sec.CandlesIsIncome == false
+                    if (sec.TradesIsIncome == false
+                        || sec.CandlesIsIncome == false
                         || sec.MarketDepthsIsIncome == false)
                     {
                         allDataIsReady = false;
@@ -299,7 +300,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     }
                 }
 
-                if(allDataIsReady)
+                if (allDataIsReady)
                 {
                     this.SetNewServiceInfo("End by ready all await data");
                     break;
@@ -310,13 +311,31 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // записываем результаты того какие данные нам пришли
 
-            for(int i = 0; i < _awaitableSecurities.Count;i++)
+            for (int i = 0; i < _awaitableSecurities.Count; i++)
             {
+                if (_awaitableSecurities[i].CandlesCount == 0)
+                {
+                    SetNewError("Error 28. No candles");
+                    return;
+                }
+
+                if (_awaitableSecurities[i].MarketDepthsIncomeCount == 0)
+                {
+                    SetNewError("Error 29. No marketDepths");
+                    return;
+                }
+
+                if (_awaitableSecurities[i].TradesIncomeCount == 0)
+                {
+                    SetNewError("Error 30. No trades");
+                    return;
+                }
+
                 this.SetNewServiceInfo(_awaitableSecurities[i].GetReportString());
             }
         }
 
-        private void StartScreener(List<Security> securities, 
+        private void StartScreener(List<Security> securities,
             Portfolio portfolio, TimeFrame timeFrame)
         {
             BotTabScreener newScreener = new BotTabScreener(DateTime.Now.Ticks.ToString(), StartProgram.IsOsTrader);
@@ -357,13 +376,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void _screener_NewTickEvent(Trade trade, BotTabSimple tab)
         {
-            if(_testIsEnded)
+            if (_testIsEnded)
             {
                 return;
             }
             AwaitableSecurities mySec = null;
 
-            for (int i = 0;i < _awaitableSecurities.Count;i++)
+            for (int i = 0; i < _awaitableSecurities.Count; i++)
             {
                 if (_awaitableSecurities[i].Security.Name == tab.Security.Name
                     && _awaitableSecurities[i].Security.NameClass == tab.Security.NameClass)
@@ -373,7 +392,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            if(mySec == null)
+            if (mySec == null)
             {
                 return;
             }
@@ -454,25 +473,25 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (string.IsNullOrEmpty(newTrade.SecurityNameCode))
             {
-                SetNewError("Trades Error N. No Security Name");
+                SetNewError("Trades Error 31. No Security Name");
                 return;
             }
 
             if (newTrade.Side == Side.None)
             {
-                SetNewError("Trades Error N. No Trade SIDE. Sec name " + newTrade.SecurityNameCode);
+                SetNewError("Trades Error 32. No Trade SIDE. Sec name " + newTrade.SecurityNameCode);
                 return;
             }
 
             if (string.IsNullOrEmpty(newTrade.Id))
             {
-                SetNewError("Trades Error N. No Trade Id. Sec name " + newTrade.SecurityNameCode);
+                SetNewError("Trades Error 33. No Trade Id. Sec name " + newTrade.SecurityNameCode);
                 return;
             }
 
             if (newTrade.Price <= 0)
             {
-                SetNewError("Trades Error N. Bad Trade Price. Sec name "
+                SetNewError("Trades Error 34. Bad Trade Price. Sec name "
                 + newTrade.SecurityNameCode
                     + " Price: " + newTrade.Price);
                 return;
@@ -480,7 +499,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (newTrade.Volume <= 0)
             {
-                SetNewError("Trades Error N. Bad Trade Volume. Sec name "
+                SetNewError("Trades Error 35. Bad Trade Volume. Sec name "
                 + newTrade.SecurityNameCode
                     + " Volume: " + newTrade.Volume);
                 return;
@@ -488,7 +507,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (newTrade.Time == DateTime.MinValue)
             {
-                SetNewError("Trades Error N. Bad Trade TIME. Sec name "
+                SetNewError("Trades Error 36. Bad Trade TIME. Sec name "
                     + newTrade.SecurityNameCode);
                 return;
             }
@@ -510,7 +529,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (previousTrade.Time > newTrade.Time)
                 {
-                    SetNewError("Trades Error N. Previous trade time is greater than the current time. Sec name "
+                    SetNewError("Trades Error 37. Previous trade time is greater than the current time. Sec name "
                         + newTrade.SecurityNameCode);
                     return;
                 }
@@ -539,26 +558,26 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (md.Bids == null ||
                 md.Asks == null)
             {
-                SetNewError("MD Error 28. null in bids or asks array");
+                SetNewError("MD Error 38. null in bids or asks array");
                 return;
             }
             if (md.Bids.Count == 0 ||
                 md.Asks.Count == 0)
             {
-                SetNewError("MD Error 29. Zero count in bids or asks array");
+                SetNewError("MD Error 39. Zero count in bids or asks array");
                 return;
             }
 
             if (md.Bids.Count > 25 ||
                 md.Asks.Count > 25)
             {
-                SetNewError("MD Error 30. Count in bids or asks more 25 lines");
+                SetNewError("MD Error 40. Count in bids or asks more 25 lines");
                 return;
             }
 
             if (string.IsNullOrEmpty(md.SecurityNameCode))
             {
-                SetNewError("MD Error 31. Security name is null or empty");
+                SetNewError("MD Error 41. Security name is null or empty");
                 return;
             }
 
@@ -566,17 +585,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (md.Bids[i] == null)
                 {
-                    SetNewError("MD Error 32. Bids array have null level");
+                    SetNewError("MD Error 42. Bids array have null level");
                     return;
                 }
                 if (md.Bids[i].Ask != 0)
                 {
-                    SetNewError("MD Error 33. Ask in bids array is note zero");
+                    SetNewError("MD Error 43. Ask in bids array is note zero");
                     return;
                 }
                 if (md.Bids[i].Bid == 0)
                 {
-                    SetNewError("MD Error 34. Bid in bids array is zero");
+                    SetNewError("MD Error 44. Bid in bids array is zero");
                     return;
                 }
             }
@@ -585,17 +604,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (md.Asks[i] == null)
                 {
-                    SetNewError("MD Error 35. Asks array have null level");
+                    SetNewError("MD Error 45. Asks array have null level");
                     return;
                 }
                 if (md.Asks[i].Bid != 0)
                 {
-                    SetNewError("MD Error 36. Bid in asks array is note zero");
+                    SetNewError("MD Error 46. Bid in asks array is note zero");
                     return;
                 }
                 if (md.Asks[i].Ask == 0)
                 {
-                    SetNewError("MD Error 37. Ask in asks array is zero");
+                    SetNewError("MD Error 47. Ask in asks array is zero");
                     return;
                 }
             }
@@ -604,7 +623,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (md.Time == DateTime.MinValue)
             {
-                SetNewError("MD Error 38. Time is min value");
+                SetNewError("MD Error 48. Time is min value");
             }
 
             MarketDepth oldDepth = null;
@@ -619,7 +638,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (oldDepth != null && oldDepth.Time == md.Time)
             {
-                SetNewError("MD Error 39. Time in md is note change");
+                SetNewError("MD Error 49. Time in md is note change");
             }
 
             bool isSaved = false;
@@ -643,7 +662,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (md.Bids[i].Price == 0)
                 {
-                    SetNewError("MD Error 40. Bids[i] price == 0");
+                    SetNewError("MD Error 50. Bids[i] price == 0");
                     return;
                 }
             }
@@ -652,7 +671,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (md.Asks[i].Price == 0)
                 {
-                    SetNewError("MD Error 41. Asks[i] price == 0");
+                    SetNewError("MD Error 51. Asks[i] price == 0");
                     return;
                 }
             }
@@ -661,7 +680,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (md.Bids[0].Price >= md.Asks[0].Price)
             {
-                SetNewError("MD Error 42. Bid price >= Ask price");
+                SetNewError("MD Error 52. Bid price >= Ask price");
                 return;
             }
 
@@ -672,12 +691,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (md.Bids[i].Price == md.Bids[i - 1].Price)
                 {
-                    SetNewError("MD Error 43. Bids[i] price == Bids[i-1] price");
+                    SetNewError("MD Error 53. Bids[i] price == Bids[i-1] price");
                 }
 
                 if (md.Bids[i].Price > md.Bids[i - 1].Price)
                 {
-                    SetNewError("MD Error 44. Bids[i] price > Bids[i-1] price");
+                    SetNewError("MD Error 54. Bids[i] price > Bids[i-1] price");
                 }
             }
 
@@ -688,12 +707,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (md.Asks[i].Price == md.Asks[i - 1].Price)
                 {
-                    SetNewError("MD Error 45. Asks[i] price == Asks[i-1] price");
+                    SetNewError("MD Error 55. Asks[i] price == Asks[i-1] price");
                 }
 
                 if (md.Asks[i].Price < md.Asks[i - 1].Price)
                 {
-                    SetNewError("MD Error 46. Asks[i] price < Asks[i-1] price");
+                    SetNewError("MD Error 56. Asks[i] price < Asks[i-1] price");
                 }
             }
 
@@ -712,7 +731,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                     if (curLevel.Price == md.Bids[j].Price)
                     {
-                        SetNewError("MD Error 47. bids with same price");
+                        SetNewError("MD Error 57. bids with same price");
                     }
                 }
             }
@@ -732,7 +751,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                     if (curLevel.Price == md.Asks[j].Price)
                     {
-                        SetNewError("MD Error 48. Asks with same price");
+                        SetNewError("MD Error 58. Asks with same price");
                     }
                 }
             }
@@ -742,13 +761,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (candles == null)
             {
-                SetNewError("Error 49. Array is null. " + timeFrame.ToString());
+                SetNewError("Error 59. Array is null. " + timeFrame.ToString());
                 return;
             }
 
             if (candles.Count == 0)
             {
-                SetNewError("Error 50. Array is empty. " + timeFrame.ToString());
+                SetNewError("Error 60. Array is empty. " + timeFrame.ToString());
                 return;
             }
 
@@ -762,13 +781,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (candleLast.TimeStart > candleNow.TimeStart)
                 {
-                    SetNewError("Error 51. The time in the old candle is big than in the current candle " + timeFrame.ToString());
+                    SetNewError("Error 61. The time in the old candle is big than in the current candle " + timeFrame.ToString());
                     return;
                 }
 
                 if (candleLast.TimeStart == candleNow.TimeStart)
                 {
-                    SetNewError("Error 52. Candle time is equal!" + timeFrame.ToString());
+                    SetNewError("Error 62. Candle time is equal!" + timeFrame.ToString());
                     return;
                 }
             }
@@ -783,47 +802,47 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (candleNow.Open > candleNow.High)
                 {
-                    SetNewError("Error 53. Candle open above the high" + timeFrame.ToString());
+                    SetNewError("Error 63. Candle open above the high" + timeFrame.ToString());
                     return;
                 }
                 if (candleNow.Open < candleNow.Low)
                 {
-                    SetNewError("Error 54. Candle open below the low" + timeFrame.ToString());
+                    SetNewError("Error 64. Candle open below the low" + timeFrame.ToString());
                     return;
                 }
 
                 if (candleNow.Close > candleNow.High)
                 {
-                    SetNewError("Error 55. Candle Close above the high" + timeFrame.ToString());
+                    SetNewError("Error 65. Candle Close above the high" + timeFrame.ToString());
                     return;
                 }
                 if (candleNow.Close < candleNow.Low)
                 {
-                    SetNewError("Error 56. Candle Close below the low" + timeFrame.ToString());
+                    SetNewError("Error 66. Candle Close below the low" + timeFrame.ToString());
                     return;
                 }
 
                 if (candleNow.Open == 0)
                 {
-                    SetNewError("Error 57. Candle Open is zero" + timeFrame.ToString());
+                    SetNewError("Error 67. Candle Open is zero" + timeFrame.ToString());
                     return;
                 }
 
                 if (candleNow.High == 0)
                 {
-                    SetNewError("Error 58. Candle High is zero" + timeFrame.ToString());
+                    SetNewError("Error 68. Candle High is zero" + timeFrame.ToString());
                     return;
                 }
 
                 if (candleNow.Low == 0)
                 {
-                    SetNewError("Error 59. Candle Low is zero" + timeFrame.ToString());
+                    SetNewError("Error 69. Candle Low is zero" + timeFrame.ToString());
                     return;
                 }
 
                 if (candleNow.Close == 0)
                 {
-                    SetNewError("Error 60. Candle Close is zero" + timeFrame.ToString());
+                    SetNewError("Error 70. Candle Close is zero" + timeFrame.ToString());
                     return;
                 }
 
@@ -836,12 +855,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
                 else if (candleNow.Volume == 0)
                 {
-                    SetNewError("Error 61. Candle Volume is zero" + timeFrame.ToString());
+                    SetNewError("Error 71. Candle Volume is zero" + timeFrame.ToString());
                     return;
                 }
-
             }
-
         }
     }
 
