@@ -175,7 +175,7 @@ namespace OsEngine.Market.Servers.Woo
                 string[] values = new string[]
                 {
                     "_LONG",
-                    "_SHORT",
+                    "_SHORT"
                 };
 
                 return values;

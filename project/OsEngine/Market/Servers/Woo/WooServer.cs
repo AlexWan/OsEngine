@@ -590,7 +590,7 @@ namespace OsEngine.Market.Servers.Woo
 
                 allCandles.AddRange(candles);
 
-                startTimeData = startTimeData.AddMinutes(tfTotalMinutes * 100);
+                startTimeData = startTimeData.AddMinutes(tfTotalMinutes * 1000);
 
                 if (startTimeData >= DateTime.UtcNow)
                 {
@@ -674,7 +674,7 @@ namespace OsEngine.Market.Servers.Woo
             {
                 string queryParam = $"after={fromTimeStamp}&";
                 queryParam += $"symbol={security}&";
-                queryParam += $"limit=100&";
+                queryParam += $"limit=1000&";
                 queryParam += $"type={resolution}";
 
                 string url = $"{_baseUrl}/v3/public/klineHistory?" + queryParam;
@@ -735,10 +735,11 @@ namespace OsEngine.Market.Servers.Woo
 
         private bool CheckCandlesToZeroData(RowCandles item)
         {
-            if (item.close.ToDecimal() == 0 ||
-                item.open.ToDecimal() == 0 ||
-                item.high.ToDecimal() == 0 ||
-                item.low.ToDecimal() == 0)
+            if (item.close.ToDecimal() == 0
+                || item.open.ToDecimal() == 0
+                || item.high.ToDecimal() == 0
+                || item.low.ToDecimal() == 0
+                || item.volume.ToDecimal() == 0)
             {
                 return true;
             }
@@ -1224,17 +1225,11 @@ namespace OsEngine.Market.Servers.Woo
                     return;
                 }
 
-                //if (_webSocketPublic.Count >= 20)
-                //{
-                //    //SendLogMessage($"Limit 20 connections {_webSocketPublic.Count}", LogMessageType.Error);
-                //    return;
-                //}
-
                 WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
                     && _subscribedSecurities.Count != 0
-                    && _subscribedSecurities.Count % 50 == 0)
+                    && _subscribedSecurities.Count % 30 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1517,8 +1512,6 @@ namespace OsEngine.Market.Servers.Woo
 
         private List<MarketDepth> _marketDepths = new List<MarketDepth>();
 
-        private DateTime _lastTimeMd = DateTime.MinValue;
-
         private void SnapshotDepth(string nameSecurity)
         {
             try
@@ -1647,47 +1640,102 @@ namespace OsEngine.Market.Servers.Woo
                     return;
                 }
 
-                if (marketDepth.Asks.Count == 0
-                    || marketDepth.Bids.Count == 0)
+                if (item.asks.Count > 1)
                 {
-                    SnapshotDepth(item.s);
-                    return;
+                    for (int i = 0; i < item.asks.Count; i++)
+                    {
+                        decimal aPrice = item.asks[i][0].ToDecimal();
+                        decimal aAsk = item.asks[i][1].ToDecimal();
+
+                        if (marketDepth.Asks.Exists(a => a.Price == aPrice))
+                        {
+                            if (aAsk == 0)
+                            {
+                                marketDepth.Asks.RemoveAll(a => a.Price == aPrice);
+                            }
+                            else
+                            {
+                                for (int j = 0; j < marketDepth.Asks.Count; j++)
+                                {
+                                    if (marketDepth.Asks[j].Price == aPrice)
+                                    {
+                                        marketDepth.Asks[j].Ask = aAsk;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            MarketDepthLevel marketDepthLevel = new MarketDepthLevel();
+                            marketDepthLevel.Ask = aAsk;
+                            marketDepthLevel.Price = aPrice;
+                            marketDepth.Asks.Add(marketDepthLevel);
+                            marketDepth.Asks.RemoveAll(a => a.Ask == 0);
+                            marketDepth.Bids.RemoveAll(a => a.Price == aPrice && aPrice != 0);
+                            SortAsks(marketDepth.Asks);
+                        }
+                    }
+                }
+
+                if (item.bids.Count > 1)
+                {
+                    for (int i = 0; i < item.bids.Count; i++)
+                    {
+                        decimal bPrice = item.bids[i][0].ToDecimal();
+                        decimal bBid = item.bids[i][1].ToDecimal();
+
+                        if (marketDepth.Bids.Exists(b => b.Price == bPrice))
+                        {
+                            if (bBid == 0)
+                            {
+                                marketDepth.Bids.RemoveAll(b => b.Price == bPrice);
+                            }
+                            else
+                            {
+                                for (int j = 0; j < marketDepth.Bids.Count; j++)
+                                {
+                                    if (marketDepth.Bids[j].Price == bPrice)
+                                    {
+                                        marketDepth.Bids[j].Bid = bBid;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            MarketDepthLevel marketDepthLevel = new MarketDepthLevel();
+                            marketDepthLevel.Bid = bBid;
+                            marketDepthLevel.Price = bPrice;
+                            marketDepth.Bids.Add(marketDepthLevel);
+                            marketDepth.Bids.RemoveAll(a => a.Bid == 0);
+                            marketDepth.Asks.RemoveAll(a => a.Price == bPrice && bPrice != 0);
+                            SortBids(marketDepth.Bids);
+                        }
+                    }
                 }
 
                 marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts));
 
-                if (marketDepth.Time <= _lastTimeMd)
+                if (_lastMdTime != DateTime.MinValue &&
+                    _lastMdTime >= marketDepth.Time)
                 {
-                    _lastTimeMd = _lastTimeMd.AddTicks(1);
-                    marketDepth.Time = _lastTimeMd;
-                }
-                else
-                {
-                    _lastTimeMd = marketDepth.Time;
+                    marketDepth.Time = _lastMdTime.AddTicks(1);
                 }
 
-                _lastTimeMd = marketDepth.Time;
+                _lastMdTime = marketDepth.Time;
 
-                ApplyLevels(item.bids, marketDepth.Bids, isBid: true);
-                ApplyLevels(item.asks, marketDepth.Asks, isBid: false);
 
-                List<MarketDepthLevel> topBids = new List<MarketDepthLevel>();
-
-                for (int i = 0; i < marketDepth.Bids.Count && i < 25; i++)
+                while (marketDepth.Asks.Count > 20)
                 {
-                    topBids.Add(marketDepth.Bids[i]);
+                    marketDepth.Asks.RemoveAt(20);
                 }
 
-                marketDepth.Bids = topBids;
-
-                List<MarketDepthLevel> topAsks = new List<MarketDepthLevel>();
-
-                for (int i = 0; i < marketDepth.Asks.Count && i < 25; i++)
+                while (marketDepth.Bids.Count > 20)
                 {
-                    topAsks.Add(marketDepth.Asks[i]);
+                    marketDepth.Bids.RemoveAt(20);
                 }
-
-                marketDepth.Asks = topAsks;
 
                 if (marketDepth.Bids.Count == 0
                     || marketDepth.Asks.Count == 0)
@@ -1703,62 +1751,45 @@ namespace OsEngine.Market.Servers.Woo
             }
         }
 
-        private void ApplyLevels(List<List<string>> updates, List<MarketDepthLevel> levels, bool isBid)
+        protected void SortBids(List<MarketDepthLevel> levels)
         {
-            for (int i = 0; i < updates.Count; i++)
+            levels.Sort((a, b) =>
             {
-                decimal price = updates[i][0].ToDecimal();
-                decimal size = updates[i][1].ToDecimal();
-
-                MarketDepthLevel existing = levels.Find(x => x.Price == price);
-
-                if (size == 0)
+                if (a.Price > b.Price)
                 {
-                    if (existing != null)
-                    {
-                        levels.Remove(existing);
-                    }
+                    return -1;
+                }
+                else if (a.Price < b.Price)
+                {
+                    return 1;
                 }
                 else
                 {
-                    if (existing != null)
-                    {
-                        if (isBid)
-                        {
-                            existing.Bid = size;
-                        }
-                        else
-                        {
-                            existing.Ask = size;
-                        }
-                    }
-                    else
-                    {
-                        MarketDepthLevel level = new MarketDepthLevel { Price = price };
-
-                        if (isBid)
-                        {
-                            level.Bid = size;
-                        }
-                        else
-                        {
-                            level.Ask = size;
-                        }
-
-                        levels.Add(level);
-                    }
+                    return 0;
                 }
-            }
-
-            if (isBid)
-            {
-                levels.Sort((a, b) => b.Price.CompareTo(a.Price));
-            }
-            else
-            {
-                levels.Sort((a, b) => a.Price.CompareTo(b.Price));
-            }
+            });
         }
+
+        protected void SortAsks(List<MarketDepthLevel> levels)
+        {
+            levels.Sort((a, b) =>
+            {
+                if (a.Price > b.Price)
+                {
+                    return 1;
+                }
+                else if (a.Price < b.Price)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return 0;
+                }
+            });
+        }
+
+        private DateTime _lastMdTime = DateTime.MinValue;
 
         private void UpdateAccount(string message)
         {
@@ -1894,7 +1925,16 @@ namespace OsEngine.Market.Servers.Woo
                 newOrder.SecurityNameCode = item.s;
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.ts));
                 newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.ts));
-                newOrder.NumberUser = Convert.ToInt32(item.cid);
+
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(item.cid);
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 newOrder.NumberMarket = item.oid.ToString();
                 newOrder.Side = item.sd.Equals("BUY") ? Side.Buy : Side.Sell;
                 newOrder.State = stateType;
@@ -2259,7 +2299,15 @@ namespace OsEngine.Market.Servers.Woo
                                 return null;
                             }
 
-                            newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
+
                             newOrder.NumberMarket = item.orderId;
                             newOrder.Side = item.side.Equals("BUY") ? Side.Buy : Side.Sell;
                             newOrder.State = stateType;
@@ -2351,7 +2399,15 @@ namespace OsEngine.Market.Servers.Woo
                             return null;
                         }
 
-                        newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                        try
+                        {
+                            newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+
                         newOrder.NumberMarket = item.orderId;
                         newOrder.Side = item.side.Equals("BUY") ? Side.Buy : Side.Sell;
                         newOrder.State = stateType;
@@ -2438,7 +2494,6 @@ namespace OsEngine.Market.Servers.Woo
                             {
                                 newTrade.Volume = item.executedQuantity.ToDecimal();
                             }
-
 
                             MyTradeEvent(newTrade);
                         }
