@@ -136,5 +136,36 @@ namespace OsEngine.Market.Servers.Woo.Entity
         public string fc { get; set; }     // free collateral
         public string v { get; set; }      // account total value
     }
+
+    public class TickerData
+    {
+        public string s { get; set; }  // symbol
+        public string o { get; set; }  // open
+        public string c { get; set; }  // close
+        public string h { get; set; }  // high
+        public string l { get; set; }  // low
+        public string v { get; set; }  // volume in base token
+        public string a { get; set; }  // amount in USDT
+        public string q { get; set; }  // aggregated volume in base token
+        public string u { get; set; }  // aggregated amount in USDT
+        public string cnt { get; set; }  // trade count
+        public string ts { get; set; }  // ticker generation time
+        public string tts { get; set; }  // last trade time
+    }
+
+    public class FundingRateData
+    {
+        public string s { get; set; }    // symbol
+        public string r { get; set; }    // funding rate
+        public string ft { get; set; }     // next funding time
+        public string ts { get; set; }     // system timestamp
+    }
+
+    public class OpenInterestItem
+    {
+        public string s { get; set; }    // symbol
+        public string oi { get; set; }   // open interest
+        public string ts { get; set; }     // time of last update
+    }
 }
 

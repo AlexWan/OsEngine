@@ -33,6 +33,7 @@ namespace OsEngine.Market.Servers.Woo
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterString("Application ID", "");
             CreateParameterBoolean("Hedge Mode", true);
+            CreateParameterBoolean("Extended Data", false);
             ServerParameters[3].ValueChange += WooServer_ValueChange;
         }
 
@@ -79,6 +80,15 @@ namespace OsEngine.Market.Servers.Woo
             {
                 SendLogMessage("Can`t run WooX connector. No keys or appID", LogMessageType.Error);
                 return;
+            }
+
+            if (((ServerParameterBool)ServerParameters[4]).Value == true)
+            {
+                _extendedMarketData = true;
+            }
+            else
+            {
+                _extendedMarketData = false;
             }
 
             try
@@ -1229,7 +1239,7 @@ namespace OsEngine.Market.Servers.Woo
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
                     && _subscribedSecurities.Count != 0
-                    && _subscribedSecurities.Count % 30 == 0)
+                    && _subscribedSecurities.Count % 20 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1257,6 +1267,15 @@ namespace OsEngine.Market.Servers.Woo
                 {
                     webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"trade@{security.Name}\"]}}");
                     webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"orderbookupdate@{security.Name}@50\"]}}");
+
+                    if (_extendedMarketData)
+                    {
+                        webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"ticker@{security.Name}\"]}}");
+                        webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"estfundingrate@{security.Name}\"]}}");
+                        webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"openinterest@{security.Name}\"]}}");
+                        GetFundingData(security.Name);
+                        GetFundingHistory(security.Name);
+                    }
                 }
             }
             catch (Exception exception)
@@ -1265,6 +1284,118 @@ namespace OsEngine.Market.Servers.Woo
             }
         }
 
+        private RateGate _rateGateFundingData = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        private void GetFundingData(string security)
+        {
+            _rateGateFundingData.WaitToProceed();
+
+            try
+            {
+                string queryParam = $"symbol={security}";
+
+                string url = $"{_baseUrl}/v3/public/fundingRate?" + queryParam;
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<EstimatedFundingRateData> response = JsonConvert.DeserializeObject<ResponseMessageRest<EstimatedFundingRateData>>(responseMessage.Content);
+
+                    if (response.success == "true")
+                    {
+                        EstimatedFundingRateRow item = response.data.rows[0];
+
+                        Funding data = new Funding();
+
+                        data.SecurityNameCode = item.symbol;
+                        data.FundingIntervalHours = int.Parse(item.estFundingIntervalHours);
+
+                        FundingUpdateEvent?.Invoke(data);
+                    }
+                    else
+                    {
+                        SendLogMessage($"FundingHistory error. Code:{responseMessage.Content}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private RateGate _rateGateFundingHistory = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        private void GetFundingHistory(string security)
+        {
+            _rateGateFundingHistory.WaitToProceed();
+
+            try
+            {
+                string queryParam = $"symbol={security}";
+
+                string url = $"{_baseUrl}/v3/public/fundingRateHistory?" + queryParam;
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessageRest<FundingHistoryData> response = JsonConvert.DeserializeObject<ResponseMessageRest<FundingHistoryData>>(responseMessage.Content);
+
+                    if (response.success == "true")
+                    {
+                        RowFunding item = response.data.rows[0];
+
+                        Funding funding = new Funding();
+
+                        funding.SecurityNameCode = item.symbol;
+                        funding.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.fundingRateTimestamp.ToDecimal());
+
+                        decimal maxFunding = 0;
+                        decimal minFunding = 10000;
+
+                        for (int i = 0; i < response.data.rows.Count; i++)
+                        {
+                            decimal fundingRate = response.data.rows[i].fundingRate.ToDecimal();
+
+                            if (fundingRate < minFunding)
+                            {
+                                minFunding = fundingRate;
+                            }
+
+                            if (fundingRate > maxFunding)
+                            {
+                                maxFunding = fundingRate;
+                            }
+                        }
+
+                        funding.MinFundingRate = minFunding;
+                        funding.MaxFundingRate = maxFunding;
+
+                        FundingUpdateEvent?.Invoke(funding);
+                    }
+                    else
+                    {
+                        SendLogMessage($"FundingHistory error. Code:{responseMessage.Content}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
 
         private void UnsubscribeFromAllWebSockets()
         {
@@ -1289,6 +1420,13 @@ namespace OsEngine.Market.Servers.Woo
 
                                         webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"trade@{securityName}\"]}}");
                                         webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"orderbookupdate@{securityName}@50\"]}}");
+
+                                        if (_extendedMarketData)
+                                        {
+                                            webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"ticker@{securityName}\"]}}");
+                                            webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"estfundingrate@{securityName}\"]}}");
+                                            webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"openinterest@{securityName}\"]}}");
+                                        }
                                     }
                                 }
                             }
@@ -1382,6 +1520,24 @@ namespace OsEngine.Market.Servers.Woo
                     if (message.Contains("trade"))
                     {
                         UpdateTrade(message);
+                        continue;
+                    }
+
+                    if (message.Contains("ticker"))
+                    {
+                        UpdateTicker(message);
+                        continue;
+                    }
+
+                    if (message.Contains("estfundingrate"))
+                    {
+                        UpdateFundingrate(message);
+                        continue;
+                    }
+
+                    if (message.Contains("openinterest"))
+                    {
+                        UpdateOpeninterest(message);
                         continue;
                     }
 
@@ -1502,7 +1658,78 @@ namespace OsEngine.Market.Servers.Woo
                 trade.Volume = item.sx.ToDecimal();
                 trade.Side = item.sd.Equals("BUY") ? Side.Buy : Side.Sell;
 
+                if (_extendedMarketData
+                    && trade.SecurityNameCode.Contains("PERP"))
+                {
+                    trade.OpenInterest = GetOpenInterest(trade.SecurityNameCode);
+                }
+
                 NewTradesEvent(trade);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private decimal GetOpenInterest(string securityNameCode)
+        {
+            if (_openInterest.Count == 0
+                  || _openInterest == null)
+            {
+                return 0;
+            }
+
+            for (int i = 0; i < _openInterest.Count; i++)
+            {
+                if (_openInterest[i].SecurityName == securityNameCode)
+                {
+                    return _openInterest[i].OpenInterest.ToDecimal();
+                }
+            }
+
+            return 0;
+        }
+
+        private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
+
+        private void UpdateOpeninterest(string message)
+        {
+            try
+            {
+                ResponseWebSocketMessage<OpenInterestItem> responseOI = JsonConvert.DeserializeObject<ResponseWebSocketMessage<OpenInterestItem>>(message);
+
+                if (responseOI == null
+                    || responseOI.data == null)
+                {
+                    return;
+                }
+
+                OpenInterestData openInterest = new OpenInterestData();
+
+                openInterest.SecurityName = responseOI.data.s;
+
+                if (responseOI.data.oi != null)
+                {
+                    openInterest.OpenInterest = responseOI.data.oi;
+
+                    bool isInArray = false;
+
+                    for (int i = 0; i < _openInterest.Count; i++)
+                    {
+                        if (_openInterest[i].SecurityName == openInterest.SecurityName)
+                        {
+                            _openInterest[i].OpenInterest = openInterest.OpenInterest;
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        _openInterest.Add(openInterest);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1790,6 +2017,59 @@ namespace OsEngine.Market.Servers.Woo
         }
 
         private DateTime _lastMdTime = DateTime.MinValue;
+
+        private void UpdateFundingrate(string message)
+        {
+            try
+            {
+                ResponseWebSocketMessage<FundingRateData> responseFunding = JsonConvert.DeserializeObject<ResponseWebSocketMessage<FundingRateData>>(message);
+
+                if (responseFunding == null
+                    || responseFunding.data == null)
+                {
+                    return;
+                }
+
+                Funding funding = new Funding();
+
+                funding.SecurityNameCode = responseFunding.data.s;
+                funding.CurrentValue = responseFunding.data.r.ToDecimal() * 100;
+                funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)responseFunding.data.ft.ToDecimal());
+                funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseFunding.ts.ToDecimal());
+
+                FundingUpdateEvent?.Invoke(funding);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void UpdateTicker(string message)
+        {
+            try
+            {
+                ResponseWebSocketMessage<TickerData> responseTicker = JsonConvert.DeserializeObject<ResponseWebSocketMessage<TickerData>>(message);
+
+                if (responseTicker == null
+                    || responseTicker.data == null)
+                {
+                    return;
+                }
+
+                SecurityVolumes volume = new SecurityVolumes();
+
+                volume.SecurityNameCode = responseTicker.data.s;
+                volume.Volume24h = responseTicker.data.v.ToDecimal();
+                volume.Volume24hUSDT = responseTicker.data.a.ToDecimal();
+
+                Volume24hUpdateEvent?.Invoke(volume);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
 
         private void UpdateAccount(string message)
         {
@@ -2637,5 +2917,11 @@ namespace OsEngine.Market.Servers.Woo
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+    }
+
+    public class OpenInterestData
+    {
+        public string SecurityName { get; set; }
+        public string OpenInterest { get; set; }
     }
 }
