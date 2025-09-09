@@ -64,6 +64,7 @@ namespace OsEngine.OsData
             RePaintSourceGrid();
 
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
+            ServerMaster.ServerDeleteEvent += ServerMaster_ServerDeleteEvent;
             master.NewLogMessageEvent += SendNewLogMessage;
             master.NeedUpDateTableEvent += Master_NeedUpDateTableEvent;
 
@@ -77,6 +78,27 @@ namespace OsEngine.OsData
             try
             {
                 RePaintSetGrid();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+
+        private void ServerMaster_ServerDeleteEvent(IServer server)
+        {
+            try
+            {
+                if(server.ServerType == ServerType.Optimizer)
+                {
+                    return;
+                }
+
+                server.ConnectStatusChangeEvent -= ServerStatusChangeEvent;
+                server.LogMessageEvent -= OsDataMaster_LogMessageEvent;
+
+                RePaintSourceGrid();
             }
             catch (Exception error)
             {

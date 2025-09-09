@@ -91,6 +91,7 @@ namespace OsEngine.Market
                 _buttonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
 
                 ServerMaster.ServerCreateEvent -= ServerMasterOnServerCreateEvent;
+                ServerMaster.ServerDeleteEvent -= ServerMaster_ServerDeleteEvent;
 
                 for (int i = 0; _servers != null && i < _servers.Count; i++)
                 {
@@ -406,17 +407,7 @@ namespace OsEngine.Market
         {
             try
             {
-                List<IServer> servers = ServerMaster.GetServers();
-
-                for (int i = 0; i < servers.Count; i++)
-                {
-                    if (servers[i].ServerType == ServerType.Optimizer)
-                    {
-                        continue;
-                    }
-                    servers[i].ConnectStatusChangeEvent -= ServerStatusChangeEvent;
-                    servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
-                }
+                server.ConnectStatusChangeEvent -= ServerStatusChangeEvent;
 
                 RePaintSourceGrid();
             }

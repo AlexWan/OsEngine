@@ -34,6 +34,7 @@ namespace OsEngine.Market
         {
             _currentCulture = OsLocalization.CurCulture;
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
+            ServerMaster.ServerDeleteEvent += ServerMaster_ServerDeleteEvent;
 
             Task task = new Task(PainterThreadArea);
             task.Start();
@@ -42,6 +43,25 @@ namespace OsEngine.Market
         private StartUiToPainter _startAllProgram;
 
         private CultureInfo _currentCulture;
+
+
+        private void ServerMaster_ServerDeleteEvent(IServer server)
+        {
+            try
+            {
+                if (server.ServerType == ServerType.Optimizer)
+                {
+                    return;
+                }
+
+                server.NewOrderIncomeEvent -= server_NewOrderIncomeEvent;
+                server.NewMyTradeEvent -= server_NewMyTradeEvent;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
 
         private void ServerMaster_ServerCreateEvent(IServer server)
         {
@@ -74,20 +94,18 @@ namespace OsEngine.Market
                 {
                     // ignore
                 }
-
             }
         }
 
         public void StartPaint()
         {
-            if (_hostActiveOrders.Dispatcher.CheckAccess() == false)
-            {
-                _hostActiveOrders.Dispatcher.Invoke(new Action(StartPaint));
-                return;
-            }
-
             try
             {
+                if (_hostActiveOrders.Dispatcher.CheckAccess() == false)
+                {
+                    _hostActiveOrders.Dispatcher.Invoke(new Action(StartPaint));
+                    return;
+                }
 
                 if (_hostActiveOrders != null)
                 {
@@ -107,17 +125,22 @@ namespace OsEngine.Market
 
         public void StopPaint()
         {
-
-            if (_hostActiveOrders != null)
+            try
             {
-                _hostActiveOrders.Child = null;
-            }
+                if (_hostActiveOrders != null)
+                {
+                    _hostActiveOrders.Child = null;
+                }
 
-            if (_hostHistoricalOrders != null)
+                if (_hostHistoricalOrders != null)
+                {
+                    _hostHistoricalOrders.Child = null;
+                }
+            }
+            catch (Exception error)
             {
-                _hostHistoricalOrders.Child = null;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         public void SetHostTable(WindowsFormsHost hostActiveOrders, 

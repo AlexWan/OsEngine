@@ -818,7 +818,14 @@ namespace OsEngine.Market
 
                 if (ServerCreateEvent != null)
                 {
-                    ServerCreateEvent(newServer);
+                    try
+                    {
+                        ServerCreateEvent(newServer);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                 }
 
                 SendNewLogMessage(OsLocalization.Market.Message3 + _servers[_servers.Count - 1].ServerNameAndPrefix, LogMessageType.System);
@@ -859,7 +866,14 @@ namespace OsEngine.Market
 
                         if (ServerDeleteEvent != null)
                         {
-                            ServerDeleteEvent(serverCurrent);
+                            try
+                            {
+                                ServerDeleteEvent(serverCurrent);
+                            }
+                            catch(Exception ex)
+                            {
+                                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                            }
                         }
 
                         SendNewLogMessage(OsLocalization.Market.Label245 + ": " + serverCurrent.ServerNameAndPrefix ,LogMessageType.System);
