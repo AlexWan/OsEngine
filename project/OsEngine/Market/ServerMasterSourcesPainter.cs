@@ -402,7 +402,7 @@ namespace OsEngine.Market
             RePaintSourceGrid();
         }
 
-        private void ServerMaster_ServerDeleteEvent()
+        private void ServerMaster_ServerDeleteEvent(IServer server)
         {
             try
             {

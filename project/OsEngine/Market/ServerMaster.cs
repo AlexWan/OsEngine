@@ -821,7 +821,7 @@ namespace OsEngine.Market
                     ServerCreateEvent(newServer);
                 }
 
-                SendNewLogMessage(OsLocalization.Market.Message3 + _servers[_servers.Count - 1].ServerType, LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Market.Message3 + _servers[_servers.Count - 1].ServerNameAndPrefix, LogMessageType.System);
 
                 TryLoadServerInstance(type);
             }
@@ -852,14 +852,17 @@ namespace OsEngine.Market
                     if (serverCurrent.ServerType == type
                         && serverCurrent.ServerNum == uniqueNum)
                     {
+                        serverCurrent.StopServer();
                         serverCurrent.Delete();
 
                         _servers.RemoveAt(i);
 
                         if (ServerDeleteEvent != null)
                         {
-                            ServerDeleteEvent();
+                            ServerDeleteEvent(serverCurrent);
                         }
+
+                        SendNewLogMessage(OsLocalization.Market.Label245 + ": " + serverCurrent.ServerNameAndPrefix ,LogMessageType.System);
 
                         return;
                     }
@@ -1081,7 +1084,7 @@ namespace OsEngine.Market
         /// <summary>
         /// server deleted
         /// </summary>
-        public static event Action ServerDeleteEvent;
+        public static event Action<IServer> ServerDeleteEvent;
 
         #endregion
 

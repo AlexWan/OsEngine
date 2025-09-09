@@ -302,6 +302,11 @@ namespace OsEngine.Logging
                 _candleConverters[i].LogMessageEvent -= ProcessMessage;
             }
 
+            for (int i = 0; i < _logItems.Count; i++)
+            {
+                _logItems[i].LogMessageEvent -= ProcessMessage;
+            }
+
             for (int i = 0; i < _osConverterMasters.Count; i++)
             {
                 _osConverterMasters[i].LogMessageEvent -= ProcessMessage;
@@ -347,6 +352,7 @@ namespace OsEngine.Logging
                 _serversToListen[i].LogMessageEvent -= ProcessMessage;
             }
 
+            _logItems.Clear();
             _copyTraders.Clear();
             _copyMasters.Clear();
             _candleConverters.Clear();
@@ -358,6 +364,7 @@ namespace OsEngine.Logging
             _optimizers.Clear();
             _serversToListen.Clear();
 
+            _logItems = null;
             _candleConverters = null;
             _osConverterMasters = null;
             _osTraderMasters = null;
@@ -447,6 +454,7 @@ namespace OsEngine.Logging
 
         private CultureInfo _currentCulture;
 
+        List<ILogItem> _logItems = new List<ILogItem>();
         List<CandleConverter> _candleConverters = new List<CandleConverter>();
         List<OsConverterMaster> _osConverterMasters = new List<OsConverterMaster>();
         List<OsTraderMaster> _osTraderMasters = new List<OsTraderMaster>();
@@ -458,6 +466,12 @@ namespace OsEngine.Logging
         List<PolygonToTrade> _polygonsToTrade = new List<PolygonToTrade>();
         List<CopyMaster> _copyMasters = new List<CopyMaster>();
         List<PortfolioToCopy> _copyTraders = new List<PortfolioToCopy>();
+
+        public void Listen(ILogItem item)
+        {
+            item.LogMessageEvent += ProcessMessage;
+            _logItems.Add(item);
+        }
 
         /// <summary>
         /// start listening to the server

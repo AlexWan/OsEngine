@@ -1013,7 +1013,9 @@ namespace OsEngine.Language
          "Eng:The data set was found _" +
          "Ru:Найден сет данных _");
 
-
+        public string Label245 => OsLocalization.ConvertToLocString(
+         "Eng:Server removed_" +
+         "Ru:Сервер удалён_");
 
 
 
