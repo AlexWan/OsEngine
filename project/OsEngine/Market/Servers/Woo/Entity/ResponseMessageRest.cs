@@ -228,4 +228,36 @@ namespace OsEngine.Market.Servers.Woo.Entity
         public string realizedPnl { get; set; }
         public string executedTimestamp { get; set; }
     }
+
+    public class FundingHistoryData
+    {
+        public MetaPages meta { get; set; }
+        public List<RowFunding> rows { get; set; }
+    }
+
+    public class RowFunding
+    {
+        public string symbol { get; set; }
+        public string fundingRate { get; set; }
+        public string fundingRateTimestamp { get; set; }
+        public string nextFundingTime { get; set; }
+        public string markPrice { get; set; }
+    }
+
+    public class EstimatedFundingRateData
+    {
+        public List<EstimatedFundingRateRow> rows { get; set; }
+    }
+
+    public class EstimatedFundingRateRow
+    {
+        public string symbol { get; set; }
+        public string estFundingRate { get; set; }
+        public string estFundingRateTimestamp { get; set; }
+        public string lastFundingRate { get; set; }
+        public string lastFundingRateTimestamp { get; set; }
+        public string nextFundingTime { get; set; }
+        public string lastFundingIntervalHours { get; set; }
+        public string estFundingIntervalHours { get; set; }
+    }
 }
