@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/b6bf4744-8e63-4cf3-8910-d0ca57ffd427)
+![image](https://github.com/user-attachments/assets/9c948445-cfae-47b6-8932-89b7329247f2)
 
 # Open Source Algo Trading Platform
 
@@ -103,7 +103,7 @@ By downloading Os Engine, you agree that if a critical error occurs, information
 
 [Сайт разработчиков](http://o-s-a.net)
 
-[FAQ. Огромный гайд по работе с проектом из более чем 170 постов](https://o-s-a.net/os-engine-faq)
+[FAQ. Огромный гайд по работе с проектом из более чем 500 постов](https://o-s-a.net/os-engine-faq)
 
 ![default](https://github.com/user-attachments/assets/a3574530-9a81-45cb-9f74-88706071a920)
 
