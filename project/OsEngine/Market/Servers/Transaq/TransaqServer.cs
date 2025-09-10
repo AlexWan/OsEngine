@@ -1784,7 +1784,7 @@ namespace OsEngine.Market.Servers.Transaq
                 board = "FUT";
             }
 
-            bool fullMarketDepthIsOn = ((ServerParameterBool)ServerParameters[18]).Value;
+            bool fullMarketDepthIsOn = ((ServerParameterBool)ServerParameters[20]).Value;
 
             string cmd = "";
 
