@@ -653,6 +653,12 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void _needToLoadCandlesCountParam_ValueChange()
         {
+            if(_needToLoadCandlesCountParam.Value > 20000)
+            {
+                _needToLoadCandlesCountParam.Value = 20000;
+                return;
+            }
+
             _candleStorage.CandlesSaveCount = _needToLoadCandlesCountParam.Value;
         }
 
