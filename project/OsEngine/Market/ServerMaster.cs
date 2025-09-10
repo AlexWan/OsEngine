@@ -17,7 +17,6 @@ using OsEngine.Market.Servers.Binance.Futures;
 using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMex;
-using OsEngine.Market.Servers.ExMo;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.Lmax;
@@ -84,6 +83,7 @@ using System.Linq;
 using OsEngine.Market.Servers.AscendexSpot;
 using OsEngine.Market.Servers.OKXData;
 using System.Windows.Controls;
+using OsEngine.Market.Servers.ExMo.ExmoSpot;
 
 namespace OsEngine.Market
 {
@@ -295,7 +295,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitfinexFutures);
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.KuCoinFutures);
-                serverTypes.Add(ServerType.Exmo);
+                serverTypes.Add(ServerType.ExmoSpot);
                 serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
@@ -413,7 +413,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitMex);
                 serverTypes.Add(ServerType.BitfinexSpot);
                 serverTypes.Add(ServerType.BitfinexFutures);
-                serverTypes.Add(ServerType.Exmo);
+                serverTypes.Add(ServerType.ExmoSpot);
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
                 serverTypes.Add(ServerType.Bybit);
@@ -670,9 +670,9 @@ namespace OsEngine.Market
                 {
                     newServer = new BybitServer(uniqueNum);
                 }
-                if (type == ServerType.Exmo)
+                if (type == ServerType.ExmoSpot)
                 {
-                    newServer = new ExmoServer();
+                    newServer = new ExmoSpotServer();
                 }
                 if (type == ServerType.Transaq)
                 {
@@ -1574,6 +1574,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new OKXDataServerPermission();
                 }
+                else if (type == ServerType.ExmoSpot)
+                {
+                    serverPermission = new ExmoSpotServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -2078,7 +2082,7 @@ namespace OsEngine.Market
         /// cryptocurrency exchange Exmo
         /// биржа криптовалют Exmo
         /// </summary>
-        Exmo,
+        ExmoSpot,
 
         /// <summary>
         /// terminal Ninja Trader

@@ -408,7 +408,7 @@ namespace OsEngine.Market.SupportTable
 
             SupportConnection exMo = new SupportConnection()
             {
-                ServerType = ServerType.Exmo,
+                ServerType = ServerType.ExmoSpot,
                 SupportType = SupportServerType.No,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\Exmo.png",
                 LingSiteUrl = "",

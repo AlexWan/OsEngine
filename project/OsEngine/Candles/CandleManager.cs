@@ -272,14 +272,6 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
-                        else if (serverType == ServerType.Exmo)
-                        {
-                            List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-
-                            series.PreLoad(allTrades);
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
                         else if (serverType == ServerType.Bitmax_AscendexFutures)
                         {
                             if (series.CandleCreateMethodType != "Simple" ||
