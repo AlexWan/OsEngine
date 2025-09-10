@@ -178,7 +178,7 @@ namespace OsEngine.Market
 
         private static List<ServerType> _loadServerInstance = new List<ServerType>();
 
-        private static void TryLoadServerInstance(ServerType serverType)
+        public static void TryLoadServerInstance(ServerType serverType)
         {
             IServerPermission serverPermission = GetServerPermission(serverType);
 
@@ -209,11 +209,7 @@ namespace OsEngine.Market
                     while (reader.EndOfStream == false)
                     {
                         int currentNumber = Convert.ToInt32(reader.ReadLine());
-
-                        if (currentNumber != 0)
-                        {
-                            CreateServer(serverType, false, currentNumber);
-                        }
+                        CreateServer(serverType, false, currentNumber);
                     }
 
                     reader.Close();
@@ -541,6 +537,8 @@ namespace OsEngine.Market
                     _servers = new List<IServer>();
                 }
 
+                TryLoadServerInstance(type);
+
                 for (int i = 0; i < _servers.Count; i++)
                 {
                     if (_servers[i].GetType().BaseType.Name.ToString() == "AServer")
@@ -829,8 +827,6 @@ namespace OsEngine.Market
                 }
 
                 SendNewLogMessage(OsLocalization.Market.Message3 + _servers[_servers.Count - 1].ServerNameAndPrefix, LogMessageType.System);
-
-                TryLoadServerInstance(type);
             }
             catch (Exception error)
             {
