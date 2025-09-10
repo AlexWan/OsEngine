@@ -33,7 +33,6 @@ using OsEngine.Market.Servers.TInvest;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.OKX;
-using OsEngine.Market.Servers.BitMaxFutures;
 using OsEngine.Market.Servers.BitGet.BitGetSpot;
 using OsEngine.Market.Servers.BitGet.BitGetFutures;
 using OsEngine.Market.Servers.Alor;
@@ -301,7 +300,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HTXSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
-                serverTypes.Add(ServerType.Bitmax_AscendexFutures);
                 serverTypes.Add(ServerType.BitGetSpot);
                 serverTypes.Add(ServerType.BitGetFutures);
                 serverTypes.Add(ServerType.BingXSpot);
@@ -637,10 +635,6 @@ namespace OsEngine.Market
                 if (type == ServerType.BitGetSpot)
                 {
                     newServer = new BitGetServerSpot(uniqueNum);
-                }
-                if (type == ServerType.Bitmax_AscendexFutures)
-                {
-                    newServer = new BitMaxFuturesServer();
                 }
                 if (type == ServerType.OKX)
                 {
@@ -2174,11 +2168,6 @@ namespace OsEngine.Market
         /// OKX exchange
         /// </summary>
         OKX,
-
-        /// <summary>
-        /// Ascendex exchange
-        /// </summary>
-        Bitmax_AscendexFutures,
 
         /// <summary>
         /// BitGetSpot exchange
