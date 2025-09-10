@@ -12,7 +12,6 @@ using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.InteractiveBrokers;
-using OsEngine.Market.Servers.BitMaxFutures;
 using OsEngine.Candles;
 
 namespace OsEngine.Entity
@@ -264,27 +263,6 @@ namespace OsEngine.Entity
                             {
                                 List<Candle> candles = server.GetCandleHistory(series.Security.Name,
                                     series.TimeFrame);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
-                        else if (serverType == ServerType.Bitmax_AscendexFutures)
-                        {
-                            if (series.CandleCreateMethodType != "Simple" ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                BitMaxFuturesServer okx = (BitMaxFuturesServer)_server;
-                                List<Candle> candles = okx.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
                                 if (candles != null)
                                 {
                                     series.CandlesAll = candles;
