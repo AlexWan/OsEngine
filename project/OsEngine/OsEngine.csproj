@@ -144,6 +144,7 @@
   <ItemGroup>
     <None Remove="Images\MainWIndow\flag_eng.png" />
     <None Remove="Images\MainWIndow\flag_ru.png" />
+    <None Remove="Images\MainWIndow\tbank.mp4" />
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />
@@ -219,6 +220,9 @@
     <Resource Include="Images\padlockOpened.png" />
     <Resource Include="Images\eye.png" />
     <Resource Include="Images\eyeBig.png" />
+    <Content Include="Images\MainWIndow\tbank.mp4">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="lua\clibs64\5.1_MD\socket\core.dll" />
     <Content Include="lua\clibs64\5.1_MT\socket\core.dll" />
     <Content Include="lua\clibs64\53_MD\socket\core.dll" />
