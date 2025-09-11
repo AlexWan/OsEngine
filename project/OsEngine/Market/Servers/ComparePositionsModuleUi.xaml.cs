@@ -420,22 +420,22 @@ namespace OsEngine.Market.Servers
                 }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[3].Value = portfolio.CompareSecurities[i].RobotsLong.ToString();
+                nRow.Cells[3].Value = portfolio.CompareSecurities[i].RobotsLong.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[4].Value = portfolio.CompareSecurities[i].RobotsShort.ToString();
+                nRow.Cells[4].Value = portfolio.CompareSecurities[i].RobotsShort.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[5].Value = portfolio.CompareSecurities[i].RobotsCommon.ToString();
+                nRow.Cells[5].Value = portfolio.CompareSecurities[i].RobotsCommon.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[6].Value = portfolio.CompareSecurities[i].PortfolioLong.ToString();
+                nRow.Cells[6].Value = portfolio.CompareSecurities[i].PortfolioLong.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[7].Value = portfolio.CompareSecurities[i].PortfolioShort.ToString();
+                nRow.Cells[7].Value = portfolio.CompareSecurities[i].PortfolioShort.ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[8].Value = portfolio.CompareSecurities[i].PortfolioCommon.ToString();
+                nRow.Cells[8].Value = portfolio.CompareSecurities[i].PortfolioCommon.ToStringWithNoEndZero();
 
                 DataGridViewCheckBoxCell checkBox = new DataGridViewCheckBoxCell();
                 checkBox.Value = portfolio.CompareSecurities[i].IsIgnored;
