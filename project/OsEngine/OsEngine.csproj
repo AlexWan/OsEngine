@@ -245,10 +245,6 @@
     <Resource Include="OsLogo.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\MainWIndow\alor1.png" />
-    <Resource Include="Images\MainWIndow\alor2.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="bin\Debug\" />
     <Folder Include="bin\Release\" />
   </ItemGroup>
