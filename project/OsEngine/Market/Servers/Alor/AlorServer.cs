@@ -787,7 +787,7 @@ namespace OsEngine.Market.Servers.Alor
             {
                 CandlesHistoryAlor history = GetHistoryCandle(security, timeFrameBuilder, startTime, endTimeReal);
 
-                List<Candle> newCandles = ConvertToOsEngineCandles(history);
+                List<Candle> newCandles = ConvertToOsEngineCandles(history, timeFrameBuilder.TimeFrameTimeSpan.Days != 1);
 
                 if(newCandles != null &&
                     newCandles.Count > 0)
@@ -880,7 +880,7 @@ namespace OsEngine.Market.Servers.Alor
             return null;
         }
 
-        private List<Candle> ConvertToOsEngineCandles(CandlesHistoryAlor candles)
+        private List<Candle> ConvertToOsEngineCandles(CandlesHistoryAlor candles, bool applyOffsetToMsk = true)
         {
             List<Candle> result = new List<Candle>();
 
@@ -906,7 +906,7 @@ namespace OsEngine.Market.Servers.Alor
                 newCandle.Low = curCandle.low.ToDecimal();
                 newCandle.Close = curCandle.close.ToDecimal();
                 newCandle.Volume = curCandle.volume.ToDecimal();
-                newCandle.TimeStart = ConvertToDateTimeFromUnixFromSeconds(curCandle.time);
+                newCandle.TimeStart = ConvertToDateTimeFromUnixFromSeconds(curCandle.time, applyOffsetToMsk);
 
                 result.Add(newCandle);
             }
@@ -3084,10 +3084,13 @@ namespace OsEngine.Market.Servers.Alor
             return Convert.ToInt64(diff.TotalSeconds);
         }
 
-        private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds)
+        private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds, bool applyOffsetToMsk = true)
         {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            DateTime result = origin.AddSeconds(seconds.ToDouble()).AddHours(3); // force to Moscow time zone gmt+3
+            DateTime result = origin.AddSeconds(seconds.ToDouble());
+
+            if (applyOffsetToMsk)
+                result = result.AddHours(3);
 
             return result;
         }
