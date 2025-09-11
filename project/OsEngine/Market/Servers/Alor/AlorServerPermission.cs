@@ -106,7 +106,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public bool DataFeedTfDayCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
