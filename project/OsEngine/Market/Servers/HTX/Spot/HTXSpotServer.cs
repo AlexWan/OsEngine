@@ -1767,14 +1767,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             try
             {
-                ResponseChannelUpdateMyTrade response = JsonConvert.DeserializeObject<ResponseChannelUpdateMyTrade>(message);
+                ResponseMyTrade response = JsonConvert.DeserializeObject<ResponseMyTrade>(message);
 
                 if (response.code != null)
                 {
                     return;
                 }
 
-                ResponseChannelUpdateMyTrade.Data item = response.data;
+                MyTradeData item = response.data;
 
                 MyTrade myTrade = new MyTrade();
 

@@ -1745,7 +1745,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         {
                             MyTrade newTrade = new MyTrade();
                             newTrade.SecurityNameCode = orderResponse.data.symbol;
-                            newTrade.NumberTrade = orderResponse.data.trades[i].trade_id;
+                            newTrade.NumberTrade = orderResponse.data.trades[i].id;
                             newTrade.NumberOrderParent = orderResponse.data.order_id;
                             newTrade.Volume = orderResponse.data.trades[i].trade_volume.ToDecimal();
                             newTrade.Price = orderResponse.data.trades[i].trade_price.ToDecimal();

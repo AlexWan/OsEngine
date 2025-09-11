@@ -136,7 +136,8 @@ namespace OsEngine.Market.Servers.HTX.Futures.Entity
             public string trade_id { get; set; }
             public string trade_volume { get; set; }
             public string trade_price { get; set; }            
-            public string created_at { get; set; }           
+            public string created_at { get; set; }
+            public string id { get; set; }
         }
     }
 }
