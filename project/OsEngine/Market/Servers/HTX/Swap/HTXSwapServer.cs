@@ -2152,7 +2152,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.trade[i].created_at));
                 myTrade.NumberOrderParent = response.order_id;
 
-                string num = response.trade[i].trade_id;
+                string num = response.trade[i].id;
                 //if (num.Split('-').Length < 2)
                 //{
                 //    continue;
@@ -2975,7 +2975,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 MyTrade newTrade = new MyTrade();
                                 newTrade.SecurityNameCode = response.data.contract_code;
 
-                                string num = response.data.trades[i].trade_id;
+                                string num = response.data.trades[i].id;
                                 //if(num.Split('-').Length < 2)
                                 //{
                                 //    continue;
@@ -2995,6 +2995,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 {
                                     newTrade.Side = Side.Sell;
                                 }
+
                                 osEngineOrders.Add(newTrade);
                             }
                         }

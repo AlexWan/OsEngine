@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.HTX.Swap.Entity
@@ -186,22 +187,60 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
 
     public class ResponseMyTradesBySecurity
     {
+        public string symbol { get; set; }
         public string contract_code { get; set; }
-        public string order_id { get; set; }
+        public string instrument_price { get; set; }
+        public string final_interest { get; set; }
+        public string adjust_value { get; set; }
+        public string lever_rate { get; set; }
         public string direction { get; set; }
+        public string offset { get; set; }
         public string volume { get; set; }
         public string price { get; set; }
-        public string offset { get; set; }
+        public string created_at { get; set; }
+        public string canceled_at { get; set; }
+        public string order_source { get; set; }
+        public string order_price_type { get; set; }
+        public string margin_frozen { get; set; }
+        public string profit { get; set; }
         public List<TradesItemRest> trades { get; set; }
+        public string total_page { get; set; }
+        public string current_page { get; set; }
+        public string total_size { get; set; }
+        public string liquidation_type { get; set; }
+        public string fee_asset { get; set; }
+        public string fee { get; set; }
+        public string order_id { get; set; }
+        public string order_id_str { get; set; }
+        public string client_order_id { get; set; }
+        public string order_type { get; set; }
+        public string status { get; set; }
+        public string trade_avg_price { get; set; }
+        public string trade_turnover { get; set; }
+        public string trade_volume { get; set; }
+        public string margin_asset { get; set; }
+        public string margin_mode { get; set; }
+        public string margin_account { get; set; }
+        public string is_tpsl { get; set; }
+        public string real_profit { get; set; }
+        public string reduce_only { get; set; }
+        public string canceled_source { get; set; }
     }
 
     public class TradesItemRest
     {
         public string trade_id { get; set; }
-        public string trade_volume { get; set; }
         public string trade_price { get; set; }
+        public string trade_volume { get; set; }
         public string trade_turnover { get; set; }
+        public string trade_fee { get; set; }
         public string created_at { get; set; }
+        public string role { get; set; }
+        public string fee_asset { get; set; }
+        public string real_profit { get; set; }
+        public string profit { get; set; }
+        public string id { get; set; }
+        public string price { get; set; }
     }
 
     public class ResponseTrades
