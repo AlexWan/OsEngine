@@ -79,9 +79,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\LiteDB.dll</HintPath>
     </Reference>
-    <Reference Include="LmaxClientLibrary">
-      <HintPath>bin\Debug\LmaxClientLibrary.dll</HintPath>
-    </Reference>
     <Reference Include="OpenFAST">
       <HintPath>bin\Debug\OpenFAST.dll</HintPath>
     </Reference>

@@ -19,7 +19,6 @@ using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractiveBrokers;
-using OsEngine.Market.Servers.Lmax;
 using OsEngine.Market.Servers.NinjaTrader;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
@@ -307,7 +306,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
-                serverTypes.Add(ServerType.Lmax);
                 serverTypes.Add(ServerType.BitMartSpot);
                 serverTypes.Add(ServerType.BitMartFutures);
                 serverTypes.Add(ServerType.MoexFixFastCurrency);
@@ -671,10 +669,6 @@ namespace OsEngine.Market
                 if (type == ServerType.Transaq)
                 {
                     newServer = new TransaqServer();
-                }
-                if (type == ServerType.Lmax)
-                {
-                    newServer = new LmaxServer();
                 }
                 if (type == ServerType.BitfinexSpot)
                 {
@@ -2041,12 +2035,6 @@ namespace OsEngine.Market
         /// транзак
         /// </summary>
         Transaq,
-
-        /// <summary>
-        /// LMax exchange
-        /// биржа LMax
-        /// </summary>
-        Lmax,
 
         /// <summary>
         /// cryptocurrency exchange BitfinexSpot
