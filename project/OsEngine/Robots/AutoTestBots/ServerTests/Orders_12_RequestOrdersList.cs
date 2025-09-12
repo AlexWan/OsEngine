@@ -113,7 +113,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Server.NewMarketDepthEvent += Server_NewMarketDepthEvent;
             Server.NewOrderIncomeEvent += Server_NewOrderIncomeEvent;
-            Server.NewMyTradeEvent += Server_NewMyTradeEvent;
 
             Server.ServerRealization.Subscribe(mySecurity);
 
@@ -157,31 +156,35 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 TestEnded();
                 return;
             }
+            else
+            {
+                 this.SetNewServiceInfo("Active orders request test OK. Side: " + Side.Buy.ToString());
+            }
 
             if (CheckActiveOrders(Side.Sell, priceToSellOrdersNoExecution, VolumeToTrade, mySecurity, _awaitOrderFirstStepSell) == false)
             {
                 TestEnded();
                 return;
             }
+            else
+            {
+                this.SetNewServiceInfo("Active orders request test OK. Side: " + Side.Sell.ToString());
+            }
 
             // ПРОВЕРКА 2. Cancel ордера. Проверка доступности в истории тех ордеров что мы отозвали в предыдущей части
 
-            /*if (CheckHistoricalCancelOrders(Side.Buy, _awaitOrderFirstStepBuy) == false)
+            if (CheckHistoricalCancelOrders(Side.Buy, _awaitOrderFirstStepBuy, _awaitOrderFirstStepSell) == false)
             {
                 TestEnded();
                 return;
             }
-            if (CheckHistoricalCancelOrders(Side.Sell, _awaitOrderFirstStepSell) == false)
-            {
-                TestEnded();
-                return;
-            }*/
 
-            // ПРОВЕРКА 3. Done ордера. Проверка доступности в истории исполненных ордеров. Чтобы по ним были MyTrades
-
+            // ПРОВЕРКА 3. Done ордера. Проверка доступности в истории исполненных ордеров. Чтобы по ним были объёмы
 
             decimal priceToBuyOrders = Math.Round(md.Asks[0].Price + md.Asks[0].Price * 0.01m, mySecurity.Decimals);
             decimal priceToSellOrders = Math.Round(md.Bids[0].Price - md.Bids[0].Price * 0.01m, mySecurity.Decimals);
+
+
 
 
             TestEnded();
@@ -208,6 +211,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 ordersArray.Add(newOrder);
                 Server.ExecuteOrder(newOrder);
+                Thread.Sleep(500);
             }
 
             DateTime timeEndWait = DateTime.Now.AddMinutes(2);
@@ -311,6 +315,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             for(int i = 0;i < ordersArray.Count;i++)
             {
                 Server.CancelOrder(ordersFromPartRequests[i]);
+                ordersArray[i].State = OrderStateType.Cancel;
+                Thread.Sleep(500);
             }
 
             Thread.Sleep(5000);
@@ -318,28 +324,30 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             return true;
         }
 
-        private bool CheckHistoricalCancelOrders(Side side, List<Order> ordersArray)
+        private bool CheckHistoricalCancelOrders(Side side, List<Order> ordersArrayBuy, List<Order> orderArraySell)
         {
-            
+            int countOfAllOrdersInTest = ordersArrayBuy.Count + orderArraySell.Count;
 
             // 2.1) Запрос на возврат 100 активных ордеров.
 
-            List<Order> ordersFromRequest = Server.GetActiveOrders();
+            List<Order> ordersFromRequest = Server.GetHistoricalOrders();
 
             if (ordersFromRequest == null)
             {
-                this.SetNewError("Error 9. ordersFromRequest == null");
+                this.SetNewError("Error 16. ordersFromRequest == null");
                 return false;
             }
             if (ordersFromRequest.Count == 0)
             {
-                this.SetNewError("Error 10. ordersFromRequest.Count == 0");
+                this.SetNewError("Error 17. ordersFromRequest.Count == 0");
                 return false;
             }
 
-            if (ordersFromRequest.Count != _awaitOrderFirstStepBuy.Count)
+            ordersFromRequest = ordersFromRequest.GetRange(0, countOfAllOrdersInTest);
+
+            if (ordersFromRequest.Count != countOfAllOrdersInTest)
             {
-                this.SetNewError("Error 11. ordersFromRequest.Count != _awaitOrderFirstStep.Count");
+                this.SetNewError("Error 18. ordersFromRequest.Count != countOfAllOrdersInTest");
                 return false;
             }
 
@@ -347,18 +355,61 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (OrderIsNormal(ordersFromRequest[i]) == false)
                 {
-                    this.SetNewError("Error 12. OrderIsNormal(ordersFromRequest[i])== false");
+                    this.SetNewError("Error 19. OrderIsNormal(ordersFromRequest[i])== false");
+                    return false;
+                }
+
+                if (ordersFromRequest[i].State != OrderStateType.Cancel)
+                {
+                    this.SetNewError("Error 20. ordersFromRequest[i].State != OrderStateType.Cancel");
+                    return false;
+                }
+
+                Order orderRequest = ordersFromRequest[i];
+
+                Order orderSocket = null;
+
+                for(int j = 0; j < orderArraySell.Count; j++)
+                {
+                    if (orderArraySell[j].NumberUser == orderRequest.NumberUser)
+                    {
+                        orderSocket = orderArraySell[j];
+                        break;
+                    }
+                }
+
+                if(orderSocket == null)
+                {
+                    for (int j = 0; j < ordersArrayBuy.Count; j++)
+                    {
+                        if (ordersArrayBuy[j].NumberUser == orderRequest.NumberUser)
+                        {
+                            orderSocket = ordersArrayBuy[j];
+                            break;
+                        }
+                    }
+                }
+
+                if (orderSocket == null)
+                {
+                    this.SetNewError("Error 21. orderSocket == null. Cant find order in orders array from socket");
+                    return false;
+                }
+
+                if(OrdersIsCompare(orderSocket,orderRequest) == false)
+                {
+                    this.SetNewError("Error 22. OrdersIsCompare(orderSocket,orderRequest) == false");
                     return false;
                 }
             }
 
-            // 2.2) Запрос на возврат по 2 штуки
+            // 2.2) Запрос на возврат по 1 штуке
 
             List<Order> ordersFromPartRequests = new List<Order>();
 
-            for (int i = 0; i < _awaitOrderFirstStepBuy.Count + 2; i += 2)
+            for (int i = 0; i < countOfAllOrdersInTest; i += 1)
             {
-                List<Order> currentOrders = Server.GetActiveOrders(i, 2);
+                List<Order> currentOrders = Server.GetHistoricalOrders(i, 1);
 
                 if (currentOrders == null ||
                     currentOrders.Count == 0)
@@ -371,13 +422,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (ordersFromPartRequests.Count == 0)
             {
-                this.SetNewError("Error 13. ordersFromPartRequests.Count == 0");
+                this.SetNewError("Error 23. ordersFromPartRequests.Count == 0");
                 return false;
             }
 
-            if (ordersFromPartRequests.Count != _awaitOrderFirstStepBuy.Count)
+            if (ordersFromPartRequests.Count != countOfAllOrdersInTest)
             {
-                this.SetNewError("Error 14. ordersFromPartRequests.Count != _awaitOrderFirstStep.Count");
+                this.SetNewError("Error 24. ordersFromPartRequests.Count != _awaitOrderFirstStep.Count");
                 return false;
             }
 
@@ -385,19 +436,62 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (OrderIsNormal(ordersFromPartRequests[i]) == false)
                 {
-                    this.SetNewError("Error 15. OrderIsNormal(ordersFromPartRequests[i])== false");
+                    this.SetNewError("Error 25. OrderIsNormal(ordersFromPartRequests[i])== false");
                     return false;
                 }
             }
 
-            // 3 отзываем всё
-
-            for (int i = 0; i < _awaitOrderFirstStepBuy.Count; i++)
+            for (int i = 0; i < ordersFromPartRequests.Count; i++)
             {
-                Server.CancelOrder(ordersFromPartRequests[i]);
-            }
+                if (OrderIsNormal(ordersFromPartRequests[i]) == false)
+                {
+                    this.SetNewError("Error 26. OrderIsNormal(ordersFromPartRequests[i])== false");
+                    return false;
+                }
 
-            Thread.Sleep(5000);
+                if (ordersFromPartRequests[i].State != OrderStateType.Cancel)
+                {
+                    this.SetNewError("Error 27. ordersFromPartRequests[i].State != OrderStateType.Cancel");
+                    return false;
+                }
+
+                Order orderRequest = ordersFromPartRequests[i];
+
+                Order orderSocket = null;
+
+                for (int j = 0; j < orderArraySell.Count; j++)
+                {
+                    if (orderArraySell[j].NumberUser == orderRequest.NumberUser)
+                    {
+                        orderSocket = orderArraySell[j];
+                        break;
+                    }
+                }
+
+                if (orderSocket == null)
+                {
+                    for (int j = 0; j < ordersArrayBuy.Count; j++)
+                    {
+                        if (ordersArrayBuy[j].NumberUser == orderRequest.NumberUser)
+                        {
+                            orderSocket = ordersArrayBuy[j];
+                            break;
+                        }
+                    }
+                }
+
+                if (orderSocket == null)
+                {
+                    this.SetNewError("Error 28. orderSocket == null. Cant find order in orders array from socket");
+                    return false;
+                }
+
+                if (OrdersIsCompare(orderSocket, orderRequest) == false)
+                {
+                    this.SetNewError("Error 29. OrdersIsCompare(orderSocket,orderRequest) == false");
+                    return false;
+                }
+            }
 
             return true;
         }
@@ -439,7 +533,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         private List<Order> _awaitOrderFirstStepBuy = new List<Order>();
 
         private List<Order> _awaitOrderFirstStepSell = new List<Order>();
-
 
         private List<Order> _awaitOrderSecondStep = new List<Order>(); 
 
@@ -488,6 +581,53 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }*/
         }
 
+        private bool OrdersIsCompare(Order orderFromSocket, Order orderFromRequest)
+        {
+            if(orderFromSocket.State != orderFromRequest.State)
+            {
+                this.SetNewError("Error 30. orderFromSocket.State != orderFromRequest.State");
+                return false;
+            }
+
+            if (orderFromSocket.Side != orderFromRequest.Side)
+            {
+                this.SetNewError("Error 31. orderFromSocket.Side != orderFromRequest.Side");
+                return false;
+            }
+
+            if (orderFromSocket.Price != orderFromRequest.Price)
+            {
+                this.SetNewError("Error 32. orderFromSocket.Price != orderFromRequest.Price");
+                return false;
+            }
+
+            if (orderFromSocket.Volume != orderFromRequest.Volume)
+            {
+                this.SetNewError("Error 33. orderFromSocket.Volume != orderFromRequest.Volume");
+                return false;
+            }
+
+            if (orderFromSocket.TypeOrder != orderFromRequest.TypeOrder)
+            {
+                this.SetNewError("Error 34. orderFromSocket.TypeOrder != orderFromRequest.TypeOrder");
+                return false;
+            }
+
+            if (orderFromSocket.ServerType != orderFromRequest.ServerType)
+            {
+                this.SetNewError("Error 35. orderFromSocket.ServerType != orderFromRequest.ServerType");
+                return false;
+            }
+
+            if (orderFromSocket.SecurityNameCode != orderFromRequest.SecurityNameCode)
+            {
+                this.SetNewError("Error 36. orderFromSocket.ServerType != orderFromRequest.ServerType");
+                return false;
+            }
+
+            return true;
+        }
+
         private bool OrderIsNormal(Order order)
         {
             /*
@@ -507,53 +647,53 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.TypeOrder != OrderPriceType.Limit)
             {
-                this.SetNewError("Error 11. Order Type is note Limit. Real type: " + order.TypeOrder);
+                this.SetNewError("Error 37. Order Type is note Limit. Real type: " + order.TypeOrder);
                 return false;
             }
 
 
             if (order.TimeCallBack == DateTime.MinValue)
             {
-                this.SetNewError("Error 12. TimeCallBack is MinValue");
+                this.SetNewError("Error 38. TimeCallBack is MinValue");
                 return false;
             }
 
             if (order.TimeDone == DateTime.MinValue &&
                 order.State == OrderStateType.Done)
             {
-                this.SetNewError("Error 13. Order Done, buy TimeDone is MinValue");
+                this.SetNewError("Error 39. Order Done, buy TimeDone is MinValue");
                 return false;
             }
 
             if (order.TimeCancel == DateTime.MinValue &&
                 order.State == OrderStateType.Cancel)
             {
-                this.SetNewError("Error 14. Order Cancel, buy TimeCancel is MinValue");
+                this.SetNewError("Error 40. Order Cancel, buy TimeCancel is MinValue");
                 return false;
             }
 
             if (order.State != OrderStateType.Fail
                 && string.IsNullOrEmpty(order.NumberMarket))
             {
-                this.SetNewError("Error 15. NumberMarket is null or empty");
+                this.SetNewError("Error 41. NumberMarket is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.SecurityNameCode))
             {
-                this.SetNewError("Error 16. SecurityNameCode is null or empty");
+                this.SetNewError("Error 42. SecurityNameCode is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.PortfolioNumber))
             {
-                this.SetNewError("Error 17. PortfolioNumber is null or empty");
+                this.SetNewError("Error 43. PortfolioNumber is null or empty");
                 return false;
             }
 
             if (order.Side == Side.None)
             {
-                this.SetNewError("Error 18. Side is None");
+                this.SetNewError("Error 44. Side is None");
                 return false;
             }
 
@@ -561,7 +701,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 && order.TypeOrder != OrderPriceType.Market
                 && order.Price <= 0)
             {
-                this.SetNewError("Error 19. Price is zero");
+                this.SetNewError("Error 45. Price is zero");
                 return false;
             }
 
@@ -569,88 +709,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 order.State != OrderStateType.Cancel &&
                 order.Volume <= 0)
             {
-                this.SetNewError("Error 20. Volume is zero");
+                this.SetNewError("Error 46. Volume is zero");
                 return false;
             }
 
             return true;
-        }
-
-        List<MyTrade> _myTradesToOrder = new List<MyTrade>();
-
-        private void Server_NewMyTradeEvent(MyTrade myTrade)
-        {
-            /* if (_awaitOrderSecondStep == null)
-             {
-                 return;
-             }
-
-             for(int i = 0;i < _)
-
-
-             if (_awaitOrderSecondStep.NumberMarket == myTrade.NumberOrderParent)
-             {
-                 _myTradesToOrder.Add(myTrade);
-                 MyTradeIsNormal(myTrade);
-             }*/
-        }
-
-        private void MyTradeIsNormal(MyTrade myTrade)
-        {
-
-            /*
-            12.2.1.Volume – объём исполненный по данному трейду
-            12.2.2.Price – цена исполнения объёма
-            12.2.3.NumberTrade – номер трейда. Обязательное поле
-            12.2.4.NumberOrderParent – номер ордера по которому этот трейд прошёл
-            12.2.5.NumberPosition – НЕ НУЖНО устанавливать.Это внутреннее поле для OsEngine
-            12.2.6.SecurityNameCode – имя бумаги
-            12.2.7.Time – время исполнения трейда
-            12.2.8.MicroSeconds – НЕ ОБЯЗАТЕЛЬНОЕ поле.Используется только в HFT подключениях к MOEX
-            12.2.9.Side – сторона ордера
-            */
-
-            if (myTrade.Volume <= 0)
-            {
-                this.SetNewError("Error 21. MyTrade. Volume is zero");
-            }
-
-            if (myTrade.Price <= 0)
-            {
-                this.SetNewError("Error 22. MyTrade. Price is zero");
-            }
-
-            if (string.IsNullOrEmpty(myTrade.SecurityNameCode))
-            {
-                this.SetNewError("Error 23. MyTrade. SecurityNameCode is null or empty");
-            }
-
-            if (string.IsNullOrEmpty(myTrade.NumberOrderParent))
-            {
-                this.SetNewError("Error 24. MyTrade. NumberOrderParent is null or empty");
-            }
-
-            if (string.IsNullOrEmpty(myTrade.NumberTrade))
-            {
-                this.SetNewError("Error 25. MyTrade. NumberTrade is null or empty");
-            }
-
-            if (myTrade.Time == DateTime.MinValue)
-            {
-                this.SetNewError("Error 26. MyTrade. Time is min value");
-            }
-
-            DateTime now = DateTime.Now;
-
-            if (myTrade.Time.AddDays(-1) > now)
-            {
-                this.SetNewError("Error 27. MyTrade. Time is to big. Time: " + myTrade.Time.ToString());
-            }
-
-            if (myTrade.Time.AddDays(1) < now)
-            {
-                this.SetNewError("Error 28. MyTrade. Time is to small. Time: " + myTrade.Time.ToString());
-            }
         }
     }
 }

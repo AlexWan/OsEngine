@@ -2874,7 +2874,10 @@ namespace OsEngine.Market.Servers.Bybit
 
                     try
                     {
-                        newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data[i].orderLinkId);
+                        if(string.IsNullOrEmpty(responseMyTrades.data[i].orderLinkId) == false)
+                        {
+                            newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data[i].orderLinkId);
+                        }
                     }
                     catch
                     {
@@ -4023,7 +4026,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                List<Order> ordersOpenAll = GetAllOpenOrdersArray(100);
+                List<Order> ordersOpenAll = GetAllOrdersArray(100,true);
 
                 for (int i = 0; i < ordersOpenAll.Count; i++)
                 {
@@ -4073,24 +4076,24 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         if (order.SecurityNameCode.Contains("USDT"))
                         {
-                             GetOpenOrders(category, "USDT", openOrders, null, 100);
+                             GetOrders(category, "USDT", openOrders, null, 100, true);
                         }
                         else
                         {
-                             GetOpenOrders(category, "USDC", openOrders, null, 100);
+                             GetOrders(category, "USDC", openOrders, null, 100, true);
                         }
                     }
                     else if (category == Category.spot)
                     {
-                        GetOpenOrders(category, null, openOrders, null, 100);
+                        GetOrders(category, null, openOrders, null, 100, true);
                     }
                     else if (category == Category.inverse)
                     {
-                        GetOpenOrders(category, null, openOrders, null, 100);
+                        GetOrders(category, null, openOrders, null, 100, true);
                     }
                     else if (category == Category.option)
                     {
-                        GetOpenOrders(category, null, openOrders, null, 100);
+                        GetOrders(category, null, openOrders, null, 100, true);
                     }
 
                     for (int i = 0; openOrders != null && i < openOrders.Count; i++)
@@ -4139,7 +4142,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                List<Order> ordersOpenAll = GetAllOpenOrdersArray(500);
+                List<Order> ordersOpenAll = GetAllOrdersArray(500, true);
 
                 for (int i = 0; i < ordersOpenAll.Count; i++)
                 {
@@ -4152,12 +4155,12 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private List<Order> GetAllOpenOrdersArray(int maxCountByCategory)
+        private List<Order> GetAllOrdersArray(int maxCountByCategory, bool onlyActive)
         {
             List<Order> ordersOpenAll = new List<Order>();
 
             List<Order> spotOrders = new List<Order>();
-            GetOpenOrders(Category.spot, null, spotOrders, null, maxCountByCategory);
+            GetOrders(Category.spot, null, spotOrders, null, maxCountByCategory, onlyActive);
 
             if (spotOrders != null
                 && spotOrders.Count > 0)
@@ -4166,7 +4169,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
 
             List<Order> inverseOrders = new List<Order>();
-            GetOpenOrders(Category.inverse, null, inverseOrders, null, maxCountByCategory);
+            GetOrders(Category.inverse, null, inverseOrders, null, maxCountByCategory, onlyActive);
 
             if (inverseOrders != null
                 && inverseOrders.Count > 0)
@@ -4178,7 +4181,7 @@ namespace OsEngine.Market.Servers.Bybit
 
             for (int i = 0; i < _listLinearCurrency.Count; i++)
             {
-                GetOpenOrders(Category.linear, _listLinearCurrency[i], linearOrders, null, maxCountByCategory);
+                GetOrders(Category.linear, _listLinearCurrency[i], linearOrders, null, maxCountByCategory, onlyActive);
 
                 if (linearOrders != null
                 && linearOrders.Count > 0)
@@ -4190,7 +4193,7 @@ namespace OsEngine.Market.Servers.Bybit
             return ordersOpenAll;
         }
 
-        private void GetOpenOrders(Category category, string settleCoin, List<Order> array, string cursor, int maxCount)
+        private void GetOrders(Category category, string settleCoin, List<Order> array, string cursor, int maxCount, bool onlyActive)
         {
             try
             {
@@ -4198,7 +4201,15 @@ namespace OsEngine.Market.Servers.Bybit
 
                 parameters["category"] = category;
                 parameters["limit"] = "50";
-                parameters["openOnly"] = "0";
+
+                if(onlyActive)
+                {
+                    parameters["openOnly"] = "0";
+                }
+                else
+                {
+                    parameters["openOnly"] = "1";
+                }
 
                 if (cursor != null)
                 {
@@ -4234,7 +4245,33 @@ namespace OsEngine.Market.Servers.Bybit
                         ResponseMessageOrders order = ordChild[i];
 
                         Order newOrder = new Order();
-                        newOrder.State = OrderStateType.Active;
+                        newOrder.ServerType = this.ServerType;
+
+                        if(order.orderStatus == "Cancelled"
+                            || order.orderStatus == "Rejected"
+                            || order.orderStatus == "PartiallyFilledCanceled"
+                            || order.orderStatus == "Deactivated")
+                        {
+                            newOrder.State = OrderStateType.Cancel;
+                            newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.updatedTime));
+                        }
+                        else if(order.orderStatus == "Filled")
+                        {
+                            newOrder.State = OrderStateType.Done;                           
+                            newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.updatedTime));
+                        }
+                        else if (order.orderStatus == "New"
+                            || order.orderStatus == "PartiallyFilled"
+                            || order.orderStatus == "Untriggered")
+                        {
+                            newOrder.State = OrderStateType.Active;
+                        }
+
+                        if (order.cumExecQty != null)
+                        {
+                            newOrder.VolumeExecute = order.cumExecQty.ToDecimal();
+                        }
+
                         newOrder.TypeOrder = OrderPriceType.Limit;
                         newOrder.PortfolioNumber = "BybitUNIFIED";
 
@@ -4315,7 +4352,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                         if (cursor != null)
                         {
-                            GetOpenOrders(category, settleCoin, array, cursor, maxCount);
+                            GetOrders(category, settleCoin, array, cursor, maxCount, onlyActive);
                         }
                     }
 
@@ -4541,27 +4578,48 @@ namespace OsEngine.Market.Servers.Bybit
         {
             int countToMethod = startIndex + count;
 
-            List<Order> result = GetAllOpenOrdersArray(countToMethod);
+            List<Order> result = GetAllOrdersArray(countToMethod, true);
 
-            if(result != null 
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null 
                 && startIndex <  result.Count)
             {
                 if(startIndex + count < result.Count)
                 {
-                    result = result.GetRange(startIndex, count);
+                    resultExit = result.GetRange(startIndex, count);
                 }
                 else
                 {
-                    result = result.GetRange(startIndex, result.Count - startIndex);
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
                 }
             }
 
-            return result;
+            return resultExit;
         }
 
         public List<Order> GetHistoricalOrders(int startIndex, int count)
         {
-            return null;
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllOrdersArray(countToMethod, false);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
         }
 
         #endregion 11

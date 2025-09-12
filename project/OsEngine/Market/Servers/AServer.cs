@@ -3730,6 +3730,7 @@ namespace OsEngine.Market.Servers
             }
 
             myOrder.ServerType = ServerType;
+            myOrder.ServerName = ServerNameUnique;
 
             _ordersToSend.Enqueue(myOrder);
         }
