@@ -142,8 +142,25 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
 
         [JsonProperty("filled-amount", NullValueHandling = NullValueHandling.Ignore)]
         public string filled_amount { get; set; }
+
+        [JsonProperty("fee-currency", NullValueHandling = NullValueHandling.Ignore)]
+        public string fee_currency { get; set; }
+
+        [JsonProperty("filled-fees", NullValueHandling = NullValueHandling.Ignore)]
+        public string filled_fees { get; set; }
+
+        [JsonProperty("filled-points", NullValueHandling = NullValueHandling.Ignore)]
+        public string filled_points { get; set; }
+
+        [JsonProperty("fee-deduct-currency", NullValueHandling = NullValueHandling.Ignore)]
+        public string fee_deduct_currency { get; set; }
+
+        [JsonProperty("fee-deduct-state", NullValueHandling = NullValueHandling.Ignore)]
+        public string fee_deduct_state { get; set; }
         public string type { get; set; }
         public string source { get; set; }
+
+        public string role { get; set; }
 
         [JsonProperty("order-id", NullValueHandling = NullValueHandling.Ignore)]
         public string order_id { get; set; }
@@ -151,8 +168,14 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
         [JsonProperty("created-at", NullValueHandling = NullValueHandling.Ignore)]
         public string created_at { get; set; }
 
+        [JsonProperty("updated-at", NullValueHandling = NullValueHandling.Ignore)]
+        public string updated_at { get; set; }
+
         [JsonProperty("trade-id", NullValueHandling = NullValueHandling.Ignore)]
         public string trade_id { get; set; }
+
+        [JsonProperty("match-id", NullValueHandling = NullValueHandling.Ignore)]
+        public string match_id { get; set; }
     }
 
     public class ResponseAccountValuation
