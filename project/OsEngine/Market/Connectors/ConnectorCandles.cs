@@ -478,8 +478,7 @@ namespace OsEngine.Market.Connectors
         {
             get
             {
-                if (ServerType == ServerType.Lmax ||
-                    ServerType == ServerType.Tester ||
+                if (ServerType == ServerType.Tester ||
                      ServerType == ServerType.Optimizer ||
                     ServerType == ServerType.BitMex)
                 {

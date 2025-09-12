@@ -188,16 +188,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(ninja);
 
-            SupportConnection lmax = new SupportConnection()
-            {
-                ServerType = ServerType.Lmax,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\International\\Lmax.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(lmax);
-
             return supportList;
         }
 
