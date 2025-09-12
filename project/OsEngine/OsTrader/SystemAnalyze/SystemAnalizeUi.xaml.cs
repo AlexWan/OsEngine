@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -483,7 +483,13 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 _chartRam.Series[1].Points.ClearFast();
                 _chartRam.Series[2].Points.ClearFast();
 
-                if(values == null 
+                int maxPoints = SystemUsageAnalyzeMaster.RamPointsMax;
+                if (values.Count > maxPoints)
+                {
+                    values.RemoveRange(0, values.Count - maxPoints);
+                }
+
+                if (values == null 
                     || values.Count == 0)
                 {
                     return;
@@ -601,7 +607,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
                     return;
                 }
 
-                if(values == null
+                if (values == null
                     || values.Count == 0)
                 {
                     return;
@@ -609,6 +615,13 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
                 _chartCpu.Series[0].Points.ClearFast();
                 _chartCpu.Series[1].Points.ClearFast();
+
+                int maxPoints = SystemUsageAnalyzeMaster.CpuPointsMax;
+
+                if (values.Count > maxPoints)
+                {
+                    values.RemoveRange(0, values.Count - maxPoints);
+                }
 
                 decimal maxValue = 0;
 
@@ -622,13 +635,13 @@ namespace OsEngine.OsTrader.SystemAnalyze
                     _chartCpu.Series[1].Points.AddXY(i, usagePoint.ProgramOccupiedPercent);
                     _chartCpu.Series[1].Points[^1].ToolTip = OsLocalization.Trader.Label563 + ": " + usagePoint.ProgramOccupiedPercent + "%";
 
-                    if(usagePoint.TotalOccupiedPercent > maxValue)
+                    if (usagePoint.TotalOccupiedPercent > maxValue)
                     {
                         maxValue = usagePoint.TotalOccupiedPercent;
                     }
                 }
 
-                if(maxValue != 0)
+                if (maxValue != 0)
                 {
                     _chartCpu.ChartAreas[0].AxisY2.Maximum = (double)maxValue;
                     _chartCpu.ChartAreas[0].AxisY2.Minimum = 0;
@@ -728,6 +741,13 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
                 _chartEcq.Series[0].Points.ClearFast();
                 _chartEcq.Series[1].Points.ClearFast();
+
+                int maxPoints = SystemUsageAnalyzeMaster.EcqPointsMax;
+
+                if (values.Count > maxPoints)
+                {
+                    values.RemoveRange(0, values.Count - maxPoints);
+                }
 
                 if (values == null
                     || values.Count == 0)
@@ -874,6 +894,13 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
                     _chartMoq.Series[0].Points.AddXY(i, usagePoint.MaxOrdersInQueue);
                     _chartMoq.Series[0].Points[^1].ToolTip = OsLocalization.Trader.Label573 + ": " + usagePoint.MaxOrdersInQueue;
+
+                    int maxPoints = SystemUsageAnalyzeMaster.MoqPointsMax;
+
+                    if (values.Count > maxPoints)
+                    {
+                        values.RemoveRange(0, values.Count - maxPoints);
+                    }
 
                     if (usagePoint.MaxOrdersInQueue > maxValue)
                     {
