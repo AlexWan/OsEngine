@@ -631,9 +631,19 @@ namespace OsEngine.Market.Servers.MFD
 
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
         public event Action<Order> MyOrderEvent;

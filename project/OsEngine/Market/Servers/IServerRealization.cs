@@ -21,50 +21,42 @@ namespace OsEngine.Market.Servers
         #region  Service, Status, Connection
 
         /// <summary>
-        /// server type
-        /// тип сервера
+        /// Server type
         /// </summary>
         ServerType ServerType { get; }
 
         /// <summary>
-        /// server state
-        /// состояние сервера
+        /// Server state
         /// </summary>
         ServerConnectStatus ServerStatus { get; set; }
 
         /// <summary>
-        /// server time
-        /// время сервера
+        /// Server time
         /// </summary>
         DateTime ServerTime { get; set; }
 
         /// <summary>
-        /// strategy parameters
-        /// параметры стратегии
+        /// Strategy parameters
         /// </summary>
         List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
-        /// request to connect to the source. guaranteed to be called no more than 60 seconds
-        /// запрос подключения к источнику. гарантированно вызывается не чаще чем в 60 секунд
+        /// Request to connect to the source. guaranteed to be called no more than 60 seconds
         /// </summary>
         void Connect(WebProxy proxy);
 
         /// <summary>
-        /// dispose resources of API
-        /// освободить ресурсы АПИ
+        /// Dispose resources of API
         /// </summary>
         void Dispose();
 
         /// <summary>
         /// API connection established
-        /// соединение с API установлено
         /// </summary>
         event Action ConnectEvent;
 
         /// <summary>
         /// API connection broke
-        /// соединение с API разорвано
         /// </summary>
         event Action DisconnectEvent;
 
@@ -73,14 +65,12 @@ namespace OsEngine.Market.Servers
         #region Securities
 
         /// <summary>
-        /// request security
-        /// запросить бумаги
+        /// Request security
         /// </summary>
         void GetSecurities();
 
         /// <summary>
-        /// new securities in the system
-        /// новые бумаги в системе
+        /// New securities in the system
         /// </summary>
         event Action<List<Security>> SecurityEvent;
 
@@ -89,14 +79,12 @@ namespace OsEngine.Market.Servers
         #region Portfolios
 
         /// <summary>
-        /// request portfolios
-        /// запросить портфели
+        /// Request portfolios
         /// </summary>
         void GetPortfolios();
 
         /// <summary>
-        /// portfolios updates
-        /// обновились портфели
+        /// Portfolios updates
         /// </summary>
         event Action<List<Portfolio>> PortfolioEvent;
 
@@ -105,48 +93,42 @@ namespace OsEngine.Market.Servers
         #region Security subscribe
 
         /// <summary>
-        /// subscribe to trades and market depth
-        /// подписаться на трейды и стаканы
+        /// Subscribe to trades and market depth
         /// </summary>
         void Subscribe(Security security);
 
         /// <summary>
-        /// unsubscribe from trades and orderbooks
-        /// отписаться от трейдов и стаканов
+        /// Unsubscribe from trades and orderbooks
         /// </summary>
         void Unsubscribe(Security security) { } // default empty implementation
 
         /// <summary>
-        /// subscribe to news
+        /// Subscribe to news
         /// </summary>
         bool SubscribeNews();
 
         /// <summary>
-        /// the news has come out
+        /// The news has come out
         /// </summary>
         event Action<News> NewsEvent;
 
         /// <summary>
-        /// depth updated
-        /// обновился стакан
+        /// Depth updated
         /// </summary>
         event Action<MarketDepth> MarketDepthEvent;
 
         /// <summary>
-        /// ticks updated
-        /// обновились тики
+        /// Ticks updated
         /// </summary>
         event Action<Trade> NewTradesEvent;
 
         /// <summary>
         /// Funding data
-        /// данные по фандингу
         /// </summary>
         event Action<Funding> FundingUpdateEvent;
 
         /// <summary>
         /// Volumes 24h data
-        /// данные по объемам за 24 часа
         /// </summary>
         event Action<SecurityVolumes> Volume24hUpdateEvent;
 
@@ -155,21 +137,18 @@ namespace OsEngine.Market.Servers
         #region Data upload
 
         /// <summary>
-        /// Интерфейс для получения последний свечек по инструменту. Используется для активации серий свечей в боевых торгах
         /// Interface for getting the last candlesticks for a security. Used to activate candlestick series in live trades
         /// </summary>
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount);
 
         /// <summary>
-        /// take candles history for period
-        /// взять историю свечей за период
+        /// Take candles history for period
         /// </summary>
         List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime);
 
         /// <summary>
-        /// take ticks data for period
-        /// взять тиковые данные за период
+        /// Take ticks data for period
         /// </summary>
         List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime);
 
@@ -178,8 +157,7 @@ namespace OsEngine.Market.Servers
         #region Work with orders
 
         /// <summary>
-        /// place order
-        /// исполнить ордер
+        /// Place order
         /// </summary>
         void SendOrder(Order order);
 
@@ -191,20 +169,17 @@ namespace OsEngine.Market.Servers
         void ChangeOrderPrice(Order order, decimal newPrice);
 
         /// <summary>
-        /// cancel order
-        /// отозвать ордер
+        /// Cancel order
         /// </summary>
         bool CancelOrder(Order order);
 
         /// <summary>
-        /// cancel all orders from trading system
-        /// отозвать все ордера из торговой системы
+        /// Cancel all orders from trading system
         /// </summary>
         void CancelAllOrders();
 
         /// <summary>
-        /// cancel all orders from trading system to security
-        /// отозвать все ордера из торговой системы по названию инструмента
+        /// Cancel all orders from trading system to security
         /// </summary>
         void CancelAllOrdersToSecurity(Security security);
 
@@ -219,14 +194,26 @@ namespace OsEngine.Market.Servers
         OrderStateType GetOrderStatus(Order order);
 
         /// <summary>
-        /// новые мои ордера
-        /// my new orders
+        /// Returns a list of active orders. Starting from the startIndex order and up to count
+        /// </summary>
+        /// <param name="startIndex">index 0 - the newest orders </param>
+        /// <param name="count">number of orders in the request. Maximum 100</param>
+        List<Order> GetActiveOrders(int startIndex, int count);
+
+        /// <summary>
+        /// Returns a list of historical orders. Starting from the startIndex order and up to count
+        /// </summary>
+        /// <param name="startIndex">index 0 - the newest orders </param>
+        /// <param name="count">number of orders in the request. Maximum 100</param>
+        List<Order> GetHistoricalOrders(int startIndex, int count);
+
+        /// <summary>
+        /// My new orders event
         /// </summary>
         event Action<Order> MyOrderEvent;
 
         /// <summary>
-        /// my new trades
-        /// новые мои сделки
+        /// My new trades event
         /// </summary>
         event Action<MyTrade> MyTradeEvent;
 
@@ -235,8 +222,7 @@ namespace OsEngine.Market.Servers
         #region Log messages
 
         /// <summary>
-        /// send the message
-        /// отправляет сообщение
+        /// Send log message
         /// </summary>
         event Action<string, LogMessageType> LogMessageEvent;
 
@@ -245,8 +231,7 @@ namespace OsEngine.Market.Servers
         #region AdditionalMarketData
 
         /// <summary>
-        /// additional market data
-        /// дополнительные маркет данные по тикеру
+        /// Additional market data
         /// </summary>
         event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 

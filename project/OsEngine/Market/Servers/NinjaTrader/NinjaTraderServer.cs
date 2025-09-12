@@ -119,6 +119,16 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         public OrderStateType GetOrderStatus(Order order)
         {
             return OrderStateType.None;

@@ -2105,6 +2105,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 12 Queries

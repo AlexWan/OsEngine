@@ -11,6 +11,7 @@ using System.Media;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -3820,6 +3821,74 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
+        #region Orders private data interface 
+
+        /// <summary>
+        /// returns a list of active orders. Starting from the first order and up to 100 orders
+        /// </summary>
+        public List<Order> GetActiveOrders()
+        {
+           return GetActiveOrders(0, 100);
+        }
+
+        /// <summary>
+        /// returns a list of active orders. Starting from the startIndex order and up to count
+        /// </summary>
+        /// <param name="startIndex">index 0 - the newest orders </param>
+        /// <param name="count">number of orders in the request. Maximum 100</param>
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            try
+            {
+                if (count > 100)
+                {
+                    count = 100;
+                }
+
+                return ServerRealization.GetActiveOrders(startIndex, count);
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// returns a list of historical orders. Starting from the first order and up to 100 orders
+        /// </summary>
+        public List<Order> GetHistoricalOrders()
+        {
+            return GetHistoricalOrders(0, 100);
+        }
+
+        /// <summary>
+        /// returns a list of historical orders. Starting from the startIndex order and up to count
+        /// </summary>
+        /// <param name="startIndex">index 0 - the newest orders </param>
+        /// <param name="count">number of orders in the request. Maximum 100</param>
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            try
+            {
+                if (count > 100)
+                {
+                    count = 100;
+                }
+
+                return ServerRealization.GetHistoricalOrders(startIndex, count);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
+
+        #endregion
+
         #region Compare positions module
 
         public ComparePositionsModule ComparePositionsModule;
@@ -3866,6 +3935,7 @@ namespace OsEngine.Market.Servers
         private List<ComparePositionsModuleUi> _comparePositionsModuleUi = new List<ComparePositionsModuleUi>();
 
         #endregion
+
 
         #region Log messages
 

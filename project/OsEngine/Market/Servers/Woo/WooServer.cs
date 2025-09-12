@@ -2640,6 +2640,16 @@ namespace OsEngine.Market.Servers.Woo
             return myOrder.State;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         private RateGate _rateGateGetOrderFromExchange = new RateGate(1, TimeSpan.FromMilliseconds(210));
 
         private Order GetOrderFromExchange(string nameSecurity, string userOrderId, string numberMarket)

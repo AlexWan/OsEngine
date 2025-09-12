@@ -4517,6 +4517,16 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion 11
 
         #region 12 Query

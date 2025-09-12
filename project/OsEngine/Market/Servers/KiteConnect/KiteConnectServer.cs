@@ -2078,6 +2078,16 @@ namespace OsEngine.Market.Servers.KiteConnect
             return stateType;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion 10
 
         #region 11 Helpers

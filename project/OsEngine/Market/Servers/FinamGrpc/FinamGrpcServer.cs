@@ -1846,6 +1846,16 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         private RateGate _rateGateAccountTrades = new RateGate(200, TimeSpan.FromMinutes(1));
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 11 Helpers

@@ -3866,8 +3866,6 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         // переменные для сертификации
 
-
-
         string _secType = string.Empty;
         byte F = 1;
         byte O = 2;
@@ -4018,6 +4016,16 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             }
 
             return OrderStateType.None;
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
         }
 
         #endregion

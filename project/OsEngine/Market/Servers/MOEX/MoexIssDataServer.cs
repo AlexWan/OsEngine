@@ -796,9 +796,19 @@ namespace OsEngine.Market.Servers.MOEX
             return null;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
         public bool SubscribeNews()

@@ -1780,6 +1780,16 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 return stateType;
             }
 
+            public List<Order> GetActiveOrders(int startIndex, int count)
+            {
+                return null;
+            }
+
+            public List<Order> GetHistoricalOrders(int startIndex, int count)
+            {
+                return null;
+            }
+
             public event Action<Order> MyOrderEvent;
 
             public event Action<MyTrade> MyTradeEvent;

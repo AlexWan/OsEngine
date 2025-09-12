@@ -2967,6 +2967,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return newOrder;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 12 Queries

@@ -761,6 +761,16 @@ namespace OsEngine.Market.Servers.Finam
             return false;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         public event Action<News> NewsEvent;
 
         public event Action<MarketDepth> MarketDepthEvent;

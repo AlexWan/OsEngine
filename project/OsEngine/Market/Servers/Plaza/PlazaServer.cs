@@ -3068,6 +3068,16 @@ namespace OsEngine.Market.Servers.Plaza
             // игнорируем. Активные заявки отправляются каждые 2 минуты через поток FORTS_USERORDERBOOK_REPL.
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 11 CODHeartbeat

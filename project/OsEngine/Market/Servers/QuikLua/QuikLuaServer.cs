@@ -1817,6 +1817,16 @@ namespace OsEngine.Market.Servers.QuikLua
 
         public void CancelAllOrdersToSecurity(Security security) { }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 9 Helpers

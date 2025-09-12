@@ -2108,6 +2108,16 @@ namespace OsEngine.Market.Servers.Transaq
             return OrderStateType.None;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 9 Parsing incomig data

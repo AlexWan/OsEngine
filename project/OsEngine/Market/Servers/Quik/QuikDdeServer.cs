@@ -1127,8 +1127,18 @@ namespace OsEngine.Market.Servers.Quik
             return _allOrders.Find(ord => ord.NumberUser.ToString() == userId);
         }
 
-// outgoing events
-// исходящие события
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        // outgoing events
+        // исходящие события
 
         /// <summary>
         /// called when order has changed
