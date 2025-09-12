@@ -14,6 +14,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
     public class ResponseRestMessageList<T>
     {
         public string retCode { get; set; }
+        public string nextPageCursor { get; set; }
         public string retMsg { get; set; }
         public RetResalt<T> result { get; set; }
         public RetExtInfo retExtInfo { get; set; }
@@ -234,6 +235,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
     {
         public string orderId { get; set; }
         public string orderLinkId { get; set; }
+        public string nextPageCursor { get; set; }
         public string blockTradeId { get; set; }
         public string symbol { get; set; }
         public string price { get; set; }

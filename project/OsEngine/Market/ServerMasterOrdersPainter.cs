@@ -908,7 +908,9 @@ namespace OsEngine.Market
         {
             try
             {
-                if (gridToPaint == null || host == null)
+                if (gridToPaint == null 
+                    || host == null
+                    || ordersToPaint == null)
                 {
                     return;
                 }
@@ -929,9 +931,15 @@ namespace OsEngine.Market
                     visibleRow = gridToPaint.FirstDisplayedScrollingRowIndex;
                 }
 
+                if(gridToPaint.Rows.Count == 0 
+                    && ordersToPaint.Count == 0)
+                {
+                    return;
+                }
+
                 gridToPaint.Rows.Clear();
 
-                if (ordersToPaint == null || ordersToPaint.Count == 0)
+                if (ordersToPaint.Count == 0)
                 {
                     host.Child = gridToPaint;
                     return;

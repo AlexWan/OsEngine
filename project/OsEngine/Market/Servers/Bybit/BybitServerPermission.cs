@@ -221,7 +221,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         public bool CanGetOrderLists
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

@@ -39,6 +39,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public int OrdersCount = 20;
 
+        private MarketDepth _md;
+
+        private void Server_NewMarketDepthEvent(MarketDepth md)
+        {
+            if (md.SecurityNameCode != SecurityNameToTrade)
+            {
+                return;
+            }
+            _md = md;
+        }
+
         public override void Process()
         {
             if (Server.ServerStatus != ServerConnectStatus.Connect)
@@ -136,44 +147,86 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            // 1 отключаем у коннектора приём ордеров на время
-            // в таком случае Хаб Ордеров не увидит входящее событие о новом Активном ордере и о его исполнении
+            // ПРОВЕРКА 1. Активные ордера
 
-            Server.TestValue_CanSendMyTradesUp = false;
+            decimal priceToBuyOrdersNoExecution = Math.Round(md.Bids[0].Price - md.Bids[0].Price * 0.01m, mySecurity.Decimals); 
+            decimal priceToSellOrdersNoExecution = Math.Round(md.Asks[0].Price + md.Asks[0].Price * 0.01m, mySecurity.Decimals);
 
-            // 2 выставляем ордер на покупку. Чтобы исполнился
+            if (CheckActiveOrders(Side.Buy, priceToBuyOrdersNoExecution, VolumeToTrade, mySecurity, _awaitOrderFirstStepBuy) == false)
+            {
+                TestEnded();
+                return;
+            }
 
-            decimal price = Math.Round(md.Asks[0].Price + md.Asks[0].Price * 0.01m, mySecurity.Decimals);
-            decimal volume = VolumeToTrade;
-            Order newOrder = CreateOrder(mySecurity, price, volume, Side.Buy);
-            _awaitOrderFirstStep = newOrder;
-            Server.ExecuteOrder(newOrder);
+            if (CheckActiveOrders(Side.Sell, priceToSellOrdersNoExecution, VolumeToTrade, mySecurity, _awaitOrderFirstStepSell) == false)
+            {
+                TestEnded();
+                return;
+            }
 
-            Thread.Sleep(3000);
+            // ПРОВЕРКА 2. Cancel ордера. Проверка доступности в истории тех ордеров что мы отозвали в предыдущей части
 
-            // 3 включаем приём ордеров у коннектора
+            /*if (CheckHistoricalCancelOrders(Side.Buy, _awaitOrderFirstStepBuy) == false)
+            {
+                TestEnded();
+                return;
+            }
+            if (CheckHistoricalCancelOrders(Side.Sell, _awaitOrderFirstStepSell) == false)
+            {
+                TestEnded();
+                return;
+            }*/
 
-            Server.TestValue_CanSendMyTradesUp = true;
+            // ПРОВЕРКА 3. Done ордера. Проверка доступности в истории исполненных ордеров. Чтобы по ним были MyTrades
+
+
+            decimal priceToBuyOrders = Math.Round(md.Asks[0].Price + md.Asks[0].Price * 0.01m, mySecurity.Decimals);
+            decimal priceToSellOrders = Math.Round(md.Bids[0].Price - md.Bids[0].Price * 0.01m, mySecurity.Decimals);
+
+
+            TestEnded();
+        }
+
+        private bool CheckActiveOrders(Side side, decimal price, decimal volume, Security mySecurity, List<Order> ordersArray)
+        {
+            // 1 выставляем N ордеров на покупку ниже рынка
+            // 2 делаем запросы по активным ордерам:
+            // 2.1) Запрос на возврат 100 активных ордеров. 2.2) Запрос на возврат по 2ве штуки. 5ть запросов. Чтобы последний был пустым
+
+            // 3 отзываем все ордера
+            // 4 делам запросы по историческим ордерам
+            // 4.1) Запрос на возврат 100 исторических ордеров. 4.2) Запрос на возврат по 2ве штуки. 5ть запросов.
+
+            // 1) отправляем ордера в рынок
+
+            ordersArray.Clear();
+            ClearOrders();
+
+            for (int i = 0;i < OrdersCount;i++)
+            {
+                Order newOrder = CreateOrder(mySecurity, price, volume, side);
+
+                ordersArray.Add(newOrder);
+                Server.ExecuteOrder(newOrder);
+            }
 
             DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             Order order = null;
 
-            // 4 нужно дождаться когда будет Done order
+            // 2) ждём когда все придут
 
             while (true)
             {
                 if (timeEndWait < DateTime.Now)
                 {
-                    this.SetNewError("Error 8. No Done order from server BuyLimit");
-                    TestEnded();
-                    return;
+                    this.SetNewError("Error 8. No Done order from server");
+                    return false;
                 }
 
-                if (_ordersDone.Count != 0)
+                if (_ordersActive.Count == ordersArray.Count)
                 {
-                    this.SetNewServiceInfo("BuyLimit Done order income Check!");
-                    order = _ordersDone[0];
+                    this.SetNewServiceInfo("Active orders income Check! Side: " + side.ToString());
                     break;
                 }
                 else
@@ -184,52 +237,169 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Thread.Sleep(1000);
 
-            if (order == null)
+
+            // 2.1) Запрос на возврат 100 активных ордеров.
+
+            List<Order> ordersFromRequest = Server.GetActiveOrders();
+
+            if(ordersFromRequest == null)
             {
-                TestEnded();
-                return;
+                this.SetNewError("Error 9. ordersFromRequest == null");
+                return false;
+            }
+            if (ordersFromRequest.Count == 0)
+            {
+                this.SetNewError("Error 10. ordersFromRequest.Count == 0");
+                return false;
             }
 
-            // 5 записываем активные ордера какие пришли после реконнекта
-
-            for (int i = 0; i < _ordersActive.Count; i++)
+            if (ordersFromRequest.Count != ordersArray.Count)
             {
-                SetNewServiceInfo("API send Done order. NumUser: " + _ordersActive[i].NumberUser +
-                     " NumMarket: " + _ordersActive[i].NumberMarket +
-                     " Security: " + _ordersActive[i].SecurityNameCode);
+                this.SetNewError("Error 11. ordersFromRequest.Count != _awaitOrderFirstStep.Count");
+                return false;
             }
 
-            ClearOrders();
-
-            Thread.Sleep(10000);
-
-            // 6 проверяем пришёл ли MyTrade
-
-            if (_myTradesToOrder.Count == 0)
+            for(int i = 0;i < ordersFromRequest.Count;i++)
             {
-                this.SetNewError("Error 9. No MyTrade for Done order");
+                if(OrderIsNormal(ordersFromRequest[i])== false)
+                {
+                    this.SetNewError("Error 12. OrderIsNormal(ordersFromRequest[i])== false");
+                    return false;
+                }
             }
 
-            for (int i = 0; i < _myTradesToOrder.Count; i++)
+            // 2.2) Запрос на возврат по 2 штуки
+
+            List<Order> ordersFromPartRequests = new List<Order>();
+
+            for(int i = 0; i < ordersArray.Count + 2; i += 2)
             {
-                SetNewServiceInfo("API send MyTrade. NumOrderParent: " + _myTradesToOrder[i].NumberOrderParent +
-                      " Num trade: " + _myTradesToOrder[i].NumberTrade +
-                      " Volume: " + _myTradesToOrder[i].Volume +
-                      " Security: " + _myTradesToOrder[i].SecurityNameCode);
+                List<Order> currentOrders = Server.GetActiveOrders(i, 2);
+
+                if(currentOrders == null ||
+                    currentOrders.Count == 0)
+                {
+                    break;
+                }
+
+                ordersFromPartRequests.AddRange(currentOrders);
             }
 
-            TestEnded();
+            if (ordersFromPartRequests.Count == 0)
+            {
+                this.SetNewError("Error 13. ordersFromPartRequests.Count == 0");
+                return false;
+            }
+
+            if (ordersFromPartRequests.Count != ordersArray.Count)
+            {
+                this.SetNewError("Error 14. ordersFromPartRequests.Count != _awaitOrderFirstStep.Count");
+                return false;
+            }
+
+            for (int i = 0; i < ordersFromPartRequests.Count; i++)
+            {
+                if (OrderIsNormal(ordersFromPartRequests[i]) == false)
+                {
+                    this.SetNewError("Error 15. OrderIsNormal(ordersFromPartRequests[i])== false");
+                    return false;
+                }
+            }
+
+            // 3 отзываем всё
+
+            for(int i = 0;i < ordersArray.Count;i++)
+            {
+                Server.CancelOrder(ordersFromPartRequests[i]);
+            }
+
+            Thread.Sleep(5000);
+
+            return true;
         }
 
-        MarketDepth _md;
-
-        private void Server_NewMarketDepthEvent(MarketDepth md)
+        private bool CheckHistoricalCancelOrders(Side side, List<Order> ordersArray)
         {
-            if (md.SecurityNameCode != SecurityNameToTrade)
+            
+
+            // 2.1) Запрос на возврат 100 активных ордеров.
+
+            List<Order> ordersFromRequest = Server.GetActiveOrders();
+
+            if (ordersFromRequest == null)
             {
-                return;
+                this.SetNewError("Error 9. ordersFromRequest == null");
+                return false;
             }
-            _md = md;
+            if (ordersFromRequest.Count == 0)
+            {
+                this.SetNewError("Error 10. ordersFromRequest.Count == 0");
+                return false;
+            }
+
+            if (ordersFromRequest.Count != _awaitOrderFirstStepBuy.Count)
+            {
+                this.SetNewError("Error 11. ordersFromRequest.Count != _awaitOrderFirstStep.Count");
+                return false;
+            }
+
+            for (int i = 0; i < ordersFromRequest.Count; i++)
+            {
+                if (OrderIsNormal(ordersFromRequest[i]) == false)
+                {
+                    this.SetNewError("Error 12. OrderIsNormal(ordersFromRequest[i])== false");
+                    return false;
+                }
+            }
+
+            // 2.2) Запрос на возврат по 2 штуки
+
+            List<Order> ordersFromPartRequests = new List<Order>();
+
+            for (int i = 0; i < _awaitOrderFirstStepBuy.Count + 2; i += 2)
+            {
+                List<Order> currentOrders = Server.GetActiveOrders(i, 2);
+
+                if (currentOrders == null ||
+                    currentOrders.Count == 0)
+                {
+                    break;
+                }
+
+                ordersFromPartRequests.AddRange(currentOrders);
+            }
+
+            if (ordersFromPartRequests.Count == 0)
+            {
+                this.SetNewError("Error 13. ordersFromPartRequests.Count == 0");
+                return false;
+            }
+
+            if (ordersFromPartRequests.Count != _awaitOrderFirstStepBuy.Count)
+            {
+                this.SetNewError("Error 14. ordersFromPartRequests.Count != _awaitOrderFirstStep.Count");
+                return false;
+            }
+
+            for (int i = 0; i < ordersFromPartRequests.Count; i++)
+            {
+                if (OrderIsNormal(ordersFromPartRequests[i]) == false)
+                {
+                    this.SetNewError("Error 15. OrderIsNormal(ordersFromPartRequests[i])== false");
+                    return false;
+                }
+            }
+
+            // 3 отзываем всё
+
+            for (int i = 0; i < _awaitOrderFirstStepBuy.Count; i++)
+            {
+                Server.CancelOrder(ordersFromPartRequests[i]);
+            }
+
+            Thread.Sleep(5000);
+
+            return true;
         }
 
         private Order CreateOrder(Security sec, decimal price, decimal volume, Side side)
@@ -266,9 +436,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             _ordersPending.Clear();
         }
 
-        private Order _awaitOrderFirstStep = null;
+        private List<Order> _awaitOrderFirstStepBuy = new List<Order>();
 
-        private Order _awaitOrderSecondStep = null;
+        private List<Order> _awaitOrderFirstStepSell = new List<Order>();
+
+
+        private List<Order> _awaitOrderSecondStep = new List<Order>(); 
 
         private void Server_NewOrderIncomeEvent(Order order)
         {
@@ -308,11 +481,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 _ordersPending.Add(order);
             }
 
-            if (order.NumberUser != 0 &&
+           /* if (order.NumberUser != 0 &&
                 _awaitOrderFirstStep.NumberUser == order.NumberUser)
             {
                 _awaitOrderSecondStep = order;
-            }
+            }*/
         }
 
         private bool OrderIsNormal(Order order)
@@ -407,20 +580,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewMyTradeEvent(MyTrade myTrade)
         {
-            if (_awaitOrderSecondStep == null)
-            {
-                return;
-            }
+            /* if (_awaitOrderSecondStep == null)
+             {
+                 return;
+             }
 
-            if (string.IsNullOrEmpty(_awaitOrderSecondStep.NumberMarket) == true)
-            {
-                return;
-            }
-            if (_awaitOrderSecondStep.NumberMarket == myTrade.NumberOrderParent)
-            {
-                _myTradesToOrder.Add(myTrade);
-                MyTradeIsNormal(myTrade);
-            }
+             for(int i = 0;i < _)
+
+
+             if (_awaitOrderSecondStep.NumberMarket == myTrade.NumberOrderParent)
+             {
+                 _myTradesToOrder.Add(myTrade);
+                 MyTradeIsNormal(myTrade);
+             }*/
         }
 
         private void MyTradeIsNormal(MyTrade myTrade)

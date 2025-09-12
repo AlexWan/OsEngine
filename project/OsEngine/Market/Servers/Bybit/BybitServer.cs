@@ -4023,36 +4023,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                List<Order> ordersOpenAll = new List<Order>();
-
-                List<Order> spotOrders = GetOpenOrders(Category.spot, null);
-
-                if (spotOrders != null
-                    && spotOrders.Count > 0)
-                {
-                    ordersOpenAll.AddRange(spotOrders);
-                }
-
-                List<Order> inverseOrders = GetOpenOrders(Category.inverse, null);
-
-                if (inverseOrders != null
-                    && inverseOrders.Count > 0)
-                {
-                    ordersOpenAll.AddRange(inverseOrders);
-                }
-
-                List<Order> linearOrders = null;
-
-                for (int i = 0; i < _listLinearCurrency.Count; i++)
-                {
-                    linearOrders = GetOpenOrders(Category.linear, _listLinearCurrency[i]);
-
-                    if (linearOrders != null
-                    && linearOrders.Count > 0)
-                    {
-                        ordersOpenAll.AddRange(linearOrders);
-                    }
-                }
+                List<Order> ordersOpenAll = GetAllOpenOrdersArray(100);
 
                 for (int i = 0; i < ordersOpenAll.Count; i++)
                 {
@@ -4096,30 +4067,30 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (newOrder == null)
                 {
-                    List<Order> openOrders = null;
+                    List<Order> openOrders = new List<Order>();
 
                     if (category == Category.linear)
                     {
                         if (order.SecurityNameCode.Contains("USDT"))
                         {
-                            openOrders = GetOpenOrders(category, "USDT");
+                             GetOpenOrders(category, "USDT", openOrders, null, 100);
                         }
                         else
                         {
-                            openOrders = GetOpenOrders(category, "USDC");
+                             GetOpenOrders(category, "USDC", openOrders, null, 100);
                         }
                     }
                     else if (category == Category.spot)
                     {
-                        openOrders = GetOpenOrders(category, null);
+                        GetOpenOrders(category, null, openOrders, null, 100);
                     }
                     else if (category == Category.inverse)
                     {
-                        openOrders = GetOpenOrders(category, null);
+                        GetOpenOrders(category, null, openOrders, null, 100);
                     }
                     else if (category == Category.option)
                     {
-                        openOrders = GetOpenOrders(category, null);
+                        GetOpenOrders(category, null, openOrders, null, 100);
                     }
 
                     for (int i = 0; openOrders != null && i < openOrders.Count; i++)
@@ -4168,36 +4139,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                List<Order> ordersOpenAll = new List<Order>();
-
-                List<Order> spotOrders = GetOpenOrders(Category.spot, null);
-
-                if (spotOrders != null
-                    && spotOrders.Count > 0)
-                {
-                    ordersOpenAll.AddRange(spotOrders);
-                }
-
-                List<Order> inverseOrders = GetOpenOrders(Category.inverse, null);
-
-                if (inverseOrders != null
-                    && inverseOrders.Count > 0)
-                {
-                    ordersOpenAll.AddRange(inverseOrders);
-                }
-
-                List<Order> linearOrders = null;
-
-                for (int i = 0; i < _listLinearCurrency.Count; i++)
-                {
-                    linearOrders = GetOpenOrders(Category.linear, _listLinearCurrency[i]);
-
-                    if (linearOrders != null
-                    && linearOrders.Count > 0)
-                    {
-                        ordersOpenAll.AddRange(linearOrders);
-                    }
-                }
+                List<Order> ordersOpenAll = GetAllOpenOrdersArray(500);
 
                 for (int i = 0; i < ordersOpenAll.Count; i++)
                 {
@@ -4210,14 +4152,58 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private List<Order> GetOpenOrders(Category category, string settleCoin)
+        private List<Order> GetAllOpenOrdersArray(int maxCountByCategory)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> spotOrders = new List<Order>();
+            GetOpenOrders(Category.spot, null, spotOrders, null, maxCountByCategory);
+
+            if (spotOrders != null
+                && spotOrders.Count > 0)
+            {
+                ordersOpenAll.AddRange(spotOrders);
+            }
+
+            List<Order> inverseOrders = new List<Order>();
+            GetOpenOrders(Category.inverse, null, inverseOrders, null, maxCountByCategory);
+
+            if (inverseOrders != null
+                && inverseOrders.Count > 0)
+            {
+                ordersOpenAll.AddRange(inverseOrders);
+            }
+
+            List<Order> linearOrders = new List<Order>();
+
+            for (int i = 0; i < _listLinearCurrency.Count; i++)
+            {
+                GetOpenOrders(Category.linear, _listLinearCurrency[i], linearOrders, null, maxCountByCategory);
+
+                if (linearOrders != null
+                && linearOrders.Count > 0)
+                {
+                    ordersOpenAll.AddRange(linearOrders);
+                }
+            }
+
+            return ordersOpenAll;
+        }
+
+        private void GetOpenOrders(Category category, string settleCoin, List<Order> array, string cursor, int maxCount)
         {
             try
             {
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
 
                 parameters["category"] = category;
+                parameters["limit"] = "50";
                 parameters["openOnly"] = "0";
+
+                if (cursor != null)
+                {
+                    parameters["cursor"] = cursor;
+                }
 
                 if (category == Category.linear)
                 {
@@ -4228,8 +4214,10 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (orders_response == null)
                 {
-                    return null;
+                    return;
                 }
+
+                //RetResalt result = JsonConvert.DeserializeObject <nRetResalt> (orders_response);
 
                 ResponseRestMessageList<ResponseMessageOrders> responseOrder = JsonConvert.DeserializeObject<ResponseRestMessageList<ResponseMessageOrders>>(orders_response);
 
@@ -4299,19 +4287,51 @@ namespace OsEngine.Market.Servers.Bybit
                         activeOrders.Add(newOrder);
                     }
 
-                    return activeOrders;
+                    if(activeOrders.Count > 0)
+                    {
+                        array.AddRange(activeOrders);
+
+                        if(array.Count > maxCount)
+                        {
+                            while(array.Count > maxCount)
+                            {
+                                array.RemoveAt(array.Count - 1);
+                            }
+                            return;
+                        }
+                        else if(array.Count < 50)
+                        {
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+
+                    if (ordChild.Count > 1)
+                    {
+                        cursor = responseOrder.result.nextPageCursor;
+
+                        if (cursor != null)
+                        {
+                            GetOpenOrders(category, settleCoin, array, cursor, maxCount);
+                        }
+                    }
+
+                    return;
                 }
                 else
                 {
                     SendLogMessage($"GetOpenOrders>. Order error. Code: {responseOrder.retCode}\n"
                             + $"Message: {responseOrder.retMsg}", LogMessageType.Error);
-                    return null;
+                    return;
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage($"GetOpenOrders>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                return null;
+                return;
             }
         }
 
@@ -4519,7 +4539,24 @@ namespace OsEngine.Market.Servers.Bybit
 
         public List<Order> GetActiveOrders(int startIndex, int count)
         {
-            return null;
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllOpenOrdersArray(countToMethod);
+
+            if(result != null 
+                && startIndex <  result.Count)
+            {
+                if(startIndex + count < result.Count)
+                {
+                    result = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    result = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return result;
         }
 
         public List<Order> GetHistoricalOrders(int startIndex, int count)
@@ -4683,7 +4720,11 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                if(ex.Message.Contains("A task was canceled") == false)
+                {
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+
                 return null;
             }
         }
