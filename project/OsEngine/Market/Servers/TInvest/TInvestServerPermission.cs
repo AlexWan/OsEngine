@@ -204,6 +204,11 @@ namespace OsEngine.Market.Servers.TInvest
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

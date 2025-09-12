@@ -72,6 +72,8 @@ namespace OsEngine.Market.Servers
 
         bool CanQueryOrderStatus { get; }
 
+        bool CanGetOrderLists { get; }
+
         #endregion
 
         #region Other Permissions

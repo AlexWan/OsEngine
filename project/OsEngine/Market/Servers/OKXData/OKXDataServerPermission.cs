@@ -175,6 +175,11 @@
             get { return false; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

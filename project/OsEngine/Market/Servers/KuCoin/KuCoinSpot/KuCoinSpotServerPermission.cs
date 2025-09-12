@@ -198,6 +198,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

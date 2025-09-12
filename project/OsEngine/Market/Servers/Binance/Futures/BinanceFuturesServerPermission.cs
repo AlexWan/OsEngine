@@ -203,6 +203,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

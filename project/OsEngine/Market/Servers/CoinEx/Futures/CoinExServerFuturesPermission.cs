@@ -169,6 +169,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         public bool UseStandardCandlesStarter
         {
             get { return true; }

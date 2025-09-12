@@ -199,6 +199,11 @@ namespace OsEngine.Market.Servers.AscendexSpot
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

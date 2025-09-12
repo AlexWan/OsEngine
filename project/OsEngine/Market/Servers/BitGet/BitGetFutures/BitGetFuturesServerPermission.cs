@@ -237,6 +237,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

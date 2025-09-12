@@ -209,6 +209,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

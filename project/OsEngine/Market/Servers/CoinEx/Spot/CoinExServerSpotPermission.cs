@@ -158,6 +158,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         public bool UseStandardCandlesStarter
         {
             get { return true; }

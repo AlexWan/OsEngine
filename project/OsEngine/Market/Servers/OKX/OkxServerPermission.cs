@@ -194,6 +194,11 @@ namespace OsEngine.Market.Servers.OKX
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

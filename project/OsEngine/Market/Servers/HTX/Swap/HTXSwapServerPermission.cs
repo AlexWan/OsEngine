@@ -202,6 +202,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

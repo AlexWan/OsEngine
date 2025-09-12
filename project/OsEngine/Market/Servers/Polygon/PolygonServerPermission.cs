@@ -198,6 +198,11 @@ namespace OsEngine.Market.Servers.Polygon
             get { return false; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

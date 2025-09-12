@@ -180,6 +180,11 @@ namespace OsEngine.Market.Servers.MOEX
             get { return false; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

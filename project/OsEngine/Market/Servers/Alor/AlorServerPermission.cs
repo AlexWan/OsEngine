@@ -173,6 +173,11 @@ namespace OsEngine.Market.Servers.Alor
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }

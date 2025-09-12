@@ -181,6 +181,11 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             get { return false; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

@@ -197,6 +197,11 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
             get { return false; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

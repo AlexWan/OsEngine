@@ -207,6 +207,11 @@ namespace OsEngine.Market.Servers.BloFin
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

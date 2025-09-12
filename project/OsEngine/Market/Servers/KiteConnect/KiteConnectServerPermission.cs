@@ -163,6 +163,11 @@ namespace OsEngine.Market.Servers.KiteConnect
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }

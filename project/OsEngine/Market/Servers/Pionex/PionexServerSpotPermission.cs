@@ -184,6 +184,11 @@ namespace OsEngine.Market.Servers.Pionex
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

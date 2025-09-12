@@ -172,6 +172,11 @@ namespace OsEngine.Market.Servers.AE
             get { return false; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
