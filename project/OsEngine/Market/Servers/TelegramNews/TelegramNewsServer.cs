@@ -1,4 +1,4 @@
-﻿using OsEngine.Entity;
+using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.TelegramNews.TGAuthEntity;
@@ -238,19 +238,33 @@ namespace OsEngine.Market.Servers.TelegramNews
         {
             string password = "";
 
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            try
             {
-                AuthTGPasswordDialogUi dialog = new AuthTGPasswordDialogUi();
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        AuthTGPasswordDialogUi dialog = new AuthTGPasswordDialogUi();
 
-                if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.Password))
-                {
-                    password = dialog.Password;
-                }
-                else
-                {
-                    _client?.Dispose();
-                }
-            });
+                        if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.Password))
+                        {
+                            password = dialog.Password;
+                        }
+                        else
+                        {
+                            _client?.Dispose();
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                });
+            }
+            catch
+            {
+
+            }
 
             return password;
         }
@@ -259,19 +273,33 @@ namespace OsEngine.Market.Servers.TelegramNews
         {
             string code = "";
 
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            try
             {
-                AuthTGCodeDialogUi dialog = new AuthTGCodeDialogUi();
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        AuthTGCodeDialogUi dialog = new AuthTGCodeDialogUi();
 
-                if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.VerificationCode))
-                {
-                    code = dialog.VerificationCode;
-                }
-                else
-                {
-                    _client?.Dispose();
-                }
-            });
+                        if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.VerificationCode))
+                        {
+                            code = dialog.VerificationCode;
+                        }
+                        else
+                        {
+                            _client?.Dispose();
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                });
+            }
+            catch 
+            {
+
+            }
 
             return code;
         }
