@@ -4485,6 +4485,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     for (int i = 0; i < position.OpenOrders.Count; i++)
                     {
                         Order order = position.OpenOrders[i];
+
+                        if(order == null)
+                        {
+                            continue;
+                        }
+
                         if (order.State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(position.OpenOrders[i]);
@@ -4498,6 +4504,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     for (int i = 0; i < position.CloseOrders.Count; i++)
                     {
                         Order closeOrder = position.CloseOrders[i];
+
+                        if(closeOrder == null)
+                        {
+                            continue;
+                        }
 
                         if (closeOrder.State == OrderStateType.Active)
                         {
@@ -4893,6 +4904,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
                     {
+                        if(position.CloseOrders[i] == null)
+                        {
+                            continue;
+                        }
+
                         if (position.CloseOrders[i].State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(position.CloseOrders[i]);
@@ -4901,6 +4917,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     for (int i = 0; position.OpenOrders != null && i < position.OpenOrders.Count; i++)
                     {
+                        if (position.OpenOrders[i] == null)
+                        {
+                            continue;
+                        }
                         if (position.OpenOrders[i].State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(position.OpenOrders[i]);
@@ -6206,8 +6226,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         // высылаем оповещение, только если уже есть закрывающие MyTrades
 
-                        if (position.CloseOrders[position.CloseOrders.Count - 1].MyTrades != null
-                            && position.CloseOrders[position.CloseOrders.Count - 1].MyTrades.Count > 0)
+                        if (position.CloseOrders[^1] != null
+                            && position.CloseOrders[^1].MyTrades != null
+                            && position.CloseOrders[^1].MyTrades.Count > 0)
                         {
                             SetNewLogMessage(
                                 OsLocalization.Trader.Label408
@@ -6274,8 +6295,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         // высылаем оповещение, только если уже есть закрывающие MyTrades
 
-                        if (position.OpenOrders[position.OpenOrders.Count - 1].MyTrades != null
-                            && position.OpenOrders[position.OpenOrders.Count - 1].MyTrades.Count > 0)
+                        if (position.OpenOrders[^1] != null
+                            && position.OpenOrders[^1].MyTrades != null
+                            && position.OpenOrders[^1].MyTrades.Count > 0)
                         {
                             SetNewLogMessage(
                             OsLocalization.Trader.Label407
@@ -7034,8 +7056,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         if (curPos.TimeForcibleRemoval < DateTime.Now
                            ||
-                           (curPos.Position.OpenOrders[curPos.Position.OpenOrders.Count - 1].MyTrades != null
-                                && curPos.Position.OpenOrders[curPos.Position.OpenOrders.Count - 1].MyTrades.Count > 0))
+                           (curPos.Position.OpenOrders[^1] != null 
+                            && curPos.Position.OpenOrders[^1].MyTrades != null
+                            && curPos.Position.OpenOrders[^1].MyTrades.Count > 0))
                         {
                             try
                             {
@@ -7065,8 +7088,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         if (curPos.TimeForcibleRemoval < DateTime.Now
                            ||
-                           (curPos.Position.CloseOrders[curPos.Position.CloseOrders.Count - 1].MyTrades != null
-                                && curPos.Position.CloseOrders[curPos.Position.CloseOrders.Count - 1].MyTrades.Count > 0))
+                           (curPos.Position.CloseOrders[^1] != null 
+                                &&  curPos.Position.CloseOrders[^1].MyTrades != null
+                                && curPos.Position.CloseOrders[^1].MyTrades.Count > 0))
                         {
                             try
                             {

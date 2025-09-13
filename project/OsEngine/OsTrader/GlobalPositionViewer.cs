@@ -478,7 +478,7 @@ namespace OsEngine.OsTrader
                     position.CloseOrders.Count != 0 &&
                     position.State != PositionStateType.ClosingFail)
                 {
-                    closePrice = position.CloseOrders[position.CloseOrders.Count - 1].Price;
+                    closePrice = position.ClosePrice;
                 }
             }
 

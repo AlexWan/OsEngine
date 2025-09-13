@@ -745,6 +745,11 @@ namespace OsEngine.Market
         {
             try
             {
+                if(order == null)
+                {
+                    return;
+                }
+
                 if (order.ServerType == ServerType.Optimizer ||
                 order.ServerType == ServerType.Miner)
                 {

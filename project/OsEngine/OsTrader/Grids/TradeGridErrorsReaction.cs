@@ -116,6 +116,11 @@ namespace OsEngine.OsTrader.Grids
 
             Order lastOrder = position.OpenOrders[^1];
 
+            if(lastOrder == null)
+            {
+                return;
+            }
+
             if (lastOrder.State == OrderStateType.Fail)
             {
                 FailOpenOrdersCountFact++;

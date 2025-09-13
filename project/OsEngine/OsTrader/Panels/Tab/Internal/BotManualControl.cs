@@ -525,6 +525,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         // open orders
                         Order openOrder = position.OpenOrders[i2];
 
+                        if(openOrder == null)
+                        {
+                            continue;
+                        }
+
                         if (openOrder.State != OrderStateType.Active &&
                             openOrder.State != OrderStateType.Partial)
                         {

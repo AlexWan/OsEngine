@@ -4319,6 +4319,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 parameters["category"] = category;
                 parameters["symbol"] = orderBase.SecurityNameCode.Split('.')[0].ToUpper();
+                parameters["limit"] = "50";
 
                 string orders_response = CreatePrivateQuery(parameters, HttpMethod.Get, "/v5/order/history");
 

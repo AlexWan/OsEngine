@@ -3722,6 +3722,12 @@ namespace OsEngine.Market.Servers
                 myOrder.TimeCancel = myOrder.TimeCallBack;
             }
 
+            if(myOrder.State == OrderStateType.None)
+            {
+                SendLogMessage(ServerNameAndPrefix + " Order in state None.", LogMessageType.Error);
+                return;
+            }
+
             myOrder.ServerType = ServerType;
             myOrder.ServerName = ServerNameUnique;
 

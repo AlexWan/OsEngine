@@ -64,7 +64,6 @@ namespace OsEngine.Robots.Grids
             _minAdxValue = CreateParameter("ADX min value", 10, 5, 90, 1m);
             _maxAdxValue = CreateParameter("ADX max value", 30, 20, 90, 1m);
            
-
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");

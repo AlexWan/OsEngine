@@ -1956,7 +1956,7 @@ ContextMenuStrip menu)
                         if (curTrade.Side == Side.Buy)
                         {
                             if (position.CloseOrders != null
-                                && position.CloseOrders.FindAll(x => x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
+                                && position.CloseOrders.FindAll(x => x != null && x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
                             {
                                 buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.OrangeRed; 
                             }
@@ -1968,7 +1968,7 @@ ContextMenuStrip menu)
                         else
                         {
                             if (position.CloseOrders != null
-                                && position.CloseOrders.FindAll(x => x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
+                                && position.CloseOrders.FindAll(x => x != null && x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
                             {
                                 buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Yellow;
                             }
@@ -2002,6 +2002,11 @@ ContextMenuStrip menu)
                         for (int j = 0; j < position.OpenOrders.Count; j++)
                         {
                             Order curOrder = position.OpenOrders[j];
+
+                            if (curOrder == null)
+                            {
+                                continue;
+                            }
 
                             if (curOrder.State != OrderStateType.Active)
                             {
@@ -2066,6 +2071,11 @@ ContextMenuStrip menu)
                         for(int j = 0;j < position.CloseOrders.Count;j++)
                         {
                             Order curOrder = position.CloseOrders[j];
+
+                            if(curOrder == null)
+                            {
+                                continue;
+                            }
 
                             if(curOrder.State != OrderStateType.Active)
                             {

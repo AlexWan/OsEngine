@@ -210,6 +210,11 @@ namespace OsEngine.Market.Servers
                         SendLogMessage("Event: GetAllActiveOrdersOnReconnectEvent", LogMessageType.System);
                     }
                 }
+
+                for(int i = 0;i < _ordersActive.Count;i++)
+                {
+                    ActiveStateOrderCheckStatusEvent(_ordersActive[i].Order);
+                }
             }
         }
 
@@ -225,7 +230,7 @@ namespace OsEngine.Market.Servers
 
         #region Orders Hub
 
-        private List<OrderToWatch> _ordersActiv = new List<OrderToWatch>();
+        private List<OrderToWatch> _ordersActive = new List<OrderToWatch>();
 
         bool _ordersIsLoaded = false;
 
@@ -252,9 +257,9 @@ namespace OsEngine.Market.Servers
 
             bool orderIsDelete = false;
 
-            for (int i = 0; i < _ordersActiv.Count; i++)
+            for (int i = 0; i < _ordersActive.Count; i++)
             {
-                Order order = _ordersActiv[i].Order;
+                Order order = _ordersActive[i].Order;
 
                 if(order.TimeCreate != DateTime.MinValue 
                     && order.TimeCreate.AddDays(1) < DateTime.Now)
@@ -265,7 +270,7 @@ namespace OsEngine.Market.Servers
                      + " TimeCreate: " + order.TimeCreate
                      , LogMessageType.System);
 
-                    _ordersActiv.RemoveAt(i);
+                    _ordersActive.RemoveAt(i);
                     i--;
                     orderIsDelete = true;
                 }
@@ -279,7 +284,7 @@ namespace OsEngine.Market.Servers
                     + " TimeCallBack: " + order.TimeCallBack
                     , LogMessageType.System);
 
-                    _ordersActiv.RemoveAt(i);
+                    _ordersActive.RemoveAt(i);
                     i--;
                     orderIsDelete = true;
                 }
@@ -287,9 +292,9 @@ namespace OsEngine.Market.Servers
 
             // 2 удаляем окончательно потерянные ордера о которых на верх уже выслали сообщение
 
-            for (int i = 0; i < _ordersActiv.Count; i++)
+            for (int i = 0; i < _ordersActive.Count; i++)
             {
-                OrderToWatch order = _ordersActiv[i];
+                OrderToWatch order = _ordersActive[i];
 
                 if (order.IsFinallyLost)
                 {
@@ -298,7 +303,7 @@ namespace OsEngine.Market.Servers
                      + " Status: " + order.Order.State
                      , LogMessageType.System);
 
-                    _ordersActiv.RemoveAt(i);
+                    _ordersActive.RemoveAt(i);
                     i--;
                     orderIsDelete = true;
                 }
@@ -323,7 +328,7 @@ namespace OsEngine.Market.Servers
                     OrderToWatch orderToWatch = new OrderToWatch();
                     orderToWatch.Order = newOpenOrder;
 
-                    _ordersActiv.Add(orderToWatch);
+                    _ordersActive.Add(orderToWatch);
                 }
             }
 
@@ -348,9 +353,9 @@ namespace OsEngine.Market.Servers
         {
             // удаляем всё что исполнилось или отменено или ошибочно
 
-            for (int i = 0;i < _ordersActiv.Count;i++)
+            for (int i = 0;i < _ordersActive.Count;i++)
             {
-                Order curOrderFromOsEngine = _ordersActiv[i].Order;
+                Order curOrderFromOsEngine = _ordersActive[i].Order;
 
                 if(orderFromApi.NumberUser != curOrderFromOsEngine.NumberUser)
                 {
@@ -362,8 +367,8 @@ namespace OsEngine.Market.Servers
                     || orderFromApi.State == OrderStateType.Pending)
                 {
                     
-                    _ordersActiv[i].Order = orderFromApi;
-                    _ordersActiv[i].CountEventsFromApi++;
+                    _ordersActive[i].Order = orderFromApi;
+                    _ordersActive[i].CountEventsFromApi++;
 
                     if (_fullLogIsOn)
                     {
@@ -379,7 +384,7 @@ namespace OsEngine.Market.Servers
                     || orderFromApi.State == OrderStateType.Done
                     || orderFromApi.State == OrderStateType.LostAfterActive)
                 {
-                    _ordersActiv.RemoveAt(i);
+                    _ordersActive.RemoveAt(i);
 
                     if (_fullLogIsOn)
                     {
@@ -448,7 +453,7 @@ namespace OsEngine.Market.Servers
                             OrderToWatch orderToWatch = new OrderToWatch();
                             orderToWatch.Order = newOrder;
 
-                            _ordersActiv.Add(orderToWatch);
+                            _ordersActive.Add(orderToWatch);
 
                             if (_fullLogIsOn)
                             {
@@ -488,13 +493,13 @@ namespace OsEngine.Market.Servers
 
                     // 1 вставляем в базу ордера которые сейчас есть в массиве активных ордеров
 
-                    for (int i = 0; i < _ordersActiv.Count; i++)
+                    for (int i = 0; i < _ordersActive.Count; i++)
                     {
                         OrderToSave orderToSave = new OrderToSave();
                         orderToSave.NumberId = i;
-                        orderToSave.NumberMarket = _ordersActiv[i].Order.NumberMarket;
-                        orderToSave.NumberUser = _ordersActiv[i].Order.NumberUser;
-                        orderToSave.SaveString = _ordersActiv[i].Order.GetStringForSave().ToString();
+                        orderToSave.NumberMarket = _ordersActive[i].Order.NumberMarket;
+                        orderToSave.NumberUser = _ordersActive[i].Order.NumberUser;
+                        orderToSave.SaveString = _ordersActive[i].Order.GetStringForSave().ToString();
 
                         bool isInArray = false;
 
@@ -535,9 +540,9 @@ namespace OsEngine.Market.Servers
 
                         bool isInArray = false;
 
-                        for (int j = 0; j < _ordersActiv.Count; j++)
+                        for (int j = 0; j < _ordersActive.Count; j++)
                         {
-                            OrderToWatch order = _ordersActiv[j];
+                            OrderToWatch order = _ordersActive[j];
 
                             if (order.Order.NumberUser != 0 &&
                                 curOrdInBd.NumberUser != 0 &&
@@ -594,9 +599,9 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            for (int i = 0;i < _ordersActiv.Count;i++)
+            for (int i = 0;i < _ordersActive.Count;i++)
             {
-                CheckOrderState(_ordersActiv[i]);
+                CheckOrderState(_ordersActive[i]);
             }
         }
 

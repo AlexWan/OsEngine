@@ -348,7 +348,7 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridLogicEntryRegime RegimeLogicEntry;
 
-        public bool AutoClearJournalIsOn;
+        public bool AutoClearJournalIsOn = true;
 
         public int MaxClosePositionsInJournal = 100;
 
@@ -360,7 +360,7 @@ namespace OsEngine.OsTrader.Grids
 
         public bool CheckMicroVolumes = true;
 
-        public decimal MaxDistanceToOrdersPercent = 1.5m;
+        public decimal MaxDistanceToOrdersPercent = 0.3m;
 
         #endregion
 
