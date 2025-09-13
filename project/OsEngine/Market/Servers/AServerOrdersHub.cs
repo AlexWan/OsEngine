@@ -213,7 +213,11 @@ namespace OsEngine.Market.Servers
 
                 for(int i = 0;i < _ordersActive.Count;i++)
                 {
-                    ActiveStateOrderCheckStatusEvent(_ordersActive[i].Order);
+                    if(_ordersActive[i].IsFinallyLost == false
+                        && _ordersActive[i].CountTriesToGetOrderStatus < 5)
+                    {
+                        ActiveStateOrderCheckStatusEvent(_ordersActive[i].Order);
+                    }
                 }
             }
         }
