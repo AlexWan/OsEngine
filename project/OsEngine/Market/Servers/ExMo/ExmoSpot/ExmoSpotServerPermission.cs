@@ -116,7 +116,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 5; }
+            get { return 10; }
         }
 
         public bool IsCanChangeOrderPrice
@@ -189,12 +189,12 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanGetOrderLists

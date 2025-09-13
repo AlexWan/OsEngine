@@ -56,4 +56,72 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot.Entity
         public string order_id { get; set; }
         public string client_id { get; set; }
     }
+
+    public class GetOrderResponse : Dictionary<string, List<GetOrderItem>>
+    {
+    }
+
+    public class GetOrderItem
+    {
+        public string parent_order_id { get; set; }
+        public string order_id { get; set; }
+        public string client_id { get; set; }
+        public string created { get; set; }
+        public string type { get; set; }
+        public string pair { get; set; }
+        public string price { get; set; }
+        public string quantity { get; set; }
+        public string trigger_price { get; set; }
+        public string amount { get; set; }
+        public string reason_status { get; set; }
+    }
+
+    public class GetOrderTrade : Dictionary<string, List<OrderTradeItem>>
+    {
+    }
+
+    public class OrderTradeItem
+    {
+        public string trade_id { get; set; }
+        public string client_id { get; set; }
+        public string date { get; set; }
+        public string type { get; set; }
+        public string pair { get; set; }
+        public string quantity { get; set; }
+        public string price { get; set; }
+        public string amount { get; set; }
+        public string order_id { get; set; }
+        public string parent_order_id { get; set; }
+        public string exec_type { get; set; }
+        public string commission_amount { get; set; }
+        public string commission_currency { get; set; }
+        public string commission_percent { get; set; }
+    }
+
+    public class MyTradeResponseRest
+    {
+        public string type { get; set; }
+        public string in_currency { get; set; }
+        public string in_amount { get; set; }
+        public string out_currency { get; set; }
+        public string out_amount { get; set; }
+        public List<TradeItem> trades { get; set; }
+    }
+
+    public class TradeItem
+    {
+        public string trade_id { get; set; }
+        public string client_id { get; set; }
+        public string date { get; set; }
+        public string type { get; set; }
+        public string pair { get; set; }
+        public string order_id { get; set; }
+        public string quantity { get; set; }
+        public string price { get; set; }
+        public string amount { get; set; }
+        public string exec_type { get; set; }
+        public string commission_amount { get; set; }
+        public string commission_currency { get; set; }
+        public string commission_percent { get; set; }
+    }
 }
