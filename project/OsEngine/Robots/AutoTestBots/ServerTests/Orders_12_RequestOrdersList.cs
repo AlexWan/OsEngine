@@ -9,23 +9,23 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
     // Тест на запросы данных по ордерам в массивах. Исторические / Актуальные
 
-    // 1 выставляем 20 ордеров на покупку ниже рынка
+    // 1 выставляем N ордеров на покупку ниже рынка
     // 2 делаем запросы по активным ордерам:
-    // 2.1) Запрос на возврат 100 активных ордеров. 2.2) Запрос на возврат по 5ть штук. 5ть запросов. Чтобы последний был пустым
+    // 2.1) Запрос на возврат 100 активных ордеров. 2.2) Запрос на возврат по K штук. K запросов. Чтобы последний был пустым
 
     // 3 отзываем все ордера
     // 4 делам запросы по историческим ордерам
-    // 4.1) Запрос на возврат 100 исторических ордеров. 4.2) Запрос на возврат по 5ть штук. 5ть запросов.
+    // 4.1) Запрос на возврат 100 исторических ордеров. 4.2) Запрос на возврат по K штук. K запросов. Чтобы последний был пустым
 
     // 5 делаем тоже самое с ордерами на продажу
 
     // 6 выставляем 1 ордер на покупку, чтобы он исполнился
     // 7 вызываем запрос по историческим ордерам на 100 штук. И на одну штуку.
-    // 7 Первым должен быть наш ордер со статусом Done и заполненным массивом MyTrade
+    // 7 Первым должен быть наш ордер со статусом Done и правильным указанием объёма исполненного
 
     // 8 выставляем 1 ордер на продажу, чтобы он исполнился
     // 9 вызываем запрос по историческим ордерам на 100 штук. И на одну штуку.
-    // 9 Первым должен быть наш ордер со статусом Done и заполненным массивом MyTrade
+    // 9 Первым должен быть наш ордер со статусом Done и правильным указанием объёма исполненного
 
     public class Orders_12_RequestOrdersList : AServerTester
     {
@@ -173,7 +173,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ПРОВЕРКА 2. Cancel ордера. Проверка доступности в истории тех ордеров что мы отозвали в предыдущей части
 
-            if (CheckHistoricalCancelOrders(Side.Buy, _awaitOrderFirstStepBuy, _awaitOrderFirstStepSell) == false)
+            if (CheckHistoricalCancelOrders(_awaitOrderFirstStepBuy, _awaitOrderFirstStepSell, OrderStateType.Cancel) == false)
             {
                 TestEnded();
                 return;
@@ -181,11 +181,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ПРОВЕРКА 3. Done ордера. Проверка доступности в истории исполненных ордеров. Чтобы по ним были объёмы
 
-            decimal priceToBuyOrders = Math.Round(md.Asks[0].Price + md.Asks[0].Price * 0.01m, mySecurity.Decimals);
-            decimal priceToSellOrders = Math.Round(md.Bids[0].Price - md.Bids[0].Price * 0.01m, mySecurity.Decimals);
-
-
-
+            if (CheckDoneOrders(md, mySecurity) == false)
+            {
+                TestEnded();
+                return;
+            }
 
             TestEnded();
         }
@@ -324,7 +324,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             return true;
         }
 
-        private bool CheckHistoricalCancelOrders(Side side, List<Order> ordersArrayBuy, List<Order> orderArraySell)
+        private bool CheckHistoricalCancelOrders(List<Order> ordersArrayBuy, List<Order> orderArraySell, OrderStateType stateToWatch)
         {
             int countOfAllOrdersInTest = ordersArrayBuy.Count + orderArraySell.Count;
 
@@ -359,9 +359,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return false;
                 }
 
-                if (ordersFromRequest[i].State != OrderStateType.Cancel)
+                if (ordersFromRequest[i].State != stateToWatch)
                 {
-                    this.SetNewError("Error 20. ordersFromRequest[i].State != OrderStateType.Cancel");
+                    this.SetNewError("Error 20. ordersFromRequest[i].State != stateToWatch");
                     return false;
                 }
 
@@ -449,9 +449,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return false;
                 }
 
-                if (ordersFromPartRequests[i].State != OrderStateType.Cancel)
+                if (ordersFromPartRequests[i].State != stateToWatch)
                 {
-                    this.SetNewError("Error 27. ordersFromPartRequests[i].State != OrderStateType.Cancel");
+                    this.SetNewError("Error 27. ordersFromPartRequests[i].State != stateToWatch");
                     return false;
                 }
 
@@ -491,6 +491,94 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     this.SetNewError("Error 29. OrdersIsCompare(orderSocket,orderRequest) == false");
                     return false;
                 }
+            }
+
+            return true;
+        }
+
+        private bool CheckDoneOrders(MarketDepth md, Security mySecurity)
+        {
+           
+            ClearOrders();
+
+            // 1 высылаем ордера на покупку
+
+            List<Order> ordersArrayBuy = new List<Order>();
+            decimal priceToBuyOrders = Math.Round(md.Asks[0].Price + md.Asks[0].Price * 0.01m, mySecurity.Decimals);
+
+            for (int i = 0; i < OrdersCount; i++)
+            {
+                Order newOrder = CreateOrder(mySecurity, priceToBuyOrders, VolumeToTrade, Side.Buy);
+                newOrder.State = OrderStateType.Done;
+                ordersArrayBuy.Add(newOrder);
+                Server.ExecuteOrder(newOrder);
+                Thread.Sleep(500);
+            }
+
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
+
+            while (true)
+            {
+                if (timeEndWait < DateTime.Now)
+                {
+                    this.SetNewError("Error 30. No Done order from server");
+                    return false;
+                }
+
+                if (_ordersDone.Count == ordersArrayBuy.Count)
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.Sleep(1000);
+                }
+            }
+
+            Thread.Sleep(1000);
+
+            // 2 высылаем ордера на продажу
+
+            List<Order> orderArraySell = new List<Order>();
+            decimal priceToSellOrders = Math.Round(md.Bids[0].Price - md.Bids[0].Price * 0.01m, mySecurity.Decimals);
+
+            for (int i = 0; i < OrdersCount; i++)
+            {
+                Order newOrder = CreateOrder(mySecurity, priceToSellOrders, VolumeToTrade, Side.Sell);
+                newOrder.State = OrderStateType.Done;
+                
+                orderArraySell.Add(newOrder);
+                Server.ExecuteOrder(newOrder);
+                Thread.Sleep(500);
+            }
+
+            timeEndWait = DateTime.Now.AddMinutes(2);
+
+            while (true)
+            {
+                if (timeEndWait < DateTime.Now)
+                {
+                    this.SetNewError("Error 31. No Done order from server");
+                    return false;
+                }
+
+                if (_ordersDone.Count - ordersArrayBuy.Count == orderArraySell.Count)
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.Sleep(1000);
+                }
+            }
+
+            Thread.Sleep(1000);
+
+            // 3 проверяем done ордера через запросы к истории
+
+            if (CheckHistoricalCancelOrders(ordersArrayBuy, orderArraySell, OrderStateType.Done) == false)
+            {
+                return false;
             }
 
             return true;
@@ -585,43 +673,43 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if(orderFromSocket.State != orderFromRequest.State)
             {
-                this.SetNewError("Error 30. orderFromSocket.State != orderFromRequest.State");
+                this.SetNewError("Error 32. orderFromSocket.State != orderFromRequest.State");
                 return false;
             }
 
             if (orderFromSocket.Side != orderFromRequest.Side)
             {
-                this.SetNewError("Error 31. orderFromSocket.Side != orderFromRequest.Side");
+                this.SetNewError("Error 33. orderFromSocket.Side != orderFromRequest.Side");
                 return false;
             }
 
             if (orderFromSocket.Price != orderFromRequest.Price)
             {
-                this.SetNewError("Error 32. orderFromSocket.Price != orderFromRequest.Price");
+                this.SetNewError("Error 34. orderFromSocket.Price != orderFromRequest.Price");
                 return false;
             }
 
             if (orderFromSocket.Volume != orderFromRequest.Volume)
             {
-                this.SetNewError("Error 33. orderFromSocket.Volume != orderFromRequest.Volume");
+                this.SetNewError("Error 35. orderFromSocket.Volume != orderFromRequest.Volume");
                 return false;
             }
 
             if (orderFromSocket.TypeOrder != orderFromRequest.TypeOrder)
             {
-                this.SetNewError("Error 34. orderFromSocket.TypeOrder != orderFromRequest.TypeOrder");
+                this.SetNewError("Error 36. orderFromSocket.TypeOrder != orderFromRequest.TypeOrder");
                 return false;
             }
 
             if (orderFromSocket.ServerType != orderFromRequest.ServerType)
             {
-                this.SetNewError("Error 35. orderFromSocket.ServerType != orderFromRequest.ServerType");
+                this.SetNewError("Error 37. orderFromSocket.ServerType != orderFromRequest.ServerType");
                 return false;
             }
 
             if (orderFromSocket.SecurityNameCode != orderFromRequest.SecurityNameCode)
             {
-                this.SetNewError("Error 36. orderFromSocket.ServerType != orderFromRequest.ServerType");
+                this.SetNewError("Error 38. orderFromSocket.ServerType != orderFromRequest.ServerType");
                 return false;
             }
 
@@ -647,53 +735,53 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.TypeOrder != OrderPriceType.Limit)
             {
-                this.SetNewError("Error 37. Order Type is note Limit. Real type: " + order.TypeOrder);
+                this.SetNewError("Error 39. Order Type is note Limit. Real type: " + order.TypeOrder);
                 return false;
             }
 
 
             if (order.TimeCallBack == DateTime.MinValue)
             {
-                this.SetNewError("Error 38. TimeCallBack is MinValue");
+                this.SetNewError("Error 40. TimeCallBack is MinValue");
                 return false;
             }
 
             if (order.TimeDone == DateTime.MinValue &&
                 order.State == OrderStateType.Done)
             {
-                this.SetNewError("Error 39. Order Done, buy TimeDone is MinValue");
+                this.SetNewError("Error 41. Order Done, buy TimeDone is MinValue");
                 return false;
             }
 
             if (order.TimeCancel == DateTime.MinValue &&
                 order.State == OrderStateType.Cancel)
             {
-                this.SetNewError("Error 40. Order Cancel, buy TimeCancel is MinValue");
+                this.SetNewError("Error 42. Order Cancel, buy TimeCancel is MinValue");
                 return false;
             }
 
             if (order.State != OrderStateType.Fail
                 && string.IsNullOrEmpty(order.NumberMarket))
             {
-                this.SetNewError("Error 41. NumberMarket is null or empty");
+                this.SetNewError("Error 43. NumberMarket is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.SecurityNameCode))
             {
-                this.SetNewError("Error 42. SecurityNameCode is null or empty");
+                this.SetNewError("Error 44. SecurityNameCode is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.PortfolioNumber))
             {
-                this.SetNewError("Error 43. PortfolioNumber is null or empty");
+                this.SetNewError("Error 45. PortfolioNumber is null or empty");
                 return false;
             }
 
             if (order.Side == Side.None)
             {
-                this.SetNewError("Error 44. Side is None");
+                this.SetNewError("Error 46. Side is None");
                 return false;
             }
 
@@ -701,7 +789,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 && order.TypeOrder != OrderPriceType.Market
                 && order.Price <= 0)
             {
-                this.SetNewError("Error 45. Price is zero");
+                this.SetNewError("Error 47. Price is zero");
                 return false;
             }
 
@@ -709,7 +797,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 order.State != OrderStateType.Cancel &&
                 order.Volume <= 0)
             {
-                this.SetNewError("Error 46. Volume is zero");
+                this.SetNewError("Error 48. Volume is zero");
                 return false;
             }
 
