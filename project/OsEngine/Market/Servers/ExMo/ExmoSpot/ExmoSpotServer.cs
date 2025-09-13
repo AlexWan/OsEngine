@@ -42,11 +42,6 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public ExmoSpotServerRealization()
         {
-            //Thread threadConnectionCheck = new Thread(ConnectionCheckThread);
-            //threadConnectionCheck.IsBackground = true;
-            //threadConnectionCheck.Name = "CheckAliveExmoSpot";
-            //threadConnectionCheck.Start();
-
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
             threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Name = "MessageReaderPublicExmoSpot";
@@ -187,7 +182,6 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
                         newSecurity.NameId = symbol.Key + item.min_price;
                         newSecurity.State = SecurityStateType.Activ;
-
                         newSecurity.Decimals = Convert.ToInt32(item.price_precision);
                         newSecurity.DecimalsVolume = item.min_quantity.DecimalsCount();
                         newSecurity.PriceStep = Convert.ToInt32(item.price_precision).GetValueByDecimals();
@@ -480,7 +474,6 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
                     for (int i = 0; i < responseCandles.candles.Count; i++)
                     {
-
                         CandleItem item = responseCandles.candles[i];
 
                         if (CheckCandlesToZeroData(item))
@@ -497,27 +490,6 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                         candle.High = item.h.ToDecimal();
                         candle.Low = item.l.ToDecimal();
                         candle.Open = item.o.ToDecimal();
-
-                        //fix candle
-                        //if (candle.Open < candle.Low)
-                        //{
-                        //    candle.Open = candle.Low;
-                        //}
-
-                        //if (candle.Open > candle.High)
-                        //{
-                        //    candle.Open = candle.High;
-                        //}
-
-                        //if (candle.Close < candle.Low)
-                        //{
-                        //    candle.Close = candle.Low;
-                        //}
-
-                        //if (candle.Close > candle.High)
-                        //{
-                        //    candle.Close = candle.High;
-                        //}
 
                         candles.Add(candle);
                     }
@@ -816,22 +788,11 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                     return;
                 }
 
-                if (e.IsBinary)
-                {
-                    //string message = Decompress(e.RawData);
-                    //FIFOListWebSocketPublicMessage.Enqueue(message);
-                }
-
                 if (e.IsText)
                 {
                     if (e.Data.Contains("error"))
                     {
                         SendLogMessage(e.Data, LogMessageType.Error);
-                        return;
-                    }
-
-                    if (e.Data.Contains("pong"))
-                    { // pong message
                         return;
                     }
 
@@ -913,12 +874,6 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                     return;
                 }
 
-                if (e.IsBinary)
-                {
-                    //string message = Decompress(e.RawData);
-                    //FIFOListWebSocketPrivateMessage.Enqueue(message);
-                }
-
                 if (e.IsText)
                 {
                     if (e.Data.Contains("error"))
@@ -930,11 +885,6 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                     if (e.Data.Contains("logged_in"))
                     {
                         SubscribePrivate();
-                        return;
-                    }
-
-                    if (e.Data.Contains("pong"))
-                    { // pong message
                         return;
                     }
 
@@ -983,59 +933,9 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         #endregion
 
-        #region 8 WebSocket check alive
+        #region 8 WebSocket Security subscribe
 
-        private void ConnectionCheckThread()
-        {
-            while (true)
-            {
-                Thread.Sleep(15000);
-
-                try
-                {
-                    if (ServerStatus != ServerConnectStatus.Connect)
-                    {
-                        Thread.Sleep(2000);
-                        continue;
-                    }
-
-                    for (int i = 0; i < _webSocketPublic.Count; i++)
-                    {
-                        WebSocket webSocketPublic = _webSocketPublic[i];
-
-                        if (webSocketPublic != null
-                            && webSocketPublic?.ReadyState == WebSocketState.Open)
-                        {
-                            //webSocketPublic.Send($"{{\"id\": 1,\"method\": \"subscribe\",\"topics\": [\"ping\" ]}}");
-                        }
-                        else
-                        {
-                            Disconnect();
-                        }
-                    }
-
-                    if (_webSocketPrivate != null &&
-                        (_webSocketPrivate.ReadyState == WebSocketState.Open ||
-                        _webSocketPrivate.ReadyState == WebSocketState.Connecting))
-                    {
-                        //_webSocketPrivate.Send("ping");
-                    }
-                    else
-                    {
-                        Disconnect();
-                    }
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                    Thread.Sleep(1000);
-                }
-            }
-        }
-
-        #endregion
-
-        #region 9 WebSocket Security subscribe
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
         private List<string> _subscribedSecurities = new List<string>();
 
@@ -1043,7 +943,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
         {
             try
             {
-                //_rateGate.WaitToProceed();
+                _rateGateSubscribe.WaitToProceed();
 
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
@@ -1069,7 +969,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
                     && _subscribedSecurities.Count != 0
-                    && _subscribedSecurities.Count % 50 == 0)
+                    && _subscribedSecurities.Count % 30 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1501,7 +1401,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                     newOrder.Side = Side.Sell;
                 }
 
-                newOrder.Volume = item.quantity.ToDecimal();
+                newOrder.Volume = item.original_quantity.ToDecimal();
                 newOrder.VolumeExecute = item.quantity.ToDecimal() - item.original_quantity.ToDecimal();
                 newOrder.Price = item.price.ToDecimal();
 
@@ -1569,7 +1469,12 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                 pos.PortfolioName = this.PortfolioName;
                 pos.SecurityNameCode = responseWallet.data.currency;
                 pos.ValueCurrent = Math.Round(responseWallet.data.balance.ToDecimal(), 5);
-                pos.ValueBlocked = Math.Round(responseWallet.data.reserved.ToDecimal(), 5);
+
+                if (responseWallet.data.currency == "USDT")
+                {
+                    pos.ValueBlocked = Math.Round(responseWallet.data.reserved.ToDecimal(), 5);
+                }
+
                 portfolio.SetNewPosition(pos);
 
                 if (PortfolioEvent != null)
@@ -1784,12 +1689,416 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public void GetAllActivOrders()
         {
+            List<Order> ordersOnBoard = GetAllOpenOrders();
 
+            if (ordersOnBoard == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < ordersOnBoard.Count; i++)
+            {
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(ordersOnBoard[i]);
+                }
+            }
+        }
+
+        private List<Order> GetAllOpenOrders()
+        {
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string queryParam = $"nonce={timeStamp}";
+                string sign = Sign(queryParam);
+
+                RestRequest requestRest = new RestRequest("/user_open_orders", Method.POST);
+                RestClient client = new RestClient(_baseUrl);
+
+                //if (_myProxy != null)
+                //{
+                //    client.Proxy = _myProxy;
+                //}
+
+                requestRest.AddHeader("Key", _publicKey);
+                requestRest.AddHeader("Sign", sign);
+                requestRest.AddParameter("application/x-www-form-urlencoded", queryParam, ParameterType.RequestBody);
+
+                IRestResponse response = client.Execute(requestRest);
+
+                List<Order> orders = new List<Order>();
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    GetOrderResponse responseOrder = JsonConvert.DeserializeAnonymousType(response.Content, new GetOrderResponse());
+
+                    if (responseOrder == null)
+                    {
+                        return null;
+                    }
+
+                    foreach (var order in responseOrder)
+                    {
+                        List<GetOrderItem> itemCount = order.Value;
+
+                        for (int i = 0; i < itemCount.Count; i++)
+                        {
+                            GetOrderItem item = itemCount[i];
+
+                            Order newOrder = new Order();
+                            newOrder.SecurityNameCode = item.pair;
+                            newOrder.TimeCallBack = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(item.created)).UtcDateTime;
+                            newOrder.TimeCreate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(item.created)).UtcDateTime;
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item.client_id);
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
+
+                            newOrder.NumberMarket = item.order_id;
+
+                            if (item.type.Contains("buy"))
+                            {
+                                newOrder.Side = Side.Buy;
+                            }
+                            else
+                            {
+                                newOrder.Side = Side.Sell;
+                            }
+
+                            newOrder.Volume = item.quantity.ToDecimal();
+                            newOrder.Price = item.price.ToDecimal();
+
+                            if (item.type.Contains("market"))
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Market;
+                            }
+                            else
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Limit;
+                            }
+
+                            newOrder.ServerType = ServerType.ExmoSpot;
+                            newOrder.PortfolioNumber = this.PortfolioName;
+                            newOrder.State = OrderStateType.Active;
+
+                            orders.Add(newOrder);
+                        }
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Get open orders error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                }
+
+                return orders;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
 
         public OrderStateType GetOrderStatus(Order order)
         {
-            return OrderStateType.None;
+            List<Order> orderFromExchange = GetAllOpenOrders();
+
+            if (orderFromExchange == null
+                || orderFromExchange.Count == 0)
+            {
+                orderFromExchange = GetAllCancelledOrders();
+            }
+
+            if (orderFromExchange == null
+               || orderFromExchange.Count == 0)
+            {
+                return OrderStateType.None;
+            }
+
+            Order orderOnMarket = null;
+
+            for (int i = 0; i < orderFromExchange.Count; i++)
+            {
+                Order curOder = orderFromExchange[i];
+
+                if (order.NumberUser != 0
+                    && curOder.NumberUser != 0
+                    && curOder.NumberUser == order.NumberUser)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+
+                if (string.IsNullOrEmpty(order.NumberMarket) == false
+                    && order.NumberMarket == curOder.NumberMarket)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+            }
+
+            if (orderOnMarket == null)
+            {
+                orderOnMarket = GetOrderFromExchange(order.SecurityNameCode, order.NumberUser.ToString());
+
+            }
+
+            if (orderOnMarket == null)
+            {
+                return OrderStateType.None;
+            }
+
+            if (orderOnMarket != null &&
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+
+            return orderOnMarket.State;
+        }
+
+        private List<Order> GetAllCancelledOrders()
+        {
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string queryParam = $"nonce={timeStamp}";
+                string sign = Sign(queryParam);
+
+                RestRequest requestRest = new RestRequest("/user_cancelled_orders", Method.POST);
+                RestClient client = new RestClient(_baseUrl);
+
+                //if (_myProxy != null)
+                //{
+                //    client.Proxy = _myProxy;
+                //}
+
+                requestRest.AddHeader("Key", _publicKey);
+                requestRest.AddHeader("Sign", sign);
+                requestRest.AddParameter("application/x-www-form-urlencoded", queryParam, ParameterType.RequestBody);
+
+                IRestResponse response = client.Execute(requestRest);
+
+                List<Order> orders = new List<Order>();
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    List<GetOrderItem> responseOrder = JsonConvert.DeserializeAnonymousType(response.Content, new List<GetOrderItem>());
+
+                    if (responseOrder == null)
+                    {
+                        return null;
+                    }
+
+                    for (int i = 0; i < responseOrder.Count; i++)
+                    {
+                        GetOrderItem item = responseOrder[i];
+
+                        Order newOrder = new Order();
+                        newOrder.SecurityNameCode = item.pair;
+                        newOrder.TimeCallBack = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(item.created)).UtcDateTime;
+                        newOrder.TimeCreate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(item.created)).UtcDateTime;
+
+                        try
+                        {
+                            newOrder.NumberUser = Convert.ToInt32(item.client_id);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+
+                        newOrder.NumberMarket = item.order_id;
+
+                        if (item.type.Contains("buy"))
+                        {
+                            newOrder.Side = Side.Buy;
+                        }
+                        else
+                        {
+                            newOrder.Side = Side.Sell;
+                        }
+
+                        newOrder.Volume = item.quantity.ToDecimal();
+                        newOrder.Price = item.price.ToDecimal();
+
+                        if (item.type.Contains("market"))
+                        {
+                            newOrder.TypeOrder = OrderPriceType.Market;
+                        }
+                        else
+                        {
+                            newOrder.TypeOrder = OrderPriceType.Limit;
+                        }
+
+                        newOrder.ServerType = ServerType.ExmoSpot;
+                        newOrder.PortfolioNumber = this.PortfolioName;
+                        newOrder.State = OrderStateType.Cancel;
+
+                        orders.Add(newOrder);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Get cancelled orders error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                }
+
+                return orders;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private Order GetOrderFromExchange(string nameSecurity, string userOrderId)
+        {
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string queryParam = $"pair={nameSecurity}&";
+                queryParam += $"nonce={timeStamp}";
+
+                string sign = Sign(queryParam);
+
+                RestRequest requestRest = new RestRequest("/user_trades", Method.POST);
+                RestClient client = new RestClient(_baseUrl);
+
+                //if (_myProxy != null)
+                //{
+                //    client.Proxy = _myProxy;
+                //}
+
+                requestRest.AddHeader("Key", _publicKey);
+                requestRest.AddHeader("Sign", sign);
+                requestRest.AddParameter("application/x-www-form-urlencoded", queryParam, ParameterType.RequestBody);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    GetOrderTrade responseOrder = JsonConvert.DeserializeAnonymousType(response.Content, new GetOrderTrade());
+
+                    if (responseOrder == null)
+                    {
+                        return null;
+                    }
+
+                    foreach (var order in responseOrder)
+                    {
+                        for (int i = 0; i < order.Value.Count; i++)
+                        {
+                            OrderTradeItem item = order.Value[i];
+
+                            if (item.client_id == null
+                                || userOrderId != item.client_id)
+                            {
+                                continue;
+                            }
+
+                            Order newOrder = new Order();
+                            newOrder.SecurityNameCode = item.pair;
+                            newOrder.TimeCallBack = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(item.date)).UtcDateTime;
+                            newOrder.TimeCreate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(item.date)).UtcDateTime;
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item.client_id);
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
+
+                            newOrder.NumberMarket = item.order_id;
+
+                            if (item.type.Contains("buy"))
+                            {
+                                newOrder.Side = Side.Buy;
+                            }
+                            else
+                            {
+                                newOrder.Side = Side.Sell;
+                            }
+
+                            newOrder.Volume = item.quantity.ToDecimal();
+                            newOrder.Price = item.price.ToDecimal();
+
+                            if (item.exec_type == "taker")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Limit;
+                            }
+                            else
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Market;
+                            }
+
+                            newOrder.ServerType = ServerType.ExmoSpot;
+                            newOrder.PortfolioNumber = this.PortfolioName;
+
+                            newOrder.State = OrderStateType.Done;
+
+                            if (newOrder.State == OrderStateType.Done
+                                || newOrder.State == OrderStateType.Partial)
+                            {
+                                MyTrade myTrade = new MyTrade();
+
+                                myTrade.Time = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(item.date)).UtcDateTime;
+                                myTrade.NumberOrderParent = item.order_id;
+                                myTrade.NumberTrade = item.trade_id;
+                                myTrade.Price = item.price.ToDecimal();
+                                myTrade.SecurityNameCode = item.pair;
+
+                                if (item.type == "buy")
+                                {
+                                    myTrade.Side = Side.Buy;
+                                }
+                                else
+                                {
+                                    myTrade.Side = Side.Sell;
+                                }
+
+                                string commissionSecName = item.commission_currency;
+
+                                if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
+                                {
+                                    myTrade.Volume = item.quantity.ToDecimal() - item.commission_amount.ToDecimal();
+                                }
+                                else
+                                {
+                                    myTrade.Volume = item.quantity.ToDecimal();
+                                }
+
+                                MyTradeEvent(myTrade);
+                            }
+
+                            return newOrder;
+                        }
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Get cancelled orders error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
 
         public List<Order> GetActiveOrders(int startIndex, int count)

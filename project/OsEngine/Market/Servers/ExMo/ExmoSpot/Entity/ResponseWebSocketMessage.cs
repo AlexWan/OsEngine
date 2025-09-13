@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace OsEngine.Market.Servers.ExMo.ExmoSpot.Entity
 {
@@ -41,18 +40,10 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot.Entity
         public string commission_amount { get; set; }
         public string commission_currency { get; set; }
         public string commission_percent { get; set; }
-
-        //public DateTime GetDateTime()
-        //{
-        //    return DateTimeOffset.FromUnixTimeSeconds(date).UtcDateTime;
-        //}
     }
 
     public class WalletData
     {
-        //public Dictionary<string, string> balances { get; set; }
-        //public Dictionary<string, string> reserved { get; set; }
-
         public string currency { get; set; }
         public string balance { get; set; }
         public string reserved { get; set; }
