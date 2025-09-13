@@ -1034,8 +1034,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// the place where connection is controlled. look at data streams
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        private async void PrimeThreadArea()
+        private void PrimeThreadArea()
         {
             while (true)
             {
@@ -2570,7 +2569,6 @@ namespace OsEngine.Market.Servers
         /// interface for getting the last candlesticks for a security. 
         /// Used to activate candlestick series in live trades
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             try
@@ -2600,7 +2598,6 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// take the candle history for a period
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdate)
         {
@@ -2691,7 +2688,6 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// take ticks data for a period
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdete)
         {
             try
@@ -3227,7 +3223,6 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// work place of thred on the queues of ordr execution and order cancellation 
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private async void ExecutorOrdersThreadArea()
         {
             while (true)
@@ -3658,7 +3653,6 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// cancel all orders from trading system
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void CancelAllOrders()
         {
             try
@@ -3683,7 +3677,6 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// cancel all orders from trading system to security
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void CancelAllOrdersToSecurity(Security security)
         {
             try
