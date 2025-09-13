@@ -2223,5 +2223,9 @@ namespace OsEngine.Language
         "Eng:Delete all Pairs?_" +
         "Ru:Удалить все пары?_");
 
+        public string Label581 => OsLocalization.ConvertToLocString(
+        "Eng:Мax distance from the price %_" +
+        "Ru:Макс. расстояние от цены %_");
+
     }
 }

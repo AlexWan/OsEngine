@@ -114,6 +114,8 @@ namespace OsEngine.OsTrader.Grids
             result += _firstTradeTime.ToString(CultureInfo.InvariantCulture) + "@";
             result += DelayInReal + "@";
             result += CheckMicroVolumes + "@";
+            result += MaxDistanceToOrdersPercent + "@";
+            result += "@";
 
             result += "%";
 
@@ -173,7 +175,7 @@ namespace OsEngine.OsTrader.Grids
                 _firstTradePrice = values[8].ToDecimal();
                 _openPositionsBySession = Convert.ToInt32(values[9]);
                 _firstTradeTime = Convert.ToDateTime(values[10], CultureInfo.InvariantCulture);
-
+                
                 try
                 {
                     DelayInReal = Convert.ToInt32(values[11]);
@@ -183,6 +185,15 @@ namespace OsEngine.OsTrader.Grids
                 {
                     DelayInReal = 500;
                     CheckMicroVolumes = true;
+                }
+
+                try
+                {
+                    MaxDistanceToOrdersPercent = values[13].ToDecimal();
+                }
+                catch
+                {
+                    MaxDistanceToOrdersPercent = 1.5m;
                 }
 
                 // non trade periods
@@ -348,6 +359,8 @@ namespace OsEngine.OsTrader.Grids
         public int DelayInReal = 500;
 
         public bool CheckMicroVolumes = true;
+
+        public decimal MaxDistanceToOrdersPercent = 1.5m;
 
         #endregion
 
@@ -1086,7 +1099,7 @@ namespace OsEngine.OsTrader.Grids
                 TrySetOpenOrders();
 
                 // 3 проверяем выставлены ли закрытия
-                TrySetClosingOrders();
+                TrySetClosingOrders(Tab.PriceBestAsk);
             }
             else
             {
@@ -1117,7 +1130,7 @@ namespace OsEngine.OsTrader.Grids
                 if (baseRegime == TradeGridRegime.CloseOnly)
                 {
                     // закрываем позиции штатно
-                    TrySetClosingOrders();
+                    TrySetClosingOrders(Tab.PriceBestAsk);
                 }
                 else if (baseRegime == TradeGridRegime.CloseForced)
                 {
@@ -1422,7 +1435,7 @@ namespace OsEngine.OsTrader.Grids
             return cancelledOrders;
         }
 
-        private void TrySetClosingOrders()
+        private void TrySetClosingOrders(decimal lastPrice)
         {
             List<TradeGridLine> linesOpenPoses = GetLinesWithOpenPosition();
 
@@ -1449,6 +1462,30 @@ namespace OsEngine.OsTrader.Grids
                     && Tab.CanTradeThisVolume(volume) == false)
                 {
                     continue;
+                }
+
+                if (Tab.Security.PriceLimitHigh != 0
+                 && Tab.Security.PriceLimitLow != 0)
+                {
+                    if (line.PriceExit > Tab.Security.PriceLimitHigh
+                        || line.PriceExit < Tab.Security.PriceLimitLow)
+                    {
+                        continue;
+                    }
+                }
+
+                if (Tab.StartProgram == StartProgram.IsOsTrader
+                    && MaxDistanceToOrdersPercent != 0
+                    && lastPrice != 0)
+                {
+                    decimal maxPriceUp = lastPrice + lastPrice * (MaxDistanceToOrdersPercent / 100);
+                    decimal minPriceDown = lastPrice - lastPrice * (MaxDistanceToOrdersPercent / 100);
+
+                    if (line.PriceExit > maxPriceUp
+                     || line.PriceExit < minPriceDown)
+                    {
+                        continue;
+                    }
                 }
 
                 Tab.CloseAtLimit(pos, line.PriceExit, volume);
@@ -2087,6 +2124,16 @@ namespace OsEngine.OsTrader.Grids
 
             List<TradeGridLine> linesWithOrdersToOpenNeed = new List<TradeGridLine>();
 
+            decimal maxPriceUp = 0;
+            decimal minPriceDown = 0;
+
+            if(Tab.StartProgram == StartProgram.IsOsTrader
+                && MaxDistanceToOrdersPercent != 0)
+            {
+                maxPriceUp = lastPrice + lastPrice * (MaxDistanceToOrdersPercent/100);
+                minPriceDown = lastPrice - lastPrice * (MaxDistanceToOrdersPercent / 100);
+            }
+
             if (GridCreator.GridSide == Side.Buy)
             {
                 for (int i = 0; i < linesAll.Count; i++)
@@ -2106,6 +2153,16 @@ namespace OsEngine.OsTrader.Grids
                     {
                         if(curLine.PriceEnter > Tab.Security.PriceLimitHigh 
                             || curLine.PriceEnter <  Tab.Security.PriceLimitLow)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if(maxPriceUp != 0 
+                        && minPriceDown != 0)
+                    {
+                        if (curLine.PriceEnter > maxPriceUp
+                         || curLine.PriceEnter < minPriceDown)
                         {
                             continue;
                         }
@@ -2141,6 +2198,16 @@ namespace OsEngine.OsTrader.Grids
                     {
                         if (curLine.PriceEnter > Tab.Security.PriceLimitHigh
                             || curLine.PriceEnter < Tab.Security.PriceLimitLow)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (maxPriceUp != 0
+                        && minPriceDown != 0)
+                    {
+                        if (curLine.PriceEnter > maxPriceUp
+                         || curLine.PriceEnter < minPriceDown)
                         {
                             continue;
                         }

@@ -12,7 +12,7 @@
             <ColumnDefinition Width="352*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="338"/>
+            <RowDefinition Height="361"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <TabControl Grid.Row="1" Grid.ColumnSpan="2">
@@ -57,6 +57,9 @@
                     <TextBox Name="TextBoxDelayInReal" Text="500" Margin="284,178,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxCheckMicroVolumes" Margin="193,205,14,0" VerticalAlignment="Top"/>
                     <Label Name="LabelCheckMicroVolumes" Content="Check micro volumes" HorizontalAlignment="Left" Margin="10,205,0,0" VerticalAlignment="Top"/>
+
+                    <Label Name="LabelMaxDistanceToOrdersPercent" Content="Max distance from the price" HorizontalAlignment="Left" Margin="10,233,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxMaxDistanceToOrdersPercent" Text="1.5" Margin="194,233,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
 
                 </Grid>

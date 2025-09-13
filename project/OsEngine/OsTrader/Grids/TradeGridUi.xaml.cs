@@ -106,6 +106,9 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxCheckMicroVolumes.SelectedItem = tradeGrid.CheckMicroVolumes.ToString();
             ComboBoxCheckMicroVolumes.SelectionChanged += ComboBoxCheckMicroVolumes_SelectionChanged;
 
+            TextBoxMaxDistanceToOrdersPercent.Text = tradeGrid.MaxDistanceToOrdersPercent.ToString();
+            TextBoxMaxDistanceToOrdersPercent.TextChanged += TextBoxMaxDistanceToOrdersPercent_TextChanged;
+
             // non trade periods
 
             CheckBoxNonTradePeriod1OnOff.IsChecked = tradeGrid.NonTradePeriods.NonTradePeriod1OnOff;
@@ -487,6 +490,7 @@ namespace OsEngine.OsTrader.Grids
             LabelMaxCloseOrdersInMarket.Content = OsLocalization.Trader.Label509;
             LabelDelayInReal.Content = OsLocalization.Trader.Label569;
             LabelCheckMicroVolumes.Content = OsLocalization.Trader.Label572;
+            LabelMaxDistanceToOrdersPercent.Content = OsLocalization.Trader.Label581;
 
             // tab controls
 
@@ -3060,6 +3064,24 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 TradeGrid.DelayInReal = Convert.ToInt32(TextBoxDelayInReal.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxMaxDistanceToOrdersPercent_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxMaxDistanceToOrdersPercent.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.MaxDistanceToOrdersPercent = TextBoxMaxDistanceToOrdersPercent.Text.ToDecimal();
                 TradeGrid.Save();
             }
             catch
