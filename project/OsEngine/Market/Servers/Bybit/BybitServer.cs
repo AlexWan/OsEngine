@@ -1418,67 +1418,6 @@ namespace OsEngine.Market.Servers.Bybit
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
-            // ByBit returns no more than 1000 last ticks via API, which does not meet the connector requirements, so we will return null
-
-            List<Trade> trades = new List<Trade>();
-
-            try
-            {
-                string category = Category.spot.ToString();
-                if (security.Name.EndsWith(".P"))
-                {
-                    category = Category.linear.ToString();
-                }
-                else if (security.Name.EndsWith(".I"))
-                {
-                    category = Category.inverse.ToString();
-                }
-
-                Dictionary<string, object> parametrs = new Dictionary<string, object>();
-                parametrs.Add("category", category);
-                parametrs.Add("symbol", security.Name.Split('.')[0]);
-                parametrs.Add("limit", 1000);   // this is the maximum they give
-
-                string tradesQuery = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/recent-newTrade");
-
-                ResponseRestMessageList<RetTrade> responseTrades = JsonConvert.DeserializeObject<ResponseRestMessageList<RetTrade>>(tradesQuery);
-                if (responseTrades == null || responseTrades.result == null || responseTrades.result.list == null || responseTrades.result.list.Count == 0)
-                {
-                    return null;
-                }
-
-                List<RetTrade> retTrade = new List<RetTrade>();
-                retTrade = responseTrades.result.list;
-                DateTime preTime = DateTime.MinValue;
-
-                for (int i = retTrade.Count - 1; i >= 0; i--)
-                {
-                    RetTrade trade = retTrade[i];
-                    Trade newTrade = new Trade();
-                    newTrade.Id = trade.execId;
-                    newTrade.Price = trade.price.ToDecimal();
-                    newTrade.SecurityNameCode = trade.symbol;
-                    newTrade.Side = trade.side == "Buy" ? Side.Buy : Side.Sell;
-                    newTrade.Volume = trade.size.ToDecimal();
-                    DateTime tradeTime = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(trade.time)).UtcDateTime;
-                    if (tradeTime <= preTime)   // at the same moment in time, down to milliseconds, there can be several trades in buybit
-                    {
-                        // tradeTime = preTime.AddTicks(1);    // if several trades are not possible at the same time, then allow the row and add by tick
-                    }
-
-                    newTrade.Time = tradeTime;
-                    newTrade.MicroSeconds = 0;
-                    preTime = newTrade.Time;
-
-                    trades.Add(newTrade);
-                }
-                return trades;
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"Trades request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                return trades;
-            }
         }
 
         private List<Candle> GetListCandles(string candlesQuery)
@@ -1673,7 +1612,6 @@ namespace OsEngine.Market.Servers.Bybit
 
             return webSocketPublicOption;
         }
-
 
         private void CreatePrivateWebSocketConnect()
         {

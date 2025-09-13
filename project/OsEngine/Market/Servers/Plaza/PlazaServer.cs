@@ -532,7 +532,6 @@ namespace OsEngine.Market.Servers.Plaza
         /// место работы основного потока
         /// </summary>
         /// 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void PrimeWorkerThreadSpace()
         {
             try

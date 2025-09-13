@@ -337,7 +337,6 @@ namespace OsEngine.OsTrader
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
         private void CheckPosition(DataGridView grid, List<PositionOpenerToStopLimit> positions)
         {
             if (grid == null)

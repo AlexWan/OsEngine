@@ -372,7 +372,6 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// место в котором контролируется соединение.
         /// опрашиваются потоки данных
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void PrimeThreadArea()
         {
             DateTime timeLastProcess = DateTime.MinValue;

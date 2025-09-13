@@ -35,7 +35,9 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
                 {
                     using (StreamWriter writer = new StreamWriter(@"Engine\PrimeSettingss.txt", false))
                     {
-                        writer.WriteLine(Encrypt(value));
+                        string saveStr = Encrypt(value);
+
+                        writer.WriteLine(saveStr);
 
                         writer.Close();
                     }
@@ -59,7 +61,14 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
                 {
                     using (StreamReader reader = new StreamReader(@"Engine\PrimeSettingsss.txt"))
                     {
-                        return Convert.ToBoolean(Decrypt(reader.ReadLine()));
+                        string res = reader.ReadLine();
+
+                        if(res == null)
+                        {
+                            return false;
+                        }
+
+                        return Convert.ToBoolean(Decrypt(res));
                     }
                 }
                 catch (Exception)
@@ -75,7 +84,9 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
                 {
                     using (StreamWriter writer = new StreamWriter(@"Engine\PrimeSettingsss.txt", false))
                     {
-                        writer.WriteLine(Encrypt(value.ToString()));
+                        string saveStr = Encrypt(value.ToString());
+
+                        writer.WriteLine(saveStr);
 
                         writer.Close();
                     }
@@ -93,7 +104,7 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
             byte[] clearBytes = Encoding.Unicode.GetBytes(clearText);
             using (Aes encryptor = Aes.Create())
             {
-                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
+                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 },1,HashAlgorithmName.SHA256);
                 encryptor.Key = pdb.GetBytes(32);
                 encryptor.IV = pdb.GetBytes(16);
                 using (MemoryStream ms = new MemoryStream())
@@ -111,12 +122,17 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
 
         public static string Decrypt(string cipherText)
         {
+            if(cipherText == null)
+            {
+                return null;
+            }
+
             string EncryptionKey = "dfg2335";
             cipherText = cipherText.Replace(" ", "+");
             byte[] cipherBytes = Convert.FromBase64String(cipherText);
             using (Aes encryptor = Aes.Create())
             {
-                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
+                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 }, 1, HashAlgorithmName.SHA256);
                 encryptor.Key = pdb.GetBytes(32);
                 encryptor.IV = pdb.GetBytes(16);
                 using (MemoryStream ms = new MemoryStream())

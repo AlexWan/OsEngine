@@ -1514,7 +1514,6 @@ namespace OsEngine.Charts.CandleChart
         /// обновить свечи
         /// </summary>
         /// <param name="candles">candles/свечи</param>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SetCandles(List<Candle> candles)
         {
             try

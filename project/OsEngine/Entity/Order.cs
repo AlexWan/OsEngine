@@ -158,11 +158,10 @@ namespace OsEngine.Entity
                 }
 
                 if((value == OrderStateType.Active
-                    || value == OrderStateType.Activ)
+                    || value == OrderStateType.Active)
                     &&
                     (_state == OrderStateType.Done
-                    || _state == OrderStateType.Partial
-                    || _state == OrderStateType.Patrial)
+                    || _state == OrderStateType.Partial)
                     )
                 {
                     return;

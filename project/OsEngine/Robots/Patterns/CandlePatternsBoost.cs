@@ -265,7 +265,7 @@ namespace OsEngine.Robots.patt
             if (position.State == PositionStateType.Open ||
                 position.State == PositionStateType.ClosingFail)
             {
-                if (position.CloseActiv == true ||
+                if (position.CloseActive == true ||
                     (position.CloseOrders != null && position.CloseOrders.Count > 0))
                 {
                     return;

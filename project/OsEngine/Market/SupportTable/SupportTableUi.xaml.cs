@@ -328,7 +328,6 @@ namespace OsEngine.Market.SupportTable
             return image;
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void _gridCrypto_CellClick1(object sender, DataGridViewCellEventArgs e)
         {
             try
