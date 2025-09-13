@@ -3,7 +3,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.XT.XTSpot.Entity;
+using OsEngine.Market.Servers.XT.XTFutures.Entity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,11 +16,11 @@ using OsEngine.Entity.WebSocketOsEngine;
 using RestSharp;
 using OsEngine.Market.Servers.XT.XTFutures.Entity;
 
-namespace OsEngine.Market.Servers.XT.XTSpot
+namespace OsEngine.Market.Servers.XT.XTFutures
 {
-    public class XTServerSpot : AServer
+    public class XTFuturesServer : AServer
     {
-        public XTServerSpot(int uniqueNumber)
+        public XTFuturesServer(int uniqueNumber)
         {
             ServerNum = uniqueNumber;
             XTServerSpotRealization realization = new XTServerSpotRealization();
@@ -74,7 +74,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 if (string.IsNullOrEmpty(_publicKey)
                    || string.IsNullOrEmpty(_secretKey))
                 {
-                    SendLogMessage("Can`t run XTSpot connector. No keys", LogMessageType.Error);
+                    SendLogMessage("Can`t run XTFutures connector. No keys", LogMessageType.Error);
                     return;
                 }
 
@@ -190,7 +190,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public ServerType ServerType
             {
-                get { return ServerType.XTSpot; }
+                get { return ServerType.XTFutures; }
             }
 
             public ServerConnectStatus ServerStatus { get; set; }
@@ -228,8 +228,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/v4/public/symbol").Result;
                     string json = responseMessage.Content.ReadAsStringAsync().Result;
 
-                    ResponseMessageRest<object> stateResponse =
-                        JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+                    XTFuturesResponseMessageRest<object> stateResponse =
+                        JsonConvert.DeserializeAnonymousType(json, new XTFuturesResponseMessageRest<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -270,12 +270,12 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         _securities = new List<Security>();
                     }
 
-                    ResponseMessageRest<ResponseSymbols> symbols =
-                    JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseSymbols>());
+                    XTFuturesResponseMessageRest<XTFuturesResponseSymbols> symbols =
+                    JsonConvert.DeserializeAnonymousType(json, new XTFuturesResponseMessageRest<XTFuturesResponseSymbols>());
 
                     for (int i = 0; i < symbols.result.symbols.Count; i++)
                     {
-                        ResponseSymbol item = symbols.result.symbols[i];
+                        XTFuturesResponseSymbol item = symbols.result.symbols[i];
 
                         if (!item.openapiEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
                             || !item.tradingEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
@@ -286,7 +286,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                         Security newSecurity = new Security();
 
-                        newSecurity.Exchange = ServerType.XTSpot.ToString();
+                        newSecurity.Exchange = ServerType.XTFutures.ToString();
                         newSecurity.Lot = 1;
                         newSecurity.Name = item.symbol;
                         newSecurity.NameFull = item.displayName;
@@ -366,7 +366,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 _portfolios = new List<Portfolio>();
 
                 Portfolio portfolioInitial = new Portfolio();
-                portfolioInitial.Number = "XTSpotPortfolio";
+                portfolioInitial.Number = "XTFuturesPortfolio";
                 portfolioInitial.ValueBegin = 1;
                 portfolioInitial.ValueCurrent = 1;
                 portfolioInitial.ValueBlocked = 0;
@@ -1135,7 +1135,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
-                        ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
+                        XTFuturesResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<object>());
 
                         if (action != null && action.topic != null)
                         {
@@ -1187,7 +1187,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
-                        ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
+                        XTFuturesResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<object>());
 
                         if (action != null && action.topic != null)
                         {
@@ -1235,7 +1235,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
-                        ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
+                        XTFuturesResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<object>());
 
                         if (action == null || action.topic == null)
                             continue;
@@ -1263,7 +1263,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 try
                 {
-                    ResponseWebSocketMessageAction<WsTrade> responseTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<WsTrade>());
+                    XTFuturesResponseWebSocketMessageAction<XTFuturesWsTrade> responseTrade = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<XTFuturesWsTrade>());
 
                     if (responseTrade?.data == null)
                     {
@@ -1296,7 +1296,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 try
                 {
-                    ResponseWebSocketMessageAction<ResponseWebSocketDepth> responseDepth = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketDepth>());
+                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepth> responseDepth = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepth>());
 
                     if (responseDepth?.data == null)
                     {
@@ -1391,7 +1391,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 try
                 {
-                    ResponseWebSocketMessageAction<ResponseWebSocketDepthIncremental> responseDepth = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketDepthIncremental>());
+                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepthIncremental> responseDepth = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepthIncremental>());
 
                     if (responseDepth?.data == null)
                     {
@@ -1589,11 +1589,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 try
                 {
-                    ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseMyTrades>());
+                    XTFuturesResponseMessageRest<XTFuturesResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(json, new XTFuturesResponseMessageRest<XTFuturesResponseMyTrades>());
 
                     for (int i = 0; i < responseMyTrades.result.items.Count; i++)
                     {
-                        ResponseMyTrade responseT = responseMyTrades.result.items[i];
+                        XTFuturesResponseMyTrade responseT = responseMyTrades.result.items[i];
 
                         MyTrade myTrade = new MyTrade();
 
@@ -1647,13 +1647,13 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 try
                 {
-                    ResponseWebSocketMessageAction<ResponseWebSocketPortfolio> Portfolio = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketPortfolio>());
+                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketPortfolio> Portfolio = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketPortfolio>());
 
                     Portfolio portfolio = _portfolios[0];
 
                     PositionOnBoard pos = new PositionOnBoard();
 
-                    pos.PortfolioName = "XTSpotPortfolio";
+                    pos.PortfolioName = "XTFuturesPortfolio";
                     pos.SecurityNameCode = Portfolio.data.s;
                     pos.ValueBlocked = Portfolio.data.f.ToDecimal();
                     pos.ValueCurrent = Portfolio.data.b.ToDecimal();
@@ -1672,14 +1672,14 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 try
                 {
-                    ResponseWebSocketMessageAction<ResponseWebSocketOrder> Order = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketOrder>());
+                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketOrder> Order = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketOrder>());
 
                     if (Order.data == null)
                     {
                         return;
                     }
 
-                    ResponseWebSocketOrder item = Order.data;
+                    XTFuturesResponseWebSocketOrder item = Order.data;
 
                     OrderStateType stateType = GetOrderState(item.st);
 
@@ -1727,8 +1727,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         newOrder.Price = item.p?.ToDecimal() ?? 0;
                     }
 
-                    newOrder.ServerType = ServerType.XTSpot;
-                    newOrder.PortfolioNumber = "XTSpotPortfolio";
+                    newOrder.ServerType = ServerType.XTFutures;
+                    newOrder.PortfolioNumber = "XTFuturesPortfolio";
 
                     MyOrderEvent?.Invoke(newOrder);
 
@@ -1816,7 +1816,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 try
                 {
-                    SendOrderRequestData data = new SendOrderRequestData();
+                    XTFuturesSendOrderRequestData data = new XTFuturesSendOrderRequestData();
                     data.symbol = order.SecurityNameCode;
                     data.clientOrderId = (order.NumberUser + 1000).ToString();
                     data.side = order.Side.ToString().ToUpper();
@@ -1854,7 +1854,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/order", "POST", jsonRequest);
                     string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
-                    ResponseMessageRest<ResponsePlaceOrder> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<ResponsePlaceOrder>());
+                    XTFuturesResponseMessageRest<XTFuturesResponsePlaceOrder> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new XTFuturesResponseMessageRest<XTFuturesResponsePlaceOrder>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -1909,7 +1909,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/open-order", "DELETE", null);
                     string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<object>());
+                    XTFuturesResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new XTFuturesResponseMessageRest<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -1946,7 +1946,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 try
                 {
-                    CancelAllOrdersRequestData data = new CancelAllOrdersRequestData();
+                    XTFuturesCancelAllOrdersRequestData data = new XTFuturesCancelAllOrdersRequestData();
                     data.symbol = security.Name;
                     data.bizType = "SPOT";
 
@@ -1954,7 +1954,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/open-order", "DELETE", jsonRequest);
                     string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<object>());
+                    XTFuturesResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new XTFuturesResponseMessageRest<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -1995,7 +1995,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
-                    ResponseMessageRest<CancaledOrderResponse> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<CancaledOrderResponse>());
+                    XTFuturesResponseMessageRest<XTFuturesCancaledOrderResponse> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new XTFuturesResponseMessageRest<XTFuturesCancaledOrderResponse>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -2053,9 +2053,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            private Order OrderUpdate(OrderResponse orderResponse, OrderStateType type)
+            private Order OrderUpdate(XTFuturesOrderResponse orderResponse, OrderStateType type)
             {
-                OrderResponse item = orderResponse;
+                XTFuturesOrderResponse item = orderResponse;
 
                 Order newOrder = new Order();
 
@@ -2089,7 +2089,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 newOrder.State = type;
                 newOrder.Volume = item.origQty.ToDecimal();
-                newOrder.PortfolioNumber = "XTSpotPortfolio";
+                newOrder.PortfolioNumber = "XTFuturesPortfolio";
 
                 if (string.IsNullOrEmpty(item.avgPrice) == false
                     && item.avgPrice != "0")
@@ -2104,7 +2104,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 newOrder.TypeOrder = item.type.Equals("MARKET", StringComparison.OrdinalIgnoreCase) ? OrderPriceType.Market : OrderPriceType.Limit;
 
-                newOrder.ServerType = ServerType.XTSpot;
+                newOrder.ServerType = ServerType.XTFutures;
 
                 return newOrder;
             }
@@ -2130,7 +2130,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return null;
                     }
 
-                    ResponseMessageRest<List<OrderResponse>> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseMessageRest<List<OrderResponse>>());
+                    XTFuturesResponseMessageRest<List<XTFuturesOrderResponse>> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new XTFuturesResponseMessageRest<List<XTFuturesOrderResponse>>());
 
                     if (OrderResponse.rc != "0")
                     {
@@ -2189,7 +2189,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return OrderStateType.None;
                     }
 
-                    ResponseMessageRest<OrderResponse> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseMessageRest<OrderResponse>());
+                    XTFuturesResponseMessageRest<XTFuturesOrderResponse> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new XTFuturesResponseMessageRest<XTFuturesOrderResponse>());
 
                     if (OrderResponse.rc != "0")
                     {
@@ -2251,7 +2251,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/ws-token", "POST", "");
                     string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-                    ResponseMessageRest<ResponseToken> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<ResponseToken>());
+                    XTFuturesResponseMessageRest<XTFuturesResponseToken> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new XTFuturesResponseMessageRest<XTFuturesResponseToken>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -2314,7 +2314,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     string json = responseMessage.Content.ReadAsStringAsync().Result;
 
-                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+                    XTFuturesResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new XTFuturesResponseMessageRest<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -2354,7 +2354,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return;
                     }
 
-                    ResponseMessageRest<ResponseAssets> assets = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseAssets>());
+                    XTFuturesResponseMessageRest<XTFuturesResponseAssets> assets = JsonConvert.DeserializeAnonymousType(json, new XTFuturesResponseMessageRest<XTFuturesResponseAssets>());
 
                     Portfolio portfolio = _portfolios[0];
 
@@ -2377,11 +2377,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     for (int i = 0; i < assets.result.assets.Count; i++)
                     {
-                        ResponseAsset item = assets.result.assets[i];
+                        XTFuturesResponseAsset item = assets.result.assets[i];
 
                         PositionOnBoard pos = new PositionOnBoard
                         {
-                            PortfolioName = "XTSpotPortfolio",
+                            PortfolioName = "XTFuturesPortfolio",
                             SecurityNameCode = item.currency,
                             ValueBlocked = item.frozenAmount.ToDecimal(),
                             ValueCurrent = item.availableAmount.ToDecimal()
@@ -2435,13 +2435,13 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/trade", "GET", queryString);
                     string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
-                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<object>());
+                    XTFuturesResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new XTFuturesResponseMessageRest<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
                         if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
-                            ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<ResponseMyTrades>());
+                            XTFuturesResponseMessageRest<XTFuturesResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(jsonResponse, new XTFuturesResponseMessageRest<XTFuturesResponseMyTrades>());
 
                             if (responseMyTrades.result.items.Count == 0)
                             {
@@ -2501,7 +2501,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
-                        ResponseMessageRest<List<ResponseCandle>> symbols = JsonConvert.DeserializeAnonymousType(content, new ResponseMessageRest<List<ResponseCandle>>());
+                        XTFuturesResponseMessageRest<List<XTFuturesResponseCandle>> symbols = JsonConvert.DeserializeAnonymousType(content, new XTFuturesResponseMessageRest<List<XTFuturesResponseCandle>>());
 
                         if (symbols.rc.Equals("0") && symbols.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
@@ -2509,7 +2509,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                             for (int i = 0; i < symbols.result.Count; i++)
                             {
-                                ResponseCandle item = symbols.result[i];
+                                XTFuturesResponseCandle item = symbols.result[i];
 
                                 Candle newCandle = new Candle();
 

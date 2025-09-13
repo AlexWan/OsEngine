@@ -44,6 +44,7 @@ using OsEngine.Market.Servers.BingX.BingXSpot;
 using OsEngine.Market.Servers.BingX.BingXFutures;
 using OsEngine.Market.Servers.Deribit;
 using OsEngine.Market.Servers.XT.XTSpot;
+using OsEngine.Market.Servers.XT.XTFutures;
 using OsEngine.Market.Servers.Pionex;
 using OsEngine.Market.Servers.Woo;
 using OsEngine.Market.Servers.MoexAlgopack;
@@ -304,6 +305,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BingXSpot);
                 serverTypes.Add(ServerType.BingXFutures);
                 serverTypes.Add(ServerType.XTSpot);
+                serverTypes.Add(ServerType.XTFutures);
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
                 serverTypes.Add(ServerType.BitMartSpot);
@@ -393,7 +395,8 @@ namespace OsEngine.Market
                 List<ServerType> serverTypes = new List<ServerType>();
 
                 serverTypes.Add(ServerType.TInvest);
-                serverTypes.Add(ServerType.XTSpot);
+                serverTypes.Add(ServerType.XTSpot); 
+                serverTypes.Add(ServerType.XTFutures);
                 serverTypes.Add(ServerType.Deribit);
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.Alor);
@@ -608,7 +611,11 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.XTSpot)
                 {
-                    newServer = new XTServerSpot(uniqueNum);
+                    newServer = new XTServerSpot(uniqueNum); 
+                }
+                if (type == ServerType.XTFutures)
+                {
+                    newServer = new XTFuturesServer(uniqueNum); 
                 }
                 if (type == ServerType.BingXFutures)
                 {
@@ -1370,9 +1377,13 @@ namespace OsEngine.Market
                 {
                     serverPermission = new MoexFixFastSpotServerPermission();
                 }
-                else if (type == ServerType.XTSpot)
+                else if (type == ServerType.XTSpot) 
                 {
                     serverPermission = new XTSpotServerPermission();
+                }
+                else if (type == ServerType.XTFutures)
+                { 
+                    serverPermission = new XTFuturesServerPermission();
                 }
                 else if (type == ServerType.Transaq)
                 {
@@ -2200,7 +2211,12 @@ namespace OsEngine.Market
         /// <summary>
         /// XT Spot exchange
         /// </summary>
-        XTSpot,
+        XTSpot, 
+
+            /// <summary>
+            /// XT Futures exchange
+            /// </summary>
+        XTFutures, 
 
         /// <summary>
         /// Pionex exchange
