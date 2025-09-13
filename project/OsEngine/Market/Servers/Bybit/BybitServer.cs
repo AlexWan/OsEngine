@@ -3754,22 +3754,23 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (place_order_response != null)
                 {
-                    ResponseRestMessageList<string> responseOrder = JsonConvert.DeserializeObject<ResponseRestMessageList<string>>(place_order_response);
+                    ResponseRestMessage<SendOrderResponse> responseOrder = JsonConvert.DeserializeObject<ResponseRestMessage<SendOrderResponse>>(place_order_response);
                     isSuccessful = responseOrder.retMsg;
 
                     if (responseOrder != null
                         && responseOrder.retCode == "0"
                         && isSuccessful == "OK")
                     {
-                        //Console.WriteLine("SendOrder - " + place_order_response.ToString());
-                        /*DateTime placedTime = DateTime.Now;
-                        order.State = OrderStateType.Activ;
-                        JToken ordChild = place_order_response.SelectToken("result.orderId");
-                        order.NumberMarket = ordChild.ToString();
-                        order.TimeCreate = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;
-                        order.TimeCallBack = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime.Add(placedTime.Subtract(startTime));
-                        MyOrderEvent?.Invoke(order);
-                        */
+                        if (responseOrder.result.orderId != string.Empty)
+                        {
+                            DateTime placedTime = DateTime.Now;
+                            order.State = OrderStateType.Active;
+                            order.NumberMarket = responseOrder.result.orderId;
+                            order.TimeCreate = DateTimeOffset.FromUnixTimeMilliseconds(Convert.ToInt64(responseOrder.time)).UtcDateTime;
+                            order.TimeCallBack = DateTimeOffset.FromUnixTimeMilliseconds(Convert.ToInt64(responseOrder.time)).UtcDateTime.Add(placedTime.Subtract(startTime));
+                            MyOrderEvent?.Invoke(order);
+                        }
+
                         return;
                     }
                     else
