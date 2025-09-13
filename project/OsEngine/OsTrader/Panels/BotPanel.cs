@@ -1017,11 +1017,18 @@ position => position.State != PositionStateType.OpeningFail
 
                     for(int i2 = 0;i2 < journals[i].AllPosition.Count;i2++)
                     {
-                        if (journals[i].AllPosition[i2].State == PositionStateType.OpeningFail)
+                        Position position = journals[i].AllPosition[i2];
+
+                        if (position == null)
                         {
                             continue;
                         }
-                        allPositionOpen.Add(journals[i].AllPosition[i2]);
+
+                        if (position.State == PositionStateType.OpeningFail)
+                        {
+                            continue;
+                        }
+                        allPositionOpen.Add(position);
                     }
 
                     if (allPositionOpen == null || allPositionOpen.Count == 0)

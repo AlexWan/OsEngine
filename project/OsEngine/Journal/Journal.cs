@@ -451,6 +451,11 @@ namespace OsEngine.Journal
                 {
                     Position positionCurrent = positionsOpen[i];
 
+                    if(positionCurrent == null)
+                    {
+                        continue;
+                    }
+
                     List<Order> openOrders = positionCurrent.OpenOrders;
 
                     if (openOrders != null
@@ -481,6 +486,11 @@ namespace OsEngine.Journal
             for (int i = positions.Count - 1; i > -1 && i > positions.Count - 100; i--)
             {
                 Position positionCurrent = positions[i];
+
+                if(positionCurrent == null)
+                {
+                    continue;
+                }
 
                 List<Order> openOrders = positionCurrent.OpenOrders;
 

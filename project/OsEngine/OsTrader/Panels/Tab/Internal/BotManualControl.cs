@@ -513,6 +513,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         continue;
                         // ignore
                     }
+
+                    if(position == null)
+                    {
+                        continue;
+                    }    
                     
 
                     for (int i2 = 0; position.OpenOrders != null && i2 < position.OpenOrders.Count; i2++)

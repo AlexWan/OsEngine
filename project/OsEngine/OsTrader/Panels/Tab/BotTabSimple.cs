@@ -3757,6 +3757,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i = 0; i < positions.Count; i++)
                     {
+                        if (positions[i] == null)
+                        {
+                            continue;
+                        }
                         CloseAtMarket(positions[i], positions[i].OpenVolume);
                     }
                 }
@@ -5765,6 +5769,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             for (int i = positions.Count - 1; i > -1 && i > positions.Count - 10; i--)
             {
+                if(positions[i] == null)
+                {
+                    continue;
+                }
                 if (positions[i].State == PositionStateType.ClosingSurplus)
                 {
                     haveSurplusPos = true;
@@ -5777,7 +5785,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            positions = PositionsAll.FindAll(position => position.State == PositionStateType.ClosingSurplus ||
+            positions = PositionsAll.FindAll(position => position != null && position.State == PositionStateType.ClosingSurplus ||
                 position.OpenVolume < 0);
 
             if (positions.Count == 0)
@@ -6701,6 +6709,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
+                    if(openPositions[i] == null)
+                    {
+                        continue;
+                    }
+
                     if (openPositions[i].StopOrderIsActive == false &&
                         openPositions[i].ProfitOrderIsActive == false)
                     {
@@ -6709,6 +6722,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     for (int i2 = 0; i < openPositions.Count && i2 < newTrades.Count; i2++)
                     {
+                        if (openPositions[i] == null)
+                        {
+                            continue;
+                        }
+
                         if (CheckStop(openPositions[i], newTrades[i2].Price))
                         {
                             if (StartProgram != StartProgram.IsOsTrader)

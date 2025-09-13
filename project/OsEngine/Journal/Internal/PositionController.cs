@@ -378,6 +378,13 @@ namespace OsEngine.Journal.Internal
 
                 for (int i = 0; deals != null && i < deals.Count; i++)
                 {
+                    Position pos = deals[i];
+
+                    if(pos == null)
+                    {
+                        continue;
+                    }
+
                     result.Append(deals[i].GetStringForSave() + "\r\n");
                 }
             }
@@ -423,6 +430,7 @@ namespace OsEngine.Journal.Internal
             {
                 return;
             }
+
             // saving
             // сохраняем
 
@@ -437,6 +445,15 @@ namespace OsEngine.Journal.Internal
             else
             {
                 _deals.Add(newPosition);
+            }
+
+            for(int i = 0;i < _deals.Count;i++)
+            {
+                if(_deals[i] == null)
+                {
+                    _deals.RemoveAt(i);
+                    i--;
+                }
             }
 
             _openPositions.Add(newPosition);
@@ -459,6 +476,11 @@ namespace OsEngine.Journal.Internal
         public void DeletePosition(Position position)
         {
             if (_deals == null || _deals.Count == 0)
+            {
+                return;
+            }
+
+            if(position == null)
             {
                 return;
             }
@@ -559,6 +581,11 @@ namespace OsEngine.Journal.Internal
                     curPosition = _deals[i];
                 }
                 catch
+                {
+                    continue;
+                }
+
+                if (curPosition == null)
                 {
                     continue;
                 }
@@ -950,7 +977,7 @@ namespace OsEngine.Journal.Internal
                 // это открытая позиция
                 if (checkNum == true)
                 {
-                    if (_openPositions.Find(pos => pos.Number == position.Number) == null)
+                    if (_openPositions.Find(pos => pos != null && pos.Number == position.Number) == null)
                     {
                         _openPositions.Add(position);
                     }
@@ -964,7 +991,7 @@ namespace OsEngine.Journal.Internal
             {
                 // closed
                 // закрытая
-                if (_openPositions.Find(pos => pos.Number == position.Number) != null)
+                if (_openPositions.Find(pos => pos != null && pos.Number == position.Number) != null)
                 {
                     _openPositions.Remove(position);
                 }
@@ -988,9 +1015,10 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _openLongPosition = _deals.FindAll(
-                            position => position.State != PositionStateType.Done
+                            position => position != null
+                                        && (position.State != PositionStateType.Done
                                         && position.State != PositionStateType.OpeningFail
-                                        && position.Direction == Side.Buy
+                                        && position.Direction == Side.Buy)
                             );
                     }
                     else
@@ -1025,9 +1053,10 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _openShortPositions = _deals.FindAll(
-                            position => position.State != PositionStateType.Done
+                            position => position != null
+                                        && (position.State != PositionStateType.Done
                                         && position.State != PositionStateType.OpeningFail
-                                        && position.Direction == Side.Sell
+                                        && position.Direction == Side.Sell)
                             );
                     }
                     else
@@ -1061,8 +1090,9 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _closePositions = _deals.FindAll(
-                            position => position.State == PositionStateType.Done
-                                        || position.State == PositionStateType.OpeningFail);
+                            position => position != null 
+                                        && (position.State == PositionStateType.Done
+                                        || position.State == PositionStateType.OpeningFail));
                     }
                     else
                     {
@@ -1095,9 +1125,9 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _closeLongPositions = _deals.FindAll(
-                            position => (position.State == PositionStateType.Done
+                            position => position != null && ((position.State == PositionStateType.Done
                                          || position.State == PositionStateType.OpeningFail)
-                                        && position.Direction == Side.Buy);
+                                        && position.Direction == Side.Buy));
                     }
                     else
                     {
@@ -1130,9 +1160,9 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _closeShortPositions = _deals.FindAll(
-                            position => (position.State == PositionStateType.Done
+                            position => position != null && ((position.State == PositionStateType.Done
                                          || position.State == PositionStateType.OpeningFail)
-                                        && position.Direction == Side.Sell
+                                        && position.Direction == Side.Sell)
                             );
                     }
                     else
@@ -1167,7 +1197,7 @@ namespace OsEngine.Journal.Internal
 
         public Position GetPositionForNumber(int number)
         {
-            return _deals.Find(position => position.Number == number);
+            return _deals.Find(position => position != null && position.Number == number);
         }
 
         #endregion
