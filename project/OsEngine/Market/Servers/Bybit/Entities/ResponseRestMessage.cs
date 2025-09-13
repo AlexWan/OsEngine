@@ -131,6 +131,12 @@ namespace OsEngine.Market.Servers.Bybit.Entities
     {
     }
 
+    public class SendOrderResponse
+    {
+        public string orderId { get; set; }
+        public string orderLinkId { get; set; }
+    }
+
     public class RetResalt<T>
     {
         public string category { get; set; }
