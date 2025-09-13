@@ -255,15 +255,15 @@ namespace OsEngine.Market.Servers.TelegramNews
                             _client?.Dispose();
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-
+                        ServerMaster.SendNewLogMessage($"Critical error: {ex.Message}", LogMessageType.Error);
                     }
                 });
             }
-            catch
+            catch (Exception ex)
             {
-
+                ServerMaster.SendNewLogMessage($"Critical error: {ex.Message}", LogMessageType.Error);
             }
 
             return password;
@@ -290,15 +290,15 @@ namespace OsEngine.Market.Servers.TelegramNews
                             _client?.Dispose();
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-
+                        ServerMaster.SendNewLogMessage($"Critical error: {ex.Message}", LogMessageType.Error);
                     }
                 });
             }
-            catch 
+            catch (Exception ex)
             {
-
+                ServerMaster.SendNewLogMessage($"Critical error: {ex.Message}", LogMessageType.Error);
             }
 
             return code;
