@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -42,15 +47,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 threadCheckAlive.Name = "CheckAliveXT";
                 threadCheckAlive.Start();
 
-                Thread threadForPublicMessages = new Thread(PublicMarketDepthsMessageReader);
+                Thread threadForPublicMessages = new Thread(PublicMessageReader);
                 threadForPublicMessages.IsBackground = true;
                 threadForPublicMessages.Name = "PublicMessageReaderXT";
                 threadForPublicMessages.Start();
-
-                Thread threadForTradesMessages = new Thread(PublicTradesMessageReader);
-                threadForTradesMessages.IsBackground = true;
-                threadForTradesMessages.Name = "PublicTradesMessageReaderXT";
-                threadForTradesMessages.Start();
 
                 Thread threadForPrivateMessages = new Thread(PrivateMessageReader);
                 threadForPrivateMessages.IsBackground = true;
@@ -62,9 +62,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 threadForGetPortfolios.Name = "UpdatePortfoliosXT";
                 threadForGetPortfolios.Start();
             }
-
-            public DateTime ServerTime { get; set; }
-
+ 
             public void Connect(WebProxy proxy)
             {
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
@@ -97,12 +95,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 return;
                             }
 
-                            FIFOListWebSocketPublicMarketDepthsMessage = new ConcurrentQueue<string>();
-                            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                            FIFOListWebSocketPublicTradesMessage = new ConcurrentQueue<string>();
-
-                            CreateWebSocketConnection();
-                            CheckFullActivation();
+                            CreatePublicWebSocketConnect();
+                            CreatePrivateWebSocketConnect();
                         }
                         catch (Exception exception)
                         {
@@ -131,7 +125,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     UnsubscribeFromAllWebSockets();
                     _subscribedSecurities.Clear();
-                    DeleteWebsocketConnection();
+                    DeleteWebSocketConnection();
                     _marketDepths.Clear();
                 }
                 catch (Exception exception)
@@ -139,9 +133,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     SendLogMessage("Dispose error" + exception.ToString(), LogMessageType.Error);
                 }
 
-                FIFOListWebSocketPublicMarketDepthsMessage = new ConcurrentQueue<string>();
+                FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                 FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                FIFOListWebSocketPublicTradesMessage = new ConcurrentQueue<string>();
 
                 Disconnect();
             }
@@ -155,37 +148,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            private void UnsubscribeFromAllWebSockets()
-            {
-                if (_webSocketPublicMarketDepths == null
-                    || _webSocketPrivate == null
-                    || _webSocketPublicTrades == null)
-                {
-                    return;
-                }
-
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    return;
-                }
-
-                try
-                {
-                    for (int i = 0; i < _subscribedSecurities.Count; i++)
-                    {
-                        string securityName = _subscribedSecurities[i];
-
-                        _webSocketPublicMarketDepths.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"depth-update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                        _webSocketPublicTrades.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"trades@{securityName}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                    }
-
-                    _webSocketPrivate.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"balance\",\"order\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                }
-                catch
-                {
-
-                }
-            }
+            public DateTime ServerTime { get; set; }
 
             public ServerType ServerType
             {
@@ -216,7 +179,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private List<Security> _securities;
 
-            private readonly RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(200));
+            private readonly RateGate _rateGateSecurity = new RateGate(10, TimeSpan.FromMilliseconds(1000));
 
             public void GetSecurities()
             {
@@ -278,7 +241,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                         if (!item.openapiEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
                             || !item.tradingEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
-                            || !item.state.Equals("ONLINE", StringComparison.OrdinalIgnoreCase))
+                            || !item.state.Equals("ONLINE", StringComparison.OrdinalIgnoreCase)
+                            || item.displayLevel == "DIRECT")
                         {
                             continue;
                         }
@@ -559,19 +523,61 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 6 WebSocket creation
 
+            private List<WebSocket> _webSocketPublic = new List<WebSocket>();
+
             private WebSocket _webSocketPrivate;
 
-            private WebSocket _webSocketPublicMarketDepths;
+            private string _webSocketPrivateUrl = "wss://stream.xt.com/private";
 
-            private WebSocket _webSocketPublicTrades;
+            private string _webSocketPublicUrl = "wss://stream.xt.com/public";
 
-            private readonly string _webSocketPrivateUrl = "wss://stream.xt.com/private";
+            // private readonly string _socketLocker = "webSocketLockerXT";
 
-            private readonly string _webSocketPublicUrl = "wss://stream.xt.com/public";
+            private void CreatePublicWebSocketConnect()
+            {
+                try
+                {
+                    if (FIFOListWebSocketPublicMessage == null)
+                    {
+                        FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                    }
 
-            private readonly string _socketLocker = "webSocketLockerXT";
+                    _webSocketPublic.Add(CreateNewPublicSocket());
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
+            }
 
-            private void CreateWebSocketConnection()
+            private WebSocket CreateNewPublicSocket()
+            {
+                try
+                {
+                    WebSocket webSocketPublicNew = new WebSocket(_webSocketPublicUrl);
+
+                    //if (_myProxy != null)
+                    //{
+                    //    webSocketPublicNew.SetProxy(_myProxy);
+                    //}
+
+                    webSocketPublicNew.EmitOnPing = true;
+                    webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
+                    webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
+                    webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
+                    webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
+                    webSocketPublicNew.Connect();
+
+                    return webSocketPublicNew;
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    return null;
+                }
+            }
+
+            private void CreatePrivateWebSocketConnect()
             {
                 try
                 {
@@ -581,82 +587,54 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     }
 
                     _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
-                    _webSocketPrivate.EmitOnPing = true;
 
+                    //if (_myProxy != null)
+                    //{
+                    //    _webSocketPrivate.SetProxy(_myProxy);
+                    //}
+
+                    _webSocketPrivate.EmitOnPing = true;
                     _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
                     _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                     _webSocketPrivate.OnError += _webSocketPrivate_OnError;
                     _webSocketPrivate.Connect();
-
-                    if (_webSocketPublicMarketDepths != null)
-                    {
-                        return;
-                    }
-
-                    _webSocketPublicMarketDepths = new WebSocket(_webSocketPublicUrl);
-                    _webSocketPublicMarketDepths.EmitOnPing = true;
-                    _webSocketPublicMarketDepths.OnOpen += _webSocketPublicMarketDepths_OnOpen;
-                    _webSocketPublicMarketDepths.OnClose += _webSocketPublicMarketDepths_OnClose;
-                    _webSocketPublicMarketDepths.OnMessage += _webSocketPublicMarketDepths_OnMessage;
-                    _webSocketPublicMarketDepths.OnError += _webSocketPublicMarketDepths_OnError;
-                    _webSocketPublicMarketDepths.Connect();
-
-                    if (_webSocketPublicTrades != null)
-                    {
-                        return;
-                    }
-
-                    _webSocketPublicTrades = new WebSocket(_webSocketPublicUrl);
-                    _webSocketPublicTrades.EmitOnPing = true;
-                    _webSocketPublicTrades.OnOpen += _webSocketPublicTrades_OnOpen;
-                    _webSocketPublicTrades.OnClose += _webSocketPublicTrades_OnClose;
-                    _webSocketPublicTrades.OnMessage += _webSocketPublicTrades_OnMessage;
-                    _webSocketPublicTrades.OnError += _webSocketPublicTrades_OnError;
-                    _webSocketPublicTrades.Connect();
                 }
-                catch
+                catch (Exception exception)
                 {
-                    SendLogMessage("Create WebSocket Connection error.", LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
 
-            private void DeleteWebsocketConnection()
+            private void DeleteWebSocketConnection()
             {
-                if (_webSocketPublicMarketDepths != null)
+                if (_webSocketPublic != null)
                 {
                     try
                     {
-                        _webSocketPublicMarketDepths.OnOpen -= _webSocketPublicMarketDepths_OnOpen;
-                        _webSocketPublicMarketDepths.OnClose -= _webSocketPublicMarketDepths_OnClose;
-                        _webSocketPublicMarketDepths.OnMessage -= _webSocketPublicMarketDepths_OnMessage;
-                        _webSocketPublicMarketDepths.OnError -= _webSocketPublicMarketDepths_OnError;
-                        _webSocketPublicMarketDepths.CloseAsync();
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
+                        {
+                            WebSocket webSocketPublic = _webSocketPublic[i];
+
+                            webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
+                            webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
+                            webSocketPublic.OnMessage -= WebSocketPublicNew_OnMessage;
+                            webSocketPublic.OnError -= WebSocketPublicNew_OnError;
+
+                            if (webSocketPublic.ReadyState == WebSocketState.Open)
+                            {
+                                webSocketPublic.CloseAsync();
+                            }
+
+                            webSocketPublic = null;
+                        }
                     }
                     catch
                     {
                         // ignore
                     }
 
-                    _webSocketPublicMarketDepths = null;
-                }
-
-                if (_webSocketPublicTrades != null)
-                {
-                    try
-                    {
-                        _webSocketPublicTrades.OnOpen -= _webSocketPublicTrades_OnOpen;
-                        _webSocketPublicTrades.OnClose -= _webSocketPublicTrades_OnClose;
-                        _webSocketPublicTrades.OnMessage -= _webSocketPublicTrades_OnMessage;
-                        _webSocketPublicTrades.OnError -= _webSocketPublicTrades_OnError;
-                        _webSocketPublicTrades.CloseAsync();
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-
-                    _webSocketPublicTrades = null;
+                    _webSocketPublic.Clear();
                 }
 
                 if (_webSocketPrivate != null)
@@ -678,45 +656,44 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            private string _socketActivateLocker = "socketActivateLocker";
+            private string _socketActivateLocker = "socketAcvateLocker";
 
-            private void CheckFullActivation()
+            private void CheckSocketsActivate()
             {
-                try
+                lock (_socketActivateLocker)
                 {
-                    lock (_socketActivateLocker)
+
+                    if (_webSocketPrivate == null
+                        || _webSocketPrivate.ReadyState != WebSocketState.Open)
                     {
-                        if (_webSocketPrivate == null
-                        || _webSocketPrivate?.ReadyState != WebSocketState.Open)
-                        {
-                            Disconnect();
-                            return;
-                        }
+                        Disconnect();
+                        return;
+                    }
 
-                        if (_webSocketPublicMarketDepths == null
-                            || _webSocketPublicMarketDepths?.ReadyState != WebSocketState.Open)
-                        {
-                            Disconnect();
-                            return;
-                        }
+                    if (_webSocketPublic.Count == 0)
+                    {
+                        Disconnect();
+                        return;
+                    }
 
-                        if (_webSocketPublicTrades == null
-                            || _webSocketPublicTrades?.ReadyState != WebSocketState.Open)
-                        {
-                            Disconnect();
-                            return;
-                        }
+                    WebSocket webSocketPublic = _webSocketPublic[0];
 
-                        if (ServerStatus != ServerConnectStatus.Connect)
+                    if (webSocketPublic == null
+                        || webSocketPublic?.ReadyState != WebSocketState.Open)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Connect;
+
+                        if (ConnectEvent != null)
                         {
-                            ServerStatus = ServerConnectStatus.Connect;
                             ConnectEvent();
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage(ex.Message, LogMessageType.Error);
                 }
             }
 
@@ -724,7 +701,27 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 7 WebSocket events
 
-            private void _webSocketPublicTrades_OnError(object sender, ErrorEventArgs e)
+            private void WebSocketPublicNew_OnClose(object sender, CloseEventArgs e)
+            {
+                try
+                {
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                        message += OsLocalization.Market.Message102;
+
+                        SendLogMessage(message, LogMessageType.Error);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+
+            private void WebSocketPublicNew_OnError(object sender, ErrorEventArgs e)
             {
                 try
                 {
@@ -753,7 +750,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            private void _webSocketPublicTrades_OnMessage(object sender, MessageEventArgs e)
+            private void WebSocketPublicNew_OnMessage(object sender, MessageEventArgs e)
             {
                 try
                 {
@@ -773,135 +770,33 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return;
                     }
 
-                    if (FIFOListWebSocketPublicMarketDepthsMessage == null)
+                    if (FIFOListWebSocketPublicMessage == null)
                     {
                         return;
                     }
 
-                    FIFOListWebSocketPublicTradesMessage.Enqueue(e.Data);
+                    FIFOListWebSocketPublicMessage.Enqueue(e.Data);
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("WebSocketPublicTrades Message Received error: " + error.ToString(), LogMessageType.Error);
+                    SendLogMessage("WebSocketPublicT Message Received error: " + error.ToString(), LogMessageType.Error);
                 }
             }
 
-            private void _webSocketPublicTrades_OnClose(object sender, CloseEventArgs e)
-            {
-                try
-                {
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                        message += OsLocalization.Market.Message102;
-
-                        SendLogMessage(message, LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage(ex.ToString(), LogMessageType.Error);
-                }
-            }
-
-            private void _webSocketPublicTrades_OnOpen(object sender, EventArgs e)
-            {
-
-                CheckFullActivation();
-                SendLogMessage("WebSocketPublicTrades Connection to public trades is Open", LogMessageType.System);
-
-            }
-
-            private void _webSocketPublicMarketDepths_OnError(object sender, ErrorEventArgs e)
+            private void WebSocketPublicNew_OnOpen(object sender, EventArgs e)
             {
                 try
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        return;
-                    }
-
-                    if (e.Exception != null)
-                    {
-                        string message = e.Exception.ToString();
-
-                        if (message.Contains("The remote party closed the WebSocket connection"))
-                        {
-                            // ignore
-                        }
-                        else
-                        {
-                            SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
-                }
-            }
-
-            private void _webSocketPublicMarketDepths_OnMessage(object sender, MessageEventArgs e)
-            {
-                try
-                {
-                    if (e == null)
-                    {
-                        return;
-                    }
-
-                    if (string.IsNullOrEmpty(e.Data))
-                    {
-                        return;
-                    }
-
-                    if (e.Data.Contains("pong"))
-                    {
-                        // pong message
-                        return;
-                    }
-
-                    if (FIFOListWebSocketPublicMarketDepthsMessage == null)
-                    {
-                        return;
-                    }
-
-                    FIFOListWebSocketPublicMarketDepthsMessage.Enqueue(e.Data);
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage("WebSocketPublic Message Received error: " + error.ToString(), LogMessageType.Error);
-                }
-            }
-
-            private void _webSocketPublicMarketDepths_OnClose(object sender, CloseEventArgs e)
-            {
-                try
-                {
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                        message += OsLocalization.Market.Message102;
-
-                        SendLogMessage(message, LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        SendLogMessage("XTSpot WebSocket Public connection open", LogMessageType.System);
+                        CheckSocketsActivate();
                     }
                 }
                 catch (Exception ex)
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
-            }
-
-            private void _webSocketPublicMarketDepths_OnOpen(object sender, EventArgs e)
-            {
-
-                CheckFullActivation();
-                SendLogMessage("WebSocketPublic Connection to public data is Open", LogMessageType.System);
-
             }
 
             private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
@@ -995,11 +890,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 try
                 {
-                    CheckFullActivation();
-                    SendLogMessage("WebSocketPrivate Connection to private data is Open", LogMessageType.System);
+                    SendLogMessage("XTSpot WebSocket Private connection open", LogMessageType.System);
+                    CheckSocketsActivate();
 
-                    // sign up for order and portfolio changes
-                    _webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\",\"balance\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // change orders
+                    _webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\",\"balance\",\"trade\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                 }
                 catch (Exception ex)
                 {
@@ -1015,6 +909,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 while (true)
                 {
+                    Thread.Sleep(10000);
+
                     try
                     {
                         if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1023,34 +919,30 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
-                        Thread.Sleep(10000);
-
-                        if (_webSocketPublicMarketDepths == null)
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            continue;
+                            WebSocket webSocketPublic = _webSocketPublic[i];
+
+                            if (webSocketPublic != null
+                                && webSocketPublic?.ReadyState == WebSocketState.Open)
+                            {
+                                webSocketPublic.Send("ping");
+                            }
+                            else
+                            {
+                                Disconnect();
+                            }
                         }
 
-                        if (_webSocketPrivate == null)
+                        if (_webSocketPrivate != null &&
+                            (_webSocketPrivate.ReadyState == WebSocketState.Open ||
+                            _webSocketPrivate.ReadyState == WebSocketState.Connecting))
                         {
-                            continue;
-                        }
-
-                        if (_webSocketPublicTrades == null)
-                        {
-                            continue;
-                        }
-
-                        if (_webSocketPublicMarketDepths.ReadyState == WebSocketState.Open
-                            && _webSocketPublicTrades.ReadyState == WebSocketState.Open
-                            && _webSocketPrivate.ReadyState == WebSocketState.Open)
-                        {
-                            _webSocketPublicMarketDepths.Send("ping");
                             _webSocketPrivate.Send("ping");
-                            _webSocketPublicTrades.Send("ping");
                         }
                         else
                         {
-                            Dispose();
+                            Disconnect();
                         }
                     }
                     catch (Exception error)
@@ -1064,7 +956,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 9 Security Subscribed
 
-            private readonly RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(200));
+            private List<string> _subscribedSecurities = new List<string>();
+
+            private RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
             public void Subscribe(Security security)
             {
@@ -1077,11 +971,112 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return;
                     }
 
-                    CreateSubscribedSecurityMessageWebSocket(security);
+                    for (int i = 0; i < _subscribedSecurities.Count; i++)
+                    {
+                        if (_subscribedSecurities[i].Equals(security.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return;
+                        }
+                    }
+
+                    _subscribedSecurities.Add(security.Name);
+
+                    if (_webSocketPublic.Count == 0)
+                    {
+                        return;
+                    }
+
+                    WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+                    if (webSocketPublic.ReadyState == WebSocketState.Open
+                        && _subscribedSecurities.Count != 0
+                        && _subscribedSecurities.Count % 50 == 0)
+                    {
+                        // creating a new socket
+                        WebSocket newSocket = CreateNewPublicSocket();
+
+                        DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                        while (newSocket.ReadyState != WebSocketState.Open)
+                        {
+                            Thread.Sleep(1000);
+
+                            if (timeEnd < DateTime.Now)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (newSocket.ReadyState == WebSocketState.Open)
+                        {
+                            _webSocketPublic.Add(newSocket);
+                            webSocketPublic = newSocket;
+                        }
+                    }
+
+                    if (webSocketPublic != null)
+                    {
+                        webSocketPublic.Send($"{{\"method\":\"subscribe\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},{20}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                        webSocketPublic.Send($"{{\"method\":\"subscribe\",\"params\":[\"trade@{security.Name}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                    }
+
                 }
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
+            }
+
+            private void UnsubscribeFromAllWebSockets()
+            {
+                try
+                {
+                    if (_webSocketPublic.Count != 0
+                        && _webSocketPublic != null)
+                    {
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
+                        {
+                            WebSocket webSocketPublic = _webSocketPublic[i];
+
+                            try
+                            {
+                                if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                                {
+                                    if (_subscribedSecurities != null)
+                                    {
+                                        for (int j = 0; j < _subscribedSecurities.Count; j++)
+                                        {
+                                            string securityName = _subscribedSecurities[j];
+
+                                            webSocketPublic.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                                            webSocketPublic.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"trade@{securityName}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                if (_webSocketPrivate != null
+                    && _webSocketPrivate.ReadyState == WebSocketState.Open)
+                {
+                    try
+                    {
+                        _webSocketPrivate.Send($"{{\"method\":\"unsubscribe\",\"params\":[\"order\",\"balance\",\"trade\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
                 }
             }
 
@@ -1096,13 +1091,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 10 WebSocket parsing the messages
 
-            private ConcurrentQueue<string> FIFOListWebSocketPublicMarketDepthsMessage = new ConcurrentQueue<string>();
+            private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
 
             private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
-            private ConcurrentQueue<string> FIFOListWebSocketPublicTradesMessage = new ConcurrentQueue<string>();
-
-            private void PublicMarketDepthsMessageReader()
+            private void PublicMessageReader()
             {
                 while (true)
                 {
@@ -1114,7 +1107,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
-                        if (FIFOListWebSocketPublicMarketDepthsMessage.IsEmpty)
+                        if (FIFOListWebSocketPublicMessage.IsEmpty)
                         {
                             Thread.Sleep(1);
                             continue;
@@ -1122,7 +1115,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                         string message;
 
-                        FIFOListWebSocketPublicMarketDepthsMessage.TryDequeue(out message);
+                        FIFOListWebSocketPublicMessage.TryDequeue(out message);
 
                         if (message == null)
                         {
@@ -1147,46 +1140,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 SnapshotDepth(message);
                             }
                         }
-                    }
-                    catch (Exception exception)
-                    {
-                        Thread.Sleep(2000);
-                        SendLogMessage("PublicMarketDepthsMessageReader error: " + exception.ToString(), LogMessageType.Error);
-                    }
-                }
-            }
-
-            private void PublicTradesMessageReader()
-            {
-                while (true)
-                {
-                    try
-                    {
-                        if (ServerStatus != ServerConnectStatus.Connect)
-                        {
-                            Thread.Sleep(1000);
-                            continue;
-                        }
-
-                        if (FIFOListWebSocketPublicTradesMessage.IsEmpty)
-                        {
-                            Thread.Sleep(1);
-                            continue;
-                        }
-
-                        FIFOListWebSocketPublicTradesMessage.TryDequeue(out var message);
-
-                        if (message == null)
-                        {
-                            continue;
-                        }
-
-                        if (message.Equals("pong", StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
 
                         if (action != null && action.topic != null)
                         {
@@ -1199,7 +1152,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     catch (Exception exception)
                     {
                         Thread.Sleep(2000);
-                        SendLogMessage("PublicTradesMessageReader error: " + exception.ToString(), LogMessageType.Error);
+                        SendLogMessage("PublicMarketDepthsMessageReader error: " + exception.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -1248,6 +1201,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         if (action.topic.Equals("balance"))
                         {
                             //UpdatePortfolio(message);
+                        }
+
+                        if (message.Equals(""))
+                        {
+                            continue;
                         }
                     }
                     catch (Exception exception)
@@ -2236,8 +2194,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             HttpClient _httpPublicClient = new HttpClient();
 
-            private List<string> _subscribedSecurities = new List<string>();
-
             private readonly RateGate _rateGateGetToken = new RateGate(1, TimeSpan.FromMilliseconds(10000));
 
             private string GetListenKey()
@@ -2282,23 +2238,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
 
                 return listenKey;
-            }
-
-            private void CreateSubscribedSecurityMessageWebSocket(Security security)
-            {
-                for (int i = 0; i < _subscribedSecurities.Count; i++)
-                {
-                    if (_subscribedSecurities[i].Equals(security.Name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return;
-                    }
-                }
-
-                lock (_socketLocker)
-                {
-                    _webSocketPublicMarketDepths.Send($"{{\"method\":\"subscribe\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},{20}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                    _webSocketPublicTrades.Send($"{{\"method\":\"subscribe\",\"params\":[\"trade@{security.Name}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                }
             }
 
             private readonly RateGate _rateGateGetPortfolio = new RateGate(1, TimeSpan.FromMilliseconds(100));
