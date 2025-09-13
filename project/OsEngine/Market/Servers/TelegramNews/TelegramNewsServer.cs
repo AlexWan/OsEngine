@@ -257,13 +257,13 @@ namespace OsEngine.Market.Servers.TelegramNews
                     }
                     catch (Exception ex)
                     {
-                        ServerMaster.SendNewLogMessage($"Critical error: {ex.Message}", LogMessageType.Error);
+                        ServerMaster.SendNewLogMessage($"error: {ex.Message}", LogMessageType.Error);
                     }
                 });
             }
             catch (Exception ex)
             {
-                ServerMaster.SendNewLogMessage($"Critical error: {ex.Message}", LogMessageType.Error);
+                ServerMaster.SendNewLogMessage($"error: {ex.Message}", LogMessageType.Error);
             }
 
             return password;
@@ -292,13 +292,13 @@ namespace OsEngine.Market.Servers.TelegramNews
                     }
                     catch (Exception ex)
                     {
-                        ServerMaster.SendNewLogMessage($"Critical error: {ex.Message}", LogMessageType.Error);
+                        ServerMaster.SendNewLogMessage($"error: {ex.Message}", LogMessageType.Error);
                     }
                 });
             }
             catch (Exception ex)
             {
-                ServerMaster.SendNewLogMessage($"Critical error: {ex.Message}", LogMessageType.Error);
+                ServerMaster.SendNewLogMessage($"error: {ex.Message}", LogMessageType.Error);
             }
 
             return code;
