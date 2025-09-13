@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -330,27 +330,25 @@ namespace OsEngine.Market
                             {
                                 RobotUiLight.Instance?.Dispatcher.Invoke(() =>
                                 {
-                                    ActivePage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content);
-                                    ActivePageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
-                                });
-
-                                if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
-                                {
-                                    RobotUiLight.Instance?.Dispatcher.Invoke(() =>
+                                    try
                                     {
-                                        RobotUiLight.Instance.LabelNumberThisPageActive.Content = "1";
-                                    });
-                                }
+                                        ActivePage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
 
-                                RobotUiLight.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    ActivePage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content);
-                                    ActivePageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
-                                });
+                                        if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
+                                        {
+                                            RobotUiLight.Instance.LabelNumberThisPageActive.Content = "1";
+                                        }
 
-                                RobotUiLight.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    RobotUiLight.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                        ActivePage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        RobotUiLight.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
                                 });
 
                                 PaintOrders(activeOrders, _gridActiveOrders, _hostActiveOrders, ActivePage, ActivePageSize);
@@ -361,29 +359,27 @@ namespace OsEngine.Market
                             {
                                 RobotUi.Instance?.Dispatcher.Invoke(() =>
                                 {
-                                    ActivePage = Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content);
-                                    ActivePageSize = Convert.ToInt32(RobotUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
-                                });
-
-                                if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
-                                {
-                                    RobotUi.Instance?.Dispatcher.Invoke(() =>
+                                    try
                                     {
-                                        RobotUi.Instance.LabelNumberThisPageActive.Content = "1";
-                                    });
-                                }
+                                        ActivePage = Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(RobotUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
 
-                                RobotUi.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    ActivePage = Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content);
-                                    ActivePageSize = Convert.ToInt32(RobotUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+                                        if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
+                                        {
+                                            RobotUi.Instance.LabelNumberThisPageActive.Content = "1";
+                                        }
+
+                                        ActivePage = Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(RobotUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        RobotUi.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
                                 });
-
-                                RobotUi.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    RobotUi.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
-                                });
-
+                            
                                 PaintOrders(activeOrders, _gridActiveOrders, _hostActiveOrders, ActivePage, ActivePageSize);
                             }
 
@@ -392,27 +388,25 @@ namespace OsEngine.Market
                             {
                                 TesterUiLight.Instance?.Dispatcher.Invoke(() =>
                                 {
-                                    ActivePage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content);
-                                    ActivePageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
-                                });
-
-                                if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
-                                {
-                                    TesterUiLight.Instance?.Dispatcher.Invoke(() =>
+                                    try
                                     {
-                                        TesterUiLight.Instance.LabelNumberThisPageActive.Content = "1";
-                                    });
-                                }
+                                        ActivePage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
 
-                                TesterUiLight.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    ActivePage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content);
-                                    ActivePageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
-                                });
+                                        if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
+                                        {
+                                            TesterUiLight.Instance.LabelNumberThisPageActive.Content = "1";
+                                        }
 
-                                TesterUiLight.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    TesterUiLight.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                        ActivePage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        TesterUiLight.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
                                 });
 
                                 PaintOrders(activeOrders, _gridActiveOrders, _hostActiveOrders, ActivePage, ActivePageSize);
@@ -423,27 +417,25 @@ namespace OsEngine.Market
                             {
                                 TesterUi.Instance?.Dispatcher.Invoke(() =>
                                 {
-                                    ActivePage = Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content);
-                                    ActivePageSize = Convert.ToInt32(TesterUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
-                                });
-
-                                if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
-                                {
-                                    TesterUi.Instance?.Dispatcher.Invoke(() =>
+                                    try
                                     {
-                                        TesterUi.Instance.LabelNumberThisPageActive.Content = "1";
-                                    });
-                                }
+                                        ActivePage = Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(TesterUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
 
-                                TesterUi.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    ActivePage = Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content);
-                                    ActivePageSize = Convert.ToInt32(TesterUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
-                                });
+                                        if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
+                                        {
+                                            TesterUi.Instance.LabelNumberThisPageActive.Content = "1";
+                                        }
 
-                                TesterUi.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    TesterUi.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                        ActivePage = Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(TesterUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        TesterUi.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
                                 });
 
                                 PaintOrders(activeOrders, _gridActiveOrders, _hostActiveOrders, ActivePage, ActivePageSize);
@@ -460,27 +452,25 @@ namespace OsEngine.Market
                             {
                                 RobotUiLight.Instance?.Dispatcher.Invoke(() =>
                                 {
-                                    HistoricalPage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content);
-                                    HistoricalPageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
-                                });
-
-                                if (HistoricalPage > GetTotalPages(historicalOrders.Count, HistoricalPageSize))
-                                {
-                                    RobotUiLight.Instance?.Dispatcher.Invoke(() =>
+                                    try
                                     {
-                                        RobotUiLight.Instance.LabelNumberThisPageHistorical.Content = "1";
-                                    });
-                                }
+                                        HistoricalPage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content);
+                                        HistoricalPageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
 
-                                RobotUiLight.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    HistoricalPage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content);
-                                    HistoricalPageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
-                                });
+                                        if (HistoricalPage > GetTotalPages(historicalOrders.Count, HistoricalPageSize))
+                                        {
+                                            RobotUiLight.Instance.LabelNumberThisPageHistorical.Content = "1";
+                                        }
 
-                                RobotUiLight.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    RobotUiLight.Instance.LabelNumberAllPageHistorical.Content = GetTotalPages(historicalOrders.Count, HistoricalPageSize).ToString();
+                                        HistoricalPage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content);
+                                        HistoricalPageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
+
+                                        RobotUiLight.Instance.LabelNumberAllPageHistorical.Content = GetTotalPages(historicalOrders.Count, HistoricalPageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
                                 });
 
                                 PaintOrders(historicalOrders, _gridHistoricalOrders, _hostHistoricalOrders, HistoricalPage, HistoricalPageSize);
@@ -491,27 +481,25 @@ namespace OsEngine.Market
                             {
                                 TesterUiLight.Instance?.Dispatcher.Invoke(() =>
                                 {
-                                    HistoricalPage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content);
-                                    HistoricalPageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
-                                });
-
-                                if (HistoricalPage > GetTotalPages(historicalOrders.Count, HistoricalPageSize))
-                                {
-                                    TesterUiLight.Instance?.Dispatcher.Invoke(() =>
+                                    try
                                     {
-                                        TesterUiLight.Instance.LabelNumberThisPageHistorical.Content = "1";
-                                    });
-                                }
+                                        HistoricalPage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content);
+                                        HistoricalPageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
 
-                                TesterUiLight.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    HistoricalPage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content);
-                                    HistoricalPageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
-                                });
+                                        if (HistoricalPage > GetTotalPages(historicalOrders.Count, HistoricalPageSize))
+                                        {
+                                            TesterUiLight.Instance.LabelNumberThisPageHistorical.Content = "1";
+                                        }
 
-                                TesterUiLight.Instance?.Dispatcher.Invoke(() =>
-                                {
-                                    TesterUiLight.Instance.LabelNumberAllPageHistorical.Content = GetTotalPages(historicalOrders.Count, HistoricalPageSize).ToString();
+                                        HistoricalPage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content);
+                                        HistoricalPageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
+
+                                        TesterUiLight.Instance.LabelNumberAllPageHistorical.Content = GetTotalPages(historicalOrders.Count, HistoricalPageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
                                 });
 
                                 PaintOrders(historicalOrders, _gridHistoricalOrders, _hostHistoricalOrders, HistoricalPage, HistoricalPageSize);
