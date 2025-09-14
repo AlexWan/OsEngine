@@ -17,6 +17,8 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.OsTrader.SystemAnalyze;
+using System.Net.Sockets;
+using System.Text;
 
 namespace OsEngine.Market.Servers
 {
@@ -3490,7 +3492,7 @@ namespace OsEngine.Market.Servers
 
                 if (HasFirstOrderMessageBeenSent == false)
                 {
-                    SendMessageFirstOrdertInAnalysisServer();
+                    SendMessageFirstOrderInAnalysisServer();
                 }
 
                 SendLogMessage(OsLocalization.Market.Message19 + order.Price +
@@ -3946,7 +3948,6 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-
         #region Log messages
 
         /// <summary>
@@ -4165,16 +4166,18 @@ namespace OsEngine.Market.Servers
         #region SendMessageAnalysisServer
 
         private bool HasConnectionMessageBeenSent = false;
+
         private bool HasFirstOrderMessageBeenSent = false;
 
-        private string _messageСonnectingСonnector;
+        private string _messageFirstConnect;
+
         private string _messageFirstOrder;
 
         private void SendMessageConnectorConnectInAnalysisServer()
         {
             try
             {
-                _messageСonnectingСonnector = $"{this.ServerNameUnique}%Openings";
+                _messageFirstConnect = $"{this.ServerNameUnique}%Openings";
         
                 Thread thread = new Thread(SendMessageConnectorConnect);
                 thread.Start();
@@ -4195,7 +4198,7 @@ namespace OsEngine.Market.Servers
                 newClient.Connect("45.137.152.144", 11100);
                 //newClient.Connect("127.0.0.1", 11100);
                 NetworkStream tcpStream = newClient.GetStream();
-                byte[] sendBytes = Encoding.UTF8.GetBytes(_messageСonnectingСonnector);
+                byte[] sendBytes = Encoding.UTF8.GetBytes(_messageFirstConnect);
                 tcpStream.Write(sendBytes, 0, sendBytes.Length);
                 newClient.Close();
             }
@@ -4205,7 +4208,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        private void SendMessageFirstOrdertInAnalysisServer()
+        private void SendMessageFirstOrderInAnalysisServer()
         {
             try
             {
