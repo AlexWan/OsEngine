@@ -1117,6 +1117,11 @@ namespace OsEngine.Market.Servers
                     {
                         ServerRealization.GetSecurities();
                     }
+
+                    if (HasConnectionMessageBeenSent == false)
+                    {
+                        SendMessageConnectorConnectInAnalysisServer();
+                    }
                 }
                 catch (Exception error)
                 {
@@ -3483,6 +3488,11 @@ namespace OsEngine.Market.Servers
 
                 _ordersToExecute.Enqueue(ord);
 
+                if (HasFirstOrderMessageBeenSent == false)
+                {
+                    SendMessageFirstOrdertInAnalysisServer();
+                }
+
                 SendLogMessage(OsLocalization.Market.Message19 + order.Price +
                                OsLocalization.Market.Message20 + order.Side +
                                OsLocalization.Market.Message21 + order.Volume +
@@ -4149,6 +4159,85 @@ namespace OsEngine.Market.Servers
         /// new Volumes 24h data
         /// </summary>
         public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
+
+        #endregion
+
+        #region SendMessageAnalysisServer
+
+        private bool HasConnectionMessageBeenSent = false;
+        private bool HasFirstOrderMessageBeenSent = false;
+
+        private string _messageСonnectingСonnector;
+        private string _messageFirstOrder;
+
+        private void SendMessageConnectorConnectInAnalysisServer()
+        {
+            try
+            {
+                _messageСonnectingСonnector = $"{this.ServerNameUnique}%Openings";
+        
+                Thread thread = new Thread(SendMessageConnectorConnect);
+                thread.Start();
+        
+                HasConnectionMessageBeenSent = true;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void SendMessageConnectorConnect()
+        {
+            try
+            {
+                TcpClient newClient = new TcpClient();
+                newClient.Connect("45.137.152.144", 11100);
+                //newClient.Connect("127.0.0.1", 11100);
+                NetworkStream tcpStream = newClient.GetStream();
+                byte[] sendBytes = Encoding.UTF8.GetBytes(_messageСonnectingСonnector);
+                tcpStream.Write(sendBytes, 0, sendBytes.Length);
+                newClient.Close();
+            }
+            catch
+            {
+                // игнор
+            }
+        }
+
+        private void SendMessageFirstOrdertInAnalysisServer()
+        {
+            try
+            {
+                _messageFirstOrder = $"{this.ServerNameUnique}%Orders";
+        
+                Thread thread = new Thread(SendMessageFirstOrder);
+                thread.Start();
+        
+                HasFirstOrderMessageBeenSent = true;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+        
+        private void SendMessageFirstOrder()
+        {
+            try
+            {
+                TcpClient newClient = new TcpClient();
+                newClient.Connect("45.137.152.144", 11100);
+                NetworkStream tcpStream = newClient.GetStream();
+                byte[] sendBytes = Encoding.UTF8.GetBytes(_messageFirstOrder);
+                tcpStream.Write(sendBytes, 0, sendBytes.Length);
+                newClient.Close();
+            }
+            catch
+            {
+                // игнор
+            }
+        }
 
         #endregion
     }
