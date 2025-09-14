@@ -82,6 +82,7 @@ using OsEngine.Market.Servers.AscendexSpot;
 using OsEngine.Market.Servers.OKXData;
 using System.Windows.Controls;
 using OsEngine.Market.Servers.ExMo.ExmoSpot;
+using OsEngine.Market.Servers.BybitData;
 
 namespace OsEngine.Market
 {
@@ -426,6 +427,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BinanceData);
                 serverTypes.Add(ServerType.AscendexSpot);
                 serverTypes.Add(ServerType.OKXData);
+                serverTypes.Add(ServerType.BybitData);
 
                 return serverTypes;
             }
@@ -558,6 +560,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.BybitData)
+                {
+                    newServer = new BybitDataServer();
+                }
                 if (type == ServerType.OKXData)
                 {
                     newServer = new OKXDataServer();
@@ -1566,6 +1572,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new ExmoSpotServerPermission();
                 }
+                else if (type == ServerType.BybitData)
+                {
+                    serverPermission = new BybitDataServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -2341,6 +2351,12 @@ namespace OsEngine.Market
         /// downloading historical data from exchange OKX
         /// скачивание исторических данных с биржи OKX
         /// </summary>
-        OKXData
+        OKXData,
+
+        /// <summary>
+        /// downloading historical data from exchange Bybit
+        /// скачивание исторических данных с биржи Bybit
+        /// </summary>
+        BybitData
     }
 }
