@@ -4375,6 +4375,8 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (_timeOrdersCashCreate.AddSeconds(2) < DateTime.Now)
                 {
+                    // обновляем массивы ордеров один раз в две секунды.
+                    // Формируем КЭШ для массового запроса статусов на реконнекте
                     _historicalOrdersCash = GetHistoricalOrders(0, 100);
                     _activeOrdersCash = GetActiveOrders(0, 100);
                     _timeOrdersCashCreate = DateTime.Now;

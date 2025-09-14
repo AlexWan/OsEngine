@@ -211,23 +211,26 @@ namespace OsEngine.Market.Servers
                     }
                 }
 
-                if (_fullLogIsOn)
+                if(_canQueryOrderStatus == true)
                 {
-                    SendLogMessage("Начинаем запрос статуса своих ордеров на старте. Количество: " + _ordersActive.Count, LogMessageType.System);
-                }
-
-                for (int i = 0;i < _ordersActive.Count;i++)
-                {
-                    if(_ordersActive[i].IsFinallyLost == false
-                        && _ordersActive[i].CountTriesToGetOrderStatus < 5)
+                    if (_fullLogIsOn)
                     {
-                        ActiveStateOrderCheckStatusEvent(_ordersActive[i].Order);
+                        SendLogMessage("We start requesting the status of our orders at the start. Number of: " + _ordersActive.Count, LogMessageType.System);
                     }
-                }
 
-                if (_fullLogIsOn)
-                {
-                    SendLogMessage("Завершили запрос статуса своих ордеров на старте. ", LogMessageType.Error);
+                    for (int i = 0; i < _ordersActive.Count; i++)
+                    {
+                        if (_ordersActive[i].IsFinallyLost == false
+                            && _ordersActive[i].CountTriesToGetOrderStatus < 5)
+                        {
+                            ActiveStateOrderCheckStatusEvent(_ordersActive[i].Order);
+                        }
+                    }
+
+                    if (_fullLogIsOn)
+                    {
+                        SendLogMessage("Completed requesting the status of their orders at the start. ", LogMessageType.Error);
+                    }
                 }
             }
         }
