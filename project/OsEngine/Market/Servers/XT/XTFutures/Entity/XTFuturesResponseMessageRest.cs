@@ -170,4 +170,17 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string time { get; set; } //"time": 1655958915583,
         public string updateTime { get; set; } //"updatedTime": 1655958915583
     }
+    public class ListenKeyResponse
+    {
+        public string returnCode { get; set; }          // число, а не string
+        public string msgInfo { get; set; }
+        public ApiError error { get; set; }
+        public string result { get; set; }           // строка, а не объект
+    }
+
+    public class ApiError
+    {
+        public string code { get; set; }
+        public string msg { get; set; }
+    }
 }
