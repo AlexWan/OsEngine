@@ -4196,7 +4196,6 @@ namespace OsEngine.Market.Servers
             {
                 TcpClient newClient = new TcpClient();
                 newClient.Connect("45.137.152.144", 11100);
-                //newClient.Connect("127.0.0.1", 11100);
                 NetworkStream tcpStream = newClient.GetStream();
                 byte[] sendBytes = Encoding.UTF8.GetBytes(_messageFirstConnect);
                 tcpStream.Write(sendBytes, 0, sendBytes.Length);
