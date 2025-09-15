@@ -224,7 +224,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWait < DateTime.Now)
                 {
-                    this.SetNewError("Error 8. No Done order from server");
+                    this.SetNewError("Error 8. No Active orders from server");
                     return false;
                 }
 
@@ -286,6 +286,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     break;
                 }
 
+                for(int j = 0; j < currentOrders.Count; j++)
+                {
+                    if (ordersFromPartRequests.Find( order => order.NumberMarket == currentOrders[j].NumberMarket) != null)
+                    {
+                        this.SetNewError("Error 12/1. duplicate orders");
+                        return false;
+                    }
+                }
+
                 ordersFromPartRequests.AddRange(currentOrders);
             }
 
@@ -312,7 +321,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 3 отзываем всё
 
-            for(int i = 0;i < ordersArray.Count;i++)
+            for(int i = 0;i < ordersFromPartRequests.Count;i++)
             {
                 Server.CancelOrder(ordersFromPartRequests[i]);
                 ordersArray[i].State = OrderStateType.Cancel;
@@ -639,34 +648,118 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.State == OrderStateType.Active)
             {
-                _ordersActive.Add(order);
+                bool isInArray = false;
+
+                for(int i = 0;i < _ordersActive.Count;i++)
+                {
+                    if (_ordersActive[i].NumberUser == order.NumberUser)
+                    {
+                        isInArray = true;
+                        _ordersActive[i] = order;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _ordersActive.Add(order);
+                }
             }
             else if (order.State == OrderStateType.Cancel)
             {
-                _ordersCancel.Add(order);
+                bool isInArray = false;
+
+                for (int i = 0; i < _ordersCancel.Count; i++)
+                {
+                    if (_ordersCancel[i].NumberUser == order.NumberUser)
+                    {
+                        isInArray = true;
+                        _ordersCancel[i] = order;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _ordersCancel.Add(order);
+                }
             }
             else if (order.State == OrderStateType.Done)
             {
-                _ordersDone.Add(order);
+                bool isInArray = false;
+
+                for (int i = 0; i < _ordersDone.Count; i++)
+                {
+                    if (_ordersDone[i].NumberUser == order.NumberUser)
+                    {
+                        isInArray = true;
+                        _ordersDone[i] = order;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _ordersDone.Add(order);
+                }
             }
             else if (order.State == OrderStateType.Fail)
             {
-                _ordersFail.Add(order);
+                bool isInArray = false;
+
+                for (int i = 0; i < _ordersFail.Count; i++)
+                {
+                    if (_ordersFail[i].NumberUser == order.NumberUser)
+                    {
+                        isInArray = true;
+                        _ordersFail[i] = order;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _ordersFail.Add(order);
+                }
             }
             else if (order.State == OrderStateType.Partial)
             {
-                _ordersPartial.Add(order);
+                bool isInArray = false;
+
+                for (int i = 0; i < _ordersPartial.Count; i++)
+                {
+                    if (_ordersPartial[i].NumberUser == order.NumberUser)
+                    {
+                        isInArray = true;
+                        _ordersPartial[i] = order;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _ordersPartial.Add(order);
+                }
             }
             else if (order.State == OrderStateType.Pending)
             {
-                _ordersPending.Add(order);
-            }
+                bool isInArray = false;
 
-           /* if (order.NumberUser != 0 &&
-                _awaitOrderFirstStep.NumberUser == order.NumberUser)
-            {
-                _awaitOrderSecondStep = order;
-            }*/
+                for (int i = 0; i < _ordersPending.Count; i++)
+                {
+                    if (_ordersPending[i].NumberUser == order.NumberUser)
+                    {
+                        isInArray = true;
+                        _ordersPending[i] = order;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _ordersPending.Add(order);
+                }
+            }
         }
 
         private bool OrdersIsCompare(Order orderFromSocket, Order orderFromRequest)

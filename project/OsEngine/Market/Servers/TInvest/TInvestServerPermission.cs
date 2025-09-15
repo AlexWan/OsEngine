@@ -206,7 +206,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         public bool CanGetOrderLists
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

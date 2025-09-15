@@ -426,6 +426,13 @@ namespace OsEngine.OsTrader.Grids
             TextBoxFailCancelOrdersCountToReaction.TextChanged += TextBoxFailCancelOrdersCountToReaction_TextChanged;
             TextBoxFailCancelOrdersCountFact.Text = tradeGrid.ErrorsReaction.FailCancelOrdersCountFact.ToString();
 
+            CheckBoxWaitOnStartConnectorIsOn.IsChecked = tradeGrid.ErrorsReaction.WaitOnStartConnectorIsOn;
+            CheckBoxWaitOnStartConnectorIsOn.Checked += CheckBoxWaitOnStartConnectorIsOn_Checked;
+            CheckBoxWaitOnStartConnectorIsOn.Unchecked += CheckBoxWaitOnStartConnectorIsOn_Checked;
+
+            TextBoxWaitSecondsOnStartConnector.Text = tradeGrid.ErrorsReaction.WaitSecondsOnStartConnector.ToString();
+            TextBoxWaitSecondsOnStartConnector.TextChanged += TextBoxWaitSecondsOnStartConnector_TextChanged; 
+
             // trailing up / down
 
             CheckBoxTrailingUpIsOn.IsChecked = tradeGrid.TrailingUp.TrailingUpIsOn;
@@ -589,6 +596,9 @@ namespace OsEngine.OsTrader.Grids
             LabelFailCancelOrdersReaction.Content = OsLocalization.Trader.Label99;
             LabelFailCancelOrdersCountToReaction.Content = OsLocalization.Trader.Label542;
             LabelFailCancelOrdersCountFact.Content = OsLocalization.Trader.Label543;
+
+            CheckBoxWaitOnStartConnectorIsOn.Content = OsLocalization.Trader.Label582;
+            LabelWaitSecondsOnStartConnector.Content = OsLocalization.Trader.Label583;
 
             // trailing up
 
@@ -933,6 +943,37 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 TradeGrid.ErrorsReaction.FailCancelOrdersCountToReaction = Convert.ToInt32(TextBoxFailCancelOrdersCountToReaction.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxWaitOnStartConnectorIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.ErrorsReaction.WaitOnStartConnectorIsOn = CheckBoxWaitOnStartConnectorIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxWaitSecondsOnStartConnector_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxWaitSecondsOnStartConnector.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.ErrorsReaction.WaitSecondsOnStartConnector = Convert.ToInt32(TextBoxWaitSecondsOnStartConnector.Text);
                 TradeGrid.Save();
             }
             catch

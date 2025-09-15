@@ -229,7 +229,7 @@ namespace OsEngine.Market.Servers
 
                     if (_fullLogIsOn)
                     {
-                        SendLogMessage("Completed requesting the status of their orders at the start. ", LogMessageType.Error);
+                        SendLogMessage("Completed requesting the status of their orders at the start. ", LogMessageType.System);
                     }
                 }
             }

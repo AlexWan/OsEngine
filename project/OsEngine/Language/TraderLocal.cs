@@ -2227,5 +2227,12 @@ namespace OsEngine.Language
         "Eng:Мax distance from the price %_" +
         "Ru:Макс. расстояние от цены %_");
 
+        public string Label582 => OsLocalization.ConvertToLocString(
+        "Eng:Wait after connecting to the server_" +
+        "Ru:Ждать после подключения к коннектору_");
+
+        public string Label583 => OsLocalization.ConvertToLocString(
+        "Eng:Seconds to wait_" +
+        "Ru:Секунд на ожидание_");
     }
 }

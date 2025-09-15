@@ -3286,8 +3286,9 @@ namespace OsEngine.Market.Servers
                 }
                 else if (order.OrderSendType == OrderSendType.Cancel)
                 {
-                    if (IsAlreadyCancelled(order.Order) == false)
-                    {
+                    //if (IsAlreadyCancelled(order.Order) == false
+                    //    || order.Order.CancellingTryCount < 5)
+                    //{
                         if (ServerRealization.CancelOrder(order.Order) == false)
                         {
                             if (CancelOrderFailEvent != null)
@@ -3295,7 +3296,7 @@ namespace OsEngine.Market.Servers
                                 CancelOrderFailEvent(order.Order);
                             }
                         }
-                        else
+                        /*else
                         {
                             if (string.IsNullOrEmpty(order.Order.NumberMarket) == false)
                             {
@@ -3309,8 +3310,8 @@ namespace OsEngine.Market.Servers
                                     }
                                 }
                             }
-                        }
-                    }
+                        }*/
+                    //}
                 }
                 else if (order.OrderSendType == OrderSendType.ChangePrice
                     && IsCanChangeOrderPrice)
@@ -3575,23 +3576,6 @@ namespace OsEngine.Market.Servers
                 {
                     SendLogMessage("AServer Error. You can't cancel order when server status Disconnect "
                         + order.NumberUser, LogMessageType.Error);
-                    return;
-                }
-
-                if(order.IsSendToCancel == true 
-                    && IsAlreadyCancelled(order))
-                {
-                    return;
-                }
-
-                if(order.CancellingTryCount > 10)
-                {
-                    return;
-                }
-
-
-                if (order.CancellingTryCount > 1)
-                {
                     return;
                 }
 

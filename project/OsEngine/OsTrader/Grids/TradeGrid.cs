@@ -7,6 +7,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
@@ -648,6 +649,20 @@ namespace OsEngine.OsTrader.Grids
             if(MainWindow.ProccesIsWorked == false)
             {
                 return;
+            }
+
+            if(StartProgram == StartProgram.IsOsTrader 
+               && ErrorsReaction.WaitOnStartConnectorIsOn == true)
+            {
+                IServer server = Tab.Connector.MyServer;
+
+                if(server.GetType().BaseType.Name == "AServer")
+                {
+                    if(ErrorsReaction.AwaitOnStartConnector((AServer)server) == true)
+                    {
+                        return;
+                    }
+                }
             }
 
             TradeGridRegime baseRegime = Regime;

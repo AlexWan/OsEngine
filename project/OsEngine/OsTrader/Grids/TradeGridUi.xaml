@@ -252,13 +252,16 @@
                     <Label Name="LabelFailOpenOrdersCountFact" Content="Current fail open orders" HorizontalAlignment="Left" Margin="9,91,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxFailOpenOrdersCountFact" Margin="221,91,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxFailCancelOrdersReactionIsOn" Content="Check cancel orders stream" HorizontalAlignment="Left" Margin="10,145,0,0" VerticalAlignment="Top" Width="312"/>
-                    <Label Name="LabelFailCancelOrdersReaction" Content="Reaction" HorizontalAlignment="Left" Margin="9,173,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxFailCancelOrdersReaction" Margin="196,173,15,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelFailCancelOrdersCountToReaction" Content="Max fail cancel orders" HorizontalAlignment="Left" Margin="9,202,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxFailCancelOrdersCountToReaction" Margin="196,202,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <Label Name="LabelFailCancelOrdersCountFact" Content="Current fail cancel orders" HorizontalAlignment="Left" Margin="9,230,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxFailCancelOrdersCountFact" Margin="221,230,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxFailCancelOrdersReactionIsOn" Content="Check cancel orders stream" HorizontalAlignment="Left" Margin="10,127,0,0" VerticalAlignment="Top" Width="312"/>
+                    <Label Name="LabelFailCancelOrdersReaction" Content="Reaction" HorizontalAlignment="Left" Margin="9,155,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxFailCancelOrdersReaction" Margin="196,155,15,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelFailCancelOrdersCountToReaction" Content="Max fail cancel orders" HorizontalAlignment="Left" Margin="9,184,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxFailCancelOrdersCountToReaction" Margin="196,184,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <Label Name="LabelFailCancelOrdersCountFact" Content="Current fail cancel orders" HorizontalAlignment="Left" Margin="9,212,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxFailCancelOrdersCountFact" Margin="221,212,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxWaitOnStartConnectorIsOn" Content="Wait on start connector is in" HorizontalAlignment="Left" Margin="10,252,0,0" VerticalAlignment="Top" Width="312"/>
+                    <Label Name="LabelWaitSecondsOnStartConnector" Content="Wait seconds on start connector" HorizontalAlignment="Left" Margin="10,280,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxWaitSecondsOnStartConnector" Margin="221,280,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
         </TabControl>
