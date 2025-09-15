@@ -14,8 +14,9 @@ using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using RestSharp;
-using static OsEngine.Market.Servers.XT.XTFutures.Entity.Symbol;
-using System.Buffers.Text;
+using System.Security.Policy;
+
+
 
 
 
@@ -213,7 +214,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private string _secretKey;
 
-            private string _listenKey; // lifetime <= 30 days
+            private string _listenKey; // lifetime 8 hours
 
             #endregion
 
@@ -584,9 +585,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private WebSocket _webSocketPublicTrades;
 
-            private readonly string _webSocketPrivateUrl = "wss://stream.xt.com/private";
-
-            private readonly string _webSocketPublicUrl = "wss://stream.xt.com/public";
+             private readonly string _webSocketPrivateUrl = "wss://fstream.xt.com/ws/user";
+         
+            private readonly string _webSocketPublicUrl = "wss://fstream.xt.com/ws/market";
 
             private readonly string _socketLocker = "webSocketLockerXT";
 
@@ -738,7 +739,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     SendLogMessage(ex.Message, LogMessageType.Error);
                 }
             }
-
+           
             #endregion
 
             #region 7 WebSocket events
@@ -1016,9 +1017,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     CheckFullActivation();
                     SendLogMessage("WebSocketPrivate Connection to private data is Open", LogMessageType.System);
-
-                    // sign up for order and portfolio changes
-                    _webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\",\"balance\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // change orders
+                    _webSocketPrivate.Send($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"balance@{_listenKey}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                        
                 }
                 catch (Exception ex)
                 {
@@ -2248,7 +2248,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             #region 12 Queries
 
-            private readonly string _baseUrl = "https://fapi.xt.com";//Coin-M:https://dapi.xt.com//https://fapi.xt.com
+            private readonly string _baseUrl = "https://fapi.xt.com";
 
             private readonly string _timeOut = "50000";
 
@@ -2268,7 +2268,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-                    var responseMessage = CreatePrivateQuery("/future/user/v1/user/listen-key",
+                    IRestResponse responseMessage = CreatePrivateQuery("/future/user/v1/user/listen-key",
                         Method.GET,
                         null, null,
                         BodyKind.None,
@@ -2284,7 +2284,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         SendLogMessage($"API error: returnCode={stateResponse?.returnCode}, code={stateResponse?.error?.code}, msg={stateResponse?.error?.msg}, msgInfo={stateResponse?.msgInfo}",LogMessageType.Error);
                       
                     }
-
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -2640,16 +2639,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             //    }
             //}
 
-            //static string HmacSha256(string key, string msg)
-            //{
-            //    using (var h = new HMACSHA256(Encoding.UTF8.GetBytes(key)))
-            //    {
-            //        var hash = h.ComputeHash(Encoding.UTF8.GetBytes(msg));
-            //        var sb = new StringBuilder(hash.Length * 2);
-            //        for (int i = 0; i < hash.Length; i++) sb.Append(hash[i].ToString("x2"));
-            //        return sb.ToString();
-            //    }
-            //}
             enum BodyKind { None, FormUrlEncoded, Json }
 
             private string BuildQuery(string[] keys, string[] values)
@@ -2756,6 +2745,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 var request = new RestRequest(httpMethod);
 
                 // Заголовки подписи
+                request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
                 request.AddHeader("Accept", "application/json");
                 request.AddHeader("Content-Type", contentType);
                 request.AddHeader("validate-appkey", _publicKey);
