@@ -250,7 +250,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         public int AsyncOrderSending_RateGateLimitMls
         {
-            get { return 1; }
+            get { return 100; }
         }
 
         public bool IsSupports_AsyncCandlesStarter
