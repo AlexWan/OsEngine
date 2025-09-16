@@ -180,7 +180,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string[] values = new string[]
                 {
                     "_LONG",
-                    "_SHORT",
+                    "_SHORT"
                 };
 
                 return values;
@@ -222,11 +222,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
         public bool CanQueryOrdersAfterReconnect
         {
             get { return true; }
@@ -239,7 +234,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public bool CanGetOrderLists
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
