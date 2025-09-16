@@ -64,17 +64,28 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
 
     public class RestMessageOrders
     {
-        public string symbol;
-        public string orderId;
-        public string clientOid;
-        public string priceAvg;
-        public string status;
-        public string side;
-        public string orderType;
-        public string leverage;
-        public string size;
-        public string cTime;
-        public string price;
+        public string userId { get; set; }
+        public string symbol { get; set; }
+        public string orderId { get; set; }
+        public string clientOid { get; set; }
+        public string priceAvg { get; set; }
+        public string price { get; set; }
+        public string size { get; set; }
+        public string orderType { get; set; }
+        public string side { get; set; }
+        public string status { get; set; }
+        public string basePrice { get; set; }
+        public string baseVolume { get; set; }
+        public string quoteVolume { get; set; }
+        public string enterPointSource { get; set; }
+        public string presetTakeProfitPrice { get; set; }
+        public string executeTakeProfitPrice { get; set; }
+        public string presetStopLossPrice { get; set; }
+        public string executeStopLossPrice { get; set; }
+        public string cTime { get; set; }
+        public string uTime { get; set; }
+        public string tpslType { get; set; }
+        public string triggerPrice { get; set; }
     }
 
     public class DataOrderStatus
