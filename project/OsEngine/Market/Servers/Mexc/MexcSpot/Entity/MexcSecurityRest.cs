@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public string quoteAmountPrecision { get; set; }
         public string baseSizePrecision { get; set; }
         public List<string> permissions { get; set; }
-        public List<string> filters { get; set; }
+        public List<object> filters { get; set; }
         public string maxQuoteAmount { get; set; }
         public string makerCommission { get; set; }
         public string takerCommission { get; set; }
