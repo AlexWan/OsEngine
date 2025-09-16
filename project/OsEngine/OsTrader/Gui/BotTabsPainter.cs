@@ -285,7 +285,7 @@ namespace OsEngine.OsTrader.Gui
                 if(rowIndex == botsCount + 1)
                 { // последняя строка
                     if (_master._startProgram == StartProgram.IsOsTrader
-                       && coluIndex == 6)
+                       && coluIndex == 5)
                     {
                         ServerMaster.ShowApiDialog();
                     }

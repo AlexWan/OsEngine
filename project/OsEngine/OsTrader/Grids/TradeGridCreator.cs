@@ -262,11 +262,6 @@ namespace OsEngine.OsTrader.Grids
                     priceCurrent += curStep;
                 }
 
-                if(newLine.PriceExit == 76214)
-                {
-
-                }
-
                 if (StepMultiplicator != 1
                     && StepMultiplicator != 0)
                 {
