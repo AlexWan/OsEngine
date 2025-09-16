@@ -5294,23 +5294,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
+
                     price = Math.Round(price, 0);
+
                     while (price % Security.PriceStep != 0)
                     {
                         price = price - 1;
                     }
-                }
-
-                if (side == Side.Buy &&
-                    Security.PriceLimitHigh != 0 && price > Security.PriceLimitHigh)
-                {
-                    price = Security.PriceLimitHigh;
-                }
-
-                if (side == Side.Sell &&
-                    Security.PriceLimitLow != 0 && price < Security.PriceLimitLow)
-                {
-                    price = Security.PriceLimitLow;
                 }
 
                 return price;
