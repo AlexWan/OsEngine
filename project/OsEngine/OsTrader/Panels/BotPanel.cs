@@ -1076,6 +1076,74 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
+        /// <summary>
+        /// number of long positions on the robot tabs
+        /// </summary>
+        public int AllPositionsLongCount
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null
+                    || journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                List<Position> pos = new List<Position>();
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i] == null)
+                    {
+                        continue;
+                    }
+                    if (journals[i].OpenAllLongPositions == null
+                        || journals[i].OpenAllLongPositions.Count == 0)
+                    {
+                        continue;
+                    }
+                    pos.AddRange(journals[i].OpenAllLongPositions);
+                }
+                return pos.Count;
+            }
+        }
+
+        /// <summary>
+        /// number of short positions on the robot tabs
+        /// </summary>
+        public int AllPositionsShortCount
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null
+                    || journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                List<Position> pos = new List<Position>();
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i] == null)
+                    {
+                        continue;
+                    }
+                    if (journals[i].OpenAllShortPositions == null
+                        || journals[i].OpenAllShortPositions.Count == 0)
+                    {
+                        continue;
+                    }
+                    pos.AddRange(journals[i].OpenAllShortPositions);
+                }
+                return pos.Count;
+            }
+        }
+
         #endregion
 
         #region Parameters
