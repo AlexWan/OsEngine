@@ -3089,7 +3089,7 @@ namespace OsEngine.OsTrader.Grids
                 uiDialog.ShowDialog();
                 Close();
             }
-            catch (Exception ex)
+            catch
             {
                 // ignore
             }

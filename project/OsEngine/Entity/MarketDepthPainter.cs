@@ -633,9 +633,9 @@ namespace OsEngine.Entity
                 }
                 // _glassBox.Refresh();
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // игнор
             }
         }
 

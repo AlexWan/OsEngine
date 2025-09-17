@@ -1493,9 +1493,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                             i2--;
                         }
                     }
-                    catch (Exception e)
+                    catch
                     {
-
+                        // ignore
                     }
                 }
                 exitVal.ValueCandles = exitCandles;

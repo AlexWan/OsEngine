@@ -580,7 +580,7 @@ namespace OsEngine.OsTrader.Gui
             }
             catch (Exception ex)
             {
-                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _master.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
