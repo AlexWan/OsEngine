@@ -47,35 +47,48 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 
     public class XTFuturesResponseWebSocketPortfolio
     {
-        // https://doc.xt.com/#websocket_privatebalanceChange
-        public string a { get; set; }                    //"123" accountId                     
-        public string t { get; set; }                         //"1656043204763", happened time
-        public string c { get; set; }                     //"btc", currency
-        public string b { get; set; }                      //"123", all spot balance
-        public string f { get; set; }                       //"11", frozen amount
-        public string z { get; set; }                      //"SPOT", bizType [SPOT,LEVER]
-        public string s { get; set; }                       //"btc_usdt", symbol
+        public string coin { get; set; }  // Currency (e.g., usdt)
+        public string underlyingType { get; set; }  // Underlying type (1 = Coin-M, 2 = USDT-M)
+        public string walletBalance { get; set; }  // Wallet balance
+        public string openOrderMarginFrozen { get; set; }  // Margin frozen by open orders
+        public string isolatedMargin { get; set; }  // Isolated margin
+        public string crossedMargin { get; set; }  // Crossed margin  
     }
 
+    public class PositionData
+    {
+        public string symbol { get; set; }  // Trading pair symbol (e.g., btc_usdt)
+        public string contractType { get; set; }  // Contract type ("PERPETUAL", "DELIVERY")
+        public string positionType { get; set; }  // Position type ("ISOLATED", "CROSSED")
+        public string positionSide { get; set; }  // Position side ("LONG", "SHORT")
+        public string positionSize { get; set; }  // Position quantity
+        public string closeOrderSize { get; set; }  // Pending close order size (contracts)
+        public string availableCloseSize { get; set; }  // Available contracts to close
+        public string realizedProfit { get; set; }  // Realized profit and loss
+        public string entryPrice { get; set; }  // Average entry price
+        public string isolatedMargin { get; set; }  // Isolated margin
+        public string openOrderMarginFrozen { get; set; }  // Margin occupied by open orders
+        public string underlyingType { get; set; }  // Underlying type ("COIN_BASED", "U_BASED")
+        public string leverage { get; set; }  // Leverage
+    }
     public class XTFuturesResponseWebSocketOrder
     {
-        // https://doc.xt.com/#websocket_privateorderChange
-        public string s { get; set; }                       //"btc_usdt",  symbol
-        public string bc { get; set; }                 //"btc", base currency
-        public string qc { get; set; }            //"usdt",  quotation currency 
-        public string t { get; set; }                 //1656043204763, happened time in ms
-        public string ct { get; set; }                   //1656043204663, create time in ms
-        public string i { get; set; }                      //"6216559590087220004", order id,
-        public string ci { get; set; }                //"test123", client order id
-        public string st { get; set; }                        //"PARTIALLY_FILLED", state NEW/PARTIALLY_FILLED/FILLED/CANCELED/REJECTED/EXPIRED
-        public string sd { get; set; }                         //"BUY", order side BUY/SELL
-        public string tp { get; set; }                         //"LIMIT", order type LIMIT/MARKET
-        public string oq { get; set; }             //"4", original quantity
-        public string oqq { get; set; }    //48000, original quotation quantity
-        public string eq { get; set; }             //"2", executed quantity
-        public string lq { get; set; }            //"2", remaining quantity
-        public string p { get; set; }                        //"4000", price 
-        public string ap { get; set; }                 //"30000", avg price
-        public string f { get; set; }                          //"0.002", fee 
+        public string symbol { get; set; }        // Trading pair
+        public string orderId { get; set; }       // Order ID
+        public string origQty { get; set; }       // Original quantity
+        public string avgPrice { get; set; }      // Average price
+        public string price { get; set; }         // Price
+        public string executedQty { get; set; }   // Executed quantity
+        public string orderSide { get; set; }     // BUY or SELL
+        public string timeInForce { get; set; }   // Valid way (GTC, IOC, FOK, GTX)
+        public string positionSide { get; set; }  // Position side (LONG, SHORT)
+        public string marginFrozen { get; set; }  // Occupied margin
+        public string sourceType { get; set; }    // Order source (DEFAULT, ENTRUST, PROFIT)
+        public string type { get; set; }          // Type (ORDER, etc.)
+        public string state { get; set; }         // State (NEW, PARTIALLY_FILLED, FILLED, CANCELED, etc.)
+        public string createdTime { get; set; }   // Create time (timestamp)
+        public string leverage { get; set; }      // Leverage
+        public string positionType { get; set; }  // Position type (CROSSED, ISOLATED)
+        public string orderType { get; set; }     // Order type (LIMIT, MARKET)
     }
 }

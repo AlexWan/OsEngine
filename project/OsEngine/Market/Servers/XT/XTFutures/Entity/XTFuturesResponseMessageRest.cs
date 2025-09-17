@@ -45,13 +45,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 
     public class XTFuturesResponseCandle
     {
-        public string t { get; set; } //1662601014832, open time in ms
-        public string o { get; set; } //"30000", open price
-        public string c { get; set; } //"32000", close price
-        public string h { get; set; } //"35000", highest price
-        public string l { get; set; } //"25000", lowest price
-        public string q { get; set; } //"512", transaction quantity
-        public string v { get; set; } //"15360000", transaction volume
+        public string a { get; set; }  // Volume
+        public string c { get; set; }  // Close price
+        public string h { get; set; }  // Highest price
+        public string l { get; set; }  // Lowest price
+        public string o { get; set; }  // Open price
+        public string s { get; set; }  // Trading pair (symbol)
+        public string t { get; set; }  // Time (timestamp)
+        public string v { get; set; }  // Turnover
     }
 
     public class XTFuturesResponsePlaceOrder
