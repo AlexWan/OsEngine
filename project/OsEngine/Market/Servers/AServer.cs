@@ -1120,6 +1120,13 @@ namespace OsEngine.Market.Servers
                         ServerRealization.GetSecurities();
                     }
 
+                    if(_lastDateTimeServer.Date != DateTime.Now.Date)
+                    {
+                        HasConnectionMessageBeenSent = false;
+                        HasFirstOrderMessageBeenSent = false;
+                        _lastDateTimeServer = DateTime.Now.Date;
+                    }
+                    
                     if (HasConnectionMessageBeenSent == false)
                     {
                         SendMessageConnectorConnectInAnalysisServer();
@@ -4156,6 +4163,8 @@ namespace OsEngine.Market.Servers
         private string _messageFirstConnect;
 
         private string _messageFirstOrder;
+
+        private DateTime _lastDateTimeServer = DateTime.MinValue;
 
         private void SendMessageConnectorConnectInAnalysisServer()
         {
