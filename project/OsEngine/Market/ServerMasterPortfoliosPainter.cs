@@ -766,7 +766,7 @@ namespace OsEngine.Market
                 {
                     aServer = (AServer)myServer;
                 }
-                catch (Exception ex)
+                catch
                 {
                     return;
                 }

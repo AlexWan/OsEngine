@@ -250,9 +250,9 @@ namespace OsEngine.Market.Proxy
                     reader.Close();
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendLogMessage(error.ToString(), LogMessageType.Error);
+                // игнор
             }
         }
 

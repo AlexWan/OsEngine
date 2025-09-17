@@ -114,10 +114,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
                     Thread.Sleep(5000);
-                    // do nothin
+                    // ignore
                 }
             }
         }

@@ -173,9 +173,9 @@ namespace OsEngine.OsOptimizer
                     reader.Close();
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
         }
 

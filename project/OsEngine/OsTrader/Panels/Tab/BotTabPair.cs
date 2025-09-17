@@ -1678,9 +1678,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     rowInGrid.Cells[4].Value = rowInArray.Cells[4].Value.ToString();
                 }
             }
-            catch (Exception error)
+            catch
             {
-
+                // ignore
             }
         }
 
