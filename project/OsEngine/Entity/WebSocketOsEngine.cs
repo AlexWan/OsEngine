@@ -19,6 +19,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
         public WebSocket(string url)
         {
             _client = new ClientWebSocket();
+           
             //_client.Options.KeepAliveInterval = TimeSpan.FromDays(3);
             _url = url;
             ReadyState = WebSocketState.Closed;
@@ -81,7 +82,15 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
                 ReadyState = WebSocketState.Open;
 
-                OnOpen?.Invoke(this, EventArgs.Empty);
+                if(OnOpen != null)
+                {
+                    OnOpen(this, EventArgs.Empty);
+                }
+
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
 
                 _receiveTask = Task.Run(() => ReceiveLoopAsync(token));
 
@@ -91,7 +100,10 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 ErrorEventArgs eventArgs = new ErrorEventArgs();
                 eventArgs.Exception = ex;
 
-                OnError?.Invoke(this, eventArgs);
+                if(OnError != null)
+                {
+                    OnError(this, eventArgs);
+                }
             }
         }
 
@@ -112,7 +124,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     try
                     {
                         // Give receive loop some time to exit gracefully
-                        await Task.WhenAny(_receiveTask, Task.Delay(TimeSpan.FromSeconds(2)));
+                        await Task.WhenAny(_receiveTask, Task.Delay(TimeSpan.FromSeconds(5)));
                     }
                     catch { /* ignored */ }
                 }
@@ -158,7 +170,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 {
                     ErrorEventArgs eventArgs = new ErrorEventArgs();
                     eventArgs.Exception = ex;
-                    OnError?.Invoke(this, eventArgs);
+
+                    if(OnError != null)
+                    {
+                        OnError(this, eventArgs);
+                    }
                 }
             }
         }
@@ -180,13 +196,13 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
                         return true;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         return false;
                     }
                 }
             }
-            catch (Exception e)
+            catch
             {
                 return false;
             }
@@ -213,6 +229,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
         {
             try
             {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 var buffer = new byte[8192 * 2]; // 16KB buffer, adjust as needed
 
                 while (_client.State == System.Net.WebSockets.WebSocketState.Open && !token.IsCancellationRequested)
@@ -252,7 +273,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                                 MessageEventArgs messageValue = new MessageEventArgs();
                                 messageValue.Data = message;
                                 messageValue.IsText = true;
-                                OnMessage?.Invoke(this, messageValue);
+
+                                if (OnMessage != null)
+                                {
+                                    OnMessage(this, messageValue);
+                                }
                             }
                         }
                         else if (result.MessageType == WebSocketMessageType.Binary)
@@ -260,7 +285,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                             MessageEventArgs messageValue = new MessageEventArgs();
                             messageValue.RawData = receivedData;
                             messageValue.IsBinary = true;
-                            OnMessage?.Invoke(this, messageValue);
+
+                            if (OnMessage != null)
+                            {
+                                OnMessage(this, messageValue);
+                            }
                         }
                         else if (result.MessageType == WebSocketMessageType.Close)
                         {
@@ -279,7 +308,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                                 closeEventArgs.Reason = result.CloseStatus.ToString();
                             }
 
-                            OnClose?.Invoke(this, closeEventArgs);
+                            if(OnClose != null)
+                            {
+                                OnClose(this, closeEventArgs);
+                            }
+                           
                             return;
                         }
                     }
@@ -291,7 +324,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 ReadyState = WebSocketState.Closed;
                 ErrorEventArgs eventArgs = new ErrorEventArgs();
                 eventArgs.Exception = ex;
-                OnError?.Invoke(this, eventArgs);
+
+                if (OnError != null)
+                {
+                    OnError(this, eventArgs);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -303,7 +340,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 ReadyState = WebSocketState.Closed;
                 ErrorEventArgs eventArgs = new ErrorEventArgs();
                 eventArgs.Exception = ex;
-                OnError?.Invoke(this, eventArgs);
+
+                if(OnError != null)
+                {
+                    OnError(this, eventArgs);
+                }
             }
             finally
             {
@@ -314,7 +355,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 {
                     CloseEventArgs closeEventArgs = new CloseEventArgs();
                     closeEventArgs.Code = "Finally socket closed";
-                    OnClose?.Invoke(this, closeEventArgs);
+
+                    if (OnClose != null)
+                    {
+                        OnClose(this, closeEventArgs);
+                    }
                 }
             }
         }
