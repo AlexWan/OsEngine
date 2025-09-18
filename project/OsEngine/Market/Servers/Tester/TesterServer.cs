@@ -489,16 +489,12 @@ namespace OsEngine.Market.Servers.Tester
                         SendLogMessage(ex.ToString(), LogMessageType.Error);
                     }
                 }
-
-                _isFirstStart = false;
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
-
-        private bool _isFirstStart = true;
 
         public bool IsAlreadyStarted;
 
