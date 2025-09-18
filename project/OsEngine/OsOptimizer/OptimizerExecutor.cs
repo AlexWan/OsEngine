@@ -1061,7 +1061,7 @@ namespace OsEngine.OsOptimizer
 
         public event Action<int, int> PrimeProgressChangeEvent;
 
-        public event Action<NeedToMoveUiTo> NeedToMoveUiToEvent;
+        public event Action<NeedToMoveUiTo> NeedToMoveUiToEvent { add { } remove { } }
 
         #endregion
 

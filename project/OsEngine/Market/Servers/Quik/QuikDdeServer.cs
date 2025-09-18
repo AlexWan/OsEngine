@@ -856,7 +856,7 @@ namespace OsEngine.Market.Servers.Quik
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         // processing data from auxiliary classes
         // обработка данных из вспомогательных классов
@@ -1188,7 +1188,7 @@ namespace OsEngine.Market.Servers.Quik
         /// </summary>
         public event Action DisconnectEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         // logging / логирование
 
@@ -1225,8 +1225,8 @@ namespace OsEngine.Market.Servers.Quik
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
     }
 }

@@ -1804,7 +1804,7 @@ namespace OsEngine.Market.Servers.OKX
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 

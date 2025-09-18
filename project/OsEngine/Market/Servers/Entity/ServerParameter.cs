@@ -479,7 +479,7 @@ namespace OsEngine.Market.Servers.Entity
             get { return ServerParameterType.Button; }
         }
 
-        public event Action ValueChange;
+        public event Action ValueChange { add { } remove { } }
 
         public void ActivateButtonClick()
         {
