@@ -511,6 +511,12 @@ namespace OsEngine
 
         private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
+            if (e.Exception != null
+                && e.Exception.ToString().Contains("(995):")== true)
+            { // игнорируем прерывания потока за делом по кансел токену
+                return;
+            }
+
             string message = OsLocalization.MainWindow.Message5 + " TASK " + e.Exception.ToString();
 
             message = _startProgram + "  " + message;
