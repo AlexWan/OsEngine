@@ -167,7 +167,7 @@ namespace OsEngine.OsTrader.Grids
                 
                 Number = Convert.ToInt32(values[0]);
                 Enum.TryParse(values[1], out GridType);
-                Enum.TryParse(values[2], out Regime);
+                Enum.TryParse(values[2], out _regime);
                 Enum.TryParse(values[3], out RegimeLogicEntry);
                 AutoClearJournalIsOn = Convert.ToBoolean(values[4]);
                 MaxClosePositionsInJournal = Convert.ToInt32(values[5]);
@@ -345,7 +345,33 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridPrimeType GridType;
 
-        public TradeGridRegime Regime;
+        public TradeGridRegime Regime
+        {
+            get
+            {
+                return _regime;
+            }
+            set
+            {
+                if(_regime == value)
+                {
+                    return;
+                }
+
+                _regime = value;
+
+                if(FullRePaintGridEvent != null)
+                {
+                    FullRePaintGridEvent();
+                }
+                
+                if(RePaintSettingsEvent != null)
+                {
+                    RePaintSettingsEvent();
+                }
+            }
+        }
+        private TradeGridRegime _regime;
 
         public TradeGridLogicEntryRegime RegimeLogicEntry;
 

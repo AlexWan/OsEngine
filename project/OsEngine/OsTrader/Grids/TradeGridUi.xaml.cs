@@ -2891,10 +2891,15 @@ namespace OsEngine.OsTrader.Grids
             {
                 if(ComboBoxRegime.SelectedItem.ToString() != TradeGrid.Regime.ToString())
                 {
-                    Enum.TryParse(ComboBoxRegime.SelectedItem.ToString(), out TradeGrid.Regime);
-                    TradeGrid.Save();
-                    TradeGrid.RePaintGrid();
-                    CheckEnabledItems();
+                    TradeGridRegime regime;
+
+                    if(Enum.TryParse(ComboBoxRegime.SelectedItem.ToString(), out regime))
+                    {
+                        TradeGrid.Regime = regime;
+                        TradeGrid.Save();
+                        TradeGrid.RePaintGrid();
+                        CheckEnabledItems();
+                    }
                 }
             }
             catch (Exception ex)
@@ -3073,7 +3078,12 @@ namespace OsEngine.OsTrader.Grids
                     using (StreamReader reader = new StreamReader(filePath))
                     {
                         string fileStr = reader.ReadToEnd();
+
+                        int gridNumber = TradeGrid.Number;
+
                         TradeGrid.LoadFromString(fileStr);
+                        TradeGrid.Number = gridNumber;
+
                         TradeGrid.Save();
                     }
                 }
