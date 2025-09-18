@@ -26,23 +26,24 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string b { get; set; }                 //"true" whether is buyerMaker or not
     }
 
-    public class XTFuturesResponseWebSocketDepthIncremental
+    public class XTFuturesResponseWebSocketUpdateDepth
     {
-        public string s { get; set; }                       //symbol
-        public string fi { get; set; }                //firstUpdateId = previous lastUpdateId + 1
-        public string i { get; set; }                 //lastUpdateId
-        public List<List<string>> a { get; set; }             //List of asks (sell orders), [0]price, [1]quantity
-        public List<List<string>> b { get; set; }             //List of bids (buy orders), [0]price, [1]quantity
-        public string t { get; set; }
+
+        public string s { get; set; } // symbol
+        public long pu { get; set; }  // previousUpdateId
+        public long fu { get; set; }  // firstUpdateId
+        public long u { get; set; }   // lastUpdateId
+        public List<List<string>> a { get; set; } // asks: list of [price, quantity]
+        public List<List<string>> b { get; set; }  // bids: list of [price, quantity]
     }
 
-    public class XTFuturesResponseWebSocketDepth
+    public class XTFuturesResponseWebSocketSnapshotDepth
     {
-        public string s { get; set; }                       //symbol
-        public string i { get; set; }                     //lastUpdateId
-        public string t { get; set; }                         //"1655992403617", time  
-        public List<List<string>> a { get; set; }             //List of asks (sell orders), [0]price, [1]quantity
-        public List<List<string>> b { get; set; }             //List of bids (buy orders), [0]price, [1]quantity
+        public string id { get; set; }   // lastUpdateId
+        public string s { get; set; }    // trading pair (symbol)
+        public List<List<string>> a { get; set; }  // asks: list of [price, quantity]
+        public List<List<string>> b { get; set; } // bids: list of [price, quantity]
+        public long t { get; set; }      // timestamp
     }
 
     public class XTFuturesResponseWebSocketPortfolio

@@ -90,10 +90,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-                    //RestClient client = new RestClient(_baseUrl);
-                    // RestRequest request = new RestRequest("/future/public/client", Method.GET);
-                    // RestRequest request = new RestRequest("/future/user/v1/account/info", Method.GET);
-                    //IRestResponse responseMessage = client.Execute(request);
                     IRestResponse responseMessage = CreatePublicQuery("/future/public/client", "", Method.GET);
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
@@ -246,7 +242,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-
                     IRestResponse response = CreatePublicQuery("/future/market/v3/public/symbol/list", "", Method.GET);
 
                     if (response.StatusCode == HttpStatusCode.OK)
@@ -1118,8 +1113,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         {
                             continue;
                         }
-
-                        XTFuturesResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<object>());
+                        var action = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<object>>(message);
 
                         if (action != null && action.topic != null)
                         {
@@ -1260,7 +1254,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     trade.Id = responseTrade.data.i;
                     trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data.t));
                     trade.Volume = responseTrade.data.q.ToDecimal();
-                    trade.Side = responseTrade.data.b.Equals("true") ? Side.Buy : Side.Sell;
+                    //trade.Side = responseTrade.data.b.Equals("true") ? Side.Buy : Side.Sell;
 
                     NewTradesEvent?.Invoke(trade);
                 }
@@ -1276,298 +1270,538 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private bool startDepth = true;
 
-            private void SnapshotDepth(string message)
+
+            //    private void SnapshotDepth(string message, string symbol)
+            //    {
+            //        try
+            //        {
+
+            //        XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepth> responseDepth = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepth>>(responseMessage.Content);
+
+            //        if (responseDepth?.data == null)
+            //        {
+            //            return;
+            //        }
+
+            //        MarketDepth marketDepth = null;
+
+            //        for (int i = 0; i < _marketDepths.Count; i++)
+            //        {
+            //            if (_marketDepths[i].SecurityNameCode == responseDepth.ticker_id)
+            //            {
+            //                marketDepth = _marketDepths[i];
+            //                break;
+            //            }
+            //        }
+
+            //        if (startDepth)
+            //        {
+            //            if (marketDepth == null)
+            //            {
+            //                marketDepth = new MarketDepth();
+            //                _marketDepths.Add(marketDepth);
+            //            }
+            //            else
+            //            {
+            //                marketDepth.Asks.Clear();
+            //                marketDepth.Bids.Clear();
+            //            }
+
+            //            List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
+            //            List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+            //            marketDepth.SecurityNameCode = responseDepth.data.s;
+
+            //            if (responseDepth.data.a != null)
+            //            {
+            //                for (int i = 0; i < responseDepth.data.a.Count; i++)
+            //                {
+            //                    asks.Add(new MarketDepthLevel()
+            //                    {
+            //                        Ask = responseDepth.data.a[i][1].ToDecimal(),
+            //                        Price = responseDepth.data.a[i][0].ToDecimal(),
+            //                    });
+            //                }
+            //            }
+
+            //            if (responseDepth.data.b != null)
+            //            {
+            //                for (int i = 0; i < responseDepth.data.b.Count; i++)
+            //                {
+            //                    bids.Add(new MarketDepthLevel()
+            //                    {
+            //                        Bid = responseDepth.data.b[i][1].ToDecimal(),
+            //                        Price = responseDepth.data.b[i][0].ToDecimal(),
+            //                    });
+            //                }
+            //            }
+
+            //            marketDepth.Asks = asks;
+            //            marketDepth.Bids = bids;
+
+            //            marketDepth.Time = ServerTime;
+
+            //            if (marketDepth.Time < _lastTimeMd)
+            //            {
+            //                marketDepth.Time = _lastTimeMd;
+            //            }
+            //            else if (marketDepth.Time == _lastTimeMd)
+            //            {
+            //                _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
+
+            //                marketDepth.Time = _lastTimeMd;
+            //            }
+            //            _lastTimeMd = marketDepth.Time;
+
+            //            if (MarketDepthEvent != null)
+            //            {
+            //                MarketDepthEvent(marketDepth.GetCopy());
+            //            }
+
+            //            startDepth = false;
+            //        }
+            //    }
+            //    catch (Exception exception)
+            //    {
+            //        SendLogMessage("SnapshotDepth error: " + exception.ToString(), LogMessageType.Error);
+            //}
+            //     }
+
+            //    private void UpdateDepth(string message)
+            //    {
+            //        try
+            //        {
+            //            XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepthIncremental> responseDepth = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepthIncremental>>(message);
+
+            //            if (responseDepth?.data == null)
+            //            {
+            //                return;
+            //            }
+
+            //            if (_marketDepths == null
+            //                || _marketDepths.Count == 0)
+            //            {
+            //                startDepth = true;
+            //                return;
+            //            }
+
+            //            MarketDepth marketDepth = null;
+
+            //            for (int i = 0; i < _marketDepths.Count; i++)
+            //            {
+            //                if (_marketDepths[i].SecurityNameCode == responseDepth.data.s)
+            //                {
+            //                    marketDepth = _marketDepths[i];
+            //                    break;
+            //                }
+            //            }
+
+            //            if (marketDepth == null)
+            //            {
+            //                startDepth = true;
+            //                return;
+            //            }
+
+            //            if (marketDepth.Asks.Count == 0
+            //                || marketDepth.Bids.Count == 0)
+            //            {
+            //                startDepth = true;
+            //                return;
+            //            }
+
+            //            if (responseDepth.data.a != null
+            //                    && responseDepth.data.a.Count > 0)
+            //            {
+            //                for (int k = 0; k < responseDepth.data.a.Count; k++)
+            //                {
+            //                    decimal priceLevel = responseDepth.data.a[k][0].ToDecimal();
+
+            //                    for (int j = 0; j < marketDepth.Asks.Count; j++)
+            //                    {
+            //                        if (marketDepth.Asks[j].Price == priceLevel)
+            //                        {
+            //                            if (responseDepth.data.a[k][1].ToDecimal() == 0)
+            //                            {
+            //                                marketDepth.Asks.RemoveAt(j);
+            //                            }
+            //                            else
+            //                            {
+            //                                marketDepth.Asks[j].Ask = responseDepth.data.a[k][1].ToDecimal();
+            //                            }
+            //                        }
+            //                        else if (j == 0 && priceLevel < marketDepth.Asks[j].Price
+            //                           && responseDepth.data.a[k][1].ToDecimal() != 0)
+            //                        {
+            //                            marketDepth.Asks.Insert(j, new MarketDepthLevel()
+            //                            {
+            //                                Ask = responseDepth.data.a[k][1].ToDecimal(),
+            //                                Price = responseDepth.data.a[k][0].ToDecimal()
+            //                            });
+            //                        }
+            //                        else if (j != marketDepth.Asks.Count - 1 && priceLevel > marketDepth.Asks[j].Price
+            //                            && priceLevel < marketDepth.Asks[j + 1].Price
+            //                            && responseDepth.data.a[k][1].ToDecimal() != 0)
+            //                        {
+            //                            marketDepth.Asks.Insert(j + 1, new MarketDepthLevel()
+            //                            {
+            //                                Ask = responseDepth.data.a[k][1].ToDecimal(),
+            //                                Price = responseDepth.data.a[k][0].ToDecimal()
+            //                            });
+            //                        }
+            //                        else if (j == marketDepth.Asks.Count - 1 && priceLevel > marketDepth.Asks[j].Price
+            //                            && responseDepth.data.a[k][1].ToDecimal() != 0)
+            //                        {
+            //                            marketDepth.Asks.Add(new MarketDepthLevel()
+            //                            {
+            //                                Ask = responseDepth.data.a[k][1].ToDecimal(),
+            //                                Price = responseDepth.data.a[k][0].ToDecimal()
+            //                            });
+            //                        }
+
+            //                        if (marketDepth.Bids != null && marketDepth.Bids.Count > 2
+            //                            && priceLevel < marketDepth.Bids[0].Price)
+            //                        {
+            //                            marketDepth.Bids.RemoveAt(0);
+            //                        }
+            //                    }
+            //                }
+            //            }
+
+            //            if (responseDepth.data.b != null
+            //                && responseDepth.data.b.Count > 0)
+            //            {
+            //                for (int k = 0; k < responseDepth.data.b.Count; k++)
+            //                {
+            //                    decimal priceLevel = responseDepth.data.b[k][0].ToDecimal();
+
+            //                    for (int j = 0; j < marketDepth.Bids.Count; j++)
+            //                    {
+            //                        if (marketDepth.Bids[j].Price == priceLevel)
+            //                        {
+            //                            if (responseDepth.data.b[k][1].ToDecimal() == 0)
+            //                            {
+            //                                marketDepth.Bids.RemoveAt(j);
+            //                            }
+            //                            else
+            //                            {
+            //                                marketDepth.Bids[j].Bid = responseDepth.data.b[k][1].ToDecimal();
+            //                            }
+            //                        }
+            //                        else if (j == 0 && priceLevel > marketDepth.Bids[j].Price
+            //                            && responseDepth.data.b[k][1].ToDecimal() != 0)
+            //                        {
+            //                            marketDepth.Bids.Insert(j, new MarketDepthLevel()
+            //                            {
+            //                                Bid = responseDepth.data.b[k][1].ToDecimal(),
+            //                                Price = responseDepth.data.b[k][0].ToDecimal()
+            //                            });
+            //                        }
+            //                        else if (j != marketDepth.Bids.Count - 1 && priceLevel < marketDepth.Bids[j].Price && priceLevel > marketDepth.Bids[j + 1].Price
+            //                            && responseDepth.data.b[k][1].ToDecimal() != 0)
+            //                        {
+            //                            marketDepth.Bids.Insert(j + 1, new MarketDepthLevel()
+            //                            {
+            //                                Bid = responseDepth.data.b[k][1].ToDecimal(),
+            //                                Price = responseDepth.data.b[k][0].ToDecimal()
+            //                            });
+            //                        }
+            //                        else if (j == marketDepth.Bids.Count - 1 && priceLevel < marketDepth.Bids[j].Price
+            //                            && responseDepth.data.b[k][1].ToDecimal() != 0)
+            //                        {
+            //                            marketDepth.Bids.Add(new MarketDepthLevel()
+            //                            {
+            //                                Bid = responseDepth.data.b[k][1].ToDecimal(),
+            //                                Price = responseDepth.data.b[k][0].ToDecimal()
+            //                            });
+            //                        }
+
+            //                        if (marketDepth.Asks != null && marketDepth.Asks.Count > 2
+            //                            && priceLevel > marketDepth.Asks[0].Price)
+            //                        {
+            //                            marketDepth.Asks.RemoveAt(0);
+            //                        }
+            //                    }
+            //                }
+            //            }
+
+            //            while (marketDepth.Asks.Count > 20)
+            //            {
+            //                marketDepth.Asks.RemoveAt(20);
+            //            }
+
+            //            while (marketDepth.Bids.Count > 20)
+            //            {
+            //                marketDepth.Bids.RemoveAt(20);
+            //            }
+
+            //            if (marketDepth.Asks.Count < 5
+            //                || marketDepth.Bids.Count < 5)
+            //            {
+            //                return;
+            //            }
+
+            //            marketDepth.Time = ServerTime;  //TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(lastUpdateTime));
+
+            //            if (marketDepth.Time < _lastTimeMd)
+            //            {
+            //                marketDepth.Time = _lastTimeMd;
+            //            }
+            //            else if (marketDepth.Time == _lastTimeMd)
+            //            {
+            //                _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
+
+            //                marketDepth.Time = _lastTimeMd;
+            //            }
+            //            _lastTimeMd = marketDepth.Time;
+
+            //            if (MarketDepthEvent != null)
+            //            {
+            //                MarketDepthEvent(marketDepth.GetCopy());
+            //            }
+            //        }
+            //        catch (Exception exception)
+            //        {
+            //            SendLogMessage("UpdateDepth error: " + exception.ToString(), LogMessageType.Error);
+            //        }
+            //    }
+            // внутри XTServerSpotRealization
+
+            private MarketDepth GetOrCreateDepth(string symbol)
+            {
+                for (int i = 0; i < _marketDepths.Count; i++)
+                    if (_marketDepths[i].SecurityNameCode == symbol)
+                        return _marketDepths[i];
+
+                var md = new MarketDepth
+                {
+                    SecurityNameCode = symbol,
+                    Asks = new List<MarketDepthLevel>(20),
+                    Bids = new List<MarketDepthLevel>(20)
+                };
+                _marketDepths.Add(md);
+                return md;
+            }
+
+            private static int CompareAsk(MarketDepthLevel x, MarketDepthLevel y) => x.Price.CompareTo(y.Price);    
+            private static int CompareBid(MarketDepthLevel x, MarketDepthLevel y) => y.Price.CompareTo(x.Price);     
+
+            private static void UpsertLevel(List<MarketDepthLevel> list, decimal price, decimal qty, bool isAsk)
+            {
+                // бинарный поиск по цене
+                int lo = 0, hi = list.Count - 1;
+                while (lo <= hi)
+                {
+                    int mid = (lo + hi) >> 1;
+                    var midPrice = list[mid].Price;
+                    int cmp = isAsk ? price.CompareTo(midPrice) : midPrice.CompareTo(price);
+                    if (cmp == 0)
+                    {
+                        if (qty == 0m) list.RemoveAt(mid);
+                        else
+                        {
+                            var lvl = list[mid];
+                            if (isAsk) lvl.Ask = qty; else lvl.Bid = qty;
+                            list[mid] = lvl;
+                        }
+                        return;
+                    }
+                    if (cmp < 0) hi = mid - 1;
+                    else lo = mid + 1;
+                }
+
+                if (qty == 0m) return; 
+
+              
+                var lvlNew = isAsk
+                    ? new MarketDepthLevel { Price = price, Ask = qty }
+                    : new MarketDepthLevel { Price = price, Bid = qty };
+
+                if (lo >= list.Count) list.Add(lvlNew);
+                else list.Insert(lo, lvlNew);
+
+              
+                if (list.Count > 20) list.RemoveAt(20);
+            }
+
+            private static void ApplySnapshotSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk, int maxLevels = 20)
+            {
+                dest.Clear();
+                if (side == null || side.Count == 0) return;
+
+              
+                int take = Math.Min(maxLevels, side.Count);
+                for (int i = 0; i < take; i++)
+                {
+                    decimal p = side[i][0].ToDecimal();
+                    decimal q = side[i][1].ToDecimal();
+                    if (q <= 0m) continue;
+
+                    dest.Add(isAsk
+                        ? new MarketDepthLevel { Price = p, Ask = q }
+                        : new MarketDepthLevel { Price = p, Bid = q });
+                }
+
+                if (isAsk) dest.Sort(CompareAsk);
+                else dest.Sort(CompareBid);
+
+                if (dest.Count > maxLevels)
+                    dest.RemoveRange(maxLevels, dest.Count - maxLevels);
+            }
+
+            private static void ApplyIncrementSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk)
+            {
+                if (side == null) return;
+
+                for (int i = 0; i < side.Count; i++)
+                {
+                    decimal p = side[i][0].ToDecimal();
+                    decimal q = side[i][1].ToDecimal();
+                    UpsertLevel(dest, p, q, isAsk);
+                }
+            }
+
+  
+         private void SnapshotDepth(string message)
             {
                 try
                 {
-                    IRestResponse responseMessage = CreatePublicQuery("/future/market/v1/public/cg/orderbook", "", Method.GET);
+                    var responseDepth =
+                        JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketSnapshotDepth>>(message);
+                    var d = responseDepth.data;
+                    if (d == null) return;
 
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepth> responseDepth = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepth>>(responseMessage.Content);
-
-                    if (responseDepth?.data == null)
+                    // 1) надёжно достаём символ
+                    var symbol = d.s;
+                    if (string.IsNullOrWhiteSpace(symbol))
                     {
+                        SendLogMessage("SnapshotDepth: empty symbol in payload", LogMessageType.Error);
                         return;
                     }
 
-                    MarketDepth marketDepth = null;
+                    MarketDepth copyToFire = null;
 
-                    for (int i = 0; i < _marketDepths.Count; i++)
+                    lock (_mdLock)
                     {
-                        if (_marketDepths[i].SecurityNameCode == responseDepth.data.s)
-                        {
-                            marketDepth = _marketDepths[i];
-                            break;
-                        }
-                    }
+                        var md = GetOrCreateDepth(symbol);
+                        if (md.Asks == null) md.Asks = new List<MarketDepthLevel>(20);
+                        if (md.Bids == null) md.Bids = new List<MarketDepthLevel>(20);
 
-                    if (startDepth)
-                    {
-                        if (marketDepth == null)
-                        {
-                            marketDepth = new MarketDepth();
-                            _marketDepths.Add(marketDepth);
-                        }
-                        else
-                        {
-                            marketDepth.Asks.Clear();
-                            marketDepth.Bids.Clear();
-                        }
+                    
+                        ApplySnapshotSide(d.a, md.Asks, isAsk: true, maxLevels: 20);
+                        ApplySnapshotSide(d.b, md.Bids, isAsk: false, maxLevels: 20);
 
-                        List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
-                        List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
-
-                        marketDepth.SecurityNameCode = responseDepth.data.s;
-
-                        if (responseDepth.data.a != null)
-                        {
-                            for (int i = 0; i < responseDepth.data.a.Count; i++)
-                            {
-                                asks.Add(new MarketDepthLevel()
-                                {
-                                    Ask = responseDepth.data.a[i][1].ToDecimal(),
-                                    Price = responseDepth.data.a[i][0].ToDecimal(),
-                                });
-                            }
-                        }
-
-                        if (responseDepth.data.b != null)
-                        {
-                            for (int i = 0; i < responseDepth.data.b.Count; i++)
-                            {
-                                bids.Add(new MarketDepthLevel()
-                                {
-                                    Bid = responseDepth.data.b[i][1].ToDecimal(),
-                                    Price = responseDepth.data.b[i][0].ToDecimal(),
-                                });
-                            }
-                        }
-
-                        marketDepth.Asks = asks;
-                        marketDepth.Bids = bids;
-
-                        marketDepth.Time = ServerTime;
-
-                        if (marketDepth.Time < _lastTimeMd)
-                        {
-                            marketDepth.Time = _lastTimeMd;
-                        }
-                        else if (marketDepth.Time == _lastTimeMd)
+                    
+                        md.Time = ServerTime;
+                        if (md.Time < _lastTimeMd) md.Time = _lastTimeMd;
+                        else if (md.Time == _lastTimeMd)
                         {
                             _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
-
-                            marketDepth.Time = _lastTimeMd;
+                            md.Time = _lastTimeMd;
                         }
-                        _lastTimeMd = marketDepth.Time;
+                        _lastTimeMd = md.Time;
 
-                        if (MarketDepthEvent != null)
-                        {
-                            MarketDepthEvent(marketDepth.GetCopy());
-                        }
-
+                   
+                        _awaitingSnapshot.Remove(symbol);
                         startDepth = false;
+
+                  
+                        if (_bufferBySymbol != null &&
+                            _bufferBySymbol.TryGetValue(symbol, out var list) &&
+                            list != null && list.Count > 0)
+                        {
+                            for (int i = 0; i < list.Count; i++)
+                            {
+                                var ev = list[i];
+                                ApplyIncrementSide(ev.a, md.Asks, isAsk: true);
+                                ApplyIncrementSide(ev.b, md.Bids, isAsk: false);
+                            }
+                            list.Clear();
+                        }
+
+                     
+                        copyToFire = md.GetCopy();
                     }
+
+            
+                    MarketDepthEvent?.Invoke(copyToFire);
                 }
-                catch (Exception exception)
+                catch (Exception ex)
                 {
-                    SendLogMessage("SnapshotDepth error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("SnapshotDepth error: " + ex, LogMessageType.Error);
                 }
             }
+
+
+
+            private readonly object _mdLock = new object();
+            private readonly Dictionary<string, List<XTFuturesResponseWebSocketUpdateDepth>> _bufferBySymbol = new Dictionary<string, List<XTFuturesResponseWebSocketUpdateDepth>>();
+            private readonly HashSet<string> _awaitingSnapshot = new HashSet<string>();
+
 
             private void UpdateDepth(string message)
             {
                 try
                 {
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepthIncremental> responseDepth = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketDepthIncremental>>(message);
+                    var resp = JsonConvert.DeserializeObject
+                       <XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketUpdateDepth>>(message);
 
-                    if (responseDepth?.data == null)
+                    var d = resp?.data;
+                    if (d == null) return;
+
+                    var symbol = d.s;
+                    if (string.IsNullOrWhiteSpace(symbol))
                     {
+                        SendLogMessage("UpdateDepth: empty symbol in payload", LogMessageType.Error);
                         return;
                     }
 
-                    if (_marketDepths == null
-                        || _marketDepths.Count == 0)
-                    {
-                        startDepth = true;
-                        return;
-                    }
+                    MarketDepth copyToFire = null;
 
-                    MarketDepth marketDepth = null;
-
-                    for (int i = 0; i < _marketDepths.Count; i++)
+                    lock (_mdLock)
                     {
-                        if (_marketDepths[i].SecurityNameCode == responseDepth.data.s)
+                        var md = GetOrCreateDepth(symbol);
+
+                        bool needsSnapshot =
+                               startDepth
+                            || md.Asks == null || md.Bids == null
+                            || md.Asks.Count == 0 || md.Bids.Count == 0
+                            || _awaitingSnapshot.Contains(symbol);
+
+                        if (needsSnapshot)
                         {
-                            marketDepth = _marketDepths[i];
-                            break;
-                        }
-                    }
+                            _awaitingSnapshot.Add(symbol);
 
-                    if (marketDepth == null)
-                    {
-                        startDepth = true;
-                        return;
-                    }
-
-                    if (marketDepth.Asks.Count == 0
-                        || marketDepth.Bids.Count == 0)
-                    {
-                        startDepth = true;
-                        return;
-                    }
-
-                    if (responseDepth.data.a != null
-                            && responseDepth.data.a.Count > 0)
-                    {
-                        for (int k = 0; k < responseDepth.data.a.Count; k++)
-                        {
-                            decimal priceLevel = responseDepth.data.a[k][0].ToDecimal();
-
-                            for (int j = 0; j < marketDepth.Asks.Count; j++)
+                            if (!_bufferBySymbol.TryGetValue(symbol, out var list) || list == null)
                             {
-                                if (marketDepth.Asks[j].Price == priceLevel)
-                                {
-                                    if (responseDepth.data.a[k][1].ToDecimal() == 0)
-                                    {
-                                        marketDepth.Asks.RemoveAt(j);
-                                    }
-                                    else
-                                    {
-                                        marketDepth.Asks[j].Ask = responseDepth.data.a[k][1].ToDecimal();
-                                    }
-                                }
-                                else if (j == 0 && priceLevel < marketDepth.Asks[j].Price
-                                   && responseDepth.data.a[k][1].ToDecimal() != 0)
-                                {
-                                    marketDepth.Asks.Insert(j, new MarketDepthLevel()
-                                    {
-                                        Ask = responseDepth.data.a[k][1].ToDecimal(),
-                                        Price = responseDepth.data.a[k][0].ToDecimal()
-                                    });
-                                }
-                                else if (j != marketDepth.Asks.Count - 1 && priceLevel > marketDepth.Asks[j].Price
-                                    && priceLevel < marketDepth.Asks[j + 1].Price
-                                    && responseDepth.data.a[k][1].ToDecimal() != 0)
-                                {
-                                    marketDepth.Asks.Insert(j + 1, new MarketDepthLevel()
-                                    {
-                                        Ask = responseDepth.data.a[k][1].ToDecimal(),
-                                        Price = responseDepth.data.a[k][0].ToDecimal()
-                                    });
-                                }
-                                else if (j == marketDepth.Asks.Count - 1 && priceLevel > marketDepth.Asks[j].Price
-                                    && responseDepth.data.a[k][1].ToDecimal() != 0)
-                                {
-                                    marketDepth.Asks.Add(new MarketDepthLevel()
-                                    {
-                                        Ask = responseDepth.data.a[k][1].ToDecimal(),
-                                        Price = responseDepth.data.a[k][0].ToDecimal()
-                                    });
-                                }
-
-                                if (marketDepth.Bids != null && marketDepth.Bids.Count > 2
-                                    && priceLevel < marketDepth.Bids[0].Price)
-                                {
-                                    marketDepth.Bids.RemoveAt(0);
-                                }
+                                list = new List<XTFuturesResponseWebSocketUpdateDepth>(32);
+                                _bufferBySymbol[symbol] = list;
                             }
+                            list.Add(d); 
                         }
-                    }
-
-                    if (responseDepth.data.b != null
-                        && responseDepth.data.b.Count > 0)
-                    {
-                        for (int k = 0; k < responseDepth.data.b.Count; k++)
+                        else
                         {
-                            decimal priceLevel = responseDepth.data.b[k][0].ToDecimal();
+                            ApplyIncrementSide(d.a, md.Asks, isAsk: true);
+                            ApplyIncrementSide(d.b, md.Bids, isAsk: false);
 
-                            for (int j = 0; j < marketDepth.Bids.Count; j++)
+                            md.Time = ServerTime;
+                            if (md.Time < _lastTimeMd) md.Time = _lastTimeMd;
+                            else if (md.Time == _lastTimeMd)
                             {
-                                if (marketDepth.Bids[j].Price == priceLevel)
-                                {
-                                    if (responseDepth.data.b[k][1].ToDecimal() == 0)
-                                    {
-                                        marketDepth.Bids.RemoveAt(j);
-                                    }
-                                    else
-                                    {
-                                        marketDepth.Bids[j].Bid = responseDepth.data.b[k][1].ToDecimal();
-                                    }
-                                }
-                                else if (j == 0 && priceLevel > marketDepth.Bids[j].Price
-                                    && responseDepth.data.b[k][1].ToDecimal() != 0)
-                                {
-                                    marketDepth.Bids.Insert(j, new MarketDepthLevel()
-                                    {
-                                        Bid = responseDepth.data.b[k][1].ToDecimal(),
-                                        Price = responseDepth.data.b[k][0].ToDecimal()
-                                    });
-                                }
-                                else if (j != marketDepth.Bids.Count - 1 && priceLevel < marketDepth.Bids[j].Price && priceLevel > marketDepth.Bids[j + 1].Price
-                                    && responseDepth.data.b[k][1].ToDecimal() != 0)
-                                {
-                                    marketDepth.Bids.Insert(j + 1, new MarketDepthLevel()
-                                    {
-                                        Bid = responseDepth.data.b[k][1].ToDecimal(),
-                                        Price = responseDepth.data.b[k][0].ToDecimal()
-                                    });
-                                }
-                                else if (j == marketDepth.Bids.Count - 1 && priceLevel < marketDepth.Bids[j].Price
-                                    && responseDepth.data.b[k][1].ToDecimal() != 0)
-                                {
-                                    marketDepth.Bids.Add(new MarketDepthLevel()
-                                    {
-                                        Bid = responseDepth.data.b[k][1].ToDecimal(),
-                                        Price = responseDepth.data.b[k][0].ToDecimal()
-                                    });
-                                }
-
-                                if (marketDepth.Asks != null && marketDepth.Asks.Count > 2
-                                    && priceLevel > marketDepth.Asks[0].Price)
-                                {
-                                    marketDepth.Asks.RemoveAt(0);
-                                }
+                                _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
+                                md.Time = _lastTimeMd;
                             }
+                            _lastTimeMd = md.Time;
+
+                            copyToFire = md.GetCopy();
                         }
                     }
 
-                    while (marketDepth.Asks.Count > 20)
-                    {
-                        marketDepth.Asks.RemoveAt(20);
-                    }
-
-                    while (marketDepth.Bids.Count > 20)
-                    {
-                        marketDepth.Bids.RemoveAt(20);
-                    }
-
-                    if (marketDepth.Asks.Count < 5
-                        || marketDepth.Bids.Count < 5)
-                    {
-                        return;
-                    }
-
-                    marketDepth.Time = ServerTime;  //TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(lastUpdateTime));
-
-                    if (marketDepth.Time < _lastTimeMd)
-                    {
-                        marketDepth.Time = _lastTimeMd;
-                    }
-                    else if (marketDepth.Time == _lastTimeMd)
-                    {
-                        _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
-
-                        marketDepth.Time = _lastTimeMd;
-                    }
-                    _lastTimeMd = marketDepth.Time;
-
-                    if (MarketDepthEvent != null)
-                    {
-                        MarketDepthEvent(marketDepth.GetCopy());
-                    }
+                    if (copyToFire != null)
+                        MarketDepthEvent?.Invoke(copyToFire);
                 }
-                catch (Exception exception)
+                catch (Exception ex)
                 {
-                    SendLogMessage("UpdateDepth error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("UpdateDepth error: " + ex, LogMessageType.Error);
                 }
             }
 
@@ -2557,6 +2791,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 return null;
             }
+
             IRestResponse CreatePublicQuery(string path, string parameters, Method method)
             {
                 RestClient client = new RestClient(_baseUrl);
