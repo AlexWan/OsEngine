@@ -387,7 +387,7 @@ namespace OsEngine.OsTrader.Grids
 
         public bool CheckMicroVolumes = true;
 
-        public decimal MaxDistanceToOrdersPercent = 2.0m;
+        public decimal MaxDistanceToOrdersPercent = 0;
 
         #endregion
 
@@ -419,14 +419,6 @@ namespace OsEngine.OsTrader.Grids
                 {
                     // По сетке не подключены данные. Запрет
                     CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label512);
-                    ui.Show();
-                    return;
-                }
-
-                if(GridCreator.FirstPrice <= 0)
-                {
-                    // Первая цена не установлена. Запрет
-                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label513);
                     ui.Show();
                     return;
                 }
