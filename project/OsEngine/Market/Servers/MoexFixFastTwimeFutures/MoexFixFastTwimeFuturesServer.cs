@@ -1266,7 +1266,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 length = _socketsInstruments[s].Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             break;
                         }
@@ -1550,7 +1550,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 length = _socketsTrades[s].Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -1806,7 +1806,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 length = _socketsOrders[s].Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             break;
                         }
@@ -3809,11 +3809,11 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                     FastDecoder decoder = new FastDecoder(context, stream);
                                     msg = decoder.ReadMessage();
                                 }
-                                catch (NullReferenceException ex)
+                                catch (NullReferenceException)
                                 {
                                     // в редких случаях исключение возникает в самой библиотеке OpenFast
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Иногда просто что-то глючит, но он все равно читает сообщение
                                 }
@@ -4033,8 +4033,6 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 SendLogMessage("Order send error " + ex.ToString(), LogMessageType.Error);
             }
         }
-
-        int _countTest = 0;
 
         public bool CancelOrder(Order order)
         {

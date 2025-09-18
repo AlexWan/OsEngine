@@ -805,7 +805,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     wsClient.CloseAsync();
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 // ignore
             }

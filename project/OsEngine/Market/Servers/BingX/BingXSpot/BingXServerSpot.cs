@@ -2194,7 +2194,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             try
             {
-                string baseUrl = "https://open-api.bingx.com";
                 string endpoint = "/openApi/user/auth/userDataStream";
 
                 RestRequest request = new RestRequest(endpoint, Method.POST);

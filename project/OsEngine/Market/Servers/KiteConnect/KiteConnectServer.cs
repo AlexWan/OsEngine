@@ -1543,8 +1543,6 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         private Security GetNameSecurity(string instrumentToken)
         {
-            string nameSecurity = null;
-
             for (int i = 0; i < _securities.Count; i++)
             {
                 string tokenSecurity = _securities[i].NameId.Split('_')[0];

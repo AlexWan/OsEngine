@@ -563,8 +563,6 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                int rowIndex = -1;
-
                 for (int i = 1; i < _master.PanelsArray.Count; i++)
                 {
                     if (_master.PanelsArray[i].NameStrategyUniq == _lastSelectedBot.NameStrategyUniq)
@@ -588,8 +586,6 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                int rowIndex = -1;
-
                 for (int i = 0; i < _master.PanelsArray.Count-1; i++)
                 {
                     if (_master.PanelsArray[i].NameStrategyUniq == _lastSelectedBot.NameStrategyUniq)

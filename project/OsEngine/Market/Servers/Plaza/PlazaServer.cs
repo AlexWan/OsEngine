@@ -718,7 +718,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerInfo != null)
                 {
@@ -808,7 +808,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (CGateException error)
+            catch (CGateException)
             {
                 if (_listenerPortfolio != null)
                 {
@@ -898,7 +898,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerPosition != null)
                 {
@@ -987,7 +987,7 @@ namespace OsEngine.Market.Servers.Plaza
                 }
 
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerTrade != null)
                 {
@@ -1062,7 +1062,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _listenerMarketDepth.Open("mode=snapshot+online");
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerMarketDepth != null)
                 {
@@ -1153,7 +1153,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerOrderAndMyDeal != null)
                 {
@@ -1219,7 +1219,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _listenerUserOrderBook.Open("mode=online");
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerUserOrderBook != null)
                 {
@@ -1294,7 +1294,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _publisher = null;
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_publisher != null)
                 {
@@ -1353,7 +1353,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _listenerOrderSendMirror.Open("mode=online");
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerOrderSendMirror != null)
                 {

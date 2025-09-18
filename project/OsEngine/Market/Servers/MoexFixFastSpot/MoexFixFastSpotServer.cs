@@ -1436,7 +1436,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 length = s == 0 ? _tradesIncrementalSocketA.Receive(buffer) : _tradesIncrementalSocketB.Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;                            
@@ -1569,7 +1569,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 length = s == 0 ? _tradesSnapshotSocketA.Receive(buffer) : _tradesSnapshotSocketB.Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -1682,7 +1682,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             length = _ordersIncrementalSocketA.Receive(buffer);
                         }
                     }
-                    catch (SocketException exception)
+                    catch (SocketException)
                     {
                         // обычно возникает если мы прерываем блокирующую операцию
                         break;
@@ -1811,7 +1811,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             length = _ordersIncrementalSocketB.Receive(buffer);
                         }
                     }
-                    catch (SocketException exception)
+                    catch (SocketException)
                     {
                         // обычно возникает если мы прерываем блокирующую операцию
                         break;
@@ -1921,7 +1921,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 length = s == 0 ? _ordersSnapshotSocketA.Receive(buffer) : _ordersSnapshotSocketB.Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -2227,11 +2227,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                     FastDecoder decoder = new FastDecoder(context, stream);
                                     msg = decoder.ReadMessage();
                                 }
-                                catch (NullReferenceException ex)
+                                catch (NullReferenceException)
                                 {
                                     // в редких случаях исключение возникает в самой библиотеке OpenFast
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Иногда просто что-то глючит, но он все равно читает сообщение
                                 }

@@ -2222,8 +2222,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     BitMartBaseMessage<NewOrderBitMartResponce> parsed =
                         JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<NewOrderBitMartResponce>());
 
-                    string order_id = null;
-
                     if (parsed.code == "1000")
                     {
                         //Everything is OK

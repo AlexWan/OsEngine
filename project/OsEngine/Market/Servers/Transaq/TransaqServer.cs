@@ -785,7 +785,7 @@ namespace OsEngine.Market.Servers.Transaq
                         {
                             pointCost = securityData.Point_cost.ToDecimal();
                         }
-                        catch (Exception e)
+                        catch
                         {
                             decimal.TryParse(securityData.Point_cost, NumberStyles.Float, CultureInfo.InvariantCulture, out pointCost);
                         }
@@ -1526,7 +1526,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 return osCandles;
             }
-            catch (Exception e)
+            catch
             {
                 return null;
             }
@@ -3245,7 +3245,7 @@ namespace OsEngine.Market.Servers.Transaq
                     return result;
                 }
             }
-            catch (AccessViolationException e)
+            catch (AccessViolationException)
             {
                 // no message
                 return null;
