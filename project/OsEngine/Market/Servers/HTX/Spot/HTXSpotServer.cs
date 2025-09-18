@@ -838,7 +838,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 webSocketPublicNew.OnMessage += webSocketPublic_OnMessage;
                 webSocketPublicNew.OnError += webSocketPublic_OnError;
                 webSocketPublicNew.OnClose += webSocketPublic_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -863,7 +863,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += webSocketPrivate_OnError;
                 _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
 
             }
             catch (Exception exception)
@@ -1153,7 +1153,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             try
             {
                 string authRequest = BuildSign(DateTime.UtcNow);
-                _webSocketPrivate.Send(authRequest);
+                _webSocketPrivate.SendAsync(authRequest);
 
                 SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
                 CheckActivationSockets();
@@ -1203,7 +1203,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                         {
                             // Supports two-way heartbeat
                             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                            webSocketPublic.Send($"{{\"ping\": \"{timestamp}\"}}");
+                            webSocketPublic.SendAsync($"{{\"ping\": \"{timestamp}\"}}");
                         }
                         else
                         {
@@ -1300,15 +1300,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
             if (webSocketPublic != null)
             {
                 string topic = $"market.{security.Name}.mbp.refresh.20";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
                 topic = $"market.{security.Name}.trade.detail";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
                 if (_extendedMarketData)
                 {
                     topic = $"market.{security.Name}.ticker";
-                    webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                    webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
                 }
             }
         }
@@ -1317,8 +1317,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             string chOrders = "orders#*";
             string chTrades = "trade.clearing#*#0";
-            _webSocketPrivate.Send($"{{\"action\": \"sub\",\"ch\": \"{chOrders}\"}}");
-            _webSocketPrivate.Send($"{{\"action\": \"sub\",\"ch\": \"{chTrades}\"}}");
+            _webSocketPrivate.SendAsync($"{{\"action\": \"sub\",\"ch\": \"{chOrders}\"}}");
+            _webSocketPrivate.SendAsync($"{{\"action\": \"sub\",\"ch\": \"{chTrades}\"}}");
         }
 
         private void CreatePingMessageWebSocketPublic(string message)
@@ -1340,7 +1340,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                         if (webSocketPublic != null
                         && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send($"{{\"pong\": \"{response.ping}\"}}");
+                            webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
                         }
                     }
                     catch (Exception ex)
@@ -1361,7 +1361,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
             else
             {
-                _webSocketPrivate.Send($"{{ \"action\": \"pong\", \"data\": {{ \"ts\": {response.data.ts} }} }}");
+                _webSocketPrivate.SendAsync($"{{ \"action\": \"pong\", \"data\": {{ \"ts\": {response.data.ts} }} }}");
             }
         }
 
@@ -1385,15 +1385,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
                                     string securityName = _subscribedSecurities[j];
 
                                     string topic = $"market.{securityName}.mbp.refresh.20";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
 
                                     topic = $"market.{securityName}.trade.detail";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
 
                                     if (_extendedMarketData)
                                     {
                                         topic = $"market.{securityName}.ticker";
-                                        webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                        webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
                                     }
                                 }
                             }
@@ -1413,8 +1413,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     string chOrders = "orders#*";
                     string chTrades = "trade.clearing#*#0";
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{chOrders}\"}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{chTrades}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{chOrders}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{chTrades}\"}}");
                 }
                 catch
                 {

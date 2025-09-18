@@ -832,7 +832,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             _webSocket.OnMessage += WebSocket_MessageReceived;
             _webSocket.OnError += WebSocket_Error;
 
-            _webSocket.Connect();
+            _webSocket.Connect().Wait();
         }
 
         private void DeleteWebSocketConnection()
@@ -993,7 +993,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             FuturesPing ping = new FuturesPing { time = TimeManager.GetUnixTimeStampSeconds(), channel = "spot.ping" };
             string message = JsonConvert.SerializeObject(ping);
-            _webSocket.Send(message);
+            _webSocket.SendAsync(message);
         }
 
         #endregion
@@ -1035,7 +1035,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         private void SubscribeTicker(string security)
         {
             long time = TimeManager.GetUnixTimeStampSeconds();
-            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
         }
 
         private void SubscribeMarketDepth(string security)
@@ -1050,7 +1050,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
 
             long time = TimeManager.GetUnixTimeStampSeconds();
-            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"100ms\"]}}");
+            _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"100ms\"]}}");
         }
 
         private void AddMarketDepth(string name)
@@ -1064,7 +1064,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         private void SubscribeTrades(string security)
         {
             long time = TimeManager.GetUnixTimeStampSeconds();
-            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
         }
 
         private void SubscribeOrders(string security)
@@ -1108,7 +1108,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             string jsonRequest = JsonConvert.SerializeObject(payload);
 
-            _webSocket.Send(jsonRequest);
+            _webSocket.SendAsync(jsonRequest);
         }
 
         private void SubscribeUserTrades(string security)
@@ -1151,7 +1151,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             string jsonRequest = JsonConvert.SerializeObject(payload);
 
-            _webSocket.Send(jsonRequest);
+            _webSocket.SendAsync(jsonRequest);
         }
 
         private void SubscribePortfolio()
@@ -1193,7 +1193,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             string jsonRequest = JsonConvert.SerializeObject(payload);
 
-            _webSocket.Send(jsonRequest);
+            _webSocket.SendAsync(jsonRequest);
         }
 
         private void UnsubscribeFromAllWebSockets()
@@ -1213,12 +1213,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                             level = "20";
                         }
 
-                        _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"{level}\",\"100ms\"]}}");
-                        _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
+                        _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"{level}\",\"100ms\"]}}");
+                        _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
 
                         if (_extendedMarketData)
                         {
-                            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
+                            _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
                         }
                     }
                 }

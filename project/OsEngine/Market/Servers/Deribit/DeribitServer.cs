@@ -522,7 +522,7 @@ namespace OsEngine.Market.Servers.Deribit
             webSocket.OnClose += WebSocket_OnClose;
             webSocket.OnMessage += WebSocket_OnMessage;
             webSocket.OnError += WebSocket_OnError;
-            webSocket.Connect();
+            webSocket.Connect().Wait();
         }
 
         private void DeleteWebscoektConnection()
@@ -669,7 +669,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                         string json = JsonConvert.SerializeObject(jsonRequest);
 
-                        webSocket.Send(json);
+                        webSocket.SendAsync(json);
 
                         _timeLastSendPing = DateTime.Now;
                     }
@@ -1589,7 +1589,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             string json = JsonConvert.SerializeObject(jsonRequest);
 
-            webSocket.Send(json);
+            webSocket.SendAsync(json);
         }
 
         private void CreateAuthMessageWebSocket()
@@ -1617,7 +1617,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             string json = JsonConvert.SerializeObject(jsonRequest);
 
-            webSocket.Send(json);
+            webSocket.SendAsync(json);
         }
 
         private void UnsubscribeFromAllWebSockets()
@@ -1634,7 +1634,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             string json = JsonConvert.SerializeObject(jsonRequest);
 
-            webSocket.Send(json);
+            webSocket.SendAsync(json);
         }
 
         private void CreateQueryPortfolio(bool IsUpdateValueBegin, string currency)

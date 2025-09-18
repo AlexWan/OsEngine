@@ -572,7 +572,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -604,7 +604,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                 _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                 _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
             }
             catch (Exception exception)
             {
@@ -708,7 +708,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
             string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
             string sign = GenerateSignature(timeStamp);
 
-            _webSocketPrivate.Send($"{{\"method\":\"login\",\"id\": 1,\"api_key\":\"{_publicKey}\",\"sign\":\"{sign}\",\"nonce\":{timeStamp}}}");
+            _webSocketPrivate.SendAsync($"{{\"method\":\"login\",\"id\": 1,\"api_key\":\"{_publicKey}\",\"sign\":\"{sign}\",\"nonce\":{timeStamp}}}");
         }
 
         #endregion
@@ -995,7 +995,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"id\":33,\"method\":\"subscribe\",\"topics\":[\"spot/trades:{security.Name}\",\"spot/order_book_snapshots:{security.Name}\"]}}");
+                    webSocketPublic.SendAsync($"{{\"id\":33,\"method\":\"subscribe\",\"topics\":[\"spot/trades:{security.Name}\",\"spot/order_book_snapshots:{security.Name}\"]}}");
                 }
             }
             catch (Exception exception)
@@ -1008,7 +1008,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
         {
             try
             {
-                _webSocketPrivate.Send($"{{ \"id\":22,\"method\":\"subscribe\",\"topics\":[\"spot/orders\",\"spot/user_trades\",\"spot/wallet\"]}}");
+                _webSocketPrivate.SendAsync($"{{ \"id\":22,\"method\":\"subscribe\",\"topics\":[\"spot/orders\",\"spot/user_trades\",\"spot/wallet\"]}}");
             }
             catch (Exception exception)
             {
@@ -1037,7 +1037,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                                     {
                                         string securityName = _subscribedSecurities[j];
 
-                                        webSocketPublic.Send($"{{\"id\":55,\"method\":\"unsubscribe\",\"topics\":[\"spot/trades:{securityName}\",\"spot/order_book_snapshots:{securityName}\"]}}");
+                                        webSocketPublic.SendAsync($"{{\"id\":55,\"method\":\"unsubscribe\",\"topics\":[\"spot/trades:{securityName}\",\"spot/order_book_snapshots:{securityName}\"]}}");
                                     }
                                 }
                             }
@@ -1059,7 +1059,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{ \"id\":22,\"method\":\"unsubscribe\",\"topics\":[\"spot/orders\",\"spot/user_trades\",\"spot/wallet\"]}}");
+                    _webSocketPrivate.SendAsync($"{{ \"id\":22,\"method\":\"unsubscribe\",\"topics\":[\"spot/orders\",\"spot/user_trades\",\"spot/wallet\"]}}");
                 }
                 catch
                 {

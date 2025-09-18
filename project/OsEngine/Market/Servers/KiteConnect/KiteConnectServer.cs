@@ -189,7 +189,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                 for (int i = 0; i < _securities.Count; i++)
                 {
                     string instrumentToken = _securities[i].NameId.Split('_')[0];
-                    _listWebSocket[j]?.Send("{\"a\":\"unsubscribe\",\"v\":[" + instrumentToken + "]}");
+                    _listWebSocket[j]?.SendAsync("{\"a\":\"unsubscribe\",\"v\":[" + instrumentToken + "]}");
                 }
             }            
         }
@@ -1118,7 +1118,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                 _webSocket.OnError += _webSocket_OnError;
                 _webSocket.OnClose += _webSocket_OnClose;
 
-                _webSocket.Connect();
+                _webSocket.Connect().Wait();
 
                 _listWebSocket.Add(_webSocket);
             }
@@ -1274,8 +1274,8 @@ namespace OsEngine.Market.Servers.KiteConnect
 
                 string instrumentToken = security.NameId.Split('_')[0];
 
-                webSocket?.Send("{\"a\":\"subscribe\",\"v\":[" + instrumentToken + "]}");
-                webSocket?.Send("{\"a\":\"mode\",\"v\":[\"" + "full" + "\", [" + instrumentToken + "]]}");
+                webSocket?.SendAsync("{\"a\":\"subscribe\",\"v\":[" + instrumentToken + "]}");
+                webSocket?.SendAsync("{\"a\":\"mode\",\"v\":[\"" + "full" + "\", [" + instrumentToken + "]]}");
 
             }
             catch (Exception exception)

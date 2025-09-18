@@ -1284,7 +1284,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 client.OnOpen += Client_Opened;
                 client.OnError += Client_Error;
                 client.OnClose += Client_Closed;
-                client.Connect();
+                client.Connect().Wait();
 
                 return client;
             }
@@ -1508,7 +1508,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             _wsClient.OnMessage += _publicSocketClient_RessageReceived;
             _wsClient.OnError += Client_Error;
             _wsClient.OnClose += Client_Closed;
-            _wsClient.Connect();
+            _wsClient.Connect().Wait();
 
             _wsStreamsSecurityData.Add(security.Name, _wsClient);
         }

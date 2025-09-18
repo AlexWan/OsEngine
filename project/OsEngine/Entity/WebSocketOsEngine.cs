@@ -107,7 +107,14 @@ namespace OsEngine.Entity.WebSocketOsEngine
             }
         }
 
-        public async Task CloseAsync()
+        public void CloseAsync()
+        {
+            #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            Close();
+            #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        }
+
+        private async Task Close()
         {
             try
             {
@@ -157,7 +164,19 @@ namespace OsEngine.Entity.WebSocketOsEngine
             ReadyState = WebSocketState.Closed;
         }
 
-        public async Task Send(string message)
+        public void SendAsync(string message)
+        {
+            #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            Send(message);
+            #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        }
+
+        public async Task SendSync(string message)
+        {
+           await Send(message);
+        }
+
+        private async Task Send(string message)
         {
             if (_client.State == System.Net.WebSockets.WebSocketState.Open && _cts != null && !_cts.IsCancellationRequested)
             {
@@ -214,7 +233,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
         {
             try
             {
-                CloseAsync().GetAwaiter().GetResult();
+                Close().GetAwaiter().GetResult();
             }
             catch { /* ignored */ }
 

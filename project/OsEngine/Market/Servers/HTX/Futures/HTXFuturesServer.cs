@@ -589,7 +589,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _webSocketPublic.OnError += webSocketPublic_OnError;
             _webSocketPublic.OnClose += webSocketPublic_OnClose;
 
-            _webSocketPublic.Connect();
+            _webSocketPublic.Connect().Wait();
 
             _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_webSocketPathPrivate}");
 
@@ -600,7 +600,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _webSocketPrivate.OnError += webSocketPrivate_OnError;
             _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
 
-            _webSocketPrivate.Connect();
+            _webSocketPrivate.Connect().Wait();
         }
 
         private void DeleteWebscoektConnection()
@@ -850,7 +850,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
 
                 string authRequest = BuildSign(DateTime.UtcNow);
-                _webSocketPrivate.Send(authRequest);
+                _webSocketPrivate.SendAsync(authRequest);
                 _privateSocketOpen = true;
 
                 CheckSocketsActivate();
@@ -1821,11 +1821,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
             string clientId = "";
 
             string topic = $"market.{security.Name}.depth.step0";
-            _webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+            _webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
             _arrayPublicChannels.Add(topic);
 
             topic = $"market.{security.Name}.trade.detail";
-            _webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+            _webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
             _arrayPublicChannels.Add(topic);
         }
 
@@ -1835,9 +1835,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
             string channelOrders = "orders.*";
             string channelAccounts = "accounts.*";
             string channelPositions = "positions.*";
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
             _arrayPrivateChannels.Add(channelAccounts);
             _arrayPrivateChannels.Add(channelOrders);
             _arrayPrivateChannels.Add(channelPositions);
@@ -1853,7 +1853,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             }
             else
             {
-                _webSocketPublic.Send($"{{\"pong\": \"{response.ping}\"}}");
+                _webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
             }
         }
 
@@ -1867,7 +1867,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             }
             else
             {
-                _webSocketPrivate.Send($"{{\"pong\": \"{response.ts}\"}}");
+                _webSocketPrivate.SendAsync($"{{\"pong\": \"{response.ts}\"}}");
             }
         }
 
@@ -1879,7 +1879,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     for (int i = 0; i < _arrayPublicChannels.Count; i++)
                     {
-                        _webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
+                        _webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
                     }
                 }
                 catch
@@ -1894,7 +1894,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     for (int i = 0; i < _arrayPrivateChannels.Count; i++)
                     {
-                        _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
+                        _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
                     }
                 }
                 catch

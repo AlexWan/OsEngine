@@ -711,7 +711,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     _wsClient.OnClose += WebSocket_Closed;
                     _wsClient.OnError += WebSocketData_Error;
                     _wsClient.OnMessage += WebSocket_DataReceived;
-                    _wsClient.Connect();
+                    _wsClient.Connect().Wait();
                 }
             }
             catch (Exception exeption)
@@ -735,23 +735,23 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                     CexRequestSocketUnsubscribe message = new CexRequestSocketUnsubscribe(CexWsOperation.MARKET_DEPTH_UNSUBSCRIBE.ToString(), new List<string>());
                     SendLogMessage("CoinEx server market depth unsubscribe: " + message, LogMessageType.Connect);
-                    wsClient.Send(message.ToString());
+                    wsClient.SendAsync(message.ToString());
 
                     message = new CexRequestSocketUnsubscribe(CexWsOperation.BALANCE_UNSUBSCRIBE.ToString(), new List<string>());
                     SendLogMessage("CoinEx server portfolios unsubscribe: " + message, LogMessageType.Connect);
-                    wsClient.Send(message.ToString());
+                    wsClient.SendAsync(message.ToString());
 
                     message = new CexRequestSocketUnsubscribe(CexWsOperation.DEALS_UNSUBSCRIBE.ToString(), new List<string>());
                     SendLogMessage("CoinEx server trades unsubscribe: " + message, LogMessageType.Connect);
-                    wsClient.Send(message.ToString());
+                    wsClient.SendAsync(message.ToString());
 
                     message = new CexRequestSocketUnsubscribe(CexWsOperation.USER_DEALS_UNSUBSCRIBE.ToString(), new List<string>());
                     SendLogMessage("CoinEx server my trades unsubscribe: " + message, LogMessageType.Connect);
-                    wsClient.Send(message.ToString());
+                    wsClient.SendAsync(message.ToString());
 
                     message = new CexRequestSocketUnsubscribe(CexWsOperation.ORDER_UNSUBSCRIBE.ToString(), new List<string>());
                     SendLogMessage("CoinEx server orders unsubscribe: " + message, LogMessageType.Connect);
-                    wsClient.Send(message.ToString());
+                    wsClient.SendAsync(message.ToString());
 
                     wsClient.OnOpen += WebSocket_Opened;
                     wsClient.OnClose += WebSocket_Closed;
@@ -775,7 +775,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             if (_wsClients.Count > 1) return;
             CexRequestSocketSign message = new CexRequestSocketSign(_publicKey, _secretKey);
             SendLogMessage("Auth in socket", LogMessageType.Connect);
-            wsClient.Send(message.ToString());
+            wsClient.SendAsync(message.ToString());
         }
 
         #endregion
@@ -793,7 +793,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             CexRequestSocketSubscribePortfolio message = new CexRequestSocketSubscribePortfolio();
             SendLogMessage("Subscribe to portfolios data", LogMessageType.Connect);
-            ((WebSocket)sender).Send(message.ToString());
+            ((WebSocket)sender).SendAsync(message.ToString());
         }
 
         private void WebSocket_Closed(Object sender, CloseEventArgs e)
@@ -932,7 +932,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         {
             if (_wsClients.Count == 0) { return; }
             CexRequestSocketPing message = new CexRequestSocketPing();
-            _wsClients[0].Send(message.ToString());
+            _wsClients[0].SendAsync(message.ToString());
         }
         #endregion
 
@@ -1000,17 +1000,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 // Trades subscription
                 CexRequestSocketSubscribeDeals message = new CexRequestSocketSubscribeDeals(_currentSubscribedSecurities);
                 SendLogMessage("SubcribeToTradesData: " + message, LogMessageType.Connect);
-                wsClient.Send(message.ToString());
+                wsClient.SendAsync(message.ToString());
 
                 // Market depth subscription
                 CexRequestSocketSubscribeMarketDepth message1 = new CexRequestSocketSubscribeMarketDepth(_currentSubscribedSecurities, _marketDepth);
                 SendLogMessage("SubcribeToMarketDepthData: " + message1, LogMessageType.Connect);
-                wsClient.Send(message1.ToString());
+                wsClient.SendAsync(message1.ToString());
 
                 // My orders subscription
                 CexRequestSocketSubscribeMyOrders message2 = new CexRequestSocketSubscribeMyOrders(_currentSubscribedSecurities);
                 SendLogMessage("SubcribeToMyOrdersData: " + message2, LogMessageType.Connect);
-                _wsClients[0].Send(message2.ToString());
+                _wsClients[0].SendAsync(message2.ToString());
             }
             catch (Exception exeption)
             {

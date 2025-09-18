@@ -982,7 +982,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 webSocketPublicNew.OnMessage += webSocketPublic_OnMessage;
                 webSocketPublicNew.OnError += webSocketPublic_OnError;
                 webSocketPublicNew.OnClose += webSocketPublic_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -1007,7 +1007,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += webSocketPrivate_OnError;
                 _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
 
             }
             catch (Exception exception)
@@ -1291,7 +1291,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             try
             {
                 string authRequest = BuildSign(DateTime.UtcNow);
-                _webSocketPrivate.Send(authRequest);
+                _webSocketPrivate.SendAsync(authRequest);
 
                 SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
                 CheckActivationSockets();
@@ -1341,7 +1341,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         {
                             // Supports two-way heartbeat
                             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                            webSocketPublic.Send($"{{\"ping\": \"{timestamp}\"}}");
+                            webSocketPublic.SendAsync($"{{\"ping\": \"{timestamp}\"}}");
                         }
                         else
                         {
@@ -1440,10 +1440,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
             if (webSocketPublic != null)
             {
                 string topic = $"market.{security.Name}.depth.step0";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
                 topic = $"market.{security.Name}.trade.detail";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
             }
 
@@ -1451,7 +1451,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 if (_extendedMarketData)
                 {
-                    _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"public.{security.Name}.funding_rate\", \"cid\": \"{clientId}\" }}");
+                    _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"public.{security.Name}.funding_rate\", \"cid\": \"{clientId}\" }}");
                     GetFundingHistory(security.Name);
                 }
             }
@@ -1513,9 +1513,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 channelAccounts = "accounts_unify.USDT";
             }
 
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
         }
 
         private void CreatePingMessageWebSocketPublic(string message)
@@ -1537,7 +1537,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         if (webSocketPublic != null
                         && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send($"{{\"pong\": \"{response.ping}\"}}");
+                            webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
                         }
                     }
                     catch (Exception ex)
@@ -1561,7 +1561,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 try
                 {
 
-                    _webSocketPrivate.Send($"{{\"op\": \"pong\",\"ts\": \"{response.ts}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"pong\",\"ts\": \"{response.ts}\"}}");
                 }
                 catch (Exception ex)
                 {
@@ -1592,10 +1592,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                     string securityName = _subscribedSecurities[j];
 
                                     string topic = $"market.{securityName}.depth.step0";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
 
                                     topic = $"market.{securityName}.trade.detail";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
                                 }
                             }
                         }
@@ -1621,13 +1621,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         channelAccounts = "accounts_unify.USDT";
                     }
 
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelOrders}\"}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelAccounts}\"}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelPositions}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelOrders}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelAccounts}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelPositions}\"}}");
 
                     if (_extendedMarketData)
                     {
-                        _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"public.*.funding_rate\"}}");
+                        _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"public.*.funding_rate\"}}");
                     }
                 }
                 catch

@@ -749,7 +749,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                     webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                     webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                    webSocketPublicNew.Connect();
+                    webSocketPublicNew.Connect().Wait();
 
                     return webSocketPublicNew;
                 }
@@ -781,7 +781,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                     _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                    _webSocketPrivate.Connect();
+                    _webSocketPrivate.Connect().Wait();
                 }
                 catch (Exception exception)
                 {
@@ -1076,7 +1076,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     SendLogMessage("XTSpot WebSocket Private connection open", LogMessageType.System);
                     CheckSocketsActivate();
 
-                    _webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\",\"balance\",\"trade\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"method\":\"subscribe\",\"params\":[\"order\",\"balance\",\"trade\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                 }
                 catch (Exception ex)
                 {
@@ -1109,7 +1109,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             if (webSocketPublic != null
                                 && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                webSocketPublic.Send("ping");
+                                webSocketPublic.SendAsync("ping");
                             }
                             else
                             {
@@ -1121,7 +1121,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             (_webSocketPrivate.ReadyState == WebSocketState.Open ||
                             _webSocketPrivate.ReadyState == WebSocketState.Connecting))
                         {
-                            _webSocketPrivate.Send("ping");
+                            _webSocketPrivate.SendAsync("ping");
                         }
                         else
                         {
@@ -1199,8 +1199,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     if (webSocketPublic != null)
                     {
-                        webSocketPublic.Send($"{{\"method\":\"subscribe\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},{20}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                        webSocketPublic.Send($"{{\"method\":\"subscribe\",\"params\":[\"trade@{security.Name}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                        webSocketPublic.SendAsync($"{{\"method\":\"subscribe\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},{20}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                        webSocketPublic.SendAsync($"{{\"method\":\"subscribe\",\"params\":[\"trade@{security.Name}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                     }
 
                 }
@@ -1231,8 +1231,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                         {
                                             string securityName = _subscribedSecurities[j];
 
-                                            webSocketPublic.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                                            webSocketPublic.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"trade@{securityName}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                                            webSocketPublic.SendAsync($"{{\"method\": \"unsubscribe\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                                            webSocketPublic.SendAsync($"{{\"method\": \"unsubscribe\", \"params\": [\"trade@{securityName}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                                         }
                                     }
                                 }
@@ -1254,7 +1254,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     try
                     {
-                        _webSocketPrivate.Send($"{{\"method\":\"unsubscribe\",\"params\":[\"order\",\"balance\",\"trade\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                        _webSocketPrivate.SendAsync($"{{\"method\":\"unsubscribe\",\"params\":[\"order\",\"balance\",\"trade\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                     }
                     catch
                     {
