@@ -1025,6 +1025,12 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.PortfolioName = portf.Number;
                 newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                 newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+
+                if (newPos.ValueBlocked != 0)
+                {
+                    newPos.ValueCurrent += newPos.ValueBlocked;
+                }
+
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
@@ -1060,6 +1066,12 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.PortfolioName = portf.Number;
                 newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                 newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+
+                if (newPos.ValueBlocked != 0)
+                {
+                    newPos.ValueCurrent += newPos.ValueBlocked;
+                }
+
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
@@ -1095,6 +1107,12 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.PortfolioName = portf.Number;
                 newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                 newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+
+                if (newPos.ValueBlocked != 0)
+                {
+                    newPos.ValueCurrent += newPos.ValueBlocked;
+                }
+
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
@@ -2273,6 +2291,12 @@ namespace OsEngine.Market.Servers.TInvest
                             newPos.PortfolioName = portf.Number;
                             newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                             newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+
+                            if(newPos.ValueBlocked != 0)
+                            {
+                                newPos.ValueCurrent += newPos.ValueBlocked;
+                            }
+
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                             portf.SetNewPosition(newPos);
