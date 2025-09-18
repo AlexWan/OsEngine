@@ -1896,7 +1896,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                 {
                                     _err = JsonConvert.DeserializeAnonymousType(mes, new ErrorMessage());
                                 }
-                                catch (Exception e)
+                                catch
                                 {
                                     // если не смогли распарсить, то просто покажем что пришло
                                     _err.code = 9999;

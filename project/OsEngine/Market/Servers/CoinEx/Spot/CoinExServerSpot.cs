@@ -760,7 +760,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     wsClient.CloseAsync();
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 // ignore
             }

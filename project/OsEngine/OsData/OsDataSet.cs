@@ -2430,9 +2430,9 @@ namespace OsEngine.OsData
                     _countTriesToLoadSet = Convert.ToInt32(reader.ReadLine());
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                //ignore
             }
         }
 

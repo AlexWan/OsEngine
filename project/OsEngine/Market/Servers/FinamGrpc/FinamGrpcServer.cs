@@ -1040,7 +1040,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     {
                         hasData = stream.ResponseStream.MoveNext().Result;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         Thread.Sleep(5);
                     }
@@ -1086,7 +1086,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex)
+            catch
             {
             }
         }
@@ -1110,7 +1110,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     {
                         hasData = stream.ResponseStream.MoveNext(token).Result;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         Thread.Sleep(5);
                         continue;
@@ -1189,7 +1189,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex)
+            catch
             {
             }
         }

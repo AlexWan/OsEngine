@@ -1199,7 +1199,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                 length = _socketsTrades[s].Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -1650,7 +1650,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                 length = _socketsOrders[s].Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -2837,11 +2837,11 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                     FastDecoder decoder = new FastDecoder(context, stream);
                                     msg = decoder.ReadMessage();
                                 }
-                                catch (NullReferenceException ex)
+                                catch (NullReferenceException)
                                 {
                                     // в редких случаях исключение возникает в самой библиотеке OpenFast
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Иногда просто что-то глючит, но он все равно читает сообщение
                                 }

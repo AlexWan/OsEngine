@@ -648,8 +648,6 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
-                int selectedRow = 0;
-
                 List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
                 for (int i = 0; i < fazeReport.Reports.Count; i++)

@@ -216,8 +216,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
-            Order order = null;
-
             // 2) ждём когда все придут
 
             while (true)
