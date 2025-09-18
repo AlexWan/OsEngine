@@ -506,7 +506,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 webSocketPublicNew.OnMessage += _webSocketPublic_OnMessage;
                 webSocketPublicNew.OnError += _webSocketPublic_OnError;
                 webSocketPublicNew.OnClose += _webSocketPublic_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -545,7 +545,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
-            _webSocketPrivate.Connect();
+            _webSocketPrivate.Connect().Wait();
         }
 
         private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsKuCoinFutures";
@@ -812,8 +812,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             CheckActivationSockets();
 
             // We immediately subscribe to changes in orders and portfolio
-            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // changing orders
-            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // portfolio change
+            _webSocketPrivate.SendAsync($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // changing orders
+            _webSocketPrivate.SendAsync($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // portfolio change
         }
 
         #endregion
@@ -837,7 +837,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     if (_webSocketPrivate != null && _webSocketPrivate.ReadyState == WebSocketState.Open ||
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting)
                     {
-                        _webSocketPrivate.Send($"{{\"type\": \"ping\"}}");
+                        _webSocketPrivate.SendAsync($"{{\"type\": \"ping\"}}");
                     }
                     else
                     {
@@ -850,7 +850,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                         if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send($"{{\"type\": \"ping\"}}");
+                            webSocketPublic.SendAsync($"{{\"type\": \"ping\"}}");
                         }
                         else
                         {
@@ -941,19 +941,19 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             if (webSocketPublic != null)
             {
-                webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/ticker:{security.Name}\"}}");
-                webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/level2Depth5:{security.Name}\"}}");
+                webSocketPublic.SendAsync($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/ticker:{security.Name}\"}}");
+                webSocketPublic.SendAsync($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/level2Depth5:{security.Name}\"}}");
 
                 if (_extendedMarketData)
                 {
-                    webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contract/instrument:{security.Name}\"}}");
+                    webSocketPublic.SendAsync($"{{\"type\": \"subscribe\",\"topic\": \"/contract/instrument:{security.Name}\"}}");
                     GetFundingHistory(security.Name);
                 }
             }
 
             if (_webSocketPrivate != null)
             {
-                _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{security.Name}\"}}");
+                _webSocketPrivate.SendAsync($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{security.Name}\"}}");
             }
         }
 
@@ -1023,13 +1023,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                                     {
                                         string securityName = _subscribedSecurities[i2];
 
-                                        webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/tickerV2:{securityName}\"}}"); // transactions
-                                        webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/level2Depth5:{securityName}\"}}"); // marketDepth
-                                        _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{securityName}\"}}"); // change of positions
+                                        webSocketPublic.SendAsync($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/tickerV2:{securityName}\"}}"); // transactions
+                                        webSocketPublic.SendAsync($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/level2Depth5:{securityName}\"}}"); // marketDepth
+                                        _webSocketPrivate.SendAsync($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{securityName}\"}}"); // change of positions
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contract/instrument:{securityName}\"}}");
+                                            webSocketPublic.SendAsync($"{{\"type\": \"unsubscribe\",\"topic\": \"/contract/instrument:{securityName}\"}}");
                                         }
                                     }
                                 }
@@ -1052,8 +1052,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // changing orders
-                    _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // portfolio change
+                    _webSocketPrivate.SendAsync($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // changing orders
+                    _webSocketPrivate.SendAsync($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // portfolio change
                 }
                 catch
                 {

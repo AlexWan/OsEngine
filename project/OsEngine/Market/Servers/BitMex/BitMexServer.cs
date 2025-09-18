@@ -926,7 +926,7 @@ namespace OsEngine.Market.Servers.BitMex
             _webSocket.OnMessage += _webSocket_MessageReceived;
             _webSocket.OnError += _webSocket_Error;
 
-            _webSocket.Connect();
+            _webSocket.Connect().Wait();
         }
 
         private void DeleteWebSocketConnection()
@@ -957,7 +957,7 @@ namespace OsEngine.Market.Servers.BitMex
             byte[] signatureBytes = hmacsha256(Encoding.UTF8.GetBytes(_secKey), Encoding.UTF8.GetBytes("GET/realtime" + nonce));
             string signatureString = ByteArrayToString(signatureBytes);
 
-            _webSocket.Send("{\"op\": \"authKeyExpires\", \"args\": [\"" + _id + "\"," + nonce + ",\"" + signatureString + "\"]}");
+            _webSocket.SendAsync("{\"op\": \"authKeyExpires\", \"args\": [\"" + _id + "\"," + nonce + ",\"" + signatureString + "\"]}");
         }
 
         #endregion
@@ -1061,7 +1061,7 @@ namespace OsEngine.Market.Servers.BitMex
                 ConnectEvent();
             }
 
-            _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"margin\", \"position\", \"order\", \"execution\"]}");  // Portfolio, Position, Orders, MyTrades
+            _webSocket.SendAsync("{\"op\": \"subscribe\", \"args\": [\"margin\", \"position\", \"order\", \"execution\"]}");  // Portfolio, Position, Orders, MyTrades
         }
 
         #endregion
@@ -1090,7 +1090,7 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         if (_timeLastSendPing.AddSeconds(25) < DateTime.UtcNow)
                         {
-                            _webSocket.Send("ping");
+                            _webSocket.SendAsync("ping");
                             _timeLastSendPing = DateTime.UtcNow;
                         }
                     }
@@ -1140,8 +1140,8 @@ namespace OsEngine.Market.Servers.BitMex
 
                 _subscribedSec.Add(security.Name);
 
-                _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"orderBookL2_25:" + security.Name + "\"]}"); // MarketDepth
-                _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"trade:" + security.Name + "\"]}");  // Trade
+                _webSocket.SendAsync("{\"op\": \"subscribe\", \"args\": [\"orderBookL2_25:" + security.Name + "\"]}"); // MarketDepth
+                _webSocket.SendAsync("{\"op\": \"subscribe\", \"args\": [\"trade:" + security.Name + "\"]}");  // Trade
 
             }
             catch (Exception exception)

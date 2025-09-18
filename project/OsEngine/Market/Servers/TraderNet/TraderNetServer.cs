@@ -659,7 +659,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 _webSocket.OnClose += WebSocket_Closed;
                 _webSocket.OnMessage += WebSocket_MessageReceived;
                 _webSocket.OnError += WebSocket_Error;
-                _webSocket.Connect();
+                _webSocket.Connect().Wait();
             }
             catch (Exception exception)
             {
@@ -798,8 +798,8 @@ namespace OsEngine.Market.Servers.TraderNet
                     return;
                 }
                                 
-                _webSocket.Send("[\"portfolio\"]");
-                _webSocket.Send("[\"orders\"]");
+                _webSocket.SendAsync("[\"portfolio\"]");
+                _webSocket.SendAsync("[\"orders\"]");
 
             }
             catch (Exception ex)
@@ -847,8 +847,8 @@ namespace OsEngine.Market.Servers.TraderNet
                 string quotesResponse = $"[\"quotes\", {GetStringFromList(_subscribedSecurities)}]";
                 string orderbookResponse = $"[\"orderBook\", {GetStringFromList(_subscribedSecurities)}]";
 
-                _webSocket.Send(quotesResponse);
-                _webSocket.Send(orderbookResponse);
+                _webSocket.SendAsync(quotesResponse);
+                _webSocket.SendAsync(orderbookResponse);
             }
             catch (Exception ex)
             {

@@ -1138,7 +1138,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 webSocketPublicNew.OnMessage += WebSocketPublic_MessageReceived;
                 webSocketPublicNew.OnError += WebSocketPublic_Error;
                 webSocketPublicNew.OnClose += WebSocketPublic_Closed;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -1173,7 +1173,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
                 _webSocketPrivate.OnError += WebSocketPrivate_Error;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
             }
             catch (Exception exception)
             {
@@ -1293,7 +1293,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 string AuthJson = JsonConvert.SerializeObject(requestWebsocketAuth);
 
-                _webSocketPrivate.Send(AuthJson);
+                _webSocketPrivate.SendAsync(AuthJson);
             }
             catch (Exception ex)
             {
@@ -1526,7 +1526,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         if (webSocketPublic != null
                             && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send("ping");
+                            webSocketPublic.SendAsync("ping");
                         }
                         else
                         {
@@ -1539,7 +1539,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting)
                         )
                     {
-                        _webSocketPrivate.Send("ping");
+                        _webSocketPrivate.SendAsync("ping");
                     }
                     else
                     {
@@ -1632,12 +1632,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{security.NameClass}\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{security.NameClass}\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
+                        webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
                         GetFundingData(security.Name, security.NameClass);
                         GetFundingHistory(security.Name, security.NameClass);
                     }
@@ -1755,9 +1755,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 for (int i = 0; i < _listCoin.Count; i++)
                 {
-                    _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
-                    _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"positions\",\"coin\": \"default\"}}]}}");
-                    _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"orders\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"positions\",\"coin\": \"default\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"orders\"}}]}}");
                 }
             }
             catch (Exception exception)
@@ -1785,12 +1785,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 {
                                     for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"ticker\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
+                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"ticker\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
                                         }
                                     }
                                 }
@@ -1814,9 +1814,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     for (int i = 0; i < _listCoin.Count; i++)
                     {
-                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
-                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"positions\",\"coin\": \"default\"}}]}}");
-                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"orders\",\"coin\": \"default\"}}]}}");
+                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
+                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"positions\",\"coin\": \"default\"}}]}}");
+                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"orders\",\"coin\": \"default\"}}]}}");
                     }
                 }
                 catch

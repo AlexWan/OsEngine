@@ -1101,7 +1101,7 @@ namespace OsEngine.Market.Servers.Alor
                         _webSocketData.SetProxy(_myProxy);
                     }
 
-                    _webSocketData.Connect();
+                    _webSocketData.Connect().Wait();
 
                     _webSocketPortfolio = new WebSocket(_wsHost);
                     _webSocketPortfolio.EmitOnPing = true;
@@ -1115,7 +1115,7 @@ namespace OsEngine.Market.Servers.Alor
                         _webSocketPortfolio.SetProxy(_myProxy);
                     }
 
-                    _webSocketPortfolio.Connect();
+                    _webSocketPortfolio.Connect().Wait();
 
                 }
 
@@ -1255,7 +1255,7 @@ namespace OsEngine.Market.Servers.Alor
             myTradesSub.Guid = subObjTrades.guid;
 
             _subscriptionsPortfolio.Add(myTradesSub);
-            _webSocketPortfolio.Send(messageTradeSub);
+            _webSocketPortfolio.SendAsync(messageTradeSub);
 
             Thread.Sleep(1000);
 
@@ -1279,7 +1279,7 @@ namespace OsEngine.Market.Servers.Alor
             ordersSub.ServiceInfo = portfolioName;
 
             _subscriptionsPortfolio.Add(ordersSub);
-            _webSocketPortfolio.Send(messageOrderSub);
+            _webSocketPortfolio.SendAsync(messageOrderSub);
 
             Thread.Sleep(1000);
 
@@ -1303,7 +1303,7 @@ namespace OsEngine.Market.Servers.Alor
             portfSub.Guid = subObjPortf.guid;
 
             _subscriptionsPortfolio.Add(portfSub);
-            _webSocketPortfolio.Send(messagePortfolioSub);
+            _webSocketPortfolio.SendAsync(messagePortfolioSub);
 
             Thread.Sleep(1000);
 
@@ -1327,7 +1327,7 @@ namespace OsEngine.Market.Servers.Alor
             positionsSub.Guid = subObjPositions.guid;
 
             _subscriptionsPortfolio.Add(positionsSub);
-            _webSocketPortfolio.Send(messagePositionsSub);
+            _webSocketPortfolio.SendAsync(messagePositionsSub);
         }
 
         #endregion
@@ -1571,7 +1571,7 @@ namespace OsEngine.Market.Servers.Alor
                 tradeSub.Guid = subObjTrades.guid;
                 _subscriptionsData.Add(tradeSub);
 
-                _webSocketData.Send(messageTradeSub);
+                _webSocketData.SendAsync(messageTradeSub);
 
                 // market depth subscription
 
@@ -1598,7 +1598,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 string messageMdSub = JsonConvert.SerializeObject(subObjMarketDepth);
 
-                _webSocketData.Send(messageMdSub);
+                _webSocketData.SendAsync(messageMdSub);
             }
             catch (Exception exception)
             {
@@ -1642,7 +1642,7 @@ namespace OsEngine.Market.Servers.Alor
 
                     if (_webSocketData != null)
                     {
-                        _webSocketData.Send(message);
+                        _webSocketData.SendAsync(message);
                     }
 
                     _subscriptionsData.Remove(sub);

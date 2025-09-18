@@ -640,7 +640,7 @@ namespace OsEngine.Market.Servers.Mexc
                     _webSocketPublic.OnClose += _webSocketPublic_OnClose;
                     _webSocketPublic.OnMessage += _webSocketPublic_OnMessage;
                     _webSocketPublic.OnError += _webSocketPublic_OnError;
-                    _webSocketPublic.Connect();
+                    _webSocketPublic.Connect().Wait();
 
                     return _webSocketPublic;
                 }
@@ -678,7 +678,7 @@ namespace OsEngine.Market.Servers.Mexc
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                     _webSocketPrivate.OnError += _webSocketPrivate_OnError;
 
-                    _webSocketPrivate.Connect();
+                    _webSocketPrivate.Connect().Wait();
                 }
             }
             catch (Exception exception)
@@ -1062,9 +1062,9 @@ namespace OsEngine.Market.Servers.Mexc
                 SendLogMessage("MexcSpot WebSocket Private connection open", LogMessageType.System);
                 CheckActivationSockets();
 
-                _webSocketPrivate.Send($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@private.orders.v3.api.pb\"] }}");
-                _webSocketPrivate.Send($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@private.account.v3.api.pb\"] }}");
-                _webSocketPrivate.Send($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@private.deals.v3.api.pb\"] }}");
+                _webSocketPrivate.SendAsync($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@private.orders.v3.api.pb\"] }}");
+                _webSocketPrivate.SendAsync($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@private.account.v3.api.pb\"] }}");
+                _webSocketPrivate.SendAsync($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@private.deals.v3.api.pb\"] }}");
             }
             catch (Exception error)
             {
@@ -1099,7 +1099,7 @@ namespace OsEngine.Market.Servers.Mexc
                             if (_webSocketPublic != null && _webSocketPublic?.ReadyState == WebSocketState.Open
                                 || _webSocketPublic.ReadyState == WebSocketState.Connecting)
                             {
-                                _webSocketPublic.Send("{\"method\":\"PING\"}");
+                                _webSocketPublic.SendAsync("{\"method\":\"PING\"}");
                             }
                             else
                             {
@@ -1114,7 +1114,7 @@ namespace OsEngine.Market.Servers.Mexc
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting)
                         )
                     {
-                        _webSocketPrivate.Send("{\"method\":\"PING\"}");
+                        _webSocketPrivate.SendAsync("{\"method\":\"PING\"}");
 
                         if (_lastTimeProlongListenKey.AddMinutes(30) < DateTime.Now)
                         {
@@ -1225,8 +1225,8 @@ namespace OsEngine.Market.Servers.Mexc
 
                 if (_webSocketPublic != null)
                 {
-                    _webSocketPublic.Send($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@public.aggre.deals.v3.api.pb@100ms@{security.Name}\"] }}");
-                    _webSocketPublic.Send($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@public.limit.depth.v3.api.pb@{security.Name}@20\"] }}");
+                    _webSocketPublic.SendAsync($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@public.aggre.deals.v3.api.pb@100ms@{security.Name}\"] }}");
+                    _webSocketPublic.SendAsync($"{{ \"method\": \"SUBSCRIPTION\", \"params\": [\"spot@public.limit.depth.v3.api.pb@{security.Name}@20\"] }}");
                 }
             }
             catch (Exception exception)
@@ -1242,9 +1242,9 @@ namespace OsEngine.Market.Servers.Mexc
                 return;
             }
 
-            _webSocketPrivate.Send($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@private.orders.v3.api.pb\"] }}");
-            _webSocketPrivate.Send($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@private.account.v3.api.pb\"] }}");
-            _webSocketPrivate.Send($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@private.deals.v3.api.pb\"] }}");
+            _webSocketPrivate.SendAsync($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@private.orders.v3.api.pb\"] }}");
+            _webSocketPrivate.SendAsync($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@private.account.v3.api.pb\"] }}");
+            _webSocketPrivate.SendAsync($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@private.deals.v3.api.pb\"] }}");
         }
 
         private void UnsubscribeFromPublicWebSockets()
@@ -1275,8 +1275,8 @@ namespace OsEngine.Market.Servers.Mexc
                                 {
                                     string securityName = _subscribedSecurities[j];
 
-                                    _webSocketPublic.Send($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@public.deals.v3.api.pb@{securityName}\"] }}");
-                                    _webSocketPublic.Send($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@public.limit.depth.v3.api.pb@{securityName}@20\"] }}");
+                                    _webSocketPublic.SendAsync($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@public.deals.v3.api.pb@{securityName}\"] }}");
+                                    _webSocketPublic.SendAsync($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@public.limit.depth.v3.api.pb@{securityName}@20\"] }}");
                                 }
                             }
                         }

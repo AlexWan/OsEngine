@@ -552,7 +552,7 @@ namespace OsEngine.Market.Servers.Pionex
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -592,7 +592,7 @@ namespace OsEngine.Market.Servers.Pionex
                 _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                 _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
             }
             catch (Exception exception)
             {
@@ -897,7 +897,7 @@ namespace OsEngine.Market.Servers.Pionex
                 CheckSocketsActivate();
                 SendLogMessage("BitMartSpot WebSocket Private connection open", LogMessageType.System);
 
-                _webSocketPrivate.Send("{\"op\": \"SUBSCRIBE\", \"topic\": \"BALANCE\"}");
+                _webSocketPrivate.SendAsync("{\"op\": \"SUBSCRIBE\", \"topic\": \"BALANCE\"}");
             }
             catch (Exception error)
             {
@@ -969,14 +969,14 @@ namespace OsEngine.Market.Servers.Pionex
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"op\": \"SUBSCRIBE\", \"topic\": \"TRADE\", \"symbol\": \"{security.Name}\"}}");
-                    webSocketPublic.Send($"{{\"op\": \"SUBSCRIBE\",  \"topic\":  \"DEPTH\",  \"symbol\": \"{security.Name}\", \"limit\":  10 }}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"SUBSCRIBE\", \"topic\": \"TRADE\", \"symbol\": \"{security.Name}\"}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"SUBSCRIBE\",  \"topic\":  \"DEPTH\",  \"symbol\": \"{security.Name}\", \"limit\":  10 }}");
                 }
 
                 if (_webSocketPrivate != null)
                 {
-                    _webSocketPrivate.Send($"{{\"op\": \"SUBSCRIBE\", \"topic\": \"ORDER\", \"symbol\": \"{security.Name}\"}}");
-                    _webSocketPrivate.Send($"{{\"op\": \"SUBSCRIBE\",  \"topic\":  \"FILL\",  \"symbol\": \"{security.Name}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"SUBSCRIBE\", \"topic\": \"ORDER\", \"symbol\": \"{security.Name}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"SUBSCRIBE\",  \"topic\":  \"FILL\",  \"symbol\": \"{security.Name}\"}}");
                 }
             }
             catch (Exception exception)
@@ -1006,8 +1006,8 @@ namespace OsEngine.Market.Servers.Pionex
                                     {
                                         string securityName = _subscribedSecurities[j];
 
-                                        webSocketPublic.Send($"{{\"op\": \"UNSUBSCRIBED\", \"topic\": \"TRADE\", \"symbol\": {securityName}\"}}");
-                                        webSocketPublic.Send($"{{\"op\": \"UNSUBSCRIBED\",  \"topic\":  \"DEPTH\",  \"symbol\": {securityName}\", \"limit\":  10 }}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"UNSUBSCRIBED\", \"topic\": \"TRADE\", \"symbol\": {securityName}\"}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"UNSUBSCRIBED\",  \"topic\":  \"DEPTH\",  \"symbol\": {securityName}\", \"limit\":  10 }}");
                                     }
                                 }
                             }
@@ -1035,12 +1035,12 @@ namespace OsEngine.Market.Servers.Pionex
                         {
                             string securityName = _subscribedSecurities[j];
 
-                            _webSocketPrivate.Send($"{{\"op\": \"UNSUBSCRIBE\", \"topic\": \"ORDER\", \"symbol\": \"{securityName}\"}}"); // myorders
-                            _webSocketPrivate.Send($"{{\"op\": \"UNSUBSCRIBE\",  \"topic\":  \"FILL\",  \"symbol\": \"{securityName}\"}}"); // mytrades
+                            _webSocketPrivate.SendAsync($"{{\"op\": \"UNSUBSCRIBE\", \"topic\": \"ORDER\", \"symbol\": \"{securityName}\"}}"); // myorders
+                            _webSocketPrivate.SendAsync($"{{\"op\": \"UNSUBSCRIBE\",  \"topic\":  \"FILL\",  \"symbol\": \"{securityName}\"}}"); // mytrades
                         }
                     }
 
-                    _webSocketPrivate.Send("{\"op\": \"UNSUBSCRIBE\", \"topic\": \"BALANCE\"}");
+                    _webSocketPrivate.SendAsync("{\"op\": \"UNSUBSCRIBE\", \"topic\": \"BALANCE\"}");
                 }
                 catch
                 {
@@ -1104,7 +1104,7 @@ namespace OsEngine.Market.Servers.Pionex
                             {
                                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                                 string pong = $"{{\"op\": \"PONG\", \"timestamp\": {timeStamp}}}";
-                                webSocketPublic.Send(pong);
+                                webSocketPublic.SendAsync(pong);
                             }
                             else
                             {
@@ -1178,7 +1178,7 @@ namespace OsEngine.Market.Servers.Pionex
                     {
                         string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                         string pong = $"{{\"op\": \"PONG\", \"timestamp\": {timeStamp}}}";
-                        _webSocketPrivate.Send(pong);
+                        _webSocketPrivate.SendAsync(pong);
                         continue;
                     }
 

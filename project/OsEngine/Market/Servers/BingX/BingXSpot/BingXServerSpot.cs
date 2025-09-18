@@ -701,7 +701,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -741,7 +741,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-            _webSocketPrivate.Connect();
+            _webSocketPrivate.Connect().Wait();
         }
 
         private void DeleteWebSocketConnection()
@@ -907,7 +907,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     {
                         for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            _webSocketPublic[i].Send("pong");
+                            _webSocketPublic[i].SendAsync("pong");
                         }
 
                         return;
@@ -1001,7 +1001,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     SendLogMessage("BingXSpot WebSocket Private connection open", LogMessageType.System);
                     CheckSocketsActivate();
-                    _webSocketPrivate.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"spot.executionReport\"}}"); // changing orders
+                    _webSocketPrivate.SendAsync($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"spot.executionReport\"}}"); // changing orders
                 }
             }
             catch (Exception ex)
@@ -1060,7 +1060,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                     if (item.Contains("ping")) // send immediately upon receipt. 
                     {
-                        _webSocketPrivate.Send("pong");
+                        _webSocketPrivate.SendAsync("pong");
                         return;
                     }
 
@@ -1175,12 +1175,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             if (webSocketPublic != null)
             {
-                webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
-                webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}");
+                webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
+                webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}");
 
                 if (_extendedMarketData)
                 {
-                    webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\" }}");
+                    webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\" }}");
                 }
             }
         }
@@ -1206,12 +1206,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
                                     {
                                         string name = _subscribedSecutiries[i2];
 
-                                        webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
-                                        webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20\" }}");
+                                        webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
+                                        webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20\" }}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@ticker\" }}");
+                                            webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@ticker\" }}");
                                         }
                                     }
                                 }
@@ -1234,7 +1234,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"spot.executionReport\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"spot.executionReport\"}}");
                 }
                 catch
                 {
