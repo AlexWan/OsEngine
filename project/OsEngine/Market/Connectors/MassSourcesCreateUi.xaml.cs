@@ -570,16 +570,13 @@ namespace OsEngine.Market.Connectors
                 if (portfolio != null)
                 {
                     ComboBoxPortfolio.Items.Add(SourcesCreator.PortfolioName);
+                    curPortfolio = SourcesCreator.PortfolioName;
                 }
 
                 List<Portfolio> portfolios = server.Portfolios;
 
                 if (portfolios == null)
                 {
-                    if (portfolio != null)
-                    {
-                        ComboBoxPortfolio.SelectedItem = SourcesCreator.PortfolioName;
-                    }
                     return;
                 }
 

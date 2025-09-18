@@ -559,16 +559,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (portfolio != null)
                 {
                     ComboBoxPortfolio.Items.Add(_screener.PortfolioName);
+                    curPortfolio = portfolio;
                 }
 
                 List<Portfolio> portfolios = server.Portfolios;
 
                 if (portfolios == null)
                 {
-                    if (portfolio != null)
-                    {
-                        ComboBoxPortfolio.SelectedItem = _screener.PortfolioName;
-                    }
                     return;
                 }
 
