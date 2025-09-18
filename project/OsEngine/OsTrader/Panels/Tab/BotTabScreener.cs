@@ -2194,19 +2194,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             List<IIndicator> indicatorsFirst = first.Indicators;
 
-            if (indicatorsFirst == null ||
-                 indicatorsFirst.Count == 0)
-            { // удаляем все индикаторы во второй вкладке
-
-                for (int i = 0;
-                    second.Indicators != null &&
-                    i < second.Indicators.Count; i++)
-                {
-                    second.DeleteCandleIndicator(second.Indicators[i]);
-                    break;
-                }
-            }
-
             // удаляем не нужные индикаторы
 
             for (int i = 0;

@@ -1337,7 +1337,6 @@ namespace OsEngine.Market.Servers.TraderNet
                 if (!JsonResponse.Contains("result"))
                 {
                     return false;
-                    SendLogMessage($"CancelOrder: {JsonResponse}", LogMessageType.Error);
                 }
                 else
                 {

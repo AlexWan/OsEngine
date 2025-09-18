@@ -944,7 +944,7 @@ namespace OsEngine.Market.Servers.Alor
         {
             return null; // так как указано, что данные не поддерживаются
 
-            List<Trade> trades = new List<Trade>();
+           /* List<Trade> trades = new List<Trade>();
 
             TimeSpan additionTime = TimeSpan.FromMinutes(1440);
 
@@ -971,7 +971,7 @@ namespace OsEngine.Market.Servers.Alor
                 }
             }
 
-            return trades;
+            return trades;*/
         }
 
         private TradesHistoryAlor GetHistoryTrades(Security security, DateTime startTime, DateTime endTime)

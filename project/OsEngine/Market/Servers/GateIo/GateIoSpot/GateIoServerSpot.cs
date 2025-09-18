@@ -599,7 +599,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
-
+            /*
             if (startTime < DateTime.UtcNow.AddYears(-3) ||
                 endTime < DateTime.UtcNow.AddYears(-3) ||
                 !CheckTime(startTime, endTime, actualTime))
@@ -609,7 +609,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             List<Trade> allTrades = GetNeedRange(security.Name, startTime, endTime);
 
-            return ClearTrades(allTrades);
+            return ClearTrades(allTrades);*/
         }
 
         private List<Trade> GetNeedRange(string security, DateTime startTime, DateTime endTime)

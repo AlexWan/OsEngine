@@ -1800,6 +1800,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
+            /*
             // https://docs.coinex.com/api/v2/futures/market/http/list-market-deals#http-request
             // Max 1000 deals at all
             List<Trade> trades = new List<Trade>();
@@ -1832,7 +1833,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             {
                 SendLogMessage("Trades request error:" + ex.ToString(), LogMessageType.Error);
             }
-            return trades.Count > 0 ? trades : null;
+            return trades.Count > 0 ? trades : null;*/
         }
 
         private List<CexCandle> cexGetCandleHistory(Security security, int tfTotalMinutes,

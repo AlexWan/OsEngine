@@ -1970,7 +1970,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 return;
 
-                if (portfs == null)
+             /*   if (portfs == null)
                 {
                     return;
                 }
@@ -2090,7 +2090,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 if (PortfolioEvent != null)
                 {
                     PortfolioEvent(_portfolios);
-                }
+                }*/
             }
             catch (Exception error)
             {
@@ -2647,7 +2647,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             return;
-            if (string.IsNullOrEmpty(order.NumberMarket))
+           /* if (string.IsNullOrEmpty(order.NumberMarket))
             {
                 SendLogMessage("Can`t change order price. Market Num order is null. "
                     + " SecName: " + order.SecurityNameCode
@@ -2673,7 +2673,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             if (res == null)
             {
                 return;
-            }
+            }*/
         }
 
         public void CancelAllOrders()

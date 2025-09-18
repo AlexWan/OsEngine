@@ -2361,12 +2361,13 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
+                if(_botTabs== null
+                    ||  _botTabs.Count == 0)
                 {
-                    return _botTabs[i].EventsIsOn;
+                    return false;
                 }
 
-                return false;
+                 return _botTabs[0].EventsIsOn;
             }
             set
             {

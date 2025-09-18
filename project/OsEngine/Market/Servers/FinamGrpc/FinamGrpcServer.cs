@@ -647,6 +647,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null; // Недоступно
+            /*
             LatestTradesResponse resp = null;
             try
             {
@@ -687,7 +688,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 }
             }
 
-            return trades.Count > 0 ? trades : null;
+            return trades.Count > 0 ? trades : null;*/
         }
 
         private RateGate _rateGateAssetsGetAsset = new RateGate(200, TimeSpan.FromMinutes(1));
