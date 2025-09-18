@@ -241,11 +241,11 @@ namespace OsEngine.Market.Servers.BloFin
 
         private string _webSocketUrlPrivate = "wss://openapi.blofin.com/ws/private";
 
-        private string _baseUrlDemo = "https://demo-trading-openapi.blofin.com";
+        //private string _baseUrlDemo = "https://demo-trading-openapi.blofin.com";
 
-        private string _webSocketUrlPublicDemo = "wss://demo-trading-openapi.blofin.com/ws/public";
+        //private string _webSocketUrlPublicDemo = "wss://demo-trading-openapi.blofin.com/ws/public";
 
-        private string _webSocketUrlPrivateDemo = "wss://demo-trading-openapi.blofin.com/ws/private";
+        //private string _webSocketUrlPrivateDemo = "wss://demo-trading-openapi.blofin.com/ws/private";
 
         private bool _hedgeMode;
 

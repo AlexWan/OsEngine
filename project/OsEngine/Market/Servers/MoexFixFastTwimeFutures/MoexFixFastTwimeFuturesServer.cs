@@ -4211,11 +4211,9 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         // переменные для сертификации
 
-
-
-        string _secType = string.Empty;
+        /*string _secType = string.Empty;
         byte F = 1;
-        byte O = 2;
+        byte O = 2;*/
 
         public void CancelAllOrders()
         {

@@ -3559,8 +3559,6 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                
         private List<Order> _sendOrders = new List<Order>();
 
-        private string _sendOrdersArrayLocker = "MoexFixFastSpotSendOrdersArrayLocker";
-
         public void SendOrder(Order order)
         {
             _rateGateForOrders.WaitToProceed();
@@ -3599,8 +3597,6 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
         // в этот словарь помещаем соответствия номеров рыночных ордеров пользовательским номерам ордеров        
         Dictionary<int, string> _changedOrderIds = new Dictionary<int, string>();
-
-        private string _changePriceOrdersArrayLocker = "cangePriceArrayLocker";
 
         /// <summary>
         /// Order price change
