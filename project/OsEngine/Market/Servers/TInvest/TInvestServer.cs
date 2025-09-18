@@ -2697,17 +2697,11 @@ namespace OsEngine.Market.Servers.TInvest
 
         #region 9 Trade
 
-        private RateGate _rateGateOrders = new RateGate(100, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
+        private RateGate _rateGateOrders = new RateGate(98, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
         private string _rageGateOrdersLocker = "_rageGateOrdersLocker";
 
-        private RateGate _rateGatePostOrders = new RateGate(300, TimeSpan.FromMinutes(1));
+        private RateGate _rateGatePostOrders = new RateGate(500, TimeSpan.FromMinutes(1));
         private string _rageGatePostOrdersLocker = "_rageGatePostOrdersLocker";
-
-        private RateGate _rateGateCancelOrders = new RateGate(100, TimeSpan.FromMinutes(1));
-        private string _rageGateCancelOrdersLocker = "_rageGateCancelOrdersLocker";
-
-        private RateGate _rateGateStatusOrders = new RateGate(200, TimeSpan.FromMinutes(1));
-        private string _rageGateStatusOrdersLocker = "_rageGateStatusOrdersLocker";
 
         public void SendOrder(Order order)
         {
@@ -2946,9 +2940,9 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                 }
 
-                lock (_rageGateCancelOrdersLocker)
+                lock (_rageGateOrdersLocker)
                 {
-                    _rateGateCancelOrders.WaitToProceed();
+                    _rateGateOrders.WaitToProceed();
                 }
 
                 CancelOrderRequest request = new CancelOrderRequest();
@@ -3063,9 +3057,9 @@ namespace OsEngine.Market.Servers.TInvest
 
         public OrderStateType GetOrderStatusWithTrades(Order order, bool processTrades)
         {
-            lock(_rageGateStatusOrdersLocker)
+            lock (_rageGateOrdersLocker)
             {
-                _rateGateStatusOrders.WaitToProceed();
+                _rateGateOrders.WaitToProceed();
             }
 
             try
@@ -3219,9 +3213,12 @@ namespace OsEngine.Market.Servers.TInvest
 
         private List<Order> GetAllOrdersFromExchangeByPortfolio(string accountId, bool onlyActive)
         {
-            _rateGateOrders.WaitToProceed();
+            lock (_rageGateOrdersLocker)
+            {
+                _rateGateOrders.WaitToProceed();
+            }
 
-            if(_securities == null 
+            if (_securities == null 
                 || _securities.Count == 0)
             {
                 return null;

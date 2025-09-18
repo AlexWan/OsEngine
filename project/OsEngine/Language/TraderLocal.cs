@@ -2092,12 +2092,12 @@ namespace OsEngine.Language
          "Ru:Ограничение_");
 
         public string Label548 => OsLocalization.ConvertToLocString(
-         "Eng:Limit_" +
-         "Ru:Ограничение_");
+         "Eng:Limit. abs_" +
+         "Ru:Ограничение. абс_");
 
         public string Label549 => OsLocalization.ConvertToLocString(
-         "Eng:Step shift_" +
-         "Ru:Шаг сдвига_");
+         "Eng:Step shift. abs_" +
+         "Ru:Шаг сдвига. абс_");
 
         public string Label550 => OsLocalization.ConvertToLocString(
          "Eng:Are you going to remove the Grid? Are you sure?_" +

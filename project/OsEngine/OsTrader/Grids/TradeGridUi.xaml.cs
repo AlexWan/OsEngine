@@ -3036,7 +3036,19 @@ namespace OsEngine.OsTrader.Grids
                 {
                     using (StreamWriter writer = new StreamWriter(filePath))
                     {
+                        TradeGridRegime regime = TradeGrid.Regime;
+
+                        if(TradeGrid.Regime != TradeGridRegime.Off)
+                        {
+                            TradeGrid.Regime = TradeGridRegime.Off;
+                        }
+
                         writer.WriteLine(TradeGrid.GetSaveString());
+
+                        if (TradeGrid.Regime != regime)
+                        {
+                            TradeGrid.Regime = regime;
+                        }
                     }
                 }
                 catch (Exception error)
