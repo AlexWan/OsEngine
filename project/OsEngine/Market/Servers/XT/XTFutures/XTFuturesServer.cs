@@ -1582,53 +1582,68 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 return md;
             }
 
-            private static int CompareAsk(MarketDepthLevel x, MarketDepthLevel y) => x.Price.CompareTo(y.Price);    
-            private static int CompareBid(MarketDepthLevel x, MarketDepthLevel y) => y.Price.CompareTo(x.Price);     
-
-            private static void UpsertLevel(List<MarketDepthLevel> list, decimal price, decimal qty, bool isAsk)
+            private  int CompareAsk(MarketDepthLevel x, MarketDepthLevel y) => x.Price.CompareTo(y.Price);
+            private  int CompareBid(MarketDepthLevel x, MarketDepthLevel y) => y.Price.CompareTo(x.Price);
+            // Линейный апсерт уровня: найти, обновить/удалить или вставить в нужное место.
+            // Порядок поддерживается: asks по возрастанию цены, bids по убыванию.
+            private void UpsertLevel(List<MarketDepthLevel> list, decimal price, decimal qty, bool isAsk)
             {
-                // бинарный поиск по цене
-                int lo = 0, hi = list.Count - 1;
-                while (lo <= hi)
+                // 1) ищем уровень по точной цене
+                int idx = -1;
+                for (int i = 0; i < list.Count; i++)
                 {
-                    int mid = (lo + hi) >> 1;
-                    var midPrice = list[mid].Price;
-                    int cmp = isAsk ? price.CompareTo(midPrice) : midPrice.CompareTo(price);
-                    if (cmp == 0)
+                    if (list[i].Price == price)
                     {
-                        if (qty == 0m) list.RemoveAt(mid);
-                        else
-                        {
-                            var lvl = list[mid];
-                            if (isAsk) lvl.Ask = qty; else lvl.Bid = qty;
-                            list[mid] = lvl;
-                        }
-                        return;
+                        idx = i;
+                        break;
                     }
-                    if (cmp < 0) hi = mid - 1;
-                    else lo = mid + 1;
                 }
 
-                if (qty == 0m) return; 
+                if (idx >= 0)
+                {
+                    // нашли: qty==0 -> удаляем, иначе обновляем размер на нужной стороне
+                    if (qty == 0m)
+                    {
+                        list.RemoveAt(idx);
+                    }
+                    else
+                    {
+                        var lvl = list[idx];
+                        if (isAsk) lvl.Ask = qty; else lvl.Bid = qty;
+                        list[idx] = lvl;
+                    }
+                    return;
+                }
 
-              
+                // 2) уровня с такой ценой нет: если qty==0 — нечего вставлять
+                if (qty == 0m) return;
+
+                // 3) собираем новый уровень под нужную сторону
                 var lvlNew = isAsk
                     ? new MarketDepthLevel { Price = price, Ask = qty }
                     : new MarketDepthLevel { Price = price, Bid = qty };
 
-                if (lo >= list.Count) list.Add(lvlNew);
-                else list.Insert(lo, lvlNew);
+                // 4) линейно находим позицию вставки
+                int pos = 0;
+                while (pos < list.Count &&
+                       (isAsk ? list[pos].Price < price   // asks: возрастающий порядок
+                              : list[pos].Price > price)) // bids: убывающий порядок
+                {
+                    pos++;
+                }
 
-              
+                // 5) вставляем и ограничиваем глубину до 20 уровней
+                list.Insert(pos, lvlNew);
                 if (list.Count > 20) list.RemoveAt(20);
             }
 
-            private static void ApplySnapshotSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk, int maxLevels = 20)
+
+            private void ApplySnapshotSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk, int maxLevels = 20)
             {
                 dest.Clear();
                 if (side == null || side.Count == 0) return;
 
-              
+
                 int take = Math.Min(maxLevels, side.Count);
                 for (int i = 0; i < take; i++)
                 {
@@ -1648,7 +1663,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     dest.RemoveRange(maxLevels, dest.Count - maxLevels);
             }
 
-            private static void ApplyIncrementSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk)
+            private void ApplyIncrementSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk)
             {
                 if (side == null) return;
 
@@ -1660,8 +1675,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-  
-         private void SnapshotDepth(string message)
+
+            private void SnapshotDepth(string message)
             {
                 try
                 {
@@ -1670,7 +1685,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     var d = responseDepth.data;
                     if (d == null) return;
 
-                    // 1) надёжно достаём символ
                     var symbol = d.s;
                     if (string.IsNullOrWhiteSpace(symbol))
                     {
@@ -1686,11 +1700,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         if (md.Asks == null) md.Asks = new List<MarketDepthLevel>(20);
                         if (md.Bids == null) md.Bids = new List<MarketDepthLevel>(20);
 
-                    
+
                         ApplySnapshotSide(d.a, md.Asks, isAsk: true, maxLevels: 20);
                         ApplySnapshotSide(d.b, md.Bids, isAsk: false, maxLevels: 20);
 
-                    
+
                         md.Time = ServerTime;
                         if (md.Time < _lastTimeMd) md.Time = _lastTimeMd;
                         else if (md.Time == _lastTimeMd)
@@ -1700,11 +1714,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
                         _lastTimeMd = md.Time;
 
-                   
+
                         _awaitingSnapshot.Remove(symbol);
                         startDepth = false;
 
-                  
+
                         if (_bufferBySymbol != null &&
                             _bufferBySymbol.TryGetValue(symbol, out var list) &&
                             list != null && list.Count > 0)
@@ -1718,11 +1732,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             list.Clear();
                         }
 
-                     
+
                         copyToFire = md.GetCopy();
                     }
 
-            
+
                     MarketDepthEvent?.Invoke(copyToFire);
                 }
                 catch (Exception ex)
@@ -1731,12 +1745,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-
-
             private readonly object _mdLock = new object();
-            private readonly Dictionary<string, List<XTFuturesResponseWebSocketUpdateDepth>> _bufferBySymbol = new Dictionary<string, List<XTFuturesResponseWebSocketUpdateDepth>>();
+            private readonly Dictionary<string, List<XTFuturesResponseWebSocketUpdateDepth>> _bufferBySymbol =
+                new Dictionary<string, List<XTFuturesResponseWebSocketUpdateDepth>>();
             private readonly HashSet<string> _awaitingSnapshot = new HashSet<string>();
-
 
             private void UpdateDepth(string message)
             {
@@ -1776,7 +1788,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                 list = new List<XTFuturesResponseWebSocketUpdateDepth>(32);
                                 _bufferBySymbol[symbol] = list;
                             }
-                            list.Add(d); 
+                            list.Add(d);
                         }
                         else
                         {
