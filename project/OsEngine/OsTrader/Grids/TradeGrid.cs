@@ -361,7 +361,7 @@ namespace OsEngine.OsTrader.Grids
 
         public bool CheckMicroVolumes = true;
 
-        public decimal MaxDistanceToOrdersPercent = 0.3m;
+        public decimal MaxDistanceToOrdersPercent = 2.0m;
 
         #endregion
 
