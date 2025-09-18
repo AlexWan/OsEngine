@@ -1215,9 +1215,9 @@ namespace OsEngine.Market.Servers.AstsBridge
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
-        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
+        public event Action<OptionMarketData> NewAdditionalMarketDataEvent { add { } remove { } }
 
         /// <summary>
         /// candle series changed
@@ -1585,7 +1585,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <summary>
         /// An attempt to revoke the order ended in an error
         /// </summary>
-        public event Action<Order> CancelOrderFailEvent;
+        public event Action<Order> CancelOrderFailEvent { add { } remove { } }
 
         // log messages
         // обработка лога
@@ -1619,11 +1619,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-        public event Action<Funding> NewFundingEvent;
-        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
+        public event Action<Funding> NewFundingEvent { add { } remove { } }
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent { add { } remove { } }
     }
 
     /// <summary>

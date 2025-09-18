@@ -235,7 +235,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// it's necessary to redraw indicator on chart
         /// необходимо перерисовать индикатор на графике
         /// </summary>
-        public event Action<IIndicator> NeedToReloadEvent;
+        public event Action<IIndicator> NeedToReloadEvent { add { } remove { } }
 
         /// <summary>
         /// to upload new candles

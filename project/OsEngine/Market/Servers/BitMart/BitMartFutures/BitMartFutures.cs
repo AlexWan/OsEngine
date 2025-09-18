@@ -1530,7 +1530,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -2188,7 +2188,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<Funding> FundingUpdateEvent;
 

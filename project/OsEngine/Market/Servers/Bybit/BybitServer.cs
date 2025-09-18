@@ -2473,7 +2473,7 @@ namespace OsEngine.Market.Servers.Bybit
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion 9
 

@@ -1257,7 +1257,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public List<string> _errors = new List<string>();
 
-        public event Action<string, LogMessageType> LogMessage;
+        public event Action<string, LogMessageType> LogMessage { add { } remove { } }
 
         public void TestEnded()
         {
