@@ -1793,7 +1793,7 @@ namespace OsEngine.Market.Servers.Woo
                             }
                         }
 
-                        if (response.data.bids.Count != null)
+                        if (response.data.bids != null)
                         {
                             for (int i = 0; i < response.data.bids.Count; i++)
                             {

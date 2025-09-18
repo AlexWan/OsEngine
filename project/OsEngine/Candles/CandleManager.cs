@@ -385,7 +385,7 @@ namespace OsEngine.Entity
             try
             {
                 if (series == null
-                    || series.UID == null)
+                    || series.UID == Guid.Empty)
                 {
                     return;
                 }
@@ -398,7 +398,7 @@ namespace OsEngine.Entity
                     CandleSeries curSeries = _activeSeriesBasedOnTrades[i];
 
                     if (curSeries == null ||
-                        curSeries.UID == null)
+                        curSeries.UID == Guid.Empty)
                     {
                         return;
                     }
@@ -420,7 +420,7 @@ namespace OsEngine.Entity
                     CandleSeries curSeries = _activeSeriesBasedOnMd[i];
 
                     if (curSeries == null ||
-                        curSeries.UID == null)
+                        curSeries.UID == Guid.Empty)
                     {
                         return;
                     }

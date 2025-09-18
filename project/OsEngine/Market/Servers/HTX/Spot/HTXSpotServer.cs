@@ -185,7 +185,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private Signer _signer;
 
-        private string _allCandleSeries;
+        //private string _allCandleSeries;
 
         private bool _extendedMarketData;
 
