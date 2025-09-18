@@ -640,7 +640,6 @@ namespace OsEngine.OsTrader
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
         private void Sort(DataGridView grid)
         {
             try
@@ -720,7 +719,6 @@ namespace OsEngine.OsTrader
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
         private void CheckPosition(DataGridView grid, List<Position> positions)
         {
             if (grid.InvokeRequired)

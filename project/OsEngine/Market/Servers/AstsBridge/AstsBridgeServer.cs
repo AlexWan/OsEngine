@@ -583,7 +583,6 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// bring the program to the start. Clear all objects involved in connecting to the server
         /// привести программу к моменту запуска. Очистить все объекты участвующие в подключении к серверу
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void Dispose()
         {
             try

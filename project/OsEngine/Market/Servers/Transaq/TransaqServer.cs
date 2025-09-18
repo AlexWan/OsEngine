@@ -1865,7 +1865,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         #region 8 Trade
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SendOrder(Order order)
         {
             try
@@ -1986,7 +1985,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         private string _sendOrdersLocker = "sendOrdersLocker";
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public bool CancelOrder(Order order)
         {
             try
@@ -2126,7 +2124,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// обработчик данных пришедших через каллбек
         /// </summary>
         /// <param name="pData">data from Transaq / данные, поступившие от транзака</param>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private bool CallBackDataHandler(IntPtr pData)
         {
             try
@@ -2149,7 +2146,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// takes messages from the shared queue, converts them to C# classes, and sends them to up
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void Converter()
         {
             while (true)
@@ -3227,7 +3223,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         /// <param name="command">command as a XML document / команда в виде XML документа</param>
         /// <returns>result of sending command/результат отправки команды</returns>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public string ConnectorSendCommand(string command)
         {
             try

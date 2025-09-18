@@ -430,8 +430,8 @@ namespace OsEngine.Robots.patt
             {
                 Position pos = positions[i];
 
-                pos.StopOrderIsActiv = false;
-                pos.ProfitOrderIsActiv = false;
+                pos.StopOrderIsActive = false;
+                pos.ProfitOrderIsActive = false;
             }
 
             _tab.BuyAtStopCancel();
