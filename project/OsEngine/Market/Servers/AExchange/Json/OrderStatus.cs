@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.AE.Json
         public DateTime Moment { get; set; }
 
         [JsonProperty("order_id", NullValueHandling = NullValueHandling.Ignore)]
-        public string? OrderId { get; set; }
+        public string OrderId { get; set; }
 
         [JsonProperty("msg")]
         public string Message { get; set; }

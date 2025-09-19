@@ -32,7 +32,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
     // https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
     public class CexRequestPendingOrders : CexRequestRest
     {
-        public CexRequestPendingOrders(string marketType, string? market = null, long? userOrderId = null, int limit = 1000)
+        public CexRequestPendingOrders(string marketType, string market = null, long? userOrderId = null, int limit = 1000)
         {
             parameters.Add("market_type", marketType);
             parameters.Add("limit", limit);
@@ -157,7 +157,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
     // https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
     public class CexRequestGetPendingPosition : CexRequestRest
     {
-        public CexRequestGetPendingPosition(string marketType, string? market = null, int limit = 1000, int page = 1)
+        public CexRequestGetPendingPosition(string marketType, string market = null, int limit = 1000, int page = 1)
         {
             parameters.Add("market_type", marketType);
             parameters.Add("limit", limit);

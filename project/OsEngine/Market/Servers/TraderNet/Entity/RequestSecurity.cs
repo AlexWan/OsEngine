@@ -23,8 +23,8 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
 
             public int? skip;
 
-            public List<Sort>? sort;
-            public Filter? filter { get; set; }
+            public List<Sort> sort;
+            public Filter filter { get; set; }
         }
 
         public class Sort

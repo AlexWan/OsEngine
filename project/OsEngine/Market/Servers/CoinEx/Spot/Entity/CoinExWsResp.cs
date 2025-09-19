@@ -6,11 +6,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
     {
         // https://docs.coinex.com/api/v2/guide#ws-response-processing
 
-        public long? id { get; set; }
+        public long id { get; set; }
         
         public string message { get; set; }
         
-        public string? method { get; set; }
+        public string method { get; set; }
 
         public long code { get; set; }
         
