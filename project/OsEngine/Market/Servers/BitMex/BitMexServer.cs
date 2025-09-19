@@ -926,7 +926,7 @@ namespace OsEngine.Market.Servers.BitMex
             _webSocket.OnMessage += _webSocket_MessageReceived;
             _webSocket.OnError += _webSocket_Error;
 
-            _webSocket.Connect().Wait();
+            _webSocket.ConnectAsync();
         }
 
         private void DeleteWebSocketConnection()

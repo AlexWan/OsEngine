@@ -1387,7 +1387,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _socketPrivateData.OnMessage += _socketClient_PrivateMessage;
                 _socketPrivateData.OnError += _socketClient_Error;
                 _socketPrivateData.OnClose += _socketClient_Closed;
-                _socketPrivateData.Connect().Wait();
+                _socketPrivateData.ConnectAsync();
 
                 _socketsArray.Add("userDataStream", _socketPrivateData);
 
@@ -1655,7 +1655,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             wsClientDepth.OnMessage += _socket_PublicMessage;
             wsClientDepth.OnError += _socketClient_Error;
             wsClientDepth.OnClose += _socketClient_Closed;
-            wsClientDepth.Connect().Wait();
+            wsClientDepth.ConnectAsync();
 
             _socketsArray.Add(security.Name + "_depth20", wsClientDepth);
         }

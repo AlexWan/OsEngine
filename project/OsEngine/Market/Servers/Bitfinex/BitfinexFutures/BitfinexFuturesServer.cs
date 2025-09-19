@@ -1038,7 +1038,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 webSocketPublicMarketDepthsNew.OnClose += WebSocketPublicMarketDepthsNew_OnClose;
                 webSocketPublicMarketDepthsNew.OnMessage += WebSocketPublicMarketDepthsNew_OnMessage;
                 webSocketPublicMarketDepthsNew.OnError += WebSocketPublicMarketDepthsNew_OnError;
-                webSocketPublicMarketDepthsNew.Connect().Wait();
+                webSocketPublicMarketDepthsNew.ConnectAsync();
 
                 return webSocketPublicMarketDepthsNew;
             }
@@ -1077,7 +1077,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 webSocketPublicTradesNew.OnClose += WebSocketPublicTradesNew_OnClose;
                 webSocketPublicTradesNew.OnMessage += WebSocketPublicTradesNew_OnMessage;
                 webSocketPublicTradesNew.OnError += WebSocketPublicTradesNew_OnError;
-                webSocketPublicTradesNew.Connect().Wait();
+                webSocketPublicTradesNew.ConnectAsync();
 
                 return webSocketPublicTradesNew;
             }
@@ -1105,7 +1105,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
                 _webSocketPrivate.OnError += WebSocketPrivate_Error;
 
-                _webSocketPrivate.Connect().Wait();
+                _webSocketPrivate.ConnectAsync();
             }
             catch (Exception exception)
             {

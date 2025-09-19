@@ -756,7 +756,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     _wsClient.OnClose += WebSocket_Closed;
                     _wsClient.OnError += WebSocketData_Error;
                     _wsClient.OnMessage += WebSocket_DataReceived;
-                    _wsClient.Connect().Wait();
+                    _wsClient.ConnectAsync();
                 }
             }
             catch (Exception exeption)

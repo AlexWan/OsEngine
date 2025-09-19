@@ -756,7 +756,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 webSocketPublicNew.OnMessage += _webSocketPublic_OnMessage;
                 webSocketPublicNew.OnError += _webSocketPublic_OnError;
                 webSocketPublicNew.OnClose += _webSocketPublic_OnClose;
-                webSocketPublicNew.Connect().Wait();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -795,7 +795,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
-            _webSocketPrivate.Connect().Wait();
+            _webSocketPrivate.ConnectAsync();
         }
 
         private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsKuCoinFutures";

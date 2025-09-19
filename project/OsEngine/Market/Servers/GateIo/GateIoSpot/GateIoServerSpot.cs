@@ -832,7 +832,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             _webSocket.OnMessage += WebSocket_MessageReceived;
             _webSocket.OnError += WebSocket_Error;
 
-            _webSocket.Connect().Wait();
+            _webSocket.ConnectAsync();
         }
 
         private void DeleteWebSocketConnection()

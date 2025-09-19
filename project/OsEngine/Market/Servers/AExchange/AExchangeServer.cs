@@ -664,7 +664,7 @@ namespace OsEngine.Market.Servers.AE
                     
                     try
                     {
-                        _ws.Connect();
+                        _ws.ConnectAsync();
                     }
                     catch (Exception ex)
                     {
@@ -758,7 +758,7 @@ namespace OsEngine.Market.Servers.AE
             if (e.Code == "1015")
             {
                 SendLogMessage($"Connection to AE closed unexpectedly Close code = {e.Code} with reason = {e.Reason}. Attempting reconnect.", LogMessageType.System);
-                _ws.Connect();
+                _ws.ConnectAsync();
                 return;
             }
 

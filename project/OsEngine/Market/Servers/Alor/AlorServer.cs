@@ -1101,7 +1101,7 @@ namespace OsEngine.Market.Servers.Alor
                         _webSocketData.SetProxy(_myProxy);
                     }
 
-                    _webSocketData.Connect().Wait();
+                    _webSocketData.ConnectAsync();
 
                     _webSocketPortfolio = new WebSocket(_wsHost);
                     _webSocketPortfolio.EmitOnPing = true;
@@ -1115,7 +1115,7 @@ namespace OsEngine.Market.Servers.Alor
                         _webSocketPortfolio.SetProxy(_myProxy);
                     }
 
-                    _webSocketPortfolio.Connect().Wait();
+                    _webSocketPortfolio.ConnectAsync();
 
                 }
 

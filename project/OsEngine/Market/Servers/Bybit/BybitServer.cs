@@ -1549,7 +1549,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicSpot.OnError += WebSocketPublic_Error;
             webSocketPublicSpot.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicSpot.Connect().Wait();
+            webSocketPublicSpot.ConnectAsync();
 
             return webSocketPublicSpot;
         }
@@ -1568,7 +1568,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicLinear.OnError += WebSocketPublic_Error;
             webSocketPublicLinear.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicLinear.Connect().Wait();
+            webSocketPublicLinear.ConnectAsync();
 
             return webSocketPublicLinear;
         }
@@ -1588,7 +1588,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicInverse.OnError += WebSocketPublic_Error;
             webSocketPublicInverse.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicInverse.Connect().Wait();
+            webSocketPublicInverse.ConnectAsync();
 
             return webSocketPublicInverse;
         }
@@ -1608,7 +1608,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicOption.OnError += WebSocketPublic_Error;
             webSocketPublicOption.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicOption.Connect().Wait();
+            webSocketPublicOption.ConnectAsync();
 
             return webSocketPublicOption;
         }
@@ -1631,7 +1631,7 @@ namespace OsEngine.Market.Servers.Bybit
                 webSocketPrivate.OnError += WebSocketPrivate_Error;
                 webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
 
-                webSocketPrivate.Connect().Wait();
+                webSocketPrivate.ConnectAsync();
             }
             catch (Exception ex)
             {
