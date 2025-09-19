@@ -1366,8 +1366,7 @@ namespace OsEngine.Entity
                     return true;
                 }
 
-                if(serverType == ServerType.QuikDde
-                    || serverType == ServerType.QuikLua
+                if(serverType == ServerType.QuikLua
                     || serverType == ServerType.Plaza)
                 {
                     return true;

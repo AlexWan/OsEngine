@@ -22,7 +22,6 @@ using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.NinjaTrader;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
-using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
@@ -76,7 +75,6 @@ using OsEngine.Market.Servers.BinanceData;
 using OsEngine.Market.AutoFollow;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader;
-using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Market.Servers.AscendexSpot;
 using OsEngine.Market.Servers.OKXData;
@@ -268,7 +266,6 @@ namespace OsEngine.Market
 
 
                 serverTypes.Add(ServerType.Alor);
-                serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
@@ -568,151 +565,147 @@ namespace OsEngine.Market
                     {
                         newServer = new BybitDataServer();
                     }
-                    if (type == ServerType.OKXData)
+                    else if (type == ServerType.OKXData)
                     {
                         newServer = new OKXDataServer();
                     }
-                    if (type == ServerType.BinanceData)
+                    else if (type == ServerType.BinanceData)
                     {
                         newServer = new BinanceDataServer();
                     }
-                    if (type == ServerType.TelegramNews)
+                    else if (type == ServerType.TelegramNews)
                     {
                         newServer = new TelegramNewsServer();
                     }
-                    if (type == ServerType.AExchange)
+                    else if (type == ServerType.AExchange)
                     {
                         newServer = new AExchangeServer();
                     }
-                    if (type == ServerType.SmartLabNews)
+                    else if (type == ServerType.SmartLabNews)
                     {
                         newServer = new SmartLabNewsServer();
                     }
-                    if (type == ServerType.RSSNews)
+                    else if (type == ServerType.RSSNews)
                     {
                         newServer = new RSSNewsServer(uniqueNum);
                     }
-                    if (type == ServerType.MoexFixFastTwimeFutures)
+                    else if (type == ServerType.MoexFixFastTwimeFutures)
                     {
                         newServer = new MoexFixFastTwimeFuturesServer();
                     }
-                    if (type == ServerType.Atp)
+                    else if (type == ServerType.Atp)
                     {
                         newServer = new AtpServer();
                     }
-                    if (type == ServerType.MoexFixFastCurrency)
+                    else if (type == ServerType.MoexFixFastCurrency)
                     {
                         newServer = new MoexFixFastCurrencyServer();
                     }
-                    if (type == ServerType.BingXSpot)
+                    else if (type == ServerType.BingXSpot)
                     {
                         newServer = new BingXServerSpot(uniqueNum);
                     }
-                    if (type == ServerType.MoexAlgopack)
+                    else if (type == ServerType.MoexAlgopack)
                     {
                         newServer = new MoexAlgopackServer();
                     }
-                    if (type == ServerType.MoexFixFastSpot)
+                    else if (type == ServerType.MoexFixFastSpot)
                     {
                         newServer = new MoexFixFastSpotServer();
                     }
-                    if (type == ServerType.XTSpot)
+                    else if (type == ServerType.XTSpot)
                     {
                         newServer = new XTServerSpot(uniqueNum);
                     }
-                    if (type == ServerType.BingXFutures)
+                    else if (type == ServerType.BingXFutures)
                     {
                         newServer = new BingXServerFutures(uniqueNum);
                     }
-                    if (type == ServerType.KuCoinFutures)
+                    else if (type == ServerType.KuCoinFutures)
                     {
                         newServer = new KuCoinFuturesServer(uniqueNum);
                     }
-                    if (type == ServerType.KuCoinSpot)
+                    else if (type == ServerType.KuCoinSpot)
                     {
                         newServer = new KuCoinSpotServer(uniqueNum);
                     }
-                    if (type == ServerType.Alor)
+                    else if (type == ServerType.Alor)
                     {
                         newServer = new AlorServer(uniqueNum);
                     }
-                    if (type == ServerType.BitGetFutures)
+                    else if (type == ServerType.BitGetFutures)
                     {
                         newServer = new BitGetServerFutures(uniqueNum);
                     }
-                    if (type == ServerType.BitGetSpot)
+                    else if (type == ServerType.BitGetSpot)
                     {
                         newServer = new BitGetServerSpot(uniqueNum);
                     }
-                    if (type == ServerType.OKX)
+                    else if (type == ServerType.OKX)
                     {
                         newServer = new OkxServer(uniqueNum);
                     }
-                    if (type == ServerType.MfdWeb)
+                    else if (type == ServerType.MfdWeb)
                     {
                         newServer = new MfdServer();
                     }
-                    if (type == ServerType.MoexDataServer)
+                    else if (type == ServerType.MoexDataServer)
                     {
                         newServer = new MoexDataServer();
                     }
-                    if (type == ServerType.TInvest)
+                    else if (type == ServerType.TInvest)
                     {
                         newServer = new TInvestServer(uniqueNum);
                     }
-                    if (type == ServerType.GateIoSpot)
+                    else if (type == ServerType.GateIoSpot)
                     {
                         newServer = new GateIoServerSpot(uniqueNum);
                     }
-                    if (type == ServerType.GateIoFutures)
+                    else if (type == ServerType.GateIoFutures)
                     {
                         newServer = new GateIoServerFutures(uniqueNum);
                     }
-                    if (type == ServerType.Bybit)
+                    else if (type == ServerType.Bybit)
                     {
                         newServer = new BybitServer(uniqueNum);
                     }
-                    if (type == ServerType.ExmoSpot)
+                    else if (type == ServerType.ExmoSpot)
                     {
                         newServer = new ExmoSpotServer();
                     }
-                    if (type == ServerType.Transaq)
+                    else if (type == ServerType.Transaq)
                     {
                         newServer = new TransaqServer();
                     }
-                    if (type == ServerType.BitfinexSpot)
+                    else if (type == ServerType.BitfinexSpot)
                     {
                         newServer = new BitfinexSpotServer(uniqueNum);
                     }
-                    if (type == ServerType.BitfinexFutures)
+                    else if (type == ServerType.BitfinexFutures)
                     {
                         newServer = new BitfinexFuturesServer(uniqueNum);
                     }
-                    if (type == ServerType.Binance)
+                    else if (type == ServerType.Binance)
                     {
                         newServer = new BinanceServerSpot(uniqueNum);
                     }
-                    if (type == ServerType.BinanceFutures)
+                    else if (type == ServerType.BinanceFutures)
                     {
                         newServer = new BinanceServerFutures(uniqueNum);
                     }
-                    if (type == ServerType.NinjaTrader)
+                    else if (type == ServerType.NinjaTrader)
                     {
                         newServer = new NinjaTraderServer();
                     }
-                    if (type == ServerType.BitMex)
+                    else if (type == ServerType.BitMex)
                     {
                         newServer = new BitMexServer();
                     }
-                    if (type == ServerType.QuikLua)
+                    else if (type == ServerType.QuikLua)
                     {
                         newServer = new QuikLuaServer();
                     }
-                    if (type == ServerType.QuikDde)
-                    {
-                        newServer = new QuikServer();
-                    }
-                    if (type == ServerType.InteractiveBrokers)
+                    else if (type == ServerType.InteractiveBrokers)
                     {
                         newServer = new InteractiveBrokersServer();
                     }
@@ -2120,12 +2113,6 @@ namespace OsEngine.Market
         /// Квик луа
         /// </summary>
         QuikLua,
-
-        /// <summary>
-        /// connection to terminal Quik by DDE
-        /// Квик
-        /// </summary>
-        QuikDde,
 
         /// <summary>
         /// Plaza 2

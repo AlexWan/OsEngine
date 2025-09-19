@@ -20,16 +20,6 @@ namespace OsEngine.Market.SupportTable
 
             // TODO Добавить Finam gRPC
 
-            SupportConnection quikDDE = new SupportConnection()
-            {
-                ServerType = ServerType.QuikDde,
-                SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Moex\\QuikDde.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(quikDDE);
-
             SupportConnection transaq = new SupportConnection()
             {
                 ServerType = ServerType.Transaq,
