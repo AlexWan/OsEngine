@@ -167,6 +167,13 @@ namespace OsEngine.Entity
                     return;
                 }
 
+                if(value == OrderStateType.Active
+                    && (_state == OrderStateType.Done
+                    || _state == OrderStateType.Cancel))
+                {
+                    return;
+                }
+
                 _state = value;
             } 
         }

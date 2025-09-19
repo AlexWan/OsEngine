@@ -727,7 +727,7 @@ namespace OsEngine.Entity
                 if (closeOrder.MyTrades == null ||
                    closeOrder.MyTrades.Count == 0)
                 { // если трейдов ещё нет, допускается установка значение исполненного объёма по записи в ордере
-                    closeOrder.VolumeExecute = newOrder.VolumeExecute;
+                    //closeOrder.VolumeExecute = newOrder.VolumeExecute;
                 }
 
                 if(OpenVolume == 0 
