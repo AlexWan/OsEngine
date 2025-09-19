@@ -32,7 +32,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
     // https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
     public class CexRequestPendingOrders : CexRequestRest
     {
-        public CexRequestPendingOrders(string marketType, string? market = null, long? userOrderId = null, int limit = 1000)
+        public CexRequestPendingOrders(string marketType, string market = null, long? userOrderId = null, int limit = 1000)
         {
             parameters.Add("market_type", marketType);
             parameters.Add("limit", limit);
@@ -50,7 +50,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
     // https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
     public class CexRequestCancelAllOrders : CexRequestRest
     {
-        public CexRequestCancelAllOrders(string marketType, string? security)
+        public CexRequestCancelAllOrders(string marketType, string security)
         {
             parameters.Add("market_type", marketType);
             if (security != null)

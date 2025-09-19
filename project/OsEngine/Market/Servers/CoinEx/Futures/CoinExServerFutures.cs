@@ -1518,7 +1518,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 // https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
 
                 Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode)).parameters;
-                cexOrders = _restClient.Get<List<CexOrder>?>("/futures/pending-order", true, parameters);
+                cexOrders = _restClient.Get<List<CexOrder>>("/futures/pending-order", true, parameters);
 
                 if (cexOrders == null || cexOrders.Count == 0)
                 {

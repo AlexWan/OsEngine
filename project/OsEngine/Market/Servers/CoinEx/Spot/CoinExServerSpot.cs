@@ -276,12 +276,12 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 if (_marketMode == CexMarketType.SPOT.ToString())
                 {
-                    List<CexSpotPortfolioItem>? cexPortfolio = _restClient.Get<List<CexSpotPortfolioItem>>("/assets/spot/balance", true);
+                    List<CexSpotPortfolioItem> cexPortfolio = _restClient.Get<List<CexSpotPortfolioItem>>("/assets/spot/balance", true);
                     ConvertSpotToPortfolio(cexPortfolio);
                 }
                 if (_marketMode == CexMarketType.MARGIN.ToString())
                 {
-                    List<CexMarginPortfolioItem>? cexPortfolio = _restClient.Get<List<CexMarginPortfolioItem>>("/assets/margin/balance", true);
+                    List<CexMarginPortfolioItem> cexPortfolio = _restClient.Get<List<CexMarginPortfolioItem>>("/assets/margin/balance", true);
                     ConvertMarginToPortfolio(cexPortfolio);
                 }
                 return _portfolios.Count > 0;
@@ -1490,7 +1490,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     {
                         _rateGateGetOrder.WaitToProceed();
                         Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode, _subscribedSecurities[i].Name)).parameters;
-                        List<CexOrder> tmpCexOrders = _restClient.Get<List<CexOrder>?>("/spot/pending-order", true, parameters);
+                        List<CexOrder> tmpCexOrders = _restClient.Get<List<CexOrder>>("/spot/pending-order", true, parameters);
                         if (tmpCexOrders != null && tmpCexOrders.Count > 0)
                         {
                             cexOrders.AddRange(tmpCexOrders);
@@ -1500,7 +1500,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 else
                 {
                     Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode)).parameters;
-                    cexOrders = _restClient.Get<List<CexOrder>?>("/spot/pending-order", true, parameters);
+                    cexOrders = _restClient.Get<List<CexOrder>>("/spot/pending-order", true, parameters);
                 }
 
                 if (cexOrders == null || cexOrders.Count == 0)

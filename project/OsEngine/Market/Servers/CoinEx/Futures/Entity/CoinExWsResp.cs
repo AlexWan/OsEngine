@@ -10,7 +10,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         
         public string message { get; set; }
         
-        public string? method { get; set; }
+        public string method { get; set; }
 
         public long code { get; set; }
         

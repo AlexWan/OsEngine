@@ -58,7 +58,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 		public long updated_at { get; set; }
 
 		// Order status [open, part_filled, filled, part_canceled, canceled]
-		public string? status { get; set; }
+		public string status { get; set; }
 
 		public string ToStringValue()
 		{

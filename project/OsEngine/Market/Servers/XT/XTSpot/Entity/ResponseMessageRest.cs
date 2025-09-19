@@ -20,8 +20,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
     {
         public string timestamp { get; set; } //"1662444177871" in ms
         public string lastUpdateId { get; set; } //"1662444177871" in ms
-        public List<List<string>>? bids { get; set; } //List of bids
-        public List<List<string>>? asks { get; set; } //List of asks
+        public List<List<string>> bids { get; set; } //List of bids
+        public List<List<string>> asks { get; set; } //List of asks
     }
 
     public class ResponseToken

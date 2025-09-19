@@ -31,7 +31,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         }
 
         private T Request<T>(string method, string path,
-            Dictionary<string, object>? args, Dictionary<string, object>? body, bool isSign = false)
+            Dictionary<string, object> args, Dictionary<string, object> body, bool isSign = false)
         {
             if (args != null)
             {
@@ -83,7 +83,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
             return (new CoinExHttpResp<T>()).data;
         }
 
-        public T Get<T>(string path, bool isSign = false, Dictionary<string, object>? args = null) => Request<T>("GET", path, args, null, isSign);
+        public T Get<T>(string path, bool isSign = false, Dictionary<string, object> args = null) => Request<T>("GET", path, args, null, isSign);
 
         public T Post<T>(string path, Dictionary<string, object> body, bool isSign = false) => Request<T>("POST", path, null, body, isSign);
 
