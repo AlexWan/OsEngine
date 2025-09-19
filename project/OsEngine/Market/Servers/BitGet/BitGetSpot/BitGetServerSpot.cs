@@ -830,7 +830,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 webSocketPublicNew.OnMessage += WebSocketPublic_MessageReceived;
                 webSocketPublicNew.OnError += WebSocketPublic_Error;
                 webSocketPublicNew.OnClose += WebSocketPublic_Closed;
-                webSocketPublicNew.Connect().Wait();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -862,7 +862,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
                 _webSocketPrivate.OnError += WebSocketPrivate_Error;
-                _webSocketPrivate.Connect().Wait();
+                _webSocketPrivate.ConnectAsync();
             }
             catch (Exception exception)
             {

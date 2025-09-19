@@ -701,7 +701,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
-                webSocketPublicNew.Connect().Wait();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -741,7 +741,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-            _webSocketPrivate.Connect().Wait();
+            _webSocketPrivate.ConnectAsync();
         }
 
         private void DeleteWebSocketConnection()

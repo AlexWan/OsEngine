@@ -640,7 +640,7 @@ namespace OsEngine.Market.Servers.Mexc
                     _webSocketPublic.OnClose += _webSocketPublic_OnClose;
                     _webSocketPublic.OnMessage += _webSocketPublic_OnMessage;
                     _webSocketPublic.OnError += _webSocketPublic_OnError;
-                    _webSocketPublic.Connect().Wait();
+                    _webSocketPublic.ConnectAsync();
 
                     return _webSocketPublic;
                 }
@@ -678,7 +678,7 @@ namespace OsEngine.Market.Servers.Mexc
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                     _webSocketPrivate.OnError += _webSocketPrivate_OnError;
 
-                    _webSocketPrivate.Connect().Wait();
+                    _webSocketPrivate.ConnectAsync();
                 }
             }
             catch (Exception exception)

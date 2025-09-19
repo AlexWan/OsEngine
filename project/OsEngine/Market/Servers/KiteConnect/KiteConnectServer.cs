@@ -1118,7 +1118,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                 _webSocket.OnError += _webSocket_OnError;
                 _webSocket.OnClose += _webSocket_OnClose;
 
-                _webSocket.Connect().Wait();
+                _webSocket.ConnectAsync();
 
                 _listWebSocket.Add(_webSocket);
             }

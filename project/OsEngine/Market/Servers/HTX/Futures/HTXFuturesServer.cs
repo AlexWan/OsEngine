@@ -589,7 +589,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _webSocketPublic.OnError += webSocketPublic_OnError;
             _webSocketPublic.OnClose += webSocketPublic_OnClose;
 
-            _webSocketPublic.Connect().Wait();
+            _webSocketPublic.ConnectAsync();
 
             _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_webSocketPathPrivate}");
 
@@ -600,7 +600,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _webSocketPrivate.OnError += webSocketPrivate_OnError;
             _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
 
-            _webSocketPrivate.Connect().Wait();
+            _webSocketPrivate.ConnectAsync();
         }
 
         private void DeleteWebscoektConnection()

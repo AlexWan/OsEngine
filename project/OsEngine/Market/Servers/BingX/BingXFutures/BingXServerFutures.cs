@@ -925,7 +925,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
-                webSocketPublicNew.Connect().Wait();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -966,7 +966,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
 
-            _webSocketPrivate.Connect().Wait();
+            _webSocketPrivate.ConnectAsync();
         }
 
         private void DeleteWebSocketConnection()

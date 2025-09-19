@@ -937,7 +937,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                webSocketPublicNew.Connect().Wait();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -969,7 +969,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                 _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                _webSocketPrivate.Connect().Wait();
+                _webSocketPrivate.ConnectAsync();
             }
             catch (Exception exception)
             {

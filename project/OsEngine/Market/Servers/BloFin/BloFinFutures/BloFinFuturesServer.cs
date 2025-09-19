@@ -611,7 +611,7 @@ namespace OsEngine.Market.Servers.BloFin
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
-            _webSocketPrivate.Connect().Wait();
+            _webSocketPrivate.ConnectAsync();
 
             _webSocketPublic = new WebSocket(_webSocketUrlPublic);
             /*_webSocketPublic.SslConfiguration.EnabledSslProtocols
@@ -622,7 +622,7 @@ namespace OsEngine.Market.Servers.BloFin
             _webSocketPublic.OnMessage += _webSocketPublic_OnMessage;
             _webSocketPublic.OnError += _webSocketPublic_OnError;
             _webSocketPublic.OnClose += _webSocketPublic_OnClose;
-            _webSocketPublic.Connect().Wait();
+            _webSocketPublic.ConnectAsync();
         }
 
         private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsKuCoinFutures";

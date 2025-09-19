@@ -838,7 +838,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 webSocketPublicNew.OnMessage += webSocketPublic_OnMessage;
                 webSocketPublicNew.OnError += webSocketPublic_OnError;
                 webSocketPublicNew.OnClose += webSocketPublic_OnClose;
-                webSocketPublicNew.Connect().Wait();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -863,7 +863,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += webSocketPrivate_OnError;
                 _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
-                _webSocketPrivate.Connect().Wait();
+                _webSocketPrivate.ConnectAsync();
 
             }
             catch (Exception exception)

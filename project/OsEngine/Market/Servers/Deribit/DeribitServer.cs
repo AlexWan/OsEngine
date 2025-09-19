@@ -522,7 +522,7 @@ namespace OsEngine.Market.Servers.Deribit
             webSocket.OnClose += WebSocket_OnClose;
             webSocket.OnMessage += WebSocket_OnMessage;
             webSocket.OnError += WebSocket_OnError;
-            webSocket.Connect().Wait();
+            webSocket.ConnectAsync();
         }
 
         private void DeleteWebscoektConnection()

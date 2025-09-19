@@ -659,7 +659,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 _webSocket.OnClose += WebSocket_Closed;
                 _webSocket.OnMessage += WebSocket_MessageReceived;
                 _webSocket.OnError += WebSocket_Error;
-                _webSocket.Connect().Wait();
+                _webSocket.ConnectAsync();
             }
             catch (Exception exception)
             {

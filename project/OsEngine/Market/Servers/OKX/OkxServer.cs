@@ -1062,7 +1062,7 @@ namespace OsEngine.Market.Servers.OKX
                 webSocketPublicNew.OnClose += WebSocketPublic_Closed;
                 webSocketPublicNew.OnMessage += WebSocketPublic_MessageReceived;
                 webSocketPublicNew.OnError += WebSocketPublic_Error;
-                webSocketPublicNew.Connect().Wait();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -1102,7 +1102,7 @@ namespace OsEngine.Market.Servers.OKX
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
                 _webSocketPrivate.OnError += WebSocketPrivate_Error;
-                _webSocketPrivate.Connect().Wait();
+                _webSocketPrivate.ConnectAsync();
             }
             catch (Exception exception)
             {
