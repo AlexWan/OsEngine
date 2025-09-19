@@ -48,16 +48,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             get { return false; }
         }
 
-        public bool DataFeedTfTickCanLoad
-        {
-            get { return false; }
-        }
-
-        public bool DataFeedTfMarketDepthCanLoad
-        {
-            get { return false; }
-        }
-
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return false; }
@@ -104,6 +94,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         }
 
         public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfTickCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
         }
@@ -190,11 +190,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         }
 
         public bool ManuallyClosePositionOnBoard_IsOn
-        {
-            get { return true; }
-        }
-
-        public bool IsTradeServer
         {
             get { return true; }
         }
