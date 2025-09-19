@@ -6,23 +6,24 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.AE.Json;
 using OsEngine.Market.Servers.Entity;
-using System;
-using System.IO;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
-using OsEngine.Entity.WebSocketOsEngine;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using OptionType = OsEngine.Entity.OptionType;
 using Order = OsEngine.Entity.Order;
 using Position = OsEngine.Entity.Position;
-using System.Net;
-using System.Security.Cryptography;
 
 namespace OsEngine.Market.Servers.AE
 {
@@ -213,7 +214,10 @@ namespace OsEngine.Market.Servers.AE
 
                 newSecurity.DecimalsVolume = 0;
 
-                _securities.Add(newSecurity);
+                if (!_securities.Any(s => s.NameId == newSecurity.NameId))
+                {
+                    _securities.Add(newSecurity);
+                }
             }
 
             SecurityEvent!(_securities);
@@ -303,6 +307,45 @@ namespace OsEngine.Market.Servers.AE
 
             Security sec = _securities.Find((s) => s.NameId == q.Ticker);
 
+            if (q.Volatility != null) // needs to be before orderbook so MarkIV already available
+            {
+                OptionMarketDataForConnector data = new OptionMarketDataForConnector();
+
+                data.MarkIV = q.Volatility.ToString();
+                data.SecurityName = q.Ticker;
+                data.TimeCreate = new DateTimeOffset(q.Timestamp).ToUnixTimeMilliseconds().ToString();
+                data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
+
+                AdditionalMarketDataEvent!(data);
+            }
+
+            if (q.Ask != null) // orderbook DTO construction
+            {
+                MarketDepth newMarketDepth = new MarketDepth();
+                MarketDepthLevel askLevel = new MarketDepthLevel();
+                askLevel.Ask = q.AskVolume ?? 0;
+                askLevel.Price = q.Ask ?? 0;
+
+                MarketDepthLevel bidLevel = new MarketDepthLevel();
+                bidLevel.Bid = q.BidVolume ?? 0;
+                bidLevel.Price = q.Bid ?? 0;
+
+                newMarketDepth.Asks.Add(askLevel);
+                newMarketDepth.Bids.Add(bidLevel);
+
+                newMarketDepth.SecurityNameCode = q.Ticker;
+                newMarketDepth.Time = q.Timestamp;
+
+                if (newMarketDepth.Time == _lastMDTime)
+                {
+                    newMarketDepth.Time = newMarketDepth.Time.AddTicks(1);
+                }
+
+                _lastMDTime = newMarketDepth.Time;
+
+                MarketDepthEvent!(newMarketDepth);
+            }
+
             if (q.LastPrice != null) // quote is trade
             {
                 Trade newTrade = new Trade();
@@ -313,49 +356,10 @@ namespace OsEngine.Market.Servers.AE
                 newTrade.SecurityNameCode = q.Ticker;
                 newTrade.Side = q.LastVolume > 0 ? Side.Buy : Side.Sell;
 
-                if (q.Volatility != null) // needs to be before orderbook so MarkIV already available
-                {
-                    OptionMarketDataForConnector data = new OptionMarketDataForConnector();
-
-                    data.MarkIV = q.Volatility.ToString();
-                    data.SecurityName = q.Ticker;
-                    data.TimeCreate = new DateTimeOffset(q.Timestamp).ToUnixTimeMilliseconds().ToString();
-                    data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
-
-                    AdditionalMarketDataEvent!(data);
-                }
-
-                if (q.Ask != null) // orderbook DTO construction
-                {
-                    newTrade.Ask = q.Ask ?? 0;
-                    newTrade.AsksVolume = q.AskVolume ?? 0;
-                    newTrade.Bid = q.Bid ?? 0;
-                    newTrade.BidsVolume = q.BidVolume ?? 0;
-
-                    MarketDepth newMarketDepth = new MarketDepth();
-                    MarketDepthLevel askLevel = new MarketDepthLevel();
-                    askLevel.Ask = newTrade.AsksVolume;
-                    askLevel.Price = newTrade.Ask;
-
-                    MarketDepthLevel bidLevel = new MarketDepthLevel();
-                    bidLevel.Bid = newTrade.BidsVolume;
-                    bidLevel.Price = newTrade.Bid;
-
-                    newMarketDepth.Asks.Add(askLevel);
-                    newMarketDepth.Bids.Add(bidLevel);
-
-                    newMarketDepth.SecurityNameCode = q.Ticker;
-                    newMarketDepth.Time = q.Timestamp;
-
-                    if (newMarketDepth.Time == _lastMDTime)
-                    {
-                        newMarketDepth.Time = newMarketDepth.Time.AddTicks(1);
-                    }
-
-                    _lastMDTime = newMarketDepth.Time;
-
-                    MarketDepthEvent!(newMarketDepth);
-                }
+                newTrade.Ask = q.Ask ?? 0;
+                newTrade.AsksVolume = q.AskVolume ?? 0;
+                newTrade.Bid = q.Bid ?? 0;
+                newTrade.BidsVolume = q.BidVolume ?? 0;
 
                 NewTradesEvent!(newTrade);
             }
@@ -660,7 +664,7 @@ namespace OsEngine.Market.Servers.AE
                     
                     try
                     {
-                        _ws.Connect().Wait();
+                        _ws.Connect();
                     }
                     catch (Exception ex)
                     {
@@ -754,7 +758,7 @@ namespace OsEngine.Market.Servers.AE
             if (e.Code == "1015")
             {
                 SendLogMessage($"Connection to AE closed unexpectedly Close code = {e.Code} with reason = {e.Reason}. Attempting reconnect.", LogMessageType.System);
-                _ws.Connect().Wait();
+                _ws.Connect();
                 return;
             }
 
