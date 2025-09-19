@@ -599,7 +599,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
-
+            /*
             if (startTime < DateTime.UtcNow.AddYears(-3) ||
                 endTime < DateTime.UtcNow.AddYears(-3) ||
                 !CheckTime(startTime, endTime, actualTime))
@@ -609,7 +609,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             List<Trade> allTrades = GetNeedRange(security.Name, startTime, endTime);
 
-            return ClearTrades(allTrades);
+            return ClearTrades(allTrades);*/
         }
 
         private List<Trade> GetNeedRange(string security, DateTime startTime, DateTime endTime)
@@ -832,7 +832,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             _webSocket.OnMessage += WebSocket_MessageReceived;
             _webSocket.OnError += WebSocket_Error;
 
-            _webSocket.Connect();
+            _webSocket.Connect().Wait();
         }
 
         private void DeleteWebSocketConnection()
@@ -993,7 +993,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             FuturesPing ping = new FuturesPing { time = TimeManager.GetUnixTimeStampSeconds(), channel = "spot.ping" };
             string message = JsonConvert.SerializeObject(ping);
-            _webSocket.Send(message);
+            _webSocket.SendAsync(message);
         }
 
         #endregion
@@ -1035,7 +1035,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         private void SubscribeTicker(string security)
         {
             long time = TimeManager.GetUnixTimeStampSeconds();
-            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
         }
 
         private void SubscribeMarketDepth(string security)
@@ -1050,7 +1050,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
 
             long time = TimeManager.GetUnixTimeStampSeconds();
-            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"100ms\"]}}");
+            _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"100ms\"]}}");
         }
 
         private void AddMarketDepth(string name)
@@ -1064,7 +1064,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         private void SubscribeTrades(string security)
         {
             long time = TimeManager.GetUnixTimeStampSeconds();
-            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
         }
 
         private void SubscribeOrders(string security)
@@ -1108,7 +1108,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             string jsonRequest = JsonConvert.SerializeObject(payload);
 
-            _webSocket.Send(jsonRequest);
+            _webSocket.SendAsync(jsonRequest);
         }
 
         private void SubscribeUserTrades(string security)
@@ -1151,7 +1151,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             string jsonRequest = JsonConvert.SerializeObject(payload);
 
-            _webSocket.Send(jsonRequest);
+            _webSocket.SendAsync(jsonRequest);
         }
 
         private void SubscribePortfolio()
@@ -1193,7 +1193,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             string jsonRequest = JsonConvert.SerializeObject(payload);
 
-            _webSocket.Send(jsonRequest);
+            _webSocket.SendAsync(jsonRequest);
         }
 
         private void UnsubscribeFromAllWebSockets()
@@ -1213,12 +1213,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                             level = "20";
                         }
 
-                        _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"{level}\",\"100ms\"]}}");
-                        _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
+                        _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"{level}\",\"100ms\"]}}");
+                        _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
 
                         if (_extendedMarketData)
                         {
-                            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
+                            _webSocket?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
                         }
                     }
                 }
@@ -1234,7 +1234,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1583,9 +1583,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
@@ -2103,6 +2103,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             {
                 SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
         }
 
         #endregion

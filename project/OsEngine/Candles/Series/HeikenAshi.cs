@@ -228,6 +228,11 @@ namespace OsEngine.Candles.Series
                     Volume = volume
                 };
 
+                if (CandlesAll.Count > 0)
+                {
+                    candle.OpenInterest = CandlesAll[^1].OpenInterest;
+                }
+
                 CandlesAll.Add(candle);
 
                 if (canPushUp)
@@ -325,6 +330,11 @@ namespace OsEngine.Candles.Series
                     TimeStart = timeNextCandle,
                     Volume = volume
                 };
+
+                if (CandlesAll.Count > 0)
+                {
+                    newCandle.OpenInterest = CandlesAll[^1].OpenInterest;
+                }
 
                 CandlesAll.Add(newCandle);
 

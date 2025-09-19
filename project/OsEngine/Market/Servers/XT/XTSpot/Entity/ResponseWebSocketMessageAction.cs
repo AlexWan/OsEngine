@@ -47,7 +47,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
 
     public class ResponseWebSocketPortfolio
     {
-        // https://doc.xt.com/#websocket_privatebalanceChange
         public string a { get; set; }                    //"123" accountId                     
         public string t { get; set; }                         //"1656043204763", happened time
         public string c { get; set; }                     //"btc", currency
@@ -59,7 +58,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
 
     public class ResponseWebSocketOrder
     {
-        // https://doc.xt.com/#websocket_privateorderChange
         public string s { get; set; }                       //"btc_usdt",  symbol
         public string bc { get; set; }                 //"btc", base currency
         public string qc { get; set; }            //"usdt",  quotation currency 
@@ -77,5 +75,18 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
         public string p { get; set; }                        //"4000", price 
         public string ap { get; set; }                 //"30000", avg price
         public string f { get; set; }                          //"0.002", fee 
+    }
+
+    public class ResponseWebSocketMyTrade
+    {
+        public string s { get; set; }           // symbol
+        public string i { get; set; }            // tradeId
+        public string t { get; set; }             // time (timestamp)
+        public string oi { get; set; }           // orderId
+        public string p { get; set; }           // price
+        public string q { get; set; }           // quantity
+        public string v { get; set; }           // quoteQty
+        public string b { get; set; }             // isBuyerMaker
+        public string tm { get; set; }             // 1-taker, 2-maker
     }
 }

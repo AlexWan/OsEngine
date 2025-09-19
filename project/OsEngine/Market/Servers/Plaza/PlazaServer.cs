@@ -532,7 +532,6 @@ namespace OsEngine.Market.Servers.Plaza
         /// место работы основного потока
         /// </summary>
         /// 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void PrimeWorkerThreadSpace()
         {
             try
@@ -719,7 +718,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerInfo != null)
                 {
@@ -809,7 +808,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (CGateException error)
+            catch (CGateException)
             {
                 if (_listenerPortfolio != null)
                 {
@@ -899,7 +898,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerPosition != null)
                 {
@@ -988,7 +987,7 @@ namespace OsEngine.Market.Servers.Plaza
                 }
 
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerTrade != null)
                 {
@@ -1063,7 +1062,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _listenerMarketDepth.Open("mode=snapshot+online");
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerMarketDepth != null)
                 {
@@ -1154,7 +1153,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerOrderAndMyDeal != null)
                 {
@@ -1220,7 +1219,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _listenerUserOrderBook.Open("mode=online");
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerUserOrderBook != null)
                 {
@@ -1295,7 +1294,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _publisher = null;
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_publisher != null)
                 {
@@ -1354,7 +1353,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _listenerOrderSendMirror.Open("mode=online");
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerOrderSendMirror != null)
                 {
@@ -2366,7 +2365,7 @@ namespace OsEngine.Market.Servers.Plaza
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -3068,6 +3067,16 @@ namespace OsEngine.Market.Servers.Plaza
             // игнорируем. Активные заявки отправляются каждые 2 минуты через поток FORTS_USERORDERBOOK_REPL.
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 11 CODHeartbeat
@@ -3158,11 +3167,11 @@ namespace OsEngine.Market.Servers.Plaza
             return -1;
         }
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

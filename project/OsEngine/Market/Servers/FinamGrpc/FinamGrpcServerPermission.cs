@@ -203,6 +203,11 @@ namespace OsEngine.Market.Servers.FinamGrpc
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions
@@ -235,6 +240,26 @@ namespace OsEngine.Market.Servers.FinamGrpc
         public bool IsSupports_ProxyFor_MultipleInstances
         {
             get { return true; }
+        }
+
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
+        public int AsyncOrderSending_RateGateLimitMls
+        {
+            get { return 10; }
+        }
+
+        public bool IsSupports_AsyncCandlesStarter
+        {
+            get { return false; }
+        }
+
+        public int AsyncCandlesStarter_RateGateLimitMls
+        {
+            get { return 10; }
         }
 
         #endregion

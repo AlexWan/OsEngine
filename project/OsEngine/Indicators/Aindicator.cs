@@ -565,8 +565,26 @@ namespace OsEngine.Indicators
 
         private Candle _lastFirstCandle = null;
 
+        public int UpdateIntervalInSeconds = 0;
+
+        private DateTime _nextUpdateIndicatorsTime;
+
+        private DateTime _lastUpdateCandleTime;
+
         public void Process(List<Candle> candles)
         {
+            if (StartProgram == StartProgram.IsOsTrader
+               && UpdateIntervalInSeconds != 0)
+            {
+                if (_nextUpdateIndicatorsTime > DateTime.Now
+                    && _lastUpdateCandleTime == candles[^1].TimeStart)
+                {
+                    return;
+                }
+                _nextUpdateIndicatorsTime = DateTime.Now.AddSeconds(UpdateIntervalInSeconds);
+                _lastUpdateCandleTime = candles[^1].TimeStart;
+            }
+
             //lock(_indicatorUpdateLocker)
             //{
             if (candles.Count == 0)

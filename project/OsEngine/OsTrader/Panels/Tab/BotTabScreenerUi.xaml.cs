@@ -556,11 +556,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 string portfolio = _screener.PortfolioName;
 
-
                 if (portfolio != null)
                 {
                     ComboBoxPortfolio.Items.Add(_screener.PortfolioName);
-                    ComboBoxPortfolio.Text = _screener.PortfolioName;
+                    curPortfolio = portfolio;
                 }
 
                 List<Portfolio> portfolios = server.Portfolios;
@@ -588,20 +587,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     ComboBoxPortfolio.Items.Add(portfolios[i].Number);
                 }
-                if (curPortfolio != null)
-                {
-                    for (int i = 0; i < ComboBoxPortfolio.Items.Count; i++)
-                    {
-                        if (ComboBoxPortfolio.Items[i].ToString() == curPortfolio)
-                        {
-                            ComboBoxPortfolio.SelectedItem = curPortfolio;
-                            break;
-                        }
-                    }
-                }
 
-                if (ComboBoxPortfolio.SelectedItem == null
-                    && ComboBoxPortfolio.Items.Count != 0)
+                if (curPortfolio != null
+                    && portfolios.Find(p => p.Number == curPortfolio) != null)
+                {
+                    ComboBoxPortfolio.SelectedItem = curPortfolio;
+                }
+                else if (portfolios.Count != 0)
+                {
+                    ComboBoxPortfolio.SelectedItem = portfolios[0].Number;
+                }
+                else if (ComboBoxPortfolio.SelectedItem == null
+                      && ComboBoxPortfolio.Items.Count != 0)
                 {
                     ComboBoxPortfolio.SelectedItem = ComboBoxPortfolio.Items[0];
                 }

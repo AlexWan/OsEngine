@@ -642,7 +642,7 @@ namespace OsEngine.Market.Servers.Bybit
         private void LoadOptionInstruments(string baseCoin = "BTC")
         {
             Dictionary<string, object> parametrs = new Dictionary<string, object>();
-                parametrs.Add("limit", "1000");
+            parametrs.Add("limit", "1000");
 
             parametrs["category"] = Category.option;
             parametrs["baseCoin"] = baseCoin;
@@ -1101,7 +1101,7 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                     else
                     {
-                        SendLogMessage($"GetPositionsLinear>. Position error. Code: {responsePositionOnBoard.retCode}\n"
+                        SendLogMessage($"GetPositionsInverse>. Position error. Code: {responsePositionOnBoard.retCode}\n"
                                 + $"Message: {responsePositionOnBoard.retMsg}", LogMessageType.Error);
                     }
 
@@ -1264,7 +1264,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         #region 5 Data
 
-        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateGetCandleHistory = new RateGate(5, TimeSpan.FromMilliseconds(100));
+        private string _rateGateGetCandleHistoryLocker = "_rateGateGetCandleHistoryLocker";
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
@@ -1273,7 +1274,11 @@ namespace OsEngine.Market.Servers.Bybit
                 return new List<Candle>(); // no option history
             }
 
-            _rateGateGetCandleHistory.WaitToProceed();
+            lock (_rateGateGetCandleHistoryLocker)
+            {
+                _rateGateGetCandleHistory.WaitToProceed();
+            }
+           
             return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, false, DateTime.UtcNow, candleCount);
         }
 
@@ -1296,8 +1301,6 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     category = Category.inverse.ToString();
                 }
-
-                
 
                 if (!supported_intervals.ContainsKey(Convert.ToInt32(tf.TotalMinutes)))
                 {
@@ -1415,67 +1418,6 @@ namespace OsEngine.Market.Servers.Bybit
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
-            // ByBit returns no more than 1000 last ticks via API, which does not meet the connector requirements, so we will return null
-
-            List<Trade> trades = new List<Trade>();
-
-            try
-            {
-                string category = Category.spot.ToString();
-                if (security.Name.EndsWith(".P"))
-                {
-                    category = Category.linear.ToString();
-                }
-                else if (security.Name.EndsWith(".I"))
-                {
-                    category = Category.inverse.ToString();
-                }
-
-                Dictionary<string, object> parametrs = new Dictionary<string, object>();
-                parametrs.Add("category", category);
-                parametrs.Add("symbol", security.Name.Split('.')[0]);
-                parametrs.Add("limit", 1000);   // this is the maximum they give
-
-                string tradesQuery = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/recent-newTrade");
-
-                ResponseRestMessageList<RetTrade> responseTrades = JsonConvert.DeserializeObject<ResponseRestMessageList<RetTrade>>(tradesQuery);
-                if (responseTrades == null || responseTrades.result == null || responseTrades.result.list == null || responseTrades.result.list.Count == 0)
-                {
-                    return null;
-                }
-
-                List<RetTrade> retTrade = new List<RetTrade>();
-                retTrade = responseTrades.result.list;
-                DateTime preTime = DateTime.MinValue;
-
-                for (int i = retTrade.Count - 1; i >= 0; i--)
-                {
-                    RetTrade trade = retTrade[i];
-                    Trade newTrade = new Trade();
-                    newTrade.Id = trade.execId;
-                    newTrade.Price = trade.price.ToDecimal();
-                    newTrade.SecurityNameCode = trade.symbol;
-                    newTrade.Side = trade.side == "Buy" ? Side.Buy : Side.Sell;
-                    newTrade.Volume = trade.size.ToDecimal();
-                    DateTime tradeTime = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(trade.time)).UtcDateTime;
-                    if (tradeTime <= preTime)   // at the same moment in time, down to milliseconds, there can be several trades in buybit
-                    {
-                        // tradeTime = preTime.AddTicks(1);    // if several trades are not possible at the same time, then allow the row and add by tick
-                    }
-
-                    newTrade.Time = tradeTime;
-                    newTrade.MicroSeconds = 0;
-                    preTime = newTrade.Time;
-
-                    trades.Add(newTrade);
-                }
-                return trades;
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"Trades request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                return trades;
-            }
         }
 
         private List<Candle> GetListCandles(string candlesQuery)
@@ -1585,7 +1527,7 @@ namespace OsEngine.Market.Servers.Bybit
                 if (_useOptions)
                 {
                     _webSocketPublicOption.Add(CreateNewOptionPublicSocket());
-                } 
+                }
             }
             catch (Exception ex)
             {
@@ -1607,7 +1549,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicSpot.OnError += WebSocketPublic_Error;
             webSocketPublicSpot.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicSpot.Connect();
+            webSocketPublicSpot.Connect().Wait();
 
             return webSocketPublicSpot;
         }
@@ -1626,7 +1568,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicLinear.OnError += WebSocketPublic_Error;
             webSocketPublicLinear.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicLinear.Connect();
+            webSocketPublicLinear.Connect().Wait();
 
             return webSocketPublicLinear;
         }
@@ -1646,7 +1588,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicInverse.OnError += WebSocketPublic_Error;
             webSocketPublicInverse.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicInverse.Connect();
+            webSocketPublicInverse.Connect().Wait();
 
             return webSocketPublicInverse;
         }
@@ -1666,11 +1608,10 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicOption.OnError += WebSocketPublic_Error;
             webSocketPublicOption.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicOption.Connect();
+            webSocketPublicOption.Connect().Wait();
 
             return webSocketPublicOption;
         }
-
 
         private void CreatePrivateWebSocketConnect()
         {
@@ -1690,7 +1631,7 @@ namespace OsEngine.Market.Servers.Bybit
                 webSocketPrivate.OnError += WebSocketPrivate_Error;
                 webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
 
-                webSocketPrivate.Connect();
+                webSocketPrivate.Connect().Wait();
             }
             catch (Exception ex)
             {
@@ -1709,9 +1650,9 @@ namespace OsEngine.Market.Servers.Bybit
                 CheckFullActivation();
 
                 string authRequest = GetWebSocketAuthRequest();
-                webSocketPrivate?.Send(authRequest);
-                webSocketPrivate?.Send("{\"op\":\"subscribe\",\"args\":[\"order\"]}");
-                webSocketPrivate?.Send("{\"op\":\"subscribe\", \"args\":[\"execution\"]}");
+                webSocketPrivate?.SendAsync(authRequest);
+                webSocketPrivate?.SendAsync("{\"op\":\"subscribe\",\"args\":[\"order\"]}");
+                webSocketPrivate?.SendAsync("{\"op\":\"subscribe\", \"args\":[\"execution\"]}");
             }
             catch (Exception ex)
             {
@@ -1934,7 +1875,7 @@ namespace OsEngine.Market.Servers.Bybit
                         WebSocket webSocketPublicSpot = _webSocketPublicSpot[i];
                         if (webSocketPublicSpot != null && webSocketPublicSpot?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublicSpot?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
+                            webSocketPublicSpot?.SendAsync("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
                         }
                     }
 
@@ -1944,7 +1885,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                         if (webSocketPublicLinear != null && webSocketPublicLinear?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublicLinear?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
+                            webSocketPublicLinear?.SendAsync("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
                         }
                     }
 
@@ -1954,7 +1895,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                         if (webSocketPublicInverse != null && webSocketPublicInverse?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublicInverse?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
+                            webSocketPublicInverse?.SendAsync("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
                         }
                     }
 
@@ -1964,13 +1905,13 @@ namespace OsEngine.Market.Servers.Bybit
 
                         if (webSocketPublicOption != null && webSocketPublicOption?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublicOption?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
+                            webSocketPublicOption?.SendAsync("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
                         }
                     }
 
                     if (webSocketPrivate != null && webSocketPrivate?.ReadyState == WebSocketState.Open)
                     {
-                        webSocketPrivate?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
+                        webSocketPrivate?.SendAsync("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
                     }
                 }
                 catch (Exception ex)
@@ -1992,7 +1933,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private List<string> SubscribedSecurityOption = new List<string>();
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(150));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         public void Subscribe(Security security)
         {
@@ -2057,12 +1998,12 @@ namespace OsEngine.Market.Servers.Bybit
 
                     if (webSocketPublicSpot != null)
                     {
-                        webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name}\" ] }}");
-                        webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name}\" ] }}");
+                        webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name}\" ] }}");
+                        webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name}\" ] }}");
 
                         if (_extendedMarketData)
                         {
-                            webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name}\" ] }}");
+                            webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name}\" ] }}");
                         }
                     }
                 }
@@ -2117,12 +2058,12 @@ namespace OsEngine.Market.Servers.Bybit
                     if (webSocketPublicLinear != null
                         && webSocketPublicLinear?.ReadyState == WebSocketState.Open)
                     {
-                        webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".P", "")}\" ] }}");
-                        webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".P", "")}\" ] }}");
+                        webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".P", "")}\" ] }}");
+                        webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".P", "")}\" ] }}");
 
                         if (_extendedMarketData)
                         {
-                            webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".P", "")}\" ] }}");
+                            webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".P", "")}\" ] }}");
                             GetFundingData(security.Name.Replace(".P", ""));
                         }
                     }
@@ -2180,12 +2121,12 @@ namespace OsEngine.Market.Servers.Bybit
                     if (webSocketPublicInverse != null
                         && webSocketPublicInverse?.ReadyState == WebSocketState.Open)
                     {
-                        webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".I", "")}\" ] }}");
-                        webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".I", "")}\" ] }}");
+                        webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".I", "")}\" ] }}");
+                        webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".I", "")}\" ] }}");
 
                         if (_extendedMarketData)
                         {
-                            webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".I", "")}\" ] }}");
+                            webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".I", "")}\" ] }}");
                         }
                     }
                 }
@@ -2245,12 +2186,12 @@ namespace OsEngine.Market.Servers.Bybit
                     // Note: option uses baseCoin, e.g., publicTrade.BTC https://bybit-exchange.github.io/docs/v5/websocket/public/trade
                     string baseCoin = security.UnderlyingAsset;
 
-                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
-                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.25.{security.NameId}\" ] }}"); // only 25 or 100 for options
+                    webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
+                    webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.25.{security.NameId}\" ] }}"); // only 25 or 100 for options
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.NameId}\" ] }}");
+                        webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.NameId}\" ] }}");
                     }
                 }
             }
@@ -2310,8 +2251,8 @@ namespace OsEngine.Market.Servers.Bybit
                     if (webSocketPrivate.ReadyState == WebSocketState.Open)
                     {
                         // unsubscribe from a stream
-                        webSocketPrivate.Send("{\"req_id\": \"order_1\", \"op\": \"unsubscribe\",\"args\": [\"order\"]}");
-                        webSocketPrivate.Send("{\"req_id\": \"ticketInfo_1\", \"op\": \"unsubscribe\", \"args\": [ \"ticketInfo\"]}");
+                        webSocketPrivate.SendAsync("{\"req_id\": \"order_1\", \"op\": \"unsubscribe\",\"args\": [\"order\"]}");
+                        webSocketPrivate.SendAsync("{\"req_id\": \"ticketInfo_1\", \"op\": \"unsubscribe\", \"args\": [ \"ticketInfo\"]}");
                     }
                     webSocketPrivate.OnMessage -= WebSocketPrivate_MessageReceived;
                     webSocketPrivate.OnClose -= WebSocketPrivate_Closed;
@@ -2350,12 +2291,12 @@ namespace OsEngine.Market.Servers.Bybit
                             for (int i2 = 0; i2 < SubscribeSecuritySpot.Count; i2++)
                             {
                                 string s = SubscribeSecuritySpot[i2].Split('.')[0];
-                                webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
-                                webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+                                webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
+                                webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
 
                                 if (_extendedMarketData)
                                 {
-                                    webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
                                 }
                             }
                         }
@@ -2396,12 +2337,12 @@ namespace OsEngine.Market.Servers.Bybit
                             for (int i2 = 0; i2 < SubscribeSecurityLinear.Count; i2++)
                             {
                                 string s = SubscribeSecurityLinear[i2].Split('.')[0];
-                                webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
-                                webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+                                webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
+                                webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
 
                                 if (_extendedMarketData)
                                 {
-                                    webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
                                 }
                             }
                         }
@@ -2443,12 +2384,12 @@ namespace OsEngine.Market.Servers.Bybit
                             for (int i2 = 0; i2 < SubscribeSecurityInverse.Count; i2++)
                             {
                                 string s = SubscribeSecurityInverse[i2].Split('.')[0];
-                                webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
-                                webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+                                webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
+                                webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
 
                                 if (_extendedMarketData)
                                 {
-                                    webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
                                 }
                             }
                         }
@@ -2492,12 +2433,12 @@ namespace OsEngine.Market.Servers.Bybit
                                 string s = SubscribedSecurityOption[i2];
                                 string baseCoin = s.Split('.')[0];
 
-                                webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
-                                webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.25.{s}\" ] }}");
+                                webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
+                                webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.25.{s}\" ] }}");
 
                                 if (_extendedMarketData)
                                 {
-                                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
                                 }
                             }
                         }
@@ -2532,7 +2473,7 @@ namespace OsEngine.Market.Servers.Bybit
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion 9
 
@@ -2658,6 +2599,11 @@ namespace OsEngine.Market.Servers.Bybit
                     SubscribeMessage subscribeMessage =
                        JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
 
+                    if (subscribeMessage.op == "pong")
+                    {
+                        continue;
+                    }
+
                     if (subscribeMessage.op != null)
                     {
                         if (subscribeMessage.success == "false")
@@ -2671,10 +2617,6 @@ namespace OsEngine.Market.Servers.Bybit
 
                         continue;
                     }
-                    /*if (subscribeMessage.op == "pong")
-                    {
-                        continue;
-                    }*/
                 }
                 catch (Exception ex)
                 {
@@ -2870,7 +2812,10 @@ namespace OsEngine.Market.Servers.Bybit
 
                     try
                     {
-                        newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data[i].orderLinkId);
+                        if(string.IsNullOrEmpty(responseMyTrades.data[i].orderLinkId) == false)
+                        {
+                            newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data[i].orderLinkId);
+                        }
                     }
                     catch
                     {
@@ -3285,7 +3230,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (_concurrentQueueMessageOrderBookLinear?.Count < 500
                     && _concurrentQueueMessageOrderBookSpot?.Count < 500
-                    && _concurrentQueueMessageOrderBookInverse?.Count < 500 
+                    && _concurrentQueueMessageOrderBookInverse?.Count < 500
                     && _concurrentQueueMessageOrderBookOption?.Count < 500)
                 {
                     MarketDepthEvent?.Invoke(marketDepth.GetCopy());
@@ -3697,22 +3642,21 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public event Action<Order> MyOrderEvent;
+
+        public event Action<MyTrade> MyTradeEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
         public event Action<Trade> NewTradesEvent;
 
         public event Action<Funding> FundingUpdateEvent;
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
-
         #endregion 10
 
         #region 11 Trade
-
-        public event Action<Order> MyOrderEvent;
-
-        public event Action<MyTrade> MyTradeEvent;
-
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         public void SendOrder(Order order)
         {
@@ -3810,22 +3754,23 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (place_order_response != null)
                 {
-                    ResponseRestMessageList<string> responseOrder = JsonConvert.DeserializeObject<ResponseRestMessageList<string>>(place_order_response);
+                    ResponseRestMessage<SendOrderResponse> responseOrder = JsonConvert.DeserializeObject<ResponseRestMessage<SendOrderResponse>>(place_order_response);
                     isSuccessful = responseOrder.retMsg;
 
                     if (responseOrder != null
                         && responseOrder.retCode == "0"
                         && isSuccessful == "OK")
                     {
-                        //Console.WriteLine("SendOrder - " + place_order_response.ToString());
-                        /*DateTime placedTime = DateTime.Now;
-                        order.State = OrderStateType.Activ;
-                        JToken ordChild = place_order_response.SelectToken("result.orderId");
-                        order.NumberMarket = ordChild.ToString();
-                        order.TimeCreate = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;
-                        order.TimeCallBack = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime.Add(placedTime.Subtract(startTime));
-                        MyOrderEvent?.Invoke(order);
-                        */
+                        if (responseOrder.result.orderId != string.Empty)
+                        {
+                            DateTime placedTime = DateTime.Now;
+                            order.State = OrderStateType.Active;
+                            order.NumberMarket = responseOrder.result.orderId;
+                            order.TimeCreate = DateTimeOffset.FromUnixTimeMilliseconds(Convert.ToInt64(responseOrder.time)).UtcDateTime;
+                            order.TimeCallBack = DateTimeOffset.FromUnixTimeMilliseconds(Convert.ToInt64(responseOrder.time)).UtcDateTime.Add(placedTime.Subtract(startTime));
+                            MyOrderEvent?.Invoke(order);
+                        }
+
                         return;
                     }
                     else
@@ -3982,8 +3927,6 @@ namespace OsEngine.Market.Servers.Bybit
                 SendLogMessage($" Cancel Order Error. Order num {order.NumberUser}, {order.SecurityNameCode}", LogMessageType.Error);
                 return false;
             }
-
-            return false;
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -4022,36 +3965,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                List<Order> ordersOpenAll = new List<Order>();
-
-                List<Order> spotOrders = GetOpenOrders(Category.spot, null);
-
-                if (spotOrders != null
-                    && spotOrders.Count > 0)
-                {
-                    ordersOpenAll.AddRange(spotOrders);
-                }
-
-                List<Order> inverseOrders = GetOpenOrders(Category.inverse, null);
-
-                if (inverseOrders != null
-                    && inverseOrders.Count > 0)
-                {
-                    ordersOpenAll.AddRange(inverseOrders);
-                }
-
-                List<Order> linearOrders = null;
-
-                for (int i = 0; i < _listLinearCurrency.Count; i++)
-                {
-                    linearOrders = GetOpenOrders(Category.linear, _listLinearCurrency[i]);
-
-                    if (linearOrders != null
-                    && linearOrders.Count > 0)
-                    {
-                        ordersOpenAll.AddRange(linearOrders);
-                    }
-                }
+                List<Order> ordersOpenAll = GetAllOrdersArray(100,true);
 
                 for (int i = 0; i < ordersOpenAll.Count; i++)
                 {
@@ -4064,139 +3978,11 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        public OrderStateType GetOrderStatus(Order order)
-        {
-            try
-            {
-                Category category = Category.spot;
-                
-
-                if (order.SecurityNameCode.EndsWith(".P"))
-                {
-                    category = Category.linear;
-                }
-                else if (order.SecurityNameCode.EndsWith(".I"))
-                {
-                    category = Category.inverse;
-                }
-
-                if(_securities != null)
-                {
-                    Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
-
-                    if (sec != null 
-                        && sec.SecurityType == SecurityType.Option)
-                    {
-                        category = Category.option;
-                    }
-                }
-
-                Order newOrder = GetOrderFromHistory(order, category);
-
-                if (newOrder == null)
-                {
-                    List<Order> openOrders = null;
-
-                    if (category == Category.linear)
-                    {
-                        if (order.SecurityNameCode.Contains("USDT"))
-                        {
-                            openOrders = GetOpenOrders(category, "USDT");
-                        }
-                        else
-                        {
-                            openOrders = GetOpenOrders(category, "USDC");
-                        }
-                    }
-                    else if (category == Category.spot)
-                    {
-                        openOrders = GetOpenOrders(category, null);
-                    }
-                    else if (category == Category.inverse)
-                    {
-                        openOrders = GetOpenOrders(category, null);
-                    }
-                    else if (category == Category.option)
-                    {
-                        openOrders = GetOpenOrders(category, null);
-                    }
-
-                    for (int i = 0; openOrders != null && i < openOrders.Count; i++)
-                    {
-                        if (openOrders[i].NumberUser == order.NumberUser)
-                        {
-                            newOrder = openOrders[i];
-                            break;
-                        }
-                    }
-
-                    if (newOrder == null)
-                    {
-                        return OrderStateType.None;
-                    }
-                }
-
-                MyOrderEvent?.Invoke(newOrder);
-
-                // check trades
-
-                if (newOrder.State == OrderStateType.Active
-                    || newOrder.State == OrderStateType.Partial
-                    || newOrder.State == OrderStateType.Done
-                    || newOrder.State == OrderStateType.Cancel)
-                {
-                    List<MyTrade> myTrades = GetMyTradesHistory(newOrder, category);
-
-                    for (int i = 0; myTrades != null && i < myTrades.Count; i++)
-                    {
-                        MyTradeEvent?.Invoke(myTrades[i]);
-                    }
-                }
-
-                return newOrder.State;
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"GetOrderStatus>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-
-            return OrderStateType.None;
-        }
-
         public void GetAllActivOrders()
         {
             try
             {
-                List<Order> ordersOpenAll = new List<Order>();
-
-                List<Order> spotOrders = GetOpenOrders(Category.spot, null);
-
-                if (spotOrders != null
-                    && spotOrders.Count > 0)
-                {
-                    ordersOpenAll.AddRange(spotOrders);
-                }
-
-                List<Order> inverseOrders = GetOpenOrders(Category.inverse, null);
-
-                if (inverseOrders != null
-                    && inverseOrders.Count > 0)
-                {
-                    ordersOpenAll.AddRange(inverseOrders);
-                }
-
-                List<Order> linearOrders = null;
-
-                for (int i = 0; i < _listLinearCurrency.Count; i++)
-                {
-                    linearOrders = GetOpenOrders(Category.linear, _listLinearCurrency[i]);
-
-                    if (linearOrders != null
-                    && linearOrders.Count > 0)
-                    {
-                        ordersOpenAll.AddRange(linearOrders);
-                    }
-                }
+                List<Order> ordersOpenAll = GetAllOrdersArray(100, true);
 
                 for (int i = 0; i < ordersOpenAll.Count; i++)
                 {
@@ -4209,14 +3995,66 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private List<Order> GetOpenOrders(Category category, string settleCoin)
+        private List<Order> GetAllOrdersArray(int maxCountByCategory, bool onlyActive)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> spotOrders = new List<Order>();
+            GetOrders(Category.spot, null, spotOrders, null, maxCountByCategory, onlyActive);
+
+            if (spotOrders != null
+                && spotOrders.Count > 0)
+            {
+                ordersOpenAll.AddRange(spotOrders);
+            }
+
+            List<Order> inverseOrders = new List<Order>();
+            GetOrders(Category.inverse, null, inverseOrders, null, maxCountByCategory, onlyActive);
+
+            if (inverseOrders != null
+                && inverseOrders.Count > 0)
+            {
+                ordersOpenAll.AddRange(inverseOrders);
+            }
+
+            List<Order> linearOrders = new List<Order>();
+
+            for (int i = 0; i < _listLinearCurrency.Count; i++)
+            {
+                GetOrders(Category.linear, _listLinearCurrency[i], linearOrders, null, maxCountByCategory, onlyActive);
+
+                if (linearOrders != null
+                && linearOrders.Count > 0)
+                {
+                    ordersOpenAll.AddRange(linearOrders);
+                }
+            }
+
+            return ordersOpenAll;
+        }
+
+        private void GetOrders(Category category, string settleCoin, List<Order> array, string cursor, int maxCount, bool onlyActive)
         {
             try
             {
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
 
                 parameters["category"] = category;
-                parameters["openOnly"] = "0";
+                parameters["limit"] = "50";
+
+                if(onlyActive)
+                {
+                    parameters["openOnly"] = "0";
+                }
+                else
+                {
+                    parameters["openOnly"] = "1";
+                }
+
+                if (cursor != null)
+                {
+                    parameters["cursor"] = cursor;
+                }
 
                 if (category == Category.linear)
                 {
@@ -4227,8 +4065,10 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (orders_response == null)
                 {
-                    return null;
+                    return;
                 }
+
+                //RetResalt result = JsonConvert.DeserializeObject <nRetResalt> (orders_response);
 
                 ResponseRestMessageList<ResponseMessageOrders> responseOrder = JsonConvert.DeserializeObject<ResponseRestMessageList<ResponseMessageOrders>>(orders_response);
 
@@ -4245,7 +4085,33 @@ namespace OsEngine.Market.Servers.Bybit
                         ResponseMessageOrders order = ordChild[i];
 
                         Order newOrder = new Order();
-                        newOrder.State = OrderStateType.Active;
+                        newOrder.ServerType = this.ServerType;
+
+                        if(order.orderStatus == "Cancelled"
+                            || order.orderStatus == "Rejected"
+                            || order.orderStatus == "PartiallyFilledCanceled"
+                            || order.orderStatus == "Deactivated")
+                        {
+                            newOrder.State = OrderStateType.Cancel;
+                            newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.updatedTime));
+                        }
+                        else if(order.orderStatus == "Filled")
+                        {
+                            newOrder.State = OrderStateType.Done;                           
+                            newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.updatedTime));
+                        }
+                        else if (order.orderStatus == "New"
+                            || order.orderStatus == "PartiallyFilled"
+                            || order.orderStatus == "Untriggered")
+                        {
+                            newOrder.State = OrderStateType.Active;
+                        }
+
+                        if (order.cumExecQty != null)
+                        {
+                            newOrder.VolumeExecute = order.cumExecQty.ToDecimal();
+                        }
+
                         newOrder.TypeOrder = OrderPriceType.Limit;
                         newOrder.PortfolioNumber = "BybitUNIFIED";
 
@@ -4298,137 +4164,51 @@ namespace OsEngine.Market.Servers.Bybit
                         activeOrders.Add(newOrder);
                     }
 
-                    return activeOrders;
+                    if(activeOrders.Count > 0)
+                    {
+                        array.AddRange(activeOrders);
+
+                        if(array.Count > maxCount)
+                        {
+                            while(array.Count > maxCount)
+                            {
+                                array.RemoveAt(array.Count - 1);
+                            }
+                            return;
+                        }
+                        else if(array.Count < 50)
+                        {
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+
+                    if (ordChild.Count > 1)
+                    {
+                        cursor = responseOrder.result.nextPageCursor;
+
+                        if (cursor != null)
+                        {
+                            GetOrders(category, settleCoin, array, cursor, maxCount, onlyActive);
+                        }
+                    }
+
+                    return;
                 }
                 else
                 {
                     SendLogMessage($"GetOpenOrders>. Order error. Code: {responseOrder.retCode}\n"
                             + $"Message: {responseOrder.retMsg}", LogMessageType.Error);
-                    return null;
+                    return;
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage($"GetOpenOrders>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                return null;
-            }
-        }
-
-        private Order GetOrderFromHistory(Order orderBase, Category category)
-        {
-            try
-            {
-                Dictionary<string, object> parameters = new Dictionary<string, object>();
-
-                parameters["category"] = category;
-                parameters["symbol"] = orderBase.SecurityNameCode.Split('.')[0].ToUpper();
-
-                string orders_response = CreatePrivateQuery(parameters, HttpMethod.Get, "/v5/order/history");
-
-                if (orders_response == null)
-                {
-                    return null;
-                }
-
-                ResponseRestMessageList<ResponseMessageOrders> responseOrder = JsonConvert.DeserializeObject<ResponseRestMessageList<ResponseMessageOrders>>(orders_response);
-
-                if (responseOrder != null
-                     && responseOrder.retCode == "0"
-                     && responseOrder.retMsg == "OK")
-                {
-                    List<ResponseMessageOrders> ordChild = responseOrder.result.list;
-
-                    for (int i = 0; i < ordChild.Count; i++)
-                    {
-                        ResponseMessageOrders order = ordChild[i];
-                        Order newOrder = new Order();
-                        string status = order.orderStatus;
-
-                        OrderStateType stateType = status.ToUpper() switch
-                        {
-                            "CREATED" => OrderStateType.Active,
-                            "NEW" => OrderStateType.Active,
-                            "ORDER_NEW" => OrderStateType.Active,
-                            "PARTIALLYFILLED" => OrderStateType.Active,
-                            "FILLED" => OrderStateType.Done,
-                            "ORDER_FILLED" => OrderStateType.Done,
-                            "CANCELLED" => OrderStateType.Cancel,
-                            "ORDER_CANCELLED" => OrderStateType.Cancel,
-                            "PARTIALLYFILLEDCANCELED" => OrderStateType.Partial,
-                            "REJECTED" => OrderStateType.Fail,
-                            "ORDER_REJECTED" => OrderStateType.Fail,
-                            "ORDER_FAILED" => OrderStateType.Fail,
-                            _ => OrderStateType.Cancel,
-                        };
-
-                        newOrder.State = stateType;
-                        newOrder.TypeOrder = OrderPriceType.Limit;
-                        newOrder.PortfolioNumber = "BybitUNIFIED";
-                        newOrder.NumberMarket = order.orderId;
-                        newOrder.SecurityNameCode = order.symbol;
-
-                        if (category == Category.linear
-                            && newOrder.SecurityNameCode.EndsWith(".P") == false)
-                        {
-                            newOrder.SecurityNameCode = newOrder.SecurityNameCode + ".P";
-                        }
-
-                        if (category == Category.inverse
-                            && newOrder.SecurityNameCode.EndsWith(".I") == false)
-                        {
-                            newOrder.SecurityNameCode = newOrder.SecurityNameCode + ".I";
-                        }
-
-                        newOrder.Price = order.price.ToDecimal();
-                        newOrder.Volume = order.qty.ToDecimal();
-                        newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.updatedTime));
-                        newOrder.TimeCreate = newOrder.TimeCallBack;
-
-                        string numUser = order.orderLinkId;
-
-                        if (string.IsNullOrEmpty(numUser) == false)
-                        {
-                            try
-                            {
-                                newOrder.NumberUser = Convert.ToInt32(numUser);
-                            }
-                            catch
-                            {
-                                // ignore
-                            }
-                        }
-
-                        if (newOrder.NumberUser != orderBase.NumberUser)
-                        {
-                            continue;
-                        }
-
-                        string side = order.side;
-
-                        if (side == "Buy")
-                        {
-                            newOrder.Side = Side.Buy;
-                        }
-                        else
-                        {
-                            newOrder.Side = Side.Sell;
-                        }
-
-                        return newOrder;
-                    }
-                }
-                else
-                {
-                    SendLogMessage($"GetOrderFromHistory>. Order error. Code: {responseOrder.retCode}\n"
-                            + $"Message: {responseOrder.retMsg}", LogMessageType.Error);
-                }
-
-                return null;
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"GetOrderFromHistory>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                return null;
+                return;
             }
         }
 
@@ -4516,13 +4296,153 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllOrdersArray(countToMethod, true);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null 
+                && startIndex <  result.Count)
+            {
+                if(startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllOrdersArray(countToMethod, false);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
+        }
+
+        private List<Order> _activeOrdersCash = new List<Order>();
+        private List<Order> _historicalOrdersCash = new List<Order>();
+        private DateTime _timeOrdersCashCreate;
+        public OrderStateType GetOrderStatus(Order order)
+        {
+            try
+            {
+                Category category = Category.spot;
+
+                if (order.SecurityNameCode.EndsWith(".P"))
+                {
+                    category = Category.linear;
+                }
+                else if (order.SecurityNameCode.EndsWith(".I"))
+                {
+                    category = Category.inverse;
+                }
+
+                if (_securities != null)
+                {
+                    Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
+
+                    if (sec != null
+                        && sec.SecurityType == SecurityType.Option)
+                    {
+                        category = Category.option;
+                    }
+                }
+
+                if (_timeOrdersCashCreate.AddSeconds(2) < DateTime.Now)
+                {
+                    // обновляем массивы ордеров один раз в две секунды.
+                    // Формируем КЭШ для массового запроса статусов на реконнекте
+                    _historicalOrdersCash = GetHistoricalOrders(0, 100);
+                    _activeOrdersCash = GetActiveOrders(0, 100);
+                    _timeOrdersCashCreate = DateTime.Now;
+                }
+
+                Order myOrder = null;
+
+                for(int i = 0; _historicalOrdersCash != null && i < _historicalOrdersCash.Count;i++)
+                {
+                    if (_historicalOrdersCash[i].NumberUser == order.NumberUser)
+                    {
+                        myOrder = _historicalOrdersCash[i];
+                        break;
+                    }
+                }
+
+                if(myOrder == null)
+                {
+                    for (int i = 0; _activeOrdersCash != null && i < _activeOrdersCash.Count; i++)
+                    {
+                        if (_activeOrdersCash[i].NumberUser == order.NumberUser)
+                        {
+                            myOrder = _activeOrdersCash[i];
+                            break;
+                        }
+                    }
+                }
+
+                if (myOrder == null)
+                {
+                    return OrderStateType.None;
+                }
+
+                MyOrderEvent?.Invoke(myOrder);
+
+                // check trades
+
+                if (myOrder.State == OrderStateType.Partial
+                    || myOrder.State == OrderStateType.Done
+                    || myOrder.VolumeExecute != 0)
+                {
+                    List<MyTrade> myTrades = GetMyTradesHistory(myOrder, category);
+
+                    for (int i = 0; myTrades != null && i < myTrades.Count; i++)
+                    {
+                        MyTradeEvent?.Invoke(myTrades[i]);
+                    }
+                }
+
+                return myOrder.State;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"GetOrderStatus>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+
+            return OrderStateType.None;
+        }
+
         #endregion 11
 
         #region 12 Query
 
         private const string RecvWindow = "50000";
 
-        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(15));
 
         private HttpClientHandler httpClientHandler;
 
@@ -4606,74 +4526,87 @@ namespace OsEngine.Market.Servers.Bybit
 
         public string CreatePrivateQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
         {
-            _rateGate.WaitToProceed();
+            lock (_httpClientLocker)
+            {
+                _rateGate.WaitToProceed();
+            }
 
             try
             {
-                lock (_httpClientLocker)
+                string timestamp = GetServerTime();
+                HttpRequestMessage request = null;
+                string jsonPayload = "";
+                string signature = "";
+                httpClient = GetHttpClient();
+
+                if (httpMethod == HttpMethod.Post)
                 {
-                    string timestamp = GetServerTime();
-                    HttpRequestMessage request = null;
-                    string jsonPayload = "";
-                    string signature = "";
-                    httpClient = GetHttpClient();
-
-                    if (httpMethod == HttpMethod.Post)
+                    signature = GeneratePostSignature(parameters, timestamp);
+                    jsonPayload = parameters.Count > 0 ? JsonConvert.SerializeObject(parameters) : "";
+                    request = new HttpRequestMessage(httpMethod, RestUrl + uri);
+                    if (parameters.Count > 0)
                     {
-                        signature = GeneratePostSignature(parameters, timestamp);
-                        jsonPayload = parameters.Count > 0 ? JsonConvert.SerializeObject(parameters) : "";
-                        request = new HttpRequestMessage(httpMethod, RestUrl + uri);
-                        if (parameters.Count > 0)
-                        {
-                            request.Content = new StringContent(jsonPayload);
-                        }
+                        request.Content = new StringContent(jsonPayload);
                     }
-                    if (httpMethod == HttpMethod.Get)
+                }
+                if (httpMethod == HttpMethod.Get)
+                {
+                    signature = GenerateGetSignature(parameters, timestamp, PublicKey);
+                    jsonPayload = parameters.Count > 0 ? GenerateQueryString(parameters) : "";
+                    request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?" + jsonPayload);
+                }
+
+                request.Headers.Add("X-BAPI-API-KEY", PublicKey);
+                request.Headers.Add("X-BAPI-SIGN", signature);
+                request.Headers.Add("X-BAPI-SIGN-TYPE", "2");
+                request.Headers.Add("X-BAPI-TIMESTAMP", timestamp);
+                request.Headers.Add("X-BAPI-RECV-WINDOW", RecvWindow);
+                request.Headers.Add("referer", "OsEngine");
+
+                HttpResponseMessage response = httpClient?.SendAsync(request).Result;
+
+                if (response == null)
+                {
+                    return null;
+                }
+
+                string response_msg = response.Content.ReadAsStringAsync().Result;
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return response_msg;
+                }
+                else
+                {
+                    if (response_msg.Contains("\"retCode\": 10006"))
                     {
-                        signature = GenerateGetSignature(parameters, timestamp, PublicKey);
-                        jsonPayload = parameters.Count > 0 ? GenerateQueryString(parameters) : "";
-                        request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?" + jsonPayload);
-                    }
-
-
-
-                    request.Headers.Add("X-BAPI-API-KEY", PublicKey);
-                    request.Headers.Add("X-BAPI-SIGN", signature);
-                    request.Headers.Add("X-BAPI-SIGN-TYPE", "2");
-                    request.Headers.Add("X-BAPI-TIMESTAMP", timestamp);
-                    request.Headers.Add("X-BAPI-RECV-WINDOW", RecvWindow);
-                    request.Headers.Add("referer", "OsEngine");
-
-                    HttpResponseMessage response = httpClient?.SendAsync(request).Result;
-
-                    if (response == null)
-                    {
-                        return null;
-                    }
-
-                    string response_msg = response.Content.ReadAsStringAsync().Result;
-
-                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        return response_msg;
+                        SendLogMessage($"Limit 1000.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
                     }
                     else
                     {
                         SendLogMessage($"CreatePrivateQuery> BybitUnified Client.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
-                        return null;
                     }
+
+                    return null;
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                if(ex.Message.Contains("A task was canceled") == false)
+                {
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+
                 return null;
             }
         }
 
         public string CreatePublicQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
         {
-            _rateGate.WaitToProceed();
+            lock(_httpClientLocker)
+            {
+                _rateGate.WaitToProceed();
+            }
 
             try
             {
@@ -4685,28 +4618,36 @@ namespace OsEngine.Market.Servers.Bybit
                     return null;
                 }
 
-                lock (_httpClientLocker)
+                // lock (_httpClientLocker)
+                // {
+                HttpRequestMessage request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?{jsonPayload}");
+                HttpResponseMessage response = httpClient?.SendAsync(request).Result;
+
+                if (response == null)
                 {
-                    HttpRequestMessage request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?{jsonPayload}");
-                    HttpResponseMessage response = httpClient?.SendAsync(request).Result;
+                    return null;
+                }
 
-                    if (response == null)
+                string response_msg = response.Content.ReadAsStringAsync().Result;
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return response_msg;
+                }
+                else
+                {
+                    if (response_msg.Contains("\"retCode\": 10006"))
                     {
-                        return null;
-                    }
-
-                    string response_msg = response.Content.ReadAsStringAsync().Result;
-
-                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        return response_msg;
+                        SendLogMessage($"Limit 1000.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
                     }
                     else
                     {
                         SendLogMessage($"CreatePublicQuery> BybitUnified Client.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
-                        return null;
                     }
+
+                    return null;
                 }
+                //  }
             }
             catch (Exception ex)
             {

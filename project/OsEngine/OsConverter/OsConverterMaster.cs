@@ -217,20 +217,18 @@ namespace OsEngine.OsConverter
                     }
 
                     SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
-
-                    MessageBox.Show("Conversion completed!", "Notification", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+
+            _worker = null;
         }
 
         private void ProcessTradesAndWriteCandles(List<Trade> trades, StreamWriter writer)
         {
-            SendNewLogMessage(OsLocalization.Converter.Message8, LogMessageType.System);
-
             TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
             timeFrameBuilder.TimeFrame = TimeFrame;
 
@@ -249,8 +247,6 @@ namespace OsEngine.OsConverter
                     writer.WriteLine(candles[i].StringToSave);
                 }
             }
-
-            SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
 
             series.Clear(); // Clear the candle series
         }

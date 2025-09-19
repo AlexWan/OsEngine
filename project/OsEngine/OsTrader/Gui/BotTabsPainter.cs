@@ -285,7 +285,7 @@ namespace OsEngine.OsTrader.Gui
                 if(rowIndex == botsCount + 1)
                 { // последняя строка
                     if (_master._startProgram == StartProgram.IsOsTrader
-                       && coluIndex == 6)
+                       && coluIndex == 5)
                     {
                         ServerMaster.ShowApiDialog();
                     }
@@ -563,8 +563,6 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                int rowIndex = -1;
-
                 for (int i = 1; i < _master.PanelsArray.Count; i++)
                 {
                     if (_master.PanelsArray[i].NameStrategyUniq == _lastSelectedBot.NameStrategyUniq)
@@ -580,7 +578,7 @@ namespace OsEngine.OsTrader.Gui
             }
             catch (Exception ex)
             {
-                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _master.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -588,8 +586,6 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                int rowIndex = -1;
-
                 for (int i = 0; i < _master.PanelsArray.Count-1; i++)
                 {
                     if (_master.PanelsArray[i].NameStrategyUniq == _lastSelectedBot.NameStrategyUniq)

@@ -1,34 +1,67 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
+using OsEngine.OsTrader.Gui;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Forms.Integration;
 using Point = System.Drawing.Point;
 
 namespace OsEngine.Market
 {
+    public enum StartUiToPainter
+    {
+        IsTester,
+        IsTesterLight,
+        IsOsTrader,
+        IsOsTraderLight
+    }
+
     public class ServerMasterOrdersPainter
     {
         public ServerMasterOrdersPainter()
         {
             _currentCulture = OsLocalization.CurCulture;
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
+            ServerMaster.ServerDeleteEvent += ServerMaster_ServerDeleteEvent;
 
             Task task = new Task(PainterThreadArea);
             task.Start();
         }
 
+        private StartUiToPainter _startAllProgram;
+
         private CultureInfo _currentCulture;
+
+
+        private void ServerMaster_ServerDeleteEvent(IServer server)
+        {
+            try
+            {
+                if (server.ServerType == ServerType.Optimizer)
+                {
+                    return;
+                }
+
+                server.NewOrderIncomeEvent -= server_NewOrderIncomeEvent;
+                server.NewMyTradeEvent -= server_NewMyTradeEvent;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
 
         private void ServerMaster_ServerCreateEvent(IServer server)
         {
@@ -61,20 +94,18 @@ namespace OsEngine.Market
                 {
                     // ignore
                 }
-
             }
         }
 
         public void StartPaint()
         {
-            if (_hostActiveOrders.Dispatcher.CheckAccess() == false)
-            {
-                _hostActiveOrders.Dispatcher.Invoke(new Action(StartPaint));
-                return;
-            }
-
             try
             {
+                if (_hostActiveOrders.Dispatcher.CheckAccess() == false)
+                {
+                    _hostActiveOrders.Dispatcher.Invoke(new Action(StartPaint));
+                    return;
+                }
 
                 if (_hostActiveOrders != null)
                 {
@@ -94,23 +125,102 @@ namespace OsEngine.Market
 
         public void StopPaint()
         {
-
-            if (_hostActiveOrders != null)
+            try
             {
-                _hostActiveOrders.Child = null;
-            }
+                if (_hostActiveOrders != null)
+                {
+                    _hostActiveOrders.Child = null;
+                }
 
-            if (_hostHistoricalOrders != null)
+                if (_hostHistoricalOrders != null)
+                {
+                    _hostHistoricalOrders.Child = null;
+                }
+            }
+            catch (Exception error)
             {
-                _hostHistoricalOrders.Child = null;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
-        public void SetHostTable(WindowsFormsHost hostActiveOrders, WindowsFormsHost hostHistoricalOrders)
+        public void SetHostTable(WindowsFormsHost hostActiveOrders, 
+            WindowsFormsHost hostHistoricalOrders, 
+            StartUiToPainter startFourProgram,
+            System.Windows.Controls.ComboBox comboBoxActiveOrders,
+            System.Windows.Controls.Button buttonLeftActiveOrders,
+            System.Windows.Controls.Button buttonRightActiveOrders,
+            System.Windows.Controls.ComboBox comboBoxHistoryOrders,
+            System.Windows.Controls.Button buttonLeftHistoryOrders,
+            System.Windows.Controls.Button buttonRightHistoryOrders)
         {
             try
             {
+                _startAllProgram = startFourProgram;
+
+                if (hostActiveOrders.Dispatcher.CheckAccess() == false)
+                {
+                    hostActiveOrders.Dispatcher.Invoke(
+                        new Action<WindowsFormsHost,
+                        WindowsFormsHost,
+                        StartUiToPainter,
+                        System.Windows.Controls.ComboBox,
+                        System.Windows.Controls.Button,
+                        System.Windows.Controls.Button,
+                        System.Windows.Controls.ComboBox,
+                        System.Windows.Controls.Button,
+                        System.Windows.Controls.Button>(SetHostTable),
+                        hostActiveOrders, hostHistoricalOrders, startFourProgram,
+                        comboBoxActiveOrders, buttonLeftActiveOrders, buttonRightActiveOrders,
+                        comboBoxHistoryOrders,buttonLeftHistoryOrders, buttonRightHistoryOrders);
+ 
+                    return;
+                }
+
+                if(comboBoxHistoryOrders != null)
+                {
+                    comboBoxHistoryOrders.Items.Add("20");
+                    comboBoxHistoryOrders.Items.Add("50");
+                    comboBoxHistoryOrders.Items.Add("100");
+                    comboBoxHistoryOrders.Items.Add("150");
+                    comboBoxHistoryOrders.Items.Add("200");
+                    comboBoxHistoryOrders.Items.Add("250");
+                    comboBoxHistoryOrders.SelectedIndex = 0;
+
+                    comboBoxHistoryOrders.SelectionChanged += OnComboBoxSelectionItem;
+                }
+
+                if(comboBoxActiveOrders!= null)
+                {
+                    comboBoxActiveOrders.Items.Add("20");
+                    comboBoxActiveOrders.Items.Add("50");
+                    comboBoxActiveOrders.Items.Add("100");
+                    comboBoxActiveOrders.Items.Add("150");
+                    comboBoxActiveOrders.Items.Add("200");
+                    comboBoxActiveOrders.Items.Add("250");
+                    comboBoxActiveOrders.SelectedIndex = 0;
+                    comboBoxActiveOrders.SelectionChanged += OnComboBoxSelectionItem;
+                }
+
+                if(buttonLeftActiveOrders != null)
+                {
+                    buttonLeftActiveOrders.Click += OnBackPageClickActive;
+                }
+               
+                if(buttonRightActiveOrders != null)
+                {
+                    buttonRightActiveOrders.Click += OnNextPageClickActive;
+                }
+                
+                if(buttonLeftHistoryOrders != null)
+                {
+                    buttonLeftHistoryOrders.Click += OnBackPageClickHistorical;
+                }
+                
+                if(buttonRightHistoryOrders != null)
+                {
+                    buttonRightHistoryOrders.Click += OnNextPageClickHistorical;
+                }
+
                 if (hostActiveOrders != null)
                 {
                     _gridActiveOrders = DataGridFactory.GetDataGridOrder();
@@ -123,6 +233,7 @@ namespace OsEngine.Market
                     _hostActiveOrders = hostActiveOrders;
                     _hostActiveOrders.Child = _gridActiveOrders;
                     _gridActiveOrders.Click += _gridOrders_Click;
+                    _gridActiveOrders.DataError += _gridOrders_DataError; 
                 }
 
                 if (hostHistoricalOrders != null)
@@ -137,6 +248,7 @@ namespace OsEngine.Market
                     }
 
                     _hostHistoricalOrders.Child = _gridHistoricalOrders;
+                    _gridHistoricalOrders.DataError += _gridOrders_DataError;
                 }
 
             }
@@ -157,7 +269,7 @@ namespace OsEngine.Market
         {
             while (true)
             {
-                await Task.Delay(5000);
+                await Task.Delay(500);
 
                 try
                 {
@@ -165,6 +277,11 @@ namespace OsEngine.Market
                     if (MainWindow.ProccesIsWorked == false)
                     {
                         return;
+                    }
+
+                    if (_orders == null)
+                    {
+                        _needToPaintOrders = false;
                     }
 
                     if (_needToPaintOrders)
@@ -181,7 +298,7 @@ namespace OsEngine.Market
                         {
                             Order order = _orders[i];
 
-                            if(order == null)
+                            if (order == null)
                             {
                                 continue;
                             }
@@ -205,12 +322,188 @@ namespace OsEngine.Market
 
                         if (_gridActiveOrders != null)
                         {
-                            PaintOrders(activeOrders, _gridActiveOrders);
+                            int ActivePage = 1;
+                            int ActivePageSize = 20;
+
+                            // active orders BotStation Light
+                            if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
+                            {
+                                RobotUiLight.Instance?.Dispatcher.Invoke(() =>
+                                {
+                                    try
+                                    {
+                                        ActivePage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
+                                        {
+                                            RobotUiLight.Instance.LabelNumberThisPageActive.Content = "1";
+                                        }
+
+                                        ActivePage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        RobotUiLight.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
+                                });
+
+                                PaintOrders(activeOrders, _gridActiveOrders, _hostActiveOrders, ActivePage, ActivePageSize);
+                            }
+
+                            // active orders BotStation
+                            if (_startAllProgram == StartUiToPainter.IsOsTrader)
+                            {
+                                RobotUi.Instance?.Dispatcher.Invoke(() =>
+                                {
+                                    try
+                                    {
+                                        ActivePage = Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(RobotUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
+                                        {
+                                            RobotUi.Instance.LabelNumberThisPageActive.Content = "1";
+                                        }
+
+                                        ActivePage = Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(RobotUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        RobotUi.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
+                                });
+                            
+                                PaintOrders(activeOrders, _gridActiveOrders, _hostActiveOrders, ActivePage, ActivePageSize);
+                            }
+
+                            // active orders Tester Light
+                            if (_startAllProgram == StartUiToPainter.IsTesterLight)
+                            {
+                                TesterUiLight.Instance?.Dispatcher.Invoke(() =>
+                                {
+                                    try
+                                    {
+                                        ActivePage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
+                                        {
+                                            TesterUiLight.Instance.LabelNumberThisPageActive.Content = "1";
+                                        }
+
+                                        ActivePage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        TesterUiLight.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
+                                });
+
+                                PaintOrders(activeOrders, _gridActiveOrders, _hostActiveOrders, ActivePage, ActivePageSize);
+                            }
+
+                            // active orders Tester
+                            if (_startAllProgram == StartUiToPainter.IsTester)
+                            {
+                                TesterUi.Instance?.Dispatcher.Invoke(() =>
+                                {
+                                    try
+                                    {
+                                        ActivePage = Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(TesterUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        if (ActivePage > GetTotalPages(activeOrders.Count, ActivePageSize))
+                                        {
+                                            TesterUi.Instance.LabelNumberThisPageActive.Content = "1";
+                                        }
+
+                                        ActivePage = Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content);
+                                        ActivePageSize = Convert.ToInt32(TesterUi.Instance.ComboBoxQuantityPerPageActive.SelectedValue);
+
+                                        TesterUi.Instance.LabelNumberAllPageActive.Content = GetTotalPages(activeOrders.Count, ActivePageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
+                                });
+
+                                PaintOrders(activeOrders, _gridActiveOrders, _hostActiveOrders, ActivePage, ActivePageSize);
+                            }
                         }
 
                         if (_gridHistoricalOrders != null)
                         {
-                            PaintOrders(historicalOrders, _gridHistoricalOrders);
+                            int HistoricalPage = 1;
+                            int HistoricalPageSize = 20;
+
+                            // history orders BotStation Light
+                            if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
+                            {
+                                RobotUiLight.Instance?.Dispatcher.Invoke(() =>
+                                {
+                                    try
+                                    {
+                                        HistoricalPage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content);
+                                        HistoricalPageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
+
+                                        if (HistoricalPage > GetTotalPages(historicalOrders.Count, HistoricalPageSize))
+                                        {
+                                            RobotUiLight.Instance.LabelNumberThisPageHistorical.Content = "1";
+                                        }
+
+                                        HistoricalPage = Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content);
+                                        HistoricalPageSize = Convert.ToInt32(RobotUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
+
+                                        RobotUiLight.Instance.LabelNumberAllPageHistorical.Content = GetTotalPages(historicalOrders.Count, HistoricalPageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
+                                });
+
+                                PaintOrders(historicalOrders, _gridHistoricalOrders, _hostHistoricalOrders, HistoricalPage, HistoricalPageSize);
+                            }
+
+                            // history orders Tester Light
+                            if (_startAllProgram == StartUiToPainter.IsTesterLight)
+                            {
+                                TesterUiLight.Instance?.Dispatcher.Invoke(() =>
+                                {
+                                    try
+                                    {
+                                        HistoricalPage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content);
+                                        HistoricalPageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
+
+                                        if (HistoricalPage > GetTotalPages(historicalOrders.Count, HistoricalPageSize))
+                                        {
+                                            TesterUiLight.Instance.LabelNumberThisPageHistorical.Content = "1";
+                                        }
+
+                                        HistoricalPage = Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content);
+                                        HistoricalPageSize = Convert.ToInt32(TesterUiLight.Instance.ComboBoxQuantityPerPageHistorical.SelectedValue);
+
+                                        TesterUiLight.Instance.LabelNumberAllPageHistorical.Content = GetTotalPages(historicalOrders.Count, HistoricalPageSize).ToString();
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                    }
+                                });
+
+                                PaintOrders(historicalOrders, _gridHistoricalOrders, _hostHistoricalOrders, HistoricalPage, HistoricalPageSize);
+                            }
                         }
                     }
 
@@ -220,6 +513,196 @@ namespace OsEngine.Market
                     SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 }
             }
+        }
+
+        public void OnBackPageClickActive(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_startAllProgram == StartUiToPainter.IsTesterLight)
+                {
+                    if (Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content) > 1)
+                    {
+                        TesterUiLight.Instance.LabelNumberThisPageActive.Content =
+                            Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content) - 1;
+
+                        ForcePaint();
+                    }
+                }
+
+                if (_startAllProgram == StartUiToPainter.IsTester)
+                {
+                    if (Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content) > 1)
+                    {
+                        TesterUi.Instance.LabelNumberThisPageActive.Content =
+                            Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content) - 1;
+
+                        ForcePaint();
+                    }
+                }
+
+                if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
+                {
+                    if (Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content) > 1)
+                    {
+                        RobotUiLight.Instance.LabelNumberThisPageActive.Content =
+                            Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content) - 1;
+
+                        ForcePaint();
+                    }
+                }
+
+                if (_startAllProgram == StartUiToPainter.IsOsTrader)
+                {
+                    if (Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content) > 1)
+                    {
+                        RobotUi.Instance.LabelNumberThisPageActive.Content =
+                            Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content) - 1;
+
+                        ForcePaint();
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void OnNextPageClickActive(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_startAllProgram == StartUiToPainter.IsTesterLight)
+                {
+                    if (Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content) !=
+                        Convert.ToInt32(TesterUiLight.Instance.LabelNumberAllPageActive.Content))
+                    {
+                        TesterUiLight.Instance.LabelNumberThisPageActive.Content =
+                            Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageActive.Content) + 1;
+
+                        ForcePaint();
+                    }
+                }
+
+                if (_startAllProgram == StartUiToPainter.IsTester)
+                {
+                    if (Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content) !=
+                        Convert.ToInt32(TesterUi.Instance.LabelNumberAllPageActive.Content))
+                    {
+                        TesterUi.Instance.LabelNumberThisPageActive.Content =
+                            Convert.ToInt32(TesterUi.Instance.LabelNumberThisPageActive.Content) + 1;
+
+                        ForcePaint();
+                    }
+                }
+
+                if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
+                {
+                    if (Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content) !=
+                        Convert.ToInt32(RobotUiLight.Instance.LabelNumberAllPageActive.Content))
+                    {
+                        RobotUiLight.Instance.LabelNumberThisPageActive.Content =
+                            Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageActive.Content) + 1;
+
+                        ForcePaint();
+                    }
+                }
+
+                if (_startAllProgram == StartUiToPainter.IsOsTrader)
+                {
+                    if (Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content) !=
+                        Convert.ToInt32(RobotUi.Instance.LabelNumberAllPageActive.Content))
+                    {
+                        RobotUi.Instance.LabelNumberThisPageActive.Content =
+                            Convert.ToInt32(RobotUi.Instance.LabelNumberThisPageActive.Content) + 1;
+
+                        ForcePaint();
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void OnBackPageClickHistorical(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_startAllProgram == StartUiToPainter.IsTesterLight)
+                {
+                    if (Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content) > 1)
+                    {
+                        TesterUiLight.Instance.LabelNumberThisPageHistorical.Content =
+                            Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content) - 1;
+
+                        ForcePaint();
+                    }
+                }
+
+                if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
+                {
+                    if (Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content) > 1)
+                    {
+                        RobotUiLight.Instance.LabelNumberThisPageHistorical.Content =
+                            Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content) - 1;
+
+                        ForcePaint();
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void OnNextPageClickHistorical(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_startAllProgram == StartUiToPainter.IsTesterLight)
+                {
+                    if (Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content) !=
+                        Convert.ToInt32(TesterUiLight.Instance.LabelNumberAllPageHistorical.Content))
+                    {
+                        TesterUiLight.Instance.LabelNumberThisPageHistorical.Content =
+                            Convert.ToInt32(TesterUiLight.Instance.LabelNumberThisPageHistorical.Content) + 1;
+
+                        ForcePaint();
+                    }
+                }
+
+                if (_startAllProgram == StartUiToPainter.IsOsTraderLight)
+                {
+                    if (Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content) !=
+                        Convert.ToInt32(RobotUiLight.Instance.LabelNumberAllPageHistorical.Content))
+                    {
+                        RobotUiLight.Instance.LabelNumberThisPageHistorical.Content =
+                            Convert.ToInt32(RobotUiLight.Instance.LabelNumberThisPageHistorical.Content) + 1;
+
+                        ForcePaint();
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void OnComboBoxSelectionItem(object sender, RoutedEventArgs e)
+        {
+            ForcePaint();
+        }
+
+        public static int GetTotalPages(int totalItems, int pageSize)
+        {
+            if (pageSize <= 0) return 1;
+            if (totalItems <= 0) return 1;
+            return (int)Math.Ceiling((double)totalItems / pageSize);
         }
 
         private void SortOrders(List<Order> orders)
@@ -262,6 +745,11 @@ namespace OsEngine.Market
         {
             try
             {
+                if(order == null)
+                {
+                    return;
+                }
+
                 if (order.ServerType == ServerType.Optimizer ||
                 order.ServerType == ServerType.Miner)
                 {
@@ -357,8 +845,7 @@ namespace OsEngine.Market
                         }
                     }
 
-
-                    if (_orders.Count > 200)
+                    if (_orders.Count > 5000)
                     {
                         _orders.RemoveAt(0);
                     }
@@ -410,82 +897,103 @@ namespace OsEngine.Market
 
         private List<Order> _orders;
 
-        private void PaintOrders(List<Order> ordersToPaint, DataGridView gridToPaint)
+        private void PaintOrders(List<Order> ordersToPaint, DataGridView gridToPaint, WindowsFormsHost host, int pageNumber, int pageSize)
         {
             try
             {
-                if (gridToPaint == null)
+                if (gridToPaint == null 
+                    || host == null
+                    || ordersToPaint == null)
                 {
                     return;
                 }
 
-                if (gridToPaint.InvokeRequired)
+                if (host.Dispatcher.CheckAccess() == false)
                 {
-                    gridToPaint.Invoke(new Action<List<Order>, DataGridView>(PaintOrders), ordersToPaint, gridToPaint);
+                    host.Dispatcher.Invoke(
+                        new Action<List<Order>, DataGridView, WindowsFormsHost, int, int>(PaintOrders),
+                        ordersToPaint, gridToPaint, host, pageNumber, pageSize);
+
                     return;
                 }
+
+                int visibleRow = 0;
+
+                if (gridToPaint.FirstDisplayedScrollingRowIndex > 0)
+                {
+                    visibleRow = gridToPaint.FirstDisplayedScrollingRowIndex;
+                }
+
+                if(gridToPaint.Rows.Count == 0 
+                    && ordersToPaint.Count == 0)
+                {
+                    return;
+                }
+
                 gridToPaint.Rows.Clear();
 
-                if (ordersToPaint == null ||
-                    ordersToPaint.Count == 0)
+                if (ordersToPaint.Count == 0)
                 {
+                    host.Child = gridToPaint;
                     return;
                 }
 
-                for (int i = ordersToPaint.Count - 1; ordersToPaint != null && ordersToPaint.Count != 0 && i > -1; i--)
+                // всего страниц
+                int totalPages = (int)Math.Ceiling((double)ordersToPaint.Count / pageSize);
+                if (pageNumber < 1) pageNumber = 1;
+                if (pageNumber > totalPages) pageNumber = totalPages;
+
+                // какие записи брать
+                int skip = (pageNumber - 1) * pageSize;
+                List<Order> pageData = ordersToPaint
+                    .OrderByDescending(o => o.TimeCreate) // чтобы последние были сверху, как у тебя было
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .ToList();
+
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
+                TimeSpan zero = new TimeSpan(0, 0, 0, 0);
+
+                foreach (var order in pageData)
                 {
                     DataGridViewRow nRow = new DataGridViewRow();
 
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[0].Value = ordersToPaint[i].NumberUser;
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.NumberUser });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.NumberMarket });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.TimeCreate.ToString(_currentCulture) });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.SecurityNameCode });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.PortfolioNumber });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.Side });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.State });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.Price.ToStringWithNoEndZero() });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.PriceReal.ToStringWithNoEndZero() });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.Volume.ToStringWithNoEndZero() });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.TypeOrder });
+                    nRow.Cells.Add(new DataGridViewTextBoxCell { Value = order.TimeRoundTrip > zero ? order.TimeRoundTrip.ToString() : "" });
 
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[1].Value = ordersToPaint[i].NumberMarket;
+                    rows.Add(nRow);
+                }
 
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[2].Value = ordersToPaint[i].TimeCreate.ToString(_currentCulture);
+                if (rows.Count > 0)
+                {
+                    gridToPaint.Rows.AddRange(rows.ToArray());
+                }
 
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[3].Value = ordersToPaint[i].SecurityNameCode;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[4].Value = ordersToPaint[i].PortfolioNumber;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[5].Value = ordersToPaint[i].Side;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[6].Value = ordersToPaint[i].State;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[7].Value = ordersToPaint[i].Price.ToStringWithNoEndZero();
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[8].Value = ordersToPaint[i].PriceReal.ToStringWithNoEndZero();
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[9].Value = ordersToPaint[i].Volume.ToStringWithNoEndZero();
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[10].Value = ordersToPaint[i].TypeOrder;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-
-                    if (ordersToPaint[i].TimeRoundTrip > new TimeSpan(0, 0, 0, 0))
-                    {
-                        nRow.Cells[11].Value = ordersToPaint[i].TimeRoundTrip;
-                    }
-
-                    gridToPaint.Rows.Add(nRow);
+                if (visibleRow > 0 && visibleRow < rows.Count)
+                {
+                    gridToPaint.FirstDisplayedScrollingRowIndex = visibleRow;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore. Let us sometimes face with null-value, when deleting the original order or modification, but don't break work of mail thread
-                // игнорим. Пусть иногда натыкаемся на налл, при удалении исходного ордера или модификации
-                // зато не мешаем основному потоку работать
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                host.Child = gridToPaint;
             }
+        }
+
+        public void ForcePaint()
+        {
+            _needToPaintOrders = true;
         }
 
         private void _gridOrders_Click(object sender, EventArgs e)
@@ -699,7 +1207,15 @@ namespace OsEngine.Market
 
         #endregion
 
-        #region Drawing work
+        #region Log
+
+        private void _gridOrders_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if(e.Exception!= null)
+            {
+                SendNewLogMessage("ServerMaster painter error. \n" + e.Exception.ToString(), LogMessageType.Error);
+            }
+        }
 
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -708,8 +1224,8 @@ namespace OsEngine.Market
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // if nobody is substribed to us and there is a log error / если на нас никто не подписан и в логе ошибка
-                MessageBox.Show(message);
+            {
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

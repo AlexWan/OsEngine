@@ -24,7 +24,9 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard,null);
+            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard, null, StartUiToPainter.IsTester,
+                ComboBoxQuantityPerPageActive, BackButtonActiveList, NextButtonActiveList, null,
+                null, null);
             ServerMaster.CreateServer(ServerType.Tester,false);
             ServerMaster.GetServers();
 
@@ -49,7 +51,14 @@ namespace OsEngine.OsTrader.Gui
             this.Focus();
 
             GlobalGUILayout.Listen(this, "testerUi");
+
+            _ordersPainter = ServerMaster._ordersStorage;
+            Instance = this;
         }
+
+        private ServerMasterOrdersPainter _ordersPainter;
+
+        public static TesterUi Instance;
 
         private void Local()
         {
@@ -87,6 +96,9 @@ namespace OsEngine.OsTrader.Gui
             ButtonAddVisualAlert.Content = OsLocalization.Trader.Label440;
             ButtonAddPriceAlert.Content = OsLocalization.Trader.Label441;
             TabItemGrids.Header = OsLocalization.Trader.Label437;
+            LabelPageActive.Content = OsLocalization.Trader.Label576;
+            LabelFromActive.Content = OsLocalization.Trader.Label577;
+            LabelCountActive.Content = OsLocalization.Trader.Label578;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)

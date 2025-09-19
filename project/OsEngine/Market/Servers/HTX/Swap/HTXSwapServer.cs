@@ -982,7 +982,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 webSocketPublicNew.OnMessage += webSocketPublic_OnMessage;
                 webSocketPublicNew.OnError += webSocketPublic_OnError;
                 webSocketPublicNew.OnClose += webSocketPublic_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -1007,7 +1007,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += webSocketPrivate_OnError;
                 _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
 
             }
             catch (Exception exception)
@@ -1291,7 +1291,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             try
             {
                 string authRequest = BuildSign(DateTime.UtcNow);
-                _webSocketPrivate.Send(authRequest);
+                _webSocketPrivate.SendAsync(authRequest);
 
                 SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
                 CheckActivationSockets();
@@ -1341,7 +1341,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         {
                             // Supports two-way heartbeat
                             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                            webSocketPublic.Send($"{{\"ping\": \"{timestamp}\"}}");
+                            webSocketPublic.SendAsync($"{{\"ping\": \"{timestamp}\"}}");
                         }
                         else
                         {
@@ -1440,10 +1440,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
             if (webSocketPublic != null)
             {
                 string topic = $"market.{security.Name}.depth.step0";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
                 topic = $"market.{security.Name}.trade.detail";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
             }
 
@@ -1451,7 +1451,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 if (_extendedMarketData)
                 {
-                    _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"public.{security.Name}.funding_rate\", \"cid\": \"{clientId}\" }}");
+                    _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"public.{security.Name}.funding_rate\", \"cid\": \"{clientId}\" }}");
                     GetFundingHistory(security.Name);
                 }
             }
@@ -1513,9 +1513,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 channelAccounts = "accounts_unify.USDT";
             }
 
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
         }
 
         private void CreatePingMessageWebSocketPublic(string message)
@@ -1537,7 +1537,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         if (webSocketPublic != null
                         && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send($"{{\"pong\": \"{response.ping}\"}}");
+                            webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
                         }
                     }
                     catch (Exception ex)
@@ -1561,7 +1561,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 try
                 {
 
-                    _webSocketPrivate.Send($"{{\"op\": \"pong\",\"ts\": \"{response.ts}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"pong\",\"ts\": \"{response.ts}\"}}");
                 }
                 catch (Exception ex)
                 {
@@ -1592,10 +1592,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                     string securityName = _subscribedSecurities[j];
 
                                     string topic = $"market.{securityName}.depth.step0";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
 
                                     topic = $"market.{securityName}.trade.detail";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
                                 }
                             }
                         }
@@ -1621,13 +1621,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         channelAccounts = "accounts_unify.USDT";
                     }
 
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelOrders}\"}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelAccounts}\"}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelPositions}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelOrders}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelAccounts}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelPositions}\"}}");
 
                     if (_extendedMarketData)
                     {
-                        _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"public.*.funding_rate\"}}");
+                        _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"public.*.funding_rate\"}}");
                     }
                 }
                 catch
@@ -1761,7 +1761,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -2151,7 +2151,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.trade[i].created_at));
                 myTrade.NumberOrderParent = response.order_id;
-                myTrade.NumberTrade = response.trade[i].id;
+
+                string num = response.trade[i].id;
+                //if (num.Split('-').Length < 2)
+                //{
+                //    continue;
+                //}
+
+                myTrade.NumberTrade = num;
                 myTrade.Price = response.trade[i].trade_price.ToDecimal();
                 myTrade.SecurityNameCode = response.contract_code;
                 myTrade.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
@@ -2402,7 +2409,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         pos.ValueCurrent = -item[i].volume.ToDecimal();
                     }
 
-                    pos.ValueBlocked = item[i].frozen.ToDecimal();
+                    //pos.ValueBlocked = item[i].frozen.ToDecimal();
                     pos.UnrealizedPnl = Math.Round(item[i].profit_unreal.ToDecimal(), 5);
                     //resultPnL += pos.UnrealizedPnl;
 
@@ -2477,7 +2484,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<Funding> FundingUpdateEvent;
 
@@ -2533,6 +2540,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 {
                     jsonContent.Add("order_price_type", "market");
                 }
+
+                jsonContent.Add("channel_code", "AAe2ccbd47");
 
                 string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order");
 
@@ -2727,7 +2736,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
                             newOrder.ServerType = ServerType.HTXSwap;
                             newOrder.SecurityNameCode = item.contract_code;
-                            newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+                            }
+                            catch
+                            {
+
+                            }
+
                             newOrder.NumberMarket = item.order_id.ToString();
                             newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
                             newOrder.State = GetOrderState(item.status);
@@ -2901,7 +2919,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newOrder.TypeOrder = OrderPriceType.Market;
                             }
 
-                            //newOrder.PositionConditionType = item[0].offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                            //newOrder.PositionConditionType = item.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
                         }
 
                         return newOrder;
@@ -2956,7 +2974,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             {
                                 MyTrade newTrade = new MyTrade();
                                 newTrade.SecurityNameCode = response.data.contract_code;
-                                newTrade.NumberTrade = response.data.trades[i].trade_id;
+
+                                string num = response.data.trades[i].id;
+                                //if(num.Split('-').Length < 2)
+                                //{
+                                //    continue;
+                                //}
+
+                                newTrade.NumberTrade = num;
                                 newTrade.NumberOrderParent = response.data.order_id;
                                 newTrade.Volume = response.data.trades[i].trade_volume.ToDecimal();
                                 newTrade.Price = response.data.trades[i].trade_price.ToDecimal();
@@ -2970,6 +2995,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 {
                                     newTrade.Side = Side.Sell;
                                 }
+
                                 osEngineOrders.Add(newTrade);
                             }
                         }
@@ -2999,6 +3025,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 SendLogMessage("Get my trades by security request error." + exception.ToString(), LogMessageType.Error);
             }
+            return null;
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
             return null;
         }
 

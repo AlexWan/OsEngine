@@ -614,7 +614,7 @@ namespace OsEngine.Market.Servers.MFD
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         public void GetOrdersState(List<Order> orders)
         {
@@ -631,20 +631,30 @@ namespace OsEngine.Market.Servers.MFD
 
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        public List<Order> GetActiveOrders(int startIndex, int count)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
-        public event Action<Order> MyOrderEvent;
-        public event Action<MyTrade> MyTradeEvent;
-        public event Action<MarketDepth> MarketDepthEvent;
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
-        public event Action<Trade> NewTradesEvent;
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            return null;
+        }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<Order> MyOrderEvent { add { } remove { } }
+        public event Action<MyTrade> MyTradeEvent { add { } remove { } }
+        public event Action<MarketDepth> MarketDepthEvent { add { } remove { } }
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
+        public event Action<Trade> NewTradesEvent { add { } remove { } }
+
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

@@ -1,4 +1,8 @@
-﻿
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Entity.WebSocketOsEngine;
@@ -14,6 +18,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+
 
 
 namespace OsEngine.Market.Servers.BitGet.BitGetFutures
@@ -139,8 +144,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                    FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                     CreatePublicWebSocketConnect();
                     CreatePrivateWebSocketConnect();
                     _lastConnectionStartTime = DateTime.Now;
@@ -182,8 +185,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketPublicMessage = null;
-            FIFOListWebSocketPrivateMessage = null;
+            FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -328,23 +331,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         }
 
         private RateGate _rateGateSecurity = new RateGate(2, TimeSpan.FromMilliseconds(100));
-
-        private decimal GetVolumeStep(int ScalePrice)
-        {
-            if (ScalePrice == 0)
-            {
-                return 1;
-            }
-            string priceStep = "0,";
-            for (int i = 0; i < ScalePrice - 1; i++)
-            {
-                priceStep += "0";
-            }
-
-            priceStep += "1";
-
-            return priceStep.ToDecimal();
-        }
 
         private string GetPriceStep(int PricePlace, int PriceEndStep)
         {
@@ -723,7 +709,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
-            return GetCandleData(security, timeFrameBuilder, startTime, endTime, endTime, false);
+            return GetCandleData(security, timeFrameBuilder, startTime, endTime, endTime, true);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -1152,7 +1138,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 webSocketPublicNew.OnMessage += WebSocketPublic_MessageReceived;
                 webSocketPublicNew.OnError += WebSocketPublic_Error;
                 webSocketPublicNew.OnClose += WebSocketPublic_Closed;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -1187,7 +1173,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
                 _webSocketPrivate.OnError += WebSocketPrivate_Error;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
             }
             catch (Exception exception)
             {
@@ -1307,7 +1293,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 string AuthJson = JsonConvert.SerializeObject(requestWebsocketAuth);
 
-                _webSocketPrivate.Send(AuthJson);
+                _webSocketPrivate.SendAsync(AuthJson);
             }
             catch (Exception ex)
             {
@@ -1540,7 +1526,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         if (webSocketPublic != null
                             && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send("ping");
+                            webSocketPublic.SendAsync("ping");
                         }
                         else
                         {
@@ -1553,7 +1539,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting)
                         )
                     {
-                        _webSocketPrivate.Send("ping");
+                        _webSocketPrivate.SendAsync("ping");
                     }
                     else
                     {
@@ -1646,12 +1632,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{security.NameClass}\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{security.NameClass}\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
+                        webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
                         GetFundingData(security.Name, security.NameClass);
                         GetFundingHistory(security.Name, security.NameClass);
                     }
@@ -1769,9 +1755,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 for (int i = 0; i < _listCoin.Count; i++)
                 {
-                    _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
-                    _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"positions\",\"coin\": \"default\"}}]}}");
-                    _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"orders\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"positions\",\"coin\": \"default\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"orders\"}}]}}");
                 }
             }
             catch (Exception exception)
@@ -1799,12 +1785,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 {
                                     for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"ticker\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
+                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"ticker\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
                                         }
                                     }
                                 }
@@ -1828,9 +1814,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     for (int i = 0; i < _listCoin.Count; i++)
                     {
-                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
-                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"positions\",\"coin\": \"default\"}}]}}");
-                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"orders\",\"coin\": \"default\"}}]}}");
+                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
+                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"positions\",\"coin\": \"default\"}}]}}");
+                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"orders\",\"coin\": \"default\"}}]}}");
                     }
                 }
                 catch
@@ -1845,7 +1831,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -2523,7 +2509,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<Funding> FundingUpdateEvent;
 
@@ -2696,20 +2682,32 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetAllOpenOrders();
+            List<Order> ordersOpenAll = GetAllActivOrdersArray(100, true);
 
-            if (orders == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < orders.Count; i++)
+            for (int i = 0; i < ordersOpenAll.Count; i++)
             {
                 if (MyOrderEvent != null)
                 {
-                    MyOrderEvent(orders[i]);
+                    MyOrderEvent(ordersOpenAll[i]);
                 }
             }
+        }
+
+        private List<Order> GetAllActivOrdersArray(int maxCountByCategory, bool onlyActive)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> orders = new List<Order>();
+
+            GetAllOpenOrders(orders, 100, true);
+
+            if (orders != null
+                && orders.Count > 0)
+            {
+                ordersOpenAll.AddRange(orders);
+            }
+
+            return ordersOpenAll;
         }
 
         public OrderStateType GetOrderStatus(Order order)
@@ -2869,7 +2867,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        public List<Order> GetAllOpenOrders()
+        public void GetAllOpenOrders(List<Order> array, int maxCount, bool onlyActive)
         {
             try
             {
@@ -2879,7 +2877,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 for (int i = 0; i < _listCoin.Count; i++)
                 {
-                    IRestResponse responseMessage = CreatePrivateQuery($"/api/v2/mix/order/orders-pending?productType={_listCoin[i]}", Method.GET, null, null);
+                    string requestPath = "/api/v2/mix/order/orders-pending";
+                    requestPath += $"?productType={_listCoin[i]}&";
+                    requestPath += $"limit=100";
+                    //requestPath += $"clientOrderId={order.NumberUser.ToString()}";
+
+                    IRestResponse responseMessage = CreatePrivateQuery(requestPath, Method.GET, null, null);
                     string json = responseMessage.Content;
 
                     ResponseRestMessage<RestMessageOrders> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<RestMessageOrders>());
@@ -2898,21 +2901,50 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 Order curOder = ConvertRestToOrder(stateResponse.data.entrustedList[ind]);
                                 orders.Add(curOder);
                             }
+
+                            if (orders.Count > 0)
+                            {
+                                array.AddRange(orders);
+
+                                if (array.Count > maxCount)
+                                {
+                                    while (array.Count > maxCount)
+                                    {
+                                        array.RemoveAt(array.Count - 1);
+                                    }
+                                    return;
+                                }
+                                else if (array.Count < 50)
+                                {
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                return;
+                            }
+
+                            return;
                         }
                         else
                         {
                             SendLogMessage($"Code: {stateResponse.code}\n"
                                 + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                            return;
                         }
                     }
+                    else
+                    {
+                        SendLogMessage($"GetOpenOrders>. Order error. Code: {responseMessage.StatusCode}\n"
+                                + $"Message: {responseMessage.Content}", LogMessageType.Error);
+                        return;
+                    }
                 }
-
-                return orders;
             }
             catch (Exception e)
             {
                 SendLogMessage(e.Message, LogMessageType.Error);
-                return null;
+                return;
             }
         }
 
@@ -2924,13 +2956,33 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             newOrder.SecurityNameCode = item.symbol;
             newOrder.SecurityClassCode = item.marginCoin + "-FUTURES";
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
-            int.TryParse(item.clientOid, out newOrder.NumberUser);
+            newOrder.State = stateType;
+            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
+            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.uTime));
+
+            if (newOrder.State == OrderStateType.Cancel)
+            {
+                newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.uTime));
+            }
+
+            if (newOrder.State == OrderStateType.Done)
+            {
+                newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.uTime));
+            }
+
+            try
+            {
+                newOrder.NumberUser = Convert.ToInt32(item.clientOid);
+            }
+            catch
+            {
+
+            }
+
             newOrder.NumberMarket = item.orderId.ToString();
             newOrder.Side = item.side == "buy" ? Side.Buy : Side.Sell;
-            newOrder.State = stateType;
             newOrder.Volume = item.size.ToDecimal();
-            newOrder.Price = item.price.ToDecimal();
+            newOrder.Price = item.price != "" ? item.price.ToDecimal() : 0;
             newOrder.ServerType = ServerType.BitGetFutures;
             newOrder.PortfolioNumber = "BitGetFutures";
             newOrder.TypeOrder = item.orderType == "limit" ? OrderPriceType.Limit : OrderPriceType.Market;
@@ -2971,6 +3023,153 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             if (MyOrderEvent != null)
             {
                 MyOrderEvent(order);
+            }
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllActivOrdersArray(countToMethod, true);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllHistoricalOrdersArray(countToMethod, false);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
+        }
+
+        private List<Order> GetAllHistoricalOrdersArray(int maxCountByCategory, bool onlyActive)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> orders = new List<Order>();
+
+            GetAllHistoricalOrders(orders, 100, true);
+
+            if (orders != null
+                && orders.Count > 0)
+            {
+                ordersOpenAll.AddRange(orders);
+            }
+
+            return ordersOpenAll;
+        }
+
+        private void GetAllHistoricalOrders(List<Order> array, int maxCount, bool onlyActive)
+        {
+            try
+            {
+                _rateGateOrder.WaitToProceed();
+
+                List<Order> orders = new List<Order>();
+
+                for (int i = 0; i < _listCoin.Count; i++)
+                {
+                    string requestPath = "/api/v2/mix/order/orders-history";
+                    requestPath += $"?productType={_listCoin[i]}&";
+                    requestPath += $"limit=100";
+                    //requestPath += $"clientOrderId={order.NumberUser.ToString()}";
+
+                    IRestResponse responseMessage = CreatePrivateQuery(requestPath, Method.GET, null, null);
+                    string json = responseMessage.Content;
+
+                    ResponseRestMessage<RestMessageOrders> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<RestMessageOrders>());
+
+                    if (responseMessage.StatusCode == HttpStatusCode.OK)
+                    {
+                        if (stateResponse.code.Equals("00000") == true)
+                        {
+                            if (stateResponse.data.entrustedList == null)
+                            {
+                                continue;
+                            }
+
+                            for (int ind = 0; ind < stateResponse.data.entrustedList.Count; ind++)
+                            {
+                                Order curOder = ConvertRestToOrder(stateResponse.data.entrustedList[ind]);
+
+                                orders.Add(curOder);
+                            }
+
+                            if (orders.Count > 0)
+                            {
+                                array.AddRange(orders);
+
+                                if (array.Count > maxCount)
+                                {
+                                    while (array.Count > maxCount)
+                                    {
+                                        array.RemoveAt(array.Count - 1);
+                                    }
+                                    return;
+                                }
+                                else if (array.Count < 50)
+                                {
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                return;
+                            }
+
+                            return;
+                        }
+                        else
+                        {
+                            SendLogMessage($"Code: {stateResponse.code}\n"
+                                + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetHistoryOrder>. Order error. Code: {responseMessage.StatusCode}\n"
+                                + $"Message: {responseMessage.Content}", LogMessageType.Error);
+                        return;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
+                return;
             }
         }
 

@@ -25,9 +25,9 @@
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationIcon>OsLogo.ico</ApplicationIcon>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <AssemblyVersion>2.0.0.4</AssemblyVersion>
+    <AssemblyVersion>2.0.0.5</AssemblyVersion>
     <PackageOutputPath>$(OutputPath)\</PackageOutputPath>
-    <FileVersion>2.0.0.4</FileVersion>
+    <FileVersion>2.0.0.5</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
    <OutputPath>bin\Debug\</OutputPath>
@@ -60,6 +60,12 @@
     </ItemGroup>
   </Target>
   <ItemGroup>
+    <Compile Remove="lua\**" />
+    <EmbeddedResource Remove="lua\**" />
+    <None Remove="lua\**" />
+    <Page Remove="lua\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="BytesRoad.Net.Ftp">
       <HintPath>bin\Debug\BytesRoad.Net.Ftp.dll</HintPath>
     </Reference>
@@ -78,9 +84,6 @@
     <Reference Include="LiteDB, Version=5.0.19.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\LiteDB.dll</HintPath>
-    </Reference>
-    <Reference Include="LmaxClientLibrary">
-      <HintPath>bin\Debug\LmaxClientLibrary.dll</HintPath>
     </Reference>
     <Reference Include="OpenFAST">
       <HintPath>bin\Debug\OpenFAST.dll</HintPath>
@@ -144,6 +147,7 @@
   <ItemGroup>
     <None Remove="Images\MainWIndow\flag_eng.png" />
     <None Remove="Images\MainWIndow\flag_ru.png" />
+    <None Remove="Images\MainWIndow\tbank.mp4" />
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />
@@ -219,12 +223,9 @@
     <Resource Include="Images\padlockOpened.png" />
     <Resource Include="Images\eye.png" />
     <Resource Include="Images\eyeBig.png" />
-    <Content Include="lua\clibs64\5.1_MD\socket\core.dll" />
-    <Content Include="lua\clibs64\5.1_MT\socket\core.dll" />
-    <Content Include="lua\clibs64\53_MD\socket\core.dll" />
-    <Content Include="lua\clibs64\53_MT\socket\core.dll" />
-    <Content Include="lua\clibs\5.1_MD\socket\core.dll" />
-    <Content Include="lua\clibs\5.1_MT\socket\core.dll" />
+    <Content Include="Images\MainWIndow\tbank.mp4">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\generateButton.png" />
@@ -239,10 +240,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="OsLogo.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\MainWIndow\alor1.png" />
-    <Resource Include="Images\MainWIndow\alor2.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\Debug\" />

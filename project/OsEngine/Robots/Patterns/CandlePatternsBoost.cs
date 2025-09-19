@@ -265,7 +265,7 @@ namespace OsEngine.Robots.patt
             if (position.State == PositionStateType.Open ||
                 position.State == PositionStateType.ClosingFail)
             {
-                if (position.CloseActiv == true ||
+                if (position.CloseActive == true ||
                     (position.CloseOrders != null && position.CloseOrders.Count > 0))
                 {
                     return;
@@ -430,8 +430,8 @@ namespace OsEngine.Robots.patt
             {
                 Position pos = positions[i];
 
-                pos.StopOrderIsActiv = false;
-                pos.ProfitOrderIsActiv = false;
+                pos.StopOrderIsActive = false;
+                pos.ProfitOrderIsActive = false;
             }
 
             _tab.BuyAtStopCancel();

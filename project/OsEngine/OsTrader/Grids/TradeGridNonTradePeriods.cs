@@ -144,15 +144,6 @@ namespace OsEngine.OsTrader.Grids
                 {
                     return NonTradePeriod1Regime;
                 }
-
-                if (NonTradePeriod1Start > NonTradePeriod1End)
-                { // overnight transfer
-                    if (NonTradePeriod1Start > curTime
-                        || NonTradePeriod1End < curTime)
-                    {
-                        return NonTradePeriod1Regime;
-                    }
-                }
             }
 
             if (NonTradePeriod2OnOff == true)
@@ -161,15 +152,6 @@ namespace OsEngine.OsTrader.Grids
                  && NonTradePeriod2End > curTime)
                 {
                     return NonTradePeriod2Regime;
-                }
-
-                if (NonTradePeriod2Start > NonTradePeriod2End)
-                { // overnight transfer
-                    if (NonTradePeriod2Start > curTime
-                        || NonTradePeriod2End < curTime)
-                    {
-                        return NonTradePeriod2Regime;
-                    }
                 }
             }
 
@@ -180,15 +162,6 @@ namespace OsEngine.OsTrader.Grids
                 {
                     return NonTradePeriod3Regime;
                 }
-
-                if (NonTradePeriod3Start > NonTradePeriod3End)
-                { // overnight transfer
-                    if (NonTradePeriod3Start > curTime
-                        || NonTradePeriod3End < curTime)
-                    {
-                        return NonTradePeriod3Regime;
-                    }
-                }
             }
 
             if (NonTradePeriod4OnOff == true)
@@ -198,15 +171,6 @@ namespace OsEngine.OsTrader.Grids
                 {
                     return NonTradePeriod4Regime;
                 }
-
-                if (NonTradePeriod4Start > NonTradePeriod4End)
-                { // overnight transfer
-                    if (NonTradePeriod4Start > curTime
-                        || NonTradePeriod4End < curTime)
-                    {
-                        return NonTradePeriod4Regime;
-                    }
-                }
             }
 
             if (NonTradePeriod5OnOff == true)
@@ -215,15 +179,6 @@ namespace OsEngine.OsTrader.Grids
                  && NonTradePeriod5End > curTime)
                 {
                     return NonTradePeriod5Regime;
-                }
-
-                if (NonTradePeriod5Start > NonTradePeriod5End)
-                { // overnight transfer
-                    if (NonTradePeriod5Start > curTime
-                        || NonTradePeriod5End < curTime)
-                    {
-                        return NonTradePeriod5Regime;
-                    }
                 }
             }
 

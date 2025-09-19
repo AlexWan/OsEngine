@@ -52,6 +52,7 @@ namespace OsEngine.Market.Servers.Woo
         {
             get { return false; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
@@ -61,41 +62,50 @@ namespace OsEngine.Market.Servers.Woo
         {
             get { return true; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf10MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf30MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfDayCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
@@ -106,6 +116,7 @@ namespace OsEngine.Market.Servers.Woo
         {
             get { return true; }
         }
+
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 5; }
@@ -115,6 +126,7 @@ namespace OsEngine.Market.Servers.Woo
         {
             get { return true; }
         }
+
         public bool UseStandardCandlesStarter
         {
             get { return true; }
@@ -133,16 +145,16 @@ namespace OsEngine.Market.Servers.Woo
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = false,
-                TimeFrameSec2IsOn = false,
-                TimeFrameSec5IsOn = false,
-                TimeFrameSec10IsOn = false,
-                TimeFrameSec15IsOn = false,
-                TimeFrameSec20IsOn = false,
-                TimeFrameSec30IsOn = false,
+                TimeFrameSec1IsOn = true,
+                TimeFrameSec2IsOn = true,
+                TimeFrameSec5IsOn = true,
+                TimeFrameSec10IsOn = true,
+                TimeFrameSec15IsOn = true,
+                TimeFrameSec20IsOn = true,
+                TimeFrameSec30IsOn = true,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
-                TimeFrameMin3IsOn = false,
+                TimeFrameMin3IsOn = true,
                 TimeFrameMin5IsOn = true,
                 TimeFrameMin10IsOn = false,
                 TimeFrameMin15IsOn = true,
@@ -150,7 +162,7 @@ namespace OsEngine.Market.Servers.Woo
                 TimeFrameMin30IsOn = true,
                 TimeFrameMin45IsOn = false,
                 TimeFrameHour1IsOn = true,
-                TimeFrameHour2IsOn = false,
+                TimeFrameHour2IsOn = true,
                 TimeFrameHour4IsOn = true,
                 TimeFrameDayIsOn = true
             };
@@ -158,7 +170,16 @@ namespace OsEngine.Market.Servers.Woo
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_LONG",
+                    "_SHORT"
+                };
+
+                return values;
+            }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
@@ -166,8 +187,8 @@ namespace OsEngine.Market.Servers.Woo
             get
             {
                 string[] values = new string[]
-                {                    
-                                      
+                {
+                    "USDT"
                 };
 
                 return values;
@@ -178,17 +199,18 @@ namespace OsEngine.Market.Servers.Woo
         {
             get { return false; }
         }
-        public bool IsTradeServer
+
+        public bool CanQueryOrdersAfterReconnect
         {
             get { return true; }
         }
 
-        public bool CanQueryOrdersAfterReconnect
+        public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
-        public bool CanQueryOrderStatus
+        public bool CanGetOrderLists
         {
             get { return false; }
         }
@@ -204,7 +226,7 @@ namespace OsEngine.Market.Servers.Woo
 
         public bool IsSupports_CheckDataFeedLogic
         {
-            get { return false; }
+            get { return true; }
         }
 
         public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
@@ -225,6 +247,26 @@ namespace OsEngine.Market.Servers.Woo
         public bool IsSupports_ProxyFor_MultipleInstances
         {
             get { return false; }
+        }
+
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
+        public int AsyncOrderSending_RateGateLimitMls
+        {
+            get { return 10; }
+        }
+
+        public bool IsSupports_AsyncCandlesStarter
+        {
+            get { return false; }
+        }
+
+        public int AsyncCandlesStarter_RateGateLimitMls
+        {
+            get { return 10; }
         }
 
         #endregion

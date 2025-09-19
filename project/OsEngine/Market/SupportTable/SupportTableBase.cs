@@ -188,16 +188,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(ninja);
 
-            SupportConnection lmax = new SupportConnection()
-            {
-                ServerType = ServerType.Lmax,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\International\\Lmax.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(lmax);
-
             return supportList;
         }
 
@@ -408,7 +398,7 @@ namespace OsEngine.Market.SupportTable
 
             SupportConnection exMo = new SupportConnection()
             {
-                ServerType = ServerType.Exmo,
+                ServerType = ServerType.ExmoSpot,
                 SupportType = SupportServerType.No,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\Exmo.png",
                 LingSiteUrl = "",
@@ -416,29 +406,8 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(exMo);
 
-            SupportConnection hitBtc = new SupportConnection()
-            {
-                ServerType = ServerType.Hitbtc,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\HitBtc.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(hitBtc);
-
-            SupportConnection zb = new SupportConnection()
-            {
-                ServerType = ServerType.Zb,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Zb.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(zb);
-
             return supportList;
         }
-
     }
 
     public class SupportConnection
@@ -452,7 +421,6 @@ namespace OsEngine.Market.SupportTable
         public string LingSiteUrl;
 
         public int Discount;
-
     }
 
     public enum SupportServerType

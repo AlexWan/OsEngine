@@ -106,7 +106,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public bool DataFeedTfDayCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
@@ -173,6 +173,11 @@ namespace OsEngine.Market.Servers.Alor
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
@@ -234,6 +239,26 @@ namespace OsEngine.Market.Servers.Alor
         public bool IsSupports_ProxyFor_MultipleInstances
         {
             get { return true; }
+        }
+
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return true; }
+        }
+
+        public int AsyncOrderSending_RateGateLimitMls
+        {
+            get { return 10; }
+        }
+
+        public bool IsSupports_AsyncCandlesStarter
+        {
+            get { return true; }
+        }
+
+        public int AsyncCandlesStarter_RateGateLimitMls
+        {
+            get { return 10; }
         }
 
         #endregion

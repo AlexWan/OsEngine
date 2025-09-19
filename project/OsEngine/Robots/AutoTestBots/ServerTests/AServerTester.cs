@@ -184,6 +184,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             O11_SecurityClass = CreateParameter("Sec class. orders test 11", "Futures", "O11");
             O11_Volume = CreateParameter("Volume. orders test 11", 0.01m, 1, 1, 1, "O11");
 
+            StrategyParameterButton buttonOrdersTest12 = CreateParameterButton("Start test orders 12", "O12");
+            buttonOrdersTest12.UserClickOnButtonEvent += ButtonOrdersTest12_UserClickOnButtonEvent;
+            O12_PortfolioName = CreateParameter("Portfolio. orders test 12", "BinanceFutures", "O12");
+            O12_SecurityName = CreateParameter("Sec name. orders test 12", "ETHUSDT", "O12");
+            O12_SecurityClass = CreateParameter("Sec class. orders test 12", "Futures", "O12");
+            O12_Volume = CreateParameter("Volume. orders test 12", 0.01m, 1, 1, 1, "O12");
+            O12_CountOrders = CreateParameter("Count orders test 12", 5, 1, 1, 1, "O12");
+
+
             StrategyParameterButton buttonPortfolioTest1 = CreateParameterButton("Start test portfolio 1", "P1");
             buttonPortfolioTest1.UserClickOnButtonEvent += ButtonPortfolioTest1_UserClickOnButtonEvent;
             P1_PortfolioName = CreateParameter("Portfolio.  portfolio 1", "BinanceFutures", "P1");
@@ -307,6 +316,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString O11_SecurityClass;
         StrategyParameterString O11_PortfolioName;
         StrategyParameterDecimal O11_Volume;
+
+        StrategyParameterString O12_SecurityName;
+        StrategyParameterString O12_SecurityClass;
+        StrategyParameterString O12_PortfolioName;
+        StrategyParameterDecimal O12_Volume;
+        StrategyParameterInt O12_CountOrders;
 
         StrategyParameterString P1_SecurityName;
         StrategyParameterString P1_SecurityClass;
@@ -649,6 +664,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
 
             CurTestType = ServerTestType.Order_11;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonOrdersTest12_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Order_12;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -1027,6 +1055,21 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
                         tester.Start();
                     }
+                    else if (CurTestType == ServerTestType.Order_12)
+                    {
+                        Orders_12_RequestOrdersList tester = new Orders_12_RequestOrdersList();
+                        tester.SecurityNameToTrade = O12_SecurityName.ValueString;
+                        tester.SecurityClassToTrade = O12_SecurityClass.ValueString;
+                        tester.PortfolioName = O12_PortfolioName.ValueString;
+                        tester.VolumeToTrade = O12_Volume.ValueDecimal;
+                        tester.OrdersCount = O12_CountOrders.ValueInt;
+                        tester.LogMessage += SendNewLogMessage;
+                        tester.TestEndEvent += Tester_TestEndEvent;
+                        _testers.Add(tester);
+                        tester.Server = (AServer)servers[i];
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        tester.Start();
+                    }
                     else if (CurTestType == ServerTestType.Portfolio_1)
                     {
                         Portfolio_1_Validation tester = new Portfolio_1_Validation();
@@ -1118,6 +1161,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         Order_9,
         Order_10,
         Order_11,
+        Order_12,
         Portfolio_1,
     }
 
@@ -1213,7 +1257,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public List<string> _errors = new List<string>();
 
-        public event Action<string, LogMessageType> LogMessage;
+        public event Action<string, LogMessageType> LogMessage { add { } remove { } }
 
         public void TestEnded()
         {

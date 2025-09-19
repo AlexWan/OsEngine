@@ -105,8 +105,7 @@ namespace OsEngine.Journal.Internal
 
         private void Load()
         {
-            if (_startProgram == StartProgram.IsOsOptimizer
-                || _startProgram == StartProgram.IsTester)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -344,8 +343,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (_startProgram == StartProgram.IsOsOptimizer
-                || _startProgram == StartProgram.IsTester)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -354,11 +352,11 @@ namespace OsEngine.Journal.Internal
 
             try
             {
-                string positionsString = PositionsToString();
+                string saveString = GetSaveString();
 
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealController.txt", false))
                 {
-                    writer.Write(positionsString);
+                    writer.Write(saveString);
                 }
             }
             catch (Exception error)
@@ -367,7 +365,7 @@ namespace OsEngine.Journal.Internal
             }
         }
 
-        private string PositionsToString()
+        private string GetSaveString()
         {
             StringBuilder result = new StringBuilder();
 
@@ -380,6 +378,13 @@ namespace OsEngine.Journal.Internal
 
                 for (int i = 0; deals != null && i < deals.Count; i++)
                 {
+                    Position pos = deals[i];
+
+                    if(pos == null)
+                    {
+                        continue;
+                    }
+
                     result.Append(deals[i].GetStringForSave() + "\r\n");
                 }
             }
@@ -419,29 +424,44 @@ namespace OsEngine.Journal.Internal
 
         private List<Position> _deals;
 
+        private string _dealsLocker = "_dealsLocker";
+
         public void SetNewPosition(Position newPosition)
         {
             if (newPosition == null)
             {
                 return;
             }
+
             // saving
             // сохраняем
 
             newPosition.CommissionType = CommissionType;
             newPosition.CommissionValue = CommissionValue;
 
-            if (_deals == null)
+            lock (_dealsLocker)
             {
-                _deals = new List<Position>();
-                _deals.Add(newPosition);
-            }
-            else
-            {
-                _deals.Add(newPosition);
-            }
+                if (_deals == null)
+                {
+                    _deals = new List<Position>();
+                    _deals.Add(newPosition);
+                }
+                else
+                {
+                    _deals.Add(newPosition);
+                }
 
-            _openPositions.Add(newPosition);
+                for (int i = 0; i < _deals.Count; i++)
+                {
+                    if (_deals[i] == null)
+                    {
+                        _deals.RemoveAt(i);
+                        i--;
+                    }
+                }
+
+                _openPositions.Add(newPosition);
+            }
 
             ProcessPosition(newPosition);
             _lastPositionChange = true;
@@ -465,72 +485,80 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
+            if(position == null)
+            {
+                return;
+            }
+
             // убираем в общем хранилище
 
-            for (int i = 0; i < _deals.Count; i++)
+            lock (_dealsLocker)
             {
-                if (_deals[i].Number == position.Number)
+                for (int i = 0; i < _deals.Count; i++)
                 {
-                    _deals.RemoveAt(i);
-                    break;
+                    if (_deals[i].Number == position.Number)
+                    {
+                        _deals.RemoveAt(i);
+                        break;
+                    }
                 }
-            }
 
-            // убираем в хранилищах открытых позиций
+                // убираем в хранилищах открытых позиций
 
-            for (int i = 0; i < _openPositions.Count; i++)
-            {
-                if (_openPositions[i].Number == position.Number)
+                for (int i = 0; i < _openPositions.Count; i++)
                 {
-                    _openPositions.RemoveAt(i);
-                    break;
+                    if (_openPositions[i].Number == position.Number)
+                    {
+                        _openPositions.RemoveAt(i);
+                        break;
+                    }
                 }
-            }
 
-            for (int i = 0; _openLongPosition != null && i < _openLongPosition.Count; i++)
-            {
-                if (_openLongPosition[i].Number == position.Number)
+                for (int i = 0; _openLongPosition != null && i < _openLongPosition.Count; i++)
                 {
-                    _openLongPosition.RemoveAt(i);
-                    break;
+                    if (_openLongPosition[i].Number == position.Number)
+                    {
+                        _openLongPosition.RemoveAt(i);
+                        break;
+                    }
                 }
-            }
 
-            for (int i = 0; _openShortPositions != null && i < _openShortPositions.Count; i++)
-            {
-                if (_openShortPositions[i].Number == position.Number)
+                for (int i = 0; _openShortPositions != null && i < _openShortPositions.Count; i++)
                 {
-                    _openShortPositions.RemoveAt(i);
-                    break;
+                    if (_openShortPositions[i].Number == position.Number)
+                    {
+                        _openShortPositions.RemoveAt(i);
+                        break;
+                    }
                 }
-            }
 
-            // убираем из хранилищь закрытых позиций
+                // убираем из хранилищь закрытых позиций
 
-            for (int i = 0; _closePositions != null && i < _closePositions.Count; i++)
-            {
-                if (_closePositions[i].Number == position.Number)
+                for (int i = 0; _closePositions != null && i < _closePositions.Count; i++)
                 {
-                    _closePositions.RemoveAt(i);
-                    break;
+                    if (_closePositions[i].Number == position.Number)
+                    {
+                        _closePositions.RemoveAt(i);
+                        break;
+                    }
                 }
-            }
 
-            for (int i = 0; _closeLongPositions != null && i < _closeLongPositions.Count; i++)
-            {
-                if (_closeLongPositions[i].Number == position.Number)
+                for (int i = 0; _closeLongPositions != null && i < _closeLongPositions.Count; i++)
                 {
-                    _closeLongPositions.RemoveAt(i);
-                    break;
+                    if (_closeLongPositions[i].Number == position.Number)
+                    {
+                        _closeLongPositions.RemoveAt(i);
+                        break;
+                    }
                 }
-            }
 
-            for (int i = 0; _closeShortPositions != null && i < _closeShortPositions.Count; i++)
-            {
-                if (_closeShortPositions[i].Number == position.Number)
+                for (int i = 0; _closeShortPositions != null && i < _closeShortPositions.Count; i++)
                 {
-                    _closeShortPositions.RemoveAt(i);
-                    break;
+                    if (_closeShortPositions[i].Number == position.Number)
+                    {
+                        _closeShortPositions.RemoveAt(i);
+                        break;
+                    }
                 }
             }
 
@@ -552,83 +580,96 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            for (int i = _deals.Count - 1; i > -1; i--)
+            lock (_dealsLocker)
             {
-                Position curPosition = null;
-
-                try
+                for (int i = _deals.Count - 1; i > -1; i--)
                 {
-                    curPosition = _deals[i];
-                }
-                catch
-                {
-                    continue;
-                }
+                    Position curPosition = null;
 
-                bool isCloseOrder = false;
-
-                if (curPosition.CloseOrders != null && curPosition.CloseOrders.Count > 0)
-                {
-                    for (int indexCloseOrders = 0; indexCloseOrders < curPosition.CloseOrders.Count; indexCloseOrders++)
+                    try
                     {
-                        if (curPosition.CloseOrders[indexCloseOrders].NumberUser == updateOrder.NumberUser)
+                        curPosition = _deals[i];
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    if (curPosition == null)
+                    {
+                        continue;
+                    }
+
+                    bool isCloseOrder = false;
+
+                    if (curPosition.CloseOrders != null && curPosition.CloseOrders.Count > 0)
+                    {
+                        for (int indexCloseOrders = 0; indexCloseOrders < curPosition.CloseOrders.Count; indexCloseOrders++)
                         {
-                            isCloseOrder = true;
-                            break;
+                            if (curPosition.CloseOrders[indexCloseOrders].NumberUser == updateOrder.NumberUser)
+                            {
+                                isCloseOrder = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                bool isOpenOrder = false;
+                    bool isOpenOrder = false;
 
-                if (isCloseOrder == false ||
-                    curPosition.OpenOrders != null && curPosition.OpenOrders.Count > 0)
-                {
-                    for (int indexOpenOrd = 0; curPosition.OpenOrders != null && indexOpenOrd < curPosition.OpenOrders.Count; indexOpenOrd++)
+                    if (isCloseOrder == false ||
+                        curPosition.OpenOrders != null && curPosition.OpenOrders.Count > 0)
                     {
-                        if (curPosition.OpenOrders[indexOpenOrd].NumberUser == updateOrder.NumberUser)
+                        for (int indexOpenOrd = 0; curPosition.OpenOrders != null && indexOpenOrd < curPosition.OpenOrders.Count; indexOpenOrd++)
                         {
-                            isOpenOrder = true;
-                            break;
+                            if(curPosition.OpenOrders[indexOpenOrd] == null)
+                            {
+                                continue;
+                            }
+
+                            if (curPosition.OpenOrders[indexOpenOrd].NumberUser == updateOrder.NumberUser)
+                            {
+                                isOpenOrder = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (isOpenOrder || isCloseOrder)
-                {
-                    PositionStateType positionState = curPosition.State;
-                    decimal lastPosVolume = curPosition.OpenVolume;
-
-                    curPosition.SetOrder(updateOrder);
-
-                    if (positionState != curPosition.State ||
-                        lastPosVolume != curPosition.OpenVolume)
+                    if (isOpenOrder || isCloseOrder)
                     {
-                        _openLongChanged = true;
-                        _openShortChanged = true;
-                        _closePositionChanged = true;
-                        _closeShortChanged = true;
-                        _closeLongChanged = true;
+                        PositionStateType positionState = curPosition.State;
+                        decimal lastPosVolume = curPosition.OpenVolume;
 
-                        UpdateOpenPositionArray(curPosition);
+                        curPosition.SetOrder(updateOrder);
+
+                        if (positionState != curPosition.State ||
+                            lastPosVolume != curPosition.OpenVolume)
+                        {
+                            _openLongChanged = true;
+                            _openShortChanged = true;
+                            _closePositionChanged = true;
+                            _closeShortChanged = true;
+                            _closeLongChanged = true;
+
+                            UpdateOpenPositionArray(curPosition);
+                        }
+
+                        if (positionState != curPosition.State && PositionStateChangeEvent != null)
+                        {
+                            PositionStateChangeEvent(curPosition);
+                        }
+
+                        if (lastPosVolume != curPosition.OpenVolume && PositionNetVolumeChangeEvent != null)
+                        {
+                            PositionNetVolumeChangeEvent(curPosition);
+                        }
+
+                        if (i < _deals.Count)
+                        {
+                            ProcessPosition(curPosition);
+                        }
+
+                        break;
                     }
-
-                    if (positionState != curPosition.State && PositionStateChangeEvent != null)
-                    {
-                        PositionStateChangeEvent(curPosition);
-                    }
-
-                    if (lastPosVolume != curPosition.OpenVolume && PositionNetVolumeChangeEvent != null)
-                    {
-                        PositionNetVolumeChangeEvent(curPosition);
-                    }
-
-                    if (i < _deals.Count)
-                    {
-                        ProcessPosition(curPosition);
-                    }
-
-                    break;
                 }
             }
             _needToSave = true;
@@ -643,91 +684,94 @@ namespace OsEngine.Journal.Internal
 
             bool isMyTrade = false;
 
-            for (int i = _deals.Count - 1; i > -1; i--)
+            lock(_dealsLocker)
             {
-                Position position = _deals[i];
-
-                if(position == null)
+                for (int i = _deals.Count - 1; i > -1; i--)
                 {
-                    continue;
-                }
+                    Position position = _deals[i];
 
-                bool isCloseOrder = false;
-
-                if (position.CloseOrders != null)
-                {
-                    for (int indexCloseOrd = 0; indexCloseOrd < position.CloseOrders.Count; indexCloseOrd++)
+                    if (position == null)
                     {
-                        Order closeOrder = position.CloseOrders[indexCloseOrd];
-
-                        if(closeOrder == null)
-                        {
-                            continue;
-                        }
-
-                        if (closeOrder.NumberMarket == trade.NumberOrderParent)
-                        {
-                            isCloseOrder = true;
-                            break;
-                        }
+                        continue;
                     }
-                }
-                bool isOpenOrder = false;
 
-                if (isCloseOrder == false &&
-                    position.OpenOrders != null 
-                    && position.OpenOrders.Count > 0)
-                {
-                    for (int indOpenOrd = 0; indOpenOrd < position.OpenOrders.Count; indOpenOrd++)
+                    bool isCloseOrder = false;
+
+                    if (position.CloseOrders != null)
                     {
-                        Order openOrder = position.OpenOrders[indOpenOrd];
-
-                        if(openOrder == null)
+                        for (int indexCloseOrd = 0; indexCloseOrd < position.CloseOrders.Count; indexCloseOrd++)
                         {
-                            continue;
-                        }
+                            Order closeOrder = position.CloseOrders[indexCloseOrd];
 
-                        if (openOrder.NumberMarket == trade.NumberOrderParent)
-                        {
-                            isOpenOrder = true;
-                            break;
+                            if (closeOrder == null)
+                            {
+                                continue;
+                            }
+
+                            if (closeOrder.NumberMarket == trade.NumberOrderParent)
+                            {
+                                isCloseOrder = true;
+                                break;
+                            }
                         }
                     }
-                }
+                    bool isOpenOrder = false;
 
-                if (isOpenOrder || isCloseOrder)
-                {
-                    isMyTrade = true;
-
-                    PositionStateType positionState = position.State;
-
-                    decimal lastPosVolume = position.OpenVolume;
-
-                    position.SetTrade(trade);
-
-                    if (positionState != position.State ||
-                        lastPosVolume != position.OpenVolume)
+                    if (isCloseOrder == false &&
+                        position.OpenOrders != null
+                        && position.OpenOrders.Count > 0)
                     {
-                        UpdateOpenPositionArray(position);
-                        _openLongChanged = true;
-                        _openShortChanged = true;
-                        _closePositionChanged = true;
-                        _closeShortChanged = true;
-                        _closeLongChanged = true;
+                        for (int indOpenOrd = 0; indOpenOrd < position.OpenOrders.Count; indOpenOrd++)
+                        {
+                            Order openOrder = position.OpenOrders[indOpenOrd];
+
+                            if (openOrder == null)
+                            {
+                                continue;
+                            }
+
+                            if (openOrder.NumberMarket == trade.NumberOrderParent)
+                            {
+                                isOpenOrder = true;
+                                break;
+                            }
+                        }
                     }
 
-                    if (positionState != position.State && PositionStateChangeEvent != null)
+                    if (isOpenOrder || isCloseOrder)
                     {
-                        PositionStateChangeEvent(position);
-                    }
+                        isMyTrade = true;
 
-                    if (lastPosVolume != position.OpenVolume && PositionNetVolumeChangeEvent != null)
-                    {
-                        PositionNetVolumeChangeEvent(position);
-                    }
+                        PositionStateType positionState = position.State;
 
-                    ProcessPosition(position);
-                    break;
+                        decimal lastPosVolume = position.OpenVolume;
+
+                        position.SetTrade(trade);
+
+                        if (positionState != position.State ||
+                            lastPosVolume != position.OpenVolume)
+                        {
+                            UpdateOpenPositionArray(position);
+                            _openLongChanged = true;
+                            _openShortChanged = true;
+                            _closePositionChanged = true;
+                            _closeShortChanged = true;
+                            _closeLongChanged = true;
+                        }
+
+                        if (positionState != position.State && PositionStateChangeEvent != null)
+                        {
+                            PositionStateChangeEvent(position);
+                        }
+
+                        if (lastPosVolume != position.OpenVolume && PositionNetVolumeChangeEvent != null)
+                        {
+                            PositionNetVolumeChangeEvent(position);
+                        }
+
+                        ProcessPosition(position);
+                        break;
+                    }
                 }
             }
 
@@ -952,7 +996,7 @@ namespace OsEngine.Journal.Internal
                 // это открытая позиция
                 if (checkNum == true)
                 {
-                    if (_openPositions.Find(pos => pos.Number == position.Number) == null)
+                    if (_openPositions.Find(pos => pos != null && pos.Number == position.Number) == null)
                     {
                         _openPositions.Add(position);
                     }
@@ -966,7 +1010,7 @@ namespace OsEngine.Journal.Internal
             {
                 // closed
                 // закрытая
-                if (_openPositions.Find(pos => pos.Number == position.Number) != null)
+                if (_openPositions.Find(pos => pos != null && pos.Number == position.Number) != null)
                 {
                     _openPositions.Remove(position);
                 }
@@ -990,9 +1034,10 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _openLongPosition = _deals.FindAll(
-                            position => position.State != PositionStateType.Done
+                            position => position != null
+                                        && (position.State != PositionStateType.Done
                                         && position.State != PositionStateType.OpeningFail
-                                        && position.Direction == Side.Buy
+                                        && position.Direction == Side.Buy)
                             );
                     }
                     else
@@ -1027,9 +1072,10 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _openShortPositions = _deals.FindAll(
-                            position => position.State != PositionStateType.Done
+                            position => position != null
+                                        && (position.State != PositionStateType.Done
                                         && position.State != PositionStateType.OpeningFail
-                                        && position.Direction == Side.Sell
+                                        && position.Direction == Side.Sell)
                             );
                     }
                     else
@@ -1063,8 +1109,9 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _closePositions = _deals.FindAll(
-                            position => position.State == PositionStateType.Done
-                                        || position.State == PositionStateType.OpeningFail);
+                            position => position != null 
+                                        && (position.State == PositionStateType.Done
+                                        || position.State == PositionStateType.OpeningFail));
                     }
                     else
                     {
@@ -1097,9 +1144,9 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _closeLongPositions = _deals.FindAll(
-                            position => (position.State == PositionStateType.Done
+                            position => position != null && ((position.State == PositionStateType.Done
                                          || position.State == PositionStateType.OpeningFail)
-                                        && position.Direction == Side.Buy);
+                                        && position.Direction == Side.Buy));
                     }
                     else
                     {
@@ -1132,9 +1179,9 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _closeShortPositions = _deals.FindAll(
-                            position => (position.State == PositionStateType.Done
+                            position => position != null && ((position.State == PositionStateType.Done
                                          || position.State == PositionStateType.OpeningFail)
-                                        && position.Direction == Side.Sell
+                                        && position.Direction == Side.Sell)
                             );
                     }
                     else
@@ -1169,7 +1216,7 @@ namespace OsEngine.Journal.Internal
 
         public Position GetPositionForNumber(int number)
         {
-            return _deals.Find(position => position.Number == number);
+            return _deals.Find(position => position != null && position.Number == number);
         }
 
         #endregion
@@ -1581,7 +1628,7 @@ namespace OsEngine.Journal.Internal
                     position.CloseOrders.Count != 0 &&
                     position.State != PositionStateType.ClosingFail)
                 {
-                    closePrice = position.CloseOrders[position.CloseOrders.Count - 1].Price;
+                    closePrice = position.ClosePrice;
                 }
             }
 

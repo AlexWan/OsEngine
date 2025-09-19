@@ -19,6 +19,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
         public WebSocket(string url)
         {
             _client = new ClientWebSocket();
+           
             //_client.Options.KeepAliveInterval = TimeSpan.FromDays(3);
             _url = url;
             ReadyState = WebSocketState.Closed;
@@ -29,6 +30,8 @@ namespace OsEngine.Entity.WebSocketOsEngine
         private ClientWebSocket _client { get; }
 
         private CancellationTokenSource _cts;
+
+        private string _ctsLocker = "_ctsLocker";
 
         private Task _receiveTask;
 
@@ -61,38 +64,66 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     throw new InvalidOperationException("URL must be set before connecting.");
                 }
 
-                if (_cts != null)
+                CancellationToken token;
+
+                lock (_ctsLocker)
                 {
-                    _cts.Cancel();
-                    _cts.Dispose();
+                    if (_cts != null)
+                    {
+                        _cts.Cancel();
+                        _cts.Dispose();
+                    }
+
+                    _cts = new CancellationTokenSource();
+                    token = _cts.Token;
                 }
 
-                _cts = new CancellationTokenSource();
-
-                await _client.ConnectAsync(new Uri(_url), _cts.Token);
+                await _client.ConnectAsync(new Uri(_url), token);
 
                 ReadyState = WebSocketState.Open;
 
-                OnOpen?.Invoke(this, EventArgs.Empty);
+                if(OnOpen != null)
+                {
+                    OnOpen(this, EventArgs.Empty);
+                }
 
-                _receiveTask = Task.Run(() => ReceiveLoopAsync(_cts.Token));
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                _receiveTask = Task.Run(() => ReceiveLoopAsync(token));
 
             }
             catch (Exception ex)
             {
                 ErrorEventArgs eventArgs = new ErrorEventArgs();
                 eventArgs.Exception = ex;
-                OnError?.Invoke(this, eventArgs);
+
+                if(OnError != null)
+                {
+                    OnError(this, eventArgs);
+                }
             }
         }
 
-        public async Task CloseAsync()
+        public void CloseAsync()
+        {
+            #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            Close();
+            #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        }
+
+        private async Task Close()
         {
             try
             {
-                if (_cts != null)
+                lock (_ctsLocker)
                 {
-                    _cts.Cancel();
+                    if (_cts != null)
+                    {
+                        _cts.Cancel();
+                    }
                 }
 
                 if (_receiveTask != null)
@@ -100,7 +131,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     try
                     {
                         // Give receive loop some time to exit gracefully
-                        await Task.WhenAny(_receiveTask, Task.Delay(TimeSpan.FromSeconds(2)));
+                        await Task.WhenAny(_receiveTask, Task.Delay(TimeSpan.FromSeconds(5)));
                     }
                     catch { /* ignored */ }
                 }
@@ -116,10 +147,13 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     catch (Exception) { /* Ignore close errors, client might be disposed already or connection lost */ }
                 }
 
-                if (_cts != null)
+                lock (_ctsLocker)
                 {
-                    _cts.Dispose();
-                    _cts = null;
+                    if (_cts != null)
+                    {
+                        _cts.Dispose();
+                        _cts = null;
+                    }
                 }
             }
             catch
@@ -130,7 +164,19 @@ namespace OsEngine.Entity.WebSocketOsEngine
             ReadyState = WebSocketState.Closed;
         }
 
-        public async Task Send(string message)
+        public void SendAsync(string message)
+        {
+            #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            Send(message);
+            #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        }
+
+        public async Task SendSync(string message)
+        {
+           await Send(message);
+        }
+
+        private async Task Send(string message)
         {
             if (_client.State == System.Net.WebSockets.WebSocketState.Open && _cts != null && !_cts.IsCancellationRequested)
             {
@@ -143,7 +189,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 {
                     ErrorEventArgs eventArgs = new ErrorEventArgs();
                     eventArgs.Exception = ex;
-                    OnError?.Invoke(this, eventArgs);
+
+                    if(OnError != null)
+                    {
+                        OnError(this, eventArgs);
+                    }
                 }
             }
         }
@@ -165,13 +215,13 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
                         return true;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         return false;
                     }
                 }
             }
-            catch (Exception e)
+            catch
             {
                 return false;
             }
@@ -183,7 +233,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
         {
             try
             {
-                CloseAsync().GetAwaiter().GetResult();
+                Close().GetAwaiter().GetResult();
             }
             catch { /* ignored */ }
 
@@ -198,6 +248,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
         {
             try
             {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 var buffer = new byte[8192 * 2]; // 16KB buffer, adjust as needed
 
                 while (_client.State == System.Net.WebSockets.WebSocketState.Open && !token.IsCancellationRequested)
@@ -237,7 +292,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                                 MessageEventArgs messageValue = new MessageEventArgs();
                                 messageValue.Data = message;
                                 messageValue.IsText = true;
-                                OnMessage?.Invoke(this, messageValue);
+
+                                if (OnMessage != null)
+                                {
+                                    OnMessage(this, messageValue);
+                                }
                             }
                         }
                         else if (result.MessageType == WebSocketMessageType.Binary)
@@ -245,7 +304,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                             MessageEventArgs messageValue = new MessageEventArgs();
                             messageValue.RawData = receivedData;
                             messageValue.IsBinary = true;
-                            OnMessage?.Invoke(this, messageValue);
+
+                            if (OnMessage != null)
+                            {
+                                OnMessage(this, messageValue);
+                            }
                         }
                         else if (result.MessageType == WebSocketMessageType.Close)
                         {
@@ -264,7 +327,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                                 closeEventArgs.Reason = result.CloseStatus.ToString();
                             }
 
-                            OnClose?.Invoke(this, closeEventArgs);
+                            if(OnClose != null)
+                            {
+                                OnClose(this, closeEventArgs);
+                            }
+                           
                             return;
                         }
                     }
@@ -276,7 +343,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 ReadyState = WebSocketState.Closed;
                 ErrorEventArgs eventArgs = new ErrorEventArgs();
                 eventArgs.Exception = ex;
-                OnError?.Invoke(this, eventArgs);
+
+                if (OnError != null)
+                {
+                    OnError(this, eventArgs);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -288,7 +359,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 ReadyState = WebSocketState.Closed;
                 ErrorEventArgs eventArgs = new ErrorEventArgs();
                 eventArgs.Exception = ex;
-                OnError?.Invoke(this, eventArgs);
+
+                if(OnError != null)
+                {
+                    OnError(this, eventArgs);
+                }
             }
             finally
             {
@@ -299,7 +374,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 {
                     CloseEventArgs closeEventArgs = new CloseEventArgs();
                     closeEventArgs.Code = "Finally socket closed";
-                    OnClose?.Invoke(this, closeEventArgs);
+
+                    if (OnClose != null)
+                    {
+                        OnClose(this, closeEventArgs);
+                    }
                 }
             }
         }

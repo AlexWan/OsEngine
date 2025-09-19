@@ -1493,9 +1493,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                             i2--;
                         }
                     }
-                    catch (Exception e)
+                    catch
                     {
-
+                        // ignore
                     }
                 }
                 exitVal.ValueCandles = exitCandles;
@@ -1594,27 +1594,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             List<Candle> exitCandles = exitVal.ValueCandles;
 
-            int lastOper = -1;
-
             if (exitCandles.Count != 0 &&
                 candlesOne[candlesOne.Count - 1].TimeStart == exitCandles[exitCandles.Count - 1].TimeStart)
             {
                 // need to update only the last candle
-                lastOper = 1;
                 exitCandles[exitCandles.Count - 1] = (GetCandle(exitCandles[exitCandles.Count - 1], candlesOne[candlesOne.Count - 1], valueTwo, sign));
             }
             else if (exitCandles.Count != 0 &&
                 candlesOne[candlesOne.Count - 2].TimeStart == exitCandles[exitCandles.Count - 1].TimeStart)
             {
-                lastOper = 2;
-
                 // need to add one candle
                 exitCandles.Add(GetCandle(null, candlesOne[candlesOne.Count - 1], valueTwo, sign));
             }
             else
             {
-                lastOper = 3;
-
                 // need to update everything
                 int indexStartFirst = 0;
 

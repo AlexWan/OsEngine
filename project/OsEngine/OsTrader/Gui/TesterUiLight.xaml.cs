@@ -21,7 +21,10 @@ namespace OsEngine.OsTrader.Gui
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
 
-            ServerMaster.SetHostTable(HostPositionOnBoard, HostActiveOrders, HostHistoricalOrders);
+            ServerMaster.SetHostTable(HostPositionOnBoard, 
+                HostActiveOrders, HostHistoricalOrders, StartUiToPainter.IsTesterLight,
+                ComboBoxQuantityPerPageActive, BackButtonActiveList, NextButtonActiveList, ComboBoxQuantityPerPageHistorical,
+                BackButtonHistoricalList, NextButtonHistoricalList);
 
             ServerMaster.CreateServer(ServerType.Tester, false);
             ServerMaster.GetServers();
@@ -45,6 +48,9 @@ namespace OsEngine.OsTrader.Gui
             TabControlPrime.MouseEnter += TabControlPrime_MouseEnter;
             TabControlPrime.MouseLeave += TabControlPrime_MouseLeave;
 
+            HistoricalListPanel.Visibility = Visibility.Collapsed;
+            ActiveListPanel.Visibility = Visibility.Collapsed;
+
             this.Activate();
             this.Focus();
             GlobalGUILayout.Listen(this, "testerUiLight");
@@ -52,7 +58,14 @@ namespace OsEngine.OsTrader.Gui
             rectToMove.MouseEnter += GreedChartPanel_MouseEnter;
             rectToMove.MouseLeave += GreedChartPanel_MouseLeave;
             rectToMove.MouseDown += GreedChartPanel_MouseDown;
+
+            Instance = this;
+            _ordersPainter = ServerMaster._ordersStorage;
         }
+
+        public static TesterUiLight Instance;
+
+        private ServerMasterOrdersPainter _ordersPainter;
 
         private void Local()
         {
@@ -66,6 +79,12 @@ namespace OsEngine.OsTrader.Gui
             TabActiveOrders.Header = OsLocalization.Trader.Label189;
             TabHistoricalOrders.Header = OsLocalization.Trader.Label190;
             TabStopLimitPoses.Header = OsLocalization.Trader.Label193;
+            LabelPageActive.Content = OsLocalization.Trader.Label576;
+            LabelFromActive.Content = OsLocalization.Trader.Label577;
+            LabelCountActive.Content = OsLocalization.Trader.Label578;
+            LabelPageHistorical.Content = OsLocalization.Trader.Label576;
+            LabelFromHistorical.Content = OsLocalization.Trader.Label577;
+            LabelCountHistorical.Content = OsLocalization.Trader.Label578;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -121,10 +140,22 @@ namespace OsEngine.OsTrader.Gui
             if (GreedChartPanel.Cursor == System.Windows.Input.Cursors.ScrollN)
             {
                 GridPrime.RowDefinitions[1].Height = new GridLength(500, GridUnitType.Pixel);
+
+                HistoricalListPanel.Visibility = Visibility.Visible;
+                ActiveListPanel.Visibility = Visibility.Visible;
+
+                HostActiveOrders.Margin = new Thickness(0, 28, 0, 0);
+                HostHistoricalOrders.Margin = new Thickness(0, 28, 0, 0);
             }
             else if (GreedChartPanel.Cursor == System.Windows.Input.Cursors.ScrollS)
             {
                 GridPrime.RowDefinitions[1].Height = new GridLength(190, GridUnitType.Pixel);
+
+                HistoricalListPanel.Visibility = Visibility.Collapsed;
+                ActiveListPanel.Visibility = Visibility.Collapsed;
+
+                HostActiveOrders.Margin = new Thickness(0, 0, 0, 0);
+                HostHistoricalOrders.Margin = new Thickness(0, 0, 0, 0);
             }
         }
 

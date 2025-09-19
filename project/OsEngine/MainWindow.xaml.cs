@@ -3,31 +3,32 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Threading;
 using Microsoft.Win32;
 using OsEngine.Alerts;
+using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Layout;
 using OsEngine.Market;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader.Gui;
-using OsEngine.PrimeSettings;
-using OsEngine.Layout;
-using System.Collections.Generic;
-using OsEngine.Entity;
-using System.Net.Sockets;
-using System.Text;
 using OsEngine.OsTrader.Gui.BlockInterface;
 using OsEngine.OsTrader.SystemAnalyze;
+using OsEngine.PrimeSettings;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Effects;
+using System.Windows.Threading;
 
 namespace OsEngine
 {
@@ -63,9 +64,6 @@ namespace OsEngine
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-            ImageAlor2.Visibility = Visibility.Collapsed;
-            ImageAlor.Visibility = Visibility.Collapsed;
-
             this.Closing += MainWindow_Closing;
 
             try
@@ -87,7 +85,7 @@ namespace OsEngine
                     Close();
                 }
 
-                if(!CheckOutSomeLibrariesNearby())
+                if (!CheckOutSomeLibrariesNearby())
                 {
                     MessageBox.Show(OsLocalization.MainWindow.Message6);
                     Close();
@@ -106,7 +104,7 @@ namespace OsEngine
                 Close();
             }
 
-            if(Debugger.IsAttached)
+            if (Debugger.IsAttached)
             {
                 DebuggerIsWork = true;
             }
@@ -136,11 +134,9 @@ namespace OsEngine
 
             GlobalGUILayout.Listen(this, "mainWindow");
 
-            ImageAlor.MouseEnter += ImageAlor_MouseEnter;
-            ImageAlor2.MouseLeave += ImageAlor_MouseLeave;
-            ImageAlor2.MouseDown += ImageAlor2_MouseDown;
+            VideoGrid.MouseDown += VideoGrid_MouseDown;
 
-            if(BlockMaster.IsBlocked == true)
+            if (BlockMaster.IsBlocked == true)
             {
                 BlockInterface();
             }
@@ -155,7 +151,10 @@ namespace OsEngine
 
             this.ContentRendered += MainWindow_ContentRendered;
         }
-
+        private void GifT_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            GifT.Pause(); // останавливаем на последнем кадре
+        }
         #region Block and Unblock interface
 
         private void BlockInterface()
@@ -229,43 +228,11 @@ namespace OsEngine
 
         #endregion
 
-        private void ImageAlor2_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void VideoGrid_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             try
             {
-                Process.Start(new ProcessStartInfo("https://www.alorbroker.ru/open?pr=L0745") { UseShellExecute = true });
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-
-        private void ImageAlor_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            try
-            {
-                if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
-                {
-                    ImageAlor2.Visibility = Visibility.Collapsed;
-                    ImageAlor.Visibility = Visibility.Visible;
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-
-        private void ImageAlor_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            try
-            {
-                if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
-                {
-                    ImageAlor2.Visibility = Visibility.Visible;
-                    ImageAlor.Visibility = Visibility.Collapsed;
-                }
+                Process.Start(new ProcessStartInfo("https://www.tbank.ru/invest") { UseShellExecute = true });
             }
             catch
             {
@@ -348,17 +315,17 @@ namespace OsEngine
             ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLightName;
             ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLightName;
 
-           // if(OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
-          //  {
-          //      this.Height = 415;
-           //     ImageAlor.Visibility = Visibility.Visible;
-            //}
-            //else
-            //{
+            if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            {
+                VideoGrid.Visibility = Visibility.Visible;
+                this.Height = 430;
+                GifT.Play();
+            }
+            else
+            {
                 this.Height = 315;
-                ImageAlor.Visibility = Visibility.Collapsed;
-                ImageAlor2.Visibility = Visibility.Collapsed;
-           // }
+                VideoGrid.Visibility = Visibility.Collapsed;
+            }
         }
 
         /// <summary>
@@ -406,7 +373,7 @@ namespace OsEngine
         {
             // проверяем чтобы пользователь не запустился с рабочего стола, но не ярлыком, а экзешником
 
-            if(File.Exists("QuikSharp.dll") == false)
+            if (File.Exists("QuikSharp.dll") == false)
             {
                 return false;
             }
@@ -544,6 +511,12 @@ namespace OsEngine
 
         private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
+            if (e.Exception != null
+                && e.Exception.ToString().Contains("(995):")== true)
+            { // игнорируем прерывания потока за делом по кансел токену
+                return;
+            }
+
             string message = OsLocalization.MainWindow.Message5 + " TASK " + e.Exception.ToString();
 
             message = _startProgram + "  " + message;
@@ -869,7 +842,7 @@ namespace OsEngine
         {
             try
             {
-                if(PrimeSettingsMaster.ReportCriticalErrors == false)
+                if (PrimeSettingsMaster.ReportCriticalErrors == false)
                 {
                     return;
                 }
@@ -891,6 +864,11 @@ namespace OsEngine
         {
             OsLocalization.OsLocalType newType;
 
+            if (ButtonLocal_Ru.Background.ToString() == "#FFFF5500")
+            {
+                return;
+            }
+
             if (Enum.TryParse("Ru", out newType))
             {
                 OsLocalization.CurLocalization = newType;
@@ -898,6 +876,8 @@ namespace OsEngine
 
                 ButtonLocal_Ru.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
                 ButtonLocal_Eng.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#FF111217");
+                GifT.Position = TimeSpan.Zero;
+                GifT.Play();
             }
         }
 

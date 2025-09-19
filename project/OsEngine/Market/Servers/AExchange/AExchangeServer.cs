@@ -627,7 +627,7 @@ namespace OsEngine.Market.Servers.AE
 
             lock (_socketLocker)
             {
-                _ws.Send(json);
+                _ws.SendAsync(json);
             }
         }
 
@@ -664,7 +664,7 @@ namespace OsEngine.Market.Servers.AE
                     
                     try
                     {
-                        _ws.Connect();
+                        _ws.Connect().Wait();
                     }
                     catch (Exception ex)
                     {
@@ -758,7 +758,7 @@ namespace OsEngine.Market.Servers.AE
             if (e.Code == "1015")
             {
                 SendLogMessage($"Connection to AE closed unexpectedly Close code = {e.Code} with reason = {e.Reason}. Attempting reconnect.", LogMessageType.System);
-                _ws.Connect();
+                _ws.Connect().Wait();
                 return;
             }
 
@@ -880,7 +880,7 @@ namespace OsEngine.Market.Servers.AE
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
@@ -1112,6 +1112,16 @@ namespace OsEngine.Market.Servers.AE
             return OrderStateType.None;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 12 Helpers
@@ -1155,9 +1165,9 @@ namespace OsEngine.Market.Servers.AE
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

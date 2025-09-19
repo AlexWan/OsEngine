@@ -26,7 +26,7 @@ namespace OsEngine.OsData
             _osDataMaster = new OsDataMasterPainter(master, 
                 ChartHostPanel, HostLog, HostSource,
                 HostSet, LabelSetNameValue, LabelTimeStartValue,
-                LabelTimeEndValue, ProgressBarLoadProgress);
+                LabelTimeEndValue, ProgressBarLoadProgress, TextBoxSearchSource);
 
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Closing += OsDataUi_Closing;
@@ -37,6 +37,7 @@ namespace OsEngine.OsData
             LabelSetName.Content = OsLocalization.Data.Label31;
             LabelStartTimeStr.Content = OsLocalization.Data.Label18;
             LabelTimeEndStr.Content = OsLocalization.Data.Label19;
+            TextBoxSearchSource.Text = OsLocalization.Market.Label64;
 
             this.Activate();
             this.Focus();

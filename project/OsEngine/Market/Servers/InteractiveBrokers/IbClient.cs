@@ -493,7 +493,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
 
                 // paramsList.AddParameter extended order fields
-                TcpWrite(null); // null
+                TcpWrite("GTC"); // life time
                 TcpWrite("");
                 TcpWrite(order.PortfolioNumber);
                 TcpWrite("");
@@ -505,7 +505,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 TcpWrite(false);
                 TcpWrite(0);
                 TcpWrite(0);
-                TcpWrite(false);
+                TcpWrite(true); // можно ли исполнять ордер в не торговый период
                 TcpWrite(false);
                 TcpWrite("");
 
@@ -818,6 +818,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             for (int ctr = 0; ctr < itemCount; ctr++)
             {
                 string date = TcpReadString();
+                date = date.Replace("  ", " ");
                 double open = TcpReadDouble();
                 double high = TcpReadDouble();
                 double low = TcpReadDouble();
@@ -836,7 +837,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     Candle candle = new Candle();
                     if (date.Length == 8)
                     {
-                        candle.TimeStart = DateTime.ParseExact(date, "yyyyMMdd", CultureInfo.CurrentCulture);
+                        candle.TimeStart = DateTime.ParseExact(date, "yyyyMMdd", CultureInfo.InvariantCulture);
                     }
                     else
                     {
@@ -858,6 +859,12 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     {
                         candle.Volume = 1;
                     }
+
+                    if (candle.TimeStart == DateTime.MinValue)
+                    {
+                        continue;
+                    }
+
                     series.CandlesArray.Add(candle);
                 }
                 catch

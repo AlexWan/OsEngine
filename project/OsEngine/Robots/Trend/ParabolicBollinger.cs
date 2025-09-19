@@ -278,7 +278,7 @@ public class ParabolicBollinger : BotPanel
 
             if (SellSignalIsFiltered(candles) == false)
             {
-                _tab.SellAtStop(GetVolume(_tab), _lastBollingerDown, _lastBollingerDown - slippage, StopActivateType.LowerOrEqyal, 1);
+                _tab.SellAtStop(GetVolume(_tab), _lastBollingerDown, _lastBollingerDown - slippage, StopActivateType.LowerOrEqual, 1);
             }            
         }
 
@@ -306,7 +306,7 @@ public class ParabolicBollinger : BotPanel
         if (position.State == PositionStateType.Open ||
             position.State == PositionStateType.ClosingFail)
         {
-            if (position.CloseActiv == true ||
+            if (position.CloseActive == true ||
                 (position.CloseOrders != null && position.CloseOrders.Count > 0))
             {
                 return;

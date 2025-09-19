@@ -366,8 +366,8 @@ namespace OsEngine.Language
           "Ru:Закрыть_");
 
         public string Label83 => OsLocalization.ConvertToLocString(
-          "Eng: \nDo you want to delete a position on the exchange? \nRobots trading this security will be stopped!_" +
-          "Ru: \nВы хотите удалить позицию на бирже? \nРоботы торгующие эту бумагу будут остановлены!_");
+          "Eng: \nDo you want to close a position on the exchange?_" +
+          "Ru: \nВы хотите закрыть позицию на бирже?_");
 
         public string Label84 => OsLocalization.ConvertToLocString(
           "Eng:Server is not active! The operation is not possible!_" +
@@ -988,6 +988,34 @@ namespace OsEngine.Language
         public string Label238 => OsLocalization.ConvertToLocString(
          "Eng:The copier's log will be cleared. The copier will be disabled. Are you sure?_" +
          "Ru:Журнал копировщика будет очищен. Копировщик будет отключен. Вы уверены?_");
+
+        public string Label239 => OsLocalization.ConvertToLocString(
+         "Eng:Delete all positions_" +
+         "Ru:Удалить позиции_");
+
+        public string Label240 => OsLocalization.ConvertToLocString(
+         "Eng:Close all positions_" +
+         "Ru:Закрыть позиции_");
+
+        public string Label241 => OsLocalization.ConvertToLocString(
+         "Eng:Non trade periods_" +
+         "Ru:Не торговые периоды_");
+
+        public string Label242 => OsLocalization.ConvertToLocString(
+         "Eng:Check data feed on disconnect_" +
+         "Ru:Следить за разрывами связи дополнительно_");
+
+        public string Label243 => OsLocalization.ConvertToLocString(
+         "Eng:Monitor the receipt of market depths and a tape of transactions for each signed security. In case of interruption, restart the connector. Increases the CPU load!_" +
+         "Ru:Следить за поступлением стаканов и ленты сделок по каждому подписанному инструменту. В случае прерывания - перезапускать коннектор. Увеличивает нагрузку на ЦП!_");
+
+        public string Label244 => OsLocalization.ConvertToLocString(
+         "Eng:The data set was found _" +
+         "Ru:Найден сет данных _");
+
+        public string Label245 => OsLocalization.ConvertToLocString(
+         "Eng:Server removed_" +
+         "Ru:Сервер удалён_");
 
 
 

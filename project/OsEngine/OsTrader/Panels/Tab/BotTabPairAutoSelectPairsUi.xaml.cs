@@ -1165,6 +1165,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     _pairTrader.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
                 }
+
+                _pairTrader.ApplySettingsFromStandardToAll();
             }
             catch (Exception error)
             {

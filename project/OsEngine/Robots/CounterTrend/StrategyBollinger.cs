@@ -9,6 +9,7 @@ using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -75,6 +76,7 @@ namespace OsEngine.Robots.CounterTrend
             Load();
 
             Description = OsLocalization.Description.DescriptionLabel24;
+
         }
 
         // The name of the robot in OsEngine
@@ -148,6 +150,7 @@ namespace OsEngine.Robots.CounterTrend
         // logic
         private void Bot_CandleFinishedEvent(List<Candle> candles)
         {
+
             if (_regime == BotTradeRegime.Off)
             {
                 return;

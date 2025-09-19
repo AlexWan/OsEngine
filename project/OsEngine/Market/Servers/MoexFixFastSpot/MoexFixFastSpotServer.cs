@@ -1110,7 +1110,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1436,7 +1436,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 length = s == 0 ? _tradesIncrementalSocketA.Receive(buffer) : _tradesIncrementalSocketB.Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;                            
@@ -1569,7 +1569,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 length = s == 0 ? _tradesSnapshotSocketA.Receive(buffer) : _tradesSnapshotSocketB.Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -1682,7 +1682,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             length = _ordersIncrementalSocketA.Receive(buffer);
                         }
                     }
-                    catch (SocketException exception)
+                    catch (SocketException)
                     {
                         // обычно возникает если мы прерываем блокирующую операцию
                         break;
@@ -1811,7 +1811,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             length = _ordersIncrementalSocketB.Receive(buffer);
                         }
                     }
-                    catch (SocketException exception)
+                    catch (SocketException)
                     {
                         // обычно возникает если мы прерываем блокирующую операцию
                         break;
@@ -1921,7 +1921,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 length = s == 0 ? _ordersSnapshotSocketA.Receive(buffer) : _ordersSnapshotSocketB.Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -2227,11 +2227,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                     FastDecoder decoder = new FastDecoder(context, stream);
                                     msg = decoder.ReadMessage();
                                 }
-                                catch (NullReferenceException ex)
+                                catch (NullReferenceException)
                                 {
                                     // в редких случаях исключение возникает в самой библиотеке OpenFast
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Иногда просто что-то глючит, но он все равно читает сообщение
                                 }
@@ -3549,7 +3549,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -3558,8 +3558,6 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         private RateGate _rateGateForOrders = new RateGate(30, TimeSpan.FromSeconds(1));
                
         private List<Order> _sendOrders = new List<Order>();
-
-        private string _sendOrdersArrayLocker = "MoexFixFastSpotSendOrdersArrayLocker";
 
         public void SendOrder(Order order)
         {
@@ -3599,8 +3597,6 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
         // в этот словарь помещаем соответствия номеров рыночных ордеров пользовательским номерам ордеров        
         Dictionary<int, string> _changedOrderIds = new Dictionary<int, string>();
-
-        private string _changePriceOrdersArrayLocker = "cangePriceArrayLocker";
 
         /// <summary>
         /// Order price change
@@ -3765,6 +3761,16 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             // Order Status Request (H) - запрос не реализован на серверах MFIX Trade и MFIX Trade Capture (в документации зачеркнуто)
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 10 Helpers
@@ -3840,9 +3846,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

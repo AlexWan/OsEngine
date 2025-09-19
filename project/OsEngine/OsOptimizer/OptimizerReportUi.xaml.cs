@@ -648,16 +648,13 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
-                int selectedRow = 0;
-
                 List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
                 for (int i = 0; i < fazeReport.Reports.Count; i++)
                 {
                     OptimizerReport report = fazeReport.Reports[i];
                     if (report == null ||
-                        report.TabsReports.Count == 0 ||
-                        !_master.IsAcceptedByFilter(report))
+                        report.TabsReports.Count == 0)
                     {
                         continue;
                     }
@@ -1016,8 +1013,7 @@ namespace OsEngine.OsOptimizer
                     OptimizerReport report = fazeReport.Reports[i];
 
                     if (report == null ||
-                        report.TabsReports.Count == 0 ||
-                        !_master.IsAcceptedByFilter(report))
+                        report.TabsReports.Count == 0)
                     {
                         continue;
                     }

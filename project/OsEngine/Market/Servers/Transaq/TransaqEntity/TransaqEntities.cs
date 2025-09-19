@@ -235,7 +235,7 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         public string Quantity { get; set; }
 
         [XmlElement(ElementName = "time")]
-        public DateTime Time { get; set; }
+        public string Time { get; set; }
 
         [XmlElement(ElementName = "change")]
         public string Change { get; set; }

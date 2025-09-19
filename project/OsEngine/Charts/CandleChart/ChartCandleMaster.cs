@@ -880,6 +880,12 @@ namespace OsEngine.Charts.CandleChart
 
                 int num = Convert.ToInt32(item.ToolTipText.Split('*')[1]);
 
+                if(_indicators == null 
+                    || num >= _indicators.Count)
+                {
+                    return;
+                }
+
                 _indicators[num].ShowDialog();
                 _indicators[num].Save();
 
@@ -1508,7 +1514,6 @@ namespace OsEngine.Charts.CandleChart
         /// обновить свечи
         /// </summary>
         /// <param name="candles">candles/свечи</param>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SetCandles(List<Candle> candles)
         {
             try

@@ -168,23 +168,33 @@ namespace OsEngine.OsTrader.Grids
                     curStep = Math.Round(curStep, tab.Security.Decimals);
                 }
             }
+            else if (TypeStep == TradeGridValueType.Absolute)
+            {
+                curStep = LineStep;
+
+                if (tab.Security != null)
+                {
+                    curStep = Math.Round(curStep, tab.Security.Decimals);
+                }
+            }
 
             for (int i = 0; i < LineCountStart; i++)
             {
-                if (curStep > FirstPrice)
+                /*if (FirstPrice > 0 
+                    && curStep > FirstPrice*10)
                 {
                     break;
-                }
+                }*/
 
-                if (priceCurrent <= 0)
+                /*if (priceCurrent <= 0)
                 {
                     break;
-                }
+                }*/
 
-                if (priceCurrent / FirstPrice > 3)
+                /*if (priceCurrent / FirstPrice > 3)
                 {
                     break;
-                }
+                }*/
 
                 TradeGridLine newLine = new TradeGridLine();
                 newLine.PriceEnter = priceCurrent;

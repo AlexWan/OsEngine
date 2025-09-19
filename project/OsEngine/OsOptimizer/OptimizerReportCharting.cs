@@ -318,8 +318,6 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
-                int num = 0;
-
                 OptimizerReport inSampleReport = null;
 
                 for (int i = 0; i < _reports.Count; i++)
@@ -501,8 +499,6 @@ namespace OsEngine.OsOptimizer
                 {
                     return;
                 }
-
-                int num = 0;
 
                 OptimizerReport inSampleReport = null;
 

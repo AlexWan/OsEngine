@@ -297,7 +297,7 @@ public class ParabolicPriceChannel : BotPanel
         if (position.State == PositionStateType.Open ||
             position.State == PositionStateType.ClosingFail)
         {
-            if (position.CloseActiv == true ||
+            if (position.CloseActive == true ||
                 (position.CloseOrders != null && position.CloseOrders.Count > 0))
             {
                 return;
@@ -340,13 +340,13 @@ public class ParabolicPriceChannel : BotPanel
 
                 if (serverPermission != null &&
                     serverPermission.IsUseLotToCalculateProfit &&
-                tab.Securiti.Lot != 0 &&
-                    tab.Securiti.Lot > 1)
+                tab.Security.Lot != 0 &&
+                    tab.Security.Lot > 1)
                 {
-                    volume = _volume.ValueDecimal / (contractPrice * tab.Securiti.Lot);
+                    volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                 }
 
-                volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                volume = Math.Round(volume, tab.Security.DecimalsVolume);
             }
             else // Tester or Optimizer
             {
@@ -395,11 +395,11 @@ public class ParabolicPriceChannel : BotPanel
 
             decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
-            decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Securiti.Lot;
+            decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
             if (tab.StartProgram == StartProgram.IsOsTrader)
             {
-                qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+                qty = Math.Round(qty, tab.Security.DecimalsVolume);
             }
             else
             {

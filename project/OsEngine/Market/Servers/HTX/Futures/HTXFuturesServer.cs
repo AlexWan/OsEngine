@@ -589,7 +589,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _webSocketPublic.OnError += webSocketPublic_OnError;
             _webSocketPublic.OnClose += webSocketPublic_OnClose;
 
-            _webSocketPublic.Connect();
+            _webSocketPublic.Connect().Wait();
 
             _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_webSocketPathPrivate}");
 
@@ -600,7 +600,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _webSocketPrivate.OnError += webSocketPrivate_OnError;
             _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
 
-            _webSocketPrivate.Connect();
+            _webSocketPrivate.Connect().Wait();
         }
 
         private void DeleteWebscoektConnection()
@@ -850,7 +850,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
 
                 string authRequest = BuildSign(DateTime.UtcNow);
-                _webSocketPrivate.Send(authRequest);
+                _webSocketPrivate.SendAsync(authRequest);
                 _privateSocketOpen = true;
 
                 CheckSocketsActivate();
@@ -889,7 +889,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1342,7 +1342,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -1391,6 +1391,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                 jsonContent.Add("lever_rate", "10");
                 jsonContent.Add("order_price_type", "limit");
+                jsonContent.Add("channel_code", "AAe2ccbd47");
 
                 string url = _privateUriBuilder.Build("POST", "/api/v1/contract_order");
 
@@ -1675,7 +1676,16 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[0].created_at));
                         newOrder.ServerType = ServerType.HTXFutures;
                         newOrder.SecurityNameCode = JoinSecurityName(item[0].symbol, item[0].contract_type);
-                        newOrder.NumberUser = Convert.ToInt32(item[0].client_order_id);
+
+                        try
+                        {
+                            newOrder.NumberUser = Convert.ToInt32(item[0].client_order_id);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+
                         newOrder.NumberMarket = item[0].order_id.ToString();
                         newOrder.Side = item[0].direction.Equals("buy") ? Side.Buy : Side.Sell;
                         newOrder.State = GetOrderState(item[0].status);
@@ -1735,7 +1745,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         {
                             MyTrade newTrade = new MyTrade();
                             newTrade.SecurityNameCode = orderResponse.data.symbol;
-                            newTrade.NumberTrade = orderResponse.data.trades[i].trade_id;
+                            newTrade.NumberTrade = orderResponse.data.trades[i].id;
                             newTrade.NumberOrderParent = orderResponse.data.order_id;
                             newTrade.Volume = orderResponse.data.trades[i].trade_volume.ToDecimal();
                             newTrade.Price = orderResponse.data.trades[i].trade_price.ToDecimal();
@@ -1776,6 +1786,16 @@ namespace OsEngine.Market.Servers.HTX.Futures
             return null;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 12 Queries
@@ -1801,11 +1821,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
             string clientId = "";
 
             string topic = $"market.{security.Name}.depth.step0";
-            _webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+            _webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
             _arrayPublicChannels.Add(topic);
 
             topic = $"market.{security.Name}.trade.detail";
-            _webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+            _webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
             _arrayPublicChannels.Add(topic);
         }
 
@@ -1815,9 +1835,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
             string channelOrders = "orders.*";
             string channelAccounts = "accounts.*";
             string channelPositions = "positions.*";
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
             _arrayPrivateChannels.Add(channelAccounts);
             _arrayPrivateChannels.Add(channelOrders);
             _arrayPrivateChannels.Add(channelPositions);
@@ -1833,7 +1853,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             }
             else
             {
-                _webSocketPublic.Send($"{{\"pong\": \"{response.ping}\"}}");
+                _webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
             }
         }
 
@@ -1847,7 +1867,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             }
             else
             {
-                _webSocketPrivate.Send($"{{\"pong\": \"{response.ts}\"}}");
+                _webSocketPrivate.SendAsync($"{{\"pong\": \"{response.ts}\"}}");
             }
         }
 
@@ -1859,7 +1879,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     for (int i = 0; i < _arrayPublicChannels.Count; i++)
                     {
-                        _webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
+                        _webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
                     }
                 }
                 catch
@@ -1874,7 +1894,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     for (int i = 0; i < _arrayPrivateChannels.Count; i++)
                     {
-                        _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
+                        _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
                     }
                 }
                 catch
@@ -2021,9 +2041,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

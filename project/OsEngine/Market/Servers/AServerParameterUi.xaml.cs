@@ -13,6 +13,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market.Servers.Entity;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers
 {
@@ -88,12 +89,15 @@ namespace OsEngine.Market.Servers
             this.Focus();
 
             this.Closed += AServerParameterUi_Closed;
+
+            ServerMaster.ServerDeleteEvent += ServerMaster_ServerDeleteEvent;
         }
 
         private void AServerParameterUi_Closed(object sender, EventArgs e)
         {
             _uiIsClosed = true;
             this.Closed -= AServerParameterUi_Closed;
+            ServerMaster.ServerDeleteEvent -= ServerMaster_ServerDeleteEvent;
 
             _server.Log.StopPaint();
             _server.ConnectStatusChangeEvent -= Server_ConnectStatusChangeEvent;
@@ -114,6 +118,12 @@ namespace OsEngine.Market.Servers
 
             HostPreConfiguredConnections.Child = null;
             HostSettings.Child = null;
+        }
+
+        private void ServerMaster_ServerDeleteEvent(IServer server)
+        {
+            UpdateServersCount();
+            PaintGridConnectionsInstance();
         }
 
         public void SetGuiNoMultipleConnect()
@@ -318,7 +328,18 @@ namespace OsEngine.Market.Servers
             }
 
             AServer server = _serversArray[rowIndex];
-            ServerMaster.DeleteServer(server.ServerType, server.ServerNum);
+
+            new Task(() =>
+            {
+                try
+                {
+                    ServerMaster.DeleteServer(server.ServerType, server.ServerNum);
+                }
+                catch(Exception ex)
+                {
+                    ServerMaster.SendNewLogMessage(ex.Message, Logging.LogMessageType.Error);
+                }
+            }).Start();
         }
 
         private void ChangeActiveServer(int number)
@@ -402,6 +423,12 @@ namespace OsEngine.Market.Servers
 
         private void PaintGridConnectionsInstance()
         {
+            if (LabelStatus.Dispatcher.CheckAccess() == false)
+            {
+                LabelStatus.Dispatcher.Invoke(new Action(PaintGridConnectionsInstance));
+                return;
+            }
+
             _gridConnections.CellEndEdit -= _gridConnections_CellEndEdit;
 
             _gridConnections.Rows.Clear();

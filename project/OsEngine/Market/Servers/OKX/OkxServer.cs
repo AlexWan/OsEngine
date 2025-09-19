@@ -1062,7 +1062,7 @@ namespace OsEngine.Market.Servers.OKX
                 webSocketPublicNew.OnClose += WebSocketPublic_Closed;
                 webSocketPublicNew.OnMessage += WebSocketPublic_MessageReceived;
                 webSocketPublicNew.OnError += WebSocketPublic_Error;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -1102,7 +1102,7 @@ namespace OsEngine.Market.Servers.OKX
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
                 _webSocketPrivate.OnError += WebSocketPrivate_Error;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
             }
             catch (Exception exception)
             {
@@ -1212,7 +1212,7 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                _webSocketPrivate.Send(Encryptor.MakeAuthRequest(_publicKey, _secretKey, _password));
+                _webSocketPrivate.SendAsync(Encryptor.MakeAuthRequest(_publicKey, _secretKey, _password));
             }
             catch (Exception ex)
             {
@@ -1490,7 +1490,7 @@ namespace OsEngine.Market.Servers.OKX
                         if (webSocketPublic != null
                             && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send("ping");
+                            webSocketPublic.SendAsync("ping");
                         }
                         else
                         {
@@ -1501,7 +1501,7 @@ namespace OsEngine.Market.Servers.OKX
                     if (_webSocketPrivate != null &&
                     (_webSocketPrivate.ReadyState == WebSocketState.Open))
                     {
-                        _webSocketPrivate.Send("ping");
+                        _webSocketPrivate.SendAsync("ping");
                     }
                     else
                     {
@@ -1589,17 +1589,17 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{security.Name}\"}}]}}");
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"trades\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"trades\",\"instId\": \"{security.Name}\"}}]}}");
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{security.Name}\"}}]}}");
+                        webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{security.Name}\"}}]}}");
 
                         if (security.Name.Contains("SWAP"))
                         {
-                            webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{security.Name}\"}}]}}");
-                            webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{security.Name}\"}}]}}");
+                            webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{security.Name}\"}}]}}");
+                            webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{security.Name}\"}}]}}");
                             GetFundingHistory(security.Name);
                         }
                     }
@@ -1689,7 +1689,7 @@ namespace OsEngine.Market.Servers.OKX
             requestTrade.args[0].instFamily = securityName; //"BTC-USD"
 
             string json = JsonConvert.SerializeObject(requestTrade);
-            webSocketPublic.Send(json);
+            webSocketPublic.SendAsync(json);
         }
 
         public void SubscribeMarkPrice(string name, WebSocket webSocketPublic)
@@ -1700,7 +1700,7 @@ namespace OsEngine.Market.Servers.OKX
             requestTrade.args[0].instId = name; //"LTC-USD-SWAP"
 
             string json = JsonConvert.SerializeObject(requestTrade);
-            webSocketPublic.Send(json);
+            webSocketPublic.SendAsync(json);
         }
 
         private void SubscribePrivate()
@@ -1712,9 +1712,9 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"account\"}}]}}");
-                _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"positions\",\"instType\": \"ANY\"}}]}}");
-                _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");
+                _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"account\"}}]}}");
+                _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"positions\",\"instType\": \"ANY\"}}]}}");
+                _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");
             }
             catch (Exception exception)
             {
@@ -1739,24 +1739,24 @@ namespace OsEngine.Market.Servers.OKX
                                 foreach (var item in _subscribedSecurities)
                                 {
                                     string name = item.Key;
-                                    webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
-                                    webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
+                                    webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
+                                    webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
 
                                     if (_extendedMarketData)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{name}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{name}\"}}]}}");
 
                                         if (name.Contains("SWAP"))
                                         {
-                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
-                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{name}\"}}]}}");
+                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
+                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{name}\"}}]}}");
                                         }
                                     }
 
                                     if (item.Value)
                                     {
                                         //option
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}\"}}]}}");
                                     }
                                 }
                             }
@@ -1765,8 +1765,8 @@ namespace OsEngine.Market.Servers.OKX
                             {
                                 foreach (string name in _baseOptionSerurities)
                                 {
-                                    webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"opt-summary\",\"instFamily\": \"{name}\"}}]}}");
-                                    webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}-SWAP\"}}]}}");
+                                    webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"opt-summary\",\"instFamily\": \"{name}\"}}]}}");
+                                    webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}-SWAP\"}}]}}");
                                 }
                             }
                         }
@@ -1788,9 +1788,9 @@ namespace OsEngine.Market.Servers.OKX
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"account\"}}]}}");
-                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"positions\",\"instType\": \"ANY\"}}]}}");
-                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"account\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"positions\",\"instType\": \"ANY\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");
                 }
                 catch
                 {
@@ -1804,7 +1804,7 @@ namespace OsEngine.Market.Servers.OKX
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -3089,6 +3089,16 @@ namespace OsEngine.Market.Servers.OKX
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
         }
 
         #endregion

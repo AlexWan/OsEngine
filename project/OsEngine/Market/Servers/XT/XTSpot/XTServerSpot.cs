@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -8,7 +13,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -42,15 +46,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 threadCheckAlive.Name = "CheckAliveXT";
                 threadCheckAlive.Start();
 
-                Thread threadForPublicMessages = new Thread(PublicMarketDepthsMessageReader);
+                Thread threadForPublicMessages = new Thread(PublicMessageReader);
                 threadForPublicMessages.IsBackground = true;
                 threadForPublicMessages.Name = "PublicMessageReaderXT";
                 threadForPublicMessages.Start();
-
-                Thread threadForTradesMessages = new Thread(PublicTradesMessageReader);
-                threadForTradesMessages.IsBackground = true;
-                threadForTradesMessages.Name = "PublicTradesMessageReaderXT";
-                threadForTradesMessages.Start();
 
                 Thread threadForPrivateMessages = new Thread(PrivateMessageReader);
                 threadForPrivateMessages.IsBackground = true;
@@ -62,8 +61,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 threadForGetPortfolios.Name = "UpdatePortfoliosXT";
                 threadForGetPortfolios.Start();
             }
-
-            public DateTime ServerTime { get; set; }
 
             public void Connect(WebProxy proxy)
             {
@@ -97,12 +94,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 return;
                             }
 
-                            FIFOListWebSocketPublicMarketDepthsMessage = new ConcurrentQueue<string>();
-                            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                            FIFOListWebSocketPublicTradesMessage = new ConcurrentQueue<string>();
-
-                            CreateWebSocketConnection();
-                            CheckFullActivation();
+                            CreatePublicWebSocketConnect();
+                            CreatePrivateWebSocketConnect();
                         }
                         catch (Exception exception)
                         {
@@ -131,7 +124,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     UnsubscribeFromAllWebSockets();
                     _subscribedSecurities.Clear();
-                    DeleteWebsocketConnection();
+                    DeleteWebSocketConnection();
                     _marketDepths.Clear();
                 }
                 catch (Exception exception)
@@ -139,9 +132,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     SendLogMessage("Dispose error" + exception.ToString(), LogMessageType.Error);
                 }
 
-                FIFOListWebSocketPublicMarketDepthsMessage = new ConcurrentQueue<string>();
+                FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                 FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                FIFOListWebSocketPublicTradesMessage = new ConcurrentQueue<string>();
 
                 Disconnect();
             }
@@ -155,37 +147,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            private void UnsubscribeFromAllWebSockets()
-            {
-                if (_webSocketPublicMarketDepths == null
-                    || _webSocketPrivate == null
-                    || _webSocketPublicTrades == null)
-                {
-                    return;
-                }
-
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    return;
-                }
-
-                try
-                {
-                    for (int i = 0; i < _subscribedSecurities.Count; i++)
-                    {
-                        string securityName = _subscribedSecurities[i];
-
-                        _webSocketPublicMarketDepths.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"depth-update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                        _webSocketPublicTrades.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"trades@{securityName}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                    }
-
-                    _webSocketPrivate.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"balance\",\"order\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                }
-                catch
-                {
-
-                }
-            }
+            public DateTime ServerTime { get; set; }
 
             public ServerType ServerType
             {
@@ -204,6 +166,12 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public List<IServerParameter> ServerParameters { get; set; }
 
+            private readonly string _baseUrl = "https://sapi.xt.com";
+
+            private readonly string _timeOut = "50000";
+
+            private readonly string _encry = "HmacSHA256";
+
             private string _publicKey;
 
             private string _secretKey;
@@ -216,7 +184,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private List<Security> _securities;
 
-            private readonly RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(200));
+            private readonly RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
             public void GetSecurities()
             {
@@ -224,17 +192,18 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 try
                 {
-                    HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/v4/public/symbol").Result;
-                    string json = responseMessage.Content.ReadAsStringAsync().Result;
+                    RestClient client = new RestClient(_baseUrl);
+                    RestRequest request = new RestRequest("/v4/public/symbol", Method.GET);
+                    IRestResponse responseMessage = client.Execute(request);
 
                     ResponseMessageRest<object> stateResponse =
-                        JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+                        JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
                         if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
-                            UpdateSecurity(json);
+                            UpdateSecurity(responseMessage.Content);
                         }
                         else
                         {
@@ -278,7 +247,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                         if (!item.openapiEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
                             || !item.tradingEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
-                            || !item.state.Equals("ONLINE", StringComparison.OrdinalIgnoreCase))
+                            || !item.state.Equals("ONLINE", StringComparison.OrdinalIgnoreCase)
+                            || item.displayLevel == "DIRECT")
                         {
                             continue;
                         }
@@ -403,6 +373,123 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
+            private readonly RateGate _rateGateGetPortfolio = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+            private void CreateQueryPortfolio(bool isUpdateValueBegin)
+            {
+                _rateGateGetPortfolio.WaitToProceed();
+
+                try
+                {
+                    IRestResponse responseMessage = CreatePrivateQuery("/v4/balances", Method.GET, null);
+
+                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
+
+                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    {
+                        if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+                        {
+                            UpdatePortfolioRest(responseMessage.Content, isUpdateValueBegin);
+                        }
+                        else
+                        {
+                            SendLogMessage($"CreateQueryPortfolio error, Code: {stateResponse.rc}\n"
+                                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"CreateQueryPortfolio> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                        if (stateResponse != null && stateResponse.rc != null)
+                        {
+                            SendLogMessage($"CreateQueryPortfolio error, Code: {stateResponse.rc}\n"
+                                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("CreateQueryPortfolio error: " + exception.ToString(), LogMessageType.Error);
+                }
+            }
+
+            private void UpdatePortfolioRest(string json, bool isUpdateValueBegin)
+            {
+                try
+                {
+                    if (_portfolios == null)
+                    {
+                        return;
+                    }
+
+                    ResponseMessageRest<ResponseAssets> assets = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseAssets>());
+
+                    Portfolio portfolio = _portfolios[0];
+
+                    if (assets.result.totalUsdtAmount == "0")
+                    {
+                        portfolio.ValueBegin = 1;
+                        portfolio.ValueCurrent = 1;
+                    }
+                    else
+                    {
+                        if (isUpdateValueBegin)
+                        {
+                            portfolio.ValueBegin = Math.Round(assets.result.totalUsdtAmount.ToDecimal(), 5);
+                        }
+
+                        portfolio.ValueCurrent = Math.Round(assets.result.totalUsdtAmount.ToDecimal(), 5);
+                    }
+
+                    List<PositionOnBoard> alreadySendPositions = new List<PositionOnBoard>();
+
+                    for (int i = 0; i < assets.result.assets.Count; i++)
+                    {
+                        ResponseAsset item = assets.result.assets[i];
+
+                        PositionOnBoard pos = new PositionOnBoard
+                        {
+                            PortfolioName = "XTSpotPortfolio",
+                            SecurityNameCode = item.currency,
+                            ValueBlocked = item.frozenAmount.ToDecimal(),
+                            ValueCurrent = item.availableAmount.ToDecimal()
+                        };
+
+                        if (isUpdateValueBegin)
+                        {
+                            pos.ValueBegin = item.availableAmount.ToDecimal();
+                        }
+
+                        bool canSend = true;
+
+                        for (int j = 0; j < alreadySendPositions.Count; j++)
+                        {
+                            if (!alreadySendPositions[j].SecurityNameCode.Equals(pos.SecurityNameCode, StringComparison.OrdinalIgnoreCase)
+                                || pos.ValueCurrent != 0)
+                                continue;
+
+                            canSend = false;
+                            break;
+                        }
+
+                        if (!canSend)
+                        {
+                            continue;
+                        }
+
+                        portfolio.SetNewPosition(pos);
+                        alreadySendPositions.Add(pos);
+                    }
+
+                    PortfolioEvent(_portfolios);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("UpdatePortfolioRest error: " + exception.ToString(), LogMessageType.Error);
+                }
+            }
+
             public event Action<List<Portfolio>> PortfolioEvent;
 
             #endregion
@@ -492,6 +579,66 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, true, countNeedToLoad, endTime);
             }
 
+            private readonly RateGate _rateGateCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+            private List<Candle> CreateQueryCandles(string nameSec, string stringInterval, DateTime timeFrom, DateTime timeTo)
+            {
+                _rateGateCandleHistory.WaitToProceed();
+
+                try
+                {
+                    string startTime = TimeManager.GetTimeStampMilliSecondsToDateTime(timeFrom).ToString();
+                    string endTime = TimeManager.GetTimeStampMilliSecondsToDateTime(timeTo).ToString();
+                    string limit = "1000";
+
+                    string uriCandles = "/v4/public/kline?symbol=" + nameSec + "&interval=" + stringInterval
+                                 + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=" + limit;
+
+                    RestClient client = new RestClient(_baseUrl);
+                    RestRequest request = new RestRequest(uriCandles, Method.GET);
+                    IRestResponse responseMessage = client.Execute(request);
+
+                    if (responseMessage.StatusCode == HttpStatusCode.OK)
+                    {
+                        ResponseMessageRest<List<ResponseCandle>> symbols = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<List<ResponseCandle>>());
+
+                        if (symbols.rc.Equals("0") && symbols.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+                        {
+                            List<Candle> candles = new List<Candle>();
+
+                            for (int i = 0; i < symbols.result.Count; i++)
+                            {
+                                ResponseCandle item = symbols.result[i];
+
+                                Candle newCandle = new Candle();
+
+                                newCandle.Open = item.o.ToDecimal();
+                                newCandle.Close = item.c.ToDecimal();
+                                newCandle.High = item.h.ToDecimal();
+                                newCandle.Low = item.l.ToDecimal();
+                                newCandle.Volume = item.v.ToDecimal();
+                                newCandle.State = CandleState.Finished;
+                                newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.t));
+                                candles.Add(newCandle);
+                            }
+
+                            return candles;
+                        }
+
+                        SendLogMessage($"CreateQueryCandles error, Code: {symbols.rc}\n"
+                                       + $"Message code: {symbols.mc}", LogMessageType.Error);
+                        return null;
+                    }
+
+                    SendLogMessage($"CreateQueryCandles error, State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("CreateQueryCandles error: " + exception.ToString(), LogMessageType.Error);
+                }
+                return null;
+            }
+
             private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
             {
                 TimeSpan timeSlice = endTime - startTime;
@@ -559,19 +706,61 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 6 WebSocket creation
 
+            private List<WebSocket> _webSocketPublic = new List<WebSocket>();
+
             private WebSocket _webSocketPrivate;
 
-            private WebSocket _webSocketPublicMarketDepths;
+            private string _webSocketPrivateUrl = "wss://stream.xt.com/private";
 
-            private WebSocket _webSocketPublicTrades;
+            private string _webSocketPublicUrl = "wss://stream.xt.com/public";
 
-            private readonly string _webSocketPrivateUrl = "wss://stream.xt.com/private";
+            // private readonly string _socketLocker = "webSocketLockerXT";
 
-            private readonly string _webSocketPublicUrl = "wss://stream.xt.com/public";
+            private void CreatePublicWebSocketConnect()
+            {
+                try
+                {
+                    if (FIFOListWebSocketPublicMessage == null)
+                    {
+                        FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                    }
 
-            private readonly string _socketLocker = "webSocketLockerXT";
+                    _webSocketPublic.Add(CreateNewPublicSocket());
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
+            }
 
-            private void CreateWebSocketConnection()
+            private WebSocket CreateNewPublicSocket()
+            {
+                try
+                {
+                    WebSocket webSocketPublicNew = new WebSocket(_webSocketPublicUrl);
+
+                    //if (_myProxy != null)
+                    //{
+                    //    webSocketPublicNew.SetProxy(_myProxy);
+                    //}
+
+                    webSocketPublicNew.EmitOnPing = true;
+                    webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
+                    webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
+                    webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
+                    webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
+                    webSocketPublicNew.Connect().Wait();
+
+                    return webSocketPublicNew;
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    return null;
+                }
+            }
+
+            private void CreatePrivateWebSocketConnect()
             {
                 try
                 {
@@ -581,82 +770,54 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     }
 
                     _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
-                    _webSocketPrivate.EmitOnPing = true;
 
+                    //if (_myProxy != null)
+                    //{
+                    //    _webSocketPrivate.SetProxy(_myProxy);
+                    //}
+
+                    _webSocketPrivate.EmitOnPing = true;
                     _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
                     _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                     _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                    _webSocketPrivate.Connect();
-
-                    if (_webSocketPublicMarketDepths != null)
-                    {
-                        return;
-                    }
-
-                    _webSocketPublicMarketDepths = new WebSocket(_webSocketPublicUrl);
-                    _webSocketPublicMarketDepths.EmitOnPing = true;
-                    _webSocketPublicMarketDepths.OnOpen += _webSocketPublicMarketDepths_OnOpen;
-                    _webSocketPublicMarketDepths.OnClose += _webSocketPublicMarketDepths_OnClose;
-                    _webSocketPublicMarketDepths.OnMessage += _webSocketPublicMarketDepths_OnMessage;
-                    _webSocketPublicMarketDepths.OnError += _webSocketPublicMarketDepths_OnError;
-                    _webSocketPublicMarketDepths.Connect();
-
-                    if (_webSocketPublicTrades != null)
-                    {
-                        return;
-                    }
-
-                    _webSocketPublicTrades = new WebSocket(_webSocketPublicUrl);
-                    _webSocketPublicTrades.EmitOnPing = true;
-                    _webSocketPublicTrades.OnOpen += _webSocketPublicTrades_OnOpen;
-                    _webSocketPublicTrades.OnClose += _webSocketPublicTrades_OnClose;
-                    _webSocketPublicTrades.OnMessage += _webSocketPublicTrades_OnMessage;
-                    _webSocketPublicTrades.OnError += _webSocketPublicTrades_OnError;
-                    _webSocketPublicTrades.Connect();
+                    _webSocketPrivate.Connect().Wait();
                 }
-                catch
+                catch (Exception exception)
                 {
-                    SendLogMessage("Create WebSocket Connection error.", LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
 
-            private void DeleteWebsocketConnection()
+            private void DeleteWebSocketConnection()
             {
-                if (_webSocketPublicMarketDepths != null)
+                if (_webSocketPublic != null)
                 {
                     try
                     {
-                        _webSocketPublicMarketDepths.OnOpen -= _webSocketPublicMarketDepths_OnOpen;
-                        _webSocketPublicMarketDepths.OnClose -= _webSocketPublicMarketDepths_OnClose;
-                        _webSocketPublicMarketDepths.OnMessage -= _webSocketPublicMarketDepths_OnMessage;
-                        _webSocketPublicMarketDepths.OnError -= _webSocketPublicMarketDepths_OnError;
-                        _webSocketPublicMarketDepths.CloseAsync();
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
+                        {
+                            WebSocket webSocketPublic = _webSocketPublic[i];
+
+                            webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
+                            webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
+                            webSocketPublic.OnMessage -= WebSocketPublicNew_OnMessage;
+                            webSocketPublic.OnError -= WebSocketPublicNew_OnError;
+
+                            if (webSocketPublic.ReadyState == WebSocketState.Open)
+                            {
+                                webSocketPublic.CloseAsync();
+                            }
+
+                            webSocketPublic = null;
+                        }
                     }
                     catch
                     {
                         // ignore
                     }
 
-                    _webSocketPublicMarketDepths = null;
-                }
-
-                if (_webSocketPublicTrades != null)
-                {
-                    try
-                    {
-                        _webSocketPublicTrades.OnOpen -= _webSocketPublicTrades_OnOpen;
-                        _webSocketPublicTrades.OnClose -= _webSocketPublicTrades_OnClose;
-                        _webSocketPublicTrades.OnMessage -= _webSocketPublicTrades_OnMessage;
-                        _webSocketPublicTrades.OnError -= _webSocketPublicTrades_OnError;
-                        _webSocketPublicTrades.CloseAsync();
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-
-                    _webSocketPublicTrades = null;
+                    _webSocketPublic.Clear();
                 }
 
                 if (_webSocketPrivate != null)
@@ -678,45 +839,44 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            private string _socketActivateLocker = "socketActivateLocker";
+            private string _socketActivateLocker = "socketAcvateLocker";
 
-            private void CheckFullActivation()
+            private void CheckSocketsActivate()
             {
-                try
+                lock (_socketActivateLocker)
                 {
-                    lock (_socketActivateLocker)
+
+                    if (_webSocketPrivate == null
+                        || _webSocketPrivate.ReadyState != WebSocketState.Open)
                     {
-                        if (_webSocketPrivate == null
-                        || _webSocketPrivate?.ReadyState != WebSocketState.Open)
-                        {
-                            Disconnect();
-                            return;
-                        }
+                        Disconnect();
+                        return;
+                    }
 
-                        if (_webSocketPublicMarketDepths == null
-                            || _webSocketPublicMarketDepths?.ReadyState != WebSocketState.Open)
-                        {
-                            Disconnect();
-                            return;
-                        }
+                    if (_webSocketPublic.Count == 0)
+                    {
+                        Disconnect();
+                        return;
+                    }
 
-                        if (_webSocketPublicTrades == null
-                            || _webSocketPublicTrades?.ReadyState != WebSocketState.Open)
-                        {
-                            Disconnect();
-                            return;
-                        }
+                    WebSocket webSocketPublic = _webSocketPublic[0];
 
-                        if (ServerStatus != ServerConnectStatus.Connect)
+                    if (webSocketPublic == null
+                        || webSocketPublic?.ReadyState != WebSocketState.Open)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Connect;
+
+                        if (ConnectEvent != null)
                         {
-                            ServerStatus = ServerConnectStatus.Connect;
                             ConnectEvent();
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage(ex.Message, LogMessageType.Error);
                 }
             }
 
@@ -724,7 +884,27 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 7 WebSocket events
 
-            private void _webSocketPublicTrades_OnError(object sender, ErrorEventArgs e)
+            private void WebSocketPublicNew_OnClose(object sender, CloseEventArgs e)
+            {
+                try
+                {
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                        message += OsLocalization.Market.Message102;
+
+                        SendLogMessage(message, LogMessageType.Error);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+
+            private void WebSocketPublicNew_OnError(object sender, ErrorEventArgs e)
             {
                 try
                 {
@@ -753,7 +933,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            private void _webSocketPublicTrades_OnMessage(object sender, MessageEventArgs e)
+            private void WebSocketPublicNew_OnMessage(object sender, MessageEventArgs e)
             {
                 try
                 {
@@ -773,135 +953,33 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return;
                     }
 
-                    if (FIFOListWebSocketPublicMarketDepthsMessage == null)
+                    if (FIFOListWebSocketPublicMessage == null)
                     {
                         return;
                     }
 
-                    FIFOListWebSocketPublicTradesMessage.Enqueue(e.Data);
+                    FIFOListWebSocketPublicMessage.Enqueue(e.Data);
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("WebSocketPublicTrades Message Received error: " + error.ToString(), LogMessageType.Error);
+                    SendLogMessage("WebSocketPublicT Message Received error: " + error.ToString(), LogMessageType.Error);
                 }
             }
 
-            private void _webSocketPublicTrades_OnClose(object sender, CloseEventArgs e)
-            {
-                try
-                {
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                        message += OsLocalization.Market.Message102;
-
-                        SendLogMessage(message, LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage(ex.ToString(), LogMessageType.Error);
-                }
-            }
-
-            private void _webSocketPublicTrades_OnOpen(object sender, EventArgs e)
-            {
-
-                CheckFullActivation();
-                SendLogMessage("WebSocketPublicTrades Connection to public trades is Open", LogMessageType.System);
-
-            }
-
-            private void _webSocketPublicMarketDepths_OnError(object sender, ErrorEventArgs e)
+            private void WebSocketPublicNew_OnOpen(object sender, EventArgs e)
             {
                 try
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        return;
-                    }
-
-                    if (e.Exception != null)
-                    {
-                        string message = e.Exception.ToString();
-
-                        if (message.Contains("The remote party closed the WebSocket connection"))
-                        {
-                            // ignore
-                        }
-                        else
-                        {
-                            SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
-                }
-            }
-
-            private void _webSocketPublicMarketDepths_OnMessage(object sender, MessageEventArgs e)
-            {
-                try
-                {
-                    if (e == null)
-                    {
-                        return;
-                    }
-
-                    if (string.IsNullOrEmpty(e.Data))
-                    {
-                        return;
-                    }
-
-                    if (e.Data.Contains("pong"))
-                    {
-                        // pong message
-                        return;
-                    }
-
-                    if (FIFOListWebSocketPublicMarketDepthsMessage == null)
-                    {
-                        return;
-                    }
-
-                    FIFOListWebSocketPublicMarketDepthsMessage.Enqueue(e.Data);
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage("WebSocketPublic Message Received error: " + error.ToString(), LogMessageType.Error);
-                }
-            }
-
-            private void _webSocketPublicMarketDepths_OnClose(object sender, CloseEventArgs e)
-            {
-                try
-                {
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                        message += OsLocalization.Market.Message102;
-
-                        SendLogMessage(message, LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        SendLogMessage("XTSpot WebSocket Public connection open", LogMessageType.System);
+                        CheckSocketsActivate();
                     }
                 }
                 catch (Exception ex)
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
-            }
-
-            private void _webSocketPublicMarketDepths_OnOpen(object sender, EventArgs e)
-            {
-
-                CheckFullActivation();
-                SendLogMessage("WebSocketPublic Connection to public data is Open", LogMessageType.System);
-
             }
 
             private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
@@ -995,11 +1073,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 try
                 {
-                    CheckFullActivation();
-                    SendLogMessage("WebSocketPrivate Connection to private data is Open", LogMessageType.System);
+                    SendLogMessage("XTSpot WebSocket Private connection open", LogMessageType.System);
+                    CheckSocketsActivate();
 
-                    // sign up for order and portfolio changes
-                    _webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\",\"balance\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // change orders
+                    _webSocketPrivate.SendAsync($"{{\"method\":\"subscribe\",\"params\":[\"order\",\"balance\",\"trade\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                 }
                 catch (Exception ex)
                 {
@@ -1015,6 +1092,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 while (true)
                 {
+                    Thread.Sleep(10000);
+
                     try
                     {
                         if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1023,34 +1102,30 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
-                        Thread.Sleep(10000);
-
-                        if (_webSocketPublicMarketDepths == null)
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            continue;
+                            WebSocket webSocketPublic = _webSocketPublic[i];
+
+                            if (webSocketPublic != null
+                                && webSocketPublic?.ReadyState == WebSocketState.Open)
+                            {
+                                webSocketPublic.SendAsync("ping");
+                            }
+                            else
+                            {
+                                Disconnect();
+                            }
                         }
 
-                        if (_webSocketPrivate == null)
+                        if (_webSocketPrivate != null &&
+                            (_webSocketPrivate.ReadyState == WebSocketState.Open ||
+                            _webSocketPrivate.ReadyState == WebSocketState.Connecting))
                         {
-                            continue;
-                        }
-
-                        if (_webSocketPublicTrades == null)
-                        {
-                            continue;
-                        }
-
-                        if (_webSocketPublicMarketDepths.ReadyState == WebSocketState.Open
-                            && _webSocketPublicTrades.ReadyState == WebSocketState.Open
-                            && _webSocketPrivate.ReadyState == WebSocketState.Open)
-                        {
-                            _webSocketPublicMarketDepths.Send("ping");
-                            _webSocketPrivate.Send("ping");
-                            _webSocketPublicTrades.Send("ping");
+                            _webSocketPrivate.SendAsync("ping");
                         }
                         else
                         {
-                            Dispose();
+                            Disconnect();
                         }
                     }
                     catch (Exception error)
@@ -1064,7 +1139,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 9 Security Subscribed
 
-            private readonly RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(200));
+            private List<string> _subscribedSecurities = new List<string>();
+
+            private RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
             public void Subscribe(Security security)
             {
@@ -1077,11 +1154,112 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return;
                     }
 
-                    CreateSubscribedSecurityMessageWebSocket(security);
+                    for (int i = 0; i < _subscribedSecurities.Count; i++)
+                    {
+                        if (_subscribedSecurities[i].Equals(security.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return;
+                        }
+                    }
+
+                    _subscribedSecurities.Add(security.Name);
+
+                    if (_webSocketPublic.Count == 0)
+                    {
+                        return;
+                    }
+
+                    WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+                    if (webSocketPublic.ReadyState == WebSocketState.Open
+                        && _subscribedSecurities.Count != 0
+                        && _subscribedSecurities.Count % 50 == 0)
+                    {
+                        // creating a new socket
+                        WebSocket newSocket = CreateNewPublicSocket();
+
+                        DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                        while (newSocket.ReadyState != WebSocketState.Open)
+                        {
+                            Thread.Sleep(1000);
+
+                            if (timeEnd < DateTime.Now)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (newSocket.ReadyState == WebSocketState.Open)
+                        {
+                            _webSocketPublic.Add(newSocket);
+                            webSocketPublic = newSocket;
+                        }
+                    }
+
+                    if (webSocketPublic != null)
+                    {
+                        webSocketPublic.SendAsync($"{{\"method\":\"subscribe\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},{20}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                        webSocketPublic.SendAsync($"{{\"method\":\"subscribe\",\"params\":[\"trade@{security.Name}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                    }
+
                 }
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
+            }
+
+            private void UnsubscribeFromAllWebSockets()
+            {
+                try
+                {
+                    if (_webSocketPublic.Count != 0
+                        && _webSocketPublic != null)
+                    {
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
+                        {
+                            WebSocket webSocketPublic = _webSocketPublic[i];
+
+                            try
+                            {
+                                if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                                {
+                                    if (_subscribedSecurities != null)
+                                    {
+                                        for (int j = 0; j < _subscribedSecurities.Count; j++)
+                                        {
+                                            string securityName = _subscribedSecurities[j];
+
+                                            webSocketPublic.SendAsync($"{{\"method\": \"unsubscribe\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                                            webSocketPublic.SendAsync($"{{\"method\": \"unsubscribe\", \"params\": [\"trade@{securityName}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                if (_webSocketPrivate != null
+                    && _webSocketPrivate.ReadyState == WebSocketState.Open)
+                {
+                    try
+                    {
+                        _webSocketPrivate.SendAsync($"{{\"method\":\"unsubscribe\",\"params\":[\"order\",\"balance\",\"trade\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
                 }
             }
 
@@ -1090,19 +1268,17 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 return false;
             }
 
-            public event Action<News> NewsEvent;
+            public event Action<News> NewsEvent { add { } remove { } }
 
             #endregion
 
             #region 10 WebSocket parsing the messages
 
-            private ConcurrentQueue<string> FIFOListWebSocketPublicMarketDepthsMessage = new ConcurrentQueue<string>();
+            private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
 
             private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
-            private ConcurrentQueue<string> FIFOListWebSocketPublicTradesMessage = new ConcurrentQueue<string>();
-
-            private void PublicMarketDepthsMessageReader()
+            private void PublicMessageReader()
             {
                 while (true)
                 {
@@ -1114,7 +1290,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
-                        if (FIFOListWebSocketPublicMarketDepthsMessage.IsEmpty)
+                        if (FIFOListWebSocketPublicMessage.IsEmpty)
                         {
                             Thread.Sleep(1);
                             continue;
@@ -1122,14 +1298,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                         string message;
 
-                        FIFOListWebSocketPublicMarketDepthsMessage.TryDequeue(out message);
+                        FIFOListWebSocketPublicMessage.TryDequeue(out message);
 
                         if (message == null)
-                        {
-                            continue;
-                        }
-
-                        if (message.Equals("pong", StringComparison.OrdinalIgnoreCase))
                         {
                             continue;
                         }
@@ -1147,46 +1318,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 SnapshotDepth(message);
                             }
                         }
-                    }
-                    catch (Exception exception)
-                    {
-                        Thread.Sleep(2000);
-                        SendLogMessage("PublicMarketDepthsMessageReader error: " + exception.ToString(), LogMessageType.Error);
-                    }
-                }
-            }
-
-            private void PublicTradesMessageReader()
-            {
-                while (true)
-                {
-                    try
-                    {
-                        if (ServerStatus != ServerConnectStatus.Connect)
-                        {
-                            Thread.Sleep(1000);
-                            continue;
-                        }
-
-                        if (FIFOListWebSocketPublicTradesMessage.IsEmpty)
-                        {
-                            Thread.Sleep(1);
-                            continue;
-                        }
-
-                        FIFOListWebSocketPublicTradesMessage.TryDequeue(out var message);
-
-                        if (message == null)
-                        {
-                            continue;
-                        }
-
-                        if (message.Equals("pong", StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
 
                         if (action != null && action.topic != null)
                         {
@@ -1199,7 +1330,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     catch (Exception exception)
                     {
                         Thread.Sleep(2000);
-                        SendLogMessage("PublicTradesMessageReader error: " + exception.ToString(), LogMessageType.Error);
+                        SendLogMessage("PublicMessageReader error: " + exception.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -1229,11 +1360,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
-                        if (message.Equals("pong"))
-                        {
-                            continue;
-                        }
-
                         ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
 
                         if (action == null || action.topic == null)
@@ -1245,9 +1371,16 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
+                        if (action.topic.Equals("trade"))
+                        {
+                            //UpdateMyTrade(message);
+                            continue;
+                        }
+
                         if (action.topic.Equals("balance"))
                         {
                             //UpdatePortfolio(message);
+                            continue;
                         }
                     }
                     catch (Exception exception)
@@ -1584,51 +1717,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            private void UpdateMyTrade(string json)
-            {
-                try
-                {
-                    ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseMyTrades>());
-
-                    for (int i = 0; i < responseMyTrades.result.items.Count; i++)
-                    {
-                        ResponseMyTrade responseT = responseMyTrades.result.items[i];
-
-                        MyTrade myTrade = new MyTrade();
-
-                        myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseT.time));
-                        myTrade.NumberOrderParent = responseT.orderId;
-                        myTrade.NumberTrade = responseT.tradeId;
-                        myTrade.Price = responseT.price.ToDecimal();
-                        myTrade.SecurityNameCode = responseT.symbol;
-                        myTrade.Side = responseT.orderSide.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
-
-                        string commissionSecName = responseT.feeCurrency;
-
-                        if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
-                        {
-                            myTrade.Volume = responseT.quantity.ToDecimal() - responseT.fee.ToDecimal();
-
-                            int decimalVolum = GetDecimalsVolume(myTrade.SecurityNameCode);
-                            if (decimalVolum > 0)
-                            {
-                                myTrade.Volume = Math.Floor(myTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
-                            }
-                        }
-                        else
-                        {
-                            myTrade.Volume = responseT.quantity.ToDecimal();
-                        }
-
-                        MyTradeEvent?.Invoke(myTrade);
-                    }
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("UpdateMyTrade error: " + exception.ToString(), LogMessageType.Error);
-                }
-            }
-
             private int GetDecimalsVolume(string security)
             {
                 for (int i = 0; i < _securities.Count; i++)
@@ -1780,6 +1868,16 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 return stateType;
             }
 
+            public List<Order> GetActiveOrders(int startIndex, int count)
+            {
+                return null;
+            }
+
+            public List<Order> GetHistoricalOrders(int startIndex, int count)
+            {
+                return null;
+            }
+
             public event Action<Order> MyOrderEvent;
 
             public event Action<MyTrade> MyTradeEvent;
@@ -1788,7 +1886,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public event Action<Trade> NewTradesEvent;
 
-            public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+            public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
+
+            public event Action<Funding> FundingUpdateEvent { add { } remove { } }
+
+            public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
             #endregion
 
@@ -1800,7 +1902,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public void SendOrder(Order order)
             {
-                // https://doc.xt.com/#orderorderPost
                 _rateGateSendOrder.WaitToProceed();
 
                 try
@@ -1840,10 +1941,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     string jsonRequest = JsonConvert.SerializeObject(data, dataSerializerSettings);
 
-                    HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/order", "POST", jsonRequest);
-                    string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+                    IRestResponse responseMessage = CreatePrivateQuery("/v4/order", Method.POST, jsonRequest);
 
-                    ResponseMessageRest<ResponsePlaceOrder> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<ResponsePlaceOrder>());
+                    ResponseMessageRest<ResponsePlaceOrder> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponsePlaceOrder>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -1896,9 +1996,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 try
                 {
-                    HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/open-order", "DELETE", null);
-                    string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<object>());
+                    IRestResponse responseMessage = CreatePrivateQuery("/v4/open-order", Method.DELETE, null);
+
+                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -1941,9 +2041,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     string jsonRequest = JsonConvert.SerializeObject(data);
 
-                    HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/open-order", "DELETE", jsonRequest);
-                    string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<object>());
+                    IRestResponse responseMessage = CreatePrivateQuery("/v4/open-order", Method.DELETE, jsonRequest);
+
+                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -1980,11 +2080,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 try
                 {
-                    HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/order/" + order.NumberMarket, "DELETE", "");
+                    IRestResponse responseMessage = CreatePrivateQuery("/v4/order/" + order.NumberMarket, Method.DELETE, "");
 
-                    string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-
-                    ResponseMessageRest<CancaledOrderResponse> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<CancaledOrderResponse>());
+                    ResponseMessageRest<CancaledOrderResponse> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<CancaledOrderResponse>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -2109,17 +2207,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     string url = "/v4/open-order";
                     string query = "bizType=SPOT";
 
-                    HttpResponseMessage res = CreatePrivateQuery(url, "GET", query);
-
-                    string contentStr = res.Content.ReadAsStringAsync().Result;
+                    IRestResponse res = CreatePrivateQuery(url, Method.GET, query);
 
                     if (res.StatusCode != HttpStatusCode.OK)
                     {
-                        SendLogMessage(contentStr, LogMessageType.Error);
+                        SendLogMessage(res.Content, LogMessageType.Error);
                         return null;
                     }
 
-                    ResponseMessageRest<List<OrderResponse>> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseMessageRest<List<OrderResponse>>());
+                    ResponseMessageRest<List<OrderResponse>> OrderResponse = JsonConvert.DeserializeAnonymousType(res.Content, new ResponseMessageRest<List<OrderResponse>>());
 
                     if (OrderResponse.rc != "0")
                     {
@@ -2159,7 +2255,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 try
                 {
-                    // GET /v4/order
                     string url = "/v4/order";
 
                     string numberUser = (order.NumberUser + 1000).ToString();
@@ -2168,17 +2263,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     query = string.IsNullOrEmpty(order.NumberMarket) ? $"clientOrderId={numberUser}" : $"orderId={order.NumberMarket}";
 
-                    HttpResponseMessage res = CreatePrivateQuery(url, "GET", query);
-
-                    string contentStr = res.Content.ReadAsStringAsync().Result;
+                    IRestResponse res = CreatePrivateQuery(url, Method.GET, query);
 
                     if (res.StatusCode != HttpStatusCode.OK)
                     {
-                        SendLogMessage(contentStr, LogMessageType.Error);
+                        SendLogMessage(res.Content, LogMessageType.Error);
                         return OrderStateType.None;
                     }
 
-                    ResponseMessageRest<OrderResponse> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseMessageRest<OrderResponse>());
+                    ResponseMessageRest<OrderResponse> OrderResponse = JsonConvert.DeserializeAnonymousType(res.Content, new ResponseMessageRest<OrderResponse>());
 
                     if (OrderResponse.rc != "0")
                     {
@@ -2214,19 +2307,113 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 return OrderStateType.None;
             }
 
+            private readonly RateGate _rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+            private void CreateQueryMyTrade(string nameSec, string OrdId, int serialStart)
+            {
+                _rateGateGetMyTradeState.WaitToProceed();
+
+                try
+                {
+                    string queryString = $"orderId={OrdId}";
+                    int startCount = serialStart;
+
+                    IRestResponse responseMessage = CreatePrivateQuery("/v4/trade", Method.GET, queryString);
+
+                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
+
+                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    {
+                        if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponseMyTrades>());
+
+                            if (responseMyTrades.result.items.Count == 0)
+                            {
+                                if (startCount >= 4)
+                                {
+                                    SendLogMessage($"Failed {startCount} attempts to receive trades for order #{OrdId}", LogMessageType.Error);
+                                    return;
+                                }
+
+                                Thread.Sleep(200 * startCount);
+                                startCount++;
+                                CreateQueryMyTrade(nameSec, OrdId, startCount);
+                            }
+
+                            UpdateMyTradeRest(responseMessage.Content);
+                        }
+                        else
+                        {
+                            SendLogMessage($"CreateQueryMyTrade error, Code: {stateResponse.rc}\n"
+                                + $"Message code: {stateResponse.mc}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"CreateQueryMyTrade> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                        if (stateResponse != null && stateResponse.rc != null)
+                        {
+                            SendLogMessage($"CreateQueryMyTrade error, Code: {stateResponse.rc}\n"
+                                + $"Message code: {stateResponse.mc}", LogMessageType.Error);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("CreateQueryMyTrade error: " + exception.ToString(), LogMessageType.Error);
+                }
+            }
+
+            private void UpdateMyTradeRest(string json)
+            {
+                try
+                {
+                    ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseMyTrades>());
+
+                    for (int i = 0; i < responseMyTrades.result.items.Count; i++)
+                    {
+                        ResponseMyTrade responseT = responseMyTrades.result.items[i];
+
+                        MyTrade myTrade = new MyTrade();
+
+                        myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseT.time));
+                        myTrade.NumberOrderParent = responseT.orderId;
+                        myTrade.NumberTrade = responseT.tradeId;
+                        myTrade.Price = responseT.price.ToDecimal();
+                        myTrade.SecurityNameCode = responseT.symbol;
+                        myTrade.Side = responseT.orderSide.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
+
+                        string commissionSecName = responseT.feeCurrency;
+
+                        if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
+                        {
+                            myTrade.Volume = responseT.quantity.ToDecimal() - responseT.fee.ToDecimal();
+
+                            int decimalVolum = GetDecimalsVolume(myTrade.SecurityNameCode);
+                            if (decimalVolum > 0)
+                            {
+                                myTrade.Volume = Math.Floor(myTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
+                            }
+                        }
+                        else
+                        {
+                            myTrade.Volume = responseT.quantity.ToDecimal();
+                        }
+
+                        MyTradeEvent?.Invoke(myTrade);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("UpdateMyTrade error: " + exception.ToString(), LogMessageType.Error);
+                }
+            }
+
             #endregion
 
             #region 12 Queries
-
-            private readonly string _baseUrl = "https://sapi.xt.com";
-
-            private readonly string _timeOut = "50000";
-
-            private readonly string _encry = "HmacSHA256";
-
-            HttpClient _httpPublicClient = new HttpClient();
-
-            private List<string> _subscribedSecurities = new List<string>();
 
             private readonly RateGate _rateGateGetToken = new RateGate(1, TimeSpan.FromMilliseconds(10000));
 
@@ -2238,9 +2425,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 try
                 {
-                    HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/ws-token", "POST", "");
-                    string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-                    ResponseMessageRest<ResponseToken> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<ResponseToken>());
+                    IRestResponse responseMessage = CreatePrivateQuery("/v4/ws-token", Method.POST, "");
+
+                    ResponseMessageRest<ResponseToken> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponseToken>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
@@ -2274,304 +2461,40 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 return listenKey;
             }
 
-            private void CreateSubscribedSecurityMessageWebSocket(Security security)
-            {
-                for (int i = 0; i < _subscribedSecurities.Count; i++)
-                {
-                    if (_subscribedSecurities[i].Equals(security.Name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return;
-                    }
-                }
-
-                lock (_socketLocker)
-                {
-                    _webSocketPublicMarketDepths.Send($"{{\"method\":\"subscribe\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},{20}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                    _webSocketPublicTrades.Send($"{{\"method\":\"subscribe\",\"params\":[\"trade@{security.Name}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                }
-            }
-
-            private readonly RateGate _rateGateGetPortfolio = new RateGate(1, TimeSpan.FromMilliseconds(100));
-
-            private void CreateQueryPortfolio(bool isUpdateValueBegin)
-            {
-                _rateGateGetPortfolio.WaitToProceed();
-
-                try
-                {
-                    HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/balances", "GET", null);
-
-                    string json = responseMessage.Content.ReadAsStringAsync().Result;
-
-                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
-
-                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
-                    {
-                        if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
-                        {
-                            UpdatePortfolioRest(json, isUpdateValueBegin);
-                        }
-                        else
-                        {
-                            SendLogMessage($"CreateQueryPortfolio error, Code: {stateResponse.rc}\n"
-                                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                        }
-                    }
-                    else
-                    {
-                        SendLogMessage($"CreateQueryPortfolio> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                        if (stateResponse != null && stateResponse.rc != null)
-                        {
-                            SendLogMessage($"CreateQueryPortfolio error, Code: {stateResponse.rc}\n"
-                                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                        }
-                    }
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("CreateQueryPortfolio error: " + exception.ToString(), LogMessageType.Error);
-                }
-            }
-
-            private void UpdatePortfolioRest(string json, bool isUpdateValueBegin)
-            {
-                try
-                {
-                    if (_portfolios == null)
-                    {
-                        return;
-                    }
-
-                    ResponseMessageRest<ResponseAssets> assets = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseAssets>());
-
-                    Portfolio portfolio = _portfolios[0];
-
-                    if (assets.result.totalUsdtAmount == "0")
-                    {
-                        portfolio.ValueBegin = 1;
-                        portfolio.ValueCurrent = 1;
-                    }
-                    else
-                    {
-                        if (isUpdateValueBegin)
-                        {
-                            portfolio.ValueBegin = Math.Round(assets.result.totalUsdtAmount.ToDecimal(), 5);
-                        }
-
-                        portfolio.ValueCurrent = Math.Round(assets.result.totalUsdtAmount.ToDecimal(), 5);
-                    }
-
-                    List<PositionOnBoard> alreadySendPositions = new List<PositionOnBoard>();
-
-                    for (int i = 0; i < assets.result.assets.Count; i++)
-                    {
-                        ResponseAsset item = assets.result.assets[i];
-
-                        PositionOnBoard pos = new PositionOnBoard
-                        {
-                            PortfolioName = "XTSpotPortfolio",
-                            SecurityNameCode = item.currency,
-                            ValueBlocked = item.frozenAmount.ToDecimal(),
-                            ValueCurrent = item.availableAmount.ToDecimal()
-                        };
-
-                        if (isUpdateValueBegin)
-                        {
-                            pos.ValueBegin = item.availableAmount.ToDecimal();
-                        }
-
-                        bool canSend = true;
-
-                        for (int j = 0; j < alreadySendPositions.Count; j++)
-                        {
-                            if (!alreadySendPositions[j].SecurityNameCode.Equals(pos.SecurityNameCode, StringComparison.OrdinalIgnoreCase)
-                                || pos.ValueCurrent != 0)
-                                continue;
-
-                            canSend = false;
-                            break;
-                        }
-
-                        if (!canSend)
-                        {
-                            continue;
-                        }
-
-                        portfolio.SetNewPosition(pos);
-                        alreadySendPositions.Add(pos);
-                    }
-
-                    PortfolioEvent(_portfolios);
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("UpdatePortfolioRest error: " + exception.ToString(), LogMessageType.Error);
-                }
-            }
-
-            private readonly RateGate _rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(100));
-
-            private void CreateQueryMyTrade(string nameSec, string OrdId, int serialStart)
-            {
-                _rateGateGetMyTradeState.WaitToProceed();
-
-                try
-                {
-                    string queryString = $"orderId={OrdId}";
-                    int startCount = serialStart;
-
-                    HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/trade", "GET", queryString);
-                    string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-
-                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<object>());
-
-                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
-                    {
-                        if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
-                        {
-                            ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<ResponseMyTrades>());
-
-                            if (responseMyTrades.result.items.Count == 0)
-                            {
-                                if (startCount >= 4)
-                                {
-                                    SendLogMessage($"Failed {startCount} attempts to receive trades for order #{OrdId}", LogMessageType.Error);
-                                    return;
-                                }
-
-                                Thread.Sleep(200 * startCount);
-                                startCount++;
-                                CreateQueryMyTrade(nameSec, OrdId, startCount);
-                            }
-
-                            UpdateMyTrade(jsonResponse);
-                        }
-                        else
-                        {
-                            SendLogMessage($"CreateQueryMyTrade error, Code: {stateResponse.rc}\n"
-                                + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                        }
-                    }
-                    else
-                    {
-                        SendLogMessage($"CreateQueryMyTrade> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                        if (stateResponse != null && stateResponse.rc != null)
-                        {
-                            SendLogMessage($"CreateQueryMyTrade error, Code: {stateResponse.rc}\n"
-                                + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                        }
-                    }
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("CreateQueryMyTrade error: " + exception.ToString(), LogMessageType.Error);
-                }
-            }
-
-            private readonly RateGate _rateGateCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(100));
-
-            private List<Candle> CreateQueryCandles(string nameSec, string stringInterval, DateTime timeFrom, DateTime timeTo)
-            {
-                _rateGateCandleHistory.WaitToProceed();
-
-                try
-                {
-                    string startTime = TimeManager.GetTimeStampMilliSecondsToDateTime(timeFrom).ToString();
-                    string endTime = TimeManager.GetTimeStampMilliSecondsToDateTime(timeTo).ToString();
-                    string limit = "1000";
-
-                    string uriCandles = "/v4/public/kline?symbol=" + nameSec + "&interval=" + stringInterval
-                                 + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=" + limit;
-
-                    HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + uriCandles).Result;
-                    string content = responseMessage.Content.ReadAsStringAsync().Result;
-
-                    if (responseMessage.StatusCode == HttpStatusCode.OK)
-                    {
-                        ResponseMessageRest<List<ResponseCandle>> symbols = JsonConvert.DeserializeAnonymousType(content, new ResponseMessageRest<List<ResponseCandle>>());
-
-                        if (symbols.rc.Equals("0") && symbols.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
-                        {
-                            List<Candle> candles = new List<Candle>();
-
-                            for (int i = 0; i < symbols.result.Count; i++)
-                            {
-                                ResponseCandle item = symbols.result[i];
-
-                                Candle newCandle = new Candle();
-
-                                newCandle.Open = item.o.ToDecimal();
-                                newCandle.Close = item.c.ToDecimal();
-                                newCandle.High = item.h.ToDecimal();
-                                newCandle.Low = item.l.ToDecimal();
-                                newCandle.Volume = item.v.ToDecimal();
-                                newCandle.State = CandleState.Finished;
-                                newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.t));
-                                candles.Add(newCandle);
-                            }
-
-                            return candles;
-                        }
-
-                        SendLogMessage($"CreateQueryCandles error, Code: {symbols.rc}\n"
-                                       + $"Message code: {symbols.mc}", LogMessageType.Error);
-                        return null;
-                    }
-
-                    SendLogMessage($"CreateQueryCandles error, State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("CreateQueryCandles error: " + exception.ToString(), LogMessageType.Error);
-                }
-                return null;
-            }
-
-            private HttpResponseMessage CreatePrivateQuery(string path, string method, string queryString)
+            private IRestResponse CreatePrivateQuery(string path, Method method, string queryString)
             {
                 try
                 {
                     string requestPath = path;
-                    string url = $"{_baseUrl}{requestPath}";
                     string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 
-                    string signature = GetHMACSHA256(queryString, timestamp, method, requestPath);
+                    string signature = GetHMACSHA256(queryString, timestamp, method.ToString(), requestPath);
 
-                    HttpClient httpClient = new HttpClient();
+                    RestClient client = new RestClient(_baseUrl);
+                    RestRequest request = new RestRequest(requestPath, method);
 
-                    httpClient.DefaultRequestHeaders.Add("validate-algorithms", _encry);
-                    httpClient.DefaultRequestHeaders.Add("validate-appkey", _publicKey);
-                    httpClient.DefaultRequestHeaders.Add("validate-recvwindow", _timeOut);
-                    httpClient.DefaultRequestHeaders.Add("validate-timestamp", timestamp);
-                    httpClient.DefaultRequestHeaders.Add("validate-signature", signature);
+                    request.AddHeader("validate-algorithms", _encry);
+                    request.AddHeader("validate-appkey", _publicKey);
+                    request.AddHeader("validate-recvwindow", _timeOut);
+                    request.AddHeader("validate-timestamp", timestamp);
+                    request.AddHeader("validate-signature", signature);
 
-                    if (method.Equals("POST"))
+                    if (method == Method.POST || method == Method.DELETE)
                     {
-                        return httpClient.PostAsync(url, new StringContent(queryString, Encoding.UTF8, "application/json")).Result;
+                        if (!string.IsNullOrEmpty(queryString))
+                            request.AddParameter("application/json", queryString, ParameterType.RequestBody);
                     }
-
-                    if (method.Equals("DELETE"))
+                    else if (method == Method.GET)
                     {
-                        HttpRequestMessage request = new HttpRequestMessage
+                        if (!string.IsNullOrEmpty(queryString))
                         {
-                            Method = HttpMethod.Delete,
-                            RequestUri = new Uri(url),
-                            Content = queryString != null ? new StringContent(queryString, Encoding.UTF8, "application/json") : null
-                        };
-
-                        return httpClient.SendAsync(request).Result;
+                            request.Resource = $"{request.Resource}?{queryString}";
+                        }
                     }
 
-                    string param = string.Empty;
+                    IRestResponse response = client.Execute(request);
 
-                    if (!string.IsNullOrEmpty(queryString))
-                    {
-                        param = "?" + queryString;
-                    }
-
-                    return httpClient.GetAsync(url + param).Result;
+                    return response;
                 }
                 catch (Exception exception)
                 {
@@ -2613,10 +2536,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             }
 
             public event Action<string, LogMessageType> LogMessageEvent;
-
-            public event Action<Funding> FundingUpdateEvent;
-
-            public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
             #endregion
         }

@@ -95,7 +95,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     }
                 }
             }
-            catch (Exception exception)
+            catch
             {
                 SendLogMessage("Can`t run Binance Spot connector. No internet connection", LogMessageType.Error);
                 return;
@@ -1284,7 +1284,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 client.OnOpen += Client_Opened;
                 client.OnError += Client_Error;
                 client.OnClose += Client_Closed;
-                client.Connect();
+                client.Connect().Wait();
 
                 return client;
             }
@@ -1508,7 +1508,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             _wsClient.OnMessage += _publicSocketClient_RessageReceived;
             _wsClient.OnError += Client_Error;
             _wsClient.OnClose += Client_Closed;
-            _wsClient.Connect();
+            _wsClient.Connect().Wait();
 
             _wsStreamsSecurityData.Add(security.Name, _wsClient);
         }
@@ -1518,7 +1518,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -2141,9 +2141,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
@@ -2761,6 +2761,16 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
 
             return openOrders;
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
         }
 
         #endregion

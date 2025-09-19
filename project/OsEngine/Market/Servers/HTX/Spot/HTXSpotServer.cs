@@ -185,7 +185,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private Signer _signer;
 
-        private string _allCandleSeries;
+        //private string _allCandleSeries;
 
         private bool _extendedMarketData;
 
@@ -838,7 +838,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 webSocketPublicNew.OnMessage += webSocketPublic_OnMessage;
                 webSocketPublicNew.OnError += webSocketPublic_OnError;
                 webSocketPublicNew.OnClose += webSocketPublic_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -863,7 +863,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += webSocketPrivate_OnError;
                 _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
 
             }
             catch (Exception exception)
@@ -1153,7 +1153,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             try
             {
                 string authRequest = BuildSign(DateTime.UtcNow);
-                _webSocketPrivate.Send(authRequest);
+                _webSocketPrivate.SendAsync(authRequest);
 
                 SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
                 CheckActivationSockets();
@@ -1203,7 +1203,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                         {
                             // Supports two-way heartbeat
                             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                            webSocketPublic.Send($"{{\"ping\": \"{timestamp}\"}}");
+                            webSocketPublic.SendAsync($"{{\"ping\": \"{timestamp}\"}}");
                         }
                         else
                         {
@@ -1300,15 +1300,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
             if (webSocketPublic != null)
             {
                 string topic = $"market.{security.Name}.mbp.refresh.20";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
                 topic = $"market.{security.Name}.trade.detail";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
                 if (_extendedMarketData)
                 {
                     topic = $"market.{security.Name}.ticker";
-                    webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                    webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
                 }
             }
         }
@@ -1317,8 +1317,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             string chOrders = "orders#*";
             string chTrades = "trade.clearing#*#0";
-            _webSocketPrivate.Send($"{{\"action\": \"sub\",\"ch\": \"{chOrders}\"}}");
-            _webSocketPrivate.Send($"{{\"action\": \"sub\",\"ch\": \"{chTrades}\"}}");
+            _webSocketPrivate.SendAsync($"{{\"action\": \"sub\",\"ch\": \"{chOrders}\"}}");
+            _webSocketPrivate.SendAsync($"{{\"action\": \"sub\",\"ch\": \"{chTrades}\"}}");
         }
 
         private void CreatePingMessageWebSocketPublic(string message)
@@ -1340,7 +1340,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                         if (webSocketPublic != null
                         && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send($"{{\"pong\": \"{response.ping}\"}}");
+                            webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
                         }
                     }
                     catch (Exception ex)
@@ -1361,7 +1361,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
             else
             {
-                _webSocketPrivate.Send($"{{ \"action\": \"pong\", \"data\": {{ \"ts\": {response.data.ts} }} }}");
+                _webSocketPrivate.SendAsync($"{{ \"action\": \"pong\", \"data\": {{ \"ts\": {response.data.ts} }} }}");
             }
         }
 
@@ -1385,15 +1385,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
                                     string securityName = _subscribedSecurities[j];
 
                                     string topic = $"market.{securityName}.mbp.refresh.20";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
 
                                     topic = $"market.{securityName}.trade.detail";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
 
                                     if (_extendedMarketData)
                                     {
                                         topic = $"market.{securityName}.ticker";
-                                        webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                        webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
                                     }
                                 }
                             }
@@ -1413,8 +1413,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     string chOrders = "orders#*";
                     string chTrades = "trade.clearing#*#0";
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{chOrders}\"}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{chTrades}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{chOrders}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{chTrades}\"}}");
                 }
                 catch
                 {
@@ -1767,14 +1767,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             try
             {
-                ResponseChannelUpdateMyTrade response = JsonConvert.DeserializeObject<ResponseChannelUpdateMyTrade>(message);
+                ResponseMyTrade response = JsonConvert.DeserializeObject<ResponseMyTrade>(message);
 
                 if (response.code != null)
                 {
                     return;
                 }
 
-                ResponseChannelUpdateMyTrade.Data item = response.data;
+                MyTradeData item = response.data;
 
                 MyTrade myTrade = new MyTrade();
 
@@ -1881,13 +1881,18 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     newOrder.ServerType = ServerType.HTXSpot;
                     newOrder.SecurityNameCode = item.symbol;
 
-                    try
+                    if (item.clientOrderId != null)
                     {
-                        newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
-                    }
-                    catch
-                    {
-                        // ignore
+                        try
+                        {
+                            string numberFull = item.clientOrderId;
+                            string numUser = numberFull.Replace("AAe2ccbd47", "");
+                            newOrder.NumberUser = Convert.ToInt32(numUser);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
                     }
 
                     newOrder.NumberMarket = item.orderId.ToString();
@@ -1973,11 +1978,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
@@ -2023,7 +2028,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
 
                 jsonContent.Add("source", source_portfolio);
-                jsonContent.Add("client-order-id", order.NumberUser.ToString());
+                jsonContent.Add("client-order-id", "AAe2ccbd47" + order.NumberUser.ToString());
 
                 string url = _privateUriBuilder.Build("POST", $"/v1/order/orders/place");
 
@@ -2208,7 +2213,21 @@ namespace OsEngine.Market.Servers.HTX.Spot
                                 newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
                                 newOrder.ServerType = ServerType.HTXSpot;
                                 newOrder.SecurityNameCode = item[i].symbol;
-                                newOrder.NumberUser = Convert.ToInt32(item[i].client_order_id);
+
+                                if (item[i].client_order_id != null)
+                                {
+                                    try
+                                    {
+                                        string numberFull = item[i].client_order_id;
+                                        string numUser = numberFull.Replace("AAe2ccbd47", "");
+                                        newOrder.NumberUser = Convert.ToInt32(numUser);
+                                    }
+                                    catch
+                                    {
+                                        // ignore
+                                    }
+                                }
+
                                 newOrder.NumberMarket = item[i].id.ToString();
                                 newOrder.State = GetOrderState(item[i].state);
                                 newOrder.Volume = item[i].amount.ToDecimal();
@@ -2369,7 +2388,21 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
                     newOrder.ServerType = ServerType.HTXSpot;
                     newOrder.SecurityNameCode = item.symbol;
-                    newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+
+                    if (item.client_order_id != null)
+                    {
+                        try
+                        {
+                            string numberFull = item.client_order_id;
+                            string numUser = numberFull.Replace("AAe2ccbd47", "");
+                            newOrder.NumberUser = Convert.ToInt32(numUser);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+
                     newOrder.NumberMarket = item.id.ToString();
                     newOrder.State = GetOrderState(item.state);
                     newOrder.Volume = item.amount.ToDecimal();
@@ -2482,6 +2515,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
             {
                 SendLogMessage("GetMyTradesBySecurity request error." + exception.ToString(), LogMessageType.Error);
             }
+            return null;
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
             return null;
         }
 

@@ -723,9 +723,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-
+                // ignore
             }
         }
 

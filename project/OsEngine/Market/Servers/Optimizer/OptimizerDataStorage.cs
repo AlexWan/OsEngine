@@ -183,10 +183,19 @@ namespace OsEngine.Market.Servers.Optimizer
 
             for (int i = 0; i < folders.Length; i++)
             {
-                if (folders[i].Split('_').Length == 2)
+                string pathCurrent = folders[i];
+
+                if (pathCurrent.Contains("Set_") == false)
                 {
-                    sets.Add(folders[i].Split('_')[1]);
-                    SendLogMessage(OsLocalization.Market.Message26 + folders[i].Split('_')[1], LogMessageType.System);
+                    continue;
+                }
+
+                if (pathCurrent.Split('_').Length == 2)
+                {
+                    string setName = pathCurrent.Split('_')[1];
+
+                    sets.Add(setName);
+                    SendLogMessage(OsLocalization.Market.Label244 + ": " + setName, LogMessageType.System);
                 }
             }
 
@@ -194,6 +203,7 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 SendLogMessage(OsLocalization.Market.Message25, LogMessageType.System);
             }
+
             Sets = sets;
         }
 

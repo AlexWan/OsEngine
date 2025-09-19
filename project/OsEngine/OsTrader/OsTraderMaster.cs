@@ -679,7 +679,7 @@ namespace OsEngine.OsTrader
 
             try
             {
-                StopBotsWhoTradeSecurity(secName, server);
+                //StopBotsWhoTradeSecurity(secName, server);
                 CancelOrdersWithSecurity(secName, server);
                 DeleteOpenPositionsWithSecurity(secName, server);
                 ClosePositionOnBoardWithFakePoses(secName, server, fullName);

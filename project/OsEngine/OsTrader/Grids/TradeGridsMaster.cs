@@ -357,7 +357,7 @@ namespace OsEngine.OsTrader.Grids
             column2.CellTemplate = cell0;
             column2.HeaderText = OsLocalization.Trader.Label467;
             column2.ReadOnly = true;
-            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             _gridViewInstances.Columns.Add(column2);
 
@@ -365,14 +365,14 @@ namespace OsEngine.OsTrader.Grids
             column3.CellTemplate = cell0;
             column3.HeaderText = OsLocalization.Trader.Label468;
             column3.ReadOnly = true;
-            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridViewInstances.Columns.Add(column3);
 
             DataGridViewColumn column4 = new DataGridViewColumn();
             column4.CellTemplate = cell0;
             //column4.HeaderText = "Settings";
             column4.ReadOnly = true;
-            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _gridViewInstances.Columns.Add(column4);
 
             DataGridViewColumn column5 = new DataGridViewColumn();

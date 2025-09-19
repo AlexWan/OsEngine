@@ -38,7 +38,7 @@ namespace OsEngine.Indicators
             {
                 _volatilityStagesRegime = CreateParameterStringCollection(
                     "Volatility stages regime",
-                    "2",
+                    "3",
                     new List<string> { "2", "3", "4" });
 
                 _typeVolatilityPeriod = CreateParameterStringCollection(

@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace OsEngine.Market.Servers.Alor
 {
@@ -786,7 +787,7 @@ namespace OsEngine.Market.Servers.Alor
             {
                 CandlesHistoryAlor history = GetHistoryCandle(security, timeFrameBuilder, startTime, endTimeReal);
 
-                List<Candle> newCandles = ConvertToOsEngineCandles(history);
+                List<Candle> newCandles = ConvertToOsEngineCandles(history, timeFrameBuilder.TimeFrameTimeSpan.Days != 1);
 
                 if(newCandles != null &&
                     newCandles.Count > 0)
@@ -879,7 +880,7 @@ namespace OsEngine.Market.Servers.Alor
             return null;
         }
 
-        private List<Candle> ConvertToOsEngineCandles(CandlesHistoryAlor candles)
+        private List<Candle> ConvertToOsEngineCandles(CandlesHistoryAlor candles, bool applyOffsetToMsk = true)
         {
             List<Candle> result = new List<Candle>();
 
@@ -905,7 +906,7 @@ namespace OsEngine.Market.Servers.Alor
                 newCandle.Low = curCandle.low.ToDecimal();
                 newCandle.Close = curCandle.close.ToDecimal();
                 newCandle.Volume = curCandle.volume.ToDecimal();
-                newCandle.TimeStart = ConvertToDateTimeFromUnixFromSeconds(curCandle.time);
+                newCandle.TimeStart = ConvertToDateTimeFromUnixFromSeconds(curCandle.time, applyOffsetToMsk);
 
                 result.Add(newCandle);
             }
@@ -943,7 +944,7 @@ namespace OsEngine.Market.Servers.Alor
         {
             return null; // так как указано, что данные не поддерживаются
 
-            List<Trade> trades = new List<Trade>();
+           /* List<Trade> trades = new List<Trade>();
 
             TimeSpan additionTime = TimeSpan.FromMinutes(1440);
 
@@ -970,7 +971,7 @@ namespace OsEngine.Market.Servers.Alor
                 }
             }
 
-            return trades;
+            return trades;*/
         }
 
         private TradesHistoryAlor GetHistoryTrades(Security security, DateTime startTime, DateTime endTime)
@@ -1100,7 +1101,7 @@ namespace OsEngine.Market.Servers.Alor
                         _webSocketData.SetProxy(_myProxy);
                     }
 
-                    _webSocketData.Connect();
+                    _webSocketData.Connect().Wait();
 
                     _webSocketPortfolio = new WebSocket(_wsHost);
                     _webSocketPortfolio.EmitOnPing = true;
@@ -1114,7 +1115,7 @@ namespace OsEngine.Market.Servers.Alor
                         _webSocketPortfolio.SetProxy(_myProxy);
                     }
 
-                    _webSocketPortfolio.Connect();
+                    _webSocketPortfolio.Connect().Wait();
 
                 }
 
@@ -1254,7 +1255,7 @@ namespace OsEngine.Market.Servers.Alor
             myTradesSub.Guid = subObjTrades.guid;
 
             _subscriptionsPortfolio.Add(myTradesSub);
-            _webSocketPortfolio.Send(messageTradeSub);
+            _webSocketPortfolio.SendAsync(messageTradeSub);
 
             Thread.Sleep(1000);
 
@@ -1278,7 +1279,7 @@ namespace OsEngine.Market.Servers.Alor
             ordersSub.ServiceInfo = portfolioName;
 
             _subscriptionsPortfolio.Add(ordersSub);
-            _webSocketPortfolio.Send(messageOrderSub);
+            _webSocketPortfolio.SendAsync(messageOrderSub);
 
             Thread.Sleep(1000);
 
@@ -1302,7 +1303,7 @@ namespace OsEngine.Market.Servers.Alor
             portfSub.Guid = subObjPortf.guid;
 
             _subscriptionsPortfolio.Add(portfSub);
-            _webSocketPortfolio.Send(messagePortfolioSub);
+            _webSocketPortfolio.SendAsync(messagePortfolioSub);
 
             Thread.Sleep(1000);
 
@@ -1326,7 +1327,7 @@ namespace OsEngine.Market.Servers.Alor
             positionsSub.Guid = subObjPositions.guid;
 
             _subscriptionsPortfolio.Add(positionsSub);
-            _webSocketPortfolio.Send(messagePositionsSub);
+            _webSocketPortfolio.SendAsync(messagePositionsSub);
         }
 
         #endregion
@@ -1570,7 +1571,7 @@ namespace OsEngine.Market.Servers.Alor
                 tradeSub.Guid = subObjTrades.guid;
                 _subscriptionsData.Add(tradeSub);
 
-                _webSocketData.Send(messageTradeSub);
+                _webSocketData.SendAsync(messageTradeSub);
 
                 // market depth subscription
 
@@ -1597,7 +1598,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 string messageMdSub = JsonConvert.SerializeObject(subObjMarketDepth);
 
-                _webSocketData.Send(messageMdSub);
+                _webSocketData.SendAsync(messageMdSub);
             }
             catch (Exception exception)
             {
@@ -1641,7 +1642,7 @@ namespace OsEngine.Market.Servers.Alor
 
                     if (_webSocketData != null)
                     {
-                        _webSocketData.Send(message);
+                        _webSocketData.SendAsync(message);
                     }
 
                     _subscriptionsData.Remove(sub);
@@ -1658,9 +1659,9 @@ namespace OsEngine.Market.Servers.Alor
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -1971,16 +1972,19 @@ namespace OsEngine.Market.Servers.Alor
                 MyTradeEvent(trade);
             }
 
-            if (_spreadOrders.Count > 0)
+            lock(_spreadOrdersLocker)
             {
-                _spreadMyTrades.Add(trade);
-
-                for (int i = 0; i < _spreadOrders.Count; i++)
+                if (_spreadOrders.Count > 0)
                 {
-                    if(TryGenerateFakeMyTradeToOrderBySpread(_spreadOrders[i]))
+                    _spreadMyTrades.Add(trade);
+
+                    for (int i = 0; i < _spreadOrders.Count; i++)
                     {
-                        _spreadOrders.RemoveAt(i);
-                        break;
+                        if (TryGenerateFakeMyTradeToOrderBySpread(_spreadOrders[i]))
+                        {
+                            _spreadOrders.RemoveAt(i);
+                            break;
+                        }
                     }
                 }
             }
@@ -2056,40 +2060,43 @@ namespace OsEngine.Market.Servers.Alor
                 MyOrderEvent(order);
             }
 
-            if(order.State == OrderStateType.Done)
+            lock(_spreadOrdersLocker)
             {
-                // Проверяем, является ли бумага спредом
-
-                for (int i = 0; i < _spreadOrders.Count; i++)
+                if (order.State == OrderStateType.Done)
                 {
-                    if (_spreadOrders[i].NumberUser == order.NumberUser 
-                        && _spreadOrders[i].NumberMarket == "")
+                    // Проверяем, является ли бумага спредом
+
+                    for (int i = 0; i < _spreadOrders.Count; i++)
                     {
-                        _spreadOrders[i].NumberMarket = order.NumberMarket;
+                        if (_spreadOrders[i].NumberUser == order.NumberUser
+                            && _spreadOrders[i].NumberMarket == "")
+                        {
+                            _spreadOrders[i].NumberMarket = order.NumberMarket;
+                        }
+                    }
+
+                    for (int i = 0; i < _spreadOrders.Count; i++)
+                    {
+                        if (_spreadOrders[i].SecurityNameCode == order.SecurityNameCode)
+                        {
+                            if (TryGenerateFakeMyTradeToOrderBySpread(order))
+                            {
+                                _spreadOrders.RemoveAt(i);
+                                break;
+                            }
+                        }
                     }
                 }
-
-                for (int i = 0; i < _spreadOrders.Count; i++)
+                else if (order.State == OrderStateType.Cancel
+                        || order.State == OrderStateType.Fail)
                 {
-                    if (_spreadOrders[i].SecurityNameCode == order.SecurityNameCode)
+                    for (int i = 0; i < _spreadOrders.Count; i++)
                     {
-                        if(TryGenerateFakeMyTradeToOrderBySpread(order))
+                        if (_spreadOrders[i].NumberUser == order.NumberUser)
                         {
                             _spreadOrders.RemoveAt(i);
                             break;
                         }
-                    }
-                }
-            }
-            else if(order.State == OrderStateType.Cancel
-                    || order.State == OrderStateType.Fail)
-            {
-                for (int i = 0; i < _spreadOrders.Count; i++)
-                {
-                    if (_spreadOrders[i].NumberUser == order.NumberUser)
-                    {
-                        _spreadOrders.RemoveAt(i);
-                        break;
                     }
                 }
             }
@@ -2324,11 +2331,11 @@ namespace OsEngine.Market.Servers.Alor
 
         #region 11 Trade
 
-        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(10));
 
-        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(10));
 
-        private RateGate _rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(10));
 
         private List<AlorSecuritiesAndPortfolios> _securitiesAndPortfolios = new List<AlorSecuritiesAndPortfolios>();
 
@@ -2337,17 +2344,21 @@ namespace OsEngine.Market.Servers.Alor
         private string _sendOrdersArrayLocker = "alorSendOrdersArrayLocker";
 
         private List<Order> _spreadOrders = new List<Order>();
+        private string _spreadOrdersLocker = "_spreadOrdersLocker";
 
         public void SendOrder(Order order)
         {
-            _rateGateSendOrder.WaitToProceed();
+            //_rateGateSendOrder.WaitToProceed();
 
             try
             {
                 if (order.SecurityClassCode == "Futures spread")
                 { // календарный спред
                   // сохраняем бумагу для дальнейшего использования
-                    _spreadOrders.Add(order);
+                    lock (_spreadOrdersLocker)
+                    {
+                        _spreadOrders.Add(order);
+                    }
                 }
 
                 if (order.TypeOrder == OrderPriceType.Market)
@@ -2588,36 +2599,55 @@ namespace OsEngine.Market.Servers.Alor
         }
 
         List<string> _cancelOrderNums = new List<string>();
+        private string _cancelOrderNumsLocker = "_cancelOrderNumsLocker";
 
         public bool CancelOrder(Order order)
         {
-            _rateGateCancelOrder.WaitToProceed();
+            //_rateGateCancelOrder.WaitToProceed();
 
             //curl -X DELETE "/commandapi/warptrans/TRADE/v2/client/orders/93713183?portfolio=D39004&exchange=MOEX&stop=false&format=Simple" -H "accept: application/json"
 
             try
             {
+                if(order.NumberMarket == null)
+                {
+                    return false;
+                }
+
                 int countTryRevokeOrder = 0;
 
-                for(int i = 0; i< _cancelOrderNums.Count;i++)
+                lock (_cancelOrderNumsLocker)
                 {
-                    if (_cancelOrderNums[i].Equals(order.NumberMarket))
+                    for (int i = 0; i < _cancelOrderNums.Count; i++)
                     {
-                        countTryRevokeOrder++;
+                        if(_cancelOrderNums[i] == null)
+                        {
+                            continue;
+                        }
+                        if (_cancelOrderNums[i].Equals(order.NumberMarket))
+                        {
+                            countTryRevokeOrder++;
+                        }
                     }
                 }
 
-                if(countTryRevokeOrder >= 2)
+                if(countTryRevokeOrder >= 5)
                 {
                     SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityClassCode, LogMessageType.Error);
                     return false;
                 }
 
-                _cancelOrderNums.Add(order.NumberMarket);
-
-                while(_cancelOrderNums.Count > 100)
+                lock (_cancelOrderNumsLocker)
                 {
-                    _cancelOrderNums.RemoveAt(0);
+                    if (order.NumberMarket != null)
+                    {
+                        _cancelOrderNums.Add(order.NumberMarket);
+                    }
+
+                    while (_cancelOrderNums.Count > 1000)
+                    {
+                        _cancelOrderNums.RemoveAt(0);
+                    }
                 }
 
                 string portfolio = order.PortfolioNumber.Split('_')[0];
@@ -3043,6 +3073,16 @@ namespace OsEngine.Market.Servers.Alor
             return null;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 12 Helpers
@@ -3054,10 +3094,13 @@ namespace OsEngine.Market.Servers.Alor
             return Convert.ToInt64(diff.TotalSeconds);
         }
 
-        private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds)
+        private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds, bool applyOffsetToMsk = true)
         {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            DateTime result = origin.AddSeconds(seconds.ToDouble()).AddHours(3); // force to Moscow time zone gmt+3
+            DateTime result = origin.AddSeconds(seconds.ToDouble());
+
+            if (applyOffsetToMsk)
+                result = result.AddHours(3);
 
             return result;
         }
@@ -3118,9 +3161,9 @@ namespace OsEngine.Market.Servers.Alor
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

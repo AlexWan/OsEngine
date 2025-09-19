@@ -1,20 +1,23 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Entity.Utils;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.QuikLua.Entity;
 using QuikSharp;
 using QuikSharp.DataStructures;
 using QuikSharp.DataStructures.Transaction;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading;
 using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
 using Trade = OsEngine.Entity.Trade;
@@ -77,20 +80,33 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             ServerStatus = ServerConnectStatus.Disconnect;
 
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            Trace.Listeners.Add(new CustomTraceListener());
+
+            CustomTraceListener.OnTraceMessageReceived += message =>
+            {
+                if (message.Contains("ThrowOperationCanceledException") || message.Contains("TaskCanceledException"))
+                {
+                    return;
+                }
+                SendLogMessage($"Ошибка в QuikSharp: {message}", LogMessageType.Error);
+            };
+
             Thread worker1 = new Thread(UpdateSpotPosition);
-            worker1.CurrentCulture = new CultureInfo("ru-RU");
+            worker1.CurrentCulture = new CultureInfo("ru-Ru");
             worker1.Start();
 
             Thread worker2 = new Thread(GetPortfoliosArea);
-            worker2.CurrentCulture = new CultureInfo("ru-RU");
+            worker2.CurrentCulture = new CultureInfo("ru-Ru");
             worker2.Start();
 
             Thread worker3 = new Thread(ThreadTradesParsingWorkPlace);
-            worker3.CurrentCulture = new CultureInfo("ru-RU");
+            worker3.CurrentCulture = new CultureInfo("ru-Ru");
             worker3.Start();
 
             Thread worker4 = new Thread(ThreadMarketDepthsParsingWorkPlace);
-            worker4.CurrentCulture = new CultureInfo("ru-RU");
+            worker4.CurrentCulture = new CultureInfo("ru-Ru");
             worker4.Start();
 
             Thread worker5 = new Thread(ThreadDataParsingWorkPlace);
@@ -99,7 +115,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Connect(WebProxy proxy)
         {
             try
@@ -119,6 +134,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     QuikLua.Events.OnDisconnected += EventsOnOnDisconnected;
                     QuikLua.Events.OnConnectedToQuik += EventsOnOnConnectedToQuik;
                     QuikLua.Events.OnDisconnectedFromQuik += EventsOnOnDisconnectedFromQuik;
+                    QuikLua.Events.OnClose += Events_OnClose;
                     QuikLua.Events.OnTrade += EventsOnOnTrade;
                     QuikLua.Events.OnOrder += EventsOnOnOrder;
                     QuikLua.Events.OnQuote += EventsOnOnQuote;
@@ -153,7 +169,8 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+
+
         public void Dispose()
         {
             try
@@ -296,7 +313,7 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -304,7 +321,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<Security> _securities = new List<Security>();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void GetSecurities()
         {
             try
@@ -328,7 +344,6 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private List<Security> LoadSecuritiesFromCache()
         {
             try
@@ -347,7 +362,6 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private List<Security> LoadSecuritiesFromQuik()
         {
             try
@@ -403,7 +417,6 @@ namespace OsEngine.Market.Servers.QuikLua
             return new List<Security>();
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void SaveToCache(List<Security> list)
         {
             if (list == null)
@@ -554,7 +567,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         public void GetPortfolios() { }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void GetPortfoliosArea()
         {
             while (true)
@@ -577,7 +589,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         Thread.Sleep(100);
                         continue;
                     }
-                    
+
                     Char separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
                     if (_portfolios == null)
                     {
@@ -585,6 +597,11 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
 
                     List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
+
+                    if (accaunts == null)
+                    {
+                        continue;
+                    }
 
                     for (int i = 0; i < accaunts.Count; i++)
                     {
@@ -669,7 +686,6 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void UpdateSpotPosition()
         {
             while (true)
@@ -689,6 +705,9 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
 
                     List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
+
+                    if (spotPos == null) continue;
+
                     Portfolio needPortf;
                     for (int i = 0; i < spotPos.Count; i++)
                     {
@@ -738,7 +757,6 @@ namespace OsEngine.Market.Servers.QuikLua
             return null;
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
@@ -748,6 +766,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 //скачаем новые данные из квика. (доступна только текущая сессия. с 19.00 вчерашнего по 18.45 текущего дня)	
                 List<Trade> newTrades = GetQuikLuaTickHistory(security);
+
+                if (newTrades == null) { return null; }
 
                 //сохраним новые данные	
                 if (!Directory.Exists(@"Data\Temp\"))
@@ -763,6 +783,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     writer.WriteLine(newTrades[i].GetSaveString());
                 }
+
                 writer.Close();
 
                 // объединим со старыми данными, если они есть	
@@ -811,7 +832,6 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         /// <param name="security"> short security name/короткое название бумаги</param>
         /// <returns>failure will return null/в случае неудачи вернётся null</returns>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Trade> GetQuikLuaTickHistory(Security security)
         {
             try
@@ -826,6 +846,8 @@ namespace OsEngine.Market.Servers.QuikLua
                     string classCode = needSec.NameClass;
 
                     List<QuikSharp.DataStructures.Candle> allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('+')[0], CandleInterval.TICK).Result;
+
+                    if (allCandlesForSec == null) { return null; }
 
                     for (int i = 0; i < allCandlesForSec.Count; i++)
                     {
@@ -896,10 +918,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                         List<QuikSharp.DataStructures.Candle> allCandlesForSec = QuikLua.Candles.GetLastCandles(classCode, needSec.Name.Split('+')[0], candleInterval, candleCount).Result;
 
-                        if (allCandlesForSec == null)
-                        {
-                            return null;
-                        }
+                        if (allCandlesForSec == null) { return null; }
 
                         for (int i = 0; i < allCandlesForSec.Count; i++)
                         {
@@ -939,7 +958,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
             catch (Exception error)
             {
-                //SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage(error.ToString(), LogMessageType.Error);
                 return null;
             }
         }
@@ -950,12 +969,16 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<string> subscribedBook = new List<string>();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Subscribe(Security security)
         {
             try
             {
                 if (subscribedBook.Find(s => s == security.Name) != null)
+                {
+                    return;
+                }
+
+                if(QuikLua == null)
                 {
                     return;
                 }
@@ -979,11 +1002,11 @@ namespace OsEngine.Market.Servers.QuikLua
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
 
@@ -1112,7 +1135,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private object _newTradesLoker = new object();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void UpdateTrades(AllTrade allTrade)
         {
             try
@@ -1166,7 +1188,9 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private object changeFutPortf = new object();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        /// <summary>
+        /// Функция вызывается терминалом QUIK при получении изменений ограничений по срочному рынку.
+        /// </summary>
         private void EventsOnOnFuturesLimitChange(FuturesLimits futLimit)
         {
             try
@@ -1203,7 +1227,9 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private object changeFutPosLocker = new object();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        /// <summary>
+        /// Функция вызывается терминалом QUIK при изменении позиции по срочному рынку.
+        /// </summary>
         private void EventsOnOnFuturesClientHolding(FuturesClientHolding futPos)
         {
             try
@@ -1249,7 +1275,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private object quoteLock = new object();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void UpdateMarketDepths(OrderBook orderBook)
         {
             try
@@ -1314,7 +1339,6 @@ namespace OsEngine.Market.Servers.QuikLua
         private List<QuikSharp.DataStructures.Transaction.Trade> _myTradesFromQuik =
             new List<QuikSharp.DataStructures.Transaction.Trade>();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void UpdateMyTrades(QuikSharp.DataStructures.Transaction.Trade qTrade)
         {
             lock (myTradeLocker)
@@ -1363,7 +1387,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private object orderLocker = new object();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void UpdateMyOrders(QuikSharp.DataStructures.Transaction.Order qOrder)
         {
             lock (orderLocker)
@@ -1449,22 +1472,33 @@ namespace OsEngine.Market.Servers.QuikLua
             _tradesQueue.Enqueue(allTrade);
         }
 
+        /// <summary>
+        /// Функция вызывается терминалом QUIK при получении изменения стакана котировок.
+        /// </summary>
         private void EventsOnOnQuote(OrderBook orderBook)
         {
             _mdQueue.Enqueue(orderBook);
         }
 
+        /// <summary>
+        /// Функция вызывается терминалом QUIK при получении новой заявки или при изменении параметров существующей заявки.
+        /// </summary>
         private void EventsOnOnOrder(QuikSharp.DataStructures.Transaction.Order qOrder)
         {
             _ordersQueue.Enqueue(qOrder);
         }
 
+        /// <summary>
+        /// Функция вызывается терминалом QUIK при получении сделки.
+        /// </summary>
         private void EventsOnOnTrade(QuikSharp.DataStructures.Transaction.Trade qTrade)
         {
             _myTradesQueue.Enqueue(qTrade);
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        /// <summary>
+        /// Событие вызывается когда библиотека QuikSharp была отключена от Quik'а
+        /// </summary>
         private void EventsOnOnDisconnectedFromQuik()
         {
             try
@@ -1477,7 +1511,24 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        /// <summary>
+        /// Функция вызывается перед закрытием терминала QUIK.
+        /// </summary>
+        private void Events_OnClose()
+        {
+            try
+            {
+                Dispose();
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Событие вызывается когда библиотека QuikSharp успешно подключилась к Quik'у
+        /// </summary>
         private void EventsOnOnConnectedToQuik(int port)
         {
             try
@@ -1494,7 +1545,9 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        /// <summary>
+        /// Функция вызывается терминалом QUIK при отключении от сервера QUIK.
+        /// </summary>
         private void EventsOnOnDisconnected()
         {
             try
@@ -1507,6 +1560,9 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        /// <summary>
+        /// Функция вызывается терминалом QUIK при установлении связи с сервером QUIK.
+        /// </summary>
         private void EventsOnOnConnected()
         {
             try
@@ -1523,7 +1579,9 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        /// <summary>
+        /// Функция вызывается терминалом QUIK при получении ответа на транзакцию пользователя.
+        /// </summary>
         private void Events_OnTransReply(TransactionReply transReply)
         {
             try
@@ -1532,7 +1590,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     if (_sentOrders != null && _sentOrders.Count > 0)
                     {
-                        for (int i = 0; i < _sentOrders.Count; i++)
+                        for (int i = _sentOrders.Count - 1; i >= 0; i--) // цикл в обратном порядке для безопасного удаления элемента. 
                         {
                             if (_sentOrders[i].NumberUser == transReply.TransID)
                             {
@@ -1587,7 +1645,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<Order> _sentOrders = new List<Order>();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SendOrder(Order order)
         {
             try
@@ -1649,7 +1706,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<Order> _ordersAllReadyCanseled = new List<Order>();
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public bool CancelOrder(Order order)
         {
             try
@@ -1684,7 +1740,6 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void GetAllActivOrders()
         {
             try
@@ -1706,7 +1761,6 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public OrderStateType GetOrderStatus(Order order)
         {
             try
@@ -1762,6 +1816,16 @@ namespace OsEngine.Market.Servers.QuikLua
         public void ChangeOrderPrice(Order order, decimal newPrice) { }
 
         public void CancelAllOrdersToSecurity(Security security) { }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
 
         #endregion
 

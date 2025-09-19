@@ -202,6 +202,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
             get { return true; }
         }
 
+        public bool CanGetOrderLists
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions
@@ -213,7 +218,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public bool IsSupports_CheckDataFeedLogic
         {
-            get { return false; }
+            get { return true; }
         }
 
         public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
@@ -237,6 +242,26 @@ namespace OsEngine.Market.Servers.HTX.Swap
         public bool IsSupports_ProxyFor_MultipleInstances
         {
             get { return false; }
+        }
+
+        public bool IsSupports_AsyncOrderSending
+        {
+            get { return false; }
+        }
+
+        public int AsyncOrderSending_RateGateLimitMls
+        {
+            get { return 10; }
+        }
+
+        public bool IsSupports_AsyncCandlesStarter
+        {
+            get { return false; }
+        }
+
+        public int AsyncCandlesStarter_RateGateLimitMls
+        {
+            get { return 10; }
         }
 
         #endregion

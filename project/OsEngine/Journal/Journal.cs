@@ -346,7 +346,9 @@ namespace OsEngine.Journal
                 {
                     for (int i2 = 1; i2 < orders.Count; i2++)
                     {
-                        if (orders[i2].NumberUser < orders[i2 - 1].NumberUser)
+                        if (orders[i2] != null 
+                            && orders[i2 - 1] != null 
+                            && orders[i2].NumberUser < orders[i2 - 1].NumberUser)
                         {
                             Order order = orders[i2];
                             orders[i2] = orders[i2 - 1];
@@ -451,20 +453,25 @@ namespace OsEngine.Journal
                 {
                     Position positionCurrent = positionsOpen[i];
 
+                    if(positionCurrent == null)
+                    {
+                        continue;
+                    }
+
                     List<Order> openOrders = positionCurrent.OpenOrders;
 
                     if (openOrders != null
-                        && openOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
+                        && openOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser) != null)
                     {
-                        return openOrders.Find(order1 => order1.NumberUser == order.NumberUser);
+                        return openOrders.Find(order1 => order1 != null &&  order1.NumberUser == order.NumberUser);
                     }
 
                     List<Order> closingOrders = positionCurrent.CloseOrders;
 
                     if (closingOrders != null
-                        && closingOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
+                        && closingOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser) != null)
                     {
-                        return closingOrders.Find(order1 => order1.NumberUser == order.NumberUser);
+                        return closingOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser);
                     }
                 }
             }
@@ -482,19 +489,24 @@ namespace OsEngine.Journal
             {
                 Position positionCurrent = positions[i];
 
+                if(positionCurrent == null)
+                {
+                    continue;
+                }
+
                 List<Order> openOrders = positionCurrent.OpenOrders;
 
                 if (openOrders != null 
-                    && openOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
+                    && openOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser) != null)
                 {
-                    return openOrders.Find(order1 => order1.NumberUser == order.NumberUser);
+                    return openOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser);
                 }
                 List<Order> closingOrders = positionCurrent.CloseOrders;
 
                 if (closingOrders != null 
-                    && closingOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
+                    && closingOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser) != null)
                 {
-                    return closingOrders.Find(order1 => order1.NumberUser == order.NumberUser);
+                    return closingOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser);
                 }
             }
 

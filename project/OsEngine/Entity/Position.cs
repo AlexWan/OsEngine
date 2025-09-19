@@ -64,7 +64,7 @@ namespace OsEngine.Entity
                     _openOrders.Add(openOrder);
                 }
             }
-            
+
             State = PositionStateType.Opening;
         }
 
@@ -96,7 +96,14 @@ namespace OsEngine.Entity
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
-                    List<MyTrade> newTrades = _openOrders[i].MyTrades;
+                    Order order = _openOrders[i];
+
+                    if(order == null)
+                    {
+                        continue;
+                    }
+
+                    List<MyTrade> newTrades = order.MyTrades;
                     if (newTrades != null &&
                         newTrades.Count != 0)
                     {
@@ -105,7 +112,14 @@ namespace OsEngine.Entity
                 }
 
                 for (int i = 0; _closeOrders != null && i < _closeOrders.Count; i++)
-                {   
+                {
+                    Order order = _closeOrders[i];
+
+                    if (order == null)
+                    {
+                        continue;
+                    }
+
                     List<MyTrade> newTrades = _closeOrders[i].MyTrades;
                     if (newTrades != null &&
                         newTrades.Count != 0)
@@ -164,10 +178,11 @@ namespace OsEngine.Entity
                     return false;
                 }
 
-                if (OpenOrders.Find(order => order.State == OrderStateType.Active 
+                if (OpenOrders.Find(order => order != null
+                                             && (order.State == OrderStateType.Active 
                                              || order.State == OrderStateType.Pending 
                                              || order.State == OrderStateType.None
-                                             || order.State == OrderStateType.Partial) != null)
+                                             || order.State == OrderStateType.Partial)) != null)
                 {
                     return true;
                 }
@@ -188,10 +203,11 @@ namespace OsEngine.Entity
                     return false;
                 }
 
-                if (CloseOrders.Find(order => order.State == OrderStateType.Active 
+                if (CloseOrders.Find(order => order != null
+                                             && (order.State == OrderStateType.Active 
                                               || order.State == OrderStateType.Pending
                                               || order.State == OrderStateType.None
-                                              || order.State == OrderStateType.Partial) != null
+                                              || order.State == OrderStateType.Partial)) != null
                     )
                 {
                     return true;
@@ -271,7 +287,9 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_openOrders != null && _openOrders.Count != 0)
+                if (_openOrders != null 
+                    && _openOrders.Count != 0
+                    && _openOrders[0] != null)
                 {
                     return _openOrders[0].SecurityNameCode;
                 }
@@ -279,7 +297,8 @@ namespace OsEngine.Entity
             }
             set 
             {
-                if (_openOrders != null && _openOrders.Count != 0)
+                if (_openOrders != null 
+                    && _openOrders.Count != 0)
                 {
                     return;
                 }
@@ -301,7 +320,8 @@ namespace OsEngine.Entity
             get
             {
                 if(OpenOrders == null 
-                    || OpenOrders.Count == 0)
+                    || OpenOrders.Count == 0
+                    || OpenOrders[0] == null)
                 {
                     return null;
                 }
@@ -358,7 +378,14 @@ namespace OsEngine.Entity
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
-                    value += _openOrders[i].VolumeExecute;
+                    Order order = _openOrders[i];
+
+                    if (order == null)
+                    {
+                        continue;
+                    }
+
+                    value += order.VolumeExecute;
                 }
 
                 return value;
@@ -378,6 +405,13 @@ namespace OsEngine.Entity
 
                     for (int i = 0;_openOrders != null && i < _openOrders.Count; i++)
                     {
+                        Order order = _openOrders[i];
+
+                        if(order == null)
+                        {
+                            continue;
+                        }
+
                         volume += _openOrders[i].VolumeExecute;
                     }
                     return volume;
@@ -389,7 +423,14 @@ namespace OsEngine.Entity
                 {
                     for (int i = 0; i < CloseOrders.Count; i++)
                     {
-                        valueClose += CloseOrders[i].VolumeExecute;
+                        Order order = CloseOrders[i];
+
+                        if(order == null)
+                        {
+                            continue;
+                        }
+
+                        valueClose += order.VolumeExecute;
                     }
                 }
 
@@ -397,7 +438,14 @@ namespace OsEngine.Entity
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
-                    volumeOpen += _openOrders[i].VolumeExecute;
+                    Order order = _openOrders[i];
+
+                    if (order == null)
+                    {
+                        continue;
+                    }
+
+                    volumeOpen += order.VolumeExecute;
                 }
 
                 decimal value = volumeOpen - valueClose;
@@ -417,10 +465,17 @@ namespace OsEngine.Entity
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
-                    if (_openOrders[i].State == OrderStateType.Active ||
-                        _openOrders[i].State == OrderStateType.Partial)
+                    Order order = _openOrders[i];
+
+                    if (order == null)
                     {
-                        volumeWait += _openOrders[i].Volume - _openOrders[i].VolumeExecute;
+                        continue;
+                    }
+
+                    if (order.State == OrderStateType.Active ||
+                        order.State == OrderStateType.Partial)
+                    {
+                        volumeWait += order.Volume - order.VolumeExecute;
                     }
                 }
 
@@ -445,14 +500,22 @@ namespace OsEngine.Entity
                 decimal volume = 0;
                 for (int i = 0; i < _openOrders.Count; i++)
                 {
-                    decimal volumeEx = _openOrders[i].VolumeExecute;
+                    Order order = _openOrders[i];
+
+                    if (order == null)
+                    {
+                        continue;
+                    }
+
+                    decimal volumeEx = order.VolumeExecute;
                     if (volumeEx != 0)
                     {
                         volume += volumeEx;
-                        price += volumeEx * _openOrders[i].PriceReal;
+                        price += volumeEx * order.PriceReal;
                     }
                 }
-                if (volume == 0)
+                if (volume == 0
+                    && _openOrders[0] != null)
                 {
                     return _openOrders[0].Price;
                 }
@@ -478,16 +541,18 @@ namespace OsEngine.Entity
                 decimal volume = 0;
                 for (int i = 0; i < _closeOrders.Count; i++)
                 {
-                    if (_closeOrders[i] == null)
+                    Order order = _closeOrders[i];
+
+                    if (order == null)
                     {
                         continue;
                     }
 
-                    decimal volumeEx = _closeOrders[i].VolumeExecute;
+                    decimal volumeEx = order.VolumeExecute;
                     if (volumeEx != 0)
                     {
-                        volume += _closeOrders[i].VolumeExecute;
-                        price += _closeOrders[i].VolumeExecute*_closeOrders[i].PriceReal;
+                        volume += order.VolumeExecute;
+                        price += order.VolumeExecute * order.PriceReal;
                     }
                 }
                 if (volume == 0)
@@ -514,6 +579,11 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; i < _openOrders.Count; i++)
                 {
+                    if(_openOrders[i] == null)
+                    {
+                        continue;
+                    }
+
                     if (_openOrders[i].NumberUser == newOrder.NumberUser)
                     {
                         if ((State == PositionStateType.Done || State == PositionStateType.OpeningFail) 
@@ -613,6 +683,11 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; i < CloseOrders.Count; i++)
                 {
+                    if(CloseOrders[i] == null)
+                    {
+                        continue;
+                    }
+
                     if (CloseOrders[i].NumberUser == newOrder.NumberUser)
                     {
                         if (
@@ -870,6 +945,10 @@ namespace OsEngine.Entity
             {
                 for(int i = 0;i < OpenOrders.Count;i++)
                 {
+                    if (OpenOrders[i] == null)
+                    {
+                        continue;
+                    }
                     result.Append(OpenOrders[i].GetStringForSave() + "^");
                 }
                 result.Append("#");
@@ -902,6 +981,10 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; i < CloseOrders.Count; i++)
                 {
+                    if (CloseOrders[i] == null)
+                    {
+                        continue;
+                    }
                     result.Append("#" + CloseOrders[i].GetStringForSave());
                 }
             }
@@ -1036,13 +1119,20 @@ namespace OsEngine.Entity
                 {
                     for (int i = CloseOrders.Count-1; i > -1 && i < CloseOrders.Count; i--)
                     {
-                        if (CloseOrders[i].State != OrderStateType.Done
-                            && CloseOrders[i].State != OrderStateType.Partial)
+                        Order closeOrder = CloseOrders[i];
+
+                        if(closeOrder == null)
                         {
                             continue;
                         }
 
-                        DateTime time = CloseOrders[i].GetLastTradeTime();
+                        if (closeOrder.State != OrderStateType.Done
+                            && closeOrder.State != OrderStateType.Partial)
+                        {
+                            continue;
+                        }
+
+                        DateTime time = closeOrder.GetLastTradeTime();
                         if (time != DateTime.MinValue)
                         {
                             return time;
@@ -1070,6 +1160,10 @@ namespace OsEngine.Entity
 
                 for (int i = 0; i < OpenOrders.Count; i++)
                 {
+                    if(OpenOrders[i] == null)
+                    {
+                        continue;
+                    }
                     if (OpenOrders[i].TradesIsComing &&
                         OpenOrders[i].TimeExecuteFirstTrade < timeOpen)
                     {
@@ -1196,6 +1290,10 @@ namespace OsEngine.Entity
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
+                    if (_openOrders[i] == null)
+                    {
+                        continue;
+                    }
                     volume += _openOrders[i].VolumeExecute;
                 }
 

@@ -272,7 +272,7 @@ namespace OsEngine.Journal.Internal
             foreach (Position deal in deals)
             {
                 // 1. Get the portfolio return percentage for the trade
-                decimal tradeReturnPercent = deal.ProfitOperationPercent;
+                decimal tradeReturnPercent = deal.ProfitPortfolioPercent;
 
                 // 2. Apply scaling from MultToJournal (e.g., 50% → 0.5)
                 decimal scaledReturn = tradeReturnPercent * (deal.MultToJournal / 100m);
@@ -349,7 +349,7 @@ namespace OsEngine.Journal.Internal
             List<decimal> portfolioReturns = new List<decimal>();
             foreach (Position deal in deals)
             {
-                decimal scaledReturn = (deal.ProfitOperationPercent * (deal.MultToJournal / 100m));
+                decimal scaledReturn = (deal.ProfitPortfolioPercent * (deal.MultToJournal / 100m));
                 decimal days = (decimal)(deal.TimeClose - deal.TimeOpen).TotalDays;
 
                 if (days == 0)
@@ -898,17 +898,69 @@ namespace OsEngine.Journal.Internal
         public static decimal GetRecovery(Position[] deals)
         {
             decimal recovery = 0m;
-            decimal maxLossPunkt = 0m;
+            decimal maxDownAbs = decimal.MaxValue;
+
+            if (GetProfitDial(deals) == 0)
+            {
+                return 0;
+            }
+            decimal firsValue = deals[0].PortfolioValueOnOpenPosition;
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationAbs <= maxLossPunkt)   // ProfitOperationPercent
+                if (firsValue != 0)
                 {
-                    maxLossPunkt = deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
+                    break;
+                }
+                firsValue = deals[i].PortfolioValueOnOpenPosition;
+            }
+
+            if (firsValue == 0)
+            {
+                firsValue = 1;
+            }
+
+            decimal thisSum = firsValue;
+            decimal thisPik = firsValue;
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                thisSum += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
+
+                decimal thisDown;
+
+                if (thisSum > thisPik)
+                {
+                    thisPik = thisSum;
+                }
+                else
+                {
+                    if (thisSum < 0)
+                    {
+                        // уже ушли ниже нулевой отметки по счёту
+
+                        thisDown = -thisPik + thisSum;
+
+                        if (maxDownAbs > thisDown)
+                        {
+                            maxDownAbs = thisDown;
+                        }
+                    }
+                    else if (thisSum > 0)
+                    {
+                        // выше нулевой отметки по счёту
+                        thisDown = -(thisPik - thisSum);
+
+                        if (maxDownAbs > thisDown)
+                        {
+                            maxDownAbs = thisDown;
+                        }
+                    }
                 }
             }
+
             decimal profit = GetAllProfitInAbsolute(deals);
-            if (profit != 0 && maxLossPunkt != 0) recovery = Math.Abs(profit / maxLossPunkt);
+            if (profit != 0 && maxDownAbs != 0) recovery = Math.Abs(profit / maxDownAbs);
 
             return Round(recovery);
         }

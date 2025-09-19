@@ -11,6 +11,7 @@ using OsEngine.Market.Servers;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -35,7 +36,8 @@ namespace OsEngine.OsData
             System.Windows.Controls.Label setName,
             System.Windows.Controls.Label labelTimeStart,
             System.Windows.Controls.Label labelTimeEnd,
-            System.Windows.Controls.ProgressBar bar)
+            System.Windows.Controls.ProgressBar bar,
+            System.Windows.Controls.TextBox textBox)
         {
             _master = master;
             _hostSetGrid = hostSetGrid;
@@ -45,6 +47,15 @@ namespace OsEngine.OsData
             _labelTimeStart = labelTimeStart;
             _labelTimeEnd = labelTimeEnd;
             _bar = bar;
+            _textBoxSource = textBox;
+
+            if (_textBoxSource != null) 
+            { 
+                _textBoxSource.TextChanged += FilterTextBox_TextChanged;
+                _textBoxSource.GotFocus += FilterTextBox_Enter;
+                _textBoxSource.LostFocus += FilterTextBox_Leave;
+                _textBoxSource.Foreground = System.Windows.Media.Brushes.Gray;
+            }
 
             CreateSetGrid();
             RePaintSetGrid();
@@ -53,6 +64,7 @@ namespace OsEngine.OsData
             RePaintSourceGrid();
 
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
+            ServerMaster.ServerDeleteEvent += ServerMaster_ServerDeleteEvent;
             master.NewLogMessageEvent += SendNewLogMessage;
             master.NeedUpDateTableEvent += Master_NeedUpDateTableEvent;
 
@@ -66,6 +78,27 @@ namespace OsEngine.OsData
             try
             {
                 RePaintSetGrid();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+
+        private void ServerMaster_ServerDeleteEvent(IServer server)
+        {
+            try
+            {
+                if(server.ServerType == ServerType.Optimizer)
+                {
+                    return;
+                }
+
+                server.ConnectStatusChangeEvent -= ServerStatusChangeEvent;
+                server.LogMessageEvent -= OsDataMaster_LogMessageEvent;
+
+                RePaintSourceGrid();
             }
             catch (Exception error)
             {
@@ -109,6 +142,8 @@ namespace OsEngine.OsData
         private System.Windows.Controls.Label _labelTimeEnd;
 
         private System.Windows.Controls.ProgressBar _bar;
+
+        private System.Windows.Controls.TextBox _textBoxSource;
 
         private WindowsFormsHost _hostSetGrid;
 
@@ -371,6 +406,29 @@ namespace OsEngine.OsData
             _hostSource.VerticalAlignment = VerticalAlignment.Top;
         }
 
+        private void FilterTextBox_TextChanged(object sender, EventArgs e)
+        {
+            RePaintSourceGrid();
+        }
+
+        private void FilterTextBox_Enter(object sender, EventArgs e)
+        {
+            if (_textBoxSource.Text == OsLocalization.Market.Label64)
+            {
+                _textBoxSource.Text = "";
+                _textBoxSource.Foreground = System.Windows.Media.Brushes.White;
+            }
+        }
+
+        private void FilterTextBox_Leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(_textBoxSource.Text))
+            {
+                _textBoxSource.Text = OsLocalization.Market.Label64;
+                _textBoxSource.Foreground = System.Windows.Media.Brushes.Gray;
+            }
+        }
+
         private void RePaintSourceGrid()
         {
             try
@@ -383,20 +441,30 @@ namespace OsEngine.OsData
 
                 _gridSources.Rows.Clear();
 
-                List<ServerType> servers = ServerMaster.ServersTypesToOsData;
+                string filter = "";
 
-                List<IServer> serversCreate = ServerMaster.GetServers();
+                List<ServerType> servers = ServerMaster.ServersTypesToOsData
+                .OrderBy(s => s.ToString(), StringComparer.OrdinalIgnoreCase)
+                .ToList();
+                List<IServer> serversCreate = ServerMaster.GetServers() ?? new List<IServer>();
 
-                if (serversCreate == null)
+                if (_textBoxSource != null
+                && !string.IsNullOrWhiteSpace(_textBoxSource.Text)
+                && _textBoxSource.Text != OsLocalization.Market.Label64)
                 {
-                    serversCreate = new List<IServer>();
+                    filter = _textBoxSource.Text.ToLower();
                 }
 
                 for (int i = 0; i < servers.Count; i++)
                 {
+                    if (!string.IsNullOrEmpty(filter) &&
+                        !servers[i].ToString().ToLower().Contains(filter))
+                    {
+                        continue;
+                    }
+
                     DataGridViewRow row1 = new DataGridViewRow();
-                    row1.Cells.Add(new DataGridViewTextBoxCell());
-                    row1.Cells[0].Value = servers[i];
+                    row1.Cells.Add(new DataGridViewTextBoxCell { Value = servers[i] });
                     row1.Cells.Add(new DataGridViewTextBoxCell());
 
                     IServer server = serversCreate.Find(s => s.ServerType == servers[i]);
@@ -405,33 +473,39 @@ namespace OsEngine.OsData
                     {
                         row1.Cells[1].Value = "Disabled";
                     }
-                    else if (server != null && server.ServerStatus == ServerConnectStatus.Connect)
+                    else if (server.ServerStatus == ServerConnectStatus.Connect)
                     {
                         row1.Cells[1].Value = "Connect";
-                        DataGridViewCellStyle style = new DataGridViewCellStyle();
-                        style.BackColor = Color.MediumSeaGreen;
-                        style.SelectionBackColor = Color.Green;
-                        style.ForeColor = Color.Black;
-                        style.SelectionForeColor = Color.Black;
-                        row1.Cells[1].Style = style;
-                        row1.Cells[0].Style = style;
+                        var style = new DataGridViewCellStyle
+                        {
+                            BackColor = Color.MediumSeaGreen,
+                            SelectionBackColor = Color.Green,
+                            ForeColor = Color.Black,
+                            SelectionForeColor = Color.Black
+                        };
+                        row1.Cells[0].Style = row1.Cells[1].Style = style;
                     }
                     else
                     {
                         row1.Cells[1].Value = "Disconnect";
-                        DataGridViewCellStyle style = new DataGridViewCellStyle();
-                        style.BackColor = Color.Coral;
-                        style.SelectionBackColor = Color.Chocolate;
-                        style.ForeColor = Color.Black;
-                        style.SelectionForeColor = Color.Black;
-                        row1.Cells[1].Style = style;
-                        row1.Cells[0].Style = style;
+                        var style = new DataGridViewCellStyle
+                        {
+                            BackColor = Color.Coral,
+                            SelectionBackColor = Color.Chocolate,
+                            ForeColor = Color.Black,
+                            SelectionForeColor = Color.Black
+                        };
+                        row1.Cells[0].Style = row1.Cells[1].Style = style;
                     }
 
                     _gridSources.Rows.Add(row1);
                 }
-                _gridSources[1, 0].Selected = true; // Select an invisible line to remove the default selection from the grid
-                _gridSources.ClearSelection();
+
+                if (_gridSources.Rows.Count > 0)
+                {
+                    _gridSources[1, 0].Selected = true;
+                    _gridSources.ClearSelection();
+                }
             }
             catch (Exception error)
             {

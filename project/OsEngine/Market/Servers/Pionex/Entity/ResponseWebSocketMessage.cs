@@ -15,7 +15,7 @@ namespace OsEngine.Market.Servers.Pionex.Entity
 
     public class ResponseWebSocketTrades
     {
-        public TradeElements[] trades;
+        public List<TradeElements> trades;
     }
 
     public class TradeElements
@@ -34,9 +34,9 @@ namespace OsEngine.Market.Servers.Pionex.Entity
         public List<List<string>> bids;
     }
 
-    public class ResponceWSBalance
+    public class ResponseWSBalance
     {
-        public BalanceWS[] balances;
+        public List<BalanceWS> balances;
     }
 
     public class BalanceWS
@@ -62,7 +62,7 @@ namespace OsEngine.Market.Servers.Pionex.Entity
     public class MyOrders
     {
         public string orderId;
-        public string symbol; 
+        public string symbol;
         public string type;         // LIMIT / MARKET.
         public string side;
         public string price;
@@ -77,6 +77,4 @@ namespace OsEngine.Market.Servers.Pionex.Entity
         public string createTime;
         public string updateTime;
     }
-
-
 }

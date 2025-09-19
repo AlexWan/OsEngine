@@ -744,7 +744,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -779,7 +779,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                 _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
             }
             catch (Exception exception)
             {
@@ -885,7 +885,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
             string sign = GenerateSignature(timestamp, "bitmart.WebSocket");
 
-            _webSocketPrivate.Send($"{{\"action\": \"access\", \"args\": [\"{_publicKey}\", \"{timestamp}\", \"{sign}\",\"web\"]}}");
+            _webSocketPrivate.SendAsync($"{{\"action\": \"access\", \"args\": [\"{_publicKey}\", \"{timestamp}\", \"{sign}\",\"web\"]}}");
         }
 
         #endregion
@@ -1166,7 +1166,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                         if (webSocketPublic != null
                             && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send("{\"action\":\"ping\"}");
+                            webSocketPublic.SendAsync("{\"action\":\"ping\"}");
                         }
                         else
                         {
@@ -1179,7 +1179,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting)
                         )
                     {
-                        _webSocketPrivate.Send("{\"action\":\"ping\"}");
+                        _webSocketPrivate.SendAsync("{\"action\":\"ping\"}");
                     }
                     else
                     {
@@ -1259,12 +1259,12 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($" {{ \"action\":\"subscribe\", \"args\":[\"futures/trade:{security.Name}\"]}}");
-                    webSocketPublic.Send($"{{ \"action\":\"subscribe\",\"args\":[\"futures/depth20:{security.Name}@100ms\"]}}");
+                    webSocketPublic.SendAsync($" {{ \"action\":\"subscribe\", \"args\":[\"futures/trade:{security.Name}\"]}}");
+                    webSocketPublic.SendAsync($"{{ \"action\":\"subscribe\",\"args\":[\"futures/depth20:{security.Name}@100ms\"]}}");
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublic.Send($" {{ \"action\":\"subscribe\", \"args\":[\"futures/fundingRate:{security.Name}\"]}}");
+                        webSocketPublic.SendAsync($" {{ \"action\":\"subscribe\", \"args\":[\"futures/fundingRate:{security.Name}\"]}}");
                         GetFundingHistory(security.Name);
                     }
                 }
@@ -1320,9 +1320,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
         {
             try
             {
-                _webSocketPrivate.Send($"{{\"action\": \"subscribe\",\"args\":[\"futures/asset:USDT\", \"futures/asset:BTC\", \"futures/asset:ETH\", \"futures/asset:USDC\"]}}");
-                _webSocketPrivate.Send($"{{\"action\": \"subscribe\",\"args\":[\"futures/position\"]}}");
-                _webSocketPrivate.Send($"{{\"action\": \"subscribe\",\"args\": [\"futures/order\"]}}");
+                _webSocketPrivate.SendAsync($"{{\"action\": \"subscribe\",\"args\":[\"futures/asset:USDT\", \"futures/asset:BTC\", \"futures/asset:ETH\", \"futures/asset:USDC\"]}}");
+                _webSocketPrivate.SendAsync($"{{\"action\": \"subscribe\",\"args\":[\"futures/position\"]}}");
+                _webSocketPrivate.SendAsync($"{{\"action\": \"subscribe\",\"args\": [\"futures/order\"]}}");
             }
             catch (Exception exception)
             {
@@ -1351,12 +1351,12 @@ namespace OsEngine.Market.Servers.BitMartFutures
                                     {
                                         string securityName = _subscribedSecurities[j].Name;
 
-                                        webSocketPublic.Send($" {{ \"action\":\"unsubscribe\", \"args\":[\"futures/trade:{securityName}\"]}}");
-                                        webSocketPublic.Send($"{{ \"action\":\"unsubscribe\",\"args\":[\"futures/depth20:{securityName}@100ms\"]}}");
+                                        webSocketPublic.SendAsync($" {{ \"action\":\"unsubscribe\", \"args\":[\"futures/trade:{securityName}\"]}}");
+                                        webSocketPublic.SendAsync($"{{ \"action\":\"unsubscribe\",\"args\":[\"futures/depth20:{securityName}@100ms\"]}}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($" {{ \"action\":\"unsubscribe\", \"args\":[\"futures/fundingRate:{securityName}\"]}}");
+                                            webSocketPublic.SendAsync($" {{ \"action\":\"unsubscribe\", \"args\":[\"futures/fundingRate:{securityName}\"]}}");
                                         }
                                     }
                                 }
@@ -1379,9 +1379,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"action\": \"unsubscribe\",\"args\":[\"futures/asset:USDT\", \"futures/asset:BTC\", \"futures/asset:ETH\", \"futures/asset:USDC\"]}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsubscribe\",\"args\":[\"futures/position\"]}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsubscribe\",\"args\": [\"futures/order\"]}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsubscribe\",\"args\":[\"futures/asset:USDT\", \"futures/asset:BTC\", \"futures/asset:ETH\", \"futures/asset:USDC\"]}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsubscribe\",\"args\":[\"futures/position\"]}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsubscribe\",\"args\": [\"futures/order\"]}}");
                 }
                 catch
                 {
@@ -1530,7 +1530,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -2188,7 +2188,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<Funding> FundingUpdateEvent;
 
@@ -2221,8 +2221,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 {
                     BitMartBaseMessage<NewOrderBitMartResponce> parsed =
                         JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<NewOrderBitMartResponce>());
-
-                    string order_id = null;
 
                     if (parsed.code == "1000")
                     {
@@ -2771,6 +2769,16 @@ namespace OsEngine.Market.Servers.BitMartFutures
             trade.Volume = baseTrade.vol.ToDecimal();
 
             return trade;
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
         }
 
         #endregion

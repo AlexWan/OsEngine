@@ -919,7 +919,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1199,7 +1199,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                 length = _socketsTrades[s].Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -1650,7 +1650,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                 length = _socketsOrders[s].Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -2837,11 +2837,11 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                     FastDecoder decoder = new FastDecoder(context, stream);
                                     msg = decoder.ReadMessage();
                                 }
-                                catch (NullReferenceException ex)
+                                catch (NullReferenceException)
                                 {
                                     // в редких случаях исключение возникает в самой библиотеке OpenFast
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Иногда просто что-то глючит, но он все равно читает сообщение
                                 }
@@ -2947,7 +2947,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -3135,6 +3135,16 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
         public OrderStateType GetOrderStatus(Order order)
         {
             return OrderStateType.None;
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
         }
 
         #endregion
@@ -3338,9 +3348,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

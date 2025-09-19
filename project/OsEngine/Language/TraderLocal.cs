@@ -1121,7 +1121,7 @@ namespace OsEngine.Language
 
         public string Label304 => OsLocalization.ConvertToLocString(
          "Eng:You have not selected a strategy type. You need to click on the table. It will turn orange_" +
-         "Ru:Вы не выбрали тип стратегии. Нужно клацнуть по таблице. Загориться оранжевым_");
+         "Ru:Вы не выбрали тип стратегии. Нужно клацнуть по таблице. Загорится оранжевым_");
 
         public string Label305 => OsLocalization.ConvertToLocString(
          "Eng:Updating the robots involves building and testing them one by one. This will take some time_" +
@@ -2092,12 +2092,12 @@ namespace OsEngine.Language
          "Ru:Ограничение_");
 
         public string Label548 => OsLocalization.ConvertToLocString(
-         "Eng:Limit_" +
-         "Ru:Ограничение_");
+         "Eng:Limit. abs_" +
+         "Ru:Ограничение. абс_");
 
         public string Label549 => OsLocalization.ConvertToLocString(
-         "Eng:Step shift_" +
-         "Ru:Шаг сдвига_");
+         "Eng:Step shift. abs_" +
+         "Ru:Шаг сдвига. абс_");
 
         public string Label550 => OsLocalization.ConvertToLocString(
          "Eng:Are you going to remove the Grid? Are you sure?_" +
@@ -2199,5 +2199,40 @@ namespace OsEngine.Language
         "Eng:The maximum number of orders in the queue for sending in connectors. If you see values greater than 5, this is not a good sign._" +
         "Ru:Максимальное кол-во ордеров в очереди на отправку в коннекторах. Если видите значения больше чем 5 - это не хорошо.");
 
+        public string Label575 => OsLocalization.ConvertToLocString(
+        "Eng:No trade periods settings_" +
+        "Ru:Настройки не торговых периодов_");
+
+        public string Label576 => OsLocalization.ConvertToLocString(
+        "Eng:Page_" +
+        "Ru:Страница_");
+
+        public string Label577 => OsLocalization.ConvertToLocString(
+        "Eng:from_" +
+        "Ru:из_");
+
+        public string Label578 => OsLocalization.ConvertToLocString(
+        "Eng:Quantity per page:_" +
+        "Ru:Количество на странице:_");
+
+        public string Label579 => OsLocalization.ConvertToLocString(
+        "Eng:Delete all pairs_" +
+        "Ru:Удалить все пары_");
+
+        public string Label580 => OsLocalization.ConvertToLocString(
+        "Eng:Delete all Pairs?_" +
+        "Ru:Удалить все пары?_");
+
+        public string Label581 => OsLocalization.ConvertToLocString(
+        "Eng:Мax distance from the price %_" +
+        "Ru:Макс. расстояние от цены %_");
+
+        public string Label582 => OsLocalization.ConvertToLocString(
+        "Eng:Wait after connecting to the server_" +
+        "Ru:Ждать после подключения к коннектору_");
+
+        public string Label583 => OsLocalization.ConvertToLocString(
+        "Eng:Seconds to wait_" +
+        "Ru:Секунд на ожидание_");
     }
 }

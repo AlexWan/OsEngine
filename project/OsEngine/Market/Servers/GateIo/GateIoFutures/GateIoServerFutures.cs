@@ -521,7 +521,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
-
+            /*
             if (startTime < DateTime.UtcNow.AddYears(-3) ||
                 endTime < DateTime.UtcNow.AddYears(-3) ||
                 !CheckTime(startTime, endTime, actualTime))
@@ -531,7 +531,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             List<Trade> allTrades = GetNeedRange(security.Name, startTime, endTime);
 
-            return ClearTrades(allTrades);
+            return ClearTrades(allTrades);*/
         }
 
         private List<Trade> GetNeedRange(string security, DateTime startTime, DateTime endTime)
@@ -937,7 +937,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -969,7 +969,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                 _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.Connect().Wait();
             }
             catch (Exception exception)
             {
@@ -1313,7 +1313,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                             && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
                             long time = TimeManager.GetUnixTimeStampSeconds();
-                            webSocketPublic.Send($"{{\"time\":{time},\"channel\":\"futures.ping\"}}");
+                            webSocketPublic.SendAsync($"{{\"time\":{time},\"channel\":\"futures.ping\"}}");
                         }
                         else
                         {
@@ -1327,7 +1327,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         )
                     {
                         long time = TimeManager.GetUnixTimeStampSeconds();
-                        _webSocketPrivate.Send($"{{\"time\":{time},\"channel\":\"futures.ping\"}}");
+                        _webSocketPrivate.SendAsync($"{{\"time\":{time},\"channel\":\"futures.ping\"}}");
                     }
                     else
                     {
@@ -1525,13 +1525,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         private void SubscribeTicker(string security, WebSocket webSocketPublic)
         {
             long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.Send($"{{\"time\":{time},\"channel\":\"futures.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
         }
 
         private void SubscribeContractStats(string security, WebSocket webSocketPublic)
         {
             long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.Send($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"1m\"]}}");
+            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"1m\"]}}");
         }
 
         private void SubscribeMarketDepth(string security, WebSocket webSocketPublic)
@@ -1546,13 +1546,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
 
             long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.Send($"{{\"time\":{time},\"channel\":\"futures.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"0\"]}}");
+            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"0\"]}}");
         }
 
         private void SubscribeTrades(string security, WebSocket webSocketPublic)
         {
             long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.Send($"{{\"time\":{time},\"channel\":\"futures.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
         }
 
         private void SubscribeOrders(string security)
@@ -1561,7 +1561,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             string param = string.Format("channel={0}&event={1}&time={2}", "futures.orders", "subscribe", timeStamp);
             string sign = SingData(param);
 
-            _webSocketPrivate.Send($"{{\"time\":{timeStamp},\"channel\":\"futures.orders\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+            _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.orders\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
         }
 
         private void SubscribeMyTrades(string security)
@@ -1570,7 +1570,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             string param = string.Format("channel={0}&event={1}&time={2}", "futures.usertrades", "subscribe", timeStamp);
             string sign = SingData(param);
 
-            _webSocketPrivate.Send($"{{\"time\":{timeStamp},\"channel\":\"futures.usertrades\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+            _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.usertrades\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
         }
 
         private void AddMarketDepth(string name)
@@ -1587,7 +1587,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             string param = string.Format("channel={0}&event={1}&time={2}", "futures.balances", "subscribe", timeStamp);
             string sign = SingData(param);
 
-            _webSocketPrivate.Send($"{{\"time\":{timeStamp},\"channel\":\"futures.balances\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+            _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.balances\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
         }
 
         private void UnsubscribeFromAllWebSockets()
@@ -1618,13 +1618,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                                             level = "20";
                                         }
 
-                                        webSocketPublic?.Send($"{{\"time\":{time},\"channel\":\"futures.order_book\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"{level}\",\"0\"]}}");
-                                        webSocketPublic?.Send($"{{\"time\":{time},\"channel\":\"futures.trades\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
+                                        webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.order_book\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"{level}\",\"0\"]}}");
+                                        webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.trades\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic?.Send($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"1m\"]}}");
-                                            webSocketPublic?.Send($"{{\"time\":{time},\"channel\":\"futures.tickers\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"1m\"]}}");
+                                            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"1m\"]}}");
+                                            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.tickers\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"1m\"]}}");
                                         }
                                     }
                                 }
@@ -1669,7 +1669,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             string param = string.Format("channel={0}&event={1}&time={2}", "futures.orders", "unsubscribe", timeStamp);
             string sign = SingData(param);
 
-            _webSocketPrivate.Send($"{{\"time\":{timeStamp},\"channel\":\"futures.orders\",\"event\":\"unsubscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+            _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.orders\",\"event\":\"unsubscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
         }
 
         private void UnsubscribeMyTrades(string security)
@@ -1678,7 +1678,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             string param = string.Format("channel={0}&event={1}&time={2}", "futures.usertrades", "unsubscribe", timeStamp);
             string sign = SingData(param);
 
-            _webSocketPrivate.Send($"{{\"time\":{timeStamp},\"channel\":\"futures.usertrades\",\"event\":\"unsubscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+            _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.usertrades\",\"event\":\"unsubscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
         }
 
         private void UnsubscribePortfolio()
@@ -1687,7 +1687,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             string param = string.Format("channel={0}&event={1}&time={2}", "futures.balances", "unsubscribe", timeStamp);
             string sign = SingData(param);
 
-            _webSocketPrivate.Send($"{{\"time\":{timeStamp},\"channel\":\"futures.balances\",\"event\":\"unsubscribe\",\"payload\":[\"{_userId}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+            _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.balances\",\"event\":\"unsubscribe\",\"payload\":[\"{_userId}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
         }
 
         public bool SubscribeNews()
@@ -1695,7 +1695,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -2158,7 +2158,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<Funding> FundingUpdateEvent;
 
@@ -2558,6 +2558,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
         }
 
         #endregion

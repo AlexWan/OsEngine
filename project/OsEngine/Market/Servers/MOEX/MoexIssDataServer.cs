@@ -456,6 +456,36 @@ namespace OsEngine.Market.Servers.MOEX
                 List<Candle> sourseCandle = GetAllCandles(security, startTime, 60, endTime);
                 candles = ConcateCandles(sourseCandle, 60, minutesInTf);
             }
+
+            Candle previousCandle = new Candle();
+
+            for (int i = 0; i < candles.Count; i++)
+            {
+                Candle newCandle = candles[i];
+            
+                if (newCandle.TimeStart.TimeOfDay == TimeSpan.Zero)
+                {
+                    candles.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                else if (previousCandle.TimeStart == DateTime.MinValue)
+                {
+                    previousCandle = newCandle;
+                    continue;
+                }
+                else if (newCandle.TimeStart == previousCandle.TimeStart)
+                {
+                    candles.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                else
+                {
+                    previousCandle = newCandle;
+                }
+            }
+            
             return candles;
         }
 
@@ -766,9 +796,19 @@ namespace OsEngine.Market.Servers.MOEX
             return null;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
         public bool SubscribeNews()
@@ -776,17 +816,17 @@ namespace OsEngine.Market.Servers.MOEX
             return false;
         }
 
-        public event Action<News> NewsEvent;
-        public event Action<Order> MyOrderEvent;
-        public event Action<MyTrade> MyTradeEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
+        public event Action<Order> MyOrderEvent { add { } remove { } }
+        public event Action<MyTrade> MyTradeEvent { add { } remove { } }
         public event Action<List<Portfolio>> PortfolioEvent;
-        public event Action<MarketDepth> MarketDepthEvent;
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
-        public event Action<Trade> NewTradesEvent;
+        public event Action<MarketDepth> MarketDepthEvent { add { } remove { } }
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
+        public event Action<Trade> NewTradesEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

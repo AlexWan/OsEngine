@@ -73,7 +73,7 @@ namespace OsEngine.Entity
             result += Time.ToString(CultureInfo) + "&";
             result += NumberTrade.ToString(CultureInfo) + "&";
             result += Side + "&";
-            result += SecurityNameCode + "&";
+            result += SecurityNameCode.Replace("@","%") + "&";
             result += NumberPosition + "&";
 
             return result;
@@ -92,7 +92,7 @@ namespace OsEngine.Entity
             Time = Convert.ToDateTime(arraySave[3], CultureInfo);
             NumberTrade = arraySave[4];
             Enum.TryParse(arraySave[5], out Side);
-            SecurityNameCode = arraySave[6];
+            SecurityNameCode = arraySave[6].Replace('%', '@');
             NumberPosition = arraySave[7];
         }
 

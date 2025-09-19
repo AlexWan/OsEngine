@@ -727,7 +727,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
                         if (webSocketPublicNew.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublicNew.CloseAsync().Wait();
+                            webSocketPublicNew.CloseAsync();
                         }
 
                         webSocketPublicNew = null;
@@ -880,7 +880,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
                     if (socket != null && socket.ReadyState == WebSocketState.Open)
                     {
-                        socket.Send("{\"op\":\"pong\"}");
+                        socket.SendAsync("{\"op\":\"pong\"}");
                     }
 
                     return;
@@ -983,7 +983,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
                     if (socket != null && socket.ReadyState == WebSocketState.Open)
                     {
-                        socket.Send("{\"op\":\"pong\"}");
+                        socket.SendAsync("{\"op\":\"pong\"}");
                     }
 
                     return;
@@ -1067,7 +1067,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
                         if (webSocketPublic != null
                             && webSocketPublic.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send("{\"op\":\"ping\"}");
+                            webSocketPublic.SendAsync("{\"op\":\"ping\"}");
                         }
                         else
                         {
@@ -1079,7 +1079,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
                         && (_webSocketPrivate.ReadyState == WebSocketState.Open
                     || _webSocketPrivate.ReadyState == WebSocketState.Connecting))
                     {
-                        _webSocketPrivate.Send("{\"op\":\"ping\"}");
+                        _webSocketPrivate.SendAsync("{\"op\":\"ping\"}");
                     }
                     else
                     {
@@ -1157,9 +1157,9 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"op\":\"req\",\"action\":\"depth-snapshot\",\"args\":{{\"symbol\":\"{security.Name}\"}}}}");
-                    webSocketPublic.Send($"{{\"op\":\"sub\",\"ch\":\"depth:{security.Name}\"}}");
-                    webSocketPublic.Send($"{{\"op\":\"sub\",\"ch\":\"trades:{security.Name}\"}}");
+                    webSocketPublic.SendAsync($"{{\"op\":\"req\",\"action\":\"depth-snapshot\",\"args\":{{\"symbol\":\"{security.Name}\"}}}}");
+                    webSocketPublic.SendAsync($"{{\"op\":\"sub\",\"ch\":\"depth:{security.Name}\"}}");
+                    webSocketPublic.SendAsync($"{{\"op\":\"sub\",\"ch\":\"trades:{security.Name}\"}}");
                 }
             }
             catch (Exception exception)
@@ -1172,7 +1172,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
         {
             try
             {
-                _webSocketPrivate.Send("{\"op\":\"sub\",\"ch\":\"order:cash\"}");
+                _webSocketPrivate.SendAsync("{\"op\":\"sub\",\"ch\":\"order:cash\"}");
             }
             catch (Exception exception)
             {
@@ -1203,8 +1203,8 @@ namespace OsEngine.Market.Servers.AscendexSpot
                                 {
                                     string symbol = _subscribedSecurities[j];
 
-                                    webSocketPublic.Send($"{{\"op\":\"unsub\",\"ch\":\"depth:{symbol}\"}}");
-                                    webSocketPublic.Send($"{{\"op\":\"unsub\",\"ch\":\"trades:{symbol}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"op\":\"unsub\",\"ch\":\"depth:{symbol}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"op\":\"unsub\",\"ch\":\"trades:{symbol}\"}}");
                                 }
                             }
                         }
@@ -1219,7 +1219,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
                 {
                     try
                     {
-                        _webSocketPrivate.Send("{\"op\":\"unsub\",\"ch\":\"order:cash\"}");
+                        _webSocketPrivate.SendAsync("{\"op\":\"unsub\",\"ch\":\"order:cash\"}");
                     }
                     catch (Exception exception)
                     {
@@ -1242,7 +1242,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1536,7 +1536,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
             if (webSocketPublicMarketDepths.ReadyState == WebSocketState.Open)
             {
-                webSocketPublicMarketDepths.Send($"{{\"op\":\"req\",\"action\":\"depth-snapshot\",\"args\":{{\"symbol\":\"{symbol}\"}}}}");
+                webSocketPublicMarketDepths.SendAsync($"{{\"op\":\"req\",\"action\":\"depth-snapshot\",\"args\":{{\"symbol\":\"{symbol}\"}}}}");
             }
         }
 
@@ -1818,11 +1818,11 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
 
@@ -2414,6 +2414,16 @@ namespace OsEngine.Market.Servers.AscendexSpot
             return OrderStateType.None;
         }
 
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
         #endregion
 
         #region 12 Queries
@@ -2499,7 +2509,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
                 };
 
                 string jsonAuthMsg = JsonConvert.SerializeObject(authMsg);
-                _webSocketPrivate.Send(jsonAuthMsg);
+                _webSocketPrivate.SendAsync(jsonAuthMsg);
             }
             catch (Exception exception)
             {

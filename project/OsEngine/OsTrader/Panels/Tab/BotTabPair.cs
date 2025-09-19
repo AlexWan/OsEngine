@@ -567,7 +567,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Delete a trading pair
         /// </summary>
         /// <param name="numberInArray"></param>
-        public void DeletePair(int numberInArray)
+        public void DeletePair(int numberInArray, bool needToRepaint)
         {
             try
             {
@@ -583,7 +583,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                         Pairs[i].Delete();
                         Pairs.RemoveAt(i);
                         SavePairNames();
-                        RePaintGrid();
+
+                        if (needToRepaint)
+                        {
+                            RePaintGrid();
+                        }
+
                         return;
                     }
                 }
@@ -592,6 +597,25 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// Delete all pairs
+        /// </summary>
+        public void DeleteAllPairs()
+        {
+            if (Pairs.Count == 0)
+            {
+                return;
+            }
+
+            PairToTrade[] pairs = Pairs.ToArray();
+
+            for (int i = 0; i < pairs.Length; i++)
+            {
+                DeletePair(pairs[i].PairNum, false);
+            }
+            RePaintGrid();
         }
 
         /// <summary>
@@ -657,7 +681,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Apply the default settings to all pairs
         /// </summary>
-        public void ApplySettingsFromStandartToAll()
+        public void ApplySettingsFromStandardToAll()
         {
             try
             {
@@ -793,6 +817,141 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return result;
             }
         }
+
+        /// <summary>
+        /// PositionsCount[0] - longs count, PositionsCount[1] - shorts count
+        /// </summary>
+        public List<int> PositionsDirectionsCount
+        {
+            get
+            {
+                List<int> count = new List<int>();
+
+                if (Pairs.Count == 0)
+                {
+                    return count;
+                }
+
+                int longCount = 0;
+                int shortCount = 0;
+
+                for (int i = 0; i < Pairs.Count; i++)
+                {
+                    PairToTrade curPair = Pairs[i];
+
+                    List<Position> posesTab1 = curPair.Tab1.PositionsOpenAll;
+                    List<Position> posesTab2 = curPair.Tab2.PositionsOpenAll;
+
+                    if (posesTab1.Count > 0)
+                    {
+                        for (int j = 0; j < posesTab1.Count; j++)
+                        {
+                            Position pos = posesTab1[j];
+
+                            if (pos.Direction == Side.Buy)
+                            {
+                                longCount++;
+                            }
+                            else if (pos.Direction == Side.Sell)
+                            {
+                                shortCount++;
+                            }
+                        }
+                    }
+                    if (posesTab2.Count > 0)
+                    {
+                        for (int j = 0; j < posesTab2.Count; j++)
+                        {
+                            Position pos = posesTab2[j];
+
+                            if (pos.Direction == Side.Buy)
+                            {
+                                longCount++;
+                            }
+                            else if (pos.Direction == Side.Sell)
+                            {
+                                shortCount++;
+                            }
+                        }
+                    }
+                }
+
+                count.Add(longCount);
+                count.Add(shortCount);
+
+                return count;
+            }
+        }
+
+        /// <summary>
+        /// PositionsCount[0] - longs count, PositionsCount[1] - shorts count
+        /// </summary>
+        public List<int> PositionsDirectionsCountBySecurity(string security)
+        {
+
+            List<int> count = new List<int>();
+
+            if (Pairs.Count == 0)
+            {
+                return count;
+            }
+
+            int longCount = 0;
+            int shortCount = 0;
+
+            for (int i = 0; i < Pairs.Count; i++)
+            {
+                PairToTrade curPair = Pairs[i];
+
+                if (curPair.Tab1.Security.Name == security)
+                {
+                    List<Position> posesTab1 = curPair.Tab1.PositionsOpenAll;
+                    if (posesTab1.Count > 0)
+                    {
+                        for (int j = 0; j < posesTab1.Count; j++)
+                        {
+                            Position pos = posesTab1[j];
+
+                            if (pos.Direction == Side.Buy)
+                            {
+                                longCount++;
+                            }
+                            else if (pos.Direction == Side.Sell)
+                            {
+                                shortCount++;
+                            }
+                        }
+                    }
+                }
+
+                if (curPair.Tab2.Security.Name == security)
+                {
+                    List<Position> posesTab2 = curPair.Tab2.PositionsOpenAll;
+                    if (posesTab2.Count > 0)
+                    {
+                        for (int j = 0; j < posesTab2.Count; j++)
+                        {
+                            Position pos = posesTab2[j];
+
+                            if (pos.Direction == Side.Buy)
+                            {
+                                longCount++;
+                            }
+                            else if (pos.Direction == Side.Sell)
+                            {
+                                shortCount++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            count.Add(longCount);
+            count.Add(shortCount);
+
+            return count;
+        }
+
 
         #endregion
 
@@ -1519,9 +1678,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     rowInGrid.Cells[4].Value = rowInArray.Cells[4].Value.ToString();
                 }
             }
-            catch (Exception error)
+            catch
             {
-
+                // ignore
             }
         }
 
@@ -1561,7 +1720,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            DataGridViewButtonCell button0 = new DataGridViewButtonCell(); // удалить все пары
+            button0.Value = OsLocalization.Trader.Label579;
+            nRow.Cells.Add(button0);
 
             DataGridViewButtonCell button1 = new DataGridViewButtonCell(); // авто создание пар
             button1.Value = OsLocalization.Trader.Label257;
@@ -1788,7 +1949,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (ui.UserAcceptAction)
                     {
-                        DeletePair(tabNum);
+                        DeletePair(tabNum,true);
                     }
                 }
                 else if (column == 1)
@@ -1851,6 +2012,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _commonSettingsUi = new BotTabPairCommonSettingsUi(this);
                     _commonSettingsUi.Show();
                     _commonSettingsUi.Closed += _commonSettingsUi_Closed;
+                }
+                else if (column == 2 && row == 0)
+                { // кнопка удаления всех пар
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label580);
+
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptAction)
+                    {
+                        DeleteAllPairs();
+                    }
                 }
                 else if (column == 3 && row == 0)
                 { // кнопка открытия окна авто генерации пар

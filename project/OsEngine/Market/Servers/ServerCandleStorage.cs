@@ -222,7 +222,7 @@ namespace OsEngine.Market.Servers
             Candle firstCandle = series.CandlesAll[0];
             Candle lastCandle = series.CandlesAll[series.CandlesAll.Count - 1];
 
-            if (mySaveInfo.LastCandleTime != null
+            if (mySaveInfo.LastCandleTime != DateTime.MinValue
                 && mySaveInfo.AllCandlesInFile != null)
             {
                 if (firstCandle.TimeStart == mySaveInfo.LastCandleTime &&
@@ -306,7 +306,7 @@ namespace OsEngine.Market.Servers
                         reader.Close();
                     }
                 }
-                catch (Exception e)
+                catch
                 {
                     // ignore
                 }
@@ -336,7 +336,7 @@ namespace OsEngine.Market.Servers
                         reader.Close();
                     }
                 }
-                catch (Exception e)
+                catch
                 {
                     // ignore
                 }

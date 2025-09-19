@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -630,8 +635,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            string tf = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
-            return RequestCandleHistory(security.Name, tf);
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime endTime = DateTime.UtcNow;
+            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
+
+            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
         }
 
         private List<Candle> RequestCandleHistory(string nameSec, string tameFrame, long limit = 500, long fromTimeStamp = 0, long toTimeStamp = 0)
@@ -769,7 +777,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-
             startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
             endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
             actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
@@ -918,7 +925,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.Connect().Wait();
 
                 return webSocketPublicNew;
             }
@@ -959,7 +966,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
 
-            _webSocketPrivate.Connect();
+            _webSocketPrivate.Connect().Wait();
         }
 
         private void DeleteWebSocketConnection()
@@ -1123,7 +1130,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        _webSocketPublic[i].Send("Pong");
+                        _webSocketPublic[i].SendAsync("Pong");
                     }
 
                     return;
@@ -1232,7 +1239,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 if (item.Contains("Ping")) // send immediately upon receipt. 
                 {
-                    _webSocketPrivate.Send("Pong");
+                    _webSocketPrivate.SendAsync("Pong");
                     return;
                 }
 
@@ -1379,12 +1386,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
-                    webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20@500ms\"}}");
+                    webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
+                    webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20@500ms\"}}");
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\"}}");
+                        webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\"}}");
                         GetFundingHistory(security.Name);
                     }
                 }
@@ -1475,12 +1482,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                                 {
                                     string name = _subscribedSecutiries[i2];
 
-                                    webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
-                                    webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
+                                    webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
+                                    webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
 
                                     if (_extendedMarketData)
                                     {
-                                        webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{name}@ticker\"}}");
+                                        webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{name}@ticker\"}}");
                                     }
                                 }
                             }
@@ -1690,7 +1697,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -2143,7 +2150,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public event Action<MarketDepth> MarketDepthEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<Funding> FundingUpdateEvent;
 
@@ -2671,6 +2678,16 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
 
             return OrderStateType.None;
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
         }
 
         #endregion

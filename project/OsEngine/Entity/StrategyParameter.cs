@@ -124,7 +124,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Event: parameter state changed
         /// </summary>
-        public event Action ValueChange;
+        public event Action ValueChange { add { } remove { } }
 
         /// <summary>
         /// Get formatted string to save to file
@@ -1367,7 +1367,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Event: parameter state changed
         /// </summary>
-        public event Action ValueChange;
+        public event Action ValueChange { add { } remove { } }
 
         /// <summary>
         /// Trigger a button click event

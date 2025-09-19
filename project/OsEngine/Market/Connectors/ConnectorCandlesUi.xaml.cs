@@ -18,6 +18,8 @@ using OsEngine.Candles;
 using OsEngine.Candles.Factory;
 using OsEngine.Candles.Series;
 using OsEngine.Market.Servers.Optimizer;
+using System.Threading;
+using System.Drawing;
 
 namespace OsEngine.Market.Connectors
 {
@@ -279,6 +281,13 @@ namespace OsEngine.Market.Connectors
 
                 if (string.IsNullOrEmpty(security))
                 {
+                    if(_gridSecurities.Rows != null 
+                        && _gridSecurities.Rows.Count > 0)
+                    {
+                        Thread worker = new Thread(LightToSecurityGrid);
+                        worker.Start();
+                    }
+
                     return;
                 }
 
@@ -578,17 +587,18 @@ namespace OsEngine.Market.Connectors
                     curPortfolio = ComboBoxPortfolio.SelectedItem.ToString();
                 }
 
+                if(_connectorBot.Portfolio != null)
+                {
+                    curPortfolio = _connectorBot.Portfolio.Number;
+                }
+
                 ComboBoxPortfolio.Items.Clear();
 
-
-
                 string portfolio = _connectorBot.PortfolioName;
-
 
                 if (portfolio != null)
                 {
                     ComboBoxPortfolio.Items.Add(_connectorBot.PortfolioName);
-                    ComboBoxPortfolio.Text = _connectorBot.PortfolioName;
                 }
 
                 List<Portfolio> portfolios = server.Portfolios;
@@ -614,23 +624,21 @@ namespace OsEngine.Market.Connectors
                     {
                         continue;
                     }
+
                     ComboBoxPortfolio.Items.Add(portfolios[i].Number);
                 }
-                if (curPortfolio != null)
+
+                if (curPortfolio != null
+                    && portfolios.Find(p => p.Number == curPortfolio) != null)
                 {
-                    for (int i = 0; i < ComboBoxPortfolio.Items.Count; i++)
-                    {
-                        if (ComboBoxPortfolio.Items[i].ToString() == curPortfolio)
-                        {
-                            ComboBoxPortfolio.SelectedItem = curPortfolio;
-                            break;
-                        }
-                    }
-
+                    ComboBoxPortfolio.SelectedItem = curPortfolio;
                 }
-
-                if (ComboBoxPortfolio.SelectedItem == null
-                    && ComboBoxPortfolio.Items.Count != 0)
+                else if (portfolios.Count != 0)
+                {
+                    ComboBoxPortfolio.SelectedItem = portfolios[0].Number;
+                }
+                else if (ComboBoxPortfolio.SelectedItem == null
+                      && ComboBoxPortfolio.Items.Count != 0)
                 {
                     ComboBoxPortfolio.SelectedItem = ComboBoxPortfolio.Items[0];
                 }
@@ -703,6 +711,13 @@ namespace OsEngine.Market.Connectors
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void CheckPortfolioWhithThisServer()
+        {
+
+
+
         }
 
         #endregion
@@ -1025,6 +1040,57 @@ namespace OsEngine.Market.Connectors
             }
 
             return security;
+        }
+
+        private void LightToSecurityGrid()
+        {
+            try
+            {
+                int startRow = 0;
+
+                if(_gridSecurities.FirstDisplayedScrollingRowIndex > 0)
+                {
+                    startRow = _gridSecurities.FirstDisplayedScrollingRowIndex;
+                }
+
+                int endIndex = startRow + 5;
+
+                for(int i = startRow; i < _gridSecurities.Rows.Count && i < endIndex; i++)
+                {
+                    if (_gridSecurities.Rows[i].Cells.Count < 4)
+                    {
+                        continue;
+                    }
+
+                    SetColorOnRow(_gridSecurities.Rows[i], Color.OrangeRed);
+
+                    Thread.Sleep(50);
+
+                    SetColorOnRow(_gridSecurities.Rows[i], _gridSecurities.Rows[i].Cells[0].Style.BackColor);
+                }
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
+        private void SetColorOnRow(DataGridViewRow row, Color color)
+        {
+            try
+            {
+                if (!ComboBoxClass.CheckAccess())
+                {
+                    ComboBoxClass.Dispatcher.Invoke(SetColorOnRow,row,color);
+                    return;
+                }
+
+                row.Cells[4].Style.BackColor = color;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion

@@ -2564,6 +2564,15 @@ namespace OsEngine.Journal
                 return null;
             }
 
+            for(int i = 0;i < positionsAll.Count;i++)
+            {
+                if (positionsAll[i] == null)
+                {
+                    positionsAll.RemoveAt(i);
+                    i--;
+                }
+            }
+
             if (_selectedSecurities.Count > 0)
             {
                 for (int i = 0; i < positionsAll.Count; i++)
@@ -2602,21 +2611,28 @@ namespace OsEngine.Journal
 
             for (int i = 0; i < positionsAll.Count; i++)
             {
-                if ((_startTime != DateTime.MinValue && positionsAll[i].TimeCreate < _startTime)
-                   ||
-                   (_endTime != DateTime.MinValue && positionsAll[i].TimeCreate > _endTime))
+                Position pos = positionsAll[i];
+
+                if(pos == null)
                 {
                     continue;
                 }
 
-                if (positionsAll[i].State == PositionStateType.Done)
+                if ((_startTime != DateTime.MinValue && pos.TimeCreate < _startTime)
+                   ||
+                   (_endTime != DateTime.MinValue && pos.TimeCreate > _endTime))
                 {
-                    closePositions.Add(positionsAll[i]);
+                    continue;
                 }
-                else if(positionsAll[i].State == PositionStateType.OpeningFail 
+
+                if (pos.State == PositionStateType.Done)
+                {
+                    closePositions.Add(pos);
+                }
+                else if(pos.State == PositionStateType.OpeningFail 
                     && showDontOpenPositions == true)
                 {
-                    closePositions.Add(positionsAll[i]);
+                    closePositions.Add(pos);
                 }
             }
 
@@ -2629,19 +2645,6 @@ namespace OsEngine.Journal
             {
                 closePositions = closePositions.OrderBy(x => x.TimeClose).ToList();
             }
-
-           /* for (int i = 0; i < closePositions.Count; i++)
-            {
-                for (int i2 = i; i2 < closePositions.Count; i2++)
-                {
-                    if (closePositions[i].TimeClose > closePositions[i2].TimeClose)
-                    {
-                        Position pos = closePositions[i2];
-                        closePositions[i2] = closePositions[i];
-                        closePositions[i] = pos;
-                    }
-                }
-            }*/
 
             return closePositions;
         }
@@ -3332,7 +3335,14 @@ namespace OsEngine.Journal
 
                             for (int i3 = 0; poses != null && i3 < poses.Count; i3++)
                             {
-                                poses[i3].MultToJournal = panel.Mult;
+                                Position pos = poses[i3];
+
+                                if(pos == null)
+                                {
+                                    continue;
+                                }
+
+                                pos.MultToJournal = panel.Mult;
                             }
 
                         }
@@ -3995,6 +4005,15 @@ namespace OsEngine.Journal
                     }
                 }
 
+                for(int i = 0;i < positionsAll.Count;i++)
+                {
+                    if (positionsAll[i] == null)
+                    {
+                        positionsAll.RemoveAt(i);
+                        i--;
+                    }
+                }
+
                 if (_selectedSecurities.Count > 0)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
@@ -4033,6 +4052,15 @@ namespace OsEngine.Journal
 
                 if (positionsAll.Count > 1)
                 {
+                    for(int i = 0;i < positionsAll.Count;i++)
+                    {
+                        if (positionsAll[i] == null)
+                        {
+                            positionsAll.RemoveAt(i);
+                            i--;
+                        }
+                    }
+
                     positionsAll = positionsAll.OrderBy(x => x.TimeOpen).ToList();
                 }
 

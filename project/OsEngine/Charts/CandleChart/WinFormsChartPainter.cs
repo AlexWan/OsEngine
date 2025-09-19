@@ -1839,7 +1839,14 @@ ContextMenuStrip menu)
 
                 for (int i = 0; i < deals.Count; i++)
                 {
-                    List<MyTrade> trades = deals[i].MyTrades;
+                    Position position = deals[i];
+
+                    if(position == null)
+                    {
+                        continue;
+                    }
+
+                    List<MyTrade> trades = position.MyTrades;
 
                     for (int indTrades = 0; indTrades < trades.Count; indTrades++)
                     {
@@ -1948,10 +1955,10 @@ ContextMenuStrip menu)
 
                         if (curTrade.Side == Side.Buy)
                         {
-                            if (deals[i].CloseOrders != null
-                                && deals[i].CloseOrders.FindAll(x => x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
+                            if (position.CloseOrders != null
+                                && position.CloseOrders.FindAll(x => x != null && x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
                             {
-                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.BlueViolet;
+                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.OrangeRed; 
                             }
                             else
                             {
@@ -1960,14 +1967,14 @@ ContextMenuStrip menu)
                         }
                         else
                         {
-                            if (deals[i].CloseOrders != null
-                                && deals[i].CloseOrders.FindAll(x => x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
+                            if (position.CloseOrders != null
+                                && position.CloseOrders.FindAll(x => x != null && x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
                             {
                                 buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Yellow;
                             }
                             else
                             {
-                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Fuchsia;
+                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.BlueViolet;
                             }
                         }
                     }
@@ -1978,23 +1985,35 @@ ContextMenuStrip menu)
                     // going through open order limit
                     // проходим Лимит ОРДЕРА НА ОТКРЫТИИ
 
-                    if ((deals[i].State == PositionStateType.Closing
-                        || deals[i].State == PositionStateType.Opening
-                        || deals[i].State == PositionStateType.Open)
-                        && 
-                        deals[i].OpenOrders != null 
-                        && deals[i].OpenOrders.Count > 0)
+                    Position position = deals[i];
+
+                    if (position == null)
                     {
-                        for (int j = 0; j < deals[i].OpenOrders.Count; j++)
+                        continue;
+                    }
+
+                    if ((position.State == PositionStateType.Closing
+                        || position.State == PositionStateType.Opening
+                        || position.State == PositionStateType.Open)
+                        &&
+                        position.OpenOrders != null 
+                        && position.OpenOrders.Count > 0)
+                    {
+                        for (int j = 0; j < position.OpenOrders.Count; j++)
                         {
-                            Order curOrder = deals[i].OpenOrders[j];
+                            Order curOrder = position.OpenOrders[j];
+
+                            if (curOrder == null)
+                            {
+                                continue;
+                            }
 
                             if (curOrder.State != OrderStateType.Active)
                             {
                                 continue;
                             }
 
-                            Series lineSeries = new Series("Open_" + deals[i].Number + j.ToString());
+                            Series lineSeries = new Series("Open_" + position.Number + j.ToString());
                             lineSeries.ChartType = SeriesChartType.Line;
                             lineSeries.YAxisType = AxisType.Secondary;
                             lineSeries.XAxisType = AxisType.Secondary;
@@ -2035,23 +2054,35 @@ ContextMenuStrip menu)
                 {
                     // going through Order limit on close
                     // проходим Лимит ОРДЕРА НА ЗАКРЫТИИ
-                    if ((deals[i].State == PositionStateType.Closing
-                        || deals[i].State == PositionStateType.Opening
-                        || deals[i].State == PositionStateType.Open)
-                        &&
-                        deals[i].CloseOrders != null &&
-                        deals[i].CloseOrders.Count > 0)
+                    Position position = deals[i];
+
+                    if (position == null)
                     {
-                        for(int j = 0;j < deals[i].CloseOrders.Count;j++)
+                        continue;
+                    }
+
+                    if ((position.State == PositionStateType.Closing
+                        || position.State == PositionStateType.Opening
+                        || position.State == PositionStateType.Open)
+                        &&
+                        position.CloseOrders != null &&
+                        position.CloseOrders.Count > 0)
+                    {
+                        for(int j = 0;j < position.CloseOrders.Count;j++)
                         {
-                            Order curOrder = deals[i].CloseOrders[j];
+                            Order curOrder = position.CloseOrders[j];
+
+                            if(curOrder == null)
+                            {
+                                continue;
+                            }
 
                             if(curOrder.State != OrderStateType.Active)
                             {
                                 continue;
                             }
 
-                            Series lineSeries = new Series("Close_" + deals[i].Number + j.ToString());
+                            Series lineSeries = new Series("Close_" + position.Number + j.ToString());
                             lineSeries.ChartType = SeriesChartType.Line;
                             lineSeries.YAxisType = AxisType.Secondary;
                             lineSeries.XAxisType = AxisType.Secondary;
@@ -2093,14 +2124,22 @@ ContextMenuStrip menu)
                 {
                     // going through stop order
                     // проходим СТОП ОРДЕРА
-                    if (
-                        (deals[i].State == PositionStateType.Closing
-                        || deals[i].State == PositionStateType.Opening
-                        || deals[i].State == PositionStateType.Open) 
-                        &&
-                        deals[i].StopOrderIsActive)
+
+                    Position position = deals[i];
+
+                    if (position == null)
                     {
-                        Series lineSeries = new Series("Stop_" + deals[i].Number);
+                        continue;
+                    }
+
+                    if (
+                        (position.State == PositionStateType.Closing
+                        || position.State == PositionStateType.Opening
+                        || position.State == PositionStateType.Open) 
+                        &&
+                        position.StopOrderIsActive)
+                    {
+                        Series lineSeries = new Series("Stop_" + position.Number);
                         lineSeries.ChartType = SeriesChartType.StepLine;
                         lineSeries.YAxisType = AxisType.Secondary;
                         lineSeries.XAxisType = AxisType.Secondary;
@@ -2109,10 +2148,10 @@ ContextMenuStrip menu)
                         lineSeries.YValuesPerPoint = 1;
 
 
-                        lineSeries.Points.AddXY(0, deals[i].StopOrderRedLine);
-                        lineSeries.Points.AddXY(_myCandles.Count + 500, deals[i].StopOrderRedLine);
+                        lineSeries.Points.AddXY(0, position.StopOrderRedLine);
+                        lineSeries.Points.AddXY(_myCandles.Count + 500, position.StopOrderRedLine);
 
-                        if (deals[i].Direction == Side.Sell)
+                        if (position.Direction == Side.Sell)
                         {
                             lineSeries.Color = Color.Green;
                         }
@@ -2142,14 +2181,22 @@ ContextMenuStrip menu)
                 {
                     // going through order profit
                     // проходим ПРОФИТ ОРДЕРА
-                    if (
-                       (deals[i].State == PositionStateType.Closing
-                        || deals[i].State == PositionStateType.Opening
-                        || deals[i].State == PositionStateType.Open) 
-                        &&
-                        deals[i].ProfitOrderIsActive)
+
+                    Position position = deals[i];
+
+                    if (position == null)
                     {
-                        Series lineSeries = new Series("Profit_" + deals[i].Number);
+                        continue;
+                    }
+
+                    if (
+                       (position.State == PositionStateType.Closing
+                        || position.State == PositionStateType.Opening
+                        || position.State == PositionStateType.Open) 
+                        &&
+                        position.ProfitOrderIsActive)
+                    {
+                        Series lineSeries = new Series("Profit_" + position.Number);
                         lineSeries.ChartType = SeriesChartType.Line;
                         lineSeries.YAxisType = AxisType.Secondary;
                         lineSeries.XAxisType = AxisType.Secondary;
@@ -2157,10 +2204,10 @@ ContextMenuStrip menu)
                         lineSeries.ShadowOffset = 1;
                         lineSeries.YValuesPerPoint = 1;
 
-                        lineSeries.Points.AddXY(0, deals[i].ProfitOrderRedLine);
-                        lineSeries.Points.AddXY(_myCandles.Count + 500, deals[i].ProfitOrderRedLine);
+                        lineSeries.Points.AddXY(0, position.ProfitOrderRedLine);
+                        lineSeries.Points.AddXY(_myCandles.Count + 500, position.ProfitOrderRedLine);
 
-                        if (deals[i].Direction == Side.Sell)
+                        if (position.Direction == Side.Sell)
                         {
                             lineSeries.Color = Color.Green;
                         }

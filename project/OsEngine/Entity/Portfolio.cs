@@ -50,14 +50,14 @@ namespace OsEngine.Entity
 
         // then goes the storage of open positions in the system by portfolio
 
-        private List<PositionOnBoard> _positionOnBoard;
+        public List<PositionOnBoard> PositionOnBoard;
 
         /// <summary>
         /// Take positions on the portfolio in the trading system
         /// </summary>
         public List<PositionOnBoard> GetPositionOnBoard()
         {
-            return _positionOnBoard;
+            return PositionOnBoard;
         }
 
         /// <summary>
@@ -75,29 +75,31 @@ namespace OsEngine.Entity
                 position.PortfolioName = Number;
             }
 
-            if (_positionOnBoard != null && _positionOnBoard.Count != 0)
+            if (PositionOnBoard != null && PositionOnBoard.Count != 0)
             {
-                for (int i = 0; i < _positionOnBoard.Count; i ++)
+                for (int i = 0; i < PositionOnBoard.Count; i ++)
                 {
-                    if (_positionOnBoard[i].SecurityNameCode == position.SecurityNameCode)
+                    PositionOnBoard currentPosition = PositionOnBoard[i];
+
+                    if (currentPosition.SecurityNameCode == position.SecurityNameCode)
                     {
-                        _positionOnBoard[i].ValueCurrent = position.ValueCurrent;
-                        _positionOnBoard[i].ValueBlocked = position.ValueBlocked;
-                        _positionOnBoard[i].UnrealizedPnl = position.UnrealizedPnl;
+                        currentPosition.ValueCurrent = position.ValueCurrent;
+                        currentPosition.ValueBlocked = position.ValueBlocked;
+                        currentPosition.UnrealizedPnl = position.UnrealizedPnl;
 
                         return;
                     }
                 }
             }
 
-            if (_positionOnBoard == null)
+            if (PositionOnBoard == null)
             {
-                _positionOnBoard = new List<PositionOnBoard>();
+                PositionOnBoard = new List<PositionOnBoard>();
             }
 
-            if (_positionOnBoard.Count == 0)
+            if (PositionOnBoard.Count == 0)
             {
-                _positionOnBoard.Add(position);
+                PositionOnBoard.Add(position);
             }
             else if (position.SecurityNameCode == "USDT"
                 || position.SecurityNameCode == "USDC"
@@ -105,17 +107,17 @@ namespace OsEngine.Entity
                 || position.SecurityNameCode == "RUB"
                 || position.SecurityNameCode == "EUR")
             {
-                _positionOnBoard.Insert(0, position);
+                PositionOnBoard.Insert(0, position);
             }
-            else if (_positionOnBoard.Count == 1)
+            else if (PositionOnBoard.Count == 1)
             {
-                if (FirstIsBiggerThanSecond(position.SecurityNameCode, _positionOnBoard[0].SecurityNameCode))
+                if (FirstIsBiggerThanSecond(position.SecurityNameCode, PositionOnBoard[0].SecurityNameCode))
                 {
-                    _positionOnBoard.Add(position);
+                    PositionOnBoard.Add(position);
                 }
                 else
                 {
-                    _positionOnBoard.Insert(0, position);
+                    PositionOnBoard.Insert(0, position);
                 }
             }
             else
@@ -123,22 +125,22 @@ namespace OsEngine.Entity
 
                 bool isInsert = false;
 
-                for (int i = 0; i < _positionOnBoard.Count; i++)
+                for (int i = 0; i < PositionOnBoard.Count; i++)
                 {
-                    if (_positionOnBoard[i].SecurityNameCode == "USDT"
-                  || _positionOnBoard[i].SecurityNameCode == "USDC"
-                  || _positionOnBoard[i].SecurityNameCode == "USD"
-                  || _positionOnBoard[i].SecurityNameCode == "RUB"
-                  || _positionOnBoard[i].SecurityNameCode == "EUR")
+                    if (PositionOnBoard[i].SecurityNameCode == "USDT"
+                  || PositionOnBoard[i].SecurityNameCode == "USDC"
+                  || PositionOnBoard[i].SecurityNameCode == "USD"
+                  || PositionOnBoard[i].SecurityNameCode == "RUB"
+                  || PositionOnBoard[i].SecurityNameCode == "EUR")
                     {
                         continue;
                     }
 
                     if (FirstIsBiggerThanSecond(
                         position.SecurityNameCode,
-                        _positionOnBoard[i].SecurityNameCode) == false)
+                        PositionOnBoard[i].SecurityNameCode) == false)
                     {
-                        _positionOnBoard.Insert(i, position);
+                        PositionOnBoard.Insert(i, position);
                         isInsert = true;
                         break;
                     }
@@ -146,7 +148,7 @@ namespace OsEngine.Entity
 
                 if (isInsert == false)
                 {
-                    _positionOnBoard.Add(position);
+                    PositionOnBoard.Add(position);
                 }
             }
         }
@@ -166,7 +168,7 @@ namespace OsEngine.Entity
         /// </summary>
         public void ClearPositionOnBoard()
         {
-            _positionOnBoard = new List<PositionOnBoard>();
+            PositionOnBoard = new List<PositionOnBoard>();
         }
     }
 }

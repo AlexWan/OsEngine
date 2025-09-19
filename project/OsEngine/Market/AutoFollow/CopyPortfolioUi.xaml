@@ -24,17 +24,19 @@
                     <ColumnDefinition Width="100*"/>
                 </Grid.ColumnDefinitions>
 
-                <Label Name="LabelIsOn" Content="Is On" HorizontalAlignment="Center" Margin="-120,45,0,0" VerticalAlignment="Top" Height="23" Width="137"/>
-                <ComboBox Name="ComboBoxIsOn" HorizontalAlignment="Center" Margin="145,45,0,0" VerticalAlignment="Top" Width="120" Height="23"/>
-                <Label Name="LabelOrderType" Content="Order type" HorizontalAlignment="Center" Margin="-120,68,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
-                <ComboBox Name="ComboBoxOrderType" HorizontalAlignment="Center" Margin="145,68,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
-                <Label Name="LabelIcebergCount" Content="Iceberg count" HorizontalAlignment="Center" Margin="-120,90,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
-                <ComboBox Name="ComboBoxIcebergCount" HorizontalAlignment="Center" Margin="145,90,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
-                <Label Name="LabelIcebergMillisecondsDelay" Content="Iceberg delay mls" HorizontalAlignment="Center" Margin="-120,114,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
-                <TextBox Name="TextBoxIcebergMillisecondsDelay" HorizontalAlignment="Center" Margin="145,113,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="118"/>
-                <Button Name="ButtonDeleteAllPositions" Content="Delete all positions" HorizontalAlignment="Center" Margin="145,141,0,0" VerticalAlignment="Top" Width="118" Click="ButtonDeleteAllPositions_Click"/>
-                <Button Name="ButtonCLoseAllPositions" Content="Close all positions" HorizontalAlignment="Center" Margin="-130,141,0,0" VerticalAlignment="Top" Width="118" Click="ButtonCLoseAllPositions_Click"/>
-                
+                <Label Name="LabelIsOn" Content="Is On" HorizontalAlignment="Center" Margin="-120,15,0,0" VerticalAlignment="Top" Height="23" Width="137"/>
+                <ComboBox Name="ComboBoxIsOn" HorizontalAlignment="Center" Margin="150,15,0,0" VerticalAlignment="Top" Width="120" Height="23"/>
+                <Label Name="LabelOrderType" Content="Order type" HorizontalAlignment="Center" Margin="-120,38,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
+                <ComboBox Name="ComboBoxOrderType" HorizontalAlignment="Center" Margin="150,38,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
+                <Label Name="LabelIcebergCount" Content="Iceberg count" HorizontalAlignment="Center" Margin="-120,60,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
+                <ComboBox Name="ComboBoxIcebergCount" HorizontalAlignment="Center" Margin="150,60,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
+                <Label Name="LabelIcebergMillisecondsDelay" Content="Iceberg delay mls" HorizontalAlignment="Center" Margin="-120,84,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
+                <TextBox Name="TextBoxIcebergMillisecondsDelay" HorizontalAlignment="Center" Margin="150,83,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="118"/>
+                <Button Name="ButtonDeleteAllPositions" Content="Delete all positions" HorizontalAlignment="Center" Margin="150,111,0,0" VerticalAlignment="Top" Width="118" Click="ButtonDeleteAllPositions_Click"/>
+                <Button Name="ButtonCLoseAllPositions" Content="Close all positions" HorizontalAlignment="Center" Margin="-130,111,0,0" VerticalAlignment="Top" Width="118" Click="ButtonCLoseAllPositions_Click"/>
+                <Button Name="ButtonNonTradePeriods" Content="Non trade periods" HorizontalAlignment="Center" Margin="0,141,0,0" VerticalAlignment="Top" Width="197" Click="ButtonNonTradePeriods_Click"/>
+
+
                 <TabControl Name="TabControlVolumeSettings" Grid.Column="1">
                     <TabItem Header="Volume settings">
                         <Grid >

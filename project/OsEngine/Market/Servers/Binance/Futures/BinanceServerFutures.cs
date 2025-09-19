@@ -1387,7 +1387,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _socketPrivateData.OnMessage += _socketClient_PrivateMessage;
                 _socketPrivateData.OnError += _socketClient_Error;
                 _socketPrivateData.OnClose += _socketClient_Closed;
-                _socketPrivateData.Connect();
+                _socketPrivateData.Connect().Wait();
 
                 _socketsArray.Add("userDataStream", _socketPrivateData);
 
@@ -1655,7 +1655,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             wsClientDepth.OnMessage += _socket_PublicMessage;
             wsClientDepth.OnError += _socketClient_Error;
             wsClientDepth.OnClose += _socketClient_Closed;
-            wsClientDepth.Connect();
+            wsClientDepth.Connect().Wait();
 
             _socketsArray.Add(security.Name + "_depth20", wsClientDepth);
         }
@@ -1804,7 +1804,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1896,7 +1896,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                 {
                                     _err = JsonConvert.DeserializeAnonymousType(mes, new ErrorMessage());
                                 }
-                                catch (Exception e)
+                                catch
                                 {
                                     // если не смогли распарсить, то просто покажем что пришло
                                     _err.code = 9999;
@@ -1970,7 +1970,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 return;
 
-                if (portfs == null)
+             /*   if (portfs == null)
                 {
                     return;
                 }
@@ -2090,7 +2090,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 if (PortfolioEvent != null)
                 {
                     PortfolioEvent(_portfolios);
-                }
+                }*/
             }
             catch (Exception error)
             {
@@ -2487,7 +2487,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -2647,7 +2647,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             return;
-            if (string.IsNullOrEmpty(order.NumberMarket))
+           /* if (string.IsNullOrEmpty(order.NumberMarket))
             {
                 SendLogMessage("Can`t change order price. Market Num order is null. "
                     + " SecName: " + order.SecurityNameCode
@@ -2673,7 +2673,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             if (res == null)
             {
                 return;
-            }
+            }*/
         }
 
         public void CancelAllOrders()
@@ -2965,6 +2965,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             return newOrder;
+        }
+
+        public List<Order> GetActiveOrders(int startIndex, int count)
+        {
+            return null;
+        }
+
+        public List<Order> GetHistoricalOrders(int startIndex, int count)
+        {
+            return null;
         }
 
         #endregion

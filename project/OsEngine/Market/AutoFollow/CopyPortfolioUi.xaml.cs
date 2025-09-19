@@ -113,6 +113,9 @@ namespace OsEngine.Market.AutoFollow
             TabActivePos.Header = OsLocalization.Trader.Label187;
             TabHistoricalPos.Header = OsLocalization.Trader.Label188;
 
+            ButtonDeleteAllPositions.Content = OsLocalization.Market.Label239;
+            ButtonCLoseAllPositions.Content = OsLocalization.Market.Label240;
+            ButtonNonTradePeriods.Content = OsLocalization.Market.Label241;
 
             Title = OsLocalization.Market.Label201 + " # " + _copyTrader.Number
                 + " " + OsLocalization.Market.Label219 +": " + portfolioToCopy.ServerName
@@ -1248,6 +1251,22 @@ namespace OsEngine.Market.AutoFollow
                 _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
             SavePanelsPosition();
+        }
+
+        #endregion
+
+        #region NonTradePeriods
+
+        private void ButtonNonTradePeriods_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _portfolioToCopy.TradePeriodsSettings.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
