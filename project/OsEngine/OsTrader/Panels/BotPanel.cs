@@ -64,7 +64,12 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         ///  source for the news feed
         /// </summary>
-        News
+        News,
+
+        /// <summary>
+        /// source for options trading
+        /// </summary>
+        Options
     }
 
     /// <summary>
@@ -1908,6 +1913,10 @@ position => position.State != PositionStateType.OpeningFail
                     ((BotTabScreener)newTab).UserSelectActionEvent += UserSetPositionAction;
                     ((BotTabScreener)newTab).NewTabCreateEvent += (tab) => NewTabCreateEvent?.Invoke();
                 }
+                else if (tabType == BotTabType.Options)
+                {
+                    newTab = new BotTabOptions(nameTab, StartProgram);
+                }
                 else
                 {
                     return null;
@@ -2095,11 +2104,11 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (ActiveTab.TabType == BotTabType.Simple)
                 {
-                    ((BotTabSimple)ActiveTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, 
-                        _hostCloseDeals, _rectangle, _hostAlerts, _textBoxLimitPrice, 
+                    ((BotTabSimple)ActiveTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals,
+                        _hostCloseDeals, _rectangle, _hostAlerts, _textBoxLimitPrice,
                         _gridChartControlPanel, _textBoxVolume, _hostGrids);
 
-                    for(int i = 0;i < _tabControlControl.Items.Count;i++)
+                    for (int i = 0; i < _tabControlControl.Items.Count; i++)
                     {
                         TabItem itemN = (TabItem)_tabControlControl.Items[i];
                         itemN.IsEnabled = true;
@@ -2128,6 +2137,10 @@ position => position.State != PositionStateType.OpeningFail
                     else if (ActiveTab.TabType == BotTabType.Screener)
                     {
                         ((BotTabScreener)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
+                    }
+                    else if (ActiveTab.TabType == BotTabType.Options)
+                    {
+                        ((BotTabOptions)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
                     }
                     else if (ActiveTab.TabType == BotTabType.Pair)
                     {

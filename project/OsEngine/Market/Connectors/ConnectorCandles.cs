@@ -1514,6 +1514,8 @@ namespace OsEngine.Market.Connectors
                 _optionMarketData.Rho = data.Rho;
                 _optionMarketData.OpenInterest = data.OpenInterest;
                 _optionMarketData.TimeCreate = data.TimeCreate;
+
+                AdditionalDataEvent?.Invoke(_optionMarketData);
             }
             catch (Exception error)
             {
@@ -2022,6 +2024,11 @@ namespace OsEngine.Market.Connectors
         /// myTrade are changed
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
+
+        /// <summary>
+        /// new additional market data event
+        /// </summary>
+        public event Action<OptionMarketData> AdditionalDataEvent;
 
         /// <summary>
         /// new trade in the trades feed
