@@ -21,17 +21,15 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
 
     public class ResponseWebSocketMessageTrade
     {
-        public string symbol;       //Market of the symbol
-        public string sequence;     //Sequence number which is used to judge the continuity of the pushed messages
-        public string side;         //Transaction side of the last traded taker order
-        public string price;        //Filled price
-        public string size;         //Filled quantity
-        public string tradeId;      //Order ID
-        public string bestBidSize;  //Best bid size
-        public string bestBidPrice; //Best bid
-        public string bestAskPrice; //Best ask size
-        public string bestAskSize;  //Best ask
-        public string ts;           //Filled time - nanosecond
+        public string symbol { get; set; }
+        public string sequence { get; set; }
+        public string side { get; set; }
+        public string size { get; set; }
+        public string price { get; set; }
+        public string takerOrderId { get; set; }
+        public string makerOrderId { get; set; }
+        public string tradeId { get; set; }
+        public string ts { get; set; }
     }
 
     public class ResponseWebSocketDepthItem
