@@ -88,9 +88,6 @@
     <Reference Include="OpenFAST">
       <HintPath>bin\Debug\OpenFAST.dll</HintPath>
     </Reference>
-    <Reference Include="qc">
-      <HintPath>bin\Debug\qC.dll</HintPath>
-    </Reference>
     <Reference Include="QUIKSharp">
       <HintPath>bin\Debug\QuikSharp.dll</HintPath>
     </Reference>
