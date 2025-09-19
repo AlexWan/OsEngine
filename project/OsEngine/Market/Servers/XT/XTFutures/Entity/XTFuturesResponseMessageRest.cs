@@ -135,6 +135,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string takerMaker { get; set; } //"taker", takerMaker
     }
 
+
     public class XTFuturesResponseMyTrades
     {
         public string hasPrev { get; set; } //"true", boolean
@@ -173,10 +174,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
     }
     public class ListenKeyResponse
     {
-        public string returnCode { get; set; }          // число, а не string
+        public string returnCode { get; set; }      
         public string msgInfo { get; set; }
         public ApiError error { get; set; }
-        public string result { get; set; }           // строка, а не объект
+        public string result { get; set; }           
     }
 
     public class ApiError
@@ -184,4 +185,33 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string code { get; set; }
         public string msg { get; set; }
     }
+
+    public class XTFuturesWsOrderMessage
+    {
+        public string topic { get; set; }  // Topic name, e.g. "order"
+        public string @event { get; set; } // Event name, e.g. "order@123456"
+        public XTFuturesWsOrderData data { get; set; } // Order data
+    }
+
+    public class XTFuturesWsOrderData
+    {
+        public string symbol { get; set; }        // Trading pair
+        public string orderId { get; set; }       // Order Id
+        public string origQty { get; set; }       // Original Quantity
+        public string avgPrice { get; set; }      // Average price
+        public string price { get; set; }         // Price
+        public string executedQty { get; set; }   // Volume (Cont)
+        public string orderSide { get; set; }     // BUY, SELL
+        public string timeInForce { get; set; }   // Valid way
+        public string positionSide { get; set; }  // LONG, SHORT
+        public string marginFrozen { get; set; }  // Occupied margin
+        public string sourceType { get; set; }    // DEFAULT, ENTRUST, PROFIT
+        public string type { get; set; }          // ORDER
+        public string state { get; set; }         // Order state (NEW, FILLED, etc.)
+        public string createdTime { get; set; }   // Create time (timestamp)
+        public string leverage { get; set; }      // Leverage
+        public string positionType { get; set; }  // Position type (CROSSED, ISOLATED)
+        public string orderType { get; set; }     // Order type (LIMIT, MARKET)
+    }
+
 }

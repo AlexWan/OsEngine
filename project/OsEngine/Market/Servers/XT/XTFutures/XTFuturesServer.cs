@@ -19,6 +19,9 @@ using Tinkoff.InvestApi.V1;
 using Trade = OsEngine.Entity.Trade;
 using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
+using OsEngine.Market.Servers.Deribit.Entity;
+using static Google.Rpc.Context.AttributeContext.Types;
+using TL;
 
 
 
@@ -184,7 +187,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         string securityName = _subscribedSecurities[i];
 
-                        _webSocketPublicMarketDepths.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"depth-update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                        _webSocketPublicMarketDepths.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                         _webSocketPublicTrades.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"trades@{securityName}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                     }
 
@@ -1241,7 +1244,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesWsTrade> responseTrade = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<XTFuturesWsTrade>());
+                    XTFuturesResponseWebSocketMessageAction<XTFuturesWsPublicTrade> responseTrade = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<XTFuturesWsPublicTrade>());
 
                     if (responseTrade?.data == null)
                     {
@@ -1251,10 +1254,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     Trade trade = new Trade();
                     trade.SecurityNameCode = responseTrade.data.s;
                     trade.Price = responseTrade.data.p.ToDecimal();
-                    trade.Id = responseTrade.data.i;
                     trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data.t));
-                    trade.Volume = responseTrade.data.q.ToDecimal();
-                    //trade.Side = responseTrade.data.b.Equals("true") ? Side.Buy : Side.Sell;
+                    trade.Volume = responseTrade.data.a.ToDecimal();
+                    trade.Side = responseTrade.data.m.Equals("BID", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
 
                     NewTradesEvent?.Invoke(trade);
                 }
@@ -1566,6 +1568,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             //    }
             // внутри XTServerSpotRealization
 
+            int level = 20;
             private MarketDepth GetOrCreateDepth(string symbol)
             {
                 for (int i = 0; i < _marketDepths.Count; i++)
@@ -1575,15 +1578,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 var md = new MarketDepth
                 {
                     SecurityNameCode = symbol,
-                    Asks = new List<MarketDepthLevel>(20),
-                    Bids = new List<MarketDepthLevel>(20)
+                    Asks = new List<MarketDepthLevel>(level),
+                    Bids = new List<MarketDepthLevel>(level)
                 };
                 _marketDepths.Add(md);
                 return md;
             }
 
-            private  int CompareAsk(MarketDepthLevel x, MarketDepthLevel y) => x.Price.CompareTo(y.Price);
-            private  int CompareBid(MarketDepthLevel x, MarketDepthLevel y) => y.Price.CompareTo(x.Price);
+            private int CompareAsk(MarketDepthLevel x, MarketDepthLevel y) => x.Price.CompareTo(y.Price);
+            private int CompareBid(MarketDepthLevel x, MarketDepthLevel y) => y.Price.CompareTo(x.Price);
             // Линейный апсерт уровня: найти, обновить/удалить или вставить в нужное место.
             // Порядок поддерживается: asks по возрастанию цены, bids по убыванию.
             private void UpsertLevel(List<MarketDepthLevel> list, decimal price, decimal qty, bool isAsk)
@@ -1634,7 +1637,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 // 5) вставляем и ограничиваем глубину до 20 уровней
                 list.Insert(pos, lvlNew);
-                if (list.Count > 20) list.RemoveAt(20);
+                if (list.Count > level) list.RemoveAt(20);
             }
 
 
@@ -1696,13 +1699,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     lock (_mdLock)
                     {
+
                         var md = GetOrCreateDepth(symbol);
-                        if (md.Asks == null) md.Asks = new List<MarketDepthLevel>(20);
-                        if (md.Bids == null) md.Bids = new List<MarketDepthLevel>(20);
+                        if (md.Asks == null) md.Asks = new List<MarketDepthLevel>(level);
+                        if (md.Bids == null) md.Bids = new List<MarketDepthLevel>(level);
 
 
-                        ApplySnapshotSide(d.a, md.Asks, isAsk: true, maxLevels: 20);
-                        ApplySnapshotSide(d.b, md.Bids, isAsk: false, maxLevels: 20);
+                        ApplySnapshotSide(d.a, md.Asks, isAsk: true, maxLevels: level);
+                        ApplySnapshotSide(d.b, md.Bids, isAsk: false, maxLevels: level);
 
 
                         md.Time = ServerTime;
@@ -1821,26 +1825,25 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    XTFuturesResponseMessageRest<XTFuturesResponseMyTrades> responseMyTrades = JsonConvert.DeserializeObject<XTFuturesResponseMessageRest<XTFuturesResponseMyTrades>>(message);
+                    XTFuturesResponseWebSocketMessageAction<XTFuturesWsTrade> response = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesWsTrade>>(message);
 
-                    for (int i = 0; i < responseMyTrades.result.items.Count; i++)
+                    if (response != null) { return; }
                     {
-                        XTFuturesResponseMyTrade responseT = responseMyTrades.result.items[i];
 
                         MyTrade myTrade = new MyTrade();
 
-                        myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseT.time));
-                        myTrade.NumberOrderParent = responseT.orderId;
-                        myTrade.NumberTrade = responseT.tradeId;
-                        myTrade.Price = responseT.price.ToDecimal();
-                        myTrade.SecurityNameCode = responseT.symbol;
-                        myTrade.Side = responseT.orderSide.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
+                        myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.timestamp));
+                        myTrade.NumberOrderParent = response.data.clientOrderId;
+                        myTrade.NumberTrade = response.data.orderId;
+                        myTrade.Price = response.data.price.ToDecimal();
+                        myTrade.SecurityNameCode = response.data.symbol;
+                        myTrade.Side = response.data.orderSide.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
 
-                        string commissionSecName = responseT.feeCurrency;
+                        string commissionSecName = response.data.fee;
 
                         if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
                         {
-                            myTrade.Volume = responseT.quantity.ToDecimal() - responseT.fee.ToDecimal();
+                            myTrade.Volume = response.data.quantity.ToDecimal() - response.data.fee.ToDecimal();
 
                             int decimalVolum = GetDecimalsVolume(myTrade.SecurityNameCode);
                             if (decimalVolum > 0)
@@ -1850,7 +1853,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
                         else
                         {
-                            myTrade.Volume = responseT.quantity.ToDecimal();
+                            myTrade.Volume = response.data.quantity.ToDecimal();
                         }
 
                         MyTradeEvent?.Invoke(myTrade);
@@ -2041,90 +2044,112 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private readonly RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
+            int leverage;
+            public bool SetLeverage(string symbol, string positionSide, int leverage = 1)
+            {
+                var json = JsonConvert.SerializeObject(new { symbol, positionSide, leverage });
+                var resp = CreatePrivateQuery(
+                    "/future/user/v1/position/adjust-leverage",
+                    Method.POST,
+                    null, null,
+                    BodyKind.Json,
+                    null, null,
+                    json
+                );
+                var response = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(resp.Content);
+                if (resp.StatusCode == HttpStatusCode.OK && response != null && response.returnCode == "0")
+                {
+                    return true;
+                }
+                return false;
+            }
             public void SendOrder(Order order)
             {
-                //_rateGateSendOrder.WaitToProceed();
+                _rateGateSendOrder.WaitToProceed();
 
-                //try
-                //{
-                //    XTFuturesSendOrderRequestData data = new XTFuturesSendOrderRequestData();
-                //    data.symbol = order.SecurityNameCode;
-                //    data.clientOrderId = (order.NumberUser).ToString();
-                //    data.orderSide = order.Side.ToString().ToUpper();
-                //    data.orderType = order.TypeOrder.ToString().ToUpper();
-                //    data.timeInForce = "GTC";
-                //    //data.bizType = "";
-                //    data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
+                try
+                {
+                   string side = (order.Side).ToString();
+                   SetLeverage(order.SecurityNameCode,side,leverage);
 
-                //    if (order.TypeOrder == OrderPriceType.Limit)
-                //    {
-                //        data.price = order.Price.ToString().Replace(",", ".");
-                //        data.origQty = order.Volume.ToString().Replace(",", ".");
-                //    }
-                //    else
-                //    {
-                //        data.timeInForce = "FOK";
+                    XTFuturesSendOrderRequestData data = new XTFuturesSendOrderRequestData();
+                    data.symbol = order.SecurityNameCode;
+                    data.clientOrderId = (order.NumberUser).ToString();
+                    data.orderSide = order.Side.ToString().ToUpper();
+                    data.orderType = order.TypeOrder.ToString().ToUpper();
+                    data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
 
-                //        if (data.orderSide == "BUY")
-                //        {
-                //            data.quantity = null;
-                //            data.origQty = (order.Volume * order.Price).ToString().Replace(",", ".");
-                //        }
-                //        else
-                //        {
-                //            data.origQty = null;
-                //            data.quantity = order.Volume.ToString().Replace(",", ".");
-                //        }
-                //    }
+                    if (order.TypeOrder == OrderPriceType.Limit)
+                    {
+                        data.price = order.Price.ToString().Replace(",", ".");
+                        data.origQty = order.Volume.ToString().Replace(",", ".");
+                    }
+                    else
+                    {
+                        if (data.orderSide == "BUY")
+                        {
 
-                //    JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
-                //    dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                            data.origQty = (order.Volume * order.Price).ToString().Replace(",", ".");
+                        }
+                        else
+                        {
 
-                //    string jsonRequest = JsonConvert.SerializeObject(data, dataSerializerSettings);
+                            data.origQty = order.Volume.ToString().Replace(",", ".");
+                        }
+                    }
 
-                //   IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/create", "POST", jsonRequest, "", "","","");
+                    JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
+                    dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+
+                    string jsonRequest = JsonConvert.SerializeObject(data, dataSerializerSettings);
+
+                    IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/create", Method.POST,
+    null, null,              // queryKeys/queryValues
+    BodyKind.Json,           // тип тела — JSON
+    null, null,              // form body (не используется)
+    jsonRequest);
 
 
-                //    XTFuturesResponseMessageRest<XTFuturesSendOrderRequestData> stateResponse = JsonConvert.DeserializeObject(XTFuturesResponseMessageRest<XTFuturesSendOrderRequestData>(jsonRequest.con));
+                    XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
 
-                //    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
-                //    {
-                //        if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
-                //        {
-                //            SendLogMessage($"Order num {order.NumberUser} on XT exchange.", LogMessageType.Trade);
-                //            order.State = OrderStateType.Active;
-                //            if (order.TypeOrder == OrderPriceType.Market)
-                //            {
-                //                order.State = OrderStateType.Done;
-                //                CreateQueryMyTrade(order.SecurityNameCode, stateResponse.result.orderId, 1);
-                //            }
-                //            order.NumberMarket = stateResponse.result.orderId;
+                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    {
+                        if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+                        {
+                            SendLogMessage($"Order num {order.NumberUser} on XT exchange.", LogMessageType.Trade);
+                            order.State = OrderStateType.Active;
+                            if (order.TypeOrder == OrderPriceType.Market)
+                            {
+                                order.State = OrderStateType.Done;
+                                CreateQueryMyTrade(order.SecurityNameCode, stateResponse.result, 1);
+                            }
+                            order.NumberMarket = stateResponse.result;
 
-                //            //MyOrderEvent?.Invoke(order);
-                //        }
-                //        else
-                //        {
-                //            CreateOrderFail(order);
-                //            SendLogMessage($"SendOrder Fail, Code: {stateResponse.rc}\n"
-                //                + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        CreateOrderFail(order);
-                //        SendLogMessage($"SendOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                            MyOrderEvent?.Invoke(order);
+                        }
+                        else
+                        {
+                            CreateOrderFail(order);
+                            SendLogMessage($"SendOrder Fail, Code: {stateResponse.returnCode}\n"
+                                + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        CreateOrderFail(order);
+                        SendLogMessage($"SendOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
-                //        if (stateResponse != null && stateResponse.rc != null)
-                //        {
-                //            SendLogMessage($"SendOrder Fail, Code: {stateResponse.rc}\n"
-                //                + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                //        }
-                //    }
-                //}
-                //catch (Exception exception)
-                //{
-                //    SendLogMessage("SendOrder error: " + exception.ToString(), LogMessageType.Error);
-                //}
+                        if (stateResponse != null && stateResponse.returnCode != null)
+                        {
+                            SendLogMessage($"SendOrder Fail, Code: {stateResponse.returnCode}\n"
+                                + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("SendOrder error: " + exception.ToString(), LogMessageType.Error);
+                }
             }
 
             public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -2134,127 +2159,141 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public void CancelAllOrders()
             {
-                //_rateGateCancelOrder.WaitToProceed();
+                _rateGateCancelOrder.WaitToProceed();
 
-                //try
-                //{
-                //    IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel-all", Method.POST, "", "", "");
-                //    XTFuturesResponseMessageRest<object> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseMessageRest<object>>(responseMessage.Content);
+                try
+                {
+                    IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel-all", Method.POST, null, null,
+            BodyKind.Json, null, null, null);
+                    XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
 
-                //    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
-                //    {
-                //        if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.CurrentCulture))
-                //        {
-                //            // ignore
-                //        }
-                //        else
-                //        {
-                //            SendLogMessage($"CancelAllOrders error, Code: {stateResponse.rc}\n"
-                //                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        SendLogMessage($"CancelAllOrders> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    {
+                        if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.CurrentCulture))
+                        {
+                            // ignore
+                        }
+                        else
+                        {
+                            SendLogMessage($"CancelAllOrders error, Code: {stateResponse.returnCode}\n"
+                                           + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"CancelAllOrders> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
-                //        if (stateResponse != null && stateResponse.rc != null)
-                //        {
-                //            SendLogMessage($"CancelAllOrders error, Code: {stateResponse.rc}\n"
-                //                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                //        }
-                //    }
-                //}
-                //catch (Exception exception)
-                //{
-                //    SendLogMessage("CancelAllOrders error: " + exception.ToString(), LogMessageType.Error);
-                //}
+                        if (stateResponse != null && stateResponse.returnCode != null)
+                        {
+                            SendLogMessage($"CancelAllOrders error, Code: {stateResponse.returnCode}\n"
+                                           + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("CancelAllOrders error: " + exception.ToString(), LogMessageType.Error);
+                }
             }
 
-            //public void CancelAllOrdersToSecurity(Security security)
-            //{
-            //    _rateGateCancelOrder.WaitToProceed();
+            public void CancelAllOrdersToSecurity(Security security)
+            {
+                _rateGateCancelOrder.WaitToProceed();
 
-            //    try
-            //    {
-            //        XTFuturesCancelAllOrdersRequestData data = new XTFuturesCancelAllOrdersRequestData();
-            //        data.symbol = security.Name;
-            //        data.bizType = "SPOT";
+                try
+                {
+                    XTFuturesCancelAllOrdersRequestData data = new XTFuturesCancelAllOrdersRequestData();
+                    data.symbol = security.Name;
+                    //data.bizType = "Futures";
 
-            //        string jsonRequest = JsonConvert.SerializeObject(data);
+                    string jsonRequest = JsonConvert.SerializeObject(data);
 
-            //        var responseMessage = CreatePrivateQuery("/v4/open-order", "DELETE", jsonRequest, "", "");
-            //        string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-            //        XTFuturesResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new XTFuturesResponseMessageRest<object>());
+                    var responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel-all", Method.POST, null, null,
+            BodyKind.Json, null, null, null);
+                    XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
+                   
+                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    {
+                        if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.CurrentCulture))
+                        {
+                            // ignore
+                        }
+                        else
+                        {
+                            SendLogMessage($"CancelAllOrdersToSecurity error, Code: {stateResponse.returnCode}\n"
+                                + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"CancelAllOrdersToSecurity> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
-            //        if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
-            //        {
-            //            if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.CurrentCulture))
-            //            {
-            //                // ignore
-            //            }
-            //            else
-            //            {
-            //                SendLogMessage($"CancelAllOrdersToSecurity error, Code: {stateResponse.returnCode}\n"
-            //                    + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
-            //            }
-            //        }
-            //        else
-            //        {
-            //            SendLogMessage($"CancelAllOrdersToSecurity> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-            //            if (stateResponse != null && stateResponse.returnCode != null)
-            //            {
-            //                SendLogMessage($"CancelAllOrdersToSecurity error, Code: {stateResponse.returnCode}\n"
-            //                    + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
-            //            }
-            //        }
-            //    }
-            //    catch (Exception exception)
-            //    {
-            //        SendLogMessage("CancelAllOrdersToSecurity error: " + exception.ToString(), LogMessageType.Error);
-            //    }
-            // }
+                        if (stateResponse != null && stateResponse.returnCode != null)
+                        {
+                            SendLogMessage($"CancelAllOrdersToSecurity error, Code: {stateResponse.returnCode}\n"
+                                + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("CancelAllOrdersToSecurity error: " + exception.ToString(), LogMessageType.Error);
+                }
+            }
 
             public bool CancelOrder(Order order)
             {
-                //_rateGateCancelOrder.WaitToProceed();
+                _rateGateCancelOrder.WaitToProceed();
 
-                //try
-                //{
-                //   IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel" + order.NumberMarket, Method.POST, "", "", "");
+                try
+                {
+                    //var data = new { order = cancelorderId };
+                    //string jsonRequest = JsonConvert.SerializeObject(data);
 
-                //    XTFuturesResponseMessageRest<XTFuturesCancaledOrderResponse> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseMessageRest<XTFuturesCancaledOrderResponse>>(responseMessage.Content);
+                    //IRestResponse response = CreatePrivateQuery(
+                    //    "/future/trade/v1/order/cancel",
+                    //    Method.POST,
+                    //    null, null,
+                    //    BodyKind.Json,
+                    //    null, null,
+                    //    jsonRequest
 
-                //    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
-                //    {
-                //        if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
-                //        {
-                //            SendLogMessage($"Successfully canceled the order, order Id: {stateResponse.result.cancelId}", LogMessageType.Trade);
-                //            return true;
-                //        }
-                //        else
-                //        {
-                //            GetOrderStatus(order);
-                //            SendLogMessage($"CancelOrder error, Code: {stateResponse.rc}\n"
-                //                + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        GetOrderStatus(order);
-                //        SendLogMessage($"CancelOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                    IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel" + order.NumberMarket, Method.POST, null, null,
+            BodyKind.Json, null, null, null);
 
-                //        if (stateResponse != null && stateResponse.rc != null)
-                //        {
-                //            SendLogMessage($"CancelOrder error, Code: {stateResponse.rc}\n"
-                //                + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                //        }
-                //    }
-                //}
-                //catch (Exception exception)
-                //{
-                //    SendLogMessage("CancelOrder error: " + exception.ToString(), LogMessageType.Error);
-                //}
+
+                    XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
+
+                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    {
+                        if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+                        {
+                            SendLogMessage($"Successfully canceled the order, order Id: {stateResponse.result}", LogMessageType.Trade);
+                            return true;
+                        }
+                        else
+                        {
+                            GetOrderStatus(order);
+                            SendLogMessage($"CancelOrder error, Code: {stateResponse.returnCode}\n"
+                                + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        GetOrderStatus(order);
+                        SendLogMessage($"CancelOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                        if (stateResponse != null && stateResponse.returnCode != null)
+                        {
+                            SendLogMessage($"CancelOrder error, Code: {stateResponse.returnCode}\n"
+                                + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("CancelOrder error: " + exception.ToString(), LogMessageType.Error);
+                }
 
                 return false;
             }
@@ -2461,8 +2500,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             private readonly string _timeOut = "50000";
 
             private readonly string _encry = "HmacSHA256";
-
-            HttpClient _httpPublicClient = new HttpClient();
 
             private List<string> _subscribedSecurities = new List<string>();
 
@@ -2990,11 +3027,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             private void SendLogMessage(string message, LogMessageType messageType)
             {
                 LogMessageEvent?.Invoke(message, messageType);
-            }
-
-            public void CancelAllOrdersToSecurity(Security security)
-            {
-                throw new NotImplementedException();
             }
 
             public event Action<string, LogMessageType> LogMessageEvent;

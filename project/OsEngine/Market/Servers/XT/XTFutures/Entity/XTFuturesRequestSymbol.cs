@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 {
 
-    public class XTFuturesResponseRest<T>
+    public class XTFuturesResponseRest<T>  //XTBasicResponse
     {
         public string returnCode { get; set; }
         public string msgInfo { get; set; }

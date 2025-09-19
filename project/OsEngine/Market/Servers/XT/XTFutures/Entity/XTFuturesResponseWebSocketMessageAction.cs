@@ -16,23 +16,38 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public T data { get; set; }
     }
 
-    public class XTFuturesWsTrade
+    public class XTFuturesWsPublicTrade
     {
-        public string s { get; set; }                       //"btc_usdt", symbol        
-        public string i { get; set; }                      //"6316559590087222000",  trade id
-        public string t { get; set; }                    //"1655992403617", trade time
-        public string p { get; set; }                   //"43000", trade price
-        public string q { get; set; }                //"0.21",  qty，trade quantity
-        public string b { get; set; }                 //"true" whether is buyerMaker or not
+        public string s { get; set; }          //symbol
+        public string p { get; set; }          //price
+        public string a { get; set; }          //Quantity
+        public string m { get; set; }         // "BID"  Deal side  BID:Buy; ASK:Sell
+        public string t { get; set; }         //timestamp
     }
+        public class XTFuturesWsTrade
+        {
+            public string orderId { get; set; }        // Order ID
+            public string clientOrderId { get; set; }  // Client order ID
+            public string price { get; set; }          // Price
+            public string quantity { get; set; }       // Quantity
+            public string marginUnfrozen { get; set; } // Quantity of unfrozen margin
+            public string timestamp { get; set; }        // Timestamp (unix)
+            public string symbol { get; set; }         // Symbol
+            public string orderSide { get; set; }      // Order side (BUY/SELL)
+            public string positionSide { get; set; }   // Position side (LONG/SHORT)
+            public string isMaker { get; set; }          // Is maker (true:maker; false:taker)
+            public string fee { get; set; }           // Fee
+        }
+    
+    
 
     public class XTFuturesResponseWebSocketUpdateDepth
     {
 
         public string s { get; set; } // symbol
-        public long pu { get; set; }  // previousUpdateId
-        public long fu { get; set; }  // firstUpdateId
-        public long u { get; set; }   // lastUpdateId
+        public string pu { get; set; }  // previousUpdateId
+        public string fu { get; set; }  // firstUpdateId
+        public string u { get; set; }   // lastUpdateId
         public List<List<string>> a { get; set; } // asks: list of [price, quantity]
         public List<List<string>> b { get; set; }  // bids: list of [price, quantity]
     }
@@ -43,7 +58,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string s { get; set; }    // trading pair (symbol)
         public List<List<string>> a { get; set; }  // asks: list of [price, quantity]
         public List<List<string>> b { get; set; } // bids: list of [price, quantity]
-        public long t { get; set; }      // timestamp
+        public string t { get; set; }      // timestamp
     }
 
     public class XTFuturesResponseWebSocketPortfolio
