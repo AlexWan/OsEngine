@@ -52,7 +52,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 LoadSecurityOnBox();
             };
             ComboBoxClass.SelectionChanged += (sender, args) => LoadSecurityOnBox();
-            CheckBoxOptionsMode.Click += (sender, args) => LoadSecurityOnBox();
+
             ButtonAccept.Click += ButtonAccept_Click;
             this.Loaded += BotTabOptionsUi_Loaded;
         }
@@ -114,23 +114,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             var allSecurities = selectedServer.Securities;
             if (allSecurities == null) return;
 
-            List<Security> securitiesToDisplay;
+            // Default to "Options mode": show only underlying assets of options
+            var options = allSecurities.Where(s => s.SecurityType == SecurityType.Option && !string.IsNullOrEmpty(s.UnderlyingAsset)).ToList();
+            var underlyingAssetNames = new HashSet<string>(options.Select(o => o.UnderlyingAsset));
+            var securitiesToDisplay = allSecurities.Where(s => underlyingAssetNames.Contains(s.Name)).ToList();
 
-            if (CheckBoxOptionsMode.IsChecked == true)
+            // Further filter by class if a class is selected
+            if (ComboBoxClass.SelectedItem != null && ComboBoxClass.SelectedItem.ToString() != "All")
             {
-                // Options mode: show only underlying assets of options
-                var options = allSecurities.Where(s => s.SecurityType == SecurityType.Option && !string.IsNullOrEmpty(s.UnderlyingAsset)).ToList();
-                var underlyingAssetNames = new HashSet<string>(options.Select(o => o.UnderlyingAsset));
-                securitiesToDisplay = allSecurities.Where(s => underlyingAssetNames.Contains(s.Name)).ToList();
-            }
-            else
-            {
-                // Standard mode: show all securities filtered by class
-                securitiesToDisplay = allSecurities;
-                if (ComboBoxClass.SelectedItem != null && ComboBoxClass.SelectedItem.ToString() != "All")
-                {
-                    securitiesToDisplay = allSecurities.Where(s => s.NameClass == ComboBoxClass.SelectedItem.ToString()).ToList();
-                }
+                securitiesToDisplay = securitiesToDisplay.Where(s => s.NameClass == ComboBoxClass.SelectedItem.ToString()).ToList();
             }
 
             UpdateGrid(securitiesToDisplay);
