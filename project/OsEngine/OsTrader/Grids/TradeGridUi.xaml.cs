@@ -242,6 +242,8 @@ namespace OsEngine.OsTrader.Grids
             TextBoxStopGridByMoveUpValuePercent.TextChanged += TextBoxStopGridByMoveUpValuePercent_TextChanged;
             ComboBoxStopGridByMoveUpReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxStopGridByMoveUpReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByMoveUpReaction.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
+            ComboBoxStopGridByMoveUpReaction.Items.Add(TradeGridRegime.Off.ToString());
             ComboBoxStopGridByMoveUpReaction.SelectedItem = tradeGrid.StopBy.StopGridByMoveUpReaction.ToString();
             ComboBoxStopGridByMoveUpReaction.SelectionChanged += ComboBoxStopGridByMoveUpReaction_SelectionChanged;
 
@@ -252,6 +254,8 @@ namespace OsEngine.OsTrader.Grids
             TextBoxStopGridByMoveDownValuePercent.TextChanged += TextBoxStopGridByMoveDownValuePercent_TextChanged;
             ComboBoxStopGridByMoveDownReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxStopGridByMoveDownReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByMoveDownReaction.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
+            ComboBoxStopGridByMoveDownReaction.Items.Add(TradeGridRegime.Off.ToString());
             ComboBoxStopGridByMoveDownReaction.SelectedItem = tradeGrid.StopBy.StopGridByMoveDownReaction.ToString();
             ComboBoxStopGridByMoveDownReaction.SelectionChanged += ComboBoxStopGridByMoveDownReaction_SelectionChanged;
 
@@ -262,6 +266,8 @@ namespace OsEngine.OsTrader.Grids
             TextBoxStopGridByPositionsCountValue.TextChanged += TextBoxStopGridByPositionsCountValue_TextChanged;
             ComboBoxStopGridByPositionsCountReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxStopGridByPositionsCountReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByPositionsCountReaction.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
+            ComboBoxStopGridByPositionsCountReaction.Items.Add(TradeGridRegime.Off.ToString());
             ComboBoxStopGridByPositionsCountReaction.SelectedItem = tradeGrid.StopBy.StopGridByPositionsCountReaction.ToString();
             ComboBoxStopGridByPositionsCountReaction.SelectionChanged += ComboBoxStopGridByPositionsCountReaction_SelectionChanged;
 
@@ -272,6 +278,8 @@ namespace OsEngine.OsTrader.Grids
             TextBoxStopGridByLifeTimeSecondsToLife.TextChanged += TextBoxStopGridByLifeTimeSecondsToLife_TextChanged;
             ComboBoxStopGridByLifeTimeReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxStopGridByLifeTimeReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByLifeTimeReaction.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
+            ComboBoxStopGridByLifeTimeReaction.Items.Add(TradeGridRegime.Off.ToString());
             ComboBoxStopGridByLifeTimeReaction.SelectedItem = tradeGrid.StopBy.StopGridByLifeTimeReaction.ToString();
             ComboBoxStopGridByLifeTimeReaction.SelectionChanged += ComboBoxStopGridByLifeTimeReaction_SelectionChanged;
 
@@ -287,6 +295,8 @@ namespace OsEngine.OsTrader.Grids
 
             ComboBoxStopGridByTimeOfDayReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxStopGridByTimeOfDayReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByTimeOfDayReaction.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
+            ComboBoxStopGridByTimeOfDayReaction.Items.Add(TradeGridRegime.Off.ToString());
             ComboBoxStopGridByTimeOfDayReaction.SelectedItem = tradeGrid.StopBy.StopGridByTimeOfDayReaction.ToString();
             ComboBoxStopGridByTimeOfDayReaction.SelectionChanged += ComboBoxStopGridByTimeOfDayReaction_SelectionChanged;
 

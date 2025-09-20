@@ -241,6 +241,13 @@ namespace OsEngine.Market
                 {
                     for (int i = 0; i < _portfolios.Count; i++)
                     {
+                        if (_portfolios[i] == null)
+                        {
+                            _portfolios.RemoveAt(i);
+                            i--;
+                            continue;
+                        }
+
                         List<Portfolio> portfolios =
                             _portfolios.FindAll(p => 
                             p != null 
