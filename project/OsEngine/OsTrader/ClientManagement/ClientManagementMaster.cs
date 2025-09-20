@@ -5,8 +5,10 @@
 
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.OsTrader.ClientManagement.Gui;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace OsEngine.OsTrader.ClientManagement
 {
@@ -26,9 +28,11 @@ namespace OsEngine.OsTrader.ClientManagement
 
             if (Log == null)
             {
-                Log = new Log("ServerMaster", StartProgram.IsOsTrader);
+                Log = new Log("ClientManagementMaster", StartProgram.IsOsTrader);
                 Log.Listen(this);
             }
+
+            LoadClients();
         }
 
         public Log Log;
@@ -36,6 +40,33 @@ namespace OsEngine.OsTrader.ClientManagement
         #endregion
 
         #region Clients management
+
+        private void LoadClients()
+        {
+            string dir = Directory.GetCurrentDirectory();
+            dir += "\\Engine\\ClientManagement\\";
+
+            if (Directory.Exists(dir) == false)
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            string[] files = Directory.GetFiles(dir);
+
+            for(int i = 0;i < files.Length;i++)
+            {
+                string currentFile = files[i];
+
+                if(currentFile.EndsWith("TradeClient.txt") == false)
+                {
+                    continue;
+                }
+
+                TradeClient newClient = new TradeClient();
+                newClient.LoadFromFile(currentFile);
+                Clients.Add(newClient);
+            }
+        }
 
         public List<TradeClient> Clients = new List<TradeClient>();
 
@@ -51,8 +82,11 @@ namespace OsEngine.OsTrader.ClientManagement
                 }
             }
 
-            TradeClient newClient = new TradeClient(newClientNumber);
+            TradeClient newClient = new TradeClient();
+            newClient.Number = newClientNumber;
             Clients.Add(newClient);
+
+            newClient.Save();
 
             if (NewClientEvent != null)
             {
@@ -64,26 +98,44 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public void RemoveClientAtNumber(int number)
         {
+            TradeClient clientToRemove = null;
 
+            for (int i = 0; i < Clients.Count; i++)
+            {
+                if (Clients[i].Number == number)
+                {
+                    clientToRemove = Clients[i];
+                    Clients.RemoveAt(i);
+                    break;
+                }
+            }
 
+            if(clientToRemove != null)
+            {
+                clientToRemove.Delete();
+
+                if(DeleteClientEvent != null)
+                {
+                    DeleteClientEvent(clientToRemove); 
+                }
+            }
         }
 
         public event Action<TradeClient> NewClientEvent;
 
         public event Action<TradeClient> DeleteClientEvent;
 
-
         #endregion
 
         #region Dialogs UI
 
-        private ClientsUi _uiClients;
+        private ClientsMasterUi _uiClients;
 
-        public void ShowDialogClients()
+        public void ShowDialogClientsMaster()
         {
             if(_uiClients == null)
             {
-                _uiClients = new ClientsUi();
+                _uiClients = new ClientsMasterUi();
                 _uiClients.Closed += _uiClients_Closed;
                 _uiClients.Show();
             }
@@ -103,82 +155,66 @@ namespace OsEngine.OsTrader.ClientManagement
             _uiClients = null;
         }
 
-        private ClientsConnectorsUi _uiClientConnectors;
+        private List<ClientUi> _uiClient = new List<ClientUi>();
 
-        public void ShowDialogClientConnectors(int clientNumber)
+        public void ShowDialogClient(int clientNumber)
         {
-            if (_uiClientConnectors == null)
+            TradeClient client = null;
+
+            for(int i = 0;i < Clients.Count;i++)
             {
-                _uiClientConnectors = new ClientsConnectorsUi();
-                _uiClientConnectors.Closed += _uiClientConnectors_Closed;
-                _uiClientConnectors.Show();
+                if (Clients[i].Number == clientNumber)
+                {
+                    client = Clients[i]; 
+                    break;
+                }
+            }
+
+            if(client == null)
+            {
+                return;
+            }
+
+            ClientUi clientUi = null;
+
+            for(int i = 0;i < _uiClient.Count;i++)
+            {
+                if (_uiClient[i].ClientNumber == clientNumber)
+                {
+                    clientUi = _uiClient[i];
+                    break;
+                }
+            }
+            if(clientUi == null)
+            {
+                clientUi = new ClientUi(client);
+                clientUi.Closed += _uiClientConnectors_Closed;
+                clientUi.Show();
+                _uiClient.Add(clientUi);
             }
             else
             {
-                if (_uiClientConnectors.WindowState == System.Windows.WindowState.Minimized)
+                if (clientUi.WindowState == System.Windows.WindowState.Minimized)
                 {
-                    _uiClientConnectors.WindowState = System.Windows.WindowState.Normal;
+                    clientUi.WindowState = System.Windows.WindowState.Normal;
                 }
 
-                _uiClientConnectors.Activate();
+                clientUi.Activate();
             }
         }
 
         private void _uiClientConnectors_Closed(object sender, System.EventArgs e)
         {
-            _uiClientConnectors = null;
-        }
+            ClientUi clientUi = (ClientUi)sender;
 
-        private ClientsPortfoliosUi _uiClientsPortfolios;
-
-        public void ShowDialogClientPortfolios(int clientNumber)
-        {
-            if (_uiClientsPortfolios == null)
+            for (int i = 0; i < _uiClient.Count; i++)
             {
-                _uiClientsPortfolios = new ClientsPortfoliosUi();
-                _uiClientsPortfolios.Closed += _uiClientsPortfolios_Closed;
-                _uiClientsPortfolios.Show();
-            }
-            else
-            {
-                if (_uiClientsPortfolios.WindowState == System.Windows.WindowState.Minimized)
+                if (_uiClient[i].ClientNumber == clientUi.ClientNumber)
                 {
-                    _uiClientsPortfolios.WindowState = System.Windows.WindowState.Normal;
+                    _uiClient.RemoveAt(i);
+                    break;
                 }
-
-                _uiClientsPortfolios.Activate();
             }
-        }
-
-        private void _uiClientsPortfolios_Closed(object sender, System.EventArgs e)
-        {
-            _uiClientsPortfolios = null;
-        }
-
-        private ClientsRobotsUi _uiClientsRobots;
-
-        public void ShowDialogClientRobots(int clientNumber)
-        {
-            if (_uiClientsRobots == null)
-            {
-                _uiClientsRobots = new ClientsRobotsUi();
-                _uiClientsRobots.Closed += _uiClientsRobots_Closed;
-                _uiClientsRobots.Show();
-            }
-            else
-            {
-                if (_uiClientsRobots.WindowState == System.Windows.WindowState.Minimized)
-                {
-                    _uiClientsRobots.WindowState = System.Windows.WindowState.Normal;
-                }
-
-                _uiClientsRobots.Activate();
-            }
-        }
-
-        private void _uiClientsRobots_Closed(object sender, System.EventArgs e)
-        {
-            _uiClientsRobots = null;
         }
 
         #endregion

@@ -13,14 +13,21 @@ namespace OsEngine.OsTrader.ClientManagement
 {
     public class TradeClient
     {
-        public TradeClient(int number)
+        public TradeClient()
         {
-            Number = number;
         }
 
         public int Number;
 
         public string Name;
+
+        public string Status
+        {
+            get
+            {
+                return "Ok";
+            }
+        }
 
         public void Save()
         {
@@ -58,35 +65,19 @@ namespace OsEngine.OsTrader.ClientManagement
 
         }
 
-        public void Load()
+        public void LoadFromFile(string fileAddress)
         {
-            if (!File.Exists(@"Engine\ClientManagement\" + Number + @"TradeClient.txt"))
+            if (!File.Exists(fileAddress))
             {
                 return;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\ClientManagement\" + Number + @"TradeClient.txt"))
+                using (StreamReader reader = new StreamReader(fileAddress))
                 {
-                    /*while (reader.EndOfStream == false)
-                    {
-                        string settings = reader.ReadLine();
-
-                        if (string.IsNullOrEmpty(settings) == true)
-                        {
-                            continue;
-                        }
-
-                        TradeGrid newGrid = new TradeGrid(_startProgram, _tab);
-
-                        newGrid.NeedToSaveEvent += NewGrid_NeedToSaveEvent;
-                        newGrid.LogMessageEvent += SendNewLogMessage;
-                        newGrid.RePaintSettingsEvent += NewGrid_UpdateTableEvent;
-
-                        newGrid.LoadFromString(settings);
-                        TradeGrids.Add(newGrid);
-                    }*/
+                    Number = Convert.ToInt32(reader.ReadLine());
+                    Name = reader.ReadLine();
 
                     reader.Close();
                 }
