@@ -349,7 +349,7 @@ namespace OsEngine.Journal.Internal
             List<decimal> portfolioReturns = new List<decimal>();
             foreach (Position deal in deals)
             {
-                decimal scaledReturn = (deal.ProfitPortfolioPercent * (deal.MultToJournal / 100m));
+                decimal scaledReturn = (deal.ProfitOperationPercent * (deal.MultToJournal / 100m));
                 decimal days = (decimal)(deal.TimeClose - deal.TimeOpen).TotalDays;
 
                 if (days == 0)
