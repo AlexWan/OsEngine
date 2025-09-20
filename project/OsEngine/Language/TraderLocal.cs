@@ -2234,5 +2234,9 @@ namespace OsEngine.Language
         public string Label583 => OsLocalization.ConvertToLocString(
         "Eng:Seconds to wait_" +
         "Ru:Секунд на ожидание_");
+
+        public string Label584 => OsLocalization.ConvertToLocString(
+        "Eng:Clients_" +
+        "Ru:Клиенты_");
     }
 }
