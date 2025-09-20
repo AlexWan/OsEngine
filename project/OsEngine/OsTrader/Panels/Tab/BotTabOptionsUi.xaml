@@ -28,7 +28,7 @@
         <Rectangle Margin="210,5,10,35" Fill="#FF21262C" Stroke="#FF38414A"/>
         <Label Content="Underlying Asset Selection" HorizontalAlignment="Left" Margin="215,10,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="White"/>
 
-        <CheckBox Name="CheckBoxOptionsMode" Content="Options mode (show only UAs)" HorizontalAlignment="Left" Margin="215,35,0,0" VerticalAlignment="Top" Foreground="White"/>
+
 
         <Label Content="Class" HorizontalAlignment="Left" Margin="450,35,0,0" VerticalAlignment="Top" Foreground="White"/>
         <ComboBox Name="ComboBoxClass" Margin="490,35,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="150"/>
