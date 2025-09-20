@@ -752,19 +752,24 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BuildChartButton_Click(object sender, EventArgs e)
         {
+            if (_uaGrid.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Please select an underlying asset to build a PNL profile.");
+                return;
+            }
+
             var strategyLegs = _allOptionsData.Where(o => o.Quantity != 0).ToList();
             var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
             var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == selectedUaName);
 
             if (strategyLegs.Count == 0 && (uaData == null || uaData.Quantity == 0))
             {
-                MessageBox.Show("No position selected. Please enter a quantity for the underlying asset or one or more options.");
+                MessageBox.Show("To build a PNL profile, you must specify the quantity of assets.");
                 return;
             }
 
             if (uaData != null)
             {
-                // The StrategyPnlChartUi constructor will need to be updated to handle this scenario
                 StrategyPnlChartUi ui = new StrategyPnlChartUi(strategyLegs, uaData);
                 ui.Show();
             }
@@ -1064,7 +1069,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             catch (Exception ex)
             {
-                //SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                LogMessageEvent?.Invoke(ex.ToString(), LogMessageType.Error);
             }
         }
 
