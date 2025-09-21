@@ -2801,6 +2801,10 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         newOrder.SecurityNameCode = responseMyTrades.data[i].symbol + ".P";
                     }
+                    else
+                    {
+                        newOrder.SecurityNameCode = responseMyTrades.data[i].symbol;
+                    }
 
                     newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].createdTime));
 
