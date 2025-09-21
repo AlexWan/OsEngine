@@ -2713,6 +2713,10 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         myTrade.SecurityNameCode = responseMyTrades.data[i].symbol + ".I";
                     }
+                    else
+                    {
+                        myTrade.SecurityNameCode = responseMyTrades.data[i].symbol;
+                    }
 
                     myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].execTime));
                     myTrade.NumberOrderParent = responseMyTrades.data[i].orderId;
