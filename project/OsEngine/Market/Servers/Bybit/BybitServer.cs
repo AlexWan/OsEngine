@@ -742,7 +742,7 @@ namespace OsEngine.Market.Servers.Bybit
                             security.NameClass = oneSec.quoteCoin + "_Options";
                             security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
                             security.OptionType = oneSec.optionsType == "Call" ? OptionType.Call : OptionType.Put;
-                            security.UnderlyingAsset = oneSec.baseCoin;
+                            security.UnderlyingAsset = oneSec.baseCoin + oneSec.quoteCoin;
 
                             // https://bybit-exchange.github.io/docs/api-explorer/v5/market/instrument
                             // get strike price from symbol signature
@@ -2184,7 +2184,7 @@ namespace OsEngine.Market.Servers.Bybit
                     }
 
                     // Note: option uses baseCoin, e.g., publicTrade.BTC https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-                    string baseCoin = security.UnderlyingAsset;
+                    string baseCoin = security.UnderlyingAsset.Split("USD")[0]; // e.g. BTCUSDT -> BTC
 
                     webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
                     webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.25.{security.NameId}\" ] }}"); // only 25 or 100 for options
