@@ -644,7 +644,7 @@ namespace OsEngine.Market.Servers.Bybit
             Dictionary<string, object> parametrs = new Dictionary<string, object>();
             parametrs.Add("limit", "1000");
 
-            parametrs["category"] = Category.option;
+            parametrs["category"] = Category.option.ToString();
             parametrs["baseCoin"] = baseCoin;
             parametrs["cursor"] = "";
             bool allLoaded = false;
@@ -3699,7 +3699,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 else if (sec.SecurityType == SecurityType.Option)
                 {
-                    parameters["category"] = Category.option;
+                    parameters["category"] = Category.option.ToString();
                 }
                 else
                 {
@@ -3811,7 +3811,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 else if (sec.SecurityType == SecurityType.Option)
                 {
-                    parameters["category"] = Category.option;
+                    parameters["category"] = Category.option.ToString();
                 }
                 else
                 {
@@ -3872,7 +3872,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             else if (sec.SecurityType == SecurityType.Option)
             {
-                parameters["category"] = Category.option;
+                parameters["category"] = Category.option.ToString();
             }
             else
             {
@@ -3945,7 +3945,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 else if (security.SecurityType == SecurityType.Option)
                 {
-                    parametrs["category"] = Category.option;
+                    parametrs["category"] = Category.option.ToString();
                 }
                 else
                 {
