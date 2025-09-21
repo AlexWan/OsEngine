@@ -257,6 +257,11 @@ namespace OsEngine.Market.Servers.Atp
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

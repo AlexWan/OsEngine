@@ -256,6 +256,8 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
             get { return 10; }
         }
 
+        public string[] IpAddresServer => throw new System.NotImplementedException();
+
         #endregion
     }
 }

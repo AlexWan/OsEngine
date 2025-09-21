@@ -255,6 +255,8 @@ namespace OsEngine.Market.Servers.HTX.Futures
             get { return 10; }
         }
 
+        public string[] IpAddresServer => throw new System.NotImplementedException();
+
         #endregion
     }
 }

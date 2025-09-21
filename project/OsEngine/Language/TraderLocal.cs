@@ -2267,5 +2267,21 @@ namespace OsEngine.Language
         "Eng:Client robots management_" +
         "Ru:Управление роботами клиентов_");
 
+        public string Label592 => OsLocalization.ConvertToLocString(
+        "Eng:Server availability_" +
+        "Ru:Доступность серверов_");
+
+        public string Label593 => OsLocalization.ConvertToLocString(
+        "Eng:Track the ping_" +
+        "Ru:Отслеживать пинг_");
+
+        public string Label594 => OsLocalization.ConvertToLocString(
+        "Eng:Ping interval. Seconds_" +
+        "Ru:Интервал пинга. Секунд_");
+
+        public string Label595 => OsLocalization.ConvertToLocString(
+         "Eng:Server availability_" +
+         "Ru:Доступность серверов_");
+
     }
 }

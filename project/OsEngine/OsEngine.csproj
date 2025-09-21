@@ -61,9 +61,13 @@
   </Target>
   <ItemGroup>
     <Compile Remove="lua\**" />
+    <Compile Remove="OsTrader\ConnectingToServer\**" />
     <EmbeddedResource Remove="lua\**" />
+    <EmbeddedResource Remove="OsTrader\ConnectingToServer\**" />
     <None Remove="lua\**" />
+    <None Remove="OsTrader\ConnectingToServer\**" />
     <Page Remove="lua\**" />
+    <Page Remove="OsTrader\ConnectingToServer\**" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BytesRoad.Net.Ftp">

@@ -258,6 +258,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             get { return 10; }
         }
 
+        public string[] IpAddresServer => throw new System.NotImplementedException();
+
         #endregion
     }
 }

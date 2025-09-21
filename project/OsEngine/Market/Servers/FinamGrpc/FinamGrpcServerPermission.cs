@@ -262,6 +262,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
             get { return 10; }
         }
 
+        public string[] IpAddresServer => throw new System.NotImplementedException();
+
         #endregion
     }
 } 
