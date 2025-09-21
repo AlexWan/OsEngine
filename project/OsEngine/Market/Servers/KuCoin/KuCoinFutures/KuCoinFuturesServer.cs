@@ -1891,8 +1891,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 {
                     newOrder.State = OrderStateType.Cancel;
                 }
-                else if (item.status == "match"
-                    && item.type == "match")
+                else if ((item.status == "match" && item.type == "match")
+                    || (item.status == "done" && item.type == "match"))
                 {
                     if (newOrder.VolumeExecute > 0)
                     {
@@ -1903,20 +1903,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                         newOrder.State = OrderStateType.Done;
                     }
                 }
-                //else if (item.type == "filled")
-                //{
-                //    newOrder.State = OrderStateType.Done;
-                //}
-                else if (item.status == "done")
-                {
-                    return;
-                }
-                else //OrderStateType.None;
+                else
                 {
                     return;
                 }
 
-                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000); 
+                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
 
                 if (newOrder.State == OrderStateType.Cancel)
@@ -1926,7 +1918,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 if (newOrder.State == OrderStateType.Done)
                 {
-                    newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000); 
+                    newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
                 }
 
                 if (newOrder.State == OrderStateType.Done
@@ -2020,6 +2012,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 data.type = order.TypeOrder.ToString().ToLower();
                 data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
                 data.size = order.Volume.ToString().Replace(",", ".");
+                data.leverage = "1";
                 data.positionSide = posSide;
                 data.marginMode = _marginMode;
 
@@ -2272,16 +2265,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                             if (order.data.items[i].status == "open")
                             {
                                 newOrder.State = OrderStateType.Active;
-                                SendLogMessage($"OpenOrders Active ", LogMessageType.Error);
                             }
                             else if (order.data.items[i].status == "done")
                             {
                                 newOrder.State = OrderStateType.Done;
-                                SendLogMessage($"OpenOrders Done ", LogMessageType.Error);
-                            }
-                            else
-                            {
-                                SendLogMessage($"OpenOrders None ", LogMessageType.Error);
                             }
 
                             newOrder.Volume = order.data.items[i].size == null ? order.data.items[i].filledSize.Replace('.', ',').ToDecimal() : order.data.items[i].size.Replace('.', ',').ToDecimal();
@@ -2417,16 +2404,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                             if (order.data.status == "open")
                             {
                                 newOrder.State = OrderStateType.Active;
-                                SendLogMessage($"OrderFromExchange Active ", LogMessageType.Error);
                             }
                             else if (order.data.status == "done")
                             {
                                 newOrder.State = OrderStateType.Done;
-                                SendLogMessage($"OrderFromExchange Done ", LogMessageType.Error);
-                            }
-                            else
-                            {
-                                SendLogMessage($"OrderFromExchange None ", LogMessageType.Error);
                             }
 
                             if (newOrder.State == OrderStateType.Done)
