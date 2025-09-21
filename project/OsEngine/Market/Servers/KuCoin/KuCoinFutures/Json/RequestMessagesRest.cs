@@ -9,6 +9,9 @@
         public string price;
         public string size;
         public string leverage;
+        public string closeOrder;
+        public string marginMode;
+        public string positionSide;
     }
 
     public class CancelAllOrdersRequestData

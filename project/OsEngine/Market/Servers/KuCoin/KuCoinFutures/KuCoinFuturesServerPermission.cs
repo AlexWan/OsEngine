@@ -33,6 +33,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
@@ -169,7 +170,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_LONG",
+                    "_SHORT",
+                    "_BOTH"
+                };
+
+                return values;
+            }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
