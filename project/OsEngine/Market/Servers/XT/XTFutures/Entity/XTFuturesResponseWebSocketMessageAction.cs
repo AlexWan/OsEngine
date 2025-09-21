@@ -87,7 +87,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string underlyingType { get; set; }  // Underlying type ("COIN_BASED", "U_BASED")
         public string leverage { get; set; }  // Leverage
     }
-    public class XTFuturesResponseWebSocketOrder
+    public class XTFuturesResponseWsUpdateOrder
     {
         public string symbol { get; set; }        // Trading pair
         public string orderId { get; set; }       // Order ID

@@ -128,5 +128,28 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string bonus { get; set; }           // Bonus / trial funds
         public string coupon { get; set; }          // Coupon deduction
     }
+
+    public class XTFuturesOrderDetailById
+    {
+        public string avgPrice { get; set; }          // Average price
+        public string closePosition { get; set; }        // Whether to close all when order condition is triggered
+        public string closeProfit { get; set; }       // Offset profit and loss
+        public string createdTime { get; set; }          // Create time (unix ms)
+        public string executedQty { get; set; }       // Executed quantity
+        public string forceClose { get; set; }           // Is it a liquidation order
+        public string marginFrozen { get; set; }      // Occupied margin
+        public string orderId { get; set; }              // Order ID
+        public string orderSide { get; set; }          // Order side (Buy/Sell)
+        public string orderType { get; set; }          // Order type (Limit/Market)
+        public string origQty { get; set; }           // Original quantity
+        public string positionSide { get; set; }       // Position side (string/Short)
+        public string price { get; set; }             // Order price
+        public string sourceId { get; set; }             // Triggering conditions ID
+        public string state { get; set; }              // Order state
+        public string symbol { get; set; }             // Trading pair
+        public string timeInForce { get; set; }        // Valid type
+        public string triggerProfitPrice { get; set; }// TP trigger price
+        public string triggerStopPrice { get; set; }  // SL trigger price
+    }
 }
 

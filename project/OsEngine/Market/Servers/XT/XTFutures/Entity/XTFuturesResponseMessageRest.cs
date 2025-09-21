@@ -116,31 +116,28 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string tickSize { get; set; }
     }
 
-    public class XTFuturesResponseMyTrade
+   
+
+
+    public class XTFuturesTradeHistoryResult
     {
-        public string symbol { get; set; } //"BTC_USDT",
-        public string tradeId { get; set; } //"6316559590087222001", Trade Id
-        public string orderId { get; set; } //"6216559590087220004", Order Id
-        public string orderSide { get; set; } //"BUY", SELL
-        public string orderType { get; set; } //"LIMIT", MARKET
-        public string bizType { get; set; } //"SPOT",
-        public string time { get; set; } //"1655958915583", time in ms
-        public string price { get; set; } //"40000", price
-        public string quantity { get; set; } //"1.2", volume
-        public string quoteQty { get; set; } //"48000", amount
-        public string baseCurrency { get; set; } //"BTC",
-        public string quoteCurrency { get; set; } //"USDT",
-        public string fee { get; set; } //"0.5",
-        public string feeCurrency { get; set; } //"USDT",
-        public string takerMaker { get; set; } //"taker", takerMaker
+        public List<XTFuturesTradeHistoryItem> items { get; set; }
+        public string page { get; set; }
+        public string ps { get; set; }
+        public string total { get; set; }
     }
 
-
-    public class XTFuturesResponseMyTrades
+    public class XTFuturesTradeHistoryItem
     {
-        public string hasPrev { get; set; } //"true", boolean
-        public string hasNext { get; set; } //"true", boolean
-        public List<XTFuturesResponseMyTrade> items { get; set; } //List of my trades
+        public string fee { get; set; }          // Fee
+        public string feeCoin { get; set; }       // Currency of fee
+        public string orderId { get; set; }         // Order ID
+        public string execId { get; set; }          // Trade ID
+        public string price { get; set; }        // Price
+        public string quantity { get; set; }     // Volume
+        public string symbol { get; set; }        // Trading pair
+        public string timestamp { get; set; }       // Time
+        public string takerMaker { get; set; }    // TAKER or MAKER
     }
 
     public class XTFuturesCancaledOrderResponse
@@ -172,6 +169,80 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string time { get; set; } //"time": 1655958915583,
         public string updateTime { get; set; } //"updatedTime": 1655958915583
     }
+    public class XTFuturesOrderResult
+    {
+        public List<XTFuturesOrderItem> items { get; set; } // List of orders
+        public string page { get; set; }                   // Current page
+        public string ps { get; set; }                     // Page size
+        public string total { get; set; }                  // Total count
+    }
+    public class XTFuturesOrderItem
+    {
+        public string orderId { get; set; }          // order id
+        public string clientOrderId { get; set; }    // client order id
+        public string symbol { get; set; }           // trading pair
+        public string contractSize { get; set; }     // contract size
+        public string orderType { get; set; }        // order type (LIMIT, MARKET)
+        public string orderSide { get; set; }        // order side (BUY, SELL)
+        public string positionSide { get; set; }     // position side (LONG, SHORT)
+        public string positionType { get; set; }     // position type (CROSSED, ISOLATED)
+        public string timeInForce { get; set; }      // time in force (GTC, IOC, etc.)
+        public string closePosition { get; set; }    // whether close all (true/false)
+        public string price { get; set; }            // order price
+        public string origQty { get; set; }          // original quantity
+        public string avgPrice { get; set; }         // average deal price
+        public string executedQty { get; set; }      // executed quantity
+        public string marginFrozen { get; set; }     // frozen margin
+        public string remark { get; set; }           // remark (nullable)
+        public string sourceId { get; set; }         // source id (nullable)
+        public string sourceType { get; set; }       // source type
+        public string forceClose { get; set; }       // is forced close (true/false)
+        public string leverage { get; set; }         // leverage
+        public string openPrice { get; set; }        // open price (nullable)
+        public string closeProfit { get; set; }      // close profit (nullable)
+        public string state { get; set; }            // order state (NEW, CANCELED, FILLED, etc.)
+        public string createdTime { get; set; }      // creation timestamp (ms)
+        public string updatedTime { get; set; }      // last update timestamp (ms)
+        public string welfareAccount { get; set; }   // welfare account flag
+        public string triggerPriceType { get; set; } // trigger price type (nullable)
+        public string triggerProfitPrice { get; set; } // stop profit price (nullable)
+        public string profitDelegateOrderType { get; set; } // profit delegate order type (nullable)
+        public string profitDelegateTimeInForce { get; set; } // profit delegate time in force (nullable)
+        public string profitDelegatePrice { get; set; } // profit delegate price (nullable)
+        public string triggerStopPrice { get; set; } // stop loss price (nullable)
+        public string stopDelegateOrderType { get; set; } // stop delegate order type (nullable)
+        public string stopDelegateTimeInForce { get; set; } // stop delegate time in force (nullable)
+        public string stopDelegatePrice { get; set; } // stop delegate price (nullable)
+        public string markPrice { get; set; }        // mark price
+        public string desc { get; set; }             // description
+        public string systemCancel { get; set; }     // system cancel flag (true/false)
+        public string profit { get; set; }           // profit flag (true/false)
+    }
+    //public class XTFuturesOrderItem
+    //{
+    //    public string clientOrderId { get; set; }     // Client order ID
+    //    public string avgPrice { get; set; }         // Average price
+    //    public string closePosition { get; set; }    // Whether to close all when order condition is triggered
+    //    public string closeProfit { get; set; }      // Offset profit and loss
+    //    public string createdTime { get; set; }      // Create time
+    //    public string executedQty { get; set; }      // Executed volume (Cont)
+    //    public string forceClose { get; set; }       // Is it a liquidation order
+    //    public string marginFrozen { get; set; }     // Occupied margin
+    //    public string orderId { get; set; }          // Order ID
+    //    public string orderSide { get; set; }        // Order side (BUY/SELL)
+    //    public string orderType { get; set; }        // Order type (LIMIT/MARKET)
+    //    public string origQty { get; set; }          // Original quantity (Cont)
+    //    public string positionSide { get; set; }     // Position side (LONG/SHORT)
+    //    public string price { get; set; }            // Order price
+    //    public string sourceId { get; set; }         // Triggering condition ID
+    //    public string state { get; set; }            // Order state: NEW, PARTIALLY_FILLED, FILLED, etc.
+    //    public string symbol { get; set; }           // Trading pair
+    //    public string timeInForce { get; set; }      // Time in force (GTC/IOC/FOK/GTX)
+    //    public string triggerProfitPrice { get; set; } // Take profit trigger price
+    //    public string triggerStopPrice { get; set; }   // Stop loss trigger price
+    //}
+
+
     public class ListenKeyResponse
     {
         public string returnCode { get; set; }      
