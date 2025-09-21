@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -1128,30 +1128,31 @@ namespace OsEngine.Market.Servers.AE
         private static X509Certificate2 LoadPemCertificate(string pemFilePath, string pemPassphrase)
         {
             var pemContent = File.ReadAllText(pemFilePath);
+            X509Certificate2 certificate;
 
             var certStart = pemContent.IndexOf("-----BEGIN CERTIFICATE-----");
             var certEnd = pemContent.IndexOf("-----END CERTIFICATE-----") + "-----END CERTIFICATE-----".Length;
             var certPem = pemContent.Substring(certStart, certEnd - certStart);
 
-            var keyStart = pemContent.IndexOf("-----BEGIN ENCRYPTED PRIVATE KEY-----");
-            if (keyStart == -1) keyStart = pemContent.IndexOf("-----BEGIN PRIVATE KEY-----");
+            if (pemContent.Contains("-----BEGIN ENCRYPTED PRIVATE KEY-----"))
+            {
+                var keyStart = pemContent.IndexOf("-----BEGIN ENCRYPTED PRIVATE KEY-----");
+                var keyEnd = pemContent.IndexOf("-----END ENCRYPTED PRIVATE KEY-----") + "-----END ENCRYPTED PRIVATE KEY-----".Length;
+                var keyPem = pemContent.Substring(keyStart, keyEnd - keyStart);
 
-            var keyEnd = pemContent.IndexOf("-----END ENCRYPTED PRIVATE KEY-----");
-            if (keyEnd == -1) keyEnd = pemContent.IndexOf("-----END PRIVATE KEY-----") + "-----END PRIVATE KEY-----".Length;
-            else keyEnd += "-----END ENCRYPTED PRIVATE KEY-----".Length;
-
-            var keyPem = pemContent.Substring(keyStart, keyEnd - keyStart);
-
-            var cert = X509Certificate2.CreateFromPem(certPem);
-            using var rsa = RSA.Create();
-
-            if (keyPem.Contains("ENCRYPTED"))
-                rsa.ImportFromEncryptedPem(keyPem, pemPassphrase);
+                certificate = X509Certificate2.CreateFromEncryptedPem(certPem, keyPem, pemPassphrase);
+            }
             else
-                rsa.ImportFromPem(keyPem);
+            {
+                var keyStart = pemContent.IndexOf("-----BEGIN PRIVATE KEY-----");
+                var keyEnd = pemContent.IndexOf("-----END PRIVATE KEY-----") + "-----END PRIVATE KEY-----".Length;
+                var keyPem = pemContent.Substring(keyStart, keyEnd - keyStart);
 
-            var certWithKey = cert.CopyWithPrivateKey(rsa);
-            return new X509Certificate2(certWithKey.Export(X509ContentType.Pfx));
+                certificate = X509Certificate2.CreateFromPem(certPem, keyPem);
+            }
+
+            var pfxBytes = certificate.Export(X509ContentType.Pfx, pemPassphrase);
+            return X509CertificateLoader.LoadPkcs12(pfxBytes, pemPassphrase, X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
         }
 
         #endregion
