@@ -2184,7 +2184,7 @@ namespace OsEngine.Market.Servers.Bybit
                     }
 
                     // Note: option uses baseCoin, e.g., publicTrade.BTC https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-                    string baseCoin = security.UnderlyingAsset;
+                    string baseCoin = security.UnderlyingAsset.Split("USD")[0]; // e.g. BTCUSDT -> BTC
 
                     webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
                     webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.25.{security.NameId}\" ] }}"); // only 25 or 100 for options
