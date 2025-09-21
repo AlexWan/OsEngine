@@ -644,7 +644,7 @@ namespace OsEngine.Market.Servers.Bybit
             Dictionary<string, object> parametrs = new Dictionary<string, object>();
             parametrs.Add("limit", "1000");
 
-            parametrs["category"] = Category.option;
+            parametrs["category"] = Category.option.ToString();
             parametrs["baseCoin"] = baseCoin;
             parametrs["cursor"] = "";
             bool allLoaded = false;
@@ -2713,6 +2713,10 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         myTrade.SecurityNameCode = responseMyTrades.data[i].symbol + ".I";
                     }
+                    else
+                    {
+                        myTrade.SecurityNameCode = responseMyTrades.data[i].symbol;
+                    }
 
                     myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].execTime));
                     myTrade.NumberOrderParent = responseMyTrades.data[i].orderId;
@@ -2796,6 +2800,10 @@ namespace OsEngine.Market.Servers.Bybit
                     else if (responseMyTrades.data[i].category.ToLower() == Category.linear.ToString())
                     {
                         newOrder.SecurityNameCode = responseMyTrades.data[i].symbol + ".P";
+                    }
+                    else
+                    {
+                        newOrder.SecurityNameCode = responseMyTrades.data[i].symbol;
                     }
 
                     newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].createdTime));
@@ -3699,7 +3707,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 else if (sec.SecurityType == SecurityType.Option)
                 {
-                    parameters["category"] = Category.option;
+                    parameters["category"] = Category.option.ToString();
                 }
                 else
                 {
@@ -3811,7 +3819,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 else if (sec.SecurityType == SecurityType.Option)
                 {
-                    parameters["category"] = Category.option;
+                    parameters["category"] = Category.option.ToString();
                 }
                 else
                 {
@@ -3872,7 +3880,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             else if (sec.SecurityType == SecurityType.Option)
             {
-                parameters["category"] = Category.option;
+                parameters["category"] = Category.option.ToString();
             }
             else
             {
@@ -3945,7 +3953,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 else if (security.SecurityType == SecurityType.Option)
                 {
-                    parametrs["category"] = Category.option;
+                    parametrs["category"] = Category.option.ToString();
                 }
                 else
                 {
