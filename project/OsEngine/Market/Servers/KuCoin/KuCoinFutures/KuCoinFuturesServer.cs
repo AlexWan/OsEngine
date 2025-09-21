@@ -429,12 +429,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                         pos.PortfolioName = "KuCoinFutures";
                         pos.SecurityNameCode = item.currency;
-                        pos.ValueCurrent = item.accountEquity.ToDecimal();
+                        pos.ValueCurrent = item.availableBalance.ToDecimal();
                         pos.ValueBlocked = item.orderMargin.ToDecimal();
 
                         if (IsUpdateValueBegin)
                         {
-                            pos.ValueBegin = item.marginBalance.ToDecimal();
+                            pos.ValueBegin = item.availableBalance.ToDecimal();
                         }
 
                         portfolio.SetNewPosition(pos);
@@ -1795,7 +1795,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 pos.PortfolioName = "KuCoinFutures";
                 pos.SecurityNameCode = Portfolio.data.currency;
-                pos.ValueCurrent = Portfolio.data.walletBalance.ToDecimal();
+                pos.ValueCurrent = Portfolio.data.availableBalance.ToDecimal();
 
                 portfolio.SetNewPosition(pos);
                 PortfolioEvent(Portfolios);
