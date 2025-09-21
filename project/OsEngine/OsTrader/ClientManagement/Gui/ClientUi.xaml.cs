@@ -4,6 +4,7 @@
 */
 
 
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +36,29 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             ClientNumber = client.Number;
             _client = client;
+
+            TextBoxClientName.Text = _client.Name; 
+            TextBoxClientName.TextChanged += TextBoxClientName_TextChanged;
+
+
+
+            // localization
+
+            this.Title = OsLocalization.Trader.Label592 + " " + _client.Number;
+
         }
 
+        private void TextBoxClientName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                _client.Name = TextBoxClientName.Text;
+                _client.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
     }
 }

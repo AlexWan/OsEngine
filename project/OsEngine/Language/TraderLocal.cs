@@ -2267,5 +2267,9 @@ namespace OsEngine.Language
         "Eng:Client robots management_" +
         "Ru:Управление роботами клиентов_");
 
+        public string Label592 => OsLocalization.ConvertToLocString(
+        "Eng:Client management UI. Client_" +
+        "Ru:Управление клиентом_");
+
     }
 }

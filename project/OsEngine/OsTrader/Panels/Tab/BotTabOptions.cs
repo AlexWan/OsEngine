@@ -423,7 +423,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-                public void SetUnderlyingAssetsAndStart(List<string> underlyingAssets, string portfolioName, IServer server)
+        public void SetUnderlyingAssetsAndStart(List<string> underlyingAssets, string portfolioName, IServer server)
         {
             UnderlyingAssets = underlyingAssets;
             PortfolioName = portfolioName;
@@ -1084,7 +1084,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.PortfolioName = this.PortfolioName;
             tab.Connector.SecurityName = security.Name;
             tab.Connector.SecurityClass = security.NameClass;
-            tab.Connector.ServerFullName = server.ServerType.ToString();
+
+            if(server.GetType().BaseType.Name == "AServer")
+            {
+                AServer serverA = (AServer)server;
+                tab.Connector.ServerFullName = serverA.ServerNameUnique;
+            }
+            else
+            {
+                tab.Connector.ServerFullName = server.ServerType.ToString();
+            }
+
             tab.Connector.SaveTradesInCandles = false; //  SaveTradesInCandles;
 
             //tab.CommissionType = CommissionType;

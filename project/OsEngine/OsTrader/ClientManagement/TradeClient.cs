@@ -15,6 +15,8 @@ namespace OsEngine.OsTrader.ClientManagement
     {
         public TradeClient()
         {
+
+
         }
 
         public int Number;

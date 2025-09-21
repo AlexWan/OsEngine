@@ -13,26 +13,29 @@
                     <WindowsFormsHost Name="HostClients" Foreground="Black" Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>
-            <TabItem Name="TabItem2" Width="100" Header=" Robots ">
+            <TabItem Name="TabItem2" Width="100" Header=" Portfolios ">
                 <Grid>
-                    <WindowsFormsHost Name="HostLog" Foreground="Black" Margin="0,0,0,0"/>
+                   
+                    
                 </Grid>
             </TabItem>
-            <TabItem Name="TabItem3" Width="100" Header=" Portfolios ">
+            <TabItem Name="TabItem3" Width="100" Header=" Robots ">
                 <Grid>
 
                 </Grid>
             </TabItem>
         </TabControl>
         <Label Content="Name" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <TextBox HorizontalAlignment="Left" Margin="99,10,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="TextBoxClientName" HorizontalAlignment="Left" Margin="99,10,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Label Content="State" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-        <TextBox HorizontalAlignment="Left" Margin="99,38,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="TextBoxState" HorizontalAlignment="Left" Margin="99,38,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Button Content="Deploy connectors and bots" HorizontalAlignment="Right" Margin="0,8,10,0" VerticalAlignment="Top" Width="289"/>
         <Button Content="Set On regime in bots" HorizontalAlignment="Right" Margin="0,38,10,0" VerticalAlignment="Top" Width="289"/>
         <Button Content="Set Off regime and cancel orders" HorizontalAlignment="Right" Margin="0,68,10,0" VerticalAlignment="Top" Width="289"/>
         <Button Content="Close all positions at market" HorizontalAlignment="Right" Margin="0,98,10,0" VerticalAlignment="Top" Width="289"/>
         <Button Content="Delete all connectors and robots" HorizontalAlignment="Right" Margin="0,128,10,0" VerticalAlignment="Top" Width="289"/>
+        <Button Content="Load" Margin="18,128,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="98"/>
+        <Button Content="Save" Margin="123,128,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="98"/>
 
     </Grid>
 </Window>
