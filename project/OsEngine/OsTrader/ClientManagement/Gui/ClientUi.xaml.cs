@@ -10,6 +10,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace OsEngine.OsTrader.ClientManagement.Gui
 {
@@ -249,13 +250,8 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 else if (rowIndex < _client.ClientConnectorsSettings.Count
                    && columnIndex == 2)
                 { // Parameters
-                    
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-
-                    
-
-
-
+                    ShowConnectorDialog(number);
                 }
                 else if (rowIndex < _client.ClientConnectorsSettings.Count
                    && columnIndex == 4)
@@ -437,5 +433,73 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
         }
 
         #endregion
+
+        #region Client connector parameters
+
+        List<ClientConnectorUi> _connectorsUi = new List<ClientConnectorUi>();
+
+        private void ShowConnectorDialog(int connectorNumber)
+        {
+            TradeClientConnector connector = null;
+
+            for (int i = 0; i < _client.ClientConnectorsSettings.Count; i++)
+            {
+                if (_client.ClientConnectorsSettings[i].Number == connectorNumber)
+                {
+                    connector = _client.ClientConnectorsSettings[i];
+                    break;
+                }
+            }
+
+            if (connector == null)
+            {
+                return;
+            }
+
+            ClientConnectorUi connectorUi = null;
+
+            for (int i = 0; i < _connectorsUi.Count; i++)
+            {
+                if (_connectorsUi[i].ClientNumber == connectorNumber)
+                {
+                    connectorUi = _connectorsUi[i];
+                    break;
+                }
+            }
+            if (connectorUi == null)
+            {
+                connectorUi = new ClientConnectorUi(connector);
+                connectorUi.Closed += ConnectorUi_Closed;
+                connectorUi.Show();
+                _connectorsUi.Add(connectorUi);
+            }
+            else
+            {
+                if (connectorUi.WindowState == System.Windows.WindowState.Minimized)
+                {
+                    connectorUi.WindowState = System.Windows.WindowState.Normal;
+                }
+
+                connectorUi.Activate();
+            }
+        }
+
+        private void ConnectorUi_Closed(object sender, EventArgs e)
+        {
+            ClientConnectorUi clientUi = (ClientConnectorUi)sender;
+
+            for (int i = 0; i < _connectorsUi.Count; i++)
+            {
+                if (_connectorsUi[i].ClientNumber == clientUi.ClientNumber)
+                {
+                    _connectorsUi[i].Closed -= ConnectorUi_Closed;
+                    _connectorsUi.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        #endregion
+
     }
 }

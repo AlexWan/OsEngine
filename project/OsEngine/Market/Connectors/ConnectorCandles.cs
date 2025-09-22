@@ -479,8 +479,7 @@ namespace OsEngine.Market.Connectors
             get
             {
                 if (ServerType == ServerType.Tester ||
-                     ServerType == ServerType.Optimizer ||
-                    ServerType == ServerType.BitMex)
+                     ServerType == ServerType.Optimizer)
                 {
                     return true;
                 }
@@ -521,6 +520,46 @@ namespace OsEngine.Market.Connectors
                 }
 
                 return serverPermision.IsCanChangeOrderPrice;
+            }
+        }
+
+        public MarketDepthLoadRegime MarketDepthPaintRegime
+        {
+            get
+            {
+                if (ServerType == ServerType.Tester ||
+                    ServerType == ServerType.Optimizer)
+                {
+                    return MarketDepthLoadRegime.Unknown;
+                }
+                else
+                {
+                    IServer server = _myServer;
+
+                    if(server == null)
+                    {
+                        return MarketDepthLoadRegime.All;
+                    }
+
+                    if(server.GetType().BaseType.Name == "AServer")
+                    {
+                        AServer Aserver = (AServer)server;
+
+                        if(Aserver._needToUseFullMarketDepth.Value == true)
+                        {
+                            return MarketDepthLoadRegime.All;
+                        }
+                        else
+                        {
+                            return MarketDepthLoadRegime.BidAsk;
+                        }
+
+                    }
+                    else
+                    {
+                        return MarketDepthLoadRegime.All;
+                    }
+                }
             }
         }
 

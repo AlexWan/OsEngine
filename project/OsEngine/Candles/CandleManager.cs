@@ -575,11 +575,20 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
                 {
+                    if (_activeSeriesBasedOnTrades[i] == null)
+                    {
+                        continue;
+                    }
+
                     _activeSeriesBasedOnTrades[i].SetNewTime(dateTime);
                 }
 
                 for (int i = 0; _activeSeriesBasedOnMd != null && i < _activeSeriesBasedOnMd.Count; i++)
                 {
+                    if (_activeSeriesBasedOnMd[i] == null)
+                    {
+                        continue;
+                    }
                     _activeSeriesBasedOnMd[i].SetNewTime(dateTime);
                 }
 

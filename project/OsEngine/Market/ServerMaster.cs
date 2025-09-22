@@ -256,7 +256,7 @@ namespace OsEngine.Market
         private static List<IServer> _servers;
 
         /// <summary>
-        /// take trade server typre from system
+        /// get trade server types from system
         /// </summary>
         public static List<ServerType> ServersTypes
         {
@@ -382,7 +382,29 @@ namespace OsEngine.Market
         }
 
         /// <summary>
-        /// take trade server typre from system
+        /// get trade server types from system. In string array. Sorted by name
+        /// </summary>
+        public static List<string> ServersTypesStringSorted
+        {
+            get
+            {
+                List<ServerType> serverTypes = ServersTypes;
+
+                List<string> result = new List<string>();
+
+                for(int i = 0;i < serverTypes.Count;i++)
+                {
+                    result.Add(serverTypes[i].ToString());
+                }
+
+                result.Sort();
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// get data server types
         /// </summary>
         public static List<ServerType> ServersTypesToOsData
         {

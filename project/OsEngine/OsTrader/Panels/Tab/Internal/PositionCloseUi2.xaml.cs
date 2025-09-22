@@ -246,7 +246,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private void ActivateMarketDepth()
         {
-            _marketDepthPainter = new MarketDepthPainter(Tab.TabName + "OpenPosGui");
+            _marketDepthPainter = new MarketDepthPainter(Tab.TabName + "OpenPosGui", Tab.Connector);
             _marketDepthPainter.ProcessMarketDepth(Tab.MarketDepth);
             _marketDepthPainter.StartPaint(WinFormsHostMarketDepth, null, null);
             _marketDepthPainter.UserClickOnMDAndSelectPriceEvent += _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;

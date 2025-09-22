@@ -253,222 +253,218 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                lock (_locker)
+                // Update options grid
+                foreach (DataGridViewRow row in _optionsGrid.Rows)
                 {
-                    // Update options grid
-                    foreach (DataGridViewRow row in _optionsGrid.Rows)
+                    if (!row.Displayed)
                     {
-                        if (!row.Displayed)
+                        continue;
+                    }
+
+                    decimal strike = (decimal)row.Cells["Strike"].Value;
+                    var strikeData = _allOptionsData.Where(o => o.Security.Strike == strike).ToList();
+                    var callData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
+                    var putData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
+
+                    if (callData != null)
+                    {
+                        DataGridViewCell cellCallBid = row.Cells["CallBid"];
+                        if (cellCallBid.Value == null
+                            || cellCallBid.Value.ToString() != callData.Bid.ToStringWithNoEndZero())
                         {
-                            continue;
+                            cellCallBid.Value = callData.Bid.ToStringWithNoEndZero();
                         }
 
-                        decimal strike = (decimal)row.Cells["Strike"].Value;
-                        var strikeData = _allOptionsData.Where(o => o.Security.Strike == strike).ToList();
-                        var callData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
-                        var putData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
-
-                        if (callData != null)
+                        DataGridViewCell cellCallAsk = row.Cells["CallAsk"];
+                        if (cellCallAsk.Value == null
+                            || cellCallAsk.Value.ToString() != callData.Ask.ToStringWithNoEndZero())
                         {
-                            DataGridViewCell cellCallBid = row.Cells["CallBid"];
-                            if (cellCallBid.Value == null
-                                || cellCallBid.Value.ToString() != callData.Bid.ToStringWithNoEndZero())
-                            {
-                                cellCallBid.Value = callData.Bid.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellCallAsk = row.Cells["CallAsk"];
-                            if (cellCallAsk.Value == null
-                                || cellCallAsk.Value.ToString() != callData.Ask.ToStringWithNoEndZero())
-                            {
-                                cellCallAsk.Value = callData.Ask.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellCallLast = row.Cells["CallLast"];
-                            if (cellCallLast.Value == null
-                                || cellCallLast.Value.ToString() != callData.LastPrice.ToStringWithNoEndZero())
-                            {
-                                cellCallLast.Value = callData.LastPrice.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellCallDelta = row.Cells["CallDelta"];
-                            if (cellCallDelta.Value == null
-                                || cellCallDelta.Value.ToString() != callData.Delta.ToStringWithNoEndZero())
-                            {
-                                cellCallDelta.Value = callData.Delta.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellCallGamma = row.Cells["CallGamma"];
-                            if (cellCallGamma.Value == null
-                                || cellCallGamma.Value.ToString() != callData.Gamma.ToStringWithNoEndZero())
-                            {
-                                cellCallGamma.Value = callData.Gamma.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellCallVega = row.Cells["CallVega"];
-                            if (cellCallVega.Value == null
-                                || cellCallVega.Value.ToString() != callData.Vega.ToStringWithNoEndZero())
-                            {
-                                cellCallVega.Value = callData.Vega.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellCallTheta = row.Cells["CallTheta"];
-                            if (cellCallTheta.Value == null
-                                || cellCallTheta.Value.ToString() != callData.Theta.ToStringWithNoEndZero())
-                            {
-                                cellCallTheta.Value = callData.Theta.ToStringWithNoEndZero();
-                            }
+                            cellCallAsk.Value = callData.Ask.ToStringWithNoEndZero();
                         }
 
-                        if (putData != null)
+                        DataGridViewCell cellCallLast = row.Cells["CallLast"];
+                        if (cellCallLast.Value == null
+                            || cellCallLast.Value.ToString() != callData.LastPrice.ToStringWithNoEndZero())
                         {
-                            DataGridViewCell cellPutBid = row.Cells["PutBid"];
-                            if (cellPutBid.Value == null
-                                || cellPutBid.Value.ToString() != putData.Bid.ToStringWithNoEndZero())
-                            {
-                                cellPutBid.Value = putData.Bid.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellPutAsk = row.Cells["PutAsk"];
-                            if (cellPutAsk.Value == null
-                                || cellPutAsk.Value.ToString() != putData.Ask.ToStringWithNoEndZero())
-                            {
-                                cellPutAsk.Value = putData.Ask.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellPutLast = row.Cells["PutLast"];
-                            if (cellPutLast.Value == null
-                                || cellPutLast.Value.ToString() != putData.LastPrice.ToStringWithNoEndZero())
-                            {
-                                cellPutLast.Value = putData.LastPrice.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellPutDelta = row.Cells["PutDelta"];
-                            if (cellPutDelta.Value == null
-                                || cellPutDelta.Value.ToString() != putData.Delta.ToStringWithNoEndZero())
-                            {
-                                cellPutDelta.Value = putData.Delta.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellPutGamma = row.Cells["PutGamma"];
-                            if (cellPutGamma.Value == null
-                                || cellPutGamma.Value.ToString() != putData.Gamma.ToStringWithNoEndZero())
-                            {
-                                cellPutGamma.Value = putData.Gamma.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellPutVega = row.Cells["PutVega"];
-                            if (cellPutVega.Value == null
-                                || cellPutVega.Value.ToString() != putData.Vega.ToStringWithNoEndZero())
-                            {
-                                cellPutVega.Value = putData.Vega.ToStringWithNoEndZero();
-                            }
-
-                            DataGridViewCell cellPutTheta = row.Cells["PutTheta"];
-                            if (cellPutTheta.Value == null
-                                || cellPutTheta.Value.ToString() != putData.Theta.ToStringWithNoEndZero())
-                            {
-                                cellPutTheta.Value = putData.Theta.ToStringWithNoEndZero();
-                            }
+                            cellCallLast.Value = callData.LastPrice.ToStringWithNoEndZero();
                         }
 
-                        decimal iv = 0;
-
-                        if (callData != null)
+                        DataGridViewCell cellCallDelta = row.Cells["CallDelta"];
+                        if (cellCallDelta.Value == null
+                            || cellCallDelta.Value.ToString() != callData.Delta.ToStringWithNoEndZero())
                         {
-                            iv = callData.IV;
-                        }
-                        else if (putData != null)
-                        {
-                            iv = putData.IV;
+                            cellCallDelta.Value = callData.Delta.ToStringWithNoEndZero();
                         }
 
-                        DataGridViewCell cellIv = row.Cells["IV"];
-                        if (cellIv.Value == null
-                            || cellIv.Value.ToString() != iv.ToStringWithNoEndZero())
+                        DataGridViewCell cellCallGamma = row.Cells["CallGamma"];
+                        if (cellCallGamma.Value == null
+                            || cellCallGamma.Value.ToString() != callData.Gamma.ToStringWithNoEndZero())
                         {
-                            cellIv.Value = iv.ToStringWithNoEndZero();
+                            cellCallGamma.Value = callData.Gamma.ToStringWithNoEndZero();
+                        }
+
+                        DataGridViewCell cellCallVega = row.Cells["CallVega"];
+                        if (cellCallVega.Value == null
+                            || cellCallVega.Value.ToString() != callData.Vega.ToStringWithNoEndZero())
+                        {
+                            cellCallVega.Value = callData.Vega.ToStringWithNoEndZero();
+                        }
+
+                        DataGridViewCell cellCallTheta = row.Cells["CallTheta"];
+                        if (cellCallTheta.Value == null
+                            || cellCallTheta.Value.ToString() != callData.Theta.ToStringWithNoEndZero())
+                        {
+                            cellCallTheta.Value = callData.Theta.ToStringWithNoEndZero();
                         }
                     }
 
-                    // Update underlying assets grid
-                    foreach (DataGridViewRow row in _uaGrid.Rows)
+                    if (putData != null)
                     {
-                        if (!row.Displayed)
+                        DataGridViewCell cellPutBid = row.Cells["PutBid"];
+                        if (cellPutBid.Value == null
+                            || cellPutBid.Value.ToString() != putData.Bid.ToStringWithNoEndZero())
                         {
-                            continue;
+                            cellPutBid.Value = putData.Bid.ToStringWithNoEndZero();
                         }
 
-                        string securityName = row.Cells["Name"].Value.ToString();
-                        var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == securityName);
-
-                        if (uaData != null)
+                        DataGridViewCell cellPutAsk = row.Cells["PutAsk"];
+                        if (cellPutAsk.Value == null
+                            || cellPutAsk.Value.ToString() != putData.Ask.ToStringWithNoEndZero())
                         {
-                            DataGridViewCell cellBid = row.Cells["Bid"];
-                            if (cellBid.Value == null
-                                || cellBid.Value.ToString() != uaData.Bid.ToStringWithNoEndZero())
-                            {
-                                cellBid.Value = uaData.Bid.ToStringWithNoEndZero();
-                            }
+                            cellPutAsk.Value = putData.Ask.ToStringWithNoEndZero();
+                        }
 
-                            DataGridViewCell cellAsk = row.Cells["Ask"];
-                            if (cellAsk.Value == null
-                                || cellAsk.Value.ToString() != uaData.Ask.ToStringWithNoEndZero())
-                            {
-                                cellAsk.Value = uaData.Ask.ToStringWithNoEndZero();
-                            }
+                        DataGridViewCell cellPutLast = row.Cells["PutLast"];
+                        if (cellPutLast.Value == null
+                            || cellPutLast.Value.ToString() != putData.LastPrice.ToStringWithNoEndZero())
+                        {
+                            cellPutLast.Value = putData.LastPrice.ToStringWithNoEndZero();
+                        }
 
-                            DataGridViewCell cellLastPrice = row.Cells["LastPrice"];
-                            if (cellLastPrice.Value == null
-                                || cellLastPrice.Value.ToString() != uaData.LastPrice.ToStringWithNoEndZero())
-                            {
-                                cellLastPrice.Value = uaData.LastPrice.ToStringWithNoEndZero();
-                            }
+                        DataGridViewCell cellPutDelta = row.Cells["PutDelta"];
+                        if (cellPutDelta.Value == null
+                            || cellPutDelta.Value.ToString() != putData.Delta.ToStringWithNoEndZero())
+                        {
+                            cellPutDelta.Value = putData.Delta.ToStringWithNoEndZero();
+                        }
+
+                        DataGridViewCell cellPutGamma = row.Cells["PutGamma"];
+                        if (cellPutGamma.Value == null
+                            || cellPutGamma.Value.ToString() != putData.Gamma.ToStringWithNoEndZero())
+                        {
+                            cellPutGamma.Value = putData.Gamma.ToStringWithNoEndZero();
+                        }
+
+                        DataGridViewCell cellPutVega = row.Cells["PutVega"];
+                        if (cellPutVega.Value == null
+                            || cellPutVega.Value.ToString() != putData.Vega.ToStringWithNoEndZero())
+                        {
+                            cellPutVega.Value = putData.Vega.ToStringWithNoEndZero();
+                        }
+
+                        DataGridViewCell cellPutTheta = row.Cells["PutTheta"];
+                        if (cellPutTheta.Value == null
+                            || cellPutTheta.Value.ToString() != putData.Theta.ToStringWithNoEndZero())
+                        {
+                            cellPutTheta.Value = putData.Theta.ToStringWithNoEndZero();
                         }
                     }
 
-                    // Update highlighting
-                    if (_uaGrid.SelectedRows.Count > 0)
-                    {
-                        var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
-                        var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == selectedUaName);
-                        var uaPrice = uaData?.LastPrice ?? 0;
+                    decimal iv = 0;
 
-                        if (uaPrice == 0 && uaData != null && uaData.Bid != 0 && uaData.Ask != 0)
+                    if (callData != null)
+                    {
+                        iv = callData.IV;
+                    }
+                    else if (putData != null)
+                    {
+                        iv = putData.IV;
+                    }
+
+                    DataGridViewCell cellIv = row.Cells["IV"];
+                    if (cellIv.Value == null
+                        || cellIv.Value.ToString() != iv.ToStringWithNoEndZero())
+                    {
+                        cellIv.Value = iv.ToStringWithNoEndZero();
+                    }
+                }
+
+                // Update underlying assets grid
+                foreach (DataGridViewRow row in _uaGrid.Rows)
+                {
+                    if (!row.Displayed)
+                    {
+                        continue;
+                    }
+
+                    string securityName = row.Cells["Name"].Value.ToString();
+                    var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == securityName);
+
+                    if (uaData != null)
+                    {
+                        DataGridViewCell cellBid = row.Cells["Bid"];
+                        if (cellBid.Value == null
+                            || cellBid.Value.ToString() != uaData.Bid.ToStringWithNoEndZero())
                         {
-                            uaPrice = (uaData.Bid + uaData.Ask) / 2;
+                            cellBid.Value = uaData.Bid.ToStringWithNoEndZero();
                         }
 
-                        if (uaPrice != 0)
+                        DataGridViewCell cellAsk = row.Cells["Ask"];
+                        if (cellAsk.Value == null
+                            || cellAsk.Value.ToString() != uaData.Ask.ToStringWithNoEndZero())
                         {
-                            decimal centralStrike = 0;
-                            decimal minDiff = decimal.MaxValue;
+                            cellAsk.Value = uaData.Ask.ToStringWithNoEndZero();
+                        }
 
-                            var strikes = _strikeGridRows.Keys.OrderBy(s => s).ToList();
-
-                            foreach (var strike in strikes)
-                            {
-                                var diff = Math.Abs(strike - uaPrice);
-                                if (diff < minDiff)
-                                {
-                                    minDiff = diff;
-                                    centralStrike = strike;
-                                }
-                            }
-
-                            if (centralStrike != 0)
-                            {
-                                foreach (var entry in _strikeGridRows)
-                                {
-                                    entry.Value.DefaultCellStyle.BackColor = entry.Key == centralStrike
-                                        ? Color.FromArgb(40, 40, 40)
-                                        : _optionsGrid.DefaultCellStyle.BackColor;
-                                }
-                            }
+                        DataGridViewCell cellLastPrice = row.Cells["LastPrice"];
+                        if (cellLastPrice.Value == null
+                            || cellLastPrice.Value.ToString() != uaData.LastPrice.ToStringWithNoEndZero())
+                        {
+                            cellLastPrice.Value = uaData.LastPrice.ToStringWithNoEndZero();
                         }
                     }
                 }
 
+                // Update highlighting
+                if (_uaGrid.SelectedRows.Count > 0)
+                {
+                    var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
+                    var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == selectedUaName);
+                    var uaPrice = uaData?.LastPrice ?? 0;
+
+                    if (uaPrice == 0 && uaData != null && uaData.Bid != 0 && uaData.Ask != 0)
+                    {
+                        uaPrice = (uaData.Bid + uaData.Ask) / 2;
+                    }
+
+                    if (uaPrice != 0)
+                    {
+                        decimal centralStrike = 0;
+                        decimal minDiff = decimal.MaxValue;
+
+                        var strikes = _strikeGridRows.Keys.OrderBy(s => s).ToList();
+
+                        foreach (var strike in strikes)
+                        {
+                            var diff = Math.Abs(strike - uaPrice);
+                            if (diff < minDiff)
+                            {
+                                minDiff = diff;
+                                centralStrike = strike;
+                            }
+                        }
+
+                        if (centralStrike != 0)
+                        {
+                            foreach (var entry in _strikeGridRows)
+                            {
+                                entry.Value.DefaultCellStyle.BackColor = entry.Key == centralStrike
+                                    ? Color.FromArgb(40, 40, 40)
+                                    : _optionsGrid.DefaultCellStyle.BackColor;
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {

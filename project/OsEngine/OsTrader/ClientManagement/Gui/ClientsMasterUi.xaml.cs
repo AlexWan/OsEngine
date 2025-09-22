@@ -6,7 +6,6 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
-using OsEngine.OsTrader.Grids;
 using System;
 using System.Windows;
 using System.Windows.Forms;

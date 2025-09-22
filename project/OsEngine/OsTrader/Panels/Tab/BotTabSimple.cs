@@ -66,7 +66,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (startProgram != StartProgram.IsOsOptimizer)
                 {
-                    _marketDepthPainter = new MarketDepthPainter(TabName);
+                    _marketDepthPainter = new MarketDepthPainter(TabName, _connector);
                     _marketDepthPainter.LogMessageEvent += SetNewLogMessage;
                 }
 

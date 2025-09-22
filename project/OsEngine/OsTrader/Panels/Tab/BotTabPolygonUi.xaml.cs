@@ -113,17 +113,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             LabelExecution.Content = OsLocalization.Trader.Label337;
             LabelOrderPriceType.Content = OsLocalization.Trader.Label338;
 
-            _marketDepthPainter1 = new MarketDepthPainter(Polygon.Tab1.TabName + "Ui");
+            _marketDepthPainter1 = new MarketDepthPainter(Polygon.Tab1.TabName + "Ui", Polygon.Tab1.Connector);
             _marketDepthPainter1.ProcessMarketDepth(Polygon.Tab1.MarketDepth);
             _marketDepthPainter1.StartPaint(HostSec1, null, null);
             Polygon.Tab1.MarketDepthUpdateEvent += Tab1_MarketDepthUpdateEvent;
 
-            _marketDepthPainter2 = new MarketDepthPainter(Polygon.Tab2.TabName + "Ui");
+            _marketDepthPainter2 = new MarketDepthPainter(Polygon.Tab2.TabName + "Ui", Polygon.Tab2.Connector);
             _marketDepthPainter2.ProcessMarketDepth(Polygon.Tab2.MarketDepth);
             _marketDepthPainter2.StartPaint(HostSec2, null, null);
             Polygon.Tab2.MarketDepthUpdateEvent += Tab2_MarketDepthUpdateEvent;
 
-            _marketDepthPainter3 = new MarketDepthPainter(Polygon.Tab3.TabName + "Ui");
+            _marketDepthPainter3 = new MarketDepthPainter(Polygon.Tab3.TabName + "Ui", Polygon.Tab3.Connector);
             _marketDepthPainter3.ProcessMarketDepth(Polygon.Tab3.MarketDepth);
             _marketDepthPainter3.StartPaint(HostSec3, null, null);
             Polygon.Tab3.MarketDepthUpdateEvent += Tab3_MarketDepthUpdateEvent;

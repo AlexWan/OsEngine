@@ -227,6 +227,7 @@ namespace OsEngine.OsTrader.ClientManagement
             {
                 if (_uiClient[i].ClientNumber == clientUi.ClientNumber)
                 {
+                    _uiClient[i].Closed -= _uiClientConnectors_Closed;
                     _uiClient.RemoveAt(i);
                     break;
                 }
