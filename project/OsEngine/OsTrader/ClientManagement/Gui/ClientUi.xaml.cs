@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Layout;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,6 +26,9 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
         {
             InitializeComponent();
 
+            StickyBorders.Listen(this);
+            GlobalGUILayout.Listen(this, "TradeClient" + client.Number);
+
             ClientNumber = client.Number;
             _client = client;
             _client.NewConnectorEvent += _client_NewConnectorEvent;
@@ -33,12 +37,19 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             TextBoxClientName.Text = _client.Name; 
             TextBoxClientName.TextChanged += TextBoxClientName_TextChanged;
 
+            TextBoxState.Text = _client.Status;
+
+            ComboBoxRegime.Items.Add(TradeClientRegime.Manual.ToString());
+            ComboBoxRegime.Items.Add(TradeClientRegime.Auto.ToString());
+            ComboBoxRegime.SelectedItem = _client.Regime.ToString();
+            ComboBoxRegime.SelectionChanged += ComboBoxRegime_SelectionChanged;
+
             CreateConnectorsGrid();
             RePaintConnectorsGrid();
 
             // localization
 
-            this.Title = OsLocalization.Trader.Label592 + " " + _client.Number;
+            this.Title = OsLocalization.Trader.Label592 + " " + _client.Number + " " + _client.Name;
 
             this.Closed += ClientUi_Closed;
 
@@ -60,13 +71,27 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             _clientConnectorsGrid = null;
 
         }
-         
+
+        private void ComboBoxRegime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxRegime.SelectedItem.ToString(),out _client.Regime);
+                _client.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         private void TextBoxClientName_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
                 _client.Name = TextBoxClientName.Text;
                 _client.Save();
+                this.Title = OsLocalization.Trader.Label592 + " " + _client.Number + " " + _client.Name;
             }
             catch
             {
@@ -100,13 +125,13 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
             colum1.HeaderText = "Type"; //"Type";
-            colum1.ReadOnly = false;
+            colum1.ReadOnly = true;
             colum1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum1);
 
             DataGridViewColumn colum2 = new DataGridViewColumn();
             colum2.CellTemplate = cell0;
-            colum2.HeaderText = "Parameters"; //"Parameters";
+            colum2.HeaderText = "";// "Parameters"; //"Parameters";
             colum2.ReadOnly = false;
             colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum2);
@@ -120,21 +145,21 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             DataGridViewColumn colum4 = new DataGridViewColumn();
             colum4.CellTemplate = cell0;
-            colum4.HeaderText = "Deploy"; //"Deploy";
+            colum4.HeaderText = "";// "Deploy"; //"Deploy";
             colum4.ReadOnly = false;
             colum4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum4);
 
             DataGridViewColumn colum5 = new DataGridViewColumn();
             colum5.CellTemplate = cell0;
-            colum5.HeaderText = "Сollapse"; //"Сollapse";
+            colum5.HeaderText = "";//"Сollapse"; //"Сollapse";
             colum5.ReadOnly = false;
             colum5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum5);
 
             DataGridViewColumn colum6 = new DataGridViewColumn();
             colum6.CellTemplate = cell0;
-            colum6.HeaderText = "GUI"; //"GUI";
+            colum6.HeaderText = "";// "GUI"; //"GUI";
             colum6.ReadOnly = false;
             colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum6);
@@ -148,20 +173,20 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             DataGridViewColumn colum8 = new DataGridViewColumn();
             colum8.CellTemplate = cell0;
-            colum8.HeaderText = "Connect"; //"Connect";
+            colum8.HeaderText = "";// "Connect"; //"Connect";
             colum8.ReadOnly = false;
             colum8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum8);
 
             DataGridViewColumn colum9 = new DataGridViewColumn();
             colum9.CellTemplate = cell0;
-            colum9.HeaderText = "Disconnect"; //"Disconnect";
+            colum9.HeaderText = "";// "Disconnect"; //"Disconnect";
             colum9.ReadOnly = false;
             colum9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum9);
 
             DataGridViewColumn column10 = new DataGridViewColumn();
-            column10.HeaderText = "Delete"; // Delete
+            column10.HeaderText = "";// "Delete"; // Delete
             column10.CellTemplate = cell0;
             column10.ReadOnly = true;
             column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
@@ -197,6 +222,11 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
                 int columnIndex = e.ColumnIndex;
                 int rowIndex = e.RowIndex;
+
+                if (rowIndex == -1)
+                {
+                    return;
+                }
 
                 if (rowIndex == _client.ClientConnectorsSettings.Count
                     && columnIndex == 10)
@@ -277,7 +307,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 _client.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
-
 
         private DataGridViewRow GetAddRow()
         {

@@ -23,7 +23,28 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public int Number;
 
-        public string Name;
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                if(_name == value)
+                {
+                    return;
+                }
+
+                _name = value.Replace("#","").Replace("&", "");
+
+                if(NameChangeEvent != null)
+                {
+                    NameChangeEvent();
+                }
+            }
+        }
+        private string _name;
 
         public string Status
         {
@@ -32,6 +53,8 @@ namespace OsEngine.OsTrader.ClientManagement
                 return "Ok";
             }
         }
+
+        public TradeClientRegime Regime;
 
         public void Save()
         {
@@ -49,14 +72,11 @@ namespace OsEngine.OsTrader.ClientManagement
                 {
                     writer.WriteLine(Number);
                     writer.WriteLine(Name);
+                    writer.WriteLine(Regime.ToString());
                     writer.WriteLine("");
                     writer.WriteLine("");
                     writer.WriteLine("");
-                    writer.WriteLine("");
-                    writer.WriteLine("");
-
-
-
+                    writer.WriteLine(GetSaveStringConnectors());
 
 
                     writer.Close();
@@ -82,6 +102,12 @@ namespace OsEngine.OsTrader.ClientManagement
                 {
                     Number = Convert.ToInt32(reader.ReadLine());
                     Name = reader.ReadLine();
+                    Enum.TryParse(reader.ReadLine(), out Regime);
+                    reader.ReadLine();
+                    reader.ReadLine();
+                    reader.ReadLine();
+
+                    LoadConnectorsFromString(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -110,9 +136,47 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public List<TradeClientRobots> ClientRobotsSettings = new List<TradeClientRobots>();
 
+        public event Action NameChangeEvent;
+
         #region Connectors
 
         public List<TradeClientConnector> ClientConnectorsSettings = new List<TradeClientConnector>();
+
+        private string GetSaveStringConnectors()
+        {
+            string saveStr = "";
+
+            for(int i = 0;i < ClientConnectorsSettings.Count;i++)
+            {
+                saveStr += ClientConnectorsSettings[i].GetSaveString();
+
+                if(i + 1 != ClientConnectorsSettings.Count)
+                {
+                    saveStr += "#";
+                }
+            }
+
+            return saveStr;
+        }
+
+        private void LoadConnectorsFromString(string saveStr)
+        {
+            string[] connectors = saveStr.Split('#');
+
+            for(int i = 0;i < connectors.Length;i++)
+            {
+                string currentSaveStr = connectors[i];
+
+                if(string.IsNullOrEmpty(currentSaveStr) == true)
+                {
+                    continue;
+                }
+
+                TradeClientConnector connector = new TradeClientConnector();
+                connector.LoadFromString(currentSaveStr);
+                ClientConnectorsSettings.Add(connector);
+            }
+        }
 
         public TradeClientConnector AddNewConnector()
         {
@@ -191,6 +255,12 @@ namespace OsEngine.OsTrader.ClientManagement
 
     }
 
+    public enum TradeClientRegime
+    {
+        Manual,
+        Auto
+    }
+
     public class TradeClientConnector
     {
         public int Number;
@@ -213,8 +283,31 @@ namespace OsEngine.OsTrader.ClientManagement
             }
         }
 
-    }
+        public string GetSaveString()
+        {
+            string saveStr = "";
 
+            saveStr += Number + "&";
+            saveStr += ServerType + "&";
+            saveStr += "&";
+            saveStr += "&";
+            saveStr += "&";
+            saveStr += "&";
+            saveStr += "&";
+
+            return saveStr;
+        }
+
+        public void LoadFromString(string saveString)
+        {
+            string[] saveValues = saveString.Split("&");
+
+            Number = Convert.ToInt32(saveValues[0]);
+            Enum.TryParse(saveValues[1], out ServerType);
+
+        }
+
+    }
 
     public class TradeClientRobots
     {
@@ -222,10 +315,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public bool IsOn;
 
-        public string GetSaveString()
-        {
-            return "";
-        }
+
 
         public List<TradeClientRobotsParameter> Parameters;
 

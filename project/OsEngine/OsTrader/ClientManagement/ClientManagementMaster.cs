@@ -9,7 +9,6 @@ using OsEngine.OsTrader.ClientManagement.Gui;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 
 namespace OsEngine.OsTrader.ClientManagement
 {
@@ -65,8 +64,17 @@ namespace OsEngine.OsTrader.ClientManagement
 
                 TradeClient newClient = new TradeClient();
                 newClient.LogMessageEvent += SendNewLogMessage;
+                newClient.NameChangeEvent += NewClient_NameChangeEvent;
                 newClient.LoadFromFile(currentFile);
                 Clients.Add(newClient);
+            }
+        }
+         
+        private void NewClient_NameChangeEvent()
+        {
+           if(ClientChangeNameEvent != null)
+            {
+                ClientChangeNameEvent();
             }
         }
 
@@ -86,6 +94,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
             TradeClient newClient = new TradeClient();
             newClient.LogMessageEvent += SendNewLogMessage;
+            newClient.NameChangeEvent += NewClient_NameChangeEvent;
             newClient.Number = newClientNumber;
             Clients.Add(newClient);
 
@@ -116,6 +125,7 @@ namespace OsEngine.OsTrader.ClientManagement
             if(clientToRemove != null)
             {
                 clientToRemove.LogMessageEvent -= SendNewLogMessage;
+                clientToRemove.NameChangeEvent -= NewClient_NameChangeEvent;
                 clientToRemove.Delete();
 
                 if(DeleteClientEvent != null)
@@ -128,6 +138,8 @@ namespace OsEngine.OsTrader.ClientManagement
         public event Action<TradeClient> NewClientEvent;
 
         public event Action<TradeClient> DeleteClientEvent;
+
+        public event Action ClientChangeNameEvent;
 
         #endregion
 

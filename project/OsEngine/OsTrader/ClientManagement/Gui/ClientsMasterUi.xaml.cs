@@ -31,6 +31,7 @@ namespace OsEngine.OsTrader.ClientManagement
             _master.Log.StartPaint(HostLog);
             _master.DeleteClientEvent += _master_DeleteClientEvent;
             _master.NewClientEvent += _master_NewClientEvent;
+            _master.ClientChangeNameEvent += _master_ClientChangeNameEvent;
 
             CreateClientsGrid();
             RePaintClientsGrid();
@@ -47,6 +48,7 @@ namespace OsEngine.OsTrader.ClientManagement
             _master.Log.StopPaint();
             _master.DeleteClientEvent -= _master_DeleteClientEvent;
             _master.NewClientEvent -= _master_NewClientEvent;
+            _master.ClientChangeNameEvent -= _master_ClientChangeNameEvent;
             _master = null;
 
             HostClients.Child = null;
@@ -93,14 +95,14 @@ namespace OsEngine.OsTrader.ClientManagement
             DataGridViewColumn colum01 = new DataGridViewColumn();
             colum01.CellTemplate = cell0;
             colum01.HeaderText = OsLocalization.Trader.Label61; //"Name";
-            colum01.ReadOnly = false;
+            colum01.ReadOnly = true;
             colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientsGrid.Columns.Add(colum01);
 
             DataGridViewColumn colum2 = new DataGridViewColumn();
             colum2.CellTemplate = cell0;
             colum2.HeaderText = OsLocalization.Trader.Label224; //"State";
-            colum2.ReadOnly = false;
+            colum2.ReadOnly = true;
             colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientsGrid.Columns.Add(colum2);
 
@@ -254,6 +256,11 @@ namespace OsEngine.OsTrader.ClientManagement
                 int columnIndex = e.ColumnIndex;
                 int rowIndex = e.RowIndex;
 
+                if(rowIndex == -1)
+                {
+                    return;
+                }
+
                 if (rowIndex == _master.Clients.Count
                     && columnIndex == 4)
                 { // Add new
@@ -288,6 +295,11 @@ namespace OsEngine.OsTrader.ClientManagement
             {
                 _master.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
             }
+        }
+
+        private void _master_ClientChangeNameEvent()
+        {
+            RePaintClientsGrid();
         }
 
         #endregion

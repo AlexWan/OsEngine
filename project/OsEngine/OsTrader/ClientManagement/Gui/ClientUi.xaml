@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.ClientManagement.Gui"
         mc:Ignorable="d"
-        Title="Client" Height="540" Width="550" MinWidth="550" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Client" Height="574" Width="954" MinWidth="550" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
         <TabControl Foreground="Black" Margin="0,158,0,0">
             <TabItem Name="TabItem1" Width="100" Header=" Connectors ">
@@ -13,13 +13,7 @@
                     <WindowsFormsHost Name="HostClientConnectors" Foreground="Black" Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>
-            <TabItem Name="TabItem2" Width="100" Header=" Portfolios ">
-                <Grid>
-                   
-                    
-                </Grid>
-            </TabItem>
-            <TabItem Name="TabItem3" Width="100" Header=" Robots ">
+            <TabItem Name="TabItem2" Width="100" Header=" Robots ">
                 <Grid>
 
                 </Grid>
@@ -36,6 +30,9 @@
         <Button Content="Delete all connectors and robots" HorizontalAlignment="Right" Margin="0,128,10,0" VerticalAlignment="Top" Width="289"/>
         <Button Content="Load" Margin="18,128,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="98"/>
         <Button Content="Save" Margin="123,128,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="98"/>
+        <Label Content="Regime" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="98,66,0,0" VerticalAlignment="Top" Width="121"/>
+
 
     </Grid>
 </Window>
