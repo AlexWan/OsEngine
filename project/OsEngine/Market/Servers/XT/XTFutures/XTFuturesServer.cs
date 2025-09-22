@@ -80,116 +80,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 threadForGetPortfolios.Start();
             }
 
-            #region Helper Methods for Safe Conversions
-
-            /// <summary>
-            /// Safely converts string to int with default value
-            /// </summary>
-            private static int SafeConvertToInt32(string value, int defaultValue = 0)
-            {
-                if (string.IsNullOrEmpty(value))
-                    return defaultValue;
-                
-                if (int.TryParse(value, out int result))
-                    return result;
-                
-                return defaultValue;
-            }
-
-            /// <summary>
-            /// Safely converts string to long with default value
-            /// </summary>
-            private static long SafeConvertToInt64(string value, long defaultValue = 0)
-            {
-                if (string.IsNullOrEmpty(value))
-                    return defaultValue;
-                
-                if (long.TryParse(value, out long result))
-                    return result;
-                
-                return defaultValue;
-            }
-
-            /// <summary>
-            /// Safely converts string to decimal with default value
-            /// </summary>
-            private static decimal SafeConvertToDecimal(string value, decimal defaultValue = 0)
-            {
-                if (string.IsNullOrEmpty(value))
-                    return defaultValue;
-                
-                if (decimal.TryParse(value.Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out decimal result))
-                    return result;
-                
-                return defaultValue;
-            }
-
-            /// <summary>
-            /// Safely converts object to string with null check
-            /// </summary>
-            private static string SafeToString(object value, string defaultValue = "")
-            {
-                return value?.ToString() ?? defaultValue;
-            }
-
-            /// <summary>
-            /// Safely logs exception with context information
-            /// </summary>
-            private void SafeLogException(Exception ex, string context, LogMessageType logType = LogMessageType.Error)
-            {
-                try
-                {
-                    string errorMessage = $"{context}: {ex.GetType().Name} - {ex.Message}";
-                    if (ex.InnerException != null)
-                    {
-                        errorMessage += $" Inner: {ex.InnerException.Message}";
-                    }
-                    SendLogMessage(errorMessage, logType);
-                }
-                catch
-                {
-                    // Fallback logging if SendLogMessage fails
-                    System.Diagnostics.Debug.WriteLine($"Logging failed for exception: {ex.Message}");
-                }
-            }
-
-            /// <summary>
-            /// Safely converts object to decimal with null check
-            /// </summary>
-            private static decimal SafeToDecimal(object value, decimal defaultValue = 0)
-            {
-                if (value == null)
-                    return defaultValue;
-                
-                try
-                {
-                    return Convert.ToDecimal(value);
-                }
-                catch
-                {
-                    return defaultValue;
-                }
-            }
-
-            /// <summary>
-            /// Safely converts object to double with null check
-            /// </summary>
-            private static double SafeToDouble(object value, double defaultValue = 0)
-            {
-                if (value == null)
-                    return defaultValue;
-                
-                try
-                {
-                    return Convert.ToDouble(value);
-                }
-                catch
-                {
-                    return defaultValue;
-                }
-            }
-
-            #endregion
+       
+     
 
             public DateTime ServerTime { get; set; }
 
@@ -232,21 +124,21 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
                         catch (HttpRequestException httpEx)
                         {
-                            SafeLogException(httpEx, "HTTP request failed during connection");
+                           
                             SendLogMessage("Connection cannot be open. XT. HTTP Error", LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent?.Invoke();
                         }
                         catch (TaskCanceledException tcEx)
                         {
-                            SafeLogException(tcEx, "Connection timeout");
+                            
                             SendLogMessage("Connection cannot be open. XT. Timeout", LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent?.Invoke();
                         }
                         catch (Exception exception)
                         {
-                            SafeLogException(exception, "Unexpected error during connection");
+                           
                             SendLogMessage("Connection cannot be open. XT. Error request", LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent?.Invoke();
@@ -415,11 +307,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                         continue;
                                     }
                                     newSecurity.State = SecurityStateType.Activ;
-                                    newSecurity.PriceStep = SafeToDecimal(securityList.result.symbols[i].minStepPrice);
-                                    newSecurity.Decimals = SafeConvertToInt32(securityList.result.symbols[i].quoteCoinPrecision);
+                                    newSecurity.PriceStep = (securityList.result.symbols[i].minStepPrice).ToDecimal();
+                                    newSecurity.Decimals = Convert.ToInt32(securityList.result.symbols[i].quoteCoinPrecision);
                                     newSecurity.PriceStepCost = newSecurity.PriceStep;
-                                    newSecurity.DecimalsVolume = SafeConvertToInt32(securityList.result.symbols[i].quoteCoinPrecision);
-                                    newSecurity.MinTradeAmount = SafeToDecimal(securityList.result.symbols[i].minQty);
+                                    newSecurity.DecimalsVolume = Convert.ToInt32(securityList.result.symbols[i].quoteCoinPrecision);
+                                    newSecurity.MinTradeAmount =(securityList.result.symbols[i].minQty).ToDecimal();
                                     newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
                                     newSecurity.VolumeStep = newSecurity.DecimalsVolume.GetValueByDecimals();
 
@@ -487,7 +379,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 PortfolioEvent(_portfolios);
             }
 
-            private async void UpdatePortfolios()
+            private  void UpdatePortfolios()
             {
                 while (true)
                 {
@@ -495,11 +387,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         if (ServerStatus == ServerConnectStatus.Disconnect)
                         {
-                            await Task.Delay(2000);
+                            Thread.Sleep(2000);
                             continue;
                         }
 
-                        await Task.Delay(10000);
+                        Thread.Sleep(10000);
 
                         if (_portfolios == null)
                         {
@@ -1122,7 +1014,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             #region 8 WebSocket check alive
 
-            private async void ConnectionCheck()
+            private  void ConnectionCheck()
             {
                 while (true)
                 {
@@ -1130,11 +1022,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         if (ServerStatus == ServerConnectStatus.Disconnect)
                         {
-                            await Task.Delay(2000);
+                            Thread.Sleep(2000);
                             continue;
                         }
 
-                        await Task.Delay(10000);
+                        Thread.Sleep(10000);
 
                         if (_webSocketPublicMarketDepths == null)
                         {
@@ -1213,7 +1105,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private ConcurrentQueue<string> FIFOListWebSocketPublicTradesMessage = new ConcurrentQueue<string>();
 
-            private async void PublicMarketDepthsMessageReader()
+            private  void PublicMarketDepthsMessageReader()
             {
                 while (true)
                 {
@@ -1221,13 +1113,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         if (ServerStatus != ServerConnectStatus.Connect)
                         {
-                            await Task.Delay(1000);
+                            Thread.Sleep(1000);
                             continue;
                         }
 
                         if (FIFOListWebSocketPublicMarketDepthsMessage.IsEmpty)
                         {
-                            await Task.Delay(1);
+                            Thread.Sleep(1);
                             continue;
                         }
 
@@ -1260,13 +1152,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
                     catch (Exception exception)
                     {
-                        await Task.Delay(2000);
-                        SafeLogException(exception, "PublicMarketDepthsMessageReader error");
+                        Thread.Sleep(2000);
+                       
                     }
                 }
             }
 
-            private async void PublicTradesMessageReader()
+            private  void PublicTradesMessageReader()
             {
                 while (true)
                 {
@@ -1274,13 +1166,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         if (ServerStatus != ServerConnectStatus.Connect)
                         {
-                            await Task.Delay(1000);
+                            Thread.Sleep(1000);
                             continue;
                         }
 
                         if (FIFOListWebSocketPublicTradesMessage.IsEmpty)
                         {
-                            await Task.Delay(1);
+                            Thread.Sleep(1);
                             continue;
                         }
 
@@ -1308,13 +1200,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
                     catch (Exception exception)
                     {
-                        await Task.Delay(2000);
-                        SafeLogException(exception, "PublicTradesMessageReader error");
+                        Thread.Sleep(2000);
                     }
                 }
             }
 
-            private async void PrivateMessageReader()
+            private  void PrivateMessageReader()
             {
                 while (true)
                 {
@@ -1322,13 +1213,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         if (ServerStatus != ServerConnectStatus.Connect)
                         {
-                            await Task.Delay(1000);
+                            Thread.Sleep(1000);
                             continue;
                         }
 
                         if (FIFOListWebSocketPrivateMessage.IsEmpty)
                         {
-                            await Task.Delay(1);
+                            Thread.Sleep(1);
                             continue;
                         }
 
@@ -1362,8 +1253,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
                     catch (Exception exception)
                     {
-                        await Task.Delay(2000);
-                        SafeLogException(exception, "PrivateMessageReader error");
+                        Thread.Sleep(2000);
                     }
                 }
             }
@@ -1381,9 +1271,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     Trade trade = new Trade();
                     trade.SecurityNameCode = responseTrade.data?.s ?? string.Empty;
-                    trade.Price = SafeToDecimal(responseTrade.data?.p);
-                    trade.Time = TimeManager.GetDateTimeFromTimeStamp(SafeConvertToInt64(responseTrade.data?.t));
-                    trade.Volume = SafeToDecimal(responseTrade.data?.a);
+                    trade.Price = (responseTrade.data?.p).ToDecimal();
+                    trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data?.t));
+                    trade.Volume =(responseTrade.data?.a).ToDecimal();
                     trade.Side = responseTrade.data?.m?.Equals("BID", StringComparison.OrdinalIgnoreCase) == true ? Side.Buy : Side.Sell;
 
                     NewTradesEvent?.Invoke(trade);
@@ -1488,8 +1378,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         continue;
                     }
                     
-                    decimal p = SafeToDecimal(side[i][0]);
-                    decimal q = SafeToDecimal(side[i][1]);
+                    decimal p = (side[i][0]).ToDecimal();
+                    decimal q = (side[i][1]).ToDecimal();
                     if (q <= 0m) continue;
 
                     dest.Add(isAsk
@@ -1510,8 +1400,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 for (int i = 0; i < side.Count; i++)
                 {
-                    decimal p = SafeToDecimal(side[i][0]);
-                    decimal q = SafeToDecimal(side[i][1]);
+                    decimal p =(side[i][0]).ToDecimal();
+                    decimal q = (side[i][1]).ToDecimal();
                     UpsertLevel(dest, p, q, isAsk);
                 }
             }
@@ -1670,10 +1560,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                         MyTrade myTrade = new MyTrade();
 
-                        myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(SafeConvertToInt64(response.data.timestamp));
+                        myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.timestamp));
                         myTrade.NumberOrderParent = response.data.clientOrderId;
                         myTrade.NumberTrade = response.data.orderId;
-                        myTrade.Price = SafeToDecimal(response.data.price);
+                        myTrade.Price = (response.data.price).ToDecimal();
                         myTrade.SecurityNameCode = response.data.symbol;
                         myTrade.Side = response.data.orderSide.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
 
