@@ -13,9 +13,6 @@ using System.Windows.Forms;
 
 namespace OsEngine.OsTrader.ClientManagement.Gui
 {
-    /// <summary>
-    /// Interaction logic for ClientUi.xaml
-    /// </summary>
     public partial class ClientUi : Window
     {
         public int ClientNumber;
@@ -250,11 +247,42 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                    _client.RemoveConnectorAtNumber(number);
                 }
                 else if (rowIndex < _client.ClientConnectorsSettings.Count
-                   && columnIndex == 3)
-                { // Settings
-                    /*
-                    int number = Convert.ToInt32(_clientsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    _master.ShowDialogClient(number);*/
+                   && columnIndex == 2)
+                { // Parameters
+                    
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+
+                    
+
+
+
+                }
+                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                   && columnIndex == 4)
+                { // Deploy
+
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+
+
+
+
+
+                }
+                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                   && columnIndex == 5)
+                { // Collapse
+
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+
+
+                }
+                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                   && columnIndex == 6)
+                { // GUI
+
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+
+
                 }
             }
             catch (Exception ex)

@@ -539,6 +539,7 @@ namespace OsEngine.Entity
 
                 decimal price = 0;
                 decimal volume = 0;
+
                 for (int i = 0; i < _closeOrders.Count; i++)
                 {
                     Order order = _closeOrders[i];
@@ -756,12 +757,12 @@ namespace OsEngine.Entity
                 {
                     State = PositionStateType.ClosingSurplus;
                 }
+            }
 
-                if (State == PositionStateType.Done 
-                    && CloseOrders != null)
-                {
-                    CalculateProfitToPosition();
-                }
+            if (State == PositionStateType.Done
+                && CloseOrders != null)
+            {
+                CalculateProfitToPosition();
             }
         }
 
@@ -860,22 +861,7 @@ namespace OsEngine.Entity
 
             if (State == PositionStateType.Done && CloseOrders != null)
             {
-                decimal entryPrice = EntryPrice;
-                decimal closePrice = ClosePrice;
-
-                if (entryPrice != 0 && closePrice != 0)
-                {
-                    if (Direction == Side.Buy)
-                    {
-                        ProfitOperationPercent = closePrice / entryPrice * 100 - 100;
-                        ProfitOperationAbs = closePrice - entryPrice;
-                    }
-                    else
-                    {
-                        ProfitOperationAbs = entryPrice - closePrice;
-                        ProfitOperationPercent = -(closePrice / entryPrice * 100 - 100);
-                    }
-                }
+                CalculateProfitToPosition();
             }
         }
 
