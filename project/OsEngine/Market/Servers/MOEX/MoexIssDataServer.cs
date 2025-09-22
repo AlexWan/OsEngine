@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Windows;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Windows;
 
 namespace OsEngine.Market.Servers.MOEX
 {
-    public class MoexDataServer: AServer
+    public class MoexDataServer : AServer
     {
         public MoexDataServer()
         {
@@ -462,7 +462,7 @@ namespace OsEngine.Market.Servers.MOEX
             for (int i = 0; i < candles.Count; i++)
             {
                 Candle newCandle = candles[i];
-            
+
                 if (newCandle.TimeStart.TimeOfDay == TimeSpan.Zero)
                 {
                     candles.RemoveAt(i);
@@ -485,7 +485,7 @@ namespace OsEngine.Market.Servers.MOEX
                     previousCandle = newCandle;
                 }
             }
-            
+
             return candles;
         }
 
@@ -507,10 +507,10 @@ namespace OsEngine.Market.Servers.MOEX
                 Candle newCandle = new Candle();
                 newCandle.TimeStart = candlesOld[i].TimeStart;
 
-                if(startTf == 1 
+                if (startTf == 1
                     && (endTf == 5 || endTf == 10 || endTf == 15))
                 {
-                    while(newCandle.TimeStart.Minute != 0
+                    while (newCandle.TimeStart.Minute != 0
                         && newCandle.TimeStart.Minute % endTf != 0)
                     {
                         newCandle.TimeStart = newCandle.TimeStart.AddMinutes(1);
@@ -693,19 +693,16 @@ namespace OsEngine.Market.Servers.MOEX
 
         private string GetRequest(string url)
         {
-            WebClient wb = new WebClient();
-            wb.Encoding = Encoding.UTF8;
-
             try
             {
-                string str = wb.DownloadString(new Uri(url, UriKind.Absolute));
-                wb.Dispose();
-                return str;
+                RestRequest requestRest = new RestRequest(Method.GET);
+                RestClient client = new RestClient(url);
+                var responseMessage = client.Execute(requestRest).Content;
+                return responseMessage;
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
-                wb.Dispose();
                 return null;
             }
         }
@@ -741,80 +738,31 @@ namespace OsEngine.Market.Servers.MOEX
             PortfolioEvent?.Invoke(new List<Portfolio>() { portfolio });
         }
 
-        public void SendOrder(Order order)
-        {
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime) { return null; }
 
-        }
+        public void Subscribe(Security security) { }
 
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
+        public void SendOrder(Order order) { }
 
-        }
+        public void CancelAllOrders() { }
 
-        public bool CancelOrder(Order order)
-        {
-            return false;
-        }
+        public void CancelAllOrdersToSecurity(Security security) { }
 
-        public void CancelAllOrders()
-        {
+        public bool CancelOrder(Order order) { return false; }
 
-        }
+        public void ChangeOrderPrice(Order order, decimal newPrice) { }
 
-        public void GetAllActivOrders()
-        {
+        public void GetAllActivOrders() { }
 
-        }
+        public OrderStateType GetOrderStatus(Order order) { return OrderStateType.None; }
 
-        public OrderStateType GetOrderStatus(Order order)
-        {
-            return OrderStateType.None;
-        }
+        public bool SubscribeNews() { return false; }
 
-        public void Subscribe(Security security)
-        {
+        public List<Order> GetActiveOrders(int startIndex, int count) { return null; }
 
-        }
+        public List<Order> GetHistoricalOrders(int startIndex, int count) { return null; }
 
-        public void GetOrdersState(List<Order> orders)
-        {
-
-        }
-
-        public void CancelAllOrdersToSecurity(Security security)
-        {
-
-        }
-
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
-
-        }
-
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
-        }
-
-        public List<Order> GetActiveOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public List<Order> GetHistoricalOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            return null;
-        }
-
-        public bool SubscribeNews()
-        {
-            return false;
-        }
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount) { return null; }
 
         public event Action<News> NewsEvent { add { } remove { } }
         public event Action<Order> MyOrderEvent { add { } remove { } }
