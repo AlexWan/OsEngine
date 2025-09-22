@@ -1017,7 +1017,37 @@ namespace OsEngine.Language
          "Eng:Server removed_" +
          "Ru:Сервер удалён_");
 
+        public string Label246 => OsLocalization.ConvertToLocString(
+         "Eng:Public key. This can be found on the exchange's website in the API section_" +
+         "Ru:Публичный ключ. Выписывается на сайте биржи в разделе API_");
 
+        public string Label247 => OsLocalization.ConvertToLocString(
+         "Eng:Private key. This can be found on the exchange's website in the API section_" +
+         "Ru:Приватный ключ. Выписывается на сайте биржи в разделе API_");
+
+        public string Label248 => OsLocalization.ConvertToLocString(
+         "Eng:MainNet is suitable for most countries. Users from the Netherlands, Kazakhstan, and Turkey select the appropriate server. If your country is not listed, select MainNet. Demo is a demo server where you can trade on a virtual account. For demo use, you need separate public and private keys_" +
+         "Ru:MainNet подходит для большинства стран. Пользователи из Нидерландов, Казахстана, Турции выбирают соответствующий им сервер. Если вашей страны нет в списке, значит выбираем MainNet. Demo - демонстрационный сервер, где можно поторговать на виртуальном счете. Для демо нужно выписывать отдельные публичный и приватный ключи_");
+
+        public string Label249 => OsLocalization.ConvertToLocString(
+         "Eng:Selecting a Margin Mode. Cross Margin or Isolated_" +
+         "Ru:Выбор режима маржи. Кросс-маржа или изолированная_");
+
+        public string Label250 => OsLocalization.ConvertToLocString(
+         "Eng:Selecting a hedging mode. If on - the hedging mode is enabled; if off - the one-way mode is enabled_" +
+         "Ru:Выбор режима хеджирования. Если on - то включен режим хеджирования, если off - включен односторонний режим_");
+
+        public string Label251 => OsLocalization.ConvertToLocString(
+         "Eng:Set leverage from 1 to the maximum allowed by the exchange. Works only for linear futures. If left blank, the leverage you set on the exchange is used_" +
+         "Ru:Устанавливаем кредитное плечо от 1 до максимально разрешенного биржей. Работает только для линейных фьючерсов. Если поле оставить пустым, то используется плечо, которое вы установили на бирже_");
+
+        public string Label252 => OsLocalization.ConvertToLocString(
+        "Eng:If true, we request information on open interest, funding, volume24, and whether you use options. If you don't use this data, it's recommended to set it to false_" +
+        "Ru:Если true - то запрашиваем информацию по открытому интересу, фандингу, объему24 и если вы используйте опционы. Если вы не используйте эти данные, то рекомендуется установить false_");
+
+        public string Label253 => OsLocalization.ConvertToLocString(
+         "Eng:If true, we request options. If you don't use them, we recommend setting it to false_" +
+         "Ru:Если true - то запрашиваем опционы. Если вы их не используйте, то ремендуется установить false_");
 
 
 

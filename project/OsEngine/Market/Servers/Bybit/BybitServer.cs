@@ -35,11 +35,20 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Server type", Net_type.MainNet.ToString(), new List<string>() { Net_type.MainNet.ToString(),
                 Net_type.Demo.ToString(), Net_type.Netherlands.ToString(), Net_type.HongKong.ToString(), Net_type.Turkey.ToString(), Net_type.Kazakhstan.ToString() });
-            CreateParameterEnum("Is margin trading", MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
+            CreateParameterEnum("Margin Mode", MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterString("Leverage", "");
             CreateParameterBoolean("Extended Data", false);
             CreateParameterBoolean("Use Options", false);
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label248;
+            ServerParameters[3].Comment = OsLocalization.Market.Label249;
+            ServerParameters[4].Comment = OsLocalization.Market.Label250;
+            ServerParameters[5].Comment = OsLocalization.Market.Label251;
+            ServerParameters[6].Comment = OsLocalization.Market.Label252;
+            ServerParameters[7].Comment = OsLocalization.Market.Label253;
         }
     }
 
@@ -1278,7 +1287,7 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 _rateGateGetCandleHistory.WaitToProceed();
             }
-           
+
             return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, false, DateTime.UtcNow, candleCount);
         }
 
@@ -2724,7 +2733,7 @@ namespace OsEngine.Market.Servers.Bybit
                     myTrade.Price = responseMyTrades.data[i].execPrice.ToDecimal();
                     myTrade.Side = responseMyTrades.data[i].side.ToUpper().Equals("BUY") ? Side.Buy : Side.Sell;
 
-                    if (responseMyTrades.data[i].category == Category.spot.ToString() && myTrade.Side == Side.Buy && !string.IsNullOrWhiteSpace(responseMyTrades.data[i].execFee))   // комиссия на споте при покупке берется с купленой монеты
+                    if (responseMyTrades.data[i].category == Category.spot.ToString() && myTrade.Side == Side.Buy && !string.IsNullOrWhiteSpace(responseMyTrades.data[i].execFee))   // The spot commission for purchases is taken from the purchased coin.
                     {
                         myTrade.Volume = responseMyTrades.data[i].execQty.ToDecimal() - responseMyTrades.data[i].execFee.ToDecimal();
                         int decimalVolum = GetVolumeDecimals(myTrade.SecurityNameCode);
@@ -2820,7 +2829,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                     try
                     {
-                        if(string.IsNullOrEmpty(responseMyTrades.data[i].orderLinkId) == false)
+                        if (string.IsNullOrEmpty(responseMyTrades.data[i].orderLinkId) == false)
                         {
                             newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data[i].orderLinkId);
                         }
@@ -3973,7 +3982,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                List<Order> ordersOpenAll = GetAllOrdersArray(100,true);
+                List<Order> ordersOpenAll = GetAllOrdersArray(100, true);
 
                 for (int i = 0; i < ordersOpenAll.Count; i++)
                 {
@@ -4050,7 +4059,7 @@ namespace OsEngine.Market.Servers.Bybit
                 parameters["category"] = category;
                 parameters["limit"] = "50";
 
-                if(onlyActive)
+                if (onlyActive)
                 {
                     parameters["openOnly"] = "0";
                 }
@@ -4095,7 +4104,7 @@ namespace OsEngine.Market.Servers.Bybit
                         Order newOrder = new Order();
                         newOrder.ServerType = this.ServerType;
 
-                        if(order.orderStatus == "Cancelled"
+                        if (order.orderStatus == "Cancelled"
                             || order.orderStatus == "Rejected"
                             || order.orderStatus == "PartiallyFilledCanceled"
                             || order.orderStatus == "Deactivated")
@@ -4103,9 +4112,9 @@ namespace OsEngine.Market.Servers.Bybit
                             newOrder.State = OrderStateType.Cancel;
                             newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.updatedTime));
                         }
-                        else if(order.orderStatus == "Filled")
+                        else if (order.orderStatus == "Filled")
                         {
-                            newOrder.State = OrderStateType.Done;                           
+                            newOrder.State = OrderStateType.Done;
                             newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.updatedTime));
                         }
                         else if (order.orderStatus == "New"
@@ -4172,19 +4181,19 @@ namespace OsEngine.Market.Servers.Bybit
                         activeOrders.Add(newOrder);
                     }
 
-                    if(activeOrders.Count > 0)
+                    if (activeOrders.Count > 0)
                     {
                         array.AddRange(activeOrders);
 
-                        if(array.Count > maxCount)
+                        if (array.Count > maxCount)
                         {
-                            while(array.Count > maxCount)
+                            while (array.Count > maxCount)
                             {
                                 array.RemoveAt(array.Count - 1);
                             }
                             return;
                         }
-                        else if(array.Count < 50)
+                        else if (array.Count < 50)
                         {
                             return;
                         }
@@ -4312,10 +4321,10 @@ namespace OsEngine.Market.Servers.Bybit
 
             List<Order> resultExit = new List<Order>();
 
-            if (result != null 
-                && startIndex <  result.Count)
+            if (result != null
+                && startIndex < result.Count)
             {
-                if(startIndex + count < result.Count)
+                if (startIndex + count < result.Count)
                 {
                     resultExit = result.GetRange(startIndex, count);
                 }
@@ -4355,6 +4364,7 @@ namespace OsEngine.Market.Servers.Bybit
         private List<Order> _activeOrdersCash = new List<Order>();
         private List<Order> _historicalOrdersCash = new List<Order>();
         private DateTime _timeOrdersCashCreate;
+
         public OrderStateType GetOrderStatus(Order order)
         {
             try
@@ -4392,7 +4402,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 Order myOrder = null;
 
-                for(int i = 0; _historicalOrdersCash != null && i < _historicalOrdersCash.Count;i++)
+                for (int i = 0; _historicalOrdersCash != null && i < _historicalOrdersCash.Count; i++)
                 {
                     if (_historicalOrdersCash[i].NumberUser == order.NumberUser)
                     {
@@ -4401,7 +4411,7 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                 }
 
-                if(myOrder == null)
+                if (myOrder == null)
                 {
                     for (int i = 0; _activeOrdersCash != null && i < _activeOrdersCash.Count; i++)
                     {
@@ -4600,7 +4610,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                if(ex.Message.Contains("A task was canceled") == false)
+                if (ex.Message.Contains("A task was canceled") == false)
                 {
                     SendLogMessage(ex.Message, LogMessageType.Error);
                 }
@@ -4611,7 +4621,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         public string CreatePublicQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
         {
-            lock(_httpClientLocker)
+            lock (_httpClientLocker)
             {
                 _rateGate.WaitToProceed();
             }
