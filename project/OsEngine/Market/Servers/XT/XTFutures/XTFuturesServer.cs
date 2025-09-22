@@ -1483,7 +1483,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 int take = Math.Min(maxLevels, side.Count);
                 for (int i = 0; i < take; i++)
                 {
-                    if (side[i] == null || side[i].Count < 2) continue;
+                    if (side[i] == null || side[i].Count < 2) 
+                    { 
+                        continue;
+                    }
                     
                     decimal p = SafeToDecimal(side[i][0]);
                     decimal q = SafeToDecimal(side[i][1]);
@@ -1804,7 +1807,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     if (stateType == OrderStateType.Done || stateType == OrderStateType.Partial)
                     {
                         //CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, 1);
-                        //UpdateMyTrade(order.NumberMarket);
+                        UpdateMyTrade(newOrder.NumberMarket);
                     }
                 }
                 catch (Exception exception)
@@ -1882,15 +1885,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             int leverage;
             public bool SetLeverage(string symbol, string positionSide, int leverage = 1)
             {
-               // var json = JsonConvert.SerializeObject(new { symbol, positionSide, leverage });
-                //var resp = CreatePrivateQuery(
-                //    "/future/user/v1/position/adjust-leverage",
-                //    Method.POST,
-                //    null, null,
-                //    BodyKind.Json,
-                //    null, null,
-                //    json
-                //);
                 var body = new { symbol, positionSide, leverage };
 
                 var resp = SendPrivate(
@@ -1941,16 +1935,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
                     }
                     data.positionSide = (order.Side == Side.Buy) ? "LONG" : "SHORT";
-                    //JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
-                    //dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-
-                    //                string jsonRequest = JsonConvert.SerializeObject(data, dataSerializerSettings);
-
-                    //                IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/create", Method.POST,
-                    //null, null,            
-                    //BodyKind.Json,          
-                    //null, null,              
-                    //jsonRequest);
+                    
                     var serSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
                     string jsonBody = JsonConvert.SerializeObject(data, serSettings);
 
@@ -2060,14 +2045,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                {
-                    //        XTFuturesCancelAllOrdersRequestData data = new XTFuturesCancelAllOrdersRequestData();
-                    //        data.symbol = security.Name;
-                    //        //data.bizType = "Futures";
-
-                    //        string jsonRequest = JsonConvert.SerializeObject(data);
-
-                    //        var responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel-all", Method.POST, null, null,
-                    //BodyKind.None, null, null, jsonRequest);
                     var jsonRequest = JsonConvert.SerializeObject(
             new XTFuturesCancelAllOrdersRequestData { symbol = security.Name },
             new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
@@ -2116,22 +2093,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-                    //var data = new {orderId = order.NumberMarket };
-                    //string jsonRequest = JsonConvert.SerializeObject(data);
-
-                    //IRestResponse response = CreatePrivateQuery(
-                    //    "/future/trade/v1/order/cancel",
-                    //    Method.POST,
-                    //    null, null,
-                    //    BodyKind.Json,
-                    //    null, null,
-                    //    jsonRequest);
-                    //                    var resp = SendPrivate(
-                    //    "/future/trade/v1/order/cancel",
-                    //    Method.POST,
-                    //    query: null,
-                    //    body: new { orderId = order.NumberMarket.ToString() }  // чаще ждут строку
-                    //);
                     var jsonBody = $"{{\"orderId\":\"{order.NumberMarket.ToString(CultureInfo.InvariantCulture)}\"}}";
 
                     var response = SendPrivate(
@@ -2263,13 +2224,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-
-
-                    //                var responseMessage = CreatePrivateQuery("/future/trade/v1/order/list", Method.GET,
-                    //null, null,              
-                    //BodyKind.None,          
-                    //null, null,              
-                    //null);
                     var responseMessage = SendPrivate(
                     "/future/trade/v1/order/list",
                     Method.GET
@@ -2321,23 +2275,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 _rateGateOpenOrder.WaitToProceed();////переделать
 
                 try
-                { // 1) Передаем orderId через query
-                  //                string[] queryKeys = { "orderId" };
-                  //                string[] queryValues = { order.NumberMarket};
-
-                    //                string numberUser = order.NumberUser.ToString();
-
-                    //                var responseMessage = CreatePrivateQuery("/future/trade/v1/order/detail", Method.GET,
-                    //queryKeys, queryValues,            
-                    //BodyKind.None,         
-                    //null, null,             
-                    //null);
+                {
                     var query = "orderId=" + order.NumberMarket.ToString(CultureInfo.InvariantCulture);
                     var orderId = order.NumberMarket.ToString(CultureInfo.InvariantCulture);
                     //var query = "orderId=" + Safe(orderId);   // на будущее — не сломается
                     var responseMessage = SendPrivate("/future/trade/v1/order/detail", Method.GET, query);
-                 
-
+             
                     XTFuturesResponseRest<XTFuturesOrderItem> response = JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesOrderItem>>(responseMessage.Content);
 
                     if (response.returnCode != "0" || response == null)
@@ -2608,12 +2551,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 var list = new List<MyTrade>();
                 try
                 {
-
-                    //                var response = CreatePrivateQuery($"/future/trade/v1/order/trade-list", Method.GET,
-                    //new[] { "orderId" }, new[] { orderId },              
-                    //BodyKind.None,          
-                    //null, null,             
-                    //null);
                     var orderIdStr = orderId.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
                     var response = SendPrivate(
@@ -2757,28 +2694,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 IRestResponse response = client.Execute(request);
                 return response;
             }
-            enum BodyKind { None, FormUrlEncoded, Json }
-
-            private string BuildQuery(string[] keys, string[] values)
-            {
-                string[] k = (string[])keys.Clone();
-                string[] v = (string[])values.Clone();
-
-                // сортировка по ключам (Ordinal)
-                Array.Sort(k, v, StringComparer.Ordinal);
-
-                StringBuilder sb = new StringBuilder();
-                int i = 0;
-                while (i < k.Length)
-                {
-                    if (i > 0) sb.Append('&');
-                    string ek = Uri.EscapeDataString(k[i] ?? "");
-                    string ev = Uri.EscapeDataString(v[i] ?? "");
-                    sb.Append(ek).Append('=').Append(ev);
-                    i++;
-                }
-                return sb.ToString();
-            }
+        
             private string HmacSHA256(string key, string data)
             {
                 using (var h = new HMACSHA256(Encoding.UTF8.GetBytes(key)))
@@ -2787,23 +2703,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
                 }
             }
-            private string _recvWindow = null;
-            private string BuildX(string ts)
-            {
-                return "validate-algorithms=" + _encry
-                     + "&validate-appkey=" + _publicKey
-                     + "&validate-recvwindow=" + _timeOut
-                     + "&validate-timestamp=" + ts;
-            }
 
-            private string BuildY(string method, string path, string query, string body)
-            {
-                var sb = new StringBuilder();
-                sb.Append('#').Append(method).Append('#').Append(path);
-                if (!string.IsNullOrEmpty(query)) sb.Append('#').Append(query);
-                if (!string.IsNullOrEmpty(body)) sb.Append('#').Append(body);
-                return sb.ToString();
-            }
+            private string _recvWindow = null;
+     
 
             private IRestResponse SendPrivate(
     string path,
@@ -2862,86 +2764,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     return null;
                 }
             }
-            //    private IRestResponse CreatePrivateQuery(string path,
-            //Method httpMethod,
-            //// query: пары одинаковой длины; можно передать null/пустые
-            //string[] queryKeys, string[] queryValues,
-            //// body-kind: None / FormUrlEncoded / Json
-            //BodyKind bodyKind,
-            //// form body (если bodyKind == FormUrlEncoded): пары одинаковой длины; иначе передать null
-            //string[] bodyKeys, string[] bodyValues,
-            //// json body (если bodyKind == Json): уже готовая JSON-строка; иначе передать null/""
-            //string jsonBody)
-            //    {
-
-            //        // 1) Канонизируем query
-            //        string queryString = "";
-            //        if (queryKeys != null && queryValues != null && queryKeys.Length > 0)
-            //            queryString = BuildQuery(queryKeys, queryValues);
-
-            //        // 2) Канонизируем body
-            //        string bodyString = "";
-            //        string contentType = "application/x-www-form-urlencoded";
-            //        if (bodyKind == BodyKind.FormUrlEncoded)
-            //        {
-            //            if (bodyKeys != null && bodyValues != null && bodyKeys.Length > 0)
-            //                bodyString = BuildQuery(bodyKeys, bodyValues); // form = k=v&... (сортированный)
-            //        }
-            //        else if (bodyKind == BodyKind.Json)
-            //        {
-            //            contentType = "application/json";
-            //            if (!string.IsNullOrEmpty(jsonBody))
-            //                bodyString = jsonBody; // JSON — ровно как есть
-            //        }
-
-            //        // 3) Собираем X и Y для подписи
-            //        string ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-
-            //        // X: только appkey + timestamp (упрощённая схема v1)
-            //        string X = "validate-appkey=" + _publicKey + "&validate-timestamp=" + ts;
-
-            //        // Y: #path[#query][#body]
-            //        StringBuilder yb = new StringBuilder();
-            //        yb.Append('#').Append(path);
-            //        if (!string.IsNullOrEmpty(queryString)) yb.Append('#').Append(queryString);
-            //        if (!string.IsNullOrEmpty(bodyString)) yb.Append('#').Append(bodyString);
-            //        string Y = yb.ToString();
-
-            //        string signInput = X + Y;
-            //        string signature = HmacSHA256(_secretKey, signInput);
-
-            //        // 4) Собираем запрос
-            //        string url = _baseUrl;
-            //        if (!string.IsNullOrEmpty(queryString))
-            //            url = url + path + "?" + queryString;
-            //        else
-            //            url = url + path;
-
-            //        var client = new RestClient(url);
-            //        var request = new RestRequest(httpMethod);
-
-            //        // Заголовки подписи
-            //        request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
-            //        request.AddHeader("Accept", "application/json");
-            //        request.AddHeader("Content-Type", contentType);
-            //        request.AddHeader("validate-appkey", _publicKey);
-            //        request.AddHeader("validate-timestamp", ts);
-            //        request.AddHeader("validate-signature", signature);
-            //        // опционально
-            //        request.AddHeader("validate-algorithms", "HmacSHA256");
-            //        if (!string.IsNullOrEmpty(_recvWindow))
-            //            request.AddHeader("validate-recvwindow", _recvWindow);
-
-            //        // Тело — только если есть body
-            //        if (bodyKind == BodyKind.FormUrlEncoded && bodyString.Length > 0)
-            //            request.AddParameter("application/x-www-form-urlencoded", bodyString, ParameterType.RequestBody);
-            //        else if (bodyKind == BodyKind.Json && bodyString.Length > 0)
-            //            request.AddParameter("application/json", bodyString, ParameterType.RequestBody);
-
-            //        return client.Execute(request);
-            //    }
-
-
+            
             #endregion
 
             #region 13 Log
