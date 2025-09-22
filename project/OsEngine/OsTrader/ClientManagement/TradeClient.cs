@@ -3,6 +3,8 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Logging;
+using OsEngine.Market;
 using OsEngine.OsTrader.Grids;
 using System;
 using System.Collections.Generic;
@@ -106,13 +108,113 @@ namespace OsEngine.OsTrader.ClientManagement
             }
         }
 
-        public List<TradeClientConnector> ClientConnectorsSettings = new List<TradeClientConnector>();
-
         public List<TradeClientRobots> ClientRobotsSettings = new List<TradeClientRobots>();
 
+        #region Connectors
 
+        public List<TradeClientConnector> ClientConnectorsSettings = new List<TradeClientConnector>();
+
+        public TradeClientConnector AddNewConnector()
+        {
+            int newClientNumber = 0;
+
+            for (int i = 0; i < ClientConnectorsSettings.Count; i++)
+            {
+                if (ClientConnectorsSettings[i].Number >= newClientNumber)
+                {
+                    newClientNumber = ClientConnectorsSettings[i].Number + 1;
+                }
+            }
+
+            TradeClientConnector newClient = new TradeClientConnector();
+            newClient.Number = newClientNumber;
+            ClientConnectorsSettings.Add(newClient);
+
+            if (NewConnectorEvent != null)
+            {
+                NewConnectorEvent(newClient);
+            }
+
+            Save();
+
+            return newClient;
+        }
+
+        public void RemoveConnectorAtNumber(int number)
+        {
+            TradeClientConnector connectorToRemove = null;
+
+            for (int i = 0; i < ClientConnectorsSettings.Count; i++)
+            {
+                if (ClientConnectorsSettings[i].Number == number)
+                {
+                    connectorToRemove = ClientConnectorsSettings[i];
+                    ClientConnectorsSettings.RemoveAt(i);
+                    break;
+                }
+            }
+
+            if (connectorToRemove != null)
+            { 
+                if (DeleteConnectorEvent != null)
+                {
+                    DeleteConnectorEvent(connectorToRemove);
+                }
+            }
+
+            Save();
+        }
+
+        public event Action<TradeClientConnector> NewConnectorEvent;
+
+        public event Action<TradeClientConnector> DeleteConnectorEvent;
+
+        #endregion
+
+        #region Log
+
+        public void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+            else if (type == LogMessageType.Error)
+            {
+                ServerMaster.SendNewLogMessage(message, type);
+            }
+        }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
 
     }
+
+    public class TradeClientConnector
+    {
+        public int Number;
+
+        public ServerType ServerType;
+
+        public string DeployStatus
+        {
+            get
+            {
+                return "Deployed";
+            }
+        }
+
+        public string ServerStatus
+        {
+            get
+            {
+                return "Disconnect";
+            }
+        }
+
+    }
+
 
     public class TradeClientRobots
     {
@@ -152,9 +254,5 @@ namespace OsEngine.OsTrader.ClientManagement
 
     }
 
-    public class TradeClientConnector
-    {
 
-
-    }
 }

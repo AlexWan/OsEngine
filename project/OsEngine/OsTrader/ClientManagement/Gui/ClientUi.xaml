@@ -10,7 +10,7 @@
         <TabControl Foreground="Black" Margin="0,158,0,0">
             <TabItem Name="TabItem1" Width="100" Header=" Connectors ">
                 <Grid>
-                    <WindowsFormsHost Name="HostClients" Foreground="Black" Margin="0,0,0,0"/>
+                    <WindowsFormsHost Name="HostClientConnectors" Foreground="Black" Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItem2" Width="100" Header=" Portfolios ">

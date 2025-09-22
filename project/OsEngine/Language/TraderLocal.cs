@@ -2271,5 +2271,9 @@ namespace OsEngine.Language
         "Eng:Client management UI. Client_" +
         "Ru:Управление клиентом_");
 
+        public string Label593 => OsLocalization.ConvertToLocString(
+        "Eng:Are you going to delete the connector? The data cannot be recovered! Are you sure?_" +
+        "Ru:Вы собираетесь удалить коннектор? Данные нельзя будет восстановить! Вы уверены?_");
+
     }
 }
