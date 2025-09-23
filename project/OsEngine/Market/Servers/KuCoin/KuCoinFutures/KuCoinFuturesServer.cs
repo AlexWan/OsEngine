@@ -1856,6 +1856,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 ResponseWebSocketOrder item = Order.data;
 
+                OrderStateType stateType = GetOrderState(item.status, item.type);
+
+                if (item.orderType != null && item.orderType.Equals("market") && stateType == OrderStateType.Active)
+                {
+                    return;
+                }
+
+
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = item.symbol;
 
@@ -1879,34 +1887,34 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 newOrder.Volume = item.size.Replace('.', ',').ToDecimal();
                 newOrder.VolumeExecute = item.remainSize.ToDecimal();
                 newOrder.Price = item.price != null ? item.price.Replace('.', ',').ToDecimal() : 0;
-
+                newOrder.State = stateType;
                 newOrder.ServerType = ServerType.KuCoinFutures;
                 newOrder.PortfolioNumber = "KuCoinFutures";
 
-                if (item.status == "open")
-                {
-                    newOrder.State = OrderStateType.Active;
-                }
-                else if (item.type == "canceled")
-                {
-                    newOrder.State = OrderStateType.Cancel;
-                }
-                else if ((item.status == "match" && item.type == "match")
-                    || (item.status == "done" && item.type == "match"))
-                {
-                    if (newOrder.VolumeExecute > 0)
-                    {
-                        newOrder.State = OrderStateType.Partial;
-                    }
-                    else
-                    {
-                        newOrder.State = OrderStateType.Done;
-                    }
-                }
-                else
-                {
-                    return;
-                }
+                //if (item.status == "open")
+                //{
+                //    newOrder.State = OrderStateType.Active;
+                //}
+                //else if (item.type == "canceled")
+                //{
+                //    newOrder.State = OrderStateType.Cancel;
+                //}
+                //else if ((item.status == "match" && item.type == "match")
+                //    || (item.status == "done" && item.type == "match"))
+                //{
+                //    if (newOrder.VolumeExecute > 0)
+                //    {
+                //        newOrder.State = OrderStateType.Partial;
+                //    }
+                //    else
+                //    {
+                //        newOrder.State = OrderStateType.Done;
+                //    }
+                //}
+                //else
+                //{
+                //    return;
+                //}
 
                 newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
@@ -1921,8 +1929,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
                 }
 
-                if (newOrder.State == OrderStateType.Done
-                    || newOrder.State == OrderStateType.Partial)
+                if (/*newOrder.State == OrderStateType.Done*/
+                    //|| newOrder.State == OrderStateType.Partial
+                    (item.status == "match" && item.type == "match")
+                    || (item.status == "done" && item.type == "match"))
                 {
                     MyTrade myTrade = new MyTrade();
 
@@ -1943,6 +1953,40 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        private OrderStateType GetOrderState(string orderStatusResponse, string orderTypeResponse)
+        {
+            OrderStateType stateType;
+
+            switch (orderStatusResponse)
+            {
+                case ("open"):
+                    stateType = OrderStateType.Active;
+                    break;
+
+                case ("match"):
+                    stateType = OrderStateType.Partial;
+                    break;
+
+                case ("done"):
+                    if (orderTypeResponse == "canceled")
+                    {
+                        stateType = OrderStateType.Cancel;
+                    }
+                    else //(orderTypeResponse == "filled")
+                    {
+                        stateType = OrderStateType.Done;
+                    }
+
+                    break;
+
+                default:
+                    stateType = OrderStateType.None;
+                    break;
+            }
+
+            return stateType;
         }
 
         private void UpdateFundingRate(string message)
@@ -1994,6 +2038,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             try
             {
                 string posSide = "BOTH";
+                string closeOrder = "false";
 
                 if (HedgeMode)
                 {
@@ -2002,6 +2047,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     if (order.PositionConditionType == OrderPositionConditionType.Close)
                     {
                         posSide = order.Side == Side.Buy ? "SHORT" : "LONG";
+                        closeOrder = "true";
                     }
                 }
 
@@ -2015,6 +2061,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 data.leverage = "1";
                 data.positionSide = posSide;
                 data.marginMode = _marginMode;
+               // data.closeOrder = closeOrder;
 
                 JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
                 dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// if it's a market order, then we ignore the price parameter
@@ -2022,7 +2069,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 string jsonRequest = JsonConvert.SerializeObject(data, dataSerializerSettings);
 
                 // for the test you can use "/api/v1/orders/test"
-                IRestResponse responseMessage = CreatePrivateQuery("/api/v1/orders", Method.POST, jsonRequest);
+                IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v1/orders", Method.POST, jsonRequest);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2084,7 +2131,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 string jsonRequest = JsonConvert.SerializeObject(data);
 
-                IRestResponse responseMessage = CreatePrivateQuery("/api/v1/orders", Method.DELETE, jsonRequest);
+                IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v1/orders", Method.DELETE, jsonRequest);
                 ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
@@ -2120,7 +2167,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             try
             {
-                IRestResponse responseMessage = CreatePrivateQuery("/api/v1/orders/" + order.NumberMarket, Method.DELETE, null);
+                IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v1/orders/" + order.NumberMarket, Method.DELETE, null);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2216,15 +2263,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 string path = $"/api/v1/orders";
                 string requestStr = $"{path}?status=active";
 
-                IRestResponse responseMessage = CreatePrivateQuery(requestStr, Method.GET, null);
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
+                IRestResponse responseMessage = CreatePrivateQueryOrders(requestStr, Method.GET, null);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    if (stateResponse.code == "200000")
-                    {
-                        ResponseMessageRest<ResponseAllOrders> order = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponseAllOrders>());
+                    ResponseMessageRest<ResponseAllOrders> order = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponseAllOrders>());
 
+                    if (order.code == "200000")
+                    {
                         List<Order> orders = new List<Order>();
 
                         for (int i = 0; i < order.data.items.Count; i++)
@@ -2282,7 +2328,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     }
                     else
                     {
-                        SendLogMessage($"GetAllOpenOrders> Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        SendLogMessage($"GetAllOpenOrders> Code: {order.code}\n" + $"Message: {order.msg}", LogMessageType.Error);
                     }
                 }
                 else
@@ -2363,7 +2409,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     return null;
                 }
 
-                IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null);
+                IRestResponse responseMessage = CreatePrivateQueryOrders(path, Method.GET, null);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2454,7 +2500,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 string path = $"/api/v1/fills";
                 string requestStr = $"{path}?symbol={nameSec}&orderId={OrdId}";
 
-                IRestResponse responseMessage = CreatePrivateQuery(requestStr, Method.GET, null);
+                IRestResponse responseMessage = CreatePrivateQueryOrders(requestStr, Method.GET, null);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2511,6 +2557,44 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private RateGate _rateGate = new RateGate(20, TimeSpan.FromMilliseconds(300));
 
+        private IRestResponse CreatePrivateQueryOrders(string path, Method method, string body)
+        {
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                string requestPath = path;
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string signature = GenerateSignature(timestamp, method.ToString(), path, body, _secretKey);
+                string signaturePartner = GenerateSignaturePartner(timestamp);
+
+                RestRequest requestRest = new RestRequest(path, method);
+                requestRest.AddHeader("KC-API-KEY", _publicKey);
+                requestRest.AddHeader("KC-API-SIGN", signature);
+                requestRest.AddHeader("KC-API-TIMESTAMP", timestamp);
+                requestRest.AddHeader("KC-API-PASSPHRASE", SignHMACSHA256(_passphrase, _secretKey));
+                requestRest.AddHeader("KC-API-PARTNER", "VANTECHNOLOGIESFUTURES");
+                requestRest.AddHeader("KC-API-PARTNER-SIGN", signaturePartner);
+                requestRest.AddHeader("KC-BROKER-NAME", "VANTECHNOLOGIESFUTURES");
+                requestRest.AddHeader("KC-API-PARTNER-VERIFY", "true");
+                requestRest.AddHeader("KC-API-KEY-VERSION", "2");
+
+                if (body != null)
+                {
+                    requestRest.AddParameter("application/json", body, ParameterType.RequestBody);
+                }
+
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
+            }
+        }
+
         private IRestResponse CreatePrivateQuery(string path, Method method, string body)
         {
             _rateGate.WaitToProceed();
@@ -2561,6 +2645,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             string preHash = timestamp + method + Uri.UnescapeDataString(requestPath) + body;
 
             return SignHMACSHA256(preHash, secretKey);
+        }
+
+        private string GenerateSignaturePartner(string timestamp)
+        {
+            string preHash = timestamp + "VANTECHNOLOGIESFUTURES" + _publicKey;
+
+            return SignHMACSHA256(preHash, "e5b87448-971c-4d2b-b5e8-80b51e9d9bd7");
         }
 
         #endregion
