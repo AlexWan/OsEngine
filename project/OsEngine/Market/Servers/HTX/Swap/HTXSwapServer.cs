@@ -424,7 +424,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private void ThreadUpdatePortfolio()
         {
-            Thread.Sleep(5000);
+            Thread.Sleep(15000);
 
             while (true)
             {
@@ -2681,7 +2681,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetAllOpenOrders();
+            List<Order> orders = GetAllActivOrdersArray(100, true);
 
             for (int i = 0; orders != null && i < orders.Count; i++)
             {
@@ -2706,7 +2706,24 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private List<Order> GetAllOpenOrders()
+        private List<Order> GetAllActivOrdersArray(int maxCountByCategory, bool onlyActive)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> orders = new List<Order>();
+
+            GetAllOpenOrders(orders, 1, 100, true);
+
+            if (orders != null
+                && orders.Count > 0)
+            {
+                ordersOpenAll.AddRange(orders);
+            }
+
+            return ordersOpenAll;
+        }
+
+        private void GetAllOpenOrders(List<Order> array, int pageIndex, int maxCount, bool onlyActive)
         {
             _rateGateSendOrder.WaitToProceed();
 
@@ -2714,10 +2731,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             try
             {
+                Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+                jsonContent.Add("page_index", pageIndex.ToString());
+                jsonContent.Add("page_size", "20");
+
                 string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_openorders");
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
+                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
                 IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
@@ -2732,10 +2754,21 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                             Order newOrder = new Order();
 
-                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.update_time));
-                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
                             newOrder.ServerType = ServerType.HTXSwap;
                             newOrder.SecurityNameCode = item.contract_code;
+                            newOrder.State = GetOrderState(item.status);
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.update_time));
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
+
+                            if (newOrder.State == OrderStateType.Cancel)
+                            {
+                                newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.update_time));
+                            }
+
+                            if (newOrder.State == OrderStateType.Done)
+                            {
+                                newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.update_time));
+                            }
 
                             try
                             {
@@ -2748,7 +2781,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                             newOrder.NumberMarket = item.order_id.ToString();
                             newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
-                            newOrder.State = GetOrderState(item.status);
                             newOrder.Volume = item.volume.ToDecimal();
                             newOrder.Price = item.price.ToDecimal();
                             newOrder.PortfolioNumber = $"HTXSwapPortfolio";
@@ -2766,23 +2798,61 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                             orders.Add(newOrder);
                         }
-                        return orders;
+
+                        if (orders.Count > 0)
+                        {
+                            array.AddRange(orders);
+
+                            if (array.Count > maxCount)
+                            {
+                                while (array.Count > maxCount)
+                                {
+                                    array.RemoveAt(array.Count - 1);
+                                }
+                                return;
+                            }
+                            else if (array.Count < 20)
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
+
+                        if (response.data.orders.Count > 1)
+                        {
+                            int totalPage = Convert.ToInt32(response.data.total_page);
+                            int currentPage = Convert.ToInt32(response.data.current_page);
+                            //int totalSize = Convert.ToInt32(response.data.total_size);
+
+                            while (currentPage < totalPage)
+                            {
+                                currentPage++;
+                                GetAllOpenOrders(array, currentPage, maxCount, onlyActive);
+                            }
+                        }
+
+                        return;
                     }
                     else
                     {
                         SendLogMessage($"Get all open orders failed: {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
+                        return;
                     }
                 }
                 else
                 {
                     SendLogMessage("Get all open orders request error " + responseMessage.StatusCode + "  " + responseMessage.Content, LogMessageType.Error);
+                    return;
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return;
             }
-            return null;
         }
 
         public OrderStateType GetOrderStatus(Order order)
@@ -3030,7 +3100,26 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public List<Order> GetActiveOrders(int startIndex, int count)
         {
-            return null;
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllActivOrdersArray(countToMethod, true);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
         }
 
         public List<Order> GetHistoricalOrders(int startIndex, int count)
