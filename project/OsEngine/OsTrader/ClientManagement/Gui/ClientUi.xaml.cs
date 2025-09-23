@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace OsEngine.OsTrader.ClientManagement.Gui
 {
@@ -32,7 +33,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             _client.NewConnectorEvent += _client_NewConnectorEvent;
             _client.DeleteConnectorEvent += _client_DeleteConnectorEvent;
 
-            TextBoxClientName.Text = _client.Name; 
+            TextBoxClientName.Text = _client.Name;
             TextBoxClientName.TextChanged += TextBoxClientName_TextChanged;
 
             TextBoxState.Text = _client.Status;
@@ -49,12 +50,23 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             this.Title = OsLocalization.Trader.Label592 + " " + _client.Number + " " + _client.Name;
 
+            LabelName.Content = OsLocalization.Trader.Label61;
+            LabelState.Content = OsLocalization.Trader.Label224;
+            LabelRegime.Content = OsLocalization.Trader.Label468;
+
+            TabItem1.Header = OsLocalization.Trader.Label585;
+            TabItem2.Header = OsLocalization.Trader.Label587;
+
             this.Closed += ClientUi_Closed;
 
+            Thread worker = new Thread(PainterThread);
+            worker.Start();
         }
 
         private void ClientUi_Closed(object sender, EventArgs e)
         {
+            _isClosed = true;
+
             _client.NewConnectorEvent -= _client_NewConnectorEvent;
             _client.DeleteConnectorEvent -= _client_DeleteConnectorEvent;
             _client = null;
@@ -69,6 +81,8 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             _clientConnectorsGrid = null;
 
         }
+
+        private bool _isClosed;
 
         private void ComboBoxRegime_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -99,6 +113,80 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         #region Connectors grid
 
+        private void PainterThread()
+        {
+            while(true)
+            {
+                Thread.Sleep(2000);
+
+                if(_isClosed == true)
+                {
+                    return;
+                }
+
+                TryUpdateStatus();
+            }
+        }
+
+        private void TryUpdateStatus()
+        {
+            try
+            {
+                if (_clientConnectorsGrid.InvokeRequired)
+                {
+                    _clientConnectorsGrid.Invoke(new Action(RePaintConnectorsGrid));
+                    return;
+                }
+
+                if(_client.ClientConnectorsSettings.Count != _clientConnectorsGrid.Rows.Count)
+                {
+                    return;
+                }
+
+                //"Num";
+                //"Type"
+                //"Parameters";
+                //"Deploy status";
+                //"Deploy";
+                //"Сollapse";
+                //"GUI";
+                //"Server status";
+                //"Connect";
+                //"Disconnect";
+                // Delete
+
+                for (int i = 0; i < _client.ClientConnectorsSettings.Count; i++)
+                {
+                    TradeClientConnector client = _client.ClientConnectorsSettings[i];
+
+                    if (client == null)
+                    {
+                        continue;
+                    }
+
+                    DataGridViewRow row = _clientConnectorsGrid.Rows[i];
+
+                    if (row.Cells[3].Value != null
+                        && row.Cells[3].Value.ToString() != client.DeployStatus)
+                    {
+                        row.Cells[3].Value = client.DeployStatus;
+                    }
+
+                    if (row.Cells[7].Value != null
+                        && row.Cells[7].Value.ToString() != client.ServerStatus)
+                    {
+                        row.Cells[7].Value = client.ServerStatus;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                _client.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+
+
+        }
+
         private DataGridView _clientConnectorsGrid;
 
         private void CreateConnectorsGrid()
@@ -122,7 +210,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
-            colum1.HeaderText = "Type"; //"Type";
+            colum1.HeaderText = OsLocalization.Trader.Label167; //"Type";
             colum1.ReadOnly = true;
             colum1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum1);
@@ -136,7 +224,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             DataGridViewColumn colum3 = new DataGridViewColumn();
             colum3.CellTemplate = cell0;
-            colum3.HeaderText = "Deploy status"; //"Deploy status";
+            colum3.HeaderText = OsLocalization.Trader.Label598; //"Deploy status";
             colum3.ReadOnly = false;
             colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum3);
@@ -164,7 +252,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             DataGridViewColumn colum7 = new DataGridViewColumn();
             colum7.CellTemplate = cell0;
-            colum7.HeaderText = "Server status"; //"Server status";
+            colum7.HeaderText = OsLocalization.Trader.Label599; //"Server status";
             colum7.ReadOnly = false;
             colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientConnectorsGrid.Columns.Add(colum7);
@@ -256,29 +344,40 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 else if (rowIndex < _client.ClientConnectorsSettings.Count
                    && columnIndex == 4)
                 { // Deploy
-
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-
-
-
-
-
+                    Deploy(number);
+                    RePaintConnectorsGrid();
                 }
                 else if (rowIndex < _client.ClientConnectorsSettings.Count
                    && columnIndex == 5)
                 { // Collapse
-
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-
-
+                    Collapse(number);
+                    RePaintConnectorsGrid();
                 }
                 else if (rowIndex < _client.ClientConnectorsSettings.Count
                    && columnIndex == 6)
                 { // GUI
 
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    ShowGui(number);
+                    RePaintConnectorsGrid();
+                }
+                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                    && columnIndex == 8)
+                { //8 "Connect";
 
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    Connect(number);
+                    RePaintConnectorsGrid();
+                }
+                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                   && columnIndex == 9)
+                { //9 "Disconnect";
 
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    Disconnect(number);
+                    RePaintConnectorsGrid();
                 }
             }
             catch (Exception ex)
@@ -393,28 +492,28 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             row.Cells[^1].Value = connector.ServerType.ToString();
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Parameters";
+            row.Cells[^1].Value = OsLocalization.Trader.Label45;
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[^1].Value = connector.DeployStatus;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Deploy";
+            row.Cells[^1].Value = OsLocalization.Trader.Label588;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Collapse";
+            row.Cells[^1].Value = OsLocalization.Trader.Label600;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "GUI";
+            row.Cells[^1].Value = OsLocalization.Trader.Label601;
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[^1].Value = connector.ServerStatus;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Connect";
+            row.Cells[^1].Value = OsLocalization.Trader.Label602;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Disconnect";
+            row.Cells[^1].Value = OsLocalization.Trader.Label603;
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].Value = OsLocalization.Trader.Label39;
@@ -468,7 +567,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             }
             if (connectorUi == null)
             {
-                connectorUi = new ClientConnectorUi(connector);
+                connectorUi = new ClientConnectorUi(connector,_client);
                 connectorUi.Closed += ConnectorUi_Closed;
                 connectorUi.Show();
                 _connectorsUi.Add(connectorUi);
@@ -497,6 +596,74 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                     break;
                 }
             }
+        }
+
+        #endregion
+
+        #region Client server controls
+
+        private void Deploy(int  connectorNumber)
+        {
+            if(connectorNumber >= _client.ClientConnectorsSettings.Count)
+            {
+                return;
+            }
+
+            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+
+            connector.Deploy();
+        }
+
+        private void Collapse(int connectorNumber)
+        {
+            if (connectorNumber >= _client.ClientConnectorsSettings.Count)
+            {
+                return;
+            }
+
+            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+
+            connector.Collapse();
+
+        }
+
+        private void ShowGui(int connectorNumber)
+        {
+            if (connectorNumber >= _client.ClientConnectorsSettings.Count)
+            {
+                return;
+            }
+
+            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+
+            connector.ShowGui();
+
+        }
+
+        private void Connect(int connectorNumber)
+        {
+            if (connectorNumber >= _client.ClientConnectorsSettings.Count)
+            {
+                return;
+            }
+
+            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+
+            connector.Connect();
+
+        }
+
+        private void Disconnect(int connectorNumber)
+        {
+            if (connectorNumber >= _client.ClientConnectorsSettings.Count)
+            {
+                return;
+            }
+
+            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+
+            connector.Disconnect();
+
         }
 
         #endregion

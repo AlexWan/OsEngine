@@ -2275,5 +2275,44 @@ namespace OsEngine.Language
         "Eng:Are you going to delete the connector? The data cannot be recovered! Are you sure?_" +
         "Ru:Вы собираетесь удалить коннектор? Данные нельзя будет восстановить! Вы уверены?_");
 
+        public string Label594 => OsLocalization.ConvertToLocString(
+        "Eng:Are you going to delete the parameter? The data cannot be recovered! Are you sure?_" +
+        "Ru:Вы собираетесь удалить параметр? Данные нельзя будет восстановить! Вы уверены?_");
+
+        public string Label595 => OsLocalization.ConvertToLocString(
+        "Eng:Connector parameters_" +
+        "Ru:Параметры коннектора_");
+
+        public string Label596 => OsLocalization.ConvertToLocString(
+        "Eng:Server type_" +
+        "Ru:Тип сервера_");
+
+        public string Label597 => OsLocalization.ConvertToLocString(
+        "Eng:The parameters that will be configured_" +
+        "Ru:Параметры, которые будут настроены_");
+
+        public string Label598 => OsLocalization.ConvertToLocString(
+        "Eng:Deploy status_" +
+        "Ru:Статус создания_");
+
+        public string Label599 => OsLocalization.ConvertToLocString(
+        "Eng:Server status_" +
+        "Ru:Статус сервера_");
+
+        public string Label600 => OsLocalization.ConvertToLocString(
+        "Eng:Collapse_" +
+        "Ru:Свернуть_");
+
+        public string Label601 => OsLocalization.ConvertToLocString(
+        "Eng:Server UI_" +
+        "Ru:Окно сервера_");
+
+        public string Label602 => OsLocalization.ConvertToLocString(
+        "Eng:Connect_" +
+        "Ru:Подключить_");
+
+        public string Label603 => OsLocalization.ConvertToLocString(
+        "Eng:Disconnect_" +
+        "Ru:Отключить_");
     }
 }

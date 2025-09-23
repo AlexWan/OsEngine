@@ -5,11 +5,9 @@
 
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.OsTrader.Grids;
 using System;
 using System.Collections.Generic;
 using System.IO;
-
 
 namespace OsEngine.OsTrader.ClientManagement
 {
@@ -173,6 +171,7 @@ namespace OsEngine.OsTrader.ClientManagement
                 }
 
                 TradeClientConnector connector = new TradeClientConnector();
+ 
                 connector.LoadFromString(currentSaveStr);
                 ClientConnectorsSettings.Add(connector);
             }
@@ -190,18 +189,18 @@ namespace OsEngine.OsTrader.ClientManagement
                 }
             }
 
-            TradeClientConnector newClient = new TradeClientConnector();
-            newClient.Number = newClientNumber;
-            ClientConnectorsSettings.Add(newClient);
+            TradeClientConnector newConnector = new TradeClientConnector();
+            newConnector.Number = newClientNumber;
+            ClientConnectorsSettings.Add(newConnector);
 
             if (NewConnectorEvent != null)
             {
-                NewConnectorEvent(newClient);
+                NewConnectorEvent(newConnector);
             }
 
             Save();
 
-            return newClient;
+            return newConnector;
         }
 
         public void RemoveConnectorAtNumber(int number)
@@ -219,7 +218,7 @@ namespace OsEngine.OsTrader.ClientManagement
             }
 
             if (connectorToRemove != null)
-            { 
+            {
                 if (DeleteConnectorEvent != null)
                 {
                     DeleteConnectorEvent(connectorToRemove);
@@ -261,53 +260,6 @@ namespace OsEngine.OsTrader.ClientManagement
         Auto
     }
 
-    public class TradeClientConnector
-    {
-        public int Number;
-
-        public ServerType ServerType;
-
-        public string DeployStatus
-        {
-            get
-            {
-                return "Deployed";
-            }
-        }
-
-        public string ServerStatus
-        {
-            get
-            {
-                return "Disconnect";
-            }
-        }
-
-        public string GetSaveString()
-        {
-            string saveStr = "";
-
-            saveStr += Number + "&";
-            saveStr += ServerType + "&";
-            saveStr += "&";
-            saveStr += "&";
-            saveStr += "&";
-            saveStr += "&";
-            saveStr += "&";
-
-            return saveStr;
-        }
-
-        public void LoadFromString(string saveString)
-        {
-            string[] saveValues = saveString.Split("&");
-
-            Number = Convert.ToInt32(saveValues[0]);
-            Enum.TryParse(saveValues[1], out ServerType);
-
-        }
-
-    }
 
     public class TradeClientRobots
     {
@@ -315,14 +267,9 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public bool IsOn;
 
-
-
         public List<TradeClientRobotsParameter> Parameters;
 
         public List<TradeClientSourceSettings> SourceSettings;
-
-
-
 
     }
 
@@ -338,9 +285,6 @@ namespace OsEngine.OsTrader.ClientManagement
 
     public class TradeClientSourceSettings
     {
-
-
-
 
     }
 

@@ -13,20 +13,14 @@
         <Rectangle Margin="0,0,0,0"/>
         <TabControl Name="TabControlSettings" Margin="5,38,5,5">
             
-            <TabItem Name="TabItemParametersCustom" Header=" Custom ">
+            <TabItem Name="TabItemParametersCustom" Header=" Parameters ">
                 <Grid >
                     <WindowsFormsHost Name="HostSettingsCustom"  Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>
-            
-            <TabItem Name="TabItemParametersStandard" Header=" Standard ">
-            <Grid >
-                <WindowsFormsHost Name="HostSettingsStandard"  Margin="0,0,0,0"/>
-            </Grid>
-            </TabItem>
-            
+                       
         </TabControl>
         <ComboBox Name="ComboBoxServerType" HorizontalAlignment="Left" Margin="239,10,0,0" VerticalAlignment="Top" Width="176"/>
-        <Label Content="Server type" HorizontalAlignment="Left" Margin="134,10,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelServerType" Content="Server type" HorizontalAlignment="Left" Margin="134,10,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>
