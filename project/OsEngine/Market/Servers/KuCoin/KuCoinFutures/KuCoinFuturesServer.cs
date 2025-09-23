@@ -2102,7 +2102,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 else
                 {
                     CreateOrderFail(order);
-                    SendLogMessage($"Order Fail. Status: {responseMessage.StatusCode}", LogMessageType.Error);
+                    SendLogMessage($"Order Fail. Status: {responseMessage.StatusCode} || {responseMessage.Content}", LogMessageType.Error);
 
                 }
             }
@@ -2148,7 +2148,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 }
                 else
                 {
-                    SendLogMessage($"CancelAllOrdersToSecurity> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                    SendLogMessage($"CancelAllOrdersToSecurity> Http State Code: {responseMessage.StatusCode} || {responseMessage.Content}", LogMessageType.Error);
 
                     if (stateResponse != null && stateResponse.code != null)
                     {
@@ -2532,7 +2532,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 }
                 else
                 {
-                    SendLogMessage($"Get my trades by security error: {responseMessage.StatusCode}", LogMessageType.Error);
+                    SendLogMessage($"Get my trades by security error: {responseMessage.StatusCode} || {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
