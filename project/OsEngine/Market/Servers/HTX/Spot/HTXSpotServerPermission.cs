@@ -48,16 +48,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
             get { return false; }
         }
 
-        public bool DataFeedTfTickCanLoad
-        {
-            get { return false; }
-        }
-
-        public bool DataFeedTfMarketDepthCanLoad
-        {
-            get { return false; }
-        }
-
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return false; }
@@ -104,6 +94,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
         }
 
         public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfTickCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
         }
@@ -176,8 +176,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
             get
             {
                 string[] values = new string[]
-                {                    
-                                      
+                {
+
                 };
 
                 return values;
@@ -187,10 +187,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
         public bool ManuallyClosePositionOnBoard_IsOn
         {
             get { return false; }
-        }
-        public bool IsTradeServer
-        {
-            get { return true; }
         }
 
         public bool CanQueryOrdersAfterReconnect
@@ -205,7 +201,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public bool CanGetOrderLists
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

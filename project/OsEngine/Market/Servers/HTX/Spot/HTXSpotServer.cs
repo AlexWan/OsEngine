@@ -177,15 +177,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private int _limitCandles = 2000;
 
-        //private List<string> _arrayPrivateChannels = new List<string>();
-
-        //private List<string> _arrayPublicChannels = new List<string>();
-
         private PrivateUrlBuilder _privateUriBuilder;
 
         private Signer _signer;
-
-        //private string _allCandleSeries;
 
         private bool _extendedMarketData;
 
@@ -1990,9 +1984,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         #region 11 Trade
 
-        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(20));
 
-        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(20));
 
         public void SendOrder(Order order)
         {
@@ -2149,42 +2143,49 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetAllOpenOrders();
+            List<Order> ordersOpenAll = GetAllActivOrdersArray(100);
 
-            for (int i = 0; orders != null && i < orders.Count; i++)
+            for (int i = 0; i < ordersOpenAll.Count; i++)
             {
-                if (orders[i] == null)
-                {
-                    continue;
-                }
-
-                if (orders[i].State != OrderStateType.Active
-                    && orders[i].State != OrderStateType.Partial
-                    && orders[i].State != OrderStateType.Pending)
-                {
-                    continue;
-                }
-
-                orders[i].TimeCreate = orders[i].TimeCallBack;
-
                 if (MyOrderEvent != null)
                 {
-                    MyOrderEvent(orders[i]);
+                    MyOrderEvent(ordersOpenAll[i]);
                 }
             }
         }
 
-        private List<Order> GetAllOpenOrders()
+        private List<Order> GetAllActivOrdersArray(int maxCountByCategory)
         {
+            List<Order> ordersOpenAll = new List<Order>();
+
             List<Order> orders = new List<Order>();
+
+            GetAllOpenOrders(orders, 100);
+
+            if (orders != null
+                && orders.Count > 0)
+            {
+                ordersOpenAll.AddRange(orders);
+            }
+
+            return ordersOpenAll;
+        }
+
+        private RateGate _rateGateGetAllActivOrders = new RateGate(1, TimeSpan.FromMilliseconds(45));
+
+        private void GetAllOpenOrders(List<Order> array, int maxCount)
+        {
+            _rateGateGetAllActivOrders.WaitToProceed();
 
             try
             {
-                string url = _privateUriBuilder.Build("GET", $"/v1/order/history");
+                string url = _privateUriBuilder.Build("GET", $"/v1/order/openOrders");
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
+
+                List<Order> orders = new List<Order>();
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2197,7 +2198,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
                         {
                             for (int i = 0; i < item.Count; i++)
                             {
-                                if (item[i].client_order_id == null || item[i].client_order_id == "")
+                                if (item[i].client_order_id == null
+                                    || item[i].client_order_id == "")
                                 {
                                     continue;
                                 }
@@ -2209,27 +2211,37 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                                 Order newOrder = new Order();
 
-                                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
-                                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
+
                                 newOrder.ServerType = ServerType.HTXSpot;
                                 newOrder.SecurityNameCode = item[i].symbol;
+                                newOrder.State = GetOrderState(item[i].state);
+                                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
+                                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
 
-                                if (item[i].client_order_id != null)
+                                if (newOrder.State == OrderStateType.Cancel)
                                 {
-                                    try
-                                    {
-                                        string numberFull = item[i].client_order_id;
-                                        string numUser = numberFull.Replace("AAe2ccbd47", "");
-                                        newOrder.NumberUser = Convert.ToInt32(numUser);
-                                    }
-                                    catch
-                                    {
-                                        // ignore
-                                    }
+                                    newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
                                 }
 
+                                if (newOrder.State == OrderStateType.Done)
+                                {
+                                    newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
+                                }
+
+                                try
+                                {
+                                    string numberFull = item[i].client_order_id;
+                                    string numUser = numberFull.Replace("AAe2ccbd47", "");
+                                    newOrder.NumberUser = Convert.ToInt32(numUser);
+                                }
+                                catch
+                                {
+                                    // ignore
+                                }
+
+
                                 newOrder.NumberMarket = item[i].id.ToString();
-                                newOrder.State = GetOrderState(item[i].state);
+
                                 newOrder.Volume = item[i].amount.ToDecimal();
                                 newOrder.Price = item[i].price.ToDecimal();
 
@@ -2268,72 +2280,102 @@ namespace OsEngine.Market.Servers.HTX.Spot
                                 orders.Add(newOrder);
                             }
                         }
+
+                        if (orders.Count > 0)
+                        {
+                            array.AddRange(orders);
+
+                            if (array.Count > maxCount)
+                            {
+                                while (array.Count > maxCount)
+                                {
+                                    array.RemoveAt(array.Count - 1);
+                                }
+                                return;
+                            }
+                            else if (array.Count < 50)
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
+
+                        return;
                     }
                     else
                     {
                         SendLogMessage($"Get all open orders failed:  {responseMessage.Content}", LogMessageType.Error);
+                        return;
                     }
                 }
                 else
                 {
-                    SendLogMessage("Get all open orders request error " + responseMessage.StatusCode + "  " + responseMessage.Content, LogMessageType.Error);
+                    SendLogMessage($"Get all open orders request error: {responseMessage.StatusCode} || {responseMessage.Content}", LogMessageType.Error);
+                    return;
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return;
             }
-            return orders;
         }
+
+
+
+        private List<Order> _activeOrdersCash = new List<Order>();
+        private List<Order> _historicalOrdersCash = new List<Order>();
+        private DateTime _timeOrdersCashCreate;
 
         public OrderStateType GetOrderStatus(Order order)
         {
-            List<Order> orders = GetAllOpenOrders();
-
-            if (orders == null ||
-                orders.Count == 0)
+            if (_timeOrdersCashCreate.AddSeconds(2) < DateTime.Now)
             {
-                return OrderStateType.None;
+                // We update order arrays once every two seconds.
+                // We are creating a cache for mass requesting statuses on reconnection.
+                _historicalOrdersCash = GetHistoricalOrders(0, 100);
+                _activeOrdersCash = GetActiveOrders(0, 100);
+                _timeOrdersCashCreate = DateTime.Now;
             }
 
-            Order orderOnMarket = null;
+            Order myOrder = null;
 
-            for (int i = 0; i < orders.Count; i++)
+            for (int i = 0; _historicalOrdersCash != null && i < _historicalOrdersCash.Count; i++)
             {
-                Order curOder = orders[i];
-
-                if (order.NumberUser != 0
-                    && curOder.NumberUser != 0
-                    && curOder.NumberUser == order.NumberUser)
+                if (_historicalOrdersCash[i].NumberUser == order.NumberUser)
                 {
-                    orderOnMarket = curOder;
-                    break;
-                }
-
-                if (string.IsNullOrEmpty(order.NumberMarket) == false
-                    && order.NumberMarket == curOder.NumberMarket)
-                {
-                    orderOnMarket = curOder;
+                    myOrder = _historicalOrdersCash[i];
                     break;
                 }
             }
 
-            if (orderOnMarket == null)
+            if (myOrder == null)
+            {
+                for (int i = 0; _activeOrdersCash != null && i < _activeOrdersCash.Count; i++)
+                {
+                    if (_activeOrdersCash[i].NumberUser == order.NumberUser)
+                    {
+                        myOrder = _activeOrdersCash[i];
+                        break;
+                    }
+                }
+            }
+
+            if (myOrder == null)
             {
                 return OrderStateType.None;
             }
 
-            if (orderOnMarket != null &&
-                MyOrderEvent != null)
-            {
-                MyOrderEvent(orderOnMarket);
-            }
+            MyOrderEvent?.Invoke(myOrder);
 
-            if (orderOnMarket.State == OrderStateType.Done
-                || orderOnMarket.State == OrderStateType.Partial)
+            if (myOrder.State == OrderStateType.Done
+                || myOrder.State == OrderStateType.Partial)
             {
                 List<MyTrade> tradesBySecurity
-                    = GetMyTradesBySecurity(orderOnMarket.NumberMarket);
+                    = GetMyTradesBySecurity(myOrder.NumberMarket);
 
                 if (tradesBySecurity == null)
                 {
@@ -2344,7 +2386,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 for (int i = 0; i < tradesBySecurity.Count; i++)
                 {
-                    if (tradesBySecurity[i].NumberOrderParent == orderOnMarket.NumberMarket)
+                    if (tradesBySecurity[i].NumberOrderParent == myOrder.NumberMarket)
                     {
                         tradesByMyOrder.Add(tradesBySecurity[i]);
                     }
@@ -2359,7 +2401,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
             }
 
-            return orderOnMarket.State;
+            return myOrder.State;
         }
 
         private Order GetOrderFromExchange(string numberMarket)
@@ -2520,12 +2562,221 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public List<Order> GetActiveOrders(int startIndex, int count)
         {
-            return null;
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllActivOrdersArray(countToMethod);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
         }
 
         public List<Order> GetHistoricalOrders(int startIndex, int count)
         {
-            return null;
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllHistoricalOrdersArray(countToMethod);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
+        }
+
+        private List<Order> GetAllHistoricalOrdersArray(int maxCountByCategory)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> orders = new List<Order>();
+
+            GetAllHistoricalOrders(orders, 100);
+
+            if (orders != null
+                && orders.Count > 0)
+            {
+                ordersOpenAll.AddRange(orders);
+            }
+
+            return ordersOpenAll;
+        }
+
+
+        private RateGate _rateGateHistoricalOrders = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        private void GetAllHistoricalOrders(List<Order> array, int maxCount)
+        {
+            _rateGateHistoricalOrders.WaitToProceed();
+
+            try
+            {
+                string url = _privateUriBuilder.Build("GET", $"/v1/order/history");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+
+                List<Order> orders = new List<Order>();
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<ResponseAllOrders>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<ResponseAllOrders>>());
+                    List<ResponseAllOrders> item = response.data;
+
+                    if (response.status == "ok")
+                    {
+                        if (item != null && item.Count > 0)
+                        {
+                            for (int i = 0; i < item.Count; i++)
+                            {
+                                if (item[i].client_order_id == null
+                                    || item[i].client_order_id == "")
+                                {
+                                    continue;
+                                }
+
+                                if (!item[i].source.Contains("api"))
+                                {
+                                    continue;
+                                }
+
+                                Order newOrder = new Order();
+
+
+                                newOrder.ServerType = ServerType.HTXSpot;
+                                newOrder.SecurityNameCode = item[i].symbol;
+                                newOrder.State = GetOrderState(item[i].state);
+                                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
+                                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
+
+                                if (newOrder.State == OrderStateType.Cancel)
+                                {
+                                    newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
+                                }
+
+                                if (newOrder.State == OrderStateType.Done)
+                                {
+                                    newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
+                                }
+
+                                try
+                                {
+                                    string numberFull = item[i].client_order_id;
+                                    string numUser = numberFull.Replace("AAe2ccbd47", "");
+                                    newOrder.NumberUser = Convert.ToInt32(numUser);
+                                }
+                                catch
+                                {
+                                    // ignore
+                                }
+
+
+                                newOrder.NumberMarket = item[i].id.ToString();
+                                newOrder.Volume = item[i].amount.ToDecimal();
+                                newOrder.Price = item[i].price.ToDecimal();
+
+                                if (item[i].type.Split('-')[1] == "market")
+                                {
+                                    newOrder.TypeOrder = OrderPriceType.Market;
+                                }
+
+                                if (item[i].type.Split('-')[1] == "limit")
+                                {
+                                    newOrder.TypeOrder = OrderPriceType.Limit;
+                                }
+
+                                if (item[i].type.Split('-')[0] == "buy")
+                                {
+                                    newOrder.Side = Side.Buy;
+                                }
+                                else
+                                {
+                                    newOrder.Side = Side.Sell;
+                                }
+
+                                string source = "spot";
+                                if (item[i].source == "margin-api")
+                                {
+                                    source = "margin";
+                                }
+
+                                if (item[i].source == "super-margin-api")
+                                {
+                                    source = "super-margin";
+                                }
+
+                                newOrder.PortfolioNumber = $"HTX_{source}_{item[i].account_id}_Portfolio";
+
+                                orders.Add(newOrder);
+                            }
+                        }
+
+                        if (orders.Count > 0)
+                        {
+                            array.AddRange(orders);
+
+                            if (array.Count > maxCount)
+                            {
+                                while (array.Count > maxCount)
+                                {
+                                    array.RemoveAt(array.Count - 1);
+                                }
+                                return;
+                            }
+                            else if (array.Count < 50)
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
+
+                        return;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Get all open orders failed:  {responseMessage.Content}", LogMessageType.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Get all open orders request error: {responseMessage.StatusCode} || {responseMessage.Content}", LogMessageType.Error);
+                    return;
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return;
+            }
+
         }
 
         #endregion
