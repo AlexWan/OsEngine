@@ -15,7 +15,12 @@
             </TabItem>
             <TabItem Name="TabItem2" Width="100" Header=" Robots ">
                 <Grid>
-
+                    <WindowsFormsHost Name="HostClientRobots" Foreground="Black" Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItem3" Width="100" Header=" Log ">
+                <Grid>
+                    <WindowsFormsHost Name="HostClientLog" Foreground="Black" Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>
         </TabControl>

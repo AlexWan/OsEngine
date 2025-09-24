@@ -2314,5 +2314,9 @@ namespace OsEngine.Language
         public string Label603 => OsLocalization.ConvertToLocString(
         "Eng:Disconnect_" +
         "Ru:Отключить_");
+
+        public string Label604 => OsLocalization.ConvertToLocString(
+        "Eng:Are you going to delete the robot? The data cannot be recovered! Are you sure?_" +
+        "Ru:Вы собираетесь удалить робота? Данные нельзя будет восстановить! Вы уверены?_");
     }
 }

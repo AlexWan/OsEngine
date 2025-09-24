@@ -409,15 +409,24 @@ namespace OsEngine.Market.Servers
                 {
                     string pName = curPositions[j].PortfolioName;
 
+                    if(string.IsNullOrEmpty(pName))
+                    {
+                        continue;
+                    }
+
+                    if(curPositions[j].SecurityName != securityName)
+                    {
+                        continue;
+                    }
+
                     if (string.IsNullOrEmpty(curPositions[j].ServerName) == false
                         && curPositions[j].ServerName.Contains(Server.ServerNameUnique) == false)
                     {
                         continue;
                     }
 
-                    if (pName != null
-                        && pName == portfolioName
-                        && curPositions[j].SecurityName == securityName)
+                    if (pName == portfolioName
+                        || portfolioName.Contains(pName))
                     {
                         openPositions.Add(curPositions[j]);
                     }
@@ -622,8 +631,11 @@ namespace OsEngine.Market.Servers
 
                     string pName = curPositions[j].PortfolioName;
 
-                    if (pName != null
-                        && pName == portfolioName)
+                    if (string.IsNullOrEmpty(pName) == false
+                        && 
+                        (pName == portfolioName
+                        || portfolioName.Contains(pName))
+                        )
                     {
                         openPositions.Add(curPositions[j]);
                     }

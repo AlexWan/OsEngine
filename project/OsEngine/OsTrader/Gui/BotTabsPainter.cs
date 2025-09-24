@@ -294,7 +294,7 @@ namespace OsEngine.OsTrader.Gui
                     else if (_master._startProgram == StartProgram.IsOsTrader
                        && coluIndex == 6)
                     {
-                        ClientManagementMaster.Instance.ShowDialogClientsMaster();
+                        //ClientManagementMaster.Instance.ShowDialogClientsMaster();
                     }
                     if (_master._startProgram == StartProgram.IsOsTrader
                         && coluIndex == 7)

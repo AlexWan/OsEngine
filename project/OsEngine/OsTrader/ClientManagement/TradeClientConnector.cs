@@ -151,74 +151,108 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public void Deploy()
         {
-            if(MyServer != null)
+            try
             {
-                return;
+                if (MyServer != null)
+                {
+                    return;
+                }
+                string error = "";
+
+                MyServer = ServerMaster.GetServerOrCreate(this, out error);
+
+                if (error != "")
+                {
+                    SendNewLogMessage(error, LogMessageType.Error);
+                }
             }
-            string error = "";
-
-            MyServer = ServerMaster.GetServerOrCreate(this, out error);
-
-            if(error != "")
+            catch (Exception ex)
             {
-                SendNewLogMessage(error,LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
         public void Collapse()
         {
-            if (MyServer != null)
+            try
             {
-                ServerMaster.DeleteServer(MyServer.ServerType, MyServer.ServerNum);
-                MyServer = null;
-                return;
+                if (MyServer != null)
+                {
+                    ServerMaster.DeleteServer(MyServer.ServerType, MyServer.ServerNum);
+                    MyServer = null;
+                    return;
+                }
+
+                string error = "";
+
+                MyServer = ServerMaster.GetServer(this, out error);
+
+                if (error != "")
+                {
+                    SendNewLogMessage(error, LogMessageType.Error);
+                }
+
+                if (MyServer != null)
+                {
+                    ServerMaster.DeleteServer(MyServer.ServerType, MyServer.ServerNum);
+                    MyServer = null;
+                    return;
+                }
             }
-
-            string error = "";
-
-            MyServer = ServerMaster.GetServer(this, out error);
-
-            if (error != "")
+            catch (Exception ex)
             {
-                SendNewLogMessage(error, LogMessageType.Error);
-            }
-
-            if (MyServer != null)
-            {
-                ServerMaster.DeleteServer(MyServer.ServerType, MyServer.ServerNum);
-                MyServer = null;
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         public void ShowGui()
         {
-
-            string error = "";
-
-            MyServer = ServerMaster.GetServerOrCreate(this, out error);
-
-            if (error != "")
+            try
             {
-                SendNewLogMessage(error, LogMessageType.Error);
-            }
+                string error = "";
 
-            MyServer.ShowDialog(MyServer.ServerNum);
+                MyServer = ServerMaster.GetServerOrCreate(this, out error);
+
+                if (error != "")
+                {
+                    SendNewLogMessage(error, LogMessageType.Error);
+                }
+
+                MyServer.ShowDialog(MyServer.ServerNum);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         public void Connect()
         {
-            if (MyServer != null)
+            try
             {
-                MyServer.StartServer();
+                if (MyServer != null)
+                {
+                    MyServer.StartServer();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         public void Disconnect()
         {
-            if (MyServer != null)
+            try
             {
-                MyServer.StopServer();
+                if (MyServer != null)
+                {
+                    MyServer.StopServer();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

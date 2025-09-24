@@ -30,8 +30,11 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             ClientNumber = client.Number;
             _client = client;
+            _client.Log.StartPaint(HostClientLog);
             _client.NewConnectorEvent += _client_NewConnectorEvent;
             _client.DeleteConnectorEvent += _client_DeleteConnectorEvent;
+            _client.NewRobotEvent += _client_NewRobotEvent;
+            _client.DeleteRobotEvent += _client_DeleteRobotEvent;
 
             TextBoxClientName.Text = _client.Name;
             TextBoxClientName.TextChanged += TextBoxClientName_TextChanged;
@@ -45,6 +48,9 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             CreateConnectorsGrid();
             RePaintConnectorsGrid();
+
+            CreateRobotsGrid();
+            RePaintRobotsGrid();
 
             // localization
 
@@ -69,16 +75,23 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             _client.NewConnectorEvent -= _client_NewConnectorEvent;
             _client.DeleteConnectorEvent -= _client_DeleteConnectorEvent;
+            _client.NewRobotEvent -= _client_NewRobotEvent;
+            _client.DeleteRobotEvent -= _client_DeleteRobotEvent;
+
+            _client.Log.StopPaint();
             _client = null;
 
             HostClientConnectors.Child = null;
-
             _clientConnectorsGrid.CellClick -= _clientConnectorsGrid_CellClick;
             _clientConnectorsGrid.DataError -= _clientConnectorsGrid_DataError;
-
-
             DataGridFactory.ClearLinks(_clientConnectorsGrid);
             _clientConnectorsGrid = null;
+
+            HostClientRobots.Child = null;
+            _clientRobotsGrid.CellClick -= _clientRobotsGrid_CellClick;
+            _clientRobotsGrid.DataError -= _clientRobotsGrid_DataError;
+            DataGridFactory.ClearLinks(_clientRobotsGrid);
+            _clientRobotsGrid = null;
 
         }
 
@@ -138,7 +151,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                     return;
                 }
 
-                if(_client.ClientConnectorsSettings.Count != _clientConnectorsGrid.Rows.Count)
+                if(_client.ConnectorsSettings.Count != _clientConnectorsGrid.Rows.Count)
                 {
                     return;
                 }
@@ -155,9 +168,9 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 //"Disconnect";
                 // Delete
 
-                for (int i = 0; i < _client.ClientConnectorsSettings.Count; i++)
+                for (int i = 0; i < _client.ConnectorsSettings.Count; i++)
                 {
-                    TradeClientConnector client = _client.ClientConnectorsSettings[i];
+                    TradeClientConnector client = _client.ConnectorsSettings[i];
 
                     if (client == null)
                     {
@@ -314,12 +327,12 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                     return;
                 }
 
-                if (rowIndex == _client.ClientConnectorsSettings.Count
+                if (rowIndex == _client.ConnectorsSettings.Count
                     && columnIndex == 10)
                 { // Add new
                     _client.AddNewConnector();
                 }
-                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                else if (rowIndex < _client.ConnectorsSettings.Count
                    && columnIndex == 10)
                 { // Delete
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
@@ -335,27 +348,27 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
                    _client.RemoveConnectorAtNumber(number);
                 }
-                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                else if (rowIndex < _client.ConnectorsSettings.Count
                    && columnIndex == 2)
                 { // Parameters
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
                     ShowConnectorDialog(number);
                 }
-                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                else if (rowIndex < _client.ConnectorsSettings.Count
                    && columnIndex == 4)
                 { // Deploy
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
                     Deploy(number);
                     RePaintConnectorsGrid();
                 }
-                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                else if (rowIndex < _client.ConnectorsSettings.Count
                    && columnIndex == 5)
                 { // Collapse
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
                     Collapse(number);
                     RePaintConnectorsGrid();
                 }
-                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                else if (rowIndex < _client.ConnectorsSettings.Count
                    && columnIndex == 6)
                 { // GUI
 
@@ -363,7 +376,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                     ShowGui(number);
                     RePaintConnectorsGrid();
                 }
-                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                else if (rowIndex < _client.ConnectorsSettings.Count
                     && columnIndex == 8)
                 { //8 "Connect";
 
@@ -371,7 +384,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                     Connect(number);
                     RePaintConnectorsGrid();
                 }
-                else if (rowIndex < _client.ClientConnectorsSettings.Count
+                else if (rowIndex < _client.ConnectorsSettings.Count
                    && columnIndex == 9)
                 { //9 "Disconnect";
 
@@ -410,9 +423,9 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
                 _clientConnectorsGrid.Rows.Clear();
 
-                for (int i = 0; i < _client.ClientConnectorsSettings.Count; i++)
+                for (int i = 0; i < _client.ConnectorsSettings.Count; i++)
                 {
-                    TradeClientConnector client = _client.ClientConnectorsSettings[i];
+                    TradeClientConnector client = _client.ConnectorsSettings[i];
 
                     if (client == null)
                     {
@@ -422,7 +435,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                     _clientConnectorsGrid.Rows.Add(GetConnectorRow(client));
                 }
 
-                _clientConnectorsGrid.Rows.Add(GetAddRow());
+                _clientConnectorsGrid.Rows.Add(GetAddRowConnector());
 
             }
             catch (Exception error)
@@ -431,7 +444,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             }
         }
 
-        private DataGridViewRow GetAddRow()
+        private DataGridViewRow GetAddRowConnector()
         {
             //1 "Num";
             //2 "Type"
@@ -541,11 +554,11 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
         {
             TradeClientConnector connector = null;
 
-            for (int i = 0; i < _client.ClientConnectorsSettings.Count; i++)
+            for (int i = 0; i < _client.ConnectorsSettings.Count; i++)
             {
-                if (_client.ClientConnectorsSettings[i].Number == connectorNumber)
+                if (_client.ConnectorsSettings[i].Number == connectorNumber)
                 {
-                    connector = _client.ClientConnectorsSettings[i];
+                    connector = _client.ConnectorsSettings[i];
                     break;
                 }
             }
@@ -604,24 +617,24 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         private void Deploy(int  connectorNumber)
         {
-            if(connectorNumber >= _client.ClientConnectorsSettings.Count)
+            if(connectorNumber >= _client.ConnectorsSettings.Count)
             {
                 return;
             }
 
-            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
 
             connector.Deploy();
         }
 
         private void Collapse(int connectorNumber)
         {
-            if (connectorNumber >= _client.ClientConnectorsSettings.Count)
+            if (connectorNumber >= _client.ConnectorsSettings.Count)
             {
                 return;
             }
 
-            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
 
             connector.Collapse();
 
@@ -629,12 +642,12 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         private void ShowGui(int connectorNumber)
         {
-            if (connectorNumber >= _client.ClientConnectorsSettings.Count)
+            if (connectorNumber >= _client.ConnectorsSettings.Count)
             {
                 return;
             }
 
-            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
 
             connector.ShowGui();
 
@@ -642,12 +655,12 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         private void Connect(int connectorNumber)
         {
-            if (connectorNumber >= _client.ClientConnectorsSettings.Count)
+            if (connectorNumber >= _client.ConnectorsSettings.Count)
             {
                 return;
             }
 
-            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
 
             connector.Connect();
 
@@ -655,15 +668,362 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         private void Disconnect(int connectorNumber)
         {
-            if (connectorNumber >= _client.ClientConnectorsSettings.Count)
+            if (connectorNumber >= _client.ConnectorsSettings.Count)
             {
                 return;
             }
 
-            TradeClientConnector connector = _client.ClientConnectorsSettings[connectorNumber];
+            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
 
             connector.Disconnect();
 
+        }
+
+        #endregion
+
+        #region Client robots grid
+
+        private DataGridView _clientRobotsGrid;
+
+        private void CreateRobotsGrid()
+        {
+            _clientRobotsGrid =
+             DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
+             DataGridViewAutoSizeRowsMode.AllCells);
+
+            _clientRobotsGrid.ScrollBars = ScrollBars.Vertical;
+
+            _clientRobotsGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = _clientRobotsGrid.DefaultCellStyle;
+
+            DataGridViewColumn colum0 = new DataGridViewColumn();
+            colum0.CellTemplate = cell0;
+            colum0.HeaderText = "#"; //"Num";
+            colum0.ReadOnly = true;
+            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            _clientRobotsGrid.Columns.Add(colum0);
+
+            DataGridViewColumn colum1 = new DataGridViewColumn();
+            colum1.CellTemplate = cell0;
+            colum1.HeaderText = "Class"; //"Class";
+            colum1.ReadOnly = true;
+            colum1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum1);
+
+            DataGridViewColumn colum2 = new DataGridViewColumn();
+            colum2.CellTemplate = cell0;
+            colum2.HeaderText = "Parameters"; //"Parameters";
+            colum2.ReadOnly = false;
+            colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum2);
+
+            DataGridViewColumn colum3 = new DataGridViewColumn();
+            colum3.CellTemplate = cell0;
+            colum3.HeaderText = "Sources"; //"Sources";
+            colum3.ReadOnly = false;
+            colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum3);
+
+            DataGridViewColumn colum4 = new DataGridViewColumn();
+            colum4.CellTemplate = cell0;
+            colum4.HeaderText = "Deploy status"; //"Deploy status"
+            colum4.ReadOnly = false;
+            colum4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum4);
+
+            DataGridViewColumn colum5 = new DataGridViewColumn();
+            colum5.CellTemplate = cell0;
+            colum5.HeaderText = "Deploy"; //"Deploy";
+            colum5.ReadOnly = false;
+            colum5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum5);
+
+            DataGridViewColumn colum6 = new DataGridViewColumn();
+            colum6.CellTemplate = cell0;
+            colum6.HeaderText = "Collapse"; // "Collapse";
+            colum6.ReadOnly = false;
+            colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum6);
+
+            DataGridViewColumn colum7 = new DataGridViewColumn();
+            colum7.CellTemplate = cell0;
+            colum7.HeaderText = "On/Off"; //"On/Off";
+            colum7.ReadOnly = false;
+            colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum7);
+
+            DataGridViewColumn colum8 = new DataGridViewColumn();
+            colum8.CellTemplate = cell0;
+            colum8.HeaderText = "Emulator"; // "Emulator";
+            colum8.ReadOnly = false;
+            colum8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum8);
+
+            DataGridViewColumn colum9 = new DataGridViewColumn();
+            colum9.CellTemplate = cell0;
+            colum9.HeaderText = "Chart"; //"Chart";
+            colum9.ReadOnly = false;
+            colum9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum9);
+
+            DataGridViewColumn column10 = new DataGridViewColumn();
+            column10.HeaderText = "Delete"; // Delete
+            column10.CellTemplate = cell0;
+            column10.ReadOnly = true;
+            column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(column10);
+
+            HostClientRobots.Child = _clientRobotsGrid;
+            _clientRobotsGrid.CellClick += _clientRobotsGrid_CellClick;
+            _clientRobotsGrid.DataError += _clientRobotsGrid_DataError;
+        }
+
+        private void _clientRobotsGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _client.SendNewLogMessage(e.Exception.ToString(), Logging.LogMessageType.Error);
+        }
+
+        private void _clientRobotsGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                //0 "Num";
+                //1 "Class";
+                //2 "Parameters";
+                //3 "Sources";
+                //4 "Deploy status"
+                //5 "Deploy";
+                //6 "Collapse";
+                //7 On/Off";
+                //8 "Emulator";
+                //9 "Chart";
+                //10 Delete / Add new
+
+                int columnIndex = e.ColumnIndex;
+                int rowIndex = e.RowIndex;
+
+                if (rowIndex == -1)
+                {
+                    return;
+                }
+
+                if (rowIndex == _client.ConnectorsSettings.Count
+                    && columnIndex == 10)
+                { // Add new
+                    _client.AddNewRobot();
+                }
+                else if (rowIndex < _client.ConnectorsSettings.Count
+                   && columnIndex == 10)
+                { // Delete
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label604);
+
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptAction == false)
+                    {
+                        return;
+                    }
+
+                    _client.RemoveRobotAtNumber(number);
+                }
+               /* else if (rowIndex < _client.ConnectorsSettings.Count
+                   && columnIndex == 2)
+                { // Parameters
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    ShowConnectorDialog(number);
+                }
+                else if (rowIndex < _client.ConnectorsSettings.Count
+                   && columnIndex == 4)
+                { // Deploy
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    Deploy(number);
+                    RePaintConnectorsGrid();
+                }
+                else if (rowIndex < _client.ConnectorsSettings.Count
+                   && columnIndex == 5)
+                { // Collapse
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    Collapse(number);
+                    RePaintConnectorsGrid();
+                }
+                else if (rowIndex < _client.ConnectorsSettings.Count
+                   && columnIndex == 6)
+                { // GUI
+
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    ShowGui(number);
+                    RePaintConnectorsGrid();
+                }
+                else if (rowIndex < _client.ConnectorsSettings.Count
+                    && columnIndex == 8)
+                { //8 "Connect";
+
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    Connect(number);
+                    RePaintConnectorsGrid();
+                }
+                else if (rowIndex < _client.ConnectorsSettings.Count
+                   && columnIndex == 9)
+                { //9 "Disconnect";
+
+                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    Disconnect(number);
+                    RePaintConnectorsGrid();
+                }*/
+            }
+            catch (Exception ex)
+            {
+                _client.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void RePaintRobotsGrid()
+        {
+            try
+            {
+                if (_clientConnectorsGrid.InvokeRequired)
+                {
+                    _clientConnectorsGrid.Invoke(new Action(RePaintConnectorsGrid));
+                    return;
+                }
+
+                //0 "Num";
+                //1 "Class";
+                //2 "Parameters";
+                //3 "Sources";
+                //4 "Deploy status"
+                //5 "Deploy";
+                //6 "Collapse";
+                //7 On/Off";
+                //8 "Emulator";
+                //9 "Chart";
+                //10 Delete
+
+                _clientConnectorsGrid.Rows.Clear();
+
+                for (int i = 0; i < _client.RobotsSettings.Count; i++)
+                {
+                    TradeClientRobot robot = _client.RobotsSettings[i];
+
+                    if (robot == null)
+                    {
+                        continue;
+                    }
+
+                    _clientConnectorsGrid.Rows.Add(GetRobotsRow(robot));
+                }
+
+                _clientConnectorsGrid.Rows.Add(GetAddRowRobots());
+
+            }
+            catch (Exception error)
+            {
+                _client.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+
+        }
+
+        private DataGridViewRow GetAddRowRobots()
+        {
+            //0 "Num";
+            //1 "Class";
+            //2 "Parameters";
+            //3 "Sources";
+            //4 "Deploy status"
+            //5 "Deploy";
+            //6 "Collapse";
+            //7 On/Off";
+            //8 "Emulator";
+            //9 "Chart";
+            //10 Delete
+
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());// 0
+            row.Cells.Add(new DataGridViewTextBoxCell());// 1
+            row.Cells.Add(new DataGridViewTextBoxCell());// 2
+            row.Cells.Add(new DataGridViewTextBoxCell());// 3
+            row.Cells.Add(new DataGridViewTextBoxCell());// 4
+            row.Cells.Add(new DataGridViewTextBoxCell());// 5
+            row.Cells.Add(new DataGridViewTextBoxCell());// 6
+            row.Cells.Add(new DataGridViewTextBoxCell());// 7
+            row.Cells.Add(new DataGridViewTextBoxCell());// 8
+            row.Cells.Add(new DataGridViewTextBoxCell());// 9
+            row.Cells.Add(new DataGridViewButtonCell());// 10
+
+            row.Cells[^1].Value = OsLocalization.Trader.Label589;
+
+            for (int i = 0; i < row.Cells.Count; i++)
+            {
+                row.Cells[i].ReadOnly = true;
+            }
+
+            return row;
+        }
+
+        private DataGridViewRow GetRobotsRow(TradeClientRobot robot)
+        {
+            //0 "Num";
+            //1 "Class";
+            //2 "Parameters";
+            //3 "Sources";
+            //4 "Deploy status"
+            //5 "Deploy";
+            //6 "Collapse";
+            //7 On/Off";
+            //8 "Emulator";
+            //9 "Chart";
+            //10 Delete
+
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[^1].Value = robot.Number;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[^1].Value = robot.BotClassName;
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].Value = "Parameters";
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].Value = "Sources";
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[^1].Value = robot.DeployStatus;
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].Value = "Deploy";
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].Value = "Collapse";
+
+            row.Cells.Add(new DataGridViewCheckBoxCell());
+            row.Cells[^1].Value = robot.RobotsIsOn;
+
+            row.Cells.Add(new DataGridViewCheckBoxCell());
+            row.Cells[^1].Value = robot.EmulatorIsOn;
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].Value = "Chart";
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].Value = "Delete";
+
+            return row;
+        }
+
+        private void _client_DeleteRobotEvent(TradeClientRobot obj)
+        {
+            RePaintRobotsGrid();
+        }
+
+        private void _client_NewRobotEvent(TradeClientRobot obj)
+        {
+            RePaintRobotsGrid();
         }
 
         #endregion

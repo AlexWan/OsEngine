@@ -4,22 +4,38 @@
 */
 
 using OsEngine.Logging;
-using OsEngine.Market;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace OsEngine.OsTrader.ClientManagement
 {
-    public class TradeClient
+    public class TradeClient : ILogItem
     {
         public TradeClient()
         {
-
-
+            
         }
 
-        public int Number;
+        public Log Log;
+
+        public int Number
+        {
+            get
+            {
+                return _number;
+            }
+            set
+            {
+                _number = value;
+
+                if(Log == null)
+                {
+                    Log = new Log("TradeClient" + Number, Entity.StartProgram.IsOsTrader);
+                }
+            }
+        }
+        private int _number;
 
         public string Name
         {
@@ -48,7 +64,7 @@ namespace OsEngine.OsTrader.ClientManagement
         {
             get
             {
-                return "Ok";
+                return "Unknown";
             }
         }
 
@@ -132,23 +148,21 @@ namespace OsEngine.OsTrader.ClientManagement
             }
         }
 
-        public List<TradeClientRobots> ClientRobotsSettings = new List<TradeClientRobots>();
-
         public event Action NameChangeEvent;
 
         #region Connectors
 
-        public List<TradeClientConnector> ClientConnectorsSettings = new List<TradeClientConnector>();
+        public List<TradeClientConnector> ConnectorsSettings = new List<TradeClientConnector>();
 
         private string GetSaveStringConnectors()
         {
             string saveStr = "";
 
-            for(int i = 0;i < ClientConnectorsSettings.Count;i++)
+            for(int i = 0;i < ConnectorsSettings.Count;i++)
             {
-                saveStr += ClientConnectorsSettings[i].GetSaveString();
+                saveStr += ConnectorsSettings[i].GetSaveString();
 
-                if(i + 1 != ClientConnectorsSettings.Count)
+                if(i + 1 != ConnectorsSettings.Count)
                 {
                     saveStr += "#";
                 }
@@ -171,9 +185,9 @@ namespace OsEngine.OsTrader.ClientManagement
                 }
 
                 TradeClientConnector connector = new TradeClientConnector();
- 
+                connector.LogMessageEvent += SendNewLogMessage;
                 connector.LoadFromString(currentSaveStr);
-                ClientConnectorsSettings.Add(connector);
+                ConnectorsSettings.Add(connector);
             }
         }
 
@@ -181,17 +195,18 @@ namespace OsEngine.OsTrader.ClientManagement
         {
             int newClientNumber = 0;
 
-            for (int i = 0; i < ClientConnectorsSettings.Count; i++)
+            for (int i = 0; i < ConnectorsSettings.Count; i++)
             {
-                if (ClientConnectorsSettings[i].Number >= newClientNumber)
+                if (ConnectorsSettings[i].Number >= newClientNumber)
                 {
-                    newClientNumber = ClientConnectorsSettings[i].Number + 1;
+                    newClientNumber = ConnectorsSettings[i].Number + 1;
                 }
             }
 
             TradeClientConnector newConnector = new TradeClientConnector();
+            newConnector.LogMessageEvent += SendNewLogMessage;
             newConnector.Number = newClientNumber;
-            ClientConnectorsSettings.Add(newConnector);
+            ConnectorsSettings.Add(newConnector);
 
             if (NewConnectorEvent != null)
             {
@@ -207,12 +222,13 @@ namespace OsEngine.OsTrader.ClientManagement
         {
             TradeClientConnector connectorToRemove = null;
 
-            for (int i = 0; i < ClientConnectorsSettings.Count; i++)
+            for (int i = 0; i < ConnectorsSettings.Count; i++)
             {
-                if (ClientConnectorsSettings[i].Number == number)
+                if (ConnectorsSettings[i].Number == number)
                 {
-                    connectorToRemove = ClientConnectorsSettings[i];
-                    ClientConnectorsSettings.RemoveAt(i);
+                    connectorToRemove = ConnectorsSettings[i];
+                    connectorToRemove.LogMessageEvent -= SendNewLogMessage;
+                    ConnectorsSettings.RemoveAt(i);
                     break;
                 }
             }
@@ -234,24 +250,68 @@ namespace OsEngine.OsTrader.ClientManagement
 
         #endregion
 
-        #region Log
+        #region Robots
 
-        public void SendNewLogMessage(string message, LogMessageType type)
+        public List<TradeClientRobot> RobotsSettings = new List<TradeClientRobot>();
+
+        public TradeClientRobot AddNewRobot()
         {
-            if (LogMessageEvent != null)
+            int newClientNumber = 0;
+
+            for (int i = 0; i < RobotsSettings.Count; i++)
             {
-                LogMessageEvent(message, type);
+                if (RobotsSettings[i].Number >= newClientNumber)
+                {
+                    newClientNumber = RobotsSettings[i].Number + 1;
+                }
             }
-            else if (type == LogMessageType.Error)
+
+            TradeClientRobot newRobot = new TradeClientRobot();
+            newRobot.LogMessageEvent += SendNewLogMessage;
+            newRobot.Number = newClientNumber;
+            RobotsSettings.Add(newRobot);
+
+            if (NewRobotEvent != null)
             {
-                ServerMaster.SendNewLogMessage(message, type);
+                NewRobotEvent(newRobot);
             }
+
+            Save();
+
+            return newRobot;
         }
 
-        public event Action<string, LogMessageType> LogMessageEvent;
+        public void RemoveRobotAtNumber(int number)
+        {
+            TradeClientRobot connectorToRemove = null;
+
+            for (int i = 0; i < RobotsSettings.Count; i++)
+            {
+                if (RobotsSettings[i].Number == number)
+                {
+                    connectorToRemove = RobotsSettings[i];
+                    connectorToRemove.LogMessageEvent -= SendNewLogMessage;
+                    RobotsSettings.RemoveAt(i);
+                    break;
+                }
+            }
+
+            if (connectorToRemove != null)
+            {
+                if (DeleteRobotEvent != null)
+                {
+                    DeleteRobotEvent(connectorToRemove);
+                }
+            }
+
+            Save();
+        }
+
+        public event Action<TradeClientRobot> NewRobotEvent;
+
+        public event Action<TradeClientRobot> DeleteRobotEvent;
 
         #endregion
-
     }
 
     public enum TradeClientRegime
@@ -259,34 +319,5 @@ namespace OsEngine.OsTrader.ClientManagement
         Manual,
         Auto
     }
-
-
-    public class TradeClientRobots
-    {
-        public int Number;
-
-        public bool IsOn;
-
-        public List<TradeClientRobotsParameter> Parameters;
-
-        public List<TradeClientSourceSettings> SourceSettings;
-
-    }
-
-    public class TradeClientRobotsParameter
-    {
-        public string GetSaveString()
-        {
-            return "";
-        }
-
-
-    }
-
-    public class TradeClientSourceSettings
-    {
-
-    }
-
 
 }
