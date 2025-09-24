@@ -808,12 +808,12 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                     return;
                 }
 
-                if (rowIndex == _client.ConnectorsSettings.Count
+                if (rowIndex == _client.RobotsSettings.Count
                     && columnIndex == 10)
                 { // Add new
                     _client.AddNewRobot();
                 }
-                else if (rowIndex < _client.ConnectorsSettings.Count
+                else if (rowIndex < _client.RobotsSettings.Count
                    && columnIndex == 10)
                 { // Delete
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
@@ -884,9 +884,9 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
         {
             try
             {
-                if (_clientConnectorsGrid.InvokeRequired)
+                if (_clientRobotsGrid.InvokeRequired)
                 {
-                    _clientConnectorsGrid.Invoke(new Action(RePaintConnectorsGrid));
+                    _clientRobotsGrid.Invoke(new Action(RePaintRobotsGrid));
                     return;
                 }
 
@@ -902,7 +902,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 //9 "Chart";
                 //10 Delete
 
-                _clientConnectorsGrid.Rows.Clear();
+                _clientRobotsGrid.Rows.Clear();
 
                 for (int i = 0; i < _client.RobotsSettings.Count; i++)
                 {
@@ -913,10 +913,10 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                         continue;
                     }
 
-                    _clientConnectorsGrid.Rows.Add(GetRobotsRow(robot));
+                    _clientRobotsGrid.Rows.Add(GetRobotsRow(robot));
                 }
 
-                _clientConnectorsGrid.Rows.Add(GetAddRowRobots());
+                _clientRobotsGrid.Rows.Add(GetAddRowRobots());
 
             }
             catch (Exception error)

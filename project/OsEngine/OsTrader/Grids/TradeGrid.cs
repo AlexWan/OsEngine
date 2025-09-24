@@ -67,10 +67,12 @@ namespace OsEngine.OsTrader.Grids
                 worker.Start();
 
                 RegimeLogicEntry = TradeGridLogicEntryRegime.OncePerSecond;
+                AutoClearJournalIsOn = true;
             }
             else
             {
                 RegimeLogicEntry = TradeGridLogicEntryRegime.OnTrade;
+                AutoClearJournalIsOn = false;
             }
         }
 
@@ -375,7 +377,7 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridLogicEntryRegime RegimeLogicEntry;
 
-        public bool AutoClearJournalIsOn = true;
+        public bool AutoClearJournalIsOn;
 
         public int MaxClosePositionsInJournal = 100;
 

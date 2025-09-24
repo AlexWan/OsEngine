@@ -91,6 +91,7 @@ namespace OsEngine.OsTrader.ClientManagement
                     writer.WriteLine("");
                     writer.WriteLine("");
                     writer.WriteLine(GetSaveStringConnectors());
+                    writer.WriteLine(GetSaveStringRobots());
 
 
                     writer.Close();
@@ -122,6 +123,7 @@ namespace OsEngine.OsTrader.ClientManagement
                     reader.ReadLine();
 
                     LoadConnectorsFromString(reader.ReadLine());
+                    LoadRobotsFromString(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -253,6 +255,43 @@ namespace OsEngine.OsTrader.ClientManagement
         #region Robots
 
         public List<TradeClientRobot> RobotsSettings = new List<TradeClientRobot>();
+
+        private string GetSaveStringRobots()
+        {
+            string saveStr = "";
+
+            for (int i = 0; i < RobotsSettings.Count; i++)
+            {
+                saveStr += RobotsSettings[i].GetSaveString();
+
+                if (i + 1 != RobotsSettings.Count)
+                {
+                    saveStr += "#";
+                }
+            }
+
+            return saveStr;
+        }
+
+        private void LoadRobotsFromString(string saveStr)
+        {
+            string[] robots = saveStr.Split('#');
+
+            for (int i = 0; i < robots.Length; i++)
+            {
+                string currentSaveStr = robots[i];
+
+                if (string.IsNullOrEmpty(currentSaveStr) == true)
+                {
+                    continue;
+                }
+
+                TradeClientRobot connector = new TradeClientRobot();
+                connector.LogMessageEvent += SendNewLogMessage;
+                connector.LoadFromString(currentSaveStr);
+                RobotsSettings.Add(connector);
+            }
+        }
 
         public TradeClientRobot AddNewRobot()
         {
