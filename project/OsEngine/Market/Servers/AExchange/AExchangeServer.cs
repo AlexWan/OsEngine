@@ -55,6 +55,7 @@ namespace OsEngine.Market.Servers.AE
         {
             try
             {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 _securities.Clear();
                 _myPortfolios.Clear();
                 _subscribedSecurities.Clear();
@@ -654,8 +655,6 @@ namespace OsEngine.Market.Servers.AE
                     }
 
                     _ws = new WebSocket($"wss://{_apiHost}:{_apiPort}/clientapi/v1");
-
-                    _ws.SetSslProtocols(System.Security.Authentication.SslProtocols.Tls12);
 
                     _ws.SetCertificate(_certificate);
 
