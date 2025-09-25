@@ -1765,8 +1765,8 @@ namespace OsEngine.Market.Servers.Atp
         {
             MarketDepthLevel level = new MarketDepthLevel();
 
-            level.Bid = vol.ToDecimal();
-            level.Price = price.ToDecimal();
+            level.Bid = vol.ToDouble();
+            level.Price = price.ToDouble();
 
             return level;
         }
@@ -1775,8 +1775,8 @@ namespace OsEngine.Market.Servers.Atp
         {
             MarketDepthLevel level = new MarketDepthLevel();
 
-            level.Ask = vol.ToDecimal();
-            level.Price = price.ToDecimal();
+            level.Ask = vol.ToDouble();
+            level.Price = price.ToDouble();
 
             return level;
         }

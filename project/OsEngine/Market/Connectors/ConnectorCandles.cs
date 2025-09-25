@@ -1397,7 +1397,7 @@ namespace OsEngine.Market.Connectors
                 if (glass.Bids != null &&
                      glass.Bids.Count > 0)
                 {
-                    bestBid = glass.Bids[0].Price;
+                    bestBid = glass.Bids[0].Price.ToDecimal();
                 }
 
                 decimal bestAsk = 0;
@@ -1405,7 +1405,7 @@ namespace OsEngine.Market.Connectors
                 if (glass.Asks != null &&
                     glass.Asks.Count > 0)
                 {
-                    bestAsk = glass.Asks[0].Price;
+                    bestAsk = glass.Asks[0].Price.ToDecimal();
                 }
 
                 if (EmulatorIsOn)

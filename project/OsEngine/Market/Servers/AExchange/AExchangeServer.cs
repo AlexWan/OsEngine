@@ -325,13 +325,29 @@ namespace OsEngine.Market.Servers.AE
             {
                 MarketDepth newMarketDepth = new MarketDepth();
                 MarketDepthLevel askLevel = new MarketDepthLevel();
-                askLevel.Ask = q.AskVolume ?? 0;
-                askLevel.Price = q.Ask ?? 0;
 
+                if(q.AskVolume != null)
+                {
+                    askLevel.Ask = Convert.ToDouble(q.AskVolume);
+                }
+                
+                if(q.Ask != null)
+                {
+                    askLevel.Price = Convert.ToDouble(q.Ask);
+                }
+                
                 MarketDepthLevel bidLevel = new MarketDepthLevel();
-                bidLevel.Bid = q.BidVolume ?? 0;
-                bidLevel.Price = q.Bid ?? 0;
 
+                if(q.BidVolume != null)
+                {
+                    bidLevel.Bid = Convert.ToDouble(q.BidVolume);
+                }
+                
+                if(q.Bid != null)
+                {
+                    bidLevel.Price = Convert.ToDouble(q.Bid);
+                }
+                
                 newMarketDepth.Asks.Add(askLevel);
                 newMarketDepth.Bids.Add(bidLevel);
 

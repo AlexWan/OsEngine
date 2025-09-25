@@ -2861,10 +2861,10 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     if (sortedQuote[i].Buy > 0)
                     {
-                        MarketDepthLevel needLevel = needDepth.Bids.Find(level => level.Price == sortedQuote[i].Price);
+                        MarketDepthLevel needLevel = needDepth.Bids.Find(level => level.Price == Convert.ToDouble(sortedQuote[i].Price));
                         if (needLevel != null)
                         {
-                            needLevel.Bid = sortedQuote[i].Buy;
+                            needLevel.Bid = Convert.ToDouble(sortedQuote[i].Buy);
                         }
                         else
                         {
@@ -2875,8 +2875,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                             needDepth.Bids.Add(new MarketDepthLevel()
                             {
-                                Price = sortedQuote[i].Price,
-                                Bid = sortedQuote[i].Buy,
+                                Price = Convert.ToDouble(sortedQuote[i].Price),
+                                Bid = Convert.ToDouble(sortedQuote[i].Buy),
                             });
                             needDepth.Bids.Sort((a, b) =>
                             {
@@ -2904,10 +2904,10 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (sortedQuote[i].Sell > 0)
                     {
-                        MarketDepthLevel needLevel = needDepth.Asks.Find(level => level.Price == sortedQuote[i].Price);
+                        MarketDepthLevel needLevel = needDepth.Asks.Find(level => level.Price == Convert.ToDouble(sortedQuote[i].Price));
                         if (needLevel != null)
                         {
-                            needLevel.Ask = sortedQuote[i].Sell;
+                            needLevel.Ask = Convert.ToDouble(sortedQuote[i].Sell);
                         }
                         else
                         {
@@ -2918,8 +2918,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                             needDepth.Asks.Add(new MarketDepthLevel()
                             {
-                                Price = sortedQuote[i].Price,
-                                Ask = sortedQuote[i].Sell,
+                                Price = Convert.ToDouble(sortedQuote[i].Price),
+                                Ask = Convert.ToDouble(sortedQuote[i].Sell),
                             });
                             needDepth.Asks.Sort((a, b) =>
                             {
@@ -2947,7 +2947,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (sortedQuote[i].Buy == -1)
                     {
-                        int deleteLevelIndex = needDepth.Bids.FindIndex(level => level.Price == sortedQuote[i].Price);
+                        int deleteLevelIndex = needDepth.Bids.FindIndex(level => level.Price == Convert.ToDouble(sortedQuote[i].Price));
                         if (deleteLevelIndex != -1)
                         {
                             needDepth.Bids.RemoveAt(deleteLevelIndex);
@@ -2956,7 +2956,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (sortedQuote[i].Sell == -1)
                     {
-                        int deleteLevelIndex = needDepth.Asks.FindIndex(level => level.Price == sortedQuote[i].Price);
+                        int deleteLevelIndex = needDepth.Asks.FindIndex(level => level.Price == Convert.ToDouble(sortedQuote[i].Price));
                         if (deleteLevelIndex != -1)
                         {
                             needDepth.Asks.RemoveAt(deleteLevelIndex);
@@ -3066,12 +3066,12 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (quotes.Biddepth != null)
                 {
-                    bid.Bid = quotes.Biddepth.ToDecimal();
+                    bid.Bid = quotes.Biddepth.ToDouble();
                 }
 
                 if (quotes.Bid != null)
                 {
-                    bid.Price = quotes.Bid.ToDecimal();
+                    bid.Price = quotes.Bid.ToDouble();
                 }
 
                 if (bid.Price == 0)
@@ -3122,11 +3122,11 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (quotes.Offerdepth != null)
                 {
-                    ask.Ask = quotes.Offerdepth.ToDecimal();
+                    ask.Ask = quotes.Offerdepth.ToDouble();
                 }
                 if (quotes.Offer != null)
                 {
-                    ask.Price = quotes.Offer.ToDecimal();
+                    ask.Price = quotes.Offer.ToDouble();
                 }
 
                 if (ask.Price == 0)

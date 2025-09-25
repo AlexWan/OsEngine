@@ -1718,8 +1718,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 depth.SecurityNameCode = baseDepth.symbol;
                 depth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseDepth.ms_t));
 
-                decimal maxBid = 0;
-                decimal minAsk = decimal.MaxValue;
+                double maxBid = 0;
+                double minAsk = double.MaxValue;
 
                 for (int i = 0; i < baseDepth.depths.Count; i++)
                 {
@@ -1731,17 +1731,17 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     }
 
                     MarketDepthLevel newBid = new MarketDepthLevel();
-                    newBid.Price = level.price.ToDecimal();
+                    newBid.Price = level.price.ToDouble();
 
                     if (baseDepth.way == "1") //bids
                     {
-                        newBid.Bid = level.vol.ToDecimal();
+                        newBid.Bid = level.vol.ToDouble();
                         depth.Bids.Add(newBid);
                         maxBid = Math.Max(newBid.Price, maxBid);
                     }
                     else //asks
                     {
-                        newBid.Ask = level.vol.ToDecimal();
+                        newBid.Ask = level.vol.ToDouble();
                         depth.Asks.Add(newBid);
                         minAsk = Math.Min(newBid.Price, minAsk);
                     }

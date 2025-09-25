@@ -1518,8 +1518,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     MarketDepthLevel level = new MarketDepthLevel()
                     {
-                        Price = responseDepths.data.asks[i][0].ToDecimal(),
-                        Ask = responseDepths.data.asks[i][1].ToDecimal()
+                        Price = responseDepths.data.asks[i][0].ToDouble(),
+                        Ask = responseDepths.data.asks[i][1].ToDouble()
                     };
 
                     ascs.Insert(0, level);
@@ -1529,8 +1529,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Price = responseDepths.data.bids[i][0].ToDecimal(),
-                        Bid = responseDepths.data.bids[i][1].ToDecimal()
+                        Price = responseDepths.data.bids[i][0].ToDouble(),
+                        Bid = responseDepths.data.bids[i][1].ToDouble()
                     });
                 }
 

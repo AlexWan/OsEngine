@@ -2394,10 +2394,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         ascs.Add(new MarketDepthLevel()
                         {
                             Ask =
-                                myDepth.data.a[i][1].ToString().ToDecimal()
+                                myDepth.data.a[i][1].ToString().ToDouble()
                             ,
                             Price =
-                                myDepth.data.a[i][0].ToString().ToDecimal()
+                                myDepth.data.a[i][0].ToString().ToDouble()
 
                         });
                     }
@@ -2407,10 +2407,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         bids.Add(new MarketDepthLevel()
                         {
                             Bid =
-                                myDepth.data.b[i][1].ToString().ToDecimal()
+                                myDepth.data.b[i][1].ToString().ToDouble()
                             ,
                             Price =
-                                myDepth.data.b[i][0].ToString().ToDecimal()
+                                myDepth.data.b[i][0].ToString().ToDouble()
                         });
                     }
 

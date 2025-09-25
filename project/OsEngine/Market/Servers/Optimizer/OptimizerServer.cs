@@ -1002,8 +1002,8 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 return false;
             }
-            decimal sellBestPrice = lastMarketDepth.Asks[0].Price;
-            decimal buyBestPrice = lastMarketDepth.Bids[0].Price;
+            decimal sellBestPrice = lastMarketDepth.Asks[0].Price.ToDecimal();
+            decimal buyBestPrice = lastMarketDepth.Bids[0].Price.ToDecimal();
 
             DateTime time = lastMarketDepth.Time;
 

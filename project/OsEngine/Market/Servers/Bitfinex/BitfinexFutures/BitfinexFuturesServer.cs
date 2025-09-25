@@ -2149,16 +2149,16 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                     {
                         bids.Add(new MarketDepthLevel()
                         {
-                            Bid = (value[2]).ToString().ToDecimal(),
-                            Price = (value[0]).ToString().ToDecimal(),
+                            Bid = (value[2]).ToString().ToDouble(),
+                            Price = (value[0]).ToString().ToDouble(),
                         });
                     }
                     else
                     {
                         asks.Add(new MarketDepthLevel()
                         {
-                            Ask = Math.Abs((value[2]).ToString().ToDecimal()),
-                            Price = (value[0]).ToString().ToDecimal(),
+                            Ask = Math.Abs((value[2]).ToString().ToDouble()),
+                            Price = (value[0]).ToString().ToDouble(),
                         });
                     }
                 }
@@ -2232,9 +2232,9 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                     return;
                 }
 
-                decimal price = (update[0]).ToString().ToDecimal();
-                decimal count = (update[1]).ToString().ToDecimal();
-                decimal amount = (update[2]).ToString().ToDecimal();
+                double price = (update[0]).ToString().ToDouble();
+                double count = (update[1]).ToString().ToDouble();
+                double amount = (update[2]).ToString().ToDouble();
 
                 needDepth.Time = ServerTime;
 

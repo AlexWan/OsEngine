@@ -1378,13 +1378,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     decimal bestBid = 0;
                     if (marketDepth.Bids != null && marketDepth.Bids.Count > 0)
                     {
-                        bestBid = marketDepth.Bids[0].Price;
+                        bestBid = marketDepth.Bids[0].Price.ToDecimal();
                     }
 
                     decimal bestAsk = 0;
                     if (marketDepth.Asks != null && marketDepth.Asks.Count > 0)
                     {
-                        bestAsk = marketDepth.Asks[0].Price;
+                        bestAsk = marketDepth.Asks[0].Price.ToDecimal();
                     }
 
                     if (bestBid > 0)
@@ -1406,13 +1406,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     decimal bestBid = 0;
                     if (marketDepth.Bids != null && marketDepth.Bids.Count > 0)
                     {
-                        bestBid = marketDepth.Bids[0].Price;
+                        bestBid = marketDepth.Bids[0].Price.ToDecimal();
                     }
 
                     decimal bestAsk = 0;
                     if (marketDepth.Asks != null && marketDepth.Asks.Count > 0)
                     {
-                        bestAsk = marketDepth.Asks[0].Price;
+                        bestAsk = marketDepth.Asks[0].Price.ToDecimal();
                     }
 
                     if (bestBid > 0)

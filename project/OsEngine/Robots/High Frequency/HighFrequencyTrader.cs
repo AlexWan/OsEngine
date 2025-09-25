@@ -133,7 +133,7 @@ namespace OsEngine.Robots.High_Frequency
             {
                 if (marketDepth.Bids[i].Bid > lastVolume)
                 {
-                    buyPrice = marketDepth.Bids[i].Price + _tab.Security.PriceStep;
+                    buyPrice = marketDepth.Bids[i].Price.ToDecimal() + _tab.Security.PriceStep;
                     lastVolume = Convert.ToInt32(marketDepth.Bids[i].Bid);
                 }
             }
@@ -168,7 +168,7 @@ namespace OsEngine.Robots.High_Frequency
             {
                 if (marketDepth.Asks[i].Ask > lastVolumeInAsk)
                 {
-                    sellPrice = marketDepth.Asks[i].Price - _tab.Security.PriceStep;
+                    sellPrice = marketDepth.Asks[i].Price.ToDecimal() - _tab.Security.PriceStep;
                     lastVolumeInAsk = Convert.ToInt32(marketDepth.Asks[i].Ask);
                 }
             }

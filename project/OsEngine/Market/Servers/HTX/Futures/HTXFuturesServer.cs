@@ -1095,8 +1095,8 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         continue;
                     }
 
-                    decimal ask = item.asks[i][1].ToString().ToDecimal();
-                    decimal price = item.asks[i][0].ToString().ToDecimal();
+                    double ask = item.asks[i][1].ToString().ToDouble();
+                    double price = item.asks[i][0].ToString().ToDouble();
 
                     if (ask == 0 ||
                         price == 0)
@@ -1120,8 +1120,8 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         continue;
                     }
 
-                    decimal bid = item.bids[i][1].ToString().ToDecimal();
-                    decimal price = item.bids[i][0].ToString().ToDecimal();
+                    double bid = item.bids[i][1].ToString().ToDouble();
+                    double price = item.bids[i][0].ToString().ToDouble();
 
                     if (bid == 0 ||
                         price == 0)

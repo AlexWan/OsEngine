@@ -1380,8 +1380,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 {
                     ascs.Add(new MarketDepthLevel()
                     {
-                        Ask = responseDepths.result.asks[i][1].ToDecimal(),
-                        Price = responseDepths.result.asks[i][0].ToDecimal()
+                        Ask = responseDepths.result.asks[i][1].ToDouble(),
+                        Price = responseDepths.result.asks[i][0].ToDouble()
                     });
                 }
 
@@ -1389,8 +1389,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Bid = responseDepths.result.bids[i][1].ToDecimal(),
-                        Price = responseDepths.result.bids[i][0].ToDecimal()
+                        Bid = responseDepths.result.bids[i][1].ToDouble(),
+                        Price = responseDepths.result.bids[i][0].ToDouble()
                     });
                 }
 

@@ -6161,7 +6161,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (marketDepth.Asks != null && marketDepth.Asks.Count > 0)
                         {
-                            CheckStop(openPositions[i], marketDepth.Asks[0].Price);
+                            CheckStop(openPositions[i], marketDepth.Asks[0].Price.ToDecimal());
                         }
 
                         if (openPositions.Count <= i)
@@ -6171,7 +6171,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (marketDepth.Bids != null && marketDepth.Bids.Count > 0)
                         {
-                            CheckStop(openPositions[i], marketDepth.Bids[0].Price);
+                            CheckStop(openPositions[i], marketDepth.Bids[0].Price.ToDecimal());
                         }
                     }
                 }

@@ -2106,8 +2106,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     MarketDepthLevel level = new MarketDepthLevel()
                     {
-                        Price = responceDepths.data.asks[i][0].ToDecimal(),
-                        Ask = responceDepths.data.asks[i][1].ToDecimal()
+                        Price = responceDepths.data.asks[i][0].ToDouble(),
+                        Ask = responceDepths.data.asks[i][1].ToDouble()
                     };
 
                     ascs.Insert(0, level);
@@ -2117,8 +2117,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Price = responceDepths.data.bids[i][0].ToDecimal(),
-                        Bid = responceDepths.data.bids[i][1].ToDecimal()
+                        Price = responceDepths.data.bids[i][0].ToDouble(),
+                        Bid = responceDepths.data.bids[i][1].ToDouble()
                     });
                 }
 

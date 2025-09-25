@@ -1403,8 +1403,8 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
                     newDepth.Bids.Add(new MarketDepthLevel
                     {
-                        Price = level[0].ToDecimal(),
-                        Bid = level[1].ToDecimal()
+                        Price = level[0].ToDouble(),
+                        Bid = level[1].ToDouble()
                     });
                 }
 
@@ -1414,8 +1414,8 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
                     newDepth.Asks.Add(new MarketDepthLevel
                     {
-                        Price = level[0].ToDecimal(),
-                        Ask = level[1].ToDecimal()
+                        Price = level[0].ToDouble(),
+                        Ask = level[1].ToDouble()
                     });
                 }
 
@@ -1544,8 +1544,8 @@ namespace OsEngine.Market.Servers.AscendexSpot
         {
             for (int i = 0; i < updates.Count; i++)
             {
-                decimal price = updates[i][0].ToDecimal();
-                decimal size = updates[i][1].ToDecimal();
+                double price = updates[i][0].ToDouble();
+                double size = updates[i][1].ToDouble();
 
                 MarketDepthLevel existing = levels.Find(x => x.Price == price);
 

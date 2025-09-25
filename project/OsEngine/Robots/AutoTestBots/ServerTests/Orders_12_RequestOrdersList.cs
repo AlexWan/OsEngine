@@ -148,8 +148,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ПРОВЕРКА 1. Активные ордера
 
-            decimal priceToBuyOrdersNoExecution = Math.Round(md.Bids[0].Price - md.Bids[0].Price * 0.01m, mySecurity.Decimals); 
-            decimal priceToSellOrdersNoExecution = Math.Round(md.Asks[0].Price + md.Asks[0].Price * 0.01m, mySecurity.Decimals);
+            decimal priceToBuyOrdersNoExecution = Math.Round(md.Bids[0].Price.ToDecimal() - md.Bids[0].Price.ToDecimal() * 0.01m, mySecurity.Decimals); 
+            decimal priceToSellOrdersNoExecution = Math.Round(md.Asks[0].Price.ToDecimal() + md.Asks[0].Price.ToDecimal() * 0.01m, mySecurity.Decimals);
 
             if (CheckActiveOrders(Side.Buy, priceToBuyOrdersNoExecution, VolumeToTrade, mySecurity, _awaitOrderFirstStepBuy) == false)
             {
@@ -511,7 +511,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             // 1 высылаем ордера на покупку
 
             List<Order> ordersArrayBuy = new List<Order>();
-            decimal priceToBuyOrders = Math.Round(md.Asks[0].Price + md.Asks[0].Price * 0.01m, mySecurity.Decimals);
+            decimal priceToBuyOrders = Math.Round(md.Asks[0].Price.ToDecimal() + md.Asks[0].Price.ToDecimal() * 0.01m, mySecurity.Decimals);
 
             for (int i = 0; i < OrdersCount; i++)
             {
@@ -547,7 +547,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             // 2 высылаем ордера на продажу
 
             List<Order> orderArraySell = new List<Order>();
-            decimal priceToSellOrders = Math.Round(md.Bids[0].Price - md.Bids[0].Price * 0.01m, mySecurity.Decimals);
+            decimal priceToSellOrders = Math.Round(md.Bids[0].Price.ToDecimal() - md.Bids[0].Price.ToDecimal() * 0.01m, mySecurity.Decimals);
 
             for (int i = 0; i < OrdersCount; i++)
             {

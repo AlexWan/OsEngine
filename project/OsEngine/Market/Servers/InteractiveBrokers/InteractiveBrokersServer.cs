@@ -1048,16 +1048,16 @@ contract =>
                     if (sideLine == Side.Buy)
                     {
                         MarketDepthLevel level = bids[position];
-                        level.Bid = Convert.ToDecimal(size);
+                        level.Bid = size;
                         level.Ask = 0;
-                        level.Price = price;
+                        level.Price = Convert.ToDouble(price);
                     }
                     else if (sideLine == Side.Sell)
                     {
                         MarketDepthLevel level = asks[position];
                         level.Bid = 0;
-                        level.Ask = Convert.ToDecimal(size);
-                        level.Price = price;
+                        level.Ask = size;
+                        level.Price = Convert.ToDouble(price);
                     }
                 }
 
@@ -1119,8 +1119,8 @@ contract =>
                 return;
             }
 
-            myDepth.Asks[0].Price = trade.Price + mySecurity.PriceStep;
-            myDepth.Bids[0].Price = trade.Price - mySecurity.PriceStep;
+            myDepth.Asks[0].Price = Convert.ToDouble(trade.Price + mySecurity.PriceStep);
+            myDepth.Bids[0].Price = Convert.ToDouble(trade.Price - mySecurity.PriceStep);
 
             myDepth.Asks[0].Ask = 1;
             myDepth.Bids[0].Bid = 1;

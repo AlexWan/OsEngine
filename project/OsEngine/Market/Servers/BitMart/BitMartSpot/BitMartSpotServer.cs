@@ -1342,16 +1342,16 @@ namespace OsEngine.Market.Servers.BitMart
                     for (int k = 0; k < messDepth.bids.Count; k++)
                     {
                         MarketDepthLevel newBid = new MarketDepthLevel();
-                        newBid.Price = messDepth.bids[k][0].ToDecimal();
-                        newBid.Bid = messDepth.bids[k][1].ToDecimal();
+                        newBid.Price = messDepth.bids[k][0].ToDouble();
+                        newBid.Bid = messDepth.bids[k][1].ToDouble();
                         depth.Bids.Add(newBid);
                     }
 
                     for (int k = 0; k < messDepth.asks.Count; k++)
                     {
                         MarketDepthLevel newAsk = new MarketDepthLevel();
-                        newAsk.Price = messDepth.asks[k][0].ToDecimal();
-                        newAsk.Ask = messDepth.asks[k][1].ToDecimal();
+                        newAsk.Price = messDepth.asks[k][0].ToDouble();
+                        newAsk.Ask = messDepth.asks[k][1].ToDouble();
                         depth.Asks.Add(newAsk);
                     }
 

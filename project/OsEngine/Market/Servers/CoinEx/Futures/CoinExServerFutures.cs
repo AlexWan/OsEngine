@@ -1208,8 +1208,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 {
                     (string price, string size) = (cexDepth.bids[k][0], cexDepth.bids[k][1]);
                     MarketDepthLevel newBid = new MarketDepthLevel();
-                    newBid.Price = price.ToString().ToDecimal();
-                    newBid.Bid = size.ToString().ToDecimal();
+                    newBid.Price = price.ToString().ToDouble();
+                    newBid.Bid = size.ToString().ToDouble();
                     if (newBid.Bid > 0)
                     {
                         depth.Bids.Add(newBid);
@@ -1220,8 +1220,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 {
                     (string price, string size) = (cexDepth.asks[k][0], cexDepth.asks[k][1]);
                     MarketDepthLevel newAsk = new MarketDepthLevel();
-                    newAsk.Price = price.ToString().ToDecimal();
-                    newAsk.Ask = size.ToString().ToDecimal();
+                    newAsk.Price = price.ToString().ToDouble();
+                    newAsk.Ask = size.ToString().ToDouble();
                     if (newAsk.Ask > 0)
                     {
                         depth.Asks.Add(newAsk);

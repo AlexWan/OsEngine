@@ -1303,8 +1303,8 @@ namespace OsEngine.Market.Servers.QuikLua
                     {
                         myDepth.Bids.Add(new MarketDepthLevel()
                         {
-                            Bid = Convert.ToDecimal(orderBook.bid[i].quantity),
-                            Price = Convert.ToDecimal(orderBook.bid[i].price),
+                            Bid = orderBook.bid[i].quantity,
+                            Price = orderBook.bid[i].price,
                             Ask = 0
                         });
                     }
@@ -1316,8 +1316,8 @@ namespace OsEngine.Market.Servers.QuikLua
                     {
                         myDepth.Asks.Add(new MarketDepthLevel()
                         {
-                            Ask = Convert.ToDecimal(orderBook.offer[i].quantity),
-                            Price = Convert.ToDecimal(orderBook.offer[i].price),
+                            Ask = orderBook.offer[i].quantity,
+                            Price = orderBook.offer[i].price,
                             Bid = 0
                         });
                     }

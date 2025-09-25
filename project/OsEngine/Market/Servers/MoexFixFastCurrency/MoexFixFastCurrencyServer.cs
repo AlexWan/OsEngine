@@ -1928,9 +1928,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                 MarketDepthLevel level = new MarketDepthLevel();
 
                                 string MDEntryType = groupVal.GetString("MDEntryType");
-                                decimal price = groupVal.GetString("MDEntryPx").ToDecimal();
+                                double price = groupVal.GetString("MDEntryPx").ToDouble();
                                 string Id = groupVal.GetString("MDEntryID");
-                                decimal volume = groupVal.GetString("MDEntrySize").ToDecimal();
+                                double volume = groupVal.GetString("MDEntrySize").ToDouble();
 
                                 string orderType;
 
@@ -1966,8 +1966,8 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
                                 newOrderChange.UniqueName = uniqueName;
                                 newOrderChange.MDEntryID = Id;
-                                newOrderChange.Price = price;
-                                newOrderChange.Volume = volume;
+                                newOrderChange.Price = price.ToDecimal();
+                                newOrderChange.Volume = volume.ToDecimal();
                                 newOrderChange.OrderType = orderType;
                                 newOrderChange.Action = string.Empty;
 
@@ -2116,8 +2116,8 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             {
                 asks.Add(new MarketDepthLevel()
                 {
-                    Price = levelAsk.Current.Key,
-                    Ask = levelAsk.Current.Value
+                    Price = Convert.ToDouble(levelAsk.Current.Key),
+                    Ask = Convert.ToDouble(levelAsk.Current.Value)
                 });
             }
 
@@ -2145,8 +2145,8 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             {
                 bids.Add(new MarketDepthLevel()
                 {
-                    Price = levelBid.Current.Key,
-                    Bid = levelBid.Current.Value
+                    Price = Convert.ToDouble(levelBid.Current.Key),
+                    Bid = Convert.ToDouble(levelBid.Current.Value)
                 });
             }
 

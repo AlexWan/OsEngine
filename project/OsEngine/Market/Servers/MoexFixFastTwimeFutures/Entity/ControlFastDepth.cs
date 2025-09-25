@@ -19,10 +19,10 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures.Entity
     {
         public int ImmutabilityCount { get; set; }
 
-        public decimal Ask;
+        public double Ask;
 
-        public decimal Bid;
+        public double Bid;
 
-        public decimal Price;
+        public double Price;
     }
 }

@@ -2077,9 +2077,9 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 MarketDepthLevel level = new MarketDepthLevel();
 
                                 string MDEntryType = groupVal.GetString("MDEntryType");
-                                decimal price = groupVal.GetString("MDEntryPx").ToDecimal();
+                                double price = groupVal.GetString("MDEntryPx").ToDouble();
                                 string Id = groupVal.GetString("MDEntryID");
-                                decimal volume = groupVal.GetString("MDEntrySize").ToDecimal();
+                                double volume = groupVal.GetString("MDEntrySize").ToDouble();
 
 
                                 switch (MDEntryType)// 0 - котировка на покупку, 1 - котровка на продажу
@@ -2280,9 +2280,9 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 default: action = OrderAction.None; break;
             }
 
-            decimal price = groupVal.GetString("MDEntryPx").ToDecimal();
+            double price = groupVal.GetString("MDEntryPx").ToDouble();
             string id = groupVal.GetString("MDEntryID");
-            decimal volume = groupVal.GetString("MDEntrySize").ToDecimal();
+            double volume = groupVal.GetString("MDEntrySize").ToDouble();
 
             newOrderChange.NameID = nameID;
             newOrderChange.MDEntryID = id;
@@ -2300,7 +2300,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             MarketDepth marketDepth = new MarketDepth();
             List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
             List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
-            Dictionary<decimal, decimal> mdLevels = new Dictionary<decimal, decimal>();
+            Dictionary<double, double> mdLevels = new Dictionary<double, double>();
 
             marketDepth.SecurityNameCode = _secNameById[NameID];
 
@@ -2320,14 +2320,14 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 }
             }
 
-            Dictionary<decimal, decimal>.Enumerator levelAsk = mdLevels.GetEnumerator();
+            Dictionary<double, double>.Enumerator levelAsk = mdLevels.GetEnumerator();
 
             while (levelAsk.MoveNext())
             {
                 asks.Add(new MarketDepthLevel()
                 {
-                    Price = levelAsk.Current.Key,
-                    Ask = levelAsk.Current.Value
+                    Price = Convert.ToDouble(levelAsk.Current.Key),
+                    Ask = Convert.ToDouble(levelAsk.Current.Value)
                 });
             }
 
@@ -2349,14 +2349,14 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 }
             }
 
-            Dictionary<decimal, decimal>.Enumerator levelBid = mdLevels.GetEnumerator();
+            Dictionary<double, double>.Enumerator levelBid = mdLevels.GetEnumerator();
 
             while (levelBid.MoveNext())
             {
                 bids.Add(new MarketDepthLevel()
                 {
-                    Price = levelBid.Current.Key,
-                    Bid = levelBid.Current.Value
+                    Price = Convert.ToDouble(levelBid.Current.Key),
+                    Bid = Convert.ToDouble(levelBid.Current.Value)
                 });
             }
 

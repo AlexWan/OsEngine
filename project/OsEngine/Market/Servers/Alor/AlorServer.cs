@@ -1835,16 +1835,16 @@ namespace OsEngine.Market.Servers.Alor
             for (int i = 0; i < baseMessage.data.bids.Count; i++)
             {
                 MarketDepthLevel newBid = new MarketDepthLevel();
-                newBid.Price = baseMessage.data.bids[i].price.ToDecimal();
-                newBid.Bid = baseMessage.data.bids[i].volume.ToDecimal();
+                newBid.Price = baseMessage.data.bids[i].price.ToDouble();
+                newBid.Bid = baseMessage.data.bids[i].volume.ToDouble();
                 depth.Bids.Add(newBid);
             }
 
             for (int i = 0; i < baseMessage.data.asks.Count; i++)
             {
                 MarketDepthLevel newAsk = new MarketDepthLevel();
-                newAsk.Price = baseMessage.data.asks[i].price.ToDecimal();
-                newAsk.Ask = baseMessage.data.asks[i].volume.ToDecimal();
+                newAsk.Price = baseMessage.data.asks[i].price.ToDouble();
+                newAsk.Ask = baseMessage.data.asks[i].volume.ToDouble();
                 depth.Asks.Add(newAsk);
             }
 

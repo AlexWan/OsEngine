@@ -1787,8 +1787,8 @@ namespace OsEngine.Market.Servers.Woo
                             {
                                 asks.Add(new MarketDepthLevel()
                                 {
-                                    Ask = response.data.asks[i].quantity.ToDecimal(),
-                                    Price = response.data.asks[i].price.ToDecimal(),
+                                    Ask = response.data.asks[i].quantity.ToDouble(),
+                                    Price = response.data.asks[i].price.ToDouble(),
                                 });
                             }
                         }
@@ -1799,8 +1799,8 @@ namespace OsEngine.Market.Servers.Woo
                             {
                                 bids.Add(new MarketDepthLevel()
                                 {
-                                    Bid = response.data.bids[i].quantity.ToDecimal(),
-                                    Price = response.data.bids[i].price.ToDecimal(),
+                                    Bid = response.data.bids[i].quantity.ToDouble(),
+                                    Price = response.data.bids[i].price.ToDouble(),
                                 });
                             }
                         }
@@ -1871,8 +1871,8 @@ namespace OsEngine.Market.Servers.Woo
                 {
                     for (int i = 0; i < item.asks.Count; i++)
                     {
-                        decimal aPrice = item.asks[i][0].ToDecimal();
-                        decimal aAsk = item.asks[i][1].ToDecimal();
+                        double aPrice = item.asks[i][0].ToDouble();
+                        double aAsk = item.asks[i][1].ToDouble();
 
                         if (marketDepth.Asks.Exists(a => a.Price == aPrice))
                         {
@@ -1909,8 +1909,8 @@ namespace OsEngine.Market.Servers.Woo
                 {
                     for (int i = 0; i < item.bids.Count; i++)
                     {
-                        decimal bPrice = item.bids[i][0].ToDecimal();
-                        decimal bBid = item.bids[i][1].ToDecimal();
+                        double bPrice = item.bids[i][0].ToDouble();
+                        double bBid = item.bids[i][1].ToDouble();
 
                         if (marketDepth.Bids.Exists(b => b.Price == bPrice))
                         {

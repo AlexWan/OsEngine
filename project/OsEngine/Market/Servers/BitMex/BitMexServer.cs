@@ -1405,13 +1405,13 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             ascs.Add(new MarketDepthLevel()
                             {
-                                Ask = responseDepths.data[i].size.ToDecimal(),
-                                Price = responseDepths.data[i].price.ToDecimal(),
+                                Ask = responseDepths.data[i].size.ToDouble(),
+                                Price = responseDepths.data[i].price.ToDouble(),
                                 Id = Convert.ToInt64(responseDepths.data[i].id)
                             });
 
                             if (depth.Bids != null && depth.Bids.Count > 2 &&
-                                responseDepths.data[i].price.ToDecimal() < depth.Bids[0].Price)
+                                responseDepths.data[i].price.ToDouble() < depth.Bids[0].Price)
                             {
                                 depth.Bids.RemoveAt(0);
                             }
@@ -1420,13 +1420,13 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             bids.Add(new MarketDepthLevel()
                             {
-                                Bid = responseDepths.data[i].size.ToDecimal(),
-                                Price = responseDepths.data[i].price.ToDecimal(),
+                                Bid = responseDepths.data[i].size.ToDouble(),
+                                Price = responseDepths.data[i].price.ToDouble(),
                                 Id = Convert.ToInt64(responseDepths.data[i].id)
                             });
 
                             if (depth.Asks != null && depth.Asks.Count > 2 &&
-                                responseDepths.data[i].price.ToDecimal() > depth.Asks[0].Price)
+                                responseDepths.data[i].price.ToDouble() > depth.Asks[0].Price)
                             {
                                 depth.Asks.RemoveAt(0);
                             }
@@ -1461,18 +1461,18 @@ namespace OsEngine.Market.Servers.BitMex
                                 if (depth.Asks[j].Id == Convert.ToInt64(responseDepths.data[i].id)
                                     && responseDepths.action == "update")
                                 {
-                                    depth.Asks[j].Ask = responseDepths.data[i].size.ToDecimal();
+                                    depth.Asks[j].Ask = responseDepths.data[i].size.ToDouble();
                                 }
                                 else
                                 {
-                                    decimal priceLevel = responseDepths.data[i].price.ToDecimal();
+                                    double priceLevel = responseDepths.data[i].price.ToDouble();
 
                                     if (j == 0 && priceLevel < depth.Asks[j].Price)
                                     {
                                         depth.Asks.Insert(j, new MarketDepthLevel()
                                         {
-                                            Ask = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Ask = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
@@ -1480,8 +1480,8 @@ namespace OsEngine.Market.Servers.BitMex
                                     {
                                         depth.Asks.Insert(j + 1, new MarketDepthLevel()
                                         {
-                                            Ask = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Ask = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
@@ -1489,14 +1489,14 @@ namespace OsEngine.Market.Servers.BitMex
                                     {
                                         depth.Asks.Add(new MarketDepthLevel()
                                         {
-                                            Ask = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Ask = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
 
                                     if (depth.Bids != null && depth.Bids.Count > 2 &&
-                                        responseDepths.data[i].price.ToDecimal() < depth.Bids[0].Price)
+                                        responseDepths.data[i].price.ToDouble() < depth.Bids[0].Price)
                                     {
                                         depth.Bids.RemoveAt(0);
                                     }
@@ -1510,18 +1510,18 @@ namespace OsEngine.Market.Servers.BitMex
                                 if (depth.Bids[j].Id == Convert.ToInt64(responseDepths.data[i].id)
                                     && responseDepths.action == "update")
                                 {
-                                    depth.Bids[j].Bid = responseDepths.data[i].size.ToDecimal();
+                                    depth.Bids[j].Bid = responseDepths.data[i].size.ToDouble();
                                 }
                                 else
                                 {
-                                    decimal priceLevel = responseDepths.data[i].price.ToDecimal();
+                                    double priceLevel = responseDepths.data[i].price.ToDouble();
 
                                     if (j == 0 && priceLevel > depth.Bids[j].Price)
                                     {
                                         depth.Bids.Insert(j, new MarketDepthLevel()
                                         {
-                                            Bid = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Bid = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
@@ -1529,8 +1529,8 @@ namespace OsEngine.Market.Servers.BitMex
                                     {
                                         depth.Bids.Insert(j + 1, new MarketDepthLevel()
                                         {
-                                            Bid = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Bid = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
@@ -1538,14 +1538,14 @@ namespace OsEngine.Market.Servers.BitMex
                                     {
                                         depth.Bids.Add(new MarketDepthLevel()
                                         {
-                                            Bid = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Bid = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
 
                                     if (depth.Asks != null && depth.Asks.Count > 2 &&
-                                        responseDepths.data[i].price.ToDecimal() > depth.Asks[0].Price)
+                                        responseDepths.data[i].price.ToDouble() > depth.Asks[0].Price)
                                     {
                                         depth.Asks.RemoveAt(0);
                                     }

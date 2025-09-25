@@ -7,8 +7,8 @@
         public string MDEntryID { get; set; }
         public OrderAction Action { get; set; }
         public OrderType OrderType { get; set; }
-        public decimal Price { get; set; }
-        public decimal Volume { get; set; }
+        public double Price { get; set; }
+        public double Volume { get; set; }
     }
 
     public enum OrderAction

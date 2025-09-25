@@ -1509,7 +1509,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             {
                 MarketDepthLevel newBid = new MarketDepthLevel();
                 newBid.Bid = ReadInt(b, ref offset);
-                newBid.Price = ReadInt(b, ref offset) / divisor;
+                newBid.Price = Convert.ToDouble(ReadInt(b, ref offset) / divisor);
                 newBid.Id = ReadShort(b, ref offset);
                 depth.Bids.Add(newBid);
                 offset += 2;
@@ -1521,7 +1521,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             {
                 MarketDepthLevel newAsk = new MarketDepthLevel();
                 newAsk.Ask = ReadInt(b, ref offset);
-                newAsk.Price = ReadInt(b, ref offset) / divisor;
+                newAsk.Price = Convert.ToDouble(ReadInt(b, ref offset) / divisor);
                 newAsk.Id = ReadShort(b, ref offset);
                 depth.Asks.Add(newAsk);
                 offset += 2;

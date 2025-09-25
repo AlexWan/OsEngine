@@ -1421,16 +1421,16 @@ namespace OsEngine.Market.Servers.Mexc
                 for (int i = 0; baseDepth.publicLimitDepths.bids != null && i < baseDepth.publicLimitDepths.bids.Count; i++)
                 {
                     MarketDepthLevel newBid = new MarketDepthLevel();
-                    newBid.Price = baseDepth.publicLimitDepths.bids[i].price.ToDecimal();
-                    newBid.Bid = baseDepth.publicLimitDepths.bids[i].quantity.ToDecimal();
+                    newBid.Price = baseDepth.publicLimitDepths.bids[i].price.ToDouble();
+                    newBid.Bid = baseDepth.publicLimitDepths.bids[i].quantity.ToDouble();
                     depth.Bids.Add(newBid);
                 }
 
                 for (int i = 0; baseDepth.publicLimitDepths.asks != null && i < baseDepth.publicLimitDepths.asks.Count; i++)
                 {
                     MarketDepthLevel newAsk = new MarketDepthLevel();
-                    newAsk.Price = baseDepth.publicLimitDepths.asks[i].price.ToDecimal();
-                    newAsk.Ask = baseDepth.publicLimitDepths.asks[i].quantity.ToDecimal();
+                    newAsk.Price = baseDepth.publicLimitDepths.asks[i].price.ToDouble();
+                    newAsk.Ask = baseDepth.publicLimitDepths.asks[i].quantity.ToDouble();
                     depth.Asks.Add(newAsk);
                 }
 

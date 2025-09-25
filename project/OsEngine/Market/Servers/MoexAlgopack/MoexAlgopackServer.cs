@@ -387,12 +387,12 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 marketDepth.SecurityNameCode = newTrade.SecurityNameCode;
                 marketDepth.Time = newTrade.Time;
                 MarketDepthLevel newBid = new MarketDepthLevel();
-                newBid.Price = newTrade.Price - priceStep;
-                newBid.Bid = newTrade.Volume;
+                newBid.Price = Convert.ToDouble(newTrade.Price - priceStep);
+                newBid.Bid = Convert.ToDouble(newTrade.Volume);
                 marketDepth.Bids.Add(newBid);
                 MarketDepthLevel newAsk = new MarketDepthLevel();
-                newAsk.Price = newTrade.Price + priceStep;
-                newAsk.Ask = newTrade.Volume;
+                newAsk.Price = Convert.ToDouble(newTrade.Price + priceStep);
+                newAsk.Ask = Convert.ToDouble(newTrade.Volume);
                 marketDepth.Asks.Add(newAsk);
                 
                 if(_lastMdTime != DateTime.MinValue &&
@@ -916,8 +916,8 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                                 continue;
 
                             MarketDepthLevel newBid = new MarketDepthLevel();
-                            newBid.Price = item[3].ToDecimal();
-                            newBid.Bid = item[4].ToDecimal();
+                            newBid.Price = item[3].ToDouble();
+                            newBid.Bid = item[4].ToDouble();
                             marketDepth.Bids.Add(newBid);
                         }
 
@@ -929,8 +929,8 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                                 continue;
 
                             MarketDepthLevel newAsk = new MarketDepthLevel();
-                            newAsk.Price = item[3].ToDecimal();
-                            newAsk.Ask = item[4].ToDecimal();
+                            newAsk.Price = item[3].ToDouble();
+                            newAsk.Ask = item[4].ToDouble();
                             marketDepth.Asks.Add(newAsk);
                         }
 

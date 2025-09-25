@@ -457,11 +457,11 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                decimal maxVol = 0;
+                double maxVol = 0;
 
-                decimal allBid = 0;
+                double allBid = 0;
 
-                decimal allAsk = 0;
+                double allAsk = 0;
 
                 for (int i = 0; depth.Bids != null && i < 25; i++)
                 {
@@ -590,7 +590,7 @@ namespace OsEngine.Entity
                     }
                 }
 
-                decimal maxSeries;
+                double maxSeries;
 
                 if (allAsk > allBid)
                 {
@@ -602,7 +602,7 @@ namespace OsEngine.Entity
                 }
                 // volume cumulative for ask
                 // объём комулятивный для аска
-                decimal summ = 0;
+                double summ = 0;
                 for (int i = 0; depth.Bids != null && i < 25 && i < depth.Bids.Count; i++)
                 {
                     summ += depth.Bids[i].Bid;

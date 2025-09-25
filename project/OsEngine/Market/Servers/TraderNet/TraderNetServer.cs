@@ -1164,15 +1164,15 @@ namespace OsEngine.Market.Servers.TraderNet
                     if (_listMD[responseDepth.i][j].s == "S")
                     {
                         MarketDepthLevel level = new MarketDepthLevel();
-                        level.Ask = _listMD[responseDepth.i][j].q.ToDecimal();
-                        level.Price = _listMD[responseDepth.i][j].p.ToDecimal();
+                        level.Ask = _listMD[responseDepth.i][j].q.ToDouble();
+                        level.Price = _listMD[responseDepth.i][j].p.ToDouble();
                         ascs.Add(level);
                     }
                     else
                     {
                         MarketDepthLevel level = new MarketDepthLevel();
-                        level.Bid = _listMD[responseDepth.i][j].q.ToDecimal();
-                        level.Price = _listMD[responseDepth.i][j].p.ToDecimal();
+                        level.Bid = _listMD[responseDepth.i][j].q.ToDouble();
+                        level.Price = _listMD[responseDepth.i][j].p.ToDouble();
                         bids.Add(level);
                     }
                 }

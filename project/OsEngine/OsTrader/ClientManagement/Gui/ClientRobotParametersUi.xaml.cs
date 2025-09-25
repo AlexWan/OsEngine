@@ -73,6 +73,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 _robot.BotClassName = ComboBoxRobotType.SelectedItem.ToString();
                 _client.Save();
                 RePaintParametersGrid();
+                _client.UpdateInfo();
             }
             catch
             {

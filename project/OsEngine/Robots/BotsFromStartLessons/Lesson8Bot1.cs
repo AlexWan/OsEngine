@@ -159,7 +159,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
                         // take volume best bid from market depth
                         // берём объём в лучшем уровне покупки стакана
-                        decimal firstBidVolume = md.Bids[0].Bid; 
+                        decimal firstBidVolume = md.Bids[0].Bid.ToDecimal(); 
 
                         decimal checkBidsVolume = 0;
 
@@ -167,7 +167,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                         {
                             // total volume in bids under best, to depth countBidsToCheck
                             // считаем суммарный объём в бидах под лучшим, на глубину countBidsToCheck
-                            checkBidsVolume += md.Bids[i].Bid;
+                            checkBidsVolume += md.Bids[i].Bid.ToDecimal();
                         }
 
                         // If the volume of the first bid is X% or more of all bids, and this X is greater than value of parameter _percentInFirstBid, we enter the position.
@@ -175,7 +175,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                         if (firstBidVolume / (checkBidsVolume / 100) >= _percentInFirstBid.ValueDecimal)
                         {
                             decimal volume = GetVolume(_tabToTrade);
-                            decimal price = md.Bids[0].Price;
+                            decimal price = md.Bids[0].Price.ToDecimal();
                             price += _tabToTrade.Security.PriceStep * _slippagePriceStep.ValueInt;
 
                             _tabToTrade.BuyAtLimit(volume, price);

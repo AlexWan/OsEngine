@@ -105,6 +105,14 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// conversion of double to Decimal type
+        /// </summary>
+        public static decimal ToDecimal(this double value)
+        {
+            return Convert.ToDecimal(value);
+        }
+
+        /// <summary>
         /// remove zeros from the decimal value at the end
         /// </summary>
         public static string ToStringWithNoEndZero(this decimal value)

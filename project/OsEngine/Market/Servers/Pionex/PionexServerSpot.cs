@@ -1267,16 +1267,16 @@ namespace OsEngine.Market.Servers.Pionex
                 for (int i = 0; i < responseDepth.data.asks.Count; i++)
                 {
                     MarketDepthLevel newMDLevel = new MarketDepthLevel();
-                    newMDLevel.Ask = responseDepth.data.asks[i][1].ToDecimal();
-                    newMDLevel.Price = responseDepth.data.asks[i][0].ToDecimal();
+                    newMDLevel.Ask = responseDepth.data.asks[i][1].ToDouble();
+                    newMDLevel.Price = responseDepth.data.asks[i][0].ToDouble();
                     ascs.Add(newMDLevel);
                 }
 
                 for (int i = 0; i < responseDepth.data.bids.Count; i++)
                 {
                     MarketDepthLevel newMDLevel = new MarketDepthLevel();
-                    newMDLevel.Bid = responseDepth.data.bids[i][1].ToDecimal();
-                    newMDLevel.Price = responseDepth.data.bids[i][0].ToDecimal();
+                    newMDLevel.Bid = responseDepth.data.bids[i][1].ToDouble();
+                    newMDLevel.Price = responseDepth.data.bids[i][0].ToDouble();
                     bids.Add(newMDLevel);
                 }
 

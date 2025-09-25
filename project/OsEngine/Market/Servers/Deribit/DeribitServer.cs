@@ -906,8 +906,8 @@ namespace OsEngine.Market.Servers.Deribit
                 for (int i = 0; i < item.asks.Count; i++)
                 {
                     MarketDepthLevel level = new MarketDepthLevel();
-                    level.Ask = item.asks[i][1].ToString().ToDecimal();
-                    level.Price = item.asks[i][0].ToString().ToDecimal();
+                    level.Ask = item.asks[i][1].ToString().ToDouble();
+                    level.Price = item.asks[i][0].ToString().ToDouble();
                     ascs.Add(level);
                 }
             }
@@ -917,8 +917,8 @@ namespace OsEngine.Market.Servers.Deribit
                 for (int i = 0; i < item.bids.Count; i++)
                 {
                     MarketDepthLevel level = new MarketDepthLevel();
-                    level.Bid = item.bids[i][1].ToString().ToDecimal();
-                    level.Price = item.bids[i][0].ToString().ToDecimal();
+                    level.Bid = item.bids[i][1].ToString().ToDouble();
+                    level.Price = item.bids[i][0].ToString().ToDouble();
                     bids.Add(level);
                 }
             }

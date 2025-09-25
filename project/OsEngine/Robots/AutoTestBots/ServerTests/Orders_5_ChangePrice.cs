@@ -124,7 +124,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ордер на покупку
 
-            decimal price = Math.Round((md.Asks[0].Price + md.Bids[0].Price) / 2, mySecurity.Decimals);
+            decimal price = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity.Decimals);
 
             for (int i = 0; i < CountOrders; i++)
             {
@@ -266,8 +266,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal newOrderPrice = order.Price;
 
-            decimal bid = _md.Bids[0].Price;
-            decimal ask = _md.Asks[0].Price;
+            decimal bid = _md.Bids[0].Price.ToDecimal();
+            decimal ask = _md.Asks[0].Price.ToDecimal();
 
             if (order.Side == Side.Buy)
             {

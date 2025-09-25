@@ -1271,8 +1271,8 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             _bidAskToSend.Enqueue(new BidAskSender
             {
-                Bid = myDepth.Asks[0].Price,
-                Ask = myDepth.Bids[0].Price,
+                Bid = myDepth.Asks[0].Price.ToDecimal(),
+                Ask = myDepth.Bids[0].Price.ToDecimal(),
                 Security = GetSecurityForName(myDepth.SecurityNameCode, "")
             });
         }

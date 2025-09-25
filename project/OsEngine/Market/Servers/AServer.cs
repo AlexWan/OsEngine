@@ -2895,14 +2895,14 @@ namespace OsEngine.Market.Servers
             if (newMarketDepth.Bids != null &&
                 newMarketDepth.Bids.Count > 0)
             {
-                bestBid = newMarketDepth.Bids[0].Price;
+                bestBid = newMarketDepth.Bids[0].Price.ToDecimal();
             }
 
             decimal bestAsk = 0;
             if (newMarketDepth.Asks != null &&
                 newMarketDepth.Asks.Count > 0)
             {
-                bestAsk = newMarketDepth.Asks[0].Price;
+                bestAsk = newMarketDepth.Asks[0].Price.ToDecimal();
             }
 
             if (bestBid == 0 &&
@@ -3156,13 +3156,13 @@ namespace OsEngine.Market.Servers
             if (depth.Asks != null &&
                 depth.Asks.Count > 0)
             {
-                trade.Ask = depth.Asks[0].Price;
+                trade.Ask = depth.Asks[0].Price.ToDecimal();
             }
 
             if (depth.Bids != null &&
                 depth.Bids.Count > 0)
             {
-                trade.Bid = depth.Bids[0].Price;
+                trade.Bid = depth.Bids[0].Price.ToDecimal();
             }
 
             trade.BidsVolume = depth.BidSummVolume;

@@ -3226,8 +3226,8 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             for (int i = 0; i < updates.Count; i++)
             {
                 OrdersUpdate update = updates[i];
-                decimal price = update.Price.ToDecimal();
-                decimal size = update.Size.ToDecimal();
+                double price = update.Price.ToDouble();
+                double size = update.Size.ToDouble();
 
                 md.Time = DateTime.UtcNow;
                                 

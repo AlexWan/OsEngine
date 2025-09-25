@@ -1834,7 +1834,7 @@ namespace OsEngine.Market.Servers.TInvest
                         for (int i = 0; i < marketDataResponse.Orderbook.Bids.Count; i++)
                         {
                             MarketDepthLevel newBid = new MarketDepthLevel();
-                            newBid.Price = GetValue(marketDataResponse.Orderbook.Bids[i].Price);
+                            newBid.Price = Convert.ToDouble(GetValue(marketDataResponse.Orderbook.Bids[i].Price));
                             newBid.Bid = marketDataResponse.Orderbook.Bids[i].Quantity;
                             depth.Bids.Add(newBid);
                         }
@@ -1842,7 +1842,7 @@ namespace OsEngine.Market.Servers.TInvest
                         for (int i = 0; i < marketDataResponse.Orderbook.Asks.Count; i++)
                         {
                             MarketDepthLevel newAsk = new MarketDepthLevel();
-                            newAsk.Price = GetValue(marketDataResponse.Orderbook.Asks[i].Price);
+                            newAsk.Price = Convert.ToDouble(GetValue(marketDataResponse.Orderbook.Asks[i].Price));
                             newAsk.Ask = marketDataResponse.Orderbook.Asks[i].Quantity;
                             depth.Asks.Add(newAsk);
                         }
@@ -2019,8 +2019,8 @@ namespace OsEngine.Market.Servers.TInvest
             List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
             MarketDepthLevel newBid = new MarketDepthLevel();
-            newBid.Bid = trade.Volume;
-            newBid.Price = trade.Price;
+            newBid.Bid = Convert.ToDouble(trade.Volume);
+            newBid.Price = Convert.ToDouble(trade.Price);
             bids.Add(newBid);
 
             MarketDepth depth = new MarketDepth();
@@ -2032,8 +2032,8 @@ namespace OsEngine.Market.Servers.TInvest
             List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
 
             MarketDepthLevel newAsk = new MarketDepthLevel();
-            newAsk.Ask = trade.Volume;
-            newAsk.Price = trade.Price;
+            newAsk.Ask = Convert.ToDouble(trade.Volume);
+            newAsk.Price = Convert.ToDouble(trade.Price);
             asks.Add(newAsk);
 
             depth.Asks = asks;

@@ -1470,8 +1470,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             {
                                 asks.Add(new MarketDepthLevel()
                                 {
-                                    Ask = responseDepth.data.a[i][1].ToDecimal(),
-                                    Price = responseDepth.data.a[i][0].ToDecimal(),
+                                    Ask = responseDepth.data.a[i][1].ToDouble(),
+                                    Price = responseDepth.data.a[i][0].ToDouble(),
                                 });
                             }
                         }
@@ -1482,8 +1482,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             {
                                 bids.Add(new MarketDepthLevel()
                                 {
-                                    Bid = responseDepth.data.b[i][1].ToDecimal(),
-                                    Price = responseDepth.data.b[i][0].ToDecimal(),
+                                    Bid = responseDepth.data.b[i][1].ToDouble(),
+                                    Price = responseDepth.data.b[i][0].ToDouble(),
                                 });
                             }
                         }
@@ -1566,7 +1566,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         for (int k = 0; k < responseDepth.data.a.Count; k++)
                         {
-                            decimal priceLevel = responseDepth.data.a[k][0].ToDecimal();
+                            double priceLevel = responseDepth.data.a[k][0].ToDouble();
 
                             for (int j = 0; j < marketDepth.Asks.Count; j++)
                             {
@@ -1578,7 +1578,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                     }
                                     else
                                     {
-                                        marketDepth.Asks[j].Ask = responseDepth.data.a[k][1].ToDecimal();
+                                        marketDepth.Asks[j].Ask = responseDepth.data.a[k][1].ToDouble();
                                     }
                                 }
                                 else if (j == 0 && priceLevel < marketDepth.Asks[j].Price
@@ -1586,8 +1586,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 {
                                     marketDepth.Asks.Insert(j, new MarketDepthLevel()
                                     {
-                                        Ask = responseDepth.data.a[k][1].ToDecimal(),
-                                        Price = responseDepth.data.a[k][0].ToDecimal()
+                                        Ask = responseDepth.data.a[k][1].ToDouble(),
+                                        Price = responseDepth.data.a[k][0].ToDouble()
                                     });
                                 }
                                 else if (j != marketDepth.Asks.Count - 1 && priceLevel > marketDepth.Asks[j].Price
@@ -1596,8 +1596,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 {
                                     marketDepth.Asks.Insert(j + 1, new MarketDepthLevel()
                                     {
-                                        Ask = responseDepth.data.a[k][1].ToDecimal(),
-                                        Price = responseDepth.data.a[k][0].ToDecimal()
+                                        Ask = responseDepth.data.a[k][1].ToDouble(),
+                                        Price = responseDepth.data.a[k][0].ToDouble()
                                     });
                                 }
                                 else if (j == marketDepth.Asks.Count - 1 && priceLevel > marketDepth.Asks[j].Price
@@ -1605,8 +1605,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 {
                                     marketDepth.Asks.Add(new MarketDepthLevel()
                                     {
-                                        Ask = responseDepth.data.a[k][1].ToDecimal(),
-                                        Price = responseDepth.data.a[k][0].ToDecimal()
+                                        Ask = responseDepth.data.a[k][1].ToDouble(),
+                                        Price = responseDepth.data.a[k][0].ToDouble()
                                     });
                                 }
 
@@ -1624,7 +1624,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         for (int k = 0; k < responseDepth.data.b.Count; k++)
                         {
-                            decimal priceLevel = responseDepth.data.b[k][0].ToDecimal();
+                            double priceLevel = responseDepth.data.b[k][0].ToDouble();
 
                             for (int j = 0; j < marketDepth.Bids.Count; j++)
                             {
@@ -1636,7 +1636,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                     }
                                     else
                                     {
-                                        marketDepth.Bids[j].Bid = responseDepth.data.b[k][1].ToDecimal();
+                                        marketDepth.Bids[j].Bid = responseDepth.data.b[k][1].ToDouble();
                                     }
                                 }
                                 else if (j == 0 && priceLevel > marketDepth.Bids[j].Price
@@ -1644,8 +1644,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 {
                                     marketDepth.Bids.Insert(j, new MarketDepthLevel()
                                     {
-                                        Bid = responseDepth.data.b[k][1].ToDecimal(),
-                                        Price = responseDepth.data.b[k][0].ToDecimal()
+                                        Bid = responseDepth.data.b[k][1].ToDouble(),
+                                        Price = responseDepth.data.b[k][0].ToDouble()
                                     });
                                 }
                                 else if (j != marketDepth.Bids.Count - 1 && priceLevel < marketDepth.Bids[j].Price && priceLevel > marketDepth.Bids[j + 1].Price
@@ -1653,8 +1653,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 {
                                     marketDepth.Bids.Insert(j + 1, new MarketDepthLevel()
                                     {
-                                        Bid = responseDepth.data.b[k][1].ToDecimal(),
-                                        Price = responseDepth.data.b[k][0].ToDecimal()
+                                        Bid = responseDepth.data.b[k][1].ToDouble(),
+                                        Price = responseDepth.data.b[k][0].ToDouble()
                                     });
                                 }
                                 else if (j == marketDepth.Bids.Count - 1 && priceLevel < marketDepth.Bids[j].Price
@@ -1662,8 +1662,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                 {
                                     marketDepth.Bids.Add(new MarketDepthLevel()
                                     {
-                                        Bid = responseDepth.data.b[k][1].ToDecimal(),
-                                        Price = responseDepth.data.b[k][0].ToDecimal()
+                                        Bid = responseDepth.data.b[k][1].ToDouble(),
+                                        Price = responseDepth.data.b[k][0].ToDouble()
                                     });
                                 }
 

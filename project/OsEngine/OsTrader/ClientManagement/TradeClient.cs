@@ -139,6 +139,26 @@ namespace OsEngine.OsTrader.ClientManagement
         {
             try
             {
+                if(RobotsSettings.Count > 0)
+                {
+                    TradeClientRobot[] robots = RobotsSettings.ToArray();
+
+                    for (int i = 0; i < robots.Length; i++)
+                    {
+                        RemoveRobotAtNumber(robots[i].Number);
+                    }
+                }
+
+                if(ConnectorsSettings.Count > 0)
+                {
+                    TradeClientConnector[] connectors = ConnectorsSettings.ToArray();
+
+                    for (int i = 0; i < connectors.Length; i++)
+                    {
+                        RemoveConnectorAtNumber(connectors[i].Number);
+                    }
+                }
+
                 if (File.Exists(@"Engine\ClientManagement\" + Number + @"TradeClient.txt") == true)
                 {
                     File.Delete(@"Engine\ClientManagement\" + Number + @"TradeClient.txt");
@@ -349,6 +369,18 @@ namespace OsEngine.OsTrader.ClientManagement
             }
 
             Save();
+        }
+
+        public void UpdateInfo()
+        {
+            if(RobotsSettings.Count == 0)
+            {
+                return;
+            }
+            if(NewRobotEvent != null)
+            {
+                NewRobotEvent(RobotsSettings[0]);
+            }
         }
 
         public event Action<TradeClientRobot> NewRobotEvent;

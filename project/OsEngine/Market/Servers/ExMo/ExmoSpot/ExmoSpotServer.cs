@@ -1271,16 +1271,16 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
                 for (int i = 0; i < responseDepth.data.bid.Count; i++)
                 {
                     MarketDepthLevel newBid = new MarketDepthLevel();
-                    newBid.Price = responseDepth.data.bid[i][0].ToDecimal();
-                    newBid.Bid = responseDepth.data.bid[i][1].ToDecimal();
+                    newBid.Price = responseDepth.data.bid[i][0].ToDouble();
+                    newBid.Bid = responseDepth.data.bid[i][1].ToDouble();
                     depth.Bids.Add(newBid);
                 }
 
                 for (int i = 0; i < responseDepth.data.ask.Count; i++)
                 {
                     MarketDepthLevel newAsk = new MarketDepthLevel();
-                    newAsk.Price = responseDepth.data.ask[i][0].ToDecimal();
-                    newAsk.Ask = responseDepth.data.ask[i][1].ToDecimal();
+                    newAsk.Price = responseDepth.data.ask[i][0].ToDouble();
+                    newAsk.Ask = responseDepth.data.ask[i][1].ToDouble();
                     depth.Asks.Add(newAsk);
                 }
 

@@ -2151,8 +2151,8 @@ namespace OsEngine.Market.Servers.OKX
 
                 for (int i = 0; i < responseDepth.data[0].asks.Count; i++)
                 {
-                    decimal ask = responseDepth.data[0].asks[i][1].ToString().ToDecimal();
-                    decimal price = responseDepth.data[0].asks[i][0].ToString().ToDecimal();
+                    double ask = responseDepth.data[0].asks[i][1].ToString().ToDouble();
+                    double price = responseDepth.data[0].asks[i][0].ToString().ToDouble();
 
                     if (ask == 0 ||
                         price == 0)
@@ -2168,8 +2168,8 @@ namespace OsEngine.Market.Servers.OKX
 
                 for (int i = 0; i < responseDepth.data[0].bids.Count; i++)
                 {
-                    decimal bid = responseDepth.data[0].bids[i][1].ToString().ToDecimal();
-                    decimal price = responseDepth.data[0].bids[i][0].ToString().ToDecimal();
+                    double bid = responseDepth.data[0].bids[i][1].ToString().ToDouble();
+                    double price = responseDepth.data[0].bids[i][0].ToString().ToDouble();
 
                     if (bid == 0 ||
                         price == 0)

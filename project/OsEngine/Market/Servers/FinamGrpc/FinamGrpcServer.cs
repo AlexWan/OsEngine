@@ -607,17 +607,17 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     if (newLevel.Action == OrderBook.Types.Row.Types.Action.Remove || newLevel.Action == OrderBook.Types.Row.Types.Action.Unspecified) continue;
 
                     MarketDepthLevel level = new MarketDepthLevel();
-                    level.Price = newLevel.Price.Value.ToString().ToDecimal();
+                    level.Price = newLevel.Price.Value.ToString().ToDouble();
 
                     if (newLevel.SideCase == OrderBook.Types.Row.SideOneofCase.BuySize)
                     {
-                        level.Bid = newLevel.BuySize.Value.ToString().ToDecimal();
+                        level.Bid = newLevel.BuySize.Value.ToString().ToDouble();
                         depth.Bids.Add(level);
                     }
 
                     if (newLevel.SideCase == OrderBook.Types.Row.SideOneofCase.SellSize)
                     {
-                        level.Ask = newLevel.SellSize.Value.ToString().ToDecimal();
+                        level.Ask = newLevel.SellSize.Value.ToString().ToDouble();
                         depth.Asks.Add(level);
                     }
                 }
@@ -1154,17 +1154,17 @@ namespace OsEngine.Market.Servers.FinamGrpc
                                 if (newLevel.Action == StreamOrderBook.Types.Row.Types.Action.Remove || newLevel.Action == StreamOrderBook.Types.Row.Types.Action.Unspecified) continue;
                                 MarketDepthLevel level = new MarketDepthLevel
                                 {
-                                    Price = newLevel.Price.Value.ToString().ToDecimal()
+                                    Price = newLevel.Price.Value.ToString().ToDouble()
                                 };
 
                                 if (newLevel.SideCase == StreamOrderBook.Types.Row.SideOneofCase.BuySize)
                                 {
-                                    level.Bid = newLevel.BuySize.Value.ToString().ToDecimal();
+                                    level.Bid = newLevel.BuySize.Value.ToString().ToDouble();
                                     depth.Bids.Add(level);
                                 }
                                 else if (newLevel.SideCase == StreamOrderBook.Types.Row.SideOneofCase.SellSize)
                                 {
-                                    level.Ask = newLevel.SellSize.Value.ToString().ToDecimal();
+                                    level.Ask = newLevel.SellSize.Value.ToString().ToDouble();
                                     depth.Asks.Add(level);
                                 }
                             }

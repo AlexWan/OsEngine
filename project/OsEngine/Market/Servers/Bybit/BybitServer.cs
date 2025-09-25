@@ -3137,8 +3137,8 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     for (int i = 0; i < (responseDepth.data.a.Length / 2); i++)
                     {
-                        decimal.TryParse(responseDepth.data.a[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out decimal aPrice);
-                        decimal.TryParse(responseDepth.data.a[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out decimal aAsk);
+                        double.TryParse(responseDepth.data.a[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out double aPrice);
+                        double.TryParse(responseDepth.data.a[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out double aAsk);
 
                         if (marketDepth.Asks.Exists(a => a.Price == aPrice))
                         {
@@ -3174,8 +3174,8 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     for (int i = 0; i < (responseDepth.data.b.Length / 2); i++)
                     {
-                        decimal.TryParse(responseDepth.data.b[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out decimal bPrice);
-                        decimal.TryParse(responseDepth.data.b[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out decimal bBid);
+                        double.TryParse(responseDepth.data.b[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out double bPrice);
+                        double.TryParse(responseDepth.data.b[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out double bBid);
 
                         if (marketDepth.Bids.Exists(b => b.Price == bPrice))
                         {
