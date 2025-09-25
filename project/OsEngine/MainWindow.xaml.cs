@@ -117,7 +117,6 @@ namespace OsEngine
 
             ServerMaster.Activate();
             SystemUsageAnalyzeMaster.Activate();
-            ServerAvailabilityMaster.Activate();
 
             Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
 
