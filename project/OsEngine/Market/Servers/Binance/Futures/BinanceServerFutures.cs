@@ -301,9 +301,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             foreach (var sec in pairs.symbols)
             {
-                if (sec.status != "TRADING"
-                && sec.status != "HALT"
-                && sec.status != "BREAK")
+                string status = sec.status == null ? sec.contractStatus : sec.status.ToString();
+
+                if (status != "TRADING"
+                && status != "HALT"
+                && status != "BREAK")
                 {
                     continue;
                 }
@@ -640,6 +642,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     myPortfolio.ValueCurrent = Math.Round(sizeUSDT + positionInUSDT, 4);
                     myPortfolio.UnrealizedPnl = resultPnL;
+
+                    if (myPortfolio.ValueCurrent == 0)
+                    {
+                        myPortfolio.ValueCurrent = 1;
+                        myPortfolio.ValueBegin = 1;
+                    }
                 }
 
                 if (PortfolioEvent != null)
