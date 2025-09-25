@@ -255,7 +255,15 @@ namespace OsEngine.Market.Servers.OKX
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "www.okx.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

@@ -263,7 +263,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.huobi.pro"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

@@ -273,7 +273,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.hbdm.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

@@ -277,7 +277,20 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "fapi.binance.com",
+                    "fstream.binance.com",
+                    "dapi.binance.com",
+                    "dstream.binance.com",
+                    "testnet.binancefuture.com",
+                    "stream.binancefuture.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion
