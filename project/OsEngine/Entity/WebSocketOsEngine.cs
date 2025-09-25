@@ -64,7 +64,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
             }
         }
 
-        public async Task Connect()
+        public async Task Connect(TimeSpan? timeout = null)
         {
             try
             {
@@ -74,6 +74,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 }
 
                 CancellationToken token;
+                CancellationTokenSource timeoutCts = null;
 
                 lock (_ctsLocker)
                 {
@@ -83,11 +84,22 @@ namespace OsEngine.Entity.WebSocketOsEngine
                         _cts.Dispose();
                     }
 
-                    _cts = new CancellationTokenSource();
+                    if (timeout.HasValue)
+                    {
+                        timeoutCts = new CancellationTokenSource(timeout.Value);
+                        var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, new CancellationToken());
+                        _cts = linkedCts;
+                    }
+                    else
+                    {
+                        _cts = new CancellationTokenSource();
+                    }
                     token = _cts.Token;
                 }
 
                 await _client.ConnectAsync(new Uri(_url), token);
+
+                timeoutCts?.Dispose();
 
                 ReadyState = WebSocketState.Open;
 
@@ -116,10 +128,10 @@ namespace OsEngine.Entity.WebSocketOsEngine
             }
         }
 
-        public void ConnectAsync()
+        public void ConnectAsync(TimeSpan? timeout = null)
         {
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            Connect();
+            Connect(timeout);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
 
