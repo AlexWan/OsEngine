@@ -265,6 +265,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

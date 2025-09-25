@@ -261,6 +261,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

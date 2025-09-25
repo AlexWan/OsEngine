@@ -257,6 +257,11 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

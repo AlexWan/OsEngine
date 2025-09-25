@@ -276,6 +276,11 @@ namespace OsEngine.Market.Servers.BybitData
             get { return false; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

@@ -255,6 +255,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

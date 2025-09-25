@@ -278,6 +278,24 @@ namespace OsEngine.Market.Servers.Bybit
             get { return 50; }
         }
 
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.bybit.com",
+                    "api-demo.bybit.com",
+                    "api.bybit.nl",
+                    "api.byhkbit.com",
+                    "api.bybit-tr.com",
+                    "api.bybit.kz"
+                };
+
+                return pingIpDomens;
+            }
+        }
+
         #endregion
     }
 }

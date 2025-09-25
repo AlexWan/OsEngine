@@ -2318,5 +2318,17 @@ namespace OsEngine.Language
         public string Label604 => OsLocalization.ConvertToLocString(
         "Eng:Are you going to delete the robot? The data cannot be recovered! Are you sure?_" +
         "Ru:Вы собираетесь удалить робота? Данные нельзя будет восстановить! Вы уверены?_");
+
+        public string Label605 => OsLocalization.ConvertToLocString(
+        "Eng:Server availability_" +
+        "Ru:Доступность серверов_");
+
+        public string Label606 => OsLocalization.ConvertToLocString(
+        "Eng:Track the ping_" +
+        "Ru:Отслеживать пинг_");
+
+        public string Label607 => OsLocalization.ConvertToLocString(
+        "Eng:Ping interval. Seconds_" +
+        "Ru:Интервал пинга. Секунд_");
     }
 }

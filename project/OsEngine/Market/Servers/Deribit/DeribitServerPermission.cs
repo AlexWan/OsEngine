@@ -260,6 +260,11 @@ namespace OsEngine.Market.Servers.Deribit
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }
