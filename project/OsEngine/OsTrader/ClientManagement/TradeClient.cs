@@ -266,7 +266,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
                 if (i + 1 != RobotsSettings.Count)
                 {
-                    saveStr += "#";
+                    saveStr += "*";
                 }
             }
 
@@ -280,7 +280,7 @@ namespace OsEngine.OsTrader.ClientManagement
                 return;
             }
 
-            string[] robots = saveStr.Split('#');
+            string[] robots = saveStr.Split('*');
 
             for (int i = 0; i < robots.Length; i++)
             {

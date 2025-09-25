@@ -1024,7 +1024,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         private void ShowRobotsParametersDialog(int robotNumber)
         {
-
             TradeClientRobot bot = null;
 
             for (int i = 0; i < _client.RobotsSettings.Count; i++)

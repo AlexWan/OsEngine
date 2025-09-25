@@ -71,7 +71,6 @@ namespace OsEngine.Robots
             // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
-
             // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");

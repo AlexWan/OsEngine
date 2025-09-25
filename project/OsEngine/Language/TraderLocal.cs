@@ -2330,5 +2330,9 @@ namespace OsEngine.Language
         public string Label607 => OsLocalization.ConvertToLocString(
         "Eng:Ping interval. Seconds_" +
         "Ru:Интервал пинга. Секунд_");
+
+        public string Label608 => OsLocalization.ConvertToLocString(
+        "Eng:Parameters and bot select_" +
+        "Ru:Параметры и выбор робота_");
     }
 }

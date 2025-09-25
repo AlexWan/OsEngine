@@ -3,16 +3,14 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.Market.Servers.Entity;
 using OsEngine.OsTrader.ClientManagement.Gui;
+using OsEngine.OsTrader.Panels;
+using OsEngine.Robots;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OsEngine.OsTrader.ClientManagement
 {
@@ -22,7 +20,21 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public bool IsOn;
 
-        public string BotClassName = "None";
+        public string BotClassName
+        {
+            get {  return _botClassName; }
+            set
+            {
+                if(_botClassName == value)
+                {
+                    return;
+                }
+
+                _botClassName = value;
+                LoadParametersByBotClass();
+            }
+        }
+        private string _botClassName = "None";
 
         public string DeployStatus
         {
@@ -64,7 +76,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
             for (int i = 0; i < Parameters.Count; i++)
             {
-                saveStr += Parameters[i].GetSaveString() + "^";
+                saveStr += Parameters[i].Type.ToString() + "^" + Parameters[i].GetStringToSave() + "^";
             }
 
             saveStr += "&";
@@ -87,20 +99,82 @@ namespace OsEngine.OsTrader.ClientManagement
 
             Number = Convert.ToInt32(saveValues[0]);
             IsOn = Convert.ToBoolean(saveValues[1]);
-            BotClassName = saveValues[2];
+            _botClassName = saveValues[2];
 
             string[] parameters = saveValues[7].Split("^");
 
-            for(int i = 0;i < parameters.Length;i++)
+            for(int i = 0;i < parameters.Length;i+=2)
             {
-                if (string.IsNullOrEmpty(parameters[i]) == true)
+                if(i + 1 ==  parameters.Length)
                 {
                     continue;
                 }
 
-                TradeClientRobotsParameter newParameter = new TradeClientRobotsParameter();
-                newParameter.SetFromString(parameters[i]);
-                Parameters.Add(newParameter);
+                if (string.IsNullOrEmpty(parameters[i]) == true
+                    || string.IsNullOrEmpty(parameters[i+1]) == true)
+                {
+                    continue;
+                }
+
+                StrategyParameterType type;
+
+                if(Enum.TryParse(parameters[i], out type) == false)
+                {
+                    continue;
+                }
+
+                string[] saveArray = parameters[i + 1].Split('#');
+
+                string name = saveArray[0];
+
+                IIStrategyParameter param = null;
+                if (type == StrategyParameterType.Bool)
+                {
+                    param = new StrategyParameterBool(name, false);
+                    param.LoadParamFromString(saveArray);
+                }
+                else if (type == StrategyParameterType.Decimal)
+                {
+                    param = new StrategyParameterDecimal(name, 0, 0, 0, 0);
+                    param.LoadParamFromString(saveArray);
+                }
+                else if (type == StrategyParameterType.Int)
+                {
+                    param = new StrategyParameterInt(name, 0, 0, 0, 0);
+                    param.LoadParamFromString(saveArray);
+                }
+                else if (type == StrategyParameterType.String)
+                {
+                    param = new StrategyParameterString(name, "", null);
+                    param.LoadParamFromString(saveArray);
+                }
+                else if (type == StrategyParameterType.TimeOfDay)
+                {
+                    param = new StrategyParameterTimeOfDay(name, 0, 0, 0, 0);
+                    param.LoadParamFromString(saveArray);
+                }
+                else if (type == StrategyParameterType.Button)
+                {
+                    param = new StrategyParameterButton(name);
+                    param.LoadParamFromString(saveArray);
+                }
+                else if (type == StrategyParameterType.Label)
+                {
+                    param = new StrategyParameterLabel(name, "", "", 0, 0, System.Drawing.Color.White);
+                    param.LoadParamFromString(saveArray);
+                }
+                else if (type == StrategyParameterType.CheckBox)
+                {
+                    param = new StrategyParameterCheckBox(name, false);
+                    param.LoadParamFromString(saveArray);
+                }
+                else if (type == StrategyParameterType.DecimalCheckBox)
+                {
+                    param = new StrategyParameterDecimalCheckBox(name, 0, 0, 0, 0, false);
+                    param.LoadParamFromString(saveArray);
+                }
+
+                Parameters.Add(param);
             }
 
             string[] source = saveValues[8].Split("^");
@@ -121,7 +195,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
         #region Parameters
 
-        public List<TradeClientRobotsParameter> Parameters = new List<TradeClientRobotsParameter>();
+        public List<IIStrategyParameter> Parameters = new List<IIStrategyParameter>();
 
         private ClientRobotParametersUi _parametersUi;
 
@@ -140,13 +214,47 @@ namespace OsEngine.OsTrader.ClientManagement
                 {
                     _parametersUi.WindowState = System.Windows.WindowState.Normal;
                 }
-                _parametersUi.Show();
+
+                _parametersUi.Activate();
             }
         }
 
         private void _parametersUi_Closed(object sender, EventArgs e)
         {
             _parametersUi = null;
+        }
+
+        private void LoadParametersByBotClass()
+        {
+            if(string.IsNullOrEmpty(_botClassName))
+            {
+                return;
+            }
+
+            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, true);
+
+            if (bot == null)
+            {
+                return;
+            }
+
+            if (bot.Parameters == null ||
+                bot.Parameters.Count == 0)
+            {
+                return;
+            }
+
+            if (Parameters != null)
+            {
+                Parameters.Clear();
+            }
+
+            for (int i = 0; i < bot.Parameters.Count; i++)
+            {
+                Parameters.Add(bot.Parameters[i]);
+            }
+
+            bot.Delete();
         }
 
         #endregion
@@ -173,21 +281,31 @@ namespace OsEngine.OsTrader.ClientManagement
 
     public class TradeClientRobotsParameter
     {
+        public string Name;
 
+        public StrategyParameterType Type;
 
+        public string Value;
 
+        public List<string> ValuesEnum = new List<string>();
 
         public string GetSaveString()
         {
+
+
+
+
             return "";
         }
 
         public void SetFromString(string saveString)
         {
 
+
+
+
+
         }
-
-
     }
 
     public class TradeClientSourceSettings
