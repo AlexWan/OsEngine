@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity
+﻿namespace OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity
 {
     public class AgregatedHistoryTrade
     {
