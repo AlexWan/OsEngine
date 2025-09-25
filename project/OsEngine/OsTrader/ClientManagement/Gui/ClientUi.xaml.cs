@@ -62,6 +62,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             TabItem1.Header = OsLocalization.Trader.Label585;
             TabItem2.Header = OsLocalization.Trader.Label587;
+            TabItem3.Header = OsLocalization.Trader.Label332;
 
             this.Closed += ClientUi_Closed;
 
@@ -706,69 +707,71 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
-            colum1.HeaderText = "Class"; //"Class";
+            colum1.HeaderText = OsLocalization.Trader.Label166; //"Class";
             colum1.ReadOnly = true;
             colum1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum1);
 
             DataGridViewColumn colum2 = new DataGridViewColumn();
             colum2.CellTemplate = cell0;
-            colum2.HeaderText = "Parameters"; //"Parameters";
+            colum2.HeaderText = ""; //"Parameters";
             colum2.ReadOnly = false;
             colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum2);
 
             DataGridViewColumn colum3 = new DataGridViewColumn();
             colum3.CellTemplate = cell0;
-            colum3.HeaderText = "Sources"; //"Sources";
+            colum3.HeaderText = ""; //"Sources";
             colum3.ReadOnly = false;
             colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum3);
 
             DataGridViewColumn colum4 = new DataGridViewColumn();
             colum4.CellTemplate = cell0;
-            colum4.HeaderText = "Deploy status"; //"Deploy status"
+            colum4.HeaderText = OsLocalization.Trader.Label598; //"Deploy status"
             colum4.ReadOnly = false;
             colum4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum4);
 
             DataGridViewColumn colum5 = new DataGridViewColumn();
             colum5.CellTemplate = cell0;
-            colum5.HeaderText = "Deploy"; //"Deploy";
+            colum5.HeaderText = ""; //"Deploy";
             colum5.ReadOnly = false;
             colum5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum5);
 
             DataGridViewColumn colum6 = new DataGridViewColumn();
             colum6.CellTemplate = cell0;
-            colum6.HeaderText = "Collapse"; // "Collapse";
+            colum6.HeaderText = ""; // "Collapse";
             colum6.ReadOnly = false;
             colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum6);
 
             DataGridViewColumn colum7 = new DataGridViewColumn();
             colum7.CellTemplate = cell0;
-            colum7.HeaderText = "On/Off"; //"On/Off";
+            colum7.HeaderText = OsLocalization.Trader.Label184; //"On/Off";
             colum7.ReadOnly = false;
+            colum7.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum7);
 
             DataGridViewColumn colum8 = new DataGridViewColumn();
             colum8.CellTemplate = cell0;
-            colum8.HeaderText = "Emulator"; // "Emulator";
+            colum8.HeaderText = OsLocalization.Trader.Label185; // "Emulator";
+            colum8.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colum8.ReadOnly = false;
             colum8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum8);
 
             DataGridViewColumn colum9 = new DataGridViewColumn();
             colum9.CellTemplate = cell0;
-            colum9.HeaderText = "Chart"; //"Chart";
+            colum9.HeaderText = ""; //"Chart";
             colum9.ReadOnly = false;
             colum9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum9);
 
             DataGridViewColumn column10 = new DataGridViewColumn();
-            column10.HeaderText = "Delete"; // Delete
+            column10.HeaderText = ""; // Delete
             column10.CellTemplate = cell0;
             column10.ReadOnly = true;
             column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
@@ -795,7 +798,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 //4 "Deploy status"
                 //5 "Deploy";
                 //6 "Collapse";
-                //7 On/Off";
+                //7 "On/Off";
                 //8 "Emulator";
                 //9 "Chart";
                 //10 Delete / Add new
@@ -816,7 +819,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 else if (rowIndex < _client.RobotsSettings.Count
                    && columnIndex == 10)
                 { // Delete
-                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
 
                     AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label604);
 
@@ -829,50 +832,37 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
                     _client.RemoveRobotAtNumber(number);
                 }
-               /* else if (rowIndex < _client.ConnectorsSettings.Count
+                else if (rowIndex < _client.RobotsSettings.Count
                    && columnIndex == 2)
                 { // Parameters
-                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    ShowConnectorDialog(number);
+                    int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    ShowRobotsParametersDialog(number);
                 }
-                else if (rowIndex < _client.ConnectorsSettings.Count
-                   && columnIndex == 4)
-                { // Deploy
-                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    Deploy(number);
-                    RePaintConnectorsGrid();
+                else if (rowIndex < _client.RobotsSettings.Count
+                   && columnIndex == 3)
+                { // Sources
+                    int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    ShowRobotsSourcesDialog(number);
                 }
-                else if (rowIndex < _client.ConnectorsSettings.Count
+                else if (rowIndex < _client.RobotsSettings.Count
                    && columnIndex == 5)
-                { // Collapse
-                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    Collapse(number);
-                    RePaintConnectorsGrid();
+                { // Deploy
+                    int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    DeployRobot(number);
                 }
-                else if (rowIndex < _client.ConnectorsSettings.Count
+                else if (rowIndex < _client.RobotsSettings.Count
                    && columnIndex == 6)
-                { // GUI
-
-                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    ShowGui(number);
-                    RePaintConnectorsGrid();
+                { // Collapse
+                    int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    CollapseRobot(number);
                 }
-                else if (rowIndex < _client.ConnectorsSettings.Count
-                    && columnIndex == 8)
-                { //8 "Connect";
+                else if (rowIndex < _client.RobotsSettings.Count
+                    && columnIndex == 9)
+                { //8 "Chart";
 
-                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    Connect(number);
-                    RePaintConnectorsGrid();
+                    int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    ShowRobotsChartDialog(number);
                 }
-                else if (rowIndex < _client.ConnectorsSettings.Count
-                   && columnIndex == 9)
-                { //9 "Disconnect";
-
-                    int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    Disconnect(number);
-                    RePaintConnectorsGrid();
-                }*/
             }
             catch (Exception ex)
             {
@@ -987,31 +977,33 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             row.Cells[^1].Value = robot.BotClassName;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Parameters";
+            row.Cells[^1].Value = OsLocalization.Trader.Label45;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Sources";
+            row.Cells[^1].Value = OsLocalization.Trader.Label296;
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[^1].Value = robot.DeployStatus;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Deploy";
+            row.Cells[^1].Value = OsLocalization.Trader.Label588;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Collapse";
+            row.Cells[^1].Value = OsLocalization.Trader.Label600;
 
             row.Cells.Add(new DataGridViewCheckBoxCell());
+            row.Cells[^1].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             row.Cells[^1].Value = robot.RobotsIsOn;
 
             row.Cells.Add(new DataGridViewCheckBoxCell());
+            row.Cells[^1].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             row.Cells[^1].Value = robot.EmulatorIsOn;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Chart";
+            row.Cells[^1].Value = OsLocalization.Trader.Label172;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].Value = "Delete";
+            row.Cells[^1].Value = OsLocalization.Trader.Label470;
 
             return row;
         }
@@ -1024,6 +1016,60 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
         private void _client_NewRobotEvent(TradeClientRobot obj)
         {
             RePaintRobotsGrid();
+        }
+
+        #endregion
+
+        #region Client robots controls
+
+        private void ShowRobotsParametersDialog(int robotNumber)
+        {
+
+            TradeClientRobot bot = null;
+
+            for (int i = 0; i < _client.RobotsSettings.Count; i++)
+            {
+                if (_client.RobotsSettings[i].Number == robotNumber)
+                {
+                    bot = _client.RobotsSettings[i];
+                    break;
+                }
+            }
+
+            if(bot == null)
+            {
+                return;
+            }
+
+            bot.ShowParametersDialog(_client);
+        }
+
+        private void ShowRobotsSourcesDialog(int robotNumber)
+        {
+
+
+
+        }
+
+        private void ShowRobotsChartDialog(int robotNumber)
+        {
+
+
+
+        }
+
+        private void DeployRobot(int robotNumber)
+        {
+
+
+
+        }
+
+        private void CollapseRobot(int robotNumber)
+        {
+
+
+
         }
 
         #endregion

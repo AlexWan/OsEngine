@@ -275,6 +275,11 @@ namespace OsEngine.OsTrader.ClientManagement
 
         private void LoadRobotsFromString(string saveStr)
         {
+            if(saveStr == null)
+            {
+                return;
+            }
+
             string[] robots = saveStr.Split('#');
 
             for (int i = 0; i < robots.Length; i++)
