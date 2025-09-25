@@ -55,6 +55,7 @@ namespace OsEngine.Market.Servers.AE
         {
             try
             {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 _securities.Clear();
                 _myPortfolios.Clear();
                 _subscribedSecurities.Clear();
@@ -139,6 +140,7 @@ namespace OsEngine.Market.Servers.AE
         private string _username;
         private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
         private Dictionary<string, Order> _sentOrders = new Dictionary<string, Order>();
+        private Timer _loginTimeoutTimer;
 
         #endregion
 
@@ -664,7 +666,7 @@ namespace OsEngine.Market.Servers.AE
                     
                     try
                     {
-                        _ws.ConnectAsync();
+                        _ws.ConnectAsync(TimeSpan.FromSeconds(5));
                     }
                     catch (Exception ex)
                     {
@@ -678,6 +680,19 @@ namespace OsEngine.Market.Servers.AE
             }
         }
 
+        private void Reconnect()
+        {
+            // Use a separate thread to avoid blocking the event handler
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                SendLogMessage("Attempting to reconnect...", LogMessageType.System);
+                DeleteWebSocketConnection();
+                Thread.Sleep(5000); // Pause before reconnecting
+                CreateWebSocketConnection();
+            }).Start();
+        }
+
         private void DeleteWebSocketConnection()
         {
             try
@@ -686,15 +701,18 @@ namespace OsEngine.Market.Servers.AE
                 {
                     if (_ws != null)
                     {
-                        _ws.CloseAsync();
+                        _ws.OnOpen -= WebSocketData_Opened;
+                        _ws.OnClose -= WebSocketData_Closed;
+                        _ws.OnMessage -= WebSocketData_MessageReceived;
+                        _ws.OnError -= WebSocketData_Error;
+                        _ws.Dispose(); // Use Dispose which handles closing
+                        _ws = null;
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-            }
-            finally
-            {
+                SendLogMessage("Error during WebSocket deletion: " + ex, LogMessageType.Error);
             }
         }
 
@@ -749,58 +767,35 @@ namespace OsEngine.Market.Servers.AE
 
             SendLogMessage("Login sent to AE", LogMessageType.System);
 
+            _loginTimeoutTimer?.Dispose();
+            _loginTimeoutTimer = new Timer(LoginTimerElapsed, null, TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+
             CheckActivationSockets();
+        }
+
+        private void LoginTimerElapsed(object state)
+        {
+            SendLogMessage("Login response timed out. Reconnecting.", LogMessageType.Error);
+            Reconnect();
         }
 
         private void WebSocketData_Closed(object sender, CloseEventArgs e)
         {
-            //TlsHandshakeFailure
-            if (e.Code == "1015")
-            {
-                SendLogMessage($"Connection to AE closed unexpectedly Close code = {e.Code} with reason = {e.Reason}. Attempting reconnect.", LogMessageType.System);
-                _ws.ConnectAsync();
-                return;
-            }
-
-            try
-            {
-                SendLogMessage($"Connection to AE closed. Close code = {e.Code} with reason = {e.Reason}", LogMessageType.System);
-
-                lock (_socketLocker)
-                {
-                    _ws.OnOpen -= WebSocketData_Opened;
-                    _ws.OnClose -= WebSocketData_Closed;
-                    _ws.OnMessage -= WebSocketData_MessageReceived;
-                    _ws.OnError -= WebSocketData_Error;
-
-                    _ws = null;
-                }
-
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
+            SendLogMessage($"Connection to AE closed. Code: {e.Code}, Reason: {e.Reason}", LogMessageType.System);
+            ServerStatus = ServerConnectStatus.Disconnect;
+            DisconnectEvent?.Invoke();
+            Reconnect();
         }
 
         private void WebSocketData_Error(object sender, OsEngine.Entity.WebSocketOsEngine.ErrorEventArgs error)
         {
-            try
+            if (error.Exception != null)
             {
-                if (error.Exception != null)
-                {
-                    SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
-                }
+                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
             }
-            catch (Exception ex)
-            {
-                SendLogMessage("Data socket error: " + ex.ToString(), LogMessageType.Error);
-            }
+            ServerStatus = ServerConnectStatus.Disconnect;
+            DisconnectEvent?.Invoke();
+            Reconnect();
         }
 
         private void WebSocketData_MessageReceived(object sender, MessageEventArgs e)
@@ -931,6 +926,8 @@ namespace OsEngine.Market.Servers.AE
                         UpdateInstruments(message);
                     } else if (baseMessage.Type == "Accounts")
                     {
+                        _loginTimeoutTimer?.Dispose();
+                        _loginTimeoutTimer = null;
                         UpdateAccounts(message);
                     } else if (baseMessage.Type == "Q")
                     {
