@@ -1791,7 +1791,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                             _openInterest.Add(openInterestData);
                         }
                     }
-                } 
+                }
             }
             catch (Exception e)
             {
@@ -1970,127 +1970,127 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 return;
 
-             /*   if (portfs == null)
-                {
-                    return;
-                }
+                /*   if (portfs == null)
+                   {
+                       return;
+                   }
 
-                if (_portfolios == null)
-                {
-                    return;
-                }
+                   if (_portfolios == null)
+                   {
+                       return;
+                   }
 
-                Portfolio portfolio = null;
+                   Portfolio portfolio = null;
 
-                portfolio = _portfolios.Find(p => p.Number == "BinanceFutures");
+                   portfolio = _portfolios.Find(p => p.Number == "BinanceFutures");
 
 
-                if (portfolio == null)
-                {
-                    return;
-                }
+                   if (portfolio == null)
+                   {
+                       return;
+                   }
 
-                foreach (var onePortf in portfs.a.B)
-                {
-                    if (onePortf == null ||
-                        onePortf.a == null ||
-                        onePortf.wb == null)
-                    {
-                        continue;
-                    }
+                   foreach (var onePortf in portfs.a.B)
+                   {
+                       if (onePortf == null ||
+                           onePortf.a == null ||
+                           onePortf.wb == null)
+                       {
+                           continue;
+                       }
 
-                    PositionOnBoard neeedPortf =
-                        portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == onePortf.a);
+                       PositionOnBoard neeedPortf =
+                           portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == onePortf.a);
 
-                    if (neeedPortf == null)
-                    {
-                        continue;
-                    }
+                       if (neeedPortf == null)
+                       {
+                           continue;
+                       }
 
-                    neeedPortf.ValueCurrent =
-                        onePortf.wb.ToDecimal();
-                }
+                       neeedPortf.ValueCurrent =
+                           onePortf.wb.ToDecimal();
+                   }
 
-                bool allPosesIsNull = true;
+                   bool allPosesIsNull = true;
 
-                foreach (var onePortf in portfs.a.P)
-                {
-                    if (onePortf == null ||
-                        onePortf.s == null ||
-                        onePortf.pa == null)
-                    {
-                        continue;
-                    }
+                   foreach (var onePortf in portfs.a.P)
+                   {
+                       if (onePortf == null ||
+                           onePortf.s == null ||
+                           onePortf.pa == null)
+                       {
+                           continue;
+                       }
 
-                    if (onePortf.ep.ToDecimal() == 0)
-                    {
-                        continue;
-                    }
+                       if (onePortf.ep.ToDecimal() == 0)
+                       {
+                           continue;
+                       }
 
-                    allPosesIsNull = false;
+                       allPosesIsNull = false;
 
-                    string name = onePortf.s;
+                       string name = onePortf.s;
 
-                    if (onePortf.pa.ToDecimal() > 0)
-                    {
-                        name += "_LONG";
-                    }
-                    else
-                    {
-                        name += "_SHORT";
-                    }
+                       if (onePortf.pa.ToDecimal() > 0)
+                       {
+                           name += "_LONG";
+                       }
+                       else
+                       {
+                           name += "_SHORT";
+                       }
 
-                    PositionOnBoard neeedPortf =
-                        portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == name);
+                       PositionOnBoard neeedPortf =
+                           portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == name);
 
-                    if (neeedPortf == null)
-                    {
-                        PositionOnBoard newPositionOnBoard = new PositionOnBoard();
-                        newPositionOnBoard.SecurityNameCode = name;
-                        newPositionOnBoard.PortfolioName = portfolio.Number;
-                        newPositionOnBoard.ValueBegin =
-                            onePortf.pa.ToDecimal();
-                        portfolio.SetNewPosition(newPositionOnBoard);
-                        neeedPortf = newPositionOnBoard;
-                    }
+                       if (neeedPortf == null)
+                       {
+                           PositionOnBoard newPositionOnBoard = new PositionOnBoard();
+                           newPositionOnBoard.SecurityNameCode = name;
+                           newPositionOnBoard.PortfolioName = portfolio.Number;
+                           newPositionOnBoard.ValueBegin =
+                               onePortf.pa.ToDecimal();
+                           portfolio.SetNewPosition(newPositionOnBoard);
+                           neeedPortf = newPositionOnBoard;
+                       }
 
-                    neeedPortf.ValueCurrent =
-                        onePortf.pa.ToDecimal();
-                }
+                       neeedPortf.ValueCurrent =
+                           onePortf.pa.ToDecimal();
+                   }
 
-                if (allPosesIsNull == true)
-                {
-                    foreach (var onePortf in portfs.a.P)
-                    {
-                        if (onePortf == null ||
-                            onePortf.s == null ||
-                            onePortf.pa == null)
-                        {
-                            continue;
-                        }
+                   if (allPosesIsNull == true)
+                   {
+                       foreach (var onePortf in portfs.a.P)
+                       {
+                           if (onePortf == null ||
+                               onePortf.s == null ||
+                               onePortf.pa == null)
+                           {
+                               continue;
+                           }
 
-                        PositionOnBoard neeedPortf =
-                            portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == onePortf.s);
+                           PositionOnBoard neeedPortf =
+                               portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == onePortf.s);
 
-                        if (neeedPortf == null)
-                        {
-                            PositionOnBoard newPositionOnBoard = new PositionOnBoard();
-                            newPositionOnBoard.SecurityNameCode = onePortf.s;
-                            newPositionOnBoard.PortfolioName = portfolio.Number;
-                            newPositionOnBoard.ValueBegin = 0;
-                            portfolio.SetNewPosition(newPositionOnBoard);
-                            neeedPortf = newPositionOnBoard;
-                        }
+                           if (neeedPortf == null)
+                           {
+                               PositionOnBoard newPositionOnBoard = new PositionOnBoard();
+                               newPositionOnBoard.SecurityNameCode = onePortf.s;
+                               newPositionOnBoard.PortfolioName = portfolio.Number;
+                               newPositionOnBoard.ValueBegin = 0;
+                               portfolio.SetNewPosition(newPositionOnBoard);
+                               neeedPortf = newPositionOnBoard;
+                           }
 
-                        neeedPortf.ValueCurrent = 0;
-                        break;
-                    }
-                }
+                           neeedPortf.ValueCurrent = 0;
+                           break;
+                       }
+                   }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }*/
+                   if (PortfolioEvent != null)
+                   {
+                       PortfolioEvent(_portfolios);
+                   }*/
             }
             catch (Exception error)
             {
@@ -2647,40 +2647,40 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             return;
-           /* if (string.IsNullOrEmpty(order.NumberMarket))
-            {
-                SendLogMessage("Can`t change order price. Market Num order is null. "
-                    + " SecName: " + order.SecurityNameCode
-                    + " NumberUser: " + order.NumberUser
-                    , LogMessageType.Error);
-                return;
-            }
+            /* if (string.IsNullOrEmpty(order.NumberMarket))
+             {
+                 SendLogMessage("Can`t change order price. Market Num order is null. "
+                     + " SecName: " + order.SecurityNameCode
+                     + " NumberUser: " + order.NumberUser
+                     , LogMessageType.Error);
+                 return;
+             }
 
-            var param = new Dictionary<string, string>();
-            param.Add("orderId=", order.NumberMarket);
-            param.Add("origClientOrderId=", order.NumberUser.ToString());
-            param.Add("symbol=", order.SecurityNameCode.ToUpper());
-            param.Add("side=", order.Side.ToString().ToUpper());
-            param.Add("quantity=", order.Volume.ToString());
-            param.Add("price=", newPrice.ToString());
+             var param = new Dictionary<string, string>();
+             param.Add("orderId=", order.NumberMarket);
+             param.Add("origClientOrderId=", order.NumberUser.ToString());
+             param.Add("symbol=", order.SecurityNameCode.ToUpper());
+             param.Add("side=", order.Side.ToString().ToUpper());
+             param.Add("quantity=", order.Volume.ToString());
+             param.Add("price=", newPrice.ToString());
 
-            var res = CreateQuery(
-                       Method.PUT,
-                       "/" + type_str_selector + "/v1/order",
-                       param,
-                       true);
+             var res = CreateQuery(
+                        Method.PUT,
+                        "/" + type_str_selector + "/v1/order",
+                        param,
+                        true);
 
-            if (res == null)
-            {
-                return;
-            }*/
+             if (res == null)
+             {
+                 return;
+             }*/
         }
 
         public void CancelAllOrders()
         {
             try
             {
-                List<Order> ordersOnBoard = GetAllActivOrdersQuery();
+                List<Order> ordersOnBoard = GetAllActivOrdersArray(100);
 
                 if (ordersOnBoard == null)
                 {
@@ -2700,7 +2700,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public void GetAllActivOrders()
         {
-            List<Order> ordersOnBoard = GetAllActivOrdersQuery();
+            List<Order> ordersOnBoard = GetAllActivOrdersArray(100);
 
             if (ordersOnBoard == null)
             {
@@ -2714,6 +2714,23 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     MyOrderEvent(ordersOnBoard[i]);
                 }
             }
+        }
+
+        private List<Order> GetAllActivOrdersArray(int maxCountByCategory)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> orders = new List<Order>();
+
+            GetAllActivOrdersQuery(orders, 100);
+
+            if (orders != null
+                && orders.Count > 0)
+            {
+                ordersOpenAll.AddRange(orders);
+            }
+
+            return ordersOpenAll;
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -2813,16 +2830,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return null;
         }
 
-        private List<Order> GetAllActivOrdersQuery()
+        private void GetAllActivOrdersQuery(List<Order> array, int maxCount)
         {
             try
             {
                 string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/openOrders", null, true);
 
-                if (res == null ||
-                    res == "[]")
+                if (res == null
+                    || res == "[]")
                 {
-                    return null;
+                    return;
                 }
 
                 List<OrderOpenRestRespFut> respOrders = JsonConvert.DeserializeAnonymousType(res, new List<OrderOpenRestRespFut>());
@@ -2879,13 +2896,35 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     orderOnBoard.Add(newOrder);
                 }
 
-                return orderOnBoard;
+                if (orderOnBoard.Count > 0)
+                {
+                    array.AddRange(orderOnBoard);
+
+                    if (array.Count > maxCount)
+                    {
+                        while (array.Count > maxCount)
+                        {
+                            array.RemoveAt(array.Count - 1);
+                        }
+                        return;
+                    }
+                    else if (array.Count < 40)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+
+                return;
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.Message, LogMessageType.Error);
+                return;
             }
-            return null;
         }
 
         private Order GetActualOrderQuery(Order oldOrder)
@@ -2934,7 +2973,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             newOrder.NumberMarket = orderOnBoard.orderId;
             newOrder.NumberUser = oldOrder.NumberUser;
             newOrder.SecurityNameCode = oldOrder.SecurityNameCode;
-            newOrder.State = OrderStateType.Cancel;
+            // newOrder.State = OrderStateType.Cancel;
 
             newOrder.Volume = oldOrder.Volume;
             newOrder.VolumeExecute = oldOrder.VolumeExecute;
@@ -2951,7 +2990,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             if (orderOnBoard.status == "NEW" ||
                 orderOnBoard.status == "PARTIALLY_FILLED")
-            { // order is active. Do nothing / ордер активен. Ничего не делаем
+            { // order is active. Do nothing
                 newOrder.State = OrderStateType.Active;
             }
             else if (orderOnBoard.status == "FILLED")
@@ -2969,7 +3008,26 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public List<Order> GetActiveOrders(int startIndex, int count)
         {
-            return null;
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllActivOrdersArray(countToMethod);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
         }
 
         public List<Order> GetHistoricalOrders(int startIndex, int count)
