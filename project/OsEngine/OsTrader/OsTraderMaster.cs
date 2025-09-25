@@ -17,6 +17,7 @@ using OsEngine.OsTrader.MemoryRH;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
+using OsEngine.OsTrader.ServerAvailability;
 using OsEngine.PrimeSettings;
 using OsEngine.Robots;
 using System;
@@ -85,6 +86,7 @@ namespace OsEngine.OsTrader
                 ServerMaster.ActivateAutoConnection();
                 ServerMaster.ActivateProxy();
                 ServerMaster.ActivateCopyMaster();
+                ServerAvailabilityMaster.Activate();
 
                 ClientManagementMaster clientManagementMaster = new ClientManagementMaster();
 

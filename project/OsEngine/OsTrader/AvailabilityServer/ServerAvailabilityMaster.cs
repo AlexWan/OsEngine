@@ -1,4 +1,5 @@
-﻿using OsEngine.Market;
+﻿using OsEngine.Entity;
+using OsEngine.Market;
 using OsEngine.Market.Servers;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,8 @@ namespace OsEngine.OsTrader.ServerAvailability
             try
             {
                 IServerPermission permission = ServerMaster.GetServerPermission(server.ServerType);
+
+                if (permission == null) return;
 
                 if (permission.IpAddresServer == null) return;
 
@@ -136,7 +139,7 @@ namespace OsEngine.OsTrader.ServerAvailability
                         Thread.Sleep(500);
                         continue;
                     }
-                    
+
                     if (!_isTrackPing)
                     {
                         Thread.Sleep(500);
@@ -161,8 +164,10 @@ namespace OsEngine.OsTrader.ServerAvailability
                             {
                                 item.PingValue = "None";
                             }
-
-                            item.PingValue = pingValue;
+                            else
+                            {
+                                item.PingValue = pingValue;
+                            }
                         }
                     }
 
