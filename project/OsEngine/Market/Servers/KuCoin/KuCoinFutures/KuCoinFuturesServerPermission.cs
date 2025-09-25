@@ -277,6 +277,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

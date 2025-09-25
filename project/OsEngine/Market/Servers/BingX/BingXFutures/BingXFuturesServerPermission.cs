@@ -275,6 +275,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }
