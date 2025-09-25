@@ -55,6 +55,15 @@ namespace OsEngine.Entity.WebSocketOsEngine
             _client.Options.RemoteCertificateValidationCallback = (sender, cert, chain, errors) => true;
         }
 
+        public void SetSslProtocols(System.Security.Authentication.SslProtocols protocols)
+        {
+            var property = typeof(ClientWebSocketOptions).GetProperty("SslProtocols");
+            if (property != null)
+            {
+                property.SetValue(_client.Options, protocols);
+            }
+        }
+
         public async Task Connect()
         {
             try
