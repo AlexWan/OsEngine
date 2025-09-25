@@ -1,5 +1,6 @@
 ﻿using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Layout;
 using OsEngine.Market;
 using System;
 using System.Linq;
@@ -17,12 +18,16 @@ namespace OsEngine.OsTrader.ServerAvailability
         {
             InitializeComponent();
 
+            StickyBorders.Listen(this);
+            StartupLocation.Start_MouseInCentre(this);
+
             CheckBoxTrackPing.IsChecked = ServerAvailabilityMaster.IsTrackPing;
             CheckBoxTrackPing.Checked += CheckBoxTrackPing_Checked;
             CheckBoxTrackPing.Unchecked += CheckBoxTrackPing_Checked;
 
-            CreateConnectorChart();
-            CreatePingValueChart();
+            // Изменяем порядок: сначала создаем обе таблицы
+            _dataGridConnector = CreateConnectorChart();
+            _dataGridPingValue = CreatePingValueChart();
 
             ServerAvailabilityMaster.PingChangeEvent += PingConnectorsMaster_PingChangeEvent;
 
@@ -38,6 +43,8 @@ namespace OsEngine.OsTrader.ServerAvailability
             TextBoxRefreshRate.SelectionChanged += TextBoxRefreshRate_SelectionChanged;
             TextBoxRefreshRate.SelectedItem = TextBoxRefreshRate.Items[1];
         }
+
+        #region Events
 
         private void TextBoxRefreshRate_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -58,6 +65,101 @@ namespace OsEngine.OsTrader.ServerAvailability
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
+
+        private void PingConnectorsMaster_PingChangeEvent()
+        {
+            UpdateGrid();
+        }
+
+        private void CheckBoxTrackPing_Checked(object sender, RoutedEventArgs e)
+        {
+            ServerAvailabilityMaster.IsTrackPing = CheckBoxTrackPing.IsChecked.Value;
+        }
+
+        #endregion
+
+        #region Fields
+
+        private DataGridView _dataGridConnector;
+        private DataGridView _dataGridPingValue;
+
+        #endregion
+
+        #region Create chart
+
+        private DataGridView CreatePingValueChart()
+        {
+            var dataGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None, false);
+            dataGrid.RowTemplate.Height = 50;
+            dataGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; // ← ВАЖНО: отключаем авто-размер
+
+            DataGridViewCellStyle headerStyle = new DataGridViewCellStyle();
+            headerStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = dataGrid.DefaultCellStyle; // ← Используем стиль текущей таблицы
+
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = "Пинг";
+            column0.ReadOnly = true;
+            column0.HeaderCell.Style = headerStyle;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            dataGrid.Columns.Add(column0);
+
+            HostPingValues.Child = dataGrid;
+            return dataGrid;
+        }
+
+        private DataGridView CreateConnectorChart()
+        {
+            try
+            {
+                var dataGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
+                dataGrid.ScrollBars = ScrollBars.Vertical;
+                dataGrid.RowTemplate.Height = 50;
+                dataGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; // ← ВАЖНО: отключаем авто-размер
+
+                DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+                cell0.Style = dataGrid.DefaultCellStyle;
+
+                DataGridViewColumn column0 = new DataGridViewColumn();
+                column0.CellTemplate = cell0;
+                column0.HeaderText = "Коннектор";
+                column0.ReadOnly = true;
+                column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                dataGrid.Columns.Add(column0);
+
+                DataGridViewColumn column1 = new DataGridViewColumn();
+                column1.CellTemplate = cell0;
+                column1.HeaderText = "Сервера";
+                column1.ReadOnly = false;
+                column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                dataGrid.Columns.Add(column1);
+
+                DataGridViewColumn column2 = new DataGridViewColumn();
+                column2.CellTemplate = cell0;
+                column2.HeaderText = OsLocalization.Market.Label182;
+                column2.ReadOnly = false;
+                column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                dataGrid.Columns.Add(column2);
+
+                HostActiveConnections.Child = dataGrid;
+                dataGrid.CellValueChanged += _dataGridConnector_CellValueChanged;
+
+                return dataGrid;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                return null;
+            }
+        }
+
+        #endregion
+
+        #region Update chart
 
         private void SaveConnectorService(ServerAvailabilityMaster.IpAdressConnectorService connectorService, DataGridViewRow dataGridViewRow)
         {
@@ -87,91 +189,15 @@ namespace OsEngine.OsTrader.ServerAvailability
             }
         }
 
-        private void PingConnectorsMaster_PingChangeEvent()
-        {
-            UpdateGrid();
-        }
-
-        private DataGridView _dataGridConnector;
-        private DataGridView _dataGridPingValue;
-
-        private void CreatePingValueChart()
-        {
-            _dataGridPingValue = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
-
-            _dataGridConnector.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            _dataGridConnector.RowTemplate.Height = 30;
-
-            DataGridViewCellStyle headerStyle = new DataGridViewCellStyle();
-            headerStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
-            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = _dataGridConnector.DefaultCellStyle;
-
-            DataGridViewColumn column0 = new DataGridViewColumn();
-            column0.CellTemplate = cell0;
-            column0.HeaderText = "Пинг";
-            column0.ReadOnly = true;
-            column0.HeaderCell.Style = headerStyle;
-            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _dataGridPingValue.Columns.Add(column0);
-
-            HostPingValues.Child = _dataGridPingValue;
-        }
-
-        private void CreateConnectorChart()
-        {
-            try
-            {
-                _dataGridConnector = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
-                _dataGridConnector.ScrollBars = ScrollBars.Vertical;
-
-                DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-                cell0.Style = _dataGridConnector.DefaultCellStyle;
-
-                DataGridViewColumn column0 = new DataGridViewColumn();
-                column0.CellTemplate = cell0;
-                column0.HeaderText = "Коннектор"; // serverType
-                column0.ReadOnly = true;
-                column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                _dataGridConnector.Columns.Add(column0);
-
-                DataGridViewColumn column2 = new DataGridViewColumn();
-                column2.CellTemplate = cell0;
-                column2.HeaderText = "Сервера"; // IpAdresServers
-                column2.ReadOnly = false;
-                column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                _dataGridConnector.Columns.Add(column2);
-
-                DataGridViewColumn column3 = new DataGridViewColumn();
-                column3.CellTemplate = cell0;
-                column3.HeaderText = OsLocalization.Market.Label182; // IsOn
-                column3.ReadOnly = false;
-                column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                _dataGridConnector.Columns.Add(column3);
-
-                HostActiveConnections.Child = _dataGridConnector;
-                _dataGridConnector.CellValueChanged += _dataGridConnector_CellValueChanged;
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
         private void UpdateGrid()
         {
             try
             {
                 if (_dataGridConnector.InvokeRequired || _dataGridPingValue.InvokeRequired)
                 {
-                    _dataGridConnector.Invoke(new Action(PingConnectorsMaster_PingChangeEvent));
+                    _dataGridConnector.Invoke(new Action(UpdateGrid));
                     return;
                 }
-
-                DataGridViewCellStyle rowStyle = new DataGridViewCellStyle();
-                rowStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
                 if (_dataGridConnector.Rows.Count != ServerAvailabilityMaster.CurrentIpConnectors.Count)
                 {
@@ -181,10 +207,10 @@ namespace OsEngine.OsTrader.ServerAvailability
                     for (int i = 0; i < ServerAvailabilityMaster.CurrentIpConnectors.Count; i++)
                     {
                         ServerAvailabilityMaster.IpAdressConnectorService server = ServerAvailabilityMaster.CurrentIpConnectors[i];
-
-                        _dataGridConnector.Rows.Add(GetConnectorRow(server));
+                        DataGridViewRow row = GetConnectorRow(server);
+                        row.Height = 50;
+                        _dataGridConnector.Rows.Add(row);
                     }
-
                     _dataGridConnector.ResumeLayout();
                 }
 
@@ -196,10 +222,10 @@ namespace OsEngine.OsTrader.ServerAvailability
                     ServerAvailabilityMaster.IpAdressConnectorService server = ServerAvailabilityMaster.CurrentIpConnectors[i];
 
                     int rowIndex = _dataGridPingValue.Rows.Add();
-                    _dataGridPingValue.Rows[rowIndex].Cells[0].Style = rowStyle;
-                    _dataGridPingValue.Rows[rowIndex].Cells[0].Value = server.PingValue;
+                    DataGridViewRow row = _dataGridPingValue.Rows[rowIndex];
+                    row.Height = 50;
+                    row.Cells[0].Value = server.PingValue;
                 }
-
                 _dataGridPingValue.ResumeLayout();
 
                 _dataGridConnector.Refresh();
@@ -214,28 +240,34 @@ namespace OsEngine.OsTrader.ServerAvailability
         private DataGridViewRow GetConnectorRow(ServerAvailabilityMaster.IpAdressConnectorService service)
         {
             DataGridViewRow nRow = new DataGridViewRow();
+            nRow.Height = 50;
+
+            DataGridViewCellStyle cellStyle = new DataGridViewCellStyle();
+            cellStyle.Padding = new Padding(0, 5, 0, 5);
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[nRow.Cells.Count - 1].Value = service.ServerType;
+            nRow.Cells[nRow.Cells.Count - 1].Style = cellStyle;
 
             DataGridViewComboBoxCell cellIpAdress = new DataGridViewComboBoxCell();
+            cellIpAdress.FlatStyle = FlatStyle.Flat;
             for (int i = 0; i < service.IpAddresses.Count(); i++)
                 cellIpAdress.Items.Add(service.IpAddresses[i]);
             cellIpAdress.Value = service.CurrentIpAddres;
+            cellIpAdress.Style = cellStyle;
             nRow.Cells.Add(cellIpAdress);
 
             DataGridViewComboBoxCell cellIsOn = new DataGridViewComboBoxCell();
+            cellIsOn.FlatStyle = FlatStyle.Flat;
             cellIsOn.Items.Add("True");
             cellIsOn.Items.Add("False");
             cellIsOn.Value = service.IsOn.ToString();
+            cellIsOn.Style = cellStyle;
             nRow.Cells.Add(cellIsOn);
 
             return nRow;
         }
 
-        private void CheckBoxTrackPing_Checked(object sender, RoutedEventArgs e)
-        {
-            ServerAvailabilityMaster.IsTrackPing = CheckBoxTrackPing.IsChecked.Value;
-        }
+        #endregion
     }
 }

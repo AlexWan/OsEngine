@@ -257,7 +257,15 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.hbdm.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

@@ -145,7 +145,6 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonProxy_Click(object sender, RoutedEventArgs e)
         {
-            
             ServerMaster.ShowProxyDialog();
         }
 

@@ -293,7 +293,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public string[] IpAddresServer
         {
-            get{ return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.bitget.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

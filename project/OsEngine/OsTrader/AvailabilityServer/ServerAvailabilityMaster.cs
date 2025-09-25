@@ -11,6 +11,9 @@ namespace OsEngine.OsTrader.ServerAvailability
 {
     internal class ServerAvailabilityMaster
     {
+
+        #region External call
+
         public static void Activate()
         {
             if (_worker == null)
@@ -23,72 +26,6 @@ namespace OsEngine.OsTrader.ServerAvailability
                 _worker.Start();
             }
         }
-
-        private static void _ui_Closed(object sender, EventArgs e)
-        {
-            _ui = null;
-        }
-
-        private static string _lockListIpConnectors = "lockListIpConnectors";
-        private static void ServerMaster_ServerCreateEvent(IServer server)
-        {
-            try
-            {
-                IServerPermission permission = ServerMaster.GetServerPermission(server.ServerType);
-
-                if (permission == null) return;
-
-                if (permission.IpAddresServer == null) return;
-
-                if (_currentIpConnectors.Count == 0)
-                {
-                    IpAdressConnectorService connectorService = new IpAdressConnectorService();
-                    connectorService.IpAddresses = permission.IpAddresServer;
-                    connectorService.ServerType = server.ServerType.ToString();
-                    connectorService.CurrentIpAddres = permission.IpAddresServer[0];
-                    connectorService.PingValue = "None";
-                    connectorService.IsOn = true;
-
-                    lock (_lockListIpConnectors)
-                    {
-                        _currentIpConnectors.Add(connectorService);
-                    }
-                }
-                else
-                {
-                    bool inStock = false;
-                    for (int i = 0; i < _currentIpConnectors.Count; i++)
-                    {
-                        if (_currentIpConnectors[i].ServerType == server.ServerType.ToString())
-                        {
-                            inStock = true;
-                            break;
-                        }
-                    }
-
-                    if (!inStock)
-                    {
-                        IpAdressConnectorService connectorService = new IpAdressConnectorService();
-                        connectorService.IpAddresses = permission.IpAddresServer;
-                        connectorService.ServerType = server.ServerType.ToString();
-                        connectorService.CurrentIpAddres = permission.IpAddresServer[0];
-                        connectorService.PingValue = "None";
-                        connectorService.IsOn = true;
-
-                        lock (_lockListIpConnectors)
-                        {
-                            _currentIpConnectors.Add(connectorService);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private static ServerAvailabilityUi _ui;
 
         public static void ShowDialog()
         {
@@ -116,7 +53,15 @@ namespace OsEngine.OsTrader.ServerAvailability
             }
         }
 
-        private static Thread _worker;
+        private static void _ui_Closed(object sender, EventArgs e)
+        {
+            _ui = null;
+        }
+
+        #endregion
+
+        #region Main thread
+
         private static void PingAnalysisThread()
         {
             while (true)
@@ -210,18 +155,87 @@ namespace OsEngine.OsTrader.ServerAvailability
             }
         }
 
+        #endregion
+
+        #region Fields
+
         private static DateTime _nextTimeForCheckPing = DateTime.MinValue;
+
+        private static Thread _worker;
+
+        private static ServerAvailabilityUi _ui;
+
+        private static string _lockListIpConnectors = "lockListIpConnectors";
+
+        #endregion
 
         #region Events
 
         public static event Action PingChangeEvent;
+
+        private static void ServerMaster_ServerCreateEvent(IServer server)
+        {
+            try
+            {
+                IServerPermission permission = ServerMaster.GetServerPermission(server.ServerType);
+
+                if (permission == null) return;
+
+                if (permission.IpAddresServer == null) return;
+
+                if (_currentIpConnectors.Count == 0)
+                {
+                    IpAdressConnectorService connectorService = new IpAdressConnectorService();
+                    connectorService.IpAddresses = permission.IpAddresServer;
+                    connectorService.ServerType = server.ServerType.ToString();
+                    connectorService.CurrentIpAddres = permission.IpAddresServer[0];
+                    connectorService.PingValue = "None";
+                    connectorService.IsOn = true;
+
+                    lock (_lockListIpConnectors)
+                    {
+                        _currentIpConnectors.Add(connectorService);
+                    }
+                }
+                else
+                {
+                    bool inStock = false;
+                    for (int i = 0; i < _currentIpConnectors.Count; i++)
+                    {
+                        if (_currentIpConnectors[i].ServerType == server.ServerType.ToString())
+                        {
+                            inStock = true;
+                            break;
+                        }
+                    }
+
+                    if (!inStock)
+                    {
+                        IpAdressConnectorService connectorService = new IpAdressConnectorService();
+                        connectorService.IpAddresses = permission.IpAddresServer;
+                        connectorService.ServerType = server.ServerType.ToString();
+                        connectorService.CurrentIpAddres = permission.IpAddresServer[0];
+                        connectorService.PingValue = "None";
+                        connectorService.IsOn = true;
+
+                        lock (_lockListIpConnectors)
+                        {
+                            _currentIpConnectors.Add(connectorService);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         #endregion
 
         #region Properties
 
         private static List<IpAdressConnectorService> _currentIpConnectors = new List<IpAdressConnectorService>();
-
         public static List<IpAdressConnectorService> CurrentIpConnectors
         {
             get
@@ -233,9 +247,7 @@ namespace OsEngine.OsTrader.ServerAvailability
             }
         }
 
-        private static bool _isTrackPing;
         private static double _checkPingPeriod = 10;
-
         public static double CheckPingPeriod
         {
             get
@@ -245,6 +257,7 @@ namespace OsEngine.OsTrader.ServerAvailability
             set { _checkPingPeriod = value; }
         }
 
+        private static bool _isTrackPing;
         public static bool IsTrackPing
         {
             get
