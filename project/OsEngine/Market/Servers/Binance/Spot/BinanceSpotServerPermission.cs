@@ -18,74 +18,92 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             get { return true; }
         }
+
         public bool DataFeedTf2SecondCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf5SecondCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf10SecondCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf20SecondCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf30SecondCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf10MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf30MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfDayCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfTickCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return true; }
@@ -96,11 +114,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
         #region Trade permission
 
         public bool MarketOrdersIsSupport
-        {
-            get { return true; }
-        }
-
-        public bool IsTradeServer
         {
             get { return true; }
         }
@@ -182,7 +195,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public bool CanGetOrderLists
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
