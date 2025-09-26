@@ -33,7 +33,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private List<UnderlyingAssetDataRow> _uaData;
 
         private Dictionary<string, DataGridViewRow> _uaGridRows;
-        private Dictionary<decimal, DataGridViewRow> _strikeGridRows; // Maps strike to the wide row
+        private Dictionary<double, DataGridViewRow> _strikeGridRows; // Maps strike to the wide row
 
         private Dictionary<string, BotTabSimple> _simpleTabs;
 
@@ -217,7 +217,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             _uaData = new List<UnderlyingAssetDataRow>();
             _simpleTabs = new Dictionary<string, BotTabSimple>();
             _uaGridRows = new Dictionary<string, DataGridViewRow>();
-            _strikeGridRows = new Dictionary<decimal, DataGridViewRow>();
+            _strikeGridRows = new Dictionary<double, DataGridViewRow>();
 
             CreateGrids();
 
@@ -261,7 +261,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         continue;
                     }
 
-                    decimal strike = (decimal)row.Cells["Strike"].Value;
+                    double strike = (double)row.Cells["Strike"].Value;
                     var strikeData = _allOptionsData.Where(o => o.Security.Strike == strike).ToList();
                     var callData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
                     var putData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
@@ -370,7 +370,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
                     }
 
-                    decimal iv = 0;
+                    double iv = 0;
 
                     if (callData != null)
                     {
@@ -439,8 +439,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (uaPrice != 0)
                     {
-                        decimal centralStrike = 0;
-                        decimal minDiff = decimal.MaxValue;
+                        double centralStrike = 0;
+                        double minDiff = double.MaxValue;
 
                         var strikes = _strikeGridRows.Keys.OrderBy(s => s).ToList();
 
@@ -853,7 +853,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
-                var strike = (decimal)grid.Rows[e.RowIndex].Cells["Strike"].Value;
+                var strike = (double)grid.Rows[e.RowIndex].Cells["Strike"].Value;
                 var valueStr = grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
 
                 if (!int.TryParse(valueStr, out int quantity))
@@ -1078,7 +1078,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            decimal atmStrike;
+            double atmStrike;
             if (uaPrice != 0)
             {
                 atmStrike = strikes.Aggregate((x, y) => Math.Abs(x - uaPrice) < Math.Abs(y - uaPrice) ? x : y);
@@ -1093,7 +1093,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             int strikesToShowCount = (int)_strikesToShowNumericUpDown.Value;
             int startIndex = Math.Max(0, atmStrikeIndex - strikesToShowCount);
             int endIndex = Math.Min(strikes.Count - 1, atmStrikeIndex + strikesToShowCount);
-            var allowedStrikes = new HashSet<decimal>(strikes.GetRange(startIndex, endIndex - startIndex + 1));
+            var allowedStrikes = new HashSet<double>(strikes.GetRange(startIndex, endIndex - startIndex + 1));
 
             var finalStrikes = strikesToDisplay.Where(s => allowedStrikes.Contains(s.Strike)).OrderBy(s => s.Strike)
                 .ToList();
@@ -1157,7 +1157,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (!isCallChart && !isPutChart && !isCallPnl && !isPutPnl) return;
 
-            var strike = (decimal)_optionsGrid.Rows[e.RowIndex].Cells["Strike"].Value;
+            var strike = (double)_optionsGrid.Rows[e.RowIndex].Cells["Strike"].Value;
             var strikeData = _allOptionsData.Where(o => o.Security.Strike == strike).ToList();
 
             if (isCallPnl || isPutPnl)
@@ -1375,16 +1375,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == marketDepth.SecurityNameCode);
                 if (optionData != null)
                 {
-                    decimal bestBid = 0;
+                    double bestBid = 0;
                     if (marketDepth.Bids != null && marketDepth.Bids.Count > 0)
                     {
-                        bestBid = marketDepth.Bids[0].Price.ToDecimal();
+                        bestBid = marketDepth.Bids[0].Price;
                     }
 
-                    decimal bestAsk = 0;
+                    double bestAsk = 0;
                     if (marketDepth.Asks != null && marketDepth.Asks.Count > 0)
                     {
-                        bestAsk = marketDepth.Asks[0].Price.ToDecimal();
+                        bestAsk = marketDepth.Asks[0].Price;
                     }
 
                     if (bestBid > 0)
@@ -1403,16 +1403,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == marketDepth.SecurityNameCode);
                 if (uaData != null)
                 {
-                    decimal bestBid = 0;
+                    double bestBid = 0;
                     if (marketDepth.Bids != null && marketDepth.Bids.Count > 0)
                     {
-                        bestBid = marketDepth.Bids[0].Price.ToDecimal();
+                        bestBid = marketDepth.Bids[0].Price;
                     }
 
-                    decimal bestAsk = 0;
+                    double bestAsk = 0;
                     if (marketDepth.Asks != null && marketDepth.Asks.Count > 0)
                     {
-                        bestAsk = marketDepth.Asks[0].Price.ToDecimal();
+                        bestAsk = marketDepth.Asks[0].Price;
                     }
 
                     if (bestBid > 0)
@@ -1450,13 +1450,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void UpdateGridCell(Dictionary<decimal, DataGridViewRow> rows, decimal strike, string cellName,
+        private void UpdateGridCell(Dictionary<double, DataGridViewRow> rows, double strike, string cellName,
             object value)
         {
             if (_mainControl.InvokeRequired)
             {
                 _mainControl.Invoke(
-                    new Action<Dictionary<decimal, DataGridViewRow>, decimal, string, object>(UpdateGridCell), rows,
+                    new Action<Dictionary<double, DataGridViewRow>, double, string, object>(UpdateGridCell), rows,
                     strike, cellName, value);
                 return;
             }
@@ -1600,7 +1600,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public class StrikeDataRow
         {
-            public decimal Strike { get; set; }
+            public double Strike { get; set; }
             public OptionDataRow CallData { get; set; }
             public OptionDataRow PutData { get; set; }
         }
@@ -1609,14 +1609,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             public Security Security { get; set; }
             public BotTabSimple SimpleTab { get; set; }
-            public decimal Bid { get; set; }
-            public decimal Ask { get; set; }
-            public decimal LastPrice { get; set; }
-            public decimal Delta { get; set; }
-            public decimal Gamma { get; set; }
-            public decimal Vega { get; set; }
-            public decimal Theta { get; set; }
-            public decimal IV { get; set; }
+            public double Bid { get; set; }
+            public double Ask { get; set; }
+            public double LastPrice { get; set; }
+            public double Delta { get; set; }
+            public double Gamma { get; set; }
+            public double Vega { get; set; }
+            public double Theta { get; set; }
+            public double IV { get; set; }
             public int Quantity { get; set; }
         }
 
@@ -1624,9 +1624,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             public Security Security { get; set; }
             public BotTabSimple SimpleTab { get; set; }
-            public decimal Bid { get; set; }
-            public decimal Ask { get; set; }
-            public decimal LastPrice { get; set; }
+            public double Bid { get; set; }
+            public double Ask { get; set; }
+            public double LastPrice { get; set; }
             public int Quantity { get; set; }
         }
 
@@ -1659,7 +1659,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="strike">The strike price of the option.</param>
         /// <param name="expiration">The expiration date of the option.</param>
         /// <returns>The BotTabSimple for the specified option, or null if not found.</returns>
-        public BotTabSimple GetOptionTab(string underlyingAssetTicker, OptionType optionType, decimal strike, DateTime expiration)
+        public BotTabSimple GetOptionTab(string underlyingAssetTicker, OptionType optionType, double strike, DateTime expiration)
         {
             var optionData = _allOptionsData.FirstOrDefault(o =>
                 o.Security.UnderlyingAsset == underlyingAssetTicker &&
@@ -1678,7 +1678,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="maxStrike">The maximum strike price.</param>
         /// <param name="expiration">The expiration date of the options.</param>
         /// <returns>A list of BotTabSimple for the options in the specified strike range.</returns>
-        public List<BotTabSimple> GetOptionTabs(string underlyingAssetTicker, decimal minStrike, decimal maxStrike, DateTime expiration)
+        public List<BotTabSimple> GetOptionTabs(string underlyingAssetTicker, double minStrike, double maxStrike, DateTime expiration)
         {
             return _allOptionsData
                 .Where(o =>
@@ -1693,7 +1693,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Gets the BotTabSimple for a straddle strategy (long a call and a put with the same strike and expiration).
         /// </summary>
-        public List<BotTabSimple> GetStraddleTabs(string underlyingAssetTicker, decimal strike, DateTime expiration)
+        public List<BotTabSimple> GetStraddleTabs(string underlyingAssetTicker, double strike, DateTime expiration)
         {
             var tabs = new List<BotTabSimple>();
             var callTab = GetOptionTab(underlyingAssetTicker, OptionType.Call, strike, expiration);
@@ -1706,7 +1706,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Gets the BotTabSimple for a strangle strategy (long a call and a put with different strikes and the same expiration).
         /// </summary>
-        public List<BotTabSimple> GetStrangleTabs(string underlyingAssetTicker, decimal putStrike, decimal callStrike, DateTime expiration)
+        public List<BotTabSimple> GetStrangleTabs(string underlyingAssetTicker, double putStrike, double callStrike, DateTime expiration)
         {
             var tabs = new List<BotTabSimple>();
             var callTab = GetOptionTab(underlyingAssetTicker, OptionType.Call, callStrike, expiration);
@@ -1719,7 +1719,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Gets the BotTabSimple for a vertical spread strategy (buying and selling options of the same type and expiration but different strikes).
         /// </summary>
-        public List<BotTabSimple> GetVerticalSpreadTabs(string underlyingAssetTicker, OptionType optionType, decimal longStrike, decimal shortStrike, DateTime expiration)
+        public List<BotTabSimple> GetVerticalSpreadTabs(string underlyingAssetTicker, OptionType optionType, double longStrike, double shortStrike, DateTime expiration)
         {
             var tabs = new List<BotTabSimple>();
             var longTab = GetOptionTab(underlyingAssetTicker, optionType, longStrike, expiration);
@@ -1732,7 +1732,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Gets the BotTabSimple for a ratio spread strategy.
         /// </summary>
-        public List<BotTabSimple> GetRatioSpreadTabs(string underlyingAssetTicker, OptionType optionType, decimal longStrike, decimal shortStrike, DateTime expiration)
+        public List<BotTabSimple> GetRatioSpreadTabs(string underlyingAssetTicker, OptionType optionType, double longStrike, double shortStrike, DateTime expiration)
         {
             var tabs = new List<BotTabSimple>();
             var longTab = GetOptionTab(underlyingAssetTicker, optionType, longStrike, expiration);
@@ -1745,7 +1745,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Gets the BotTabSimple for a horizontal (calendar) spread strategy (buying and selling options of the same type and strike but different expirations).
         /// </summary>
-        public List<BotTabSimple> GetHorizontalSpreadTabs(string underlyingAssetTicker, OptionType optionType, decimal strike, DateTime nearExpiration, DateTime farExpiration)
+        public List<BotTabSimple> GetHorizontalSpreadTabs(string underlyingAssetTicker, OptionType optionType, double strike, DateTime nearExpiration, DateTime farExpiration)
         {
             var tabs = new List<BotTabSimple>();
             var nearTab = GetOptionTab(underlyingAssetTicker, optionType, strike, nearExpiration);
@@ -1758,7 +1758,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Gets the BotTabSimple for a butterfly strategy.
         /// </summary>
-        public List<BotTabSimple> GetButterflyTabs(string underlyingAssetTicker, OptionType optionType, decimal lowerStrike, decimal middleStrike, decimal upperStrike, DateTime expiration)
+        public List<BotTabSimple> GetButterflyTabs(string underlyingAssetTicker, OptionType optionType, double lowerStrike, double middleStrike, double upperStrike, DateTime expiration)
         {
             var tabs = new List<BotTabSimple>();
             var lowerTab = GetOptionTab(underlyingAssetTicker, optionType, lowerStrike, expiration);
@@ -1773,7 +1773,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Gets the BotTabSimple for a condor strategy.
         /// </summary>
-        public List<BotTabSimple> GetCondorTabs(string underlyingAssetTicker, OptionType optionType, decimal strike1, decimal strike2, decimal strike3, decimal strike4, DateTime expiration)
+        public List<BotTabSimple> GetCondorTabs(string underlyingAssetTicker, OptionType optionType, double strike1, double strike2, double strike3, double strike4, DateTime expiration)
         {
             var tabs = new List<BotTabSimple>();
             var tab1 = GetOptionTab(underlyingAssetTicker, optionType, strike1, expiration);
@@ -1791,10 +1791,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public static class BlackScholes
         {
-            public static decimal CalculateOptionPrice(
+            public static double CalculateOptionPrice(
                 OptionType optionType,
-                decimal underlyingPrice,
-                decimal strikePrice,
+                double underlyingPrice,
+                double strikePrice,
                 double timeToExpiration,
                 double riskFreeRate,
                 double volatility)
@@ -1812,16 +1812,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                double d1 = (Math.Log((double)underlyingPrice / (double)strikePrice) + (riskFreeRate + 0.5 * Math.Pow(volatility, 2)) * timeToExpiration) / (volatility * Math.Sqrt(timeToExpiration));
+                double d1 = (Math.Log(underlyingPrice / strikePrice) + (riskFreeRate + 0.5 * Math.Pow(volatility, 2)) * timeToExpiration) / (volatility * Math.Sqrt(timeToExpiration));
                 double d2 = d1 - volatility * Math.Sqrt(timeToExpiration);
 
                 if (optionType == OptionType.Call)
                 {
-                    return (decimal)((double)underlyingPrice * Cdf(d1) - (double)strikePrice * Math.Exp(-riskFreeRate * timeToExpiration) * Cdf(d2));
+                    return (underlyingPrice * Cdf(d1) - strikePrice * Math.Exp(-riskFreeRate * timeToExpiration) * Cdf(d2));
                 }
                 else // Put
                 {
-                    return (decimal)((double)strikePrice * Math.Exp(-riskFreeRate * timeToExpiration) * Cdf(-d2) - (double)underlyingPrice * Cdf(-d1));
+                    return (strikePrice * Math.Exp(-riskFreeRate * timeToExpiration) * Cdf(-d2) - underlyingPrice * Cdf(-d1));
                 }
             }
 
