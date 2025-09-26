@@ -2660,7 +2660,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             };
 
-            tab.BestBidAskChangeEvent += (decimal bid, decimal ask) =>
+            tab.BestBidAskChangeEvent += (double bid, double ask) =>
             {
                 if (BestBidAskChangeEvent != null && EventsIsOn)
                 {
@@ -2771,7 +2771,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Bid ask change
         /// </summary>
-        public event Action<decimal, decimal, BotTabSimple> BestBidAskChangeEvent;
+        public event Action<double, double, BotTabSimple> BestBidAskChangeEvent;
 
         /// <summary>
         /// Position successfully closed

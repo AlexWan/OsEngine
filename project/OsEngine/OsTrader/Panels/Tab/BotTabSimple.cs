@@ -1285,7 +1285,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// лучший Bid в стакане
         /// </summary>
-        public double PriceBestBid
+        public decimal PriceBestBid
         {
             get
             {
@@ -1293,14 +1293,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return 0;
                 }
-                return Connector.BestBid;
+                return (decimal)Connector.BestBid;
             }
         }
         
         /// <summary>
         /// лучший Аск в стакане
         /// </summary>
-        public double PriceBestAsk
+        public decimal PriceBestAsk
         {
             get
             {
@@ -1308,7 +1308,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return 0;
                 }
-                return Connector.BestAsk;
+                return (decimal)Connector.BestAsk;
             }
         }
 

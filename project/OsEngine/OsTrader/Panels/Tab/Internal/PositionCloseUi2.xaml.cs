@@ -269,9 +269,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             TextBoxFakePrice.Text = priceSelectedUser.ToStringWithNoEndZero();
         }
 
-        private void Tab_BestBidAskChangeEvent(decimal bid, decimal ask)
+        private void Tab_BestBidAskChangeEvent(double bid, double ask)
         {
-            _marketDepthPainter.ProcessBidAsk(bid, ask);
+            _marketDepthPainter.ProcessBidAsk((decimal)bid, (decimal)ask);
         }
 
         private void Tab_MarketDepthUpdateEvent(MarketDepth md)
