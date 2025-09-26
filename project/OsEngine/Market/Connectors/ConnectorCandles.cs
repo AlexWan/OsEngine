@@ -1347,7 +1347,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (_emulator != null)
                         {
-                            _emulator.ProcessBidAsc(_bestBid, _bestAsk);
+                            _emulator.ProcessBidAsc((decimal)_bestBid, (decimal)_bestAsk);
                         }
                     }
                     if (BestBidAskChangeEvent != null
@@ -1412,7 +1412,7 @@ namespace OsEngine.Market.Connectors
                 {
                     if (_emulator != null)
                     {
-                        _emulator.ProcessBidAsc(bestAsk, bestBid);
+                        _emulator.ProcessBidAsc((decimal)bestAsk, (decimal)bestBid);
                     }
                 }
 
