@@ -2047,7 +2047,8 @@ namespace OsEngine.Market.Servers.Plaza
                     // proccess the situation when this level is removed and replaced with another one | обрабатываем ситуацию, когда текущий уровень удаляется и заменяется другим
                     for (int i = 0; i < bids.Count; i++)
                     {
-                        if (bids[i].Id == depthLevel.Id)
+                        if (bids[i].Id.HasValue
+                            && bids[i].Id.Value == depthLevel.Id)
                         {
                             bids.Remove(bids[i]);
                         }
@@ -2124,7 +2125,8 @@ namespace OsEngine.Market.Servers.Plaza
                     // proccess the situation when this level is removed and replaced with another one | обрабатываем ситуацию, когда текущий уровень удаляется и заменяется другим
                     for (int i = 0; i < asks.Count; i++)
                     {
-                        if (asks[i].Id == depthLevel.Id)
+                        if (asks[i].Id.HasValue 
+                            && asks[i].Id.Value == depthLevel.Id)
                         {
                             asks.Remove(asks[i]);
                         }

@@ -201,6 +201,6 @@ namespace OsEngine.Entity
         /// <summary>
         /// Unique price level number, required for working with BitMex
         /// </summary>
-        public long Id;
+        public long? Id;
     }
 }
