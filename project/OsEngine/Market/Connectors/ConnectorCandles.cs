@@ -1328,7 +1328,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// incoming best bid with ask
         /// </summary>
-        private void ConnectorBotNewBidAscIncomeEvent(decimal bestBid, decimal bestAsk, Security security)
+        private void ConnectorBotNewBidAscIncomeEvent(double bestBid, double bestAsk, Security security)
         {
             try
             {
@@ -1392,20 +1392,20 @@ namespace OsEngine.Market.Connectors
                     GlassChangeEvent(glass);
                 }
 
-                decimal bestBid = 0;
+                double bestBid = 0;
 
                 if (glass.Bids != null &&
                      glass.Bids.Count > 0)
                 {
-                    bestBid = glass.Bids[0].Price.ToDecimal();
+                    bestBid = glass.Bids[0].Price;
                 }
 
-                decimal bestAsk = 0;
+                double bestAsk = 0;
 
                 if (glass.Asks != null &&
                     glass.Asks.Count > 0)
                 {
-                    bestAsk = glass.Asks[0].Price.ToDecimal();
+                    bestAsk = glass.Asks[0].Price;
                 }
 
                 if (EmulatorIsOn)
@@ -1749,26 +1749,26 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// best price of seller in the depth
         /// </summary>
-        public decimal BestAsk
+        public double BestAsk
         {
             get
             {
                 return _bestAsk;
             }
         }
-        private decimal _bestAsk;
+        private double _bestAsk;
 
         /// <summary>
         /// best price of buyer in the depth
         /// </summary>
-        public decimal BestBid
+        public double BestBid
         {
             get
             {
                 return _bestBid;
             }
         }
-        private decimal _bestBid;
+        private double _bestBid;
 
         /// <summary>
         /// server time
@@ -2077,7 +2077,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// bid or ask is changed
         /// </summary>
-        public event Action<decimal, decimal> BestBidAskChangeEvent;
+        public event Action<double, double> BestBidAskChangeEvent;
 
         /// <summary>
         /// testing finished
