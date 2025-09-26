@@ -103,8 +103,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             var expirationPnlSeries = new Series("PNL at Expiration") { ChartType = SeriesChartType.Line, Color = Color.MediumVioletRed, BorderWidth = 2 };
             var currentPnlSeries = new Series("Current PNL") { ChartType = SeriesChartType.Line, Color = Color.CornflowerBlue, BorderWidth = 2 };
 
-            decimal avgStrike = _strategyLegs.Average(leg => leg.Security.Strike);
-            decimal currentUaPrice = _uaData.LastPrice > 0 ? _uaData.LastPrice : (_uaData.Bid + _uaData.Ask) / 2;
+            double avgStrike = (double)_strategyLegs.Average(leg => leg.Security.Strike);
+            double currentUaPrice = _uaData.LastPrice > 0 ? _uaData.LastPrice : (_uaData.Bid + _uaData.Ask) / 2;
             if (currentUaPrice <= 0) currentUaPrice = avgStrike;
 
             // Dynamic Interval Logic based on average strike
@@ -117,34 +117,34 @@ namespace OsEngine.OsTrader.Panels.Tab
             else if (avgStrike > 1) interval = 0.5;
             else interval = 0.1;
 
-            double minPrice = (double)(currentUaPrice * 0.7m); // Wider range for strategies
-            double maxPrice = (double)(currentUaPrice * 1.3m);
+            double minPrice = currentUaPrice * 0.7; // Wider range for strategies
+            double maxPrice = currentUaPrice * 1.3;
             double step = (maxPrice - minPrice) / 200;
 
             for (double price = minPrice; price <= maxPrice; price += step)
             {
-                decimal totalExpirationPnl = 0;
-                decimal totalCurrentPnl = 0;
+                double totalExpirationPnl = 0;
+                double totalCurrentPnl = 0;
 
                 // Add PNL from the underlying asset if it's part of the strategy
                 if (_uaData != null && _uaData.Quantity != 0)
                 {
-                    decimal uaPnl = _uaData.Quantity * ((decimal)price - currentUaPrice);
+                    double uaPnl = _uaData.Quantity * (price - currentUaPrice);
                     totalExpirationPnl += uaPnl;
                     totalCurrentPnl += uaPnl;
                 }
 
                 foreach (var leg in _strategyLegs)
                 {
-                    decimal premium = leg.LastPrice > 0 ? leg.LastPrice : (leg.Bid + leg.Ask) / 2;
+                    double premium = leg.LastPrice > 0 ? leg.LastPrice : (leg.Bid + leg.Ask) / 2;
                     if (premium == 0)
                     {
-                        premium = leg.Security.PriceStep;
+                        premium = (double)leg.Security.PriceStep;
                     }
                     // 1. Expiration PNL
-                    decimal intrinsicValue = (leg.Security.OptionType == OptionType.Call)
-                        ? Math.Max(0, (decimal)price - leg.Security.Strike)
-                        : Math.Max(0, leg.Security.Strike - (decimal)price);
+                    double intrinsicValue = (leg.Security.OptionType == OptionType.Call)
+                        ? Math.Max(0, price - (double)leg.Security.Strike)
+                        : Math.Max(0, (double)leg.Security.Strike - price);
                     totalExpirationPnl += (intrinsicValue - premium) * leg.Quantity;
 
                     // 2. Current PNL
@@ -152,18 +152,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                     double riskFreeRate = 0.0; // Hardcoded as per plan
                     double volatility = (double)leg.IV/100;
 
-                    decimal theoreticalPrice = BlackScholes.CalculateOptionPrice(
+                    double theoreticalPrice = BlackScholes.CalculateOptionPrice(
                         leg.Security.OptionType,
-                        (decimal)price,
-                        leg.Security.Strike,
+                        price,
+                        (double)leg.Security.Strike,
                         timeToExpiration,
                         riskFreeRate,
                         volatility);
 
                     totalCurrentPnl += (theoreticalPrice - premium) * leg.Quantity;
                 }
-                expirationPnlSeries.Points.AddXY(price, (double)totalExpirationPnl);
-                currentPnlSeries.Points.AddXY(price, (double)totalCurrentPnl);
+                expirationPnlSeries.Points.AddXY(price, totalExpirationPnl);
+                currentPnlSeries.Points.AddXY(price, totalCurrentPnl);
             }
 
             chart.Series.Add(expirationPnlSeries);

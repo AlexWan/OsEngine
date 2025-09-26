@@ -71,11 +71,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             };
 
             decimal strike = _optionData.Security.Strike;
-            decimal premium = _optionData.LastPrice > 0 ? _optionData.LastPrice : (_optionData.Bid + _optionData.Ask) / 2;
+            double premium = _optionData.LastPrice > 0 ? _optionData.LastPrice : (_optionData.Bid + _optionData.Ask) / 2;
             if (premium <= 0) return;
 
-            decimal currentUaPrice = _uaData.LastPrice > 0 ? _uaData.LastPrice : (_uaData.Bid + _uaData.Ask) / 2;
-            if (currentUaPrice <= 0) currentUaPrice = strike;
+            double currentUaPrice = _uaData.LastPrice > 0 ? _uaData.LastPrice : (_uaData.Bid + _uaData.Ask) / 2;
+            if (currentUaPrice <= 0) currentUaPrice = (double)strike;
 
             // Dynamic Interval Logic
             double interval;
@@ -87,33 +87,33 @@ namespace OsEngine.OsTrader.Panels.Tab
             else if (strike > 1) interval = 0.5;
             else interval = 0.1;
 
-            double minPrice = (double)(currentUaPrice * 0.8m);
-            double maxPrice = (double)(currentUaPrice * 1.2m);
+            double minPrice = currentUaPrice * 0.8;
+            double maxPrice = currentUaPrice * 1.2;
             double step = (maxPrice - minPrice) / 200;
 
             for (double price = minPrice; price <= maxPrice; price += step)
             {
                 // 1. Expiration PNL
-                decimal expirationPnl = (_optionData.Security.OptionType == OptionType.Call)
-                    ? Math.Max(0, (decimal)price - strike) - premium
-                    : Math.Max(0, strike - (decimal)price) - premium;
-                expirationPnlSeries.Points.AddXY(price, (double)expirationPnl);
+                double expirationPnl = (_optionData.Security.OptionType == OptionType.Call)
+                    ? Math.Max(0, price - (double)strike) - premium
+                    : Math.Max(0, (double)strike - price) - premium;
+                expirationPnlSeries.Points.AddXY(price, expirationPnl);
 
                 // 2. Current PNL
                 double timeToExpiration = (_optionData.Security.Expiration - DateTime.UtcNow).TotalDays / 365.0;
                 double riskFreeRate = 0.0; // Hardcoded as per plan
                 double volatility = (double)_optionData.IV/100;
 
-                decimal theoreticalPrice = BlackScholes.CalculateOptionPrice(
+                double theoreticalPrice = BlackScholes.CalculateOptionPrice(
                     _optionData.Security.OptionType,
-                    (decimal)price,
-                    strike,
+                    price,
+                    (double)strike,
                     timeToExpiration,
                     riskFreeRate,
                     volatility);
 
-                decimal currentPnl = theoreticalPrice - premium;
-                currentPnlSeries.Points.AddXY(price, (double)currentPnl);
+                double currentPnl = theoreticalPrice - premium;
+                currentPnlSeries.Points.AddXY(price, currentPnl);
             }
 
             chart.Series.Add(expirationPnlSeries);
