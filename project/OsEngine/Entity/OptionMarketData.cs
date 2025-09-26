@@ -4,31 +4,31 @@ namespace OsEngine.Entity
 {
     public class OptionMarketData
     {       
-        public decimal Delta;
+        public double Delta;
 
-        public decimal Vega;
+        public double Vega;
 
-        public decimal Gamma;
+        public double Gamma;
 
-        public decimal Theta;
+        public double Theta;
 
-        public decimal Rho;
+        public double Rho;
 
-        public decimal MarkIV;
+        public double MarkIV;
 
-        public decimal MarkPrice;
+        public double MarkPrice;
 
         public string SecurityName;
 
         public DateTime TimeCreate;
 
-        public decimal OpenInterest;
+        public double OpenInterest;
                 
-        public decimal BidIV;
+        public double BidIV;
 
-        public decimal AskIV;
+        public double AskIV;
 
-        public decimal UnderlyingPrice;
+        public double UnderlyingPrice;
 
         public string UnderlyingAsset;
     }

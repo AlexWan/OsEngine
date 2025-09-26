@@ -452,7 +452,7 @@ namespace OsEngine.Market.Connectors
             _serverTime = time;
         }
 
-        public void ProcessBidAsc(decimal sell, decimal buy)
+        public void ProcessBidAsk(decimal sell, decimal buy)
         {
             if (sell == 0
                 && buy == 0)
