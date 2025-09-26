@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.ClientManagement.Gui"
         mc:Ignorable="d"
-        Title="Robot parameters settings" Height="406" Width="557" MinWidth="490" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Robot parameters settings" Height="416" Width="341" MinWidth="490" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -20,7 +20,7 @@
             </TabItem>
 
         </TabControl>
-        <ComboBox Name="ComboBoxRobotType" HorizontalAlignment="Left" Margin="239,5,0,0" VerticalAlignment="Top" Width="176"/>
-        <Label Name="LabelRobotType" Content="Robot type" HorizontalAlignment="Left" Margin="134,5,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxRobotType" HorizontalAlignment="Left" Margin="188,5,0,0" VerticalAlignment="Top" Width="176"/>
+        <Label Name="LabelRobotType" Content="Robot type" HorizontalAlignment="Left" Margin="83,5,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

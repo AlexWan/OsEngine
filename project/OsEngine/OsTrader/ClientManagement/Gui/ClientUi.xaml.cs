@@ -1045,9 +1045,23 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         private void ShowRobotsSourcesDialog(int robotNumber)
         {
+            TradeClientRobot bot = null;
 
+            for (int i = 0; i < _client.RobotsSettings.Count; i++)
+            {
+                if (_client.RobotsSettings[i].Number == robotNumber)
+                {
+                    bot = _client.RobotsSettings[i];
+                    break;
+                }
+            }
 
+            if (bot == null)
+            {
+                return;
+            }
 
+            bot.ShowSourcesDialog(_client);
         }
 
         private void ShowRobotsChartDialog(int robotNumber)

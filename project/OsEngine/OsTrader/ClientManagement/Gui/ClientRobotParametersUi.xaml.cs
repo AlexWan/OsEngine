@@ -144,7 +144,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 //1 "Name";
                 //2 "Type";
                 //3 "Value";
-                //4 "Value2";
 
                 _parametersGrid.Rows.Clear();
 

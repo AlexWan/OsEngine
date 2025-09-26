@@ -8,6 +8,7 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.ClientManagement.Gui;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Robots;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
                 _botClassName = value;
                 LoadParametersByBotClass();
+                LoadSourcesByBotClass();
             }
         }
         private string _botClassName = "None";
@@ -59,8 +61,6 @@ namespace OsEngine.OsTrader.ClientManagement
                 return false;
             }
         }
-
-        public List<TradeClientSourceSettings> SourceSettings = new List<TradeClientSourceSettings>();
 
         public string GetSaveString()
         {
@@ -259,6 +259,88 @@ namespace OsEngine.OsTrader.ClientManagement
 
         #endregion
 
+        #region Sources
+
+        public List<TradeClientSourceSettings> SourceSettings = new List<TradeClientSourceSettings>();
+
+        private ClientRobotSourcesUi _sourcesUi;
+
+        public void ShowSourcesDialog(TradeClient client)
+        {
+            if(BotClassName == "None")
+            {
+                return;
+            }
+
+            if (_sourcesUi == null)
+            {
+                _sourcesUi = new ClientRobotSourcesUi(this, client);
+                _sourcesUi.Show();
+                _sourcesUi.Closed += _sourcesUi_Closed;
+            }
+            else
+            {
+                if (_sourcesUi.WindowState == System.Windows.WindowState.Minimized)
+                {
+                    _sourcesUi.WindowState = System.Windows.WindowState.Normal;
+                }
+
+                _sourcesUi.Activate();
+            }
+        }
+
+        private void _sourcesUi_Closed(object sender, EventArgs e)
+        {
+            _sourcesUi = null;
+        }
+
+        private void LoadSourcesByBotClass()
+        {
+            if (string.IsNullOrEmpty(_botClassName))
+            {
+                return;
+            }
+
+            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, true);
+
+            if (bot == null)
+            {
+                return;
+            }
+
+            List<IIBotTab> tabs = bot.GetTabs();
+
+            if (tabs == null ||
+                tabs.Count == 0)
+            {
+                return;
+            }
+
+            if (SourceSettings != null)
+            {
+                SourceSettings.Clear();
+            }
+
+            for (int i = 0; i < tabs.Count; i++)
+            {
+                SourceSettings.Add(GetSettingsFromSource(tabs[i]));
+            }
+
+            bot.Delete();
+        }
+
+        private TradeClientSourceSettings GetSettingsFromSource(IIBotTab tab)
+        {
+            TradeClientSourceSettings newSourceSettings = new TradeClientSourceSettings();
+            newSourceSettings.BotTabType = tab.TabType;
+
+
+
+            return newSourceSettings;
+        }
+
+        #endregion
+
         #region Log
 
         public void SendNewLogMessage(string message, LogMessageType type)
@@ -310,6 +392,32 @@ namespace OsEngine.OsTrader.ClientManagement
 
     public class TradeClientSourceSettings
     {
+        public int ClientServerNum;
+
+        public BotTabType BotTabType;
+
+        public CommissionType CommissionType = CommissionType.None;
+
+        public decimal CommissionValue = 0;
+
+        public CandleMarketDataType CandleMarketDataType = CandleMarketDataType.Tick;
+
+        public bool SaveTradesInCandle = false;
+
+        public TimeFrame TimeFrame = TimeFrame.Min15;
+
+        #region Pair
+
+
+
+        #endregion
+
+        #region Index
+
+
+
+        #endregion
+
         public string GetSaveString()
         {
             return "";
@@ -320,4 +428,15 @@ namespace OsEngine.OsTrader.ClientManagement
 
         }
     }
+
+    public class TradeClientCustomCandlesSettings
+    {
+        public string Name;
+
+        public string Type;
+
+        public string Value;
+
+    }
+
 }

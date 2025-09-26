@@ -6208,9 +6208,19 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if(position.State == PositionStateType.Deleted)
+                {
+                    return;
+                }
+
                 if (position.State == PositionStateType.Done)
                 {
                     CloseAllOrderToPosition(position);
+
+                    if(position.CloseOrders == null)
+                    {
+                        return;
+                    }
 
                     if (StartProgram == StartProgram.IsOsTrader)
                     {
@@ -6281,6 +6291,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (position.State == PositionStateType.Open)
                 {
+                    if (position.OpenOrders == null)
+                    {
+                        return;
+                    }
+
                     if (StartProgram == StartProgram.IsOsTrader)
                     {
                         // высылаем оповещение, только если уже есть закрывающие MyTrades

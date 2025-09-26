@@ -3630,14 +3630,14 @@ namespace OsEngine.Market.Servers
                 {
                     saveOrder.NumberOfErrors++;
 
-                    if (saveOrder.NumberOfErrors <= 5)
+                    /*if (saveOrder.NumberOfErrors <= 5)
                     {
                         SendLogMessage(
                         "AServer Error. You can't cancel order. There have already been five attempts to cancel order. "
                          + "NumberUser: " + order.NumberUser
                          + " NumberMarket: " + order.NumberMarket
                          , LogMessageType.Error);
-                    }
+                    }*/
 
                     return;
                 }
