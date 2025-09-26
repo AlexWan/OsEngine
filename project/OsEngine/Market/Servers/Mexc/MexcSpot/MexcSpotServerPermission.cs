@@ -264,7 +264,15 @@ namespace OsEngine.Market.Servers.Mexc
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.mexc.com",
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

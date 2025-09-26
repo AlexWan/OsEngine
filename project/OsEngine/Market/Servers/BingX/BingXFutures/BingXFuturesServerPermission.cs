@@ -277,7 +277,15 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "open-api.bingx.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

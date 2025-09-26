@@ -259,7 +259,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
         public string[] IpAddresServer
         {
-            get { return null;}
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "sapi.xt.com",
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

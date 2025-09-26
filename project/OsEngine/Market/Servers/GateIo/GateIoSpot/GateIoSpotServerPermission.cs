@@ -260,7 +260,15 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.gateio.ws",
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

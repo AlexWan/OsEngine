@@ -263,7 +263,15 @@ namespace OsEngine.Market.Servers.Alor
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.alor.ru"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

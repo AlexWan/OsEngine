@@ -241,7 +241,15 @@ namespace OsEngine.Market.Servers.BitMex
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "www.bitmex.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

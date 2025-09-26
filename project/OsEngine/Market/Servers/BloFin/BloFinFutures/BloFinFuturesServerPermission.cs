@@ -268,7 +268,15 @@ namespace OsEngine.Market.Servers.BloFin
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "openapi.blofin.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

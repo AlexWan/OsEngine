@@ -280,7 +280,15 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api-cloud-v2.bitmart.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion
