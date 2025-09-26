@@ -4278,9 +4278,9 @@ namespace OsEngine.Market.Servers.Tester
                 _dataIsActive = true;
             }
 
-            if (NewBidAscIncomeEvent != null)
+            if (NewBidAskIncomeEvent != null)
             {
-                NewBidAscIncomeEvent(candle.Close, candle.Close, GetSecurityForName(nameSecurity, ""));
+                NewBidAskIncomeEvent((double)candle.Close, (double)candle.Close, GetSecurityForName(nameSecurity, ""));
             }
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
@@ -4313,7 +4313,7 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-        public event Action<double, double, Security> NewBidAscIncomeEvent;
+        public event Action<double, double, Security> NewBidAskIncomeEvent;
 
         #endregion
 
@@ -4407,9 +4407,9 @@ namespace OsEngine.Market.Servers.Tester
                     }
                 }
             }
-            if (NewBidAscIncomeEvent != null)
+            if (NewBidAskIncomeEvent != null)
             {
-                NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
+                NewBidAskIncomeEvent((double)tradesNew[tradesNew.Count - 1].Price, (double)tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
             }
         }
 

@@ -1084,7 +1084,7 @@ namespace OsEngine.Market.Connectors
 
         private void UnSubscribeOnServer(IServer server)
         {
-            server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
+            server.NewBidAskIncomeEvent -= ConnectorBotNewBidAskIncomeEvent;
             server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
             server.CancelOrderFailEvent -= _myServer_CancelOrderFailEvent;
             server.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
@@ -1100,7 +1100,7 @@ namespace OsEngine.Market.Connectors
 
         private void SubscribeOnServer(IServer server)
         {
-            server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
+            server.NewBidAskIncomeEvent -= ConnectorBotNewBidAskIncomeEvent;
             server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
             server.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
             server.CancelOrderFailEvent -= _myServer_CancelOrderFailEvent;
@@ -1116,7 +1116,7 @@ namespace OsEngine.Market.Connectors
             if (NeedToLoadServerData)
             {
                 server.NewMarketDepthEvent += ConnectorBot_NewMarketDepthEvent;
-                server.NewBidAscIncomeEvent += ConnectorBotNewBidAscIncomeEvent;
+                server.NewBidAskIncomeEvent += ConnectorBotNewBidAskIncomeEvent;
                 server.NewTradeEvent += ConnectorBot_NewTradeEvent;
                 server.TimeServerChangeEvent += myServer_TimeServerChangeEvent;
                 server.NewMyTradeEvent += ConnectorBot_NewMyTradeEvent;
@@ -1328,7 +1328,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// incoming best bid with ask
         /// </summary>
-        private void ConnectorBotNewBidAscIncomeEvent(double bestBid, double bestAsk, Security security)
+        private void ConnectorBotNewBidAskIncomeEvent(double bestBid, double bestAsk, Security security)
         {
             try
             {
@@ -1347,7 +1347,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (_emulator != null)
                         {
-                            _emulator.ProcessBidAsc((decimal)_bestBid, (decimal)_bestAsk);
+                            _emulator.ProcessBidAsk((decimal)_bestBid, (decimal)_bestAsk);
                         }
                     }
                     if (BestBidAskChangeEvent != null
@@ -1412,7 +1412,7 @@ namespace OsEngine.Market.Connectors
                 {
                     if (_emulator != null)
                     {
-                        _emulator.ProcessBidAsc((decimal)bestAsk, (decimal)bestBid);
+                        _emulator.ProcessBidAsk((decimal)bestAsk, (decimal)bestBid);
                     }
                 }
 
@@ -2027,7 +2027,7 @@ namespace OsEngine.Market.Connectors
                 return;
             }
 
-            _emulator.ProcessBidAsc(price, price);
+            _emulator.ProcessBidAsk(price, price);
         }
 
         #endregion

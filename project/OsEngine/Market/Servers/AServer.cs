@@ -1481,9 +1481,9 @@ namespace OsEngine.Market.Servers
                         {
                             if (_bidAskToSend.Count < 1000)
                             {
-                                if (NewBidAscIncomeEvent != null)
+                                if (NewBidAskIncomeEvent != null)
                                 {
-                                    NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
+                                    NewBidAskIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                                 }
                             }
                             else
@@ -1520,9 +1520,9 @@ namespace OsEngine.Market.Servers
 
                                 for (int i = 0; i < list.Count; i++)
                                 {
-                                    if (NewBidAscIncomeEvent != null)
+                                    if (NewBidAskIncomeEvent != null)
                                     {
-                                        NewBidAscIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
+                                        NewBidAskIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
                                     }
                                 }
 
@@ -2886,7 +2886,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void TrySendBidAsk(MarketDepth newMarketDepth)
         {
-            if (NewBidAscIncomeEvent == null)
+            if (NewBidAskIncomeEvent == null)
             {
                 return;
             }
@@ -2958,7 +2958,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// best bid or ask changed for the instrument
         /// </summary>
-        public event Action<double, double, Security> NewBidAscIncomeEvent;
+        public event Action<double, double, Security> NewBidAskIncomeEvent;
 
         /// <summary>
         /// new depth in the system
