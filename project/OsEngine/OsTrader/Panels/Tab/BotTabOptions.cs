@@ -262,7 +262,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     double strike = (double)row.Cells["Strike"].Value;
-                    var strikeData = _allOptionsData.Where(o => o.Security.Strike == strike).ToList();
+                    var strikeData = _allOptionsData.Where(o => (double)o.Security.Strike == strike).ToList();
                     var callData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
                     var putData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
 
@@ -866,12 +866,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (colName == "CallQty")
                 {
                     optionData = _allOptionsData.FirstOrDefault(o =>
-                        o.Security.Strike == strike && o.Security.OptionType == OptionType.Call);
+                        (double)o.Security.Strike == strike && o.Security.OptionType == OptionType.Call);
                 }
                 else // PutQty
                 {
                     optionData = _allOptionsData.FirstOrDefault(o =>
-                        o.Security.Strike == strike && o.Security.OptionType == OptionType.Put);
+                        (double)o.Security.Strike == strike && o.Security.OptionType == OptionType.Put);
                 }
 
                 if (optionData != null)
@@ -1047,7 +1047,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             var strikesToDisplay = optionsForDisplay.GroupBy(o => o.Security.Strike)
                 .Select(group =>
                 {
-                    var strikeRow = new StrikeDataRow { Strike = group.Key };
+                    var strikeRow = new StrikeDataRow { Strike = (double)group.Key };
                     var callOption = group.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
                     var putOption = group.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
                     if (callOption != null)
@@ -1158,7 +1158,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (!isCallChart && !isPutChart && !isCallPnl && !isPutPnl) return;
 
             var strike = (double)_optionsGrid.Rows[e.RowIndex].Cells["Strike"].Value;
-            var strikeData = _allOptionsData.Where(o => o.Security.Strike == strike).ToList();
+            var strikeData = _allOptionsData.Where(o => (double)o.Security.Strike == strike).ToList();
 
             if (isCallPnl || isPutPnl)
             {
@@ -1346,7 +1346,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (trade.Price > 0)
                     {
-                        optionData.LastPrice = trade.Price;
+                        optionData.LastPrice = (double)trade.Price;
                     }
 
                     return;
@@ -1357,7 +1357,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (trade.Price > 0)
                     {
-                        uaData.LastPrice = trade.Price;
+                        uaData.LastPrice = (double)trade.Price;
                     }
                 }
             }
@@ -1664,7 +1664,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             var optionData = _allOptionsData.FirstOrDefault(o =>
                 o.Security.UnderlyingAsset == underlyingAssetTicker &&
                 o.Security.OptionType == optionType &&
-                o.Security.Strike == strike &&
+                (double)o.Security.Strike == strike &&
                 o.Security.Expiration.Date == expiration.Date);
 
             return optionData?.SimpleTab;
@@ -1684,8 +1684,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 .Where(o =>
                     o.Security.UnderlyingAsset == underlyingAssetTicker &&
                     o.Security.Expiration.Date == expiration.Date &&
-                    o.Security.Strike >= minStrike &&
-                    o.Security.Strike <= maxStrike)
+                    (double)o.Security.Strike >= minStrike &&
+                    (double)o.Security.Strike <= maxStrike)
                 .Select(o => o.SimpleTab)
                 .ToList();
         }
