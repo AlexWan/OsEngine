@@ -224,6 +224,7 @@ namespace OsEngine.OsTrader.ServerAvailability
                     int rowIndex = _dataGridPingValue.Rows.Add();
                     DataGridViewRow row = _dataGridPingValue.Rows[rowIndex];
                     row.Height = 50;
+                    row.Cells[0].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
                     row.Cells[0].Value = server.PingValue;
                 }
                 _dataGridPingValue.ResumeLayout();
