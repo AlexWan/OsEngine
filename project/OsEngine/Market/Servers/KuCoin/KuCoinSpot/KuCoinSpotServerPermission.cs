@@ -257,7 +257,15 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.kucoin.com",
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

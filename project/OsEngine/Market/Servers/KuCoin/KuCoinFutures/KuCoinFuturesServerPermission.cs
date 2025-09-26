@@ -279,7 +279,15 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api-futures.kucoin.com",
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

@@ -1,5 +1,4 @@
-﻿using OsEngine.Entity;
-using OsEngine.Market;
+﻿using OsEngine.Market;
 using OsEngine.Market.Servers;
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,6 @@ namespace OsEngine.OsTrader.ServerAvailability
 {
     internal class ServerAvailabilityMaster
     {
-
         #region External call
 
         public static void Activate()

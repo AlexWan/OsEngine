@@ -271,7 +271,15 @@ namespace OsEngine.Market.Servers.Woo
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.woox.io",
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

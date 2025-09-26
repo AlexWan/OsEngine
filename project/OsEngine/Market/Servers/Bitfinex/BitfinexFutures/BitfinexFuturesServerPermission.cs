@@ -259,7 +259,15 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.bitfinex.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

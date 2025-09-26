@@ -254,7 +254,15 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.binance.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion
