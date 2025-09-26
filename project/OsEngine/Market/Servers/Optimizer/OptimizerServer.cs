@@ -2041,7 +2041,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
+        public event Action<double, double, Security> NewBidAscIncomeEvent;
 
         public event Action<MarketDepth> NewMarketDepthEvent;
 

@@ -2891,18 +2891,18 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            decimal bestBid = 0;
+            double bestBid = 0;
             if (newMarketDepth.Bids != null &&
                 newMarketDepth.Bids.Count > 0)
             {
-                bestBid = newMarketDepth.Bids[0].Price.ToDecimal();
+                bestBid = newMarketDepth.Bids[0].Price;
             }
 
-            decimal bestAsk = 0;
+            double bestAsk = 0;
             if (newMarketDepth.Asks != null &&
                 newMarketDepth.Asks.Count > 0)
             {
-                bestAsk = newMarketDepth.Asks[0].Price.ToDecimal();
+                bestAsk = newMarketDepth.Asks[0].Price;
             }
 
             if (bestBid == 0 &&
@@ -2958,7 +2958,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// best bid or ask changed for the instrument
         /// </summary>
-        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
+        public event Action<double, double, Security> NewBidAscIncomeEvent;
 
         /// <summary>
         /// new depth in the system

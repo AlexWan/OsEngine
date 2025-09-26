@@ -4313,7 +4313,7 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
+        public event Action<double, double, Security> NewBidAscIncomeEvent;
 
         #endregion
 
