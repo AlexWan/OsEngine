@@ -4031,57 +4031,57 @@ namespace OsEngine.Market.Servers
                 if (!string.IsNullOrEmpty(data.UnderlyingPrice) &&
                     _dictAdditionalMarketData[data.SecurityName].UnderlyingPrice.ToString() != data.UnderlyingPrice)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].UnderlyingPrice = data.UnderlyingPrice.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].UnderlyingPrice = data.UnderlyingPrice.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.MarkPrice) &&
                     _dictAdditionalMarketData[data.SecurityName].MarkPrice.ToString() != data.MarkPrice)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].MarkPrice = data.MarkPrice.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].MarkPrice = data.MarkPrice.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.MarkIV) &&
                     _dictAdditionalMarketData[data.SecurityName].MarkIV.ToString() != data.MarkIV)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].MarkIV = data.MarkIV.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].MarkIV = data.MarkIV.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.BidIV) &&
                     _dictAdditionalMarketData[data.SecurityName].BidIV.ToString() != data.BidIV)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].BidIV = data.BidIV.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].BidIV = data.BidIV.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.AskIV) &&
                     _dictAdditionalMarketData[data.SecurityName].AskIV.ToString() != data.AskIV)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].AskIV = data.AskIV.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].AskIV = data.AskIV.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Delta) &&
                     _dictAdditionalMarketData[data.SecurityName].Delta.ToString() != data.Delta)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Delta = data.Delta.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Delta = data.Delta.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Gamma) &&
                     _dictAdditionalMarketData[data.SecurityName].Gamma.ToString() != data.Gamma)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Gamma = data.Gamma.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Gamma = data.Gamma.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Vega) &&
                     _dictAdditionalMarketData[data.SecurityName].Vega.ToString() != data.Vega)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Vega = data.Vega.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Vega = data.Vega.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Theta) &&
                     _dictAdditionalMarketData[data.SecurityName].Theta.ToString() != data.Theta)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Theta = data.Theta.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Theta = data.Theta.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Rho) &&
                     _dictAdditionalMarketData[data.SecurityName].Rho.ToString() != data.Rho)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Rho = data.Rho.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Rho = data.Rho.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.OpenInterest) &&
                     _dictAdditionalMarketData[data.SecurityName].OpenInterest.ToString() != data.OpenInterest)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].OpenInterest = data.OpenInterest.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].OpenInterest = data.OpenInterest.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.TimeCreate) &&
                     _dictAdditionalMarketData[data.SecurityName].TimeCreate.ToString() != data.TimeCreate)
