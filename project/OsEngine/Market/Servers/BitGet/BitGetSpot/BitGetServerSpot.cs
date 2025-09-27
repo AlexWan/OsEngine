@@ -2577,6 +2577,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 IRestResponse response = client.Execute(requestRest);
 
+                if (response.Content.Contains("\"Request timestamp expired\"")
+                    || response.Content == "")
+                {
+                    Disconnect();
+                }
+
                 return response;
             }
             catch (Exception ex)
@@ -2616,6 +2622,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
 
                 IRestResponse response = client.Execute(requestRest);
+
+                if (response.Content.Contains("\"Request timestamp expired\"")
+                    || response.Content == "")
+                {
+                    Disconnect();
+                }
 
                 return response;
             }
