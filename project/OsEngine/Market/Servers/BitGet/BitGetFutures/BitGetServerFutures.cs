@@ -3420,8 +3420,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     else
                     {
                         if (responseMessage.Content.Contains("\"sign signature error\"")
-                            || (responseMessage.Content.Contains("\"Apikey does not exist\""))
-                            || (responseMessage.Content.Contains("\"apikey/password is incorrect\"")))
+                            || responseMessage.Content.Contains("\"Apikey does not exist\"")
+                            || responseMessage.Content.Contains("\"apikey/password is incorrect\"")
+                            || responseMessage.Content.Contains("\"Request timestamp expired\"")
+                            || responseMessage.Content == "")
                         {
                             Disconnect();
                         }
