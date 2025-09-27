@@ -4,9 +4,11 @@ namespace OsEngine.Market.Servers.OKX.Entity
 {
     public class ResponseRestMessage<T>
     {
-        public string code;
-        public string msg;
-        public T data;
+        public string code { get; set; }
+        public string msg { get; set; }
+        public T data { get; set; }
+        public string inTime { get; set; }
+        public string outTime { get; set; }
     }
 
     public class RestMessageSendOrder
