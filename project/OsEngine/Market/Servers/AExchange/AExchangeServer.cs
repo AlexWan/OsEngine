@@ -55,7 +55,6 @@ namespace OsEngine.Market.Servers.AE
         {
             try
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 _securities.Clear();
                 _myPortfolios.Clear();
                 _subscribedSecurities.Clear();
@@ -93,7 +92,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.Connect: {ex}", LogMessageType.Error);
             }
         }
 
@@ -686,13 +685,13 @@ namespace OsEngine.Market.Servers.AE
                     }
                     catch (Exception ex)
                     {
-                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                        SendLogMessage($"AExchangeServer.CreateWebSocketConnection: WebSocket connection failed: {ex}", LogMessageType.Error);
                     }
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CreateWebSocketConnection: {exception}", LogMessageType.Error);
             }
         }
 
@@ -728,7 +727,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception ex)
             {
-                SendLogMessage("Error during WebSocket deletion: " + ex, LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.DeleteWebSocketConnection: {ex}", LogMessageType.Error);
             }
         }
 
@@ -757,7 +756,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CheckActivationSockets: {ex}", LogMessageType.Error);
             }
         }
 
@@ -791,12 +790,20 @@ namespace OsEngine.Market.Servers.AE
 
         private void LoginTimerElapsed(object state)
         {
-            SendLogMessage("Login response timed out. Reconnecting.", LogMessageType.Error);
+            SendLogMessage("AExchangeServer.LoginTimerElapsed: Login response timed out. Reconnecting.", LogMessageType.Error);
             Reconnect();
         }
 
         private void WebSocketData_Closed(object sender, CloseEventArgs e)
         {
+            //TlsHandshakeFailure
+            if (e.Code == "1015")
+            {
+                SendLogMessage($"Connection to AE closed unexpectedly Close code = {e.Code} with reason = {e.Reason}. Attempting reconnect.", LogMessageType.System);
+                _ws.ConnectAsync();
+                return;
+            }
+
             SendLogMessage($"Connection to AE closed. Code: {e.Code}, Reason: {e.Reason}", LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
             DisconnectEvent?.Invoke();
@@ -807,7 +814,10 @@ namespace OsEngine.Market.Servers.AE
         {
             if (error.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                if (error.Exception.ToString().Contains("501"))
+                        SendLogMessage($"AExchangeServer.WebSocketData_Error (are you trying to connect many times using same certificate?): {error.Exception}", LogMessageType.Error);
+                    else
+                        SendLogMessage($"AExchangeServer.WebSocketData_Error: {error.Exception}", LogMessageType.Error);
             }
             ServerStatus = ServerConnectStatus.Disconnect;
             DisconnectEvent?.Invoke();
@@ -847,7 +857,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception error)
             {
-                SendLogMessage("AE websocket error. " + error.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.WebSocketData_MessageReceived: {error}", LogMessageType.Error);
             }
         }
 
@@ -882,7 +892,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage(exception.ToString(),LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.Subscribe: {exception}", LogMessageType.Error);
             }
         }
 
@@ -973,7 +983,7 @@ namespace OsEngine.Market.Servers.AE
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    SendLogMessage($"AExchangeServer.DataMessageReader: {exception}", LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
@@ -1028,7 +1038,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order sending error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.SendOrder: {exception}", LogMessageType.Error);
             }
         }
 
@@ -1056,7 +1066,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CancelOrder: {exception}", LogMessageType.Error);
             }
             return true;
         }
@@ -1087,7 +1097,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CancelAllOrders: {exception}", LogMessageType.Error);
             }
         }
 
@@ -1108,7 +1118,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CancelAllOrdersToSecurity: {exception}", LogMessageType.Error);
             }
         }
 
