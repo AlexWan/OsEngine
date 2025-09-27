@@ -296,7 +296,16 @@ namespace OsEngine.Market
 
                         for (int i = 0; i < _orders.Count; i++)
                         {
-                            Order order = _orders[i];
+                            Order order = null;
+
+                            try
+                            {
+                                order = _orders[i];
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
 
                             if (order == null)
                             {
