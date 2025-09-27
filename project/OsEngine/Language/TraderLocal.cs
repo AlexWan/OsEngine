@@ -2334,5 +2334,17 @@ namespace OsEngine.Language
         public string Label608 => OsLocalization.ConvertToLocString(
         "Eng:Parameters and bot select_" +
         "Ru:Параметры и выбор робота_");
+
+        public string Label609 => OsLocalization.ConvertToLocString(
+        "Eng:Robot sources settings_" +
+        "Ru:Настройки источников робота_");
+
+        public string Label610 => OsLocalization.ConvertToLocString(
+        "Eng:Pairs settings_" +
+        "Ru:Настройки пар_");
+
+        public string Label611 => OsLocalization.ConvertToLocString(
+        "Eng:Index settings_" +
+        "Ru:Настройки индекса_");
     }
 }

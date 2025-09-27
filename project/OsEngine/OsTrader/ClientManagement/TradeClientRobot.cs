@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Robots;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Intrinsics.Arm;
 
 namespace OsEngine.OsTrader.ClientManagement
 {
@@ -31,12 +32,33 @@ namespace OsEngine.OsTrader.ClientManagement
                     return;
                 }
 
+                CheckBotPosition(value);
+
+                if (CheckBotSources(value) == false)
+                {
+                    _botClassName = "None";
+
+                    if (Parameters != null)
+                    {
+                        Parameters.Clear();
+                    }
+
+                    if(SourceSettings != null)
+                    {
+                        SourceSettings.Clear();
+                    }
+
+                    return;
+                }
+
                 _botClassName = value;
                 LoadParametersByBotClass();
                 LoadSourcesByBotClass();
             }
         }
         private string _botClassName = "None";
+
+        private bool _isScript = false;
 
         public string DeployStatus
         {
@@ -231,7 +253,9 @@ namespace OsEngine.OsTrader.ClientManagement
                 return;
             }
 
-            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, true);
+            CheckBotPosition(_botClassName);
+
+            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, _isScript);
 
             if (bot == null)
             {
@@ -257,6 +281,95 @@ namespace OsEngine.OsTrader.ClientManagement
             bot.Delete();
         }
 
+        private void CheckBotPosition(string botClassName)
+        {
+            bool isInArray = false;
+
+            List<string> scriptsNames = BotFactory.GetScriptsNamesStrategy();
+
+            for (int i = 0; i < scriptsNames.Count; i++)
+            {
+                if (scriptsNames[i] == botClassName)
+                {
+                    isInArray = true;
+                    _isScript = true;
+                    break;
+                }
+            }
+
+            if (isInArray == false)
+            {
+                _isScript = false;
+            }
+        }
+
+        private bool CheckBotSources(string botClassName)
+        {
+            BotPanel bot = BotFactory.GetStrategyForName(botClassName, "", StartProgram.IsOsOptimizer, _isScript);
+
+            if (bot == null)
+            {
+                return false;
+            }
+
+            List<IIBotTab> tabs = bot.GetTabs();
+
+            if (tabs == null ||
+                tabs.Count == 0)
+            {
+                SendNewLogMessage("Can`t create script " + botClassName + ". Source is none", LogMessageType.Error);
+                return false;
+            }
+
+            for(int i = 0;i < tabs.Count;i++)
+            {
+
+                if (tabs[i].TabType == BotTabType.Simple)
+                {
+                    // ok
+                }
+                else if (tabs[i].TabType == BotTabType.Screener)
+                {
+                    // ok
+                }
+                else if (tabs[i].TabType == BotTabType.Index)
+                {
+                    // ok
+                }
+                else if (tabs[i].TabType == BotTabType.Polygon)
+                {
+                    SendNewLogMessage("Can`t create script " + botClassName + ". Source don`t support: " + BotTabType.Polygon, LogMessageType.Error);
+                    return false;
+                }
+
+                else if (tabs[i].TabType == BotTabType.Cluster)
+                {
+                    SendNewLogMessage("Can`t create script " + botClassName + ". Source don`t support: " + BotTabType.Cluster, LogMessageType.Error);
+                    return false;
+                }
+                else if (tabs[i].TabType == BotTabType.News)
+                {
+                    SendNewLogMessage("Can`t create script " + botClassName + ". Source don`t support: " + BotTabType.News, LogMessageType.Error);
+                    return false;
+                }
+                else if (tabs[i].TabType == BotTabType.Options)
+                {
+                    SendNewLogMessage("Can`t create script " + botClassName + ". Source don`t support: " + BotTabType.Options, LogMessageType.Error);
+                    return false;
+                }
+                else if (tabs[i].TabType == BotTabType.Pair)
+                {
+                    SendNewLogMessage("Can`t create script " + botClassName + ". Source don`t support: " + BotTabType.Pair, LogMessageType.Error);
+                    return false;
+                }
+            }
+
+            bot.Delete();
+
+
+            return true;
+        }
+
         #endregion
 
         #region Sources
@@ -274,6 +387,12 @@ namespace OsEngine.OsTrader.ClientManagement
 
             if (_sourcesUi == null)
             {
+                if (SourceSettings == null
+                   || SourceSettings.Count == 0)
+                {
+                    return;
+                }
+
                 _sourcesUi = new ClientRobotSourcesUi(this, client);
                 _sourcesUi.Show();
                 _sourcesUi.Closed += _sourcesUi_Closed;
@@ -301,7 +420,9 @@ namespace OsEngine.OsTrader.ClientManagement
                 return;
             }
 
-            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, true);
+            CheckBotPosition(_botClassName);
+
+            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, _isScript);
 
             if (bot == null)
             {
@@ -334,8 +455,6 @@ namespace OsEngine.OsTrader.ClientManagement
             TradeClientSourceSettings newSourceSettings = new TradeClientSourceSettings();
             newSourceSettings.BotTabType = tab.TabType;
 
-
-
             return newSourceSettings;
         }
 
@@ -361,37 +480,10 @@ namespace OsEngine.OsTrader.ClientManagement
 
     }
 
-    public class TradeClientRobotsParameter
-    {
-        public string Name;
-
-        public StrategyParameterType Type;
-
-        public string Value;
-
-        public List<string> ValuesEnum = new List<string>();
-
-        public string GetSaveString()
-        {
-
-
-
-
-            return "";
-        }
-
-        public void SetFromString(string saveString)
-        {
-
-
-
-
-
-        }
-    }
-
     public class TradeClientSourceSettings
     {
+        // Common
+
         public int ClientServerNum;
 
         public BotTabType BotTabType;
@@ -406,26 +498,101 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public TimeFrame TimeFrame = TimeFrame.Min15;
 
-        #region Pair
+        // Index
 
+        public string UserFormula = "";
 
+        public int CalculationDepth = 1500;
 
-        #endregion
+        public bool PercentNormalization = false;
 
-        #region Index
+        public IndexAutoFormulaBuilderRegime RegimeIndexBuilder = IndexAutoFormulaBuilderRegime.Off;
 
+        public DayOfWeek DayOfWeekToRebuildIndex = DayOfWeek.Monday;
 
+        public int HourInDayToRebuildIndex = 10;
 
-        #endregion
+        public SecuritySortType IndexSortType = SecuritySortType.VolumeWeighted;
+
+        public int IndexSecCount = 5;
+
+        public IndexMultType IndexMultType = IndexMultType.VolumeWeighted;
+
+        public int DaysLookBackInBuilding = 20;
+
+        // Securities
+
+        public List<TradeClientSecurity> Securities = new List<TradeClientSecurity>();
 
         public string GetSaveString()
         {
-            return "";
+            string save = "";
+
+            save += ClientServerNum + "#"; // 0
+            save += BotTabType + "#"; // 1
+            save += CommissionType + "#"; // 2
+            save += CommissionValue + "#";// 3
+            save += CandleMarketDataType + "#";// 4
+            save += SaveTradesInCandle + "#";// 5
+            save += TimeFrame + "#";// 6
+
+            save += UserFormula + "#";// 7
+            save += CalculationDepth + "#";// 8
+            save += PercentNormalization + "#";// 9
+            save += RegimeIndexBuilder + "#";// 10
+            save += DayOfWeekToRebuildIndex + "#";// 11
+            save += HourInDayToRebuildIndex + "#";// 12
+            save += IndexSortType + "#";// 13
+            save += IndexSecCount + "#";// 14
+            save += IndexMultType + "#";// 15
+            save += DaysLookBackInBuilding + "#";// 16
+            save += "#";// 17
+            save += "#";// 18
+            save += "#";// 19
+            save += "#";// 20
+            save += "#";// 21
+            save += "#";// 22
+            save += "#";// 23
+            save += "#";// 24
+            save += "#"; // 25
+
+            for (int i = 0;i < Securities.Count;i++)
+            {
+                save += Securities[i].Name + "#";
+                save += Securities[i].Class + "#";
+            }
+
+            return save;
         }
 
         public void SetFromString(string saveString)
         {
+            string[] saveArray = saveString.Split('#');
 
+            ClientServerNum = Convert.ToInt32(saveArray[0]);
+            Enum.TryParse(saveArray[1], out BotTabType);
+            Enum.TryParse(saveArray[2], out CommissionType);
+            CommissionValue = saveArray[3].ToDecimal();
+            Enum.TryParse(saveArray[4], out CandleMarketDataType);
+            SaveTradesInCandle = Convert.ToBoolean(saveArray[5]);
+            Enum.TryParse(saveArray[6], out TimeFrame);
+
+            UserFormula = saveArray[7];
+            CalculationDepth = Convert.ToInt32(saveArray[8]);
+            PercentNormalization = Convert.ToBoolean(saveArray[9]);
+            Enum.TryParse(saveArray[10], out RegimeIndexBuilder);
+            Enum.TryParse(saveArray[11], out DayOfWeekToRebuildIndex);
+            HourInDayToRebuildIndex = Convert.ToInt32(saveArray[12]);
+            Enum.TryParse(saveArray[13], out IndexSortType);
+            IndexSecCount = Convert.ToInt32(saveArray[14]);
+            Enum.TryParse(saveArray[15], out IndexMultType);
+            DaysLookBackInBuilding = Convert.ToInt32(saveArray[16]);
+
+            for (int i = 26; i < saveArray.Length; i++)
+            {
+
+
+            }
         }
     }
 
@@ -436,6 +603,14 @@ namespace OsEngine.OsTrader.ClientManagement
         public string Type;
 
         public string Value;
+
+    }
+
+    public class TradeClientSecurity
+    {
+        public string Name;
+
+        public string Class;
 
     }
 

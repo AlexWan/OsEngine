@@ -16,6 +16,7 @@ using System.Threading;
 using OsEngine.Market;
 using OsEngine.Alerts;
 using OsEngine.Journal;
+using OsEngine.Market.Servers;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -2026,9 +2027,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (column == 3 && row == 0)
                 { // кнопка открытия окна авто генерации пар
-                    if (_autoSelectPairsUi != null)
+                    if (_autoSelectPairsUi != null
+                        && _autoSelectPairsUi.IsActive == true)
                     {
                         _autoSelectPairsUi.Activate();
+                        return;
+                    }
+
+                    List<IServer> servers = ServerMaster.GetServers();
+
+                    if (servers == null)
+                    {// if connection server to exchange hasn't been created yet
                         return;
                     }
 

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.ClientManagement.Gui"
         mc:Ignorable="d"
-                Title="Robot sources" Height="460" Width="462" MinWidth="490" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+                Title="Robot sources" Height="500" Width="462" MinWidth="490" MinHeight="500" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -17,18 +17,18 @@
                 <Grid >
                     <Label Content="Server num" HorizontalAlignment="Left" Margin="75,37,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxServerNum" HorizontalAlignment="Left" Margin="211,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="161"/>
-                    
+
                     <Label Content="Commission type" HorizontalAlignment="Left" Margin="75,75,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxCommissionType" HorizontalAlignment="Left" Margin="211,75,0,0" VerticalAlignment="Top" Width="161"/>
 
                     <Label Content="Commission value" HorizontalAlignment="Left" Margin="75,103,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxCommissionValue" HorizontalAlignment="Left" Margin="211,103,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="161"/>
-                    
+
                     <Label Content="Collect candles type" HorizontalAlignment="Left" Margin="75,131,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxCandleMarketDataType" HorizontalAlignment="Left" Margin="211,131,0,0" VerticalAlignment="Top" Width="162"/>
-                    
+
                     <CheckBox Name="CheckBoxSaveTradesInCandle" Content="Save trades in candle" HorizontalAlignment="Left" Margin="211,159,0,0" VerticalAlignment="Top"/>
-                    
+
                     <Label Content="Time Frame" HorizontalAlignment="Left" Margin="75,187,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxTimeFrame" HorizontalAlignment="Left" Margin="211,187,0,0" VerticalAlignment="Top" Width="162"/>
                 </Grid>
@@ -40,23 +40,38 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Name="TabItemPairSettings" Header=" Pairs settings ">
-                <Grid >
-                    <WindowsFormsHost Name="HostPairSettings"  Margin="0,0,0,0"/>
-                </Grid>
-            </TabItem>
-
             <TabItem Name="TabItemIndexSettings" Header=" Index settings ">
                 <Grid >
                     <WindowsFormsHost Name="HostIndexSettings"  Margin="0,0,0,0"/>
+                    <Label Content="Calculation depth" HorizontalAlignment="Left" Margin="73,5,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxDepth" HorizontalAlignment="Left" Margin="202,5,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+                    <CheckBox Name="CheckBoxPercentNormalization" Content="Normalization %" HorizontalAlignment="Left" Margin="202,33,0,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelTypeSettingsToRebuildFormula" Content="Type rebuild index formula" Margin="133,185,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180" Height="23"/>
+                    <ComboBox Name="ComboBoxIndexSortType" Margin="227,213,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141" Height="23"/>
+                    <Label Name="LabelIndexSortType" Content="Securities sort type" HorizontalAlignment="Left" Margin="73,213,0,0" VerticalAlignment="Top" Width="137" Height="23"/>
+                    <ComboBox Name="ComboBoxIndexSecCount" Margin="227,236,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141" Height="23"/>
+                    <Label Name="LabelIndexSecCount" Content="Securities count" HorizontalAlignment="Left" Margin="73,236,0,0" VerticalAlignment="Top" Width="137" Height="23"/>
+                    <ComboBox Name="ComboBoxIndexMultType" Margin="226,259,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="142" Height="23"/>
+                    <Label Name="LabelIndexMultType" Content="Securities mult type" HorizontalAlignment="Left" Margin="72,259,0,0" VerticalAlignment="Top" Width="138" Height="23"/>
+                    <ComboBox Name="ComboBoxDaysLookBackInBuilding" Margin="227,282,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141" Height="23"/>
+                    <Label Name="LabelDaysLookBackInBuilding" Content="Days look back" HorizontalAlignment="Left" Margin="73,282,0,0" VerticalAlignment="Top" Width="137" Height="23"/>
+                    <Label Name="LabelTimeSettingsToRebuildFormula" Content="Time rebuild index formula" HorizontalAlignment="Left" Margin="133,69,0,0" VerticalAlignment="Top" Width="202" Height="24"/>
+                    <ComboBox Name="ComboBoxRegimeIndexBuilder" HorizontalAlignment="Left" Margin="227,98,0,0" VerticalAlignment="Top" Width="140" RenderTransformOrigin="0.521,0.447" Height="22"/>
+                    <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="73,98,0,0" VerticalAlignment="Top" Width="159" Height="22"/>
+                    <ComboBox Name="ComboBoxDayOfWeekToRebuildIndex" HorizontalAlignment="Left" Margin="227,120,0,0" VerticalAlignment="Top" Width="140" Height="22"/>
+                    <Label Name="LabelDayOfWeekToRebuildIndex" Content="Day of week to work" HorizontalAlignment="Left" Margin="73,120,0,0" VerticalAlignment="Top" Width="159" Height="22"/>
+                    <ComboBox Name="ComboBoxHourInDayToRebuildIndex" HorizontalAlignment="Left" Margin="227,142,0,0" VerticalAlignment="Top" Width="140" Height="22"/>
+                    <Label Name="LabelHourInDayToRebuildIndex" Content="Hour in day to work" HorizontalAlignment="Left" Margin="73,142,0,0" VerticalAlignment="Top" Width="159" Height="22"/>
+                    <TextBox Name="TextboxUserFormula"  Margin="4,0,0,6" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Height="37"/>
                 </Grid>
             </TabItem>
 
         </TabControl>
-        <Label Name="LabelRobotSource" Content="Selected robot" HorizontalAlignment="Left" Margin="64,10,0,0" VerticalAlignment="Top"/>
-        <ComboBox Name="ComboBoxSources" HorizontalAlignment="Left" Margin="187,38,0,0" VerticalAlignment="Top" Width="182"/>
-        <Label Name="LabelRobotType" Content="Source " HorizontalAlignment="Left" Margin="64,38,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelRobotType" Content="Selected robot " HorizontalAlignment="Left" Margin="64,10,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxSelectedRobot" IsEnabled="False" HorizontalAlignment="Left" Margin="187,10,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="181"/>
+
+        <Label Name="LabelRobotSource" Content="Source" HorizontalAlignment="Left" Margin="64,38,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxSources" HorizontalAlignment="Left" Margin="187,38,0,0" VerticalAlignment="Top" Width="182"/>
 
     </Grid>
 </Window>

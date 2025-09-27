@@ -105,7 +105,6 @@ namespace OsEngine.Robots
             return bot;
         }
 
-
         static Dictionary<string, Type> GetBotPanelTypes()
         {
             Assembly assembly = typeof(BotPanel).Assembly;

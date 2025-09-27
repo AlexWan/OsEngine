@@ -15,9 +15,6 @@ using System.Windows.Forms;
 
 namespace OsEngine.OsTrader.ClientManagement.Gui
 {
-    /// <summary>
-    /// Interaction logic for ClientRobotParametersUi.xaml
-    /// </summary>
     public partial class ClientRobotParametersUi : Window
     {
         private TradeClientRobot _robot;
@@ -35,6 +32,14 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             ComboBoxRobotType.Items.Add("None");
             List<string> scriptsNames = BotFactory.GetScriptsNamesStrategy();
+
+            List<string> includeNames = BotFactory.GetIncludeNamesStrategy();
+
+            if(includeNames.Count > 0)
+            {
+                scriptsNames.AddRange(includeNames);
+                scriptsNames.Sort();
+            }
 
             for(int i = 0; i < scriptsNames.Count; i++)
             {
