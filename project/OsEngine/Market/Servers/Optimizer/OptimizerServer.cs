@@ -1997,7 +1997,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (NewBidAskIncomeEvent != null)
             {
-                NewBidAskIncomeEvent((double)candle.Close, (double)candle.Close, GetSecurityForName(nameSecurity, ""));
+                NewBidAskIncomeEvent((decimal)candle.Close, (decimal)candle.Close, GetSecurityForName(nameSecurity, ""));
             }
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
@@ -2041,7 +2041,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        public event Action<double, double, Security> NewBidAskIncomeEvent;
+        public event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
 
         public event Action<MarketDepth> NewMarketDepthEvent;
 
@@ -2130,7 +2130,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (NewBidAskIncomeEvent != null)
             {
-                NewBidAskIncomeEvent((double)tradesNew[tradesNew.Count - 1].Price, (double)tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
+                NewBidAskIncomeEvent((decimal)tradesNew[tradesNew.Count - 1].Price, (decimal)tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
             }
         }
 

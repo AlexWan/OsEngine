@@ -6954,14 +6954,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Incoming new bid with ask
         /// </summary>
-        private void _connector_BestBidAskChangeEvent(double bid, double ask)
+        private void _connector_BestBidAskChangeEvent(decimal bid, decimal ask)
         {
             if (_isDelete)
             {
                 return;
             }
-            _journal?.SetNewBidAsk((decimal)bid, (decimal)ask);
-            _marketDepthPainter?.ProcessBidAsk((decimal)bid, (decimal)ask);
+            _journal?.SetNewBidAsk(bid, ask);
+            _marketDepthPainter?.ProcessBidAsk(bid, ask);
             BestBidAskChangeEvent?.Invoke(ask, bid);
         }
 
@@ -7210,7 +7210,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Bid ask change
         /// </summary>
-        public event Action<double, double> BestBidAskChangeEvent;
+        public event Action<decimal, decimal> BestBidAskChangeEvent;
 
         /// <summary>
         /// Position successfully closed

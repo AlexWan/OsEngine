@@ -1328,7 +1328,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// incoming best bid with ask
         /// </summary>
-        private void ConnectorBotNewBidAskIncomeEvent(double bestBid, double bestAsk, Security security)
+        private void ConnectorBotNewBidAskIncomeEvent(decimal bestBid, decimal bestAsk, Security security)
         {
             try
             {
@@ -1392,27 +1392,27 @@ namespace OsEngine.Market.Connectors
                     GlassChangeEvent(glass);
                 }
 
-                double bestBid = 0;
+                decimal bestBid = 0;
 
                 if (glass.Bids != null &&
                      glass.Bids.Count > 0)
                 {
-                    bestBid = glass.Bids[0].Price;
+                    bestBid = glass.Bids[0].Price.ToDecimal();
                 }
 
-                double bestAsk = 0;
+                decimal bestAsk = 0;
 
                 if (glass.Asks != null &&
                     glass.Asks.Count > 0)
                 {
-                    bestAsk = glass.Asks[0].Price;
+                    bestAsk = glass.Asks[0].Price.ToDecimal();
                 }
 
                 if (EmulatorIsOn)
                 {
                     if (_emulator != null)
                     {
-                        _emulator.ProcessBidAsk((decimal)bestAsk, (decimal)bestBid);
+                        _emulator.ProcessBidAsk(bestAsk, bestBid);
                     }
                 }
 
@@ -1749,26 +1749,26 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// best price of seller in the depth
         /// </summary>
-        public double BestAsk
+        public decimal BestAsk
         {
             get
             {
                 return _bestAsk;
             }
         }
-        private double _bestAsk;
+        private decimal _bestAsk;
 
         /// <summary>
         /// best price of buyer in the depth
         /// </summary>
-        public double BestBid
+        public decimal BestBid
         {
             get
             {
                 return _bestBid;
             }
         }
-        private double _bestBid;
+        private decimal _bestBid;
 
         /// <summary>
         /// server time
@@ -2077,7 +2077,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// bid or ask is changed
         /// </summary>
-        public event Action<double, double> BestBidAskChangeEvent;
+        public event Action<decimal, decimal> BestBidAskChangeEvent;
 
         /// <summary>
         /// testing finished

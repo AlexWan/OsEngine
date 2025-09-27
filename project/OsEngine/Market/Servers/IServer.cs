@@ -177,7 +177,7 @@ namespace OsEngine.Market.Servers
         /// best bid / ask by instrument changed
         /// изменился лучший бид / аск по инструменту
         /// </summary>
-        event Action<double, double, Security> NewBidAskIncomeEvent;
+        event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
 
         /// <summary>
         /// market depth has been updated

@@ -14,9 +14,9 @@ namespace OsEngine.Market.Servers.Entity
     /// </summary>
     public class BidAskSender
     {
-        public double Bid;
+        public decimal Bid;
 
-        public double Ask;
+        public decimal Ask;
 
         public Security Security;
     }
