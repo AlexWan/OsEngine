@@ -98,13 +98,6 @@ namespace OsEngine.OsTrader.ClientManagement
             colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientsGrid.Columns.Add(colum01);
 
-            DataGridViewColumn colum2 = new DataGridViewColumn();
-            colum2.CellTemplate = cell0;
-            colum2.HeaderText = OsLocalization.Trader.Label224; //"State";
-            colum2.ReadOnly = true;
-            colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _clientsGrid.Columns.Add(colum2);
-
             DataGridViewColumn column10 = new DataGridViewColumn();
             column10.HeaderText = ""; // Settings
             column10.ReadOnly = true;
@@ -201,7 +194,6 @@ namespace OsEngine.OsTrader.ClientManagement
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells.Add(new DataGridViewTextBoxCell());
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].Value = OsLocalization.Trader.Label589;
@@ -218,7 +210,6 @@ namespace OsEngine.OsTrader.ClientManagement
         {
             //"Num";
             //"Name";
-            //"State";
             // Settings
             // Delete / Add
 
@@ -229,9 +220,6 @@ namespace OsEngine.OsTrader.ClientManagement
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[^1].Value = client.Name;
-
-            row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[^1].Value = client.Status;
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].Value = OsLocalization.Trader.Label469;
@@ -248,7 +236,6 @@ namespace OsEngine.OsTrader.ClientManagement
             {
                 //"Num";
                 //"Name";
-                //"State";
                 // Settings
                 // Delete / Add
 
@@ -261,12 +248,12 @@ namespace OsEngine.OsTrader.ClientManagement
                 }
 
                 if (rowIndex == _master.Clients.Count
-                    && columnIndex == 4)
+                    && columnIndex == 3)
                 { // Add new
                     _master.AddNewClient();
                 }
                 else if (rowIndex < _master.Clients.Count
-                   && columnIndex == 4)
+                   && columnIndex == 3)
                 { // Delete
                     int number = Convert.ToInt32(_clientsGrid.Rows[rowIndex].Cells[0].Value.ToString());
 
@@ -282,7 +269,7 @@ namespace OsEngine.OsTrader.ClientManagement
                     _master.RemoveClientAtNumber(number);
                 }
                 else if (rowIndex < _master.Clients.Count
-                   && columnIndex == 3)
+                   && columnIndex == 2)
                 { // Settings
 
                     int number = Convert.ToInt32(_clientsGrid.Rows[rowIndex].Cells[0].Value.ToString());

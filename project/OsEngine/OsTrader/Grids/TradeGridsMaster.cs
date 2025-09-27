@@ -151,6 +151,7 @@ namespace OsEngine.OsTrader.Grids
                     TradeGrids[i].RePaintSettingsEvent -= NewGrid_UpdateTableEvent;
                     TradeGrids[i].DeleteGrid();
                     TradeGrids[i].Delete();
+                    TradeGrids[i].Regime = TradeGridRegime.Off;
                     TradeGrids.RemoveAt(i);
                     
                     break;

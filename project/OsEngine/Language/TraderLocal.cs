@@ -1536,8 +1536,8 @@ namespace OsEngine.Language
         "Ru:Позиция закрыта_");
 
         public string Label409 => OsLocalization.ConvertToLocString(
-        "Eng:Source_" +
-        "Ru:Источник_");
+        "Eng: Source_" +
+        "Ru: Источник_");
 
         public string Label410 => OsLocalization.ConvertToLocString(
         "Eng: Position support. Emergency position closing_" +
@@ -2346,5 +2346,29 @@ namespace OsEngine.Language
         public string Label611 => OsLocalization.ConvertToLocString(
         "Eng:Index settings_" +
         "Ru:Настройки индекса_");
+
+        public string Label612 => OsLocalization.ConvertToLocString(
+        "Eng:Are you going to delete the security? The data cannot be recovered! Are you sure?_" +
+        "Ru:Вы собираетесь удалить бумагу? Данные нельзя будет восстановить! Вы уверены?_");
+
+        public string Label613 => OsLocalization.ConvertToLocString(
+        "Eng:Server number_" +
+        "Ru:Номер сервера_");
+
+        public string Label614 => OsLocalization.ConvertToLocString(
+        "Eng:Commission type_" +
+        "Ru:Тип комиссии_");
+
+        public string Label615 => OsLocalization.ConvertToLocString(
+        "Eng:Commission value_" +
+        "Ru:Значение комиссии_");
+
+        public string Label616 => OsLocalization.ConvertToLocString(
+        "Eng:Collect candles type_" +
+        "Ru:Данные для свечек_");
+
+        public string Label617 => OsLocalization.ConvertToLocString(
+        "Eng:Save trades in candle_" +
+        "Ru:Сохранять трейды в свечках_");
     }
 }

@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Client" Height="574" Width="594" MinWidth="650" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
-        <TabControl Foreground="Black" Margin="0,174,0,0">
+        <TabControl Foreground="Black" Margin="0,66,0,0">
             <TabItem Name="TabItem1" Width="100" Header=" Connectors ">
                 <Grid>
                     <WindowsFormsHost Name="HostClientConnectors" Foreground="Black" Margin="0,0,0,0"/>
@@ -26,19 +26,8 @@
         </TabControl>
         <Label Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxClientName" HorizontalAlignment="Left" Margin="99,10,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
-        <Label Name="LabelState" Content="State" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxState" HorizontalAlignment="Left" Margin="99,38,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
-        <Button Content="Deploy connectors" HorizontalAlignment="Left" Margin="232,10,0,0" VerticalAlignment="Top" Width="186" Height="25"/>
-        <Button Content="Set On regime in bots" HorizontalAlignment="Right" Margin="0,37,10,0" VerticalAlignment="Top" Width="186"/>
-        <Button Content="Set Off regime and cancel orders" HorizontalAlignment="Right" Margin="0,64,10,0" VerticalAlignment="Top" Width="186"/>
-        <Button Content="Close all positions at market" HorizontalAlignment="Right" Margin="0,90,10,0" VerticalAlignment="Top" Width="186"/>
-        <Button Content="Delete all connectors and robots" HorizontalAlignment="Left" Margin="231,70,0,0" VerticalAlignment="Top" Width="186"/>
-        <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
-        <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="98,66,0,0" VerticalAlignment="Top" Width="121"/>
-        <Button Content="Connect connectors" HorizontalAlignment="Left" Margin="232,40,0,0" VerticalAlignment="Top" Width="186" Height="25"/>
-        <Button Content="Deploy robots" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="186" Height="25"/>
-        <Button Content="Save robots in file" HorizontalAlignment="Right" Margin="0,117,10,0" VerticalAlignment="Top" Width="186"/>
-        <Button Content="Load robots from file" HorizontalAlignment="Right" Margin="0,144,10,0" VerticalAlignment="Top" Width="186"/>
+        <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="98,38,0,0" VerticalAlignment="Top" Width="122"/>
 
 
     </Grid>

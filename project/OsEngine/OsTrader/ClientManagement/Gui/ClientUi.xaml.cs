@@ -39,8 +39,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             TextBoxClientName.Text = _client.Name;
             TextBoxClientName.TextChanged += TextBoxClientName_TextChanged;
 
-            TextBoxState.Text = _client.Status;
-
             ComboBoxRegime.Items.Add(TradeClientRegime.Manual.ToString());
             ComboBoxRegime.Items.Add(TradeClientRegime.Auto.ToString());
             ComboBoxRegime.SelectedItem = _client.Regime.ToString();
@@ -57,7 +55,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             this.Title = OsLocalization.Trader.Label592 + " " + _client.Number + " " + _client.Name;
 
             LabelName.Content = OsLocalization.Trader.Label61;
-            LabelState.Content = OsLocalization.Trader.Label224;
             LabelRegime.Content = OsLocalization.Trader.Label468;
 
             TabItem1.Header = OsLocalization.Trader.Label585;

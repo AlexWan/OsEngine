@@ -455,6 +455,11 @@ namespace OsEngine.OsTrader.ClientManagement
             TradeClientSourceSettings newSourceSettings = new TradeClientSourceSettings();
             newSourceSettings.BotTabType = tab.TabType;
 
+            if(tab.TabType == BotTabType.Simple)
+            {
+                newSourceSettings.Securities.Add(new TradeClientSecurity());
+            }
+
             return newSourceSettings;
         }
 
@@ -524,6 +529,25 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public List<TradeClientSecurity> Securities = new List<TradeClientSecurity>();
 
+        public TradeClientSecurity AddNewSecurity()
+        {
+            TradeClientSecurity security = new TradeClientSecurity();
+
+            Securities.Add(security);
+
+            return security;
+        }
+
+        public void RemoveSecurityAt(int index)
+        {
+            if(index >= Securities.Count)
+            {
+                return;
+            }
+
+            Securities.RemoveAt(index);
+        }
+
         public string GetSaveString()
         {
             string save = "";
@@ -588,10 +612,16 @@ namespace OsEngine.OsTrader.ClientManagement
             Enum.TryParse(saveArray[15], out IndexMultType);
             DaysLookBackInBuilding = Convert.ToInt32(saveArray[16]);
 
-            for (int i = 26; i < saveArray.Length; i++)
+            for (int i = 26; i < saveArray.Length; i+=2)
             {
-
-
+                if(i +1 == saveArray.Length)
+                {
+                    continue;
+                }
+                TradeClientSecurity newSec = new TradeClientSecurity();
+                newSec.Class = saveArray[i];
+                newSec.Name = saveArray[i + 1];
+                Securities.Add(newSec);
             }
         }
     }

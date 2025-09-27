@@ -60,14 +60,6 @@ namespace OsEngine.OsTrader.ClientManagement
         }
         private string _name;
 
-        public string Status
-        {
-            get
-            {
-                return "Unknown";
-            }
-        }
-
         public TradeClientRegime Regime;
 
         public void Save()

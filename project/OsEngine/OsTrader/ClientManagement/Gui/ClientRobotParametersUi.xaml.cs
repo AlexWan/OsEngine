@@ -176,7 +176,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             //1 "Name";
             //2 "Type";
             //3 "Value";
-            //4 "Value2";
 
             DataGridViewRow row = new DataGridViewRow();
 
@@ -261,11 +260,8 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
         }
 
         private void _parametersGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
-        { 
-            
-
-
-
+        {
+            _client.SendNewLogMessage(e.Exception.ToString(), Logging.LogMessageType.Error);
         }
 
         private void _parametersGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
