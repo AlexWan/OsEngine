@@ -114,7 +114,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
