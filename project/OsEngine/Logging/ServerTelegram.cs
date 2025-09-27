@@ -283,10 +283,11 @@ namespace OsEngine.Logging
             string newStr = "";
             for (int i = 0; i < symbols.Length; i++)
             {
-                if (symbols[i] == '[' || symbols[i] == ']' || symbols[i] == '('
-                    || symbols[i] == ')' || symbols[i] == '`' || symbols[i] == '>' || symbols[i] == '#'
+                if (symbols[i] == '_' || symbols[i] == '*' || symbols[i] == '[' || symbols[i] == ']' || symbols[i] == '('
+                    || symbols[i] == ')' || symbols[i] == '`' || symbols[i] == '~' || symbols[i] == '>' || symbols[i] == '#'
                     || symbols[i] == '+' || symbols[i] == '-' || symbols[i] == '=' || symbols[i] == '|'
-                    || symbols[i] == '{' || symbols[i] == '}' || symbols[i] == '.' || symbols[i] == '!')
+                    || symbols[i] == '{' || symbols[i] == '}' || symbols[i] == '.' || symbols[i] == '!'
+                    || symbols[i] == '\\') 
                 {
                     newStr += "\\" + symbols[i];
                 }
