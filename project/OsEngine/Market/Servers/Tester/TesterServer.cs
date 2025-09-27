@@ -885,7 +885,17 @@ namespace OsEngine.Market.Servers.Tester
                 Order order = OrdersActive[i];
                 // check availability of securities on the market / проверяем наличие инструмента на рынке
 
-                SecurityTester security = GetMySecurity(order);
+                SecurityTester security = null;
+                
+                if(order.MySecurityInTester != null)
+                {
+                    security = order.MySecurityInTester;
+                }
+                else
+                {
+                    security = GetMySecurity(order);
+                    order.MySecurityInTester = security;
+                }
 
                 if (security == null)
                 {
@@ -1168,7 +1178,17 @@ namespace OsEngine.Market.Servers.Tester
 
         private bool CheckOrdersInTickTest(Order order, Trade lastTrade, bool firstTime, bool isNewDay)
         {
-            SecurityTester security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
+            SecurityTester security = null;
+
+            if(order.MySecurityInTester != null)
+            {
+                security = order.MySecurityInTester;
+            }
+            else
+            {
+                security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
+                order.MySecurityInTester = security;
+            }
 
             if (security == null)
             {
@@ -1673,7 +1693,17 @@ namespace OsEngine.Market.Servers.Tester
 
             if (orderOnBoard.IsStopOrProfit)
             {
-                SecurityTester security = GetMySecurity(order);
+                SecurityTester security = null;
+
+                if (order.MySecurityInTester != null)
+                {
+                    security = order.MySecurityInTester;
+                }
+                else
+                {
+                    security = GetMySecurity(order);
+                    order.MySecurityInTester = security;
+                }
 
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках

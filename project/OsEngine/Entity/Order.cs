@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using OsEngine.Market;
+using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.Entity
 {
@@ -291,6 +292,8 @@ namespace OsEngine.Entity
         public string ServerName;
 
         public TimeFrame TimeFrameInTester;
+
+        public SecurityTester MySecurityInTester;
 
         // deals with which the order was opened and calculation of the order execution price
 
