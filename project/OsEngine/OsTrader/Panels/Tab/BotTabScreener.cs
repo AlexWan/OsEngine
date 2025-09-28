@@ -138,9 +138,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
-                    // do nothin
+                    // ignore
                 }
 
             }
@@ -2193,19 +2193,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void SynchTabsIndicators(BotTabSimple first, BotTabSimple second)
         {
             List<IIndicator> indicatorsFirst = first.Indicators;
-
-            if (indicatorsFirst == null ||
-                 indicatorsFirst.Count == 0)
-            { // удаляем все индикаторы во второй вкладке
-
-                for (int i = 0;
-                    second.Indicators != null &&
-                    i < second.Indicators.Count; i++)
-                {
-                    second.DeleteCandleIndicator(second.Indicators[i]);
-                    break;
-                }
-            }
 
             // удаляем не нужные индикаторы
 

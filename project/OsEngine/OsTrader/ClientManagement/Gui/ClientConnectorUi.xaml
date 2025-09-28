@@ -1,0 +1,26 @@
+﻿<Window x:Class="OsEngine.OsTrader.ClientManagement.Gui.ClientConnectorUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.ClientManagement.Gui"
+        mc:Ignorable="d"
+                Title="Connection settings " Height="581" Width="557" MinWidth="490" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid Name="GridPrime">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Rectangle Margin="0,0,0,0"/>
+        <TabControl Name="TabControlSettings" Margin="5,38,5,5">
+            
+            <TabItem Name="TabItemParametersCustom" Header=" Parameters ">
+                <Grid >
+                    <WindowsFormsHost Name="HostSettingsCustom"  Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+                       
+        </TabControl>
+        <ComboBox Name="ComboBoxServerType" HorizontalAlignment="Left" Margin="239,10,0,0" VerticalAlignment="Top" Width="176"/>
+        <Label Name="LabelServerType" Content="Server type" HorizontalAlignment="Left" Margin="134,10,0,0" VerticalAlignment="Top"/>
+    </Grid>
+</Window>

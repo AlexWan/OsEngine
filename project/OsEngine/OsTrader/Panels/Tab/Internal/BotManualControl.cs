@@ -513,12 +513,22 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         continue;
                         // ignore
                     }
+
+                    if(position == null)
+                    {
+                        continue;
+                    }    
                     
 
                     for (int i2 = 0; position.OpenOrders != null && i2 < position.OpenOrders.Count; i2++)
                     {
                         // open orders
                         Order openOrder = position.OpenOrders[i2];
+
+                        if(openOrder == null)
+                        {
+                            continue;
+                        }
 
                         if (openOrder.State != OrderStateType.Active &&
                             openOrder.State != OrderStateType.Partial)

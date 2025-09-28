@@ -189,7 +189,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                 for (int i = 0; i < _securities.Count; i++)
                 {
                     string instrumentToken = _securities[i].NameId.Split('_')[0];
-                    _listWebSocket[j]?.Send("{\"a\":\"unsubscribe\",\"v\":[" + instrumentToken + "]}");
+                    _listWebSocket[j]?.SendAsync("{\"a\":\"unsubscribe\",\"v\":[" + instrumentToken + "]}");
                 }
             }            
         }
@@ -1118,7 +1118,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                 _webSocket.OnError += _webSocket_OnError;
                 _webSocket.OnClose += _webSocket_OnClose;
 
-                _webSocket.Connect();
+                _webSocket.ConnectAsync();
 
                 _listWebSocket.Add(_webSocket);
             }
@@ -1274,8 +1274,8 @@ namespace OsEngine.Market.Servers.KiteConnect
 
                 string instrumentToken = security.NameId.Split('_')[0];
 
-                webSocket?.Send("{\"a\":\"subscribe\",\"v\":[" + instrumentToken + "]}");
-                webSocket?.Send("{\"a\":\"mode\",\"v\":[\"" + "full" + "\", [" + instrumentToken + "]]}");
+                webSocket?.SendAsync("{\"a\":\"subscribe\",\"v\":[" + instrumentToken + "]}");
+                webSocket?.SendAsync("{\"a\":\"mode\",\"v\":[\"" + "full" + "\", [" + instrumentToken + "]]}");
 
             }
             catch (Exception exception)
@@ -1290,7 +1290,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion 8
 
@@ -1509,8 +1509,8 @@ namespace OsEngine.Market.Servers.KiteConnect
             {
                 MarketDepthLevel newBid = new MarketDepthLevel();
                 newBid.Bid = ReadInt(b, ref offset);
-                newBid.Price = ReadInt(b, ref offset) / divisor;
-                newBid.Id = ReadShort(b, ref offset);
+                newBid.Price = Convert.ToDouble(ReadInt(b, ref offset) / divisor);
+                //newBid.Id = ReadShort(b, ref offset);
                 depth.Bids.Add(newBid);
                 offset += 2;
 
@@ -1521,8 +1521,8 @@ namespace OsEngine.Market.Servers.KiteConnect
             {
                 MarketDepthLevel newAsk = new MarketDepthLevel();
                 newAsk.Ask = ReadInt(b, ref offset);
-                newAsk.Price = ReadInt(b, ref offset) / divisor;
-                newAsk.Id = ReadShort(b, ref offset);
+                newAsk.Price = Convert.ToDouble(ReadInt(b, ref offset) / divisor);
+                //newAsk.Id = ReadShort(b, ref offset);
                 depth.Asks.Add(newAsk);
                 offset += 2;
             }
@@ -1543,8 +1543,6 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         private Security GetNameSecurity(string instrumentToken)
         {
-            string nameSecurity = null;
-
             for (int i = 0; i < _securities.Count; i++)
             {
                 string tokenSecurity = _securities[i].NameId.Split('_')[0];
@@ -1593,7 +1591,7 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion 9
 
@@ -2138,9 +2136,9 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion 12
     }

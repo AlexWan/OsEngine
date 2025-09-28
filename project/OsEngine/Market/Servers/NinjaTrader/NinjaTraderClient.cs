@@ -419,14 +419,14 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
                 if (str[1] == "Ask")
                 {
-                    level.Ask = str[4].ToDecimal();
+                    level.Ask = str[4].ToDouble();
                 }
                 else
                 {
-                    level.Bid = str[4].ToDecimal();
+                    level.Bid = str[4].ToDouble();
                 }
 
-                level.Price = str[3].ToDecimal();
+                level.Price = str[3].ToDouble();
 
                 MarketDepth myDepth = _marketDepths.Find(m => m.SecurityNameCode == str[0]);
 

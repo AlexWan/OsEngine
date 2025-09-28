@@ -338,7 +338,7 @@ namespace OsEngine.Entity
                     ui.ShowDialog();
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 // ignore
             }

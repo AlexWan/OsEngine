@@ -6,6 +6,7 @@
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 
@@ -45,6 +46,10 @@ namespace OsEngine.OsTrader.Grids
 
         public int FailCancelOrdersCountFact;
 
+        public bool WaitOnStartConnectorIsOn = true;
+
+        public int WaitSecondsOnStartConnector = 30;
+
         public string GetSaveString()
         {
             string result = "";
@@ -56,6 +61,10 @@ namespace OsEngine.OsTrader.Grids
             result += FailCancelOrdersReaction + "@";
             result += FailCancelOrdersCountToReaction + "@";
             result += FailCancelOrdersReactionIsOn + "@";
+
+            result += WaitOnStartConnectorIsOn + "@";
+            result += WaitSecondsOnStartConnector + "@";
+
             result += "@";
             result += "@";
             result += "@";
@@ -77,6 +86,17 @@ namespace OsEngine.OsTrader.Grids
                 Enum.TryParse(values[3], out FailCancelOrdersReaction);
                 FailCancelOrdersCountToReaction = Convert.ToInt32(values[4]);
                 FailCancelOrdersReactionIsOn = Convert.ToBoolean(values[5]);
+
+                try
+                {
+                    WaitOnStartConnectorIsOn = Convert.ToBoolean(values[6]);
+                    WaitSecondsOnStartConnector = Convert.ToInt32(values[7]);
+                }
+                catch
+                {
+                    WaitOnStartConnectorIsOn = true;
+                    WaitSecondsOnStartConnector = 30;
+                }
             }
             catch (Exception e)
             {
@@ -116,6 +136,11 @@ namespace OsEngine.OsTrader.Grids
 
             Order lastOrder = position.OpenOrders[^1];
 
+            if(lastOrder == null)
+            {
+                return;
+            }
+
             if (lastOrder.State == OrderStateType.Fail)
             {
                 FailOpenOrdersCountFact++;
@@ -124,7 +149,7 @@ namespace OsEngine.OsTrader.Grids
 
         #endregion
 
-        #region Logic
+        #region Logic on Errors reation
 
         public TradeGridRegime GetReactionOnErrors(TradeGrid grid)
         {
@@ -161,6 +186,30 @@ namespace OsEngine.OsTrader.Grids
             }
 
             return TradeGridRegime.On;
+        }
+
+        #endregion
+
+        #region Logic awaiting on start connection
+
+        public bool AwaitOnStartConnector(AServer server)
+        {
+            if (WaitOnStartConnectorIsOn == false)
+            {
+                return false;
+            }
+
+            if(WaitSecondsOnStartConnector <= 0)
+            {
+                return false;
+            }
+
+            if(server.LastStartServerTime.AddSeconds(WaitSecondsOnStartConnector) > DateTime.Now)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         #endregion

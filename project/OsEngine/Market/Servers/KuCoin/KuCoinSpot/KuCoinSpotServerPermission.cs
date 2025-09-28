@@ -49,16 +49,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             get { return false; }
         }
 
-        public bool DataFeedTfTickCanLoad
-        {
-            get { return false; }
-        }
-
-        public bool DataFeedTfMarketDepthCanLoad
-        {
-            get { return false; }
-        }
-
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return true; }
@@ -105,6 +95,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         }
 
         public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfTickCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
         }
@@ -183,11 +183,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             get { return false; }
         }
 
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
         public bool CanQueryOrdersAfterReconnect
         {
             get { return true; }
@@ -258,6 +253,19 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         public int AsyncCandlesStarter_RateGateLimitMls
         {
             get { return 10; }
+        }
+
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.kucoin.com",
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

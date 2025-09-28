@@ -180,20 +180,21 @@ namespace OsEngine.OsTrader.Grids
 
             for (int i = 0; i < LineCountStart; i++)
             {
-                if (curStep > FirstPrice)
+                /*if (FirstPrice > 0 
+                    && curStep > FirstPrice*10)
                 {
                     break;
-                }
+                }*/
 
-                if (priceCurrent <= 0)
+                /*if (priceCurrent <= 0)
                 {
                     break;
-                }
+                }*/
 
-                if (priceCurrent / FirstPrice > 3)
+                /*if (priceCurrent / FirstPrice > 3)
                 {
                     break;
-                }
+                }*/
 
                 TradeGridLine newLine = new TradeGridLine();
                 newLine.PriceEnter = priceCurrent;
@@ -228,7 +229,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     if (TypeProfit == TradeGridValueType.Percent)
                     {
-                        newLine.PriceExit = newLine.PriceEnter + (newLine.PriceEnter * profitStep / 100);
+                        newLine.PriceExit = newLine.PriceEnter + Math.Abs(newLine.PriceEnter * profitStep / 100);
                     }
                     else if (TypeProfit == TradeGridValueType.Absolute)
                     {
@@ -247,7 +248,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     if (TypeProfit == TradeGridValueType.Percent)
                     {
-                        newLine.PriceExit = newLine.PriceEnter - (newLine.PriceEnter * profitStep / 100);
+                        newLine.PriceExit = newLine.PriceEnter - Math.Abs(newLine.PriceEnter * profitStep / 100);
                     }
                     else if (TypeProfit == TradeGridValueType.Absolute)
                     {

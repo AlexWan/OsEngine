@@ -120,12 +120,12 @@ namespace OsEngine.Robots.TechSamples
 
             for (int i = 0; i < depth.Bids.Count; i++)
             {
-                sumBidsVolume += depth.Bids[i].Bid;
+                sumBidsVolume += depth.Bids[i].Bid.ToDecimal();
             }
 
             for (int i = 0; i < depth.Asks.Count; i++)
             {
-                sumAsksVolume += depth.Asks[i].Ask;
+                sumAsksVolume += depth.Asks[i].Ask.ToDecimal();
             }
 
             // Calculate weight and color it in desired color:

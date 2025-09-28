@@ -701,7 +701,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -741,7 +741,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-            _webSocketPrivate.Connect();
+            _webSocketPrivate.ConnectAsync();
         }
 
         private void DeleteWebSocketConnection()
@@ -907,7 +907,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     {
                         for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            _webSocketPublic[i].Send("pong");
+                            _webSocketPublic[i].SendAsync("pong");
                         }
 
                         return;
@@ -1001,7 +1001,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     SendLogMessage("BingXSpot WebSocket Private connection open", LogMessageType.System);
                     CheckSocketsActivate();
-                    _webSocketPrivate.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"spot.executionReport\"}}"); // changing orders
+                    _webSocketPrivate.SendAsync($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"spot.executionReport\"}}"); // changing orders
                 }
             }
             catch (Exception ex)
@@ -1060,7 +1060,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                     if (item.Contains("ping")) // send immediately upon receipt. 
                     {
-                        _webSocketPrivate.Send("pong");
+                        _webSocketPrivate.SendAsync("pong");
                         return;
                     }
 
@@ -1175,12 +1175,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             if (webSocketPublic != null)
             {
-                webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
-                webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}");
+                webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
+                webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}");
 
                 if (_extendedMarketData)
                 {
-                    webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\" }}");
+                    webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\" }}");
                 }
             }
         }
@@ -1206,12 +1206,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
                                     {
                                         string name = _subscribedSecutiries[i2];
 
-                                        webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
-                                        webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20\" }}");
+                                        webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
+                                        webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20\" }}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@ticker\" }}");
+                                            webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@ticker\" }}");
                                         }
                                     }
                                 }
@@ -1234,7 +1234,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"spot.executionReport\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"spot.executionReport\"}}");
                 }
                 catch
                 {
@@ -1248,7 +1248,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1518,8 +1518,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     MarketDepthLevel level = new MarketDepthLevel()
                     {
-                        Price = responseDepths.data.asks[i][0].ToDecimal(),
-                        Ask = responseDepths.data.asks[i][1].ToDecimal()
+                        Price = responseDepths.data.asks[i][0].ToDouble(),
+                        Ask = responseDepths.data.asks[i][1].ToDouble()
                     };
 
                     ascs.Insert(0, level);
@@ -1529,8 +1529,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Price = responseDepths.data.bids[i][0].ToDecimal(),
-                        Bid = responseDepths.data.bids[i][1].ToDecimal()
+                        Price = responseDepths.data.bids[i][0].ToDouble(),
+                        Bid = responseDepths.data.bids[i][1].ToDouble()
                     });
                 }
 
@@ -1595,9 +1595,9 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
@@ -2194,7 +2194,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             try
             {
-                string baseUrl = "https://open-api.bingx.com";
                 string endpoint = "/openApi/user/auth/userDataStream";
 
                 RestRequest request = new RestRequest(endpoint, Method.POST);

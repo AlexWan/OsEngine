@@ -22,7 +22,6 @@ using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.NinjaTrader;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
-using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
@@ -77,12 +76,15 @@ using OsEngine.Market.Servers.BinanceData;
 using OsEngine.Market.AutoFollow;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader;
-using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Market.Servers.AscendexSpot;
 using OsEngine.Market.Servers.OKXData;
 using System.Windows.Controls;
 using OsEngine.Market.Servers.ExMo.ExmoSpot;
+using OsEngine.Market.Servers.BybitData;
+using OsEngine.Market.Servers.Entity;
+using System.Threading;
+using OsEngine.OsTrader.ClientManagement;
 
 namespace OsEngine.Market
 {
@@ -258,7 +260,7 @@ namespace OsEngine.Market
         private static List<IServer> _servers;
 
         /// <summary>
-        /// take trade server typre from system
+        /// get trade server types from system
         /// </summary>
         public static List<ServerType> ServersTypes
         {
@@ -268,7 +270,6 @@ namespace OsEngine.Market
 
 
                 serverTypes.Add(ServerType.Alor);
-                serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
@@ -386,7 +387,29 @@ namespace OsEngine.Market
         }
 
         /// <summary>
-        /// take trade server typre from system
+        /// get trade server types from system. In string array. Sorted by name
+        /// </summary>
+        public static List<string> ServersTypesStringSorted
+        {
+            get
+            {
+                List<ServerType> serverTypes = ServersTypes;
+
+                List<string> result = new List<string>();
+
+                for(int i = 0;i < serverTypes.Count;i++)
+                {
+                    result.Add(serverTypes[i].ToString());
+                }
+
+                result.Sort();
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// get data server types
         /// </summary>
         public static List<ServerType> ServersTypesToOsData
         {
@@ -429,6 +452,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BinanceData);
                 serverTypes.Add(ServerType.AscendexSpot);
                 serverTypes.Add(ServerType.OKXData);
+                serverTypes.Add(ServerType.BybitData);
 
                 return serverTypes;
             }
@@ -504,6 +528,8 @@ namespace OsEngine.Market
             }
         }
 
+        private static string _serversArrayLocker = "_serversArrayLocker";
+
         /// <summary>
         /// disable all servers
         /// </summary>
@@ -531,284 +557,287 @@ namespace OsEngine.Market
         {
             try
             {
-                if (_servers == null)
-                {
-                    _servers = new List<IServer>();
-                }
+                IServer newServer = null;
 
-                TryLoadServerInstance(type);
-
-                for (int i = 0; i < _servers.Count; i++)
+                lock (_serversArrayLocker)
                 {
-                    if (_servers[i].GetType().BaseType.Name.ToString() == "AServer")
+                    if (_servers == null)
                     {
-                        AServer serverCurrent = (AServer)_servers[i];
+                        _servers = new List<IServer>();
+                    }
 
-                        if (serverCurrent.ServerType == type
-                            && serverCurrent.ServerNum == uniqueNum)
+                    TryLoadServerInstance(type);
+
+                    for (int i = 0; i < _servers.Count; i++)
+                    {
+                        if (_servers[i].GetType().BaseType.Name.ToString() == "AServer")
+                        {
+                            AServer serverCurrent = (AServer)_servers[i];
+
+                            if (serverCurrent.ServerType == type
+                                && serverCurrent.ServerNum == uniqueNum)
+                            {
+                                return;
+                            }
+
+                        }
+                        else if (_servers[i].ServerType == type)
                         {
                             return;
                         }
-
                     }
-                    else if (_servers[i].ServerType == type)
+
+                    SaveMostPopularServers(type);
+
+                    if (type == ServerType.BybitData)
+                    {
+                        newServer = new BybitDataServer();
+                    }
+                    else if (type == ServerType.OKXData)
+                    {
+                        newServer = new OKXDataServer();
+                    }
+                    else if (type == ServerType.BinanceData)
+                    {
+                        newServer = new BinanceDataServer();
+                    }
+                    else if (type == ServerType.TelegramNews)
+                    {
+                        newServer = new TelegramNewsServer();
+                    }
+                    else if (type == ServerType.AExchange)
+                    {
+                        newServer = new AExchangeServer();
+                    }
+                    else if (type == ServerType.SmartLabNews)
+                    {
+                        newServer = new SmartLabNewsServer();
+                    }
+                    else if (type == ServerType.RSSNews)
+                    {
+                        newServer = new RSSNewsServer(uniqueNum);
+                    }
+                    else if (type == ServerType.MoexFixFastTwimeFutures)
+                    {
+                        newServer = new MoexFixFastTwimeFuturesServer();
+                    }
+                    else if (type == ServerType.Atp)
+                    {
+                        newServer = new AtpServer();
+                    }
+                    else if (type == ServerType.MoexFixFastCurrency)
+                    {
+                        newServer = new MoexFixFastCurrencyServer();
+                    }
+                    else if (type == ServerType.BingXSpot)
+                    {
+                        newServer = new BingXServerSpot(uniqueNum);
+                    }
+                    else if (type == ServerType.MoexAlgopack)
+                    {
+                        newServer = new MoexAlgopackServer();
+                    }
+                    else if (type == ServerType.MoexFixFastSpot)
+                    {
+                        newServer = new MoexFixFastSpotServer();
+                    }
+                    else if (type == ServerType.XTSpot)
+                    {
+                        newServer = new XTServerSpot(uniqueNum);
+                    }
+                    else if (type == ServerType.XTFutures)
+                    {
+                        newServer = new XTFuturesServer(uniqueNum);
+                    }
+                    else if (type == ServerType.BingXFutures)
+                    {
+                        newServer = new BingXServerFutures(uniqueNum);
+                    }
+                    else if (type == ServerType.KuCoinFutures)
+                    {
+                        newServer = new KuCoinFuturesServer(uniqueNum);
+                    }
+                    else if (type == ServerType.KuCoinSpot)
+                    {
+                        newServer = new KuCoinSpotServer(uniqueNum);
+                    }
+                    else if (type == ServerType.Alor)
+                    {
+                        newServer = new AlorServer(uniqueNum);
+                    }
+                    else if (type == ServerType.BitGetFutures)
+                    {
+                        newServer = new BitGetServerFutures(uniqueNum);
+                    }
+                    else if (type == ServerType.BitGetSpot)
+                    {
+                        newServer = new BitGetServerSpot(uniqueNum);
+                    }
+                    else if (type == ServerType.OKX)
+                    {
+                        newServer = new OkxServer(uniqueNum);
+                    }
+                    else if (type == ServerType.MfdWeb)
+                    {
+                        newServer = new MfdServer();
+                    }
+                    else if (type == ServerType.MoexDataServer)
+                    {
+                        newServer = new MoexDataServer();
+                    }
+                    else if (type == ServerType.TInvest)
+                    {
+                        newServer = new TInvestServer(uniqueNum);
+                    }
+                    else if (type == ServerType.GateIoSpot)
+                    {
+                        newServer = new GateIoServerSpot(uniqueNum);
+                    }
+                    else if (type == ServerType.GateIoFutures)
+                    {
+                        newServer = new GateIoServerFutures(uniqueNum);
+                    }
+                    else if (type == ServerType.Bybit)
+                    {
+                        newServer = new BybitServer(uniqueNum);
+                    }
+                    else if (type == ServerType.ExmoSpot)
+                    {
+                        newServer = new ExmoSpotServer();
+                    }
+                    else if (type == ServerType.Transaq)
+                    {
+                        newServer = new TransaqServer();
+                    }
+                    else if (type == ServerType.BitfinexSpot)
+                    {
+                        newServer = new BitfinexSpotServer(uniqueNum);
+                    }
+                    else if (type == ServerType.BitfinexFutures)
+                    {
+                        newServer = new BitfinexFuturesServer(uniqueNum);
+                    }
+                    else if (type == ServerType.Binance)
+                    {
+                        newServer = new BinanceServerSpot(uniqueNum);
+                    }
+                    else if (type == ServerType.BinanceFutures)
+                    {
+                        newServer = new BinanceServerFutures(uniqueNum);
+                    }
+                    else if (type == ServerType.NinjaTrader)
+                    {
+                        newServer = new NinjaTraderServer();
+                    }
+                    else if (type == ServerType.BitMex)
+                    {
+                        newServer = new BitMexServer();
+                    }
+                    else if (type == ServerType.QuikLua)
+                    {
+                        newServer = new QuikLuaServer();
+                    }
+                    else if (type == ServerType.InteractiveBrokers)
+                    {
+                        newServer = new InteractiveBrokersServer();
+                    }
+                    else if (type == ServerType.Plaza)
+                    {
+                        newServer = new PlazaServer();
+                    }
+                    else if (type == ServerType.AstsBridge)
+                    {
+                        newServer = new AstsBridgeServer(needLoadTicks);
+                    }
+                    else if (type == ServerType.Tester)
+                    {
+                        newServer = new TesterServer();
+                    }
+                    else if (type == ServerType.Finam)
+                    {
+                        newServer = new FinamServer();
+                    }
+                    else if (type == ServerType.FinamGrpc)
+                    {
+                        newServer = new FinamGrpcServer(uniqueNum);
+                    }
+                    else if (type == ServerType.Deribit)
+                    {
+                        newServer = new DeribitServer();
+                    }
+                    else if (type == ServerType.PionexSpot)
+                    {
+                        newServer = new PionexServerSpot();
+                    }
+                    else if (type == ServerType.Woo)
+                    {
+                        newServer = new WooServer();
+                    }
+                    else if (type == ServerType.HTXSpot)
+                    {
+                        newServer = new HTXSpotServer(uniqueNum);
+                    }
+                    else if (type == ServerType.HTXFutures)
+                    {
+                        newServer = new HTXFuturesServer(uniqueNum);
+                    }
+                    else if (type == ServerType.HTXSwap)
+                    {
+                        newServer = new HTXSwapServer(uniqueNum);
+                    }
+                    else if (type == ServerType.BitMartSpot)
+                    {
+                        newServer = new BitMartSpotServer();
+                    }
+                    else if (type == ServerType.BitMartFutures)
+                    {
+                        newServer = new BitMartFuturesServer();
+                    }
+                    else if (type == ServerType.TraderNet)
+                    {
+                        newServer = new TraderNetServer();
+                    }
+                    else if (type == ServerType.MexcSpot)
+                    {
+                        newServer = new MexcSpotServer(uniqueNum);
+                    }
+                    else if (type == ServerType.KiteConnect)
+                    {
+                        newServer = new KiteConnectServer();
+                    }
+                    else if (type == ServerType.YahooFinance)
+                    {
+                        newServer = new YahooServer();
+                    }
+                    else if (type == ServerType.Polygon)
+                    {
+                        newServer = new PolygonServer();
+                    }
+                    else if (type == ServerType.CoinExSpot)
+                    {
+                        newServer = new CoinExServerSpot();
+                    }
+                    else if (type == ServerType.CoinExFutures)
+                    {
+                        newServer = new CoinExServerFutures();
+                    }
+                    else if (type == ServerType.BloFinFutures)
+                    {
+                        newServer = new BloFinFuturesServer(uniqueNum);
+                    }
+                    else if (type == ServerType.AscendexSpot)
+                    {
+                        newServer = new AscendexSpotServer(uniqueNum);
+                    }
+
+                    if (newServer == null)
                     {
                         return;
                     }
-                }
 
-                SaveMostPopularServers(type);
-
-                IServer newServer = null;
-
-                if (type == ServerType.OKXData)
-                {
-                    newServer = new OKXDataServer();
+                    _servers.Add(newServer);
                 }
-                if (type == ServerType.BinanceData)
-                {
-                    newServer = new BinanceDataServer();
-                }
-                if (type == ServerType.TelegramNews)
-                {
-                    newServer = new TelegramNewsServer();
-                }
-                if (type == ServerType.AExchange)
-                {
-                    newServer = new AExchangeServer();
-                }
-                if (type == ServerType.SmartLabNews)
-                {
-                    newServer = new SmartLabNewsServer();
-                }
-                if (type == ServerType.RSSNews)
-                {
-                    newServer = new RSSNewsServer(uniqueNum);
-                }
-                if (type == ServerType.MoexFixFastTwimeFutures)
-                {
-                    newServer = new MoexFixFastTwimeFuturesServer();
-                }
-                if (type == ServerType.Atp)
-                {
-                    newServer = new AtpServer();
-                }
-                if (type == ServerType.MoexFixFastCurrency)
-                {
-                    newServer = new MoexFixFastCurrencyServer();
-                }
-                if (type == ServerType.BingXSpot)
-                {
-                    newServer = new BingXServerSpot(uniqueNum);
-                }
-                if (type == ServerType.MoexAlgopack)
-                {
-                    newServer = new MoexAlgopackServer();
-                }
-                if (type == ServerType.MoexFixFastSpot)
-                {
-                    newServer = new MoexFixFastSpotServer();
-                }
-                if (type == ServerType.XTSpot)
-                {
-                    newServer = new XTServerSpot(uniqueNum); 
-                }
-                if (type == ServerType.XTFutures)
-                {
-                    newServer = new XTFuturesServer(uniqueNum); 
-                }
-                if (type == ServerType.BingXFutures)
-                {
-                    newServer = new BingXServerFutures(uniqueNum);
-                }
-                if (type == ServerType.KuCoinFutures)
-                {
-                    newServer = new KuCoinFuturesServer(uniqueNum);
-                }
-                if (type == ServerType.KuCoinSpot)
-                {
-                    newServer = new KuCoinSpotServer(uniqueNum);
-                }
-                if (type == ServerType.Alor)
-                {
-                    newServer = new AlorServer(uniqueNum);
-                }
-                if (type == ServerType.BitGetFutures)
-                {
-                    newServer = new BitGetServerFutures(uniqueNum);
-                }
-                if (type == ServerType.BitGetSpot)
-                {
-                    newServer = new BitGetServerSpot(uniqueNum);
-                }
-                if (type == ServerType.OKX)
-                {
-                    newServer = new OkxServer(uniqueNum);
-                }
-                if (type == ServerType.MfdWeb)
-                {
-                    newServer = new MfdServer();
-                }
-                if (type == ServerType.MoexDataServer)
-                {
-                    newServer = new MoexDataServer();
-                }
-                if (type == ServerType.TInvest)
-                {
-                    newServer = new TInvestServer(uniqueNum);
-                }
-                if (type == ServerType.GateIoSpot)
-                {
-                    newServer = new GateIoServerSpot(uniqueNum);
-                }
-                if (type == ServerType.GateIoFutures)
-                {
-                    newServer = new GateIoServerFutures(uniqueNum);
-                }
-                if (type == ServerType.Bybit)
-                {
-                    newServer = new BybitServer(uniqueNum);
-                }
-                if (type == ServerType.ExmoSpot)
-                {
-                    newServer = new ExmoSpotServer();
-                }
-                if (type == ServerType.Transaq)
-                {
-                    newServer = new TransaqServer();
-                }
-                if (type == ServerType.BitfinexSpot)
-                {
-                    newServer = new BitfinexSpotServer(uniqueNum);
-                }
-                if (type == ServerType.BitfinexFutures)
-                {
-                    newServer = new BitfinexFuturesServer(uniqueNum);
-                }
-                if (type == ServerType.Binance)
-                {
-                    newServer = new BinanceServerSpot(uniqueNum);
-                }
-                if (type == ServerType.BinanceFutures)
-                {
-                    newServer = new BinanceServerFutures(uniqueNum);
-                }
-                if (type == ServerType.NinjaTrader)
-                {
-                    newServer = new NinjaTraderServer();
-                }
-                if (type == ServerType.BitMex)
-                {
-                    newServer = new BitMexServer();
-                }
-                if (type == ServerType.QuikLua)
-                {
-                    newServer = new QuikLuaServer();
-                }
-                if (type == ServerType.QuikDde)
-                {
-                    newServer = new QuikServer();
-                }
-                if (type == ServerType.InteractiveBrokers)
-                {
-                    newServer = new InteractiveBrokersServer();
-                }
-                else if (type == ServerType.Plaza)
-                {
-                    newServer = new PlazaServer();
-                }
-                else if (type == ServerType.AstsBridge)
-                {
-                    newServer = new AstsBridgeServer(needLoadTicks);
-                }
-                else if (type == ServerType.Tester)
-                {
-                    newServer = new TesterServer();
-                }
-                else if (type == ServerType.Finam)
-                {
-                    newServer = new FinamServer();
-                }
-                else if (type == ServerType.FinamGrpc)
-                {
-                    newServer = new FinamGrpcServer(uniqueNum);
-                }
-                else if (type == ServerType.Deribit)
-                {
-                    newServer = new DeribitServer();
-                }
-                else if (type == ServerType.PionexSpot)
-                {
-                    newServer = new PionexServerSpot();
-                }
-                else if (type == ServerType.Woo)
-                {
-                    newServer = new WooServer();
-                }
-                else if (type == ServerType.HTXSpot)
-                {
-                    newServer = new HTXSpotServer(uniqueNum);
-                }
-                else if (type == ServerType.HTXFutures)
-                {
-                    newServer = new HTXFuturesServer(uniqueNum);
-                }
-                else if (type == ServerType.HTXSwap)
-                {
-                    newServer = new HTXSwapServer(uniqueNum);
-                }
-                else if (type == ServerType.BitMartSpot)
-                {
-                    newServer = new BitMartSpotServer();
-                }
-                else if (type == ServerType.BitMartFutures)
-                {
-                    newServer = new BitMartFuturesServer();
-                }
-                else if (type == ServerType.TraderNet)
-                {
-                    newServer = new TraderNetServer();
-                }
-                else if (type == ServerType.MexcSpot)
-                {
-                    newServer = new MexcSpotServer(uniqueNum);
-                }
-                else if (type == ServerType.KiteConnect)
-                {
-                    newServer = new KiteConnectServer();
-                }
-                else if (type == ServerType.YahooFinance)
-                {
-                    newServer = new YahooServer();
-                }
-                else if (type == ServerType.Polygon)
-                {
-                    newServer = new PolygonServer();
-                }
-                else if (type == ServerType.CoinExSpot)
-                {
-                    newServer = new CoinExServerSpot();
-                }
-                else if (type == ServerType.CoinExFutures)
-                {
-                    newServer = new CoinExServerFutures();
-                }
-                else if (type == ServerType.BloFinFutures)
-                {
-                    newServer = new BloFinFuturesServer(uniqueNum);
-                }
-                else if (type == ServerType.AscendexSpot)
-                {
-                    newServer = new AscendexSpotServer(uniqueNum);
-                }
-
-                if (newServer == null)
-                {
-                    return;
-                }
-
-                _servers.Add(newServer);
-
+               
                 if (ServerCreateEvent != null)
                 {
                     try
@@ -836,42 +865,52 @@ namespace OsEngine.Market
         /// <param name="uniqueNum"> server number </param>
         public static void DeleteServer(ServerType type, int uniqueNum)
         {
-            if (uniqueNum < 1)
+            try
             {
-                return;
-            }
-
-            for (int i = 0; i < _servers.Count; i++)
-            {
-                if (_servers[i].GetType().BaseType.Name.ToString() == "AServer")
+                if (uniqueNum < 1)
                 {
-                    AServer serverCurrent = (AServer)_servers[i];
+                    return;
+                }
 
-                    if (serverCurrent.ServerType == type
-                        && serverCurrent.ServerNum == uniqueNum)
+                lock (_serversArrayLocker)
+                {
+                    for (int i = 0; i < _servers.Count; i++)
                     {
-                        serverCurrent.StopServer();
-                        serverCurrent.Delete();
-
-                        _servers.RemoveAt(i);
-
-                        if (ServerDeleteEvent != null)
+                        if (_servers[i].GetType().BaseType.Name.ToString() == "AServer")
                         {
-                            try
+                            AServer serverCurrent = (AServer)_servers[i];
+
+                            if (serverCurrent.ServerType == type
+                                && serverCurrent.ServerNum == uniqueNum)
                             {
-                                ServerDeleteEvent(serverCurrent);
-                            }
-                            catch(Exception ex)
-                            {
-                                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                                serverCurrent.StopServer();
+                                serverCurrent.Delete();
+
+                                _servers.RemoveAt(i);
+
+                                if (ServerDeleteEvent != null)
+                                {
+                                    try
+                                    {
+                                        ServerDeleteEvent(serverCurrent);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                                    }
+                                }
+
+                                SendNewLogMessage(OsLocalization.Market.Label245 + ": " + serverCurrent.ServerNameAndPrefix, LogMessageType.System);
+
+                                return;
                             }
                         }
-
-                        SendNewLogMessage(OsLocalization.Market.Label245 + ": " + serverCurrent.ServerNameAndPrefix ,LogMessageType.System);
-
-                        return;
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -1577,6 +1616,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new ExmoSpotServerPermission();
                 }
+                else if (type == ServerType.BybitData)
+                {
+                    serverPermission = new BybitDataServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1960,6 +2003,326 @@ namespace OsEngine.Market
 
         #endregion
 
+        #region External server creation and getters
+
+        public static AServer GetServerOrCreate(TradeClientConnector description, out string error)
+        {
+            if(description.ServerType == ServerType.None)
+            {
+                error = "Server type is None";
+                return null;
+            }
+
+            if (description.ServerParameters.Count == 0)
+            {
+                error = "Server parameters count is zero";
+                return null;
+            }
+
+            error = "";
+
+            AServer resultServer = null;
+
+            ServerType typeServer = description.ServerType;
+
+            ServerMaster.TryLoadServerInstance(typeServer);
+
+            // 1 сначала пытаемся взять сервер из уже ранее созданных
+
+            List<AServer> myServers = ServerMaster.GetAServers();
+
+            for (int i = 0; myServers != null && i < myServers.Count; i++)
+            {
+                AServer myServer = myServers[i];
+
+                if (myServer.ServerType != typeServer)
+                {
+                    continue;
+                }
+
+                List<IServerParameter> parameters = myServer.ServerParameters;
+
+                if (IsMyServer(parameters, description.ServerParameters))
+                {
+                    resultServer = myServer;
+
+                    return resultServer;
+                }
+            }
+
+            // 2 выясняем номер сервера, который дадим серверу
+
+            int serverNum = 0;
+
+            for (int i = 0; myServers != null && i < myServers.Count; i++)
+            {
+                if (myServers[i].ServerNum >= serverNum)
+                {
+                    serverNum = myServers[i].ServerNum + 1;
+                }
+            }
+
+            // 3 создаём сервер
+
+            ServerMaster.CreateServer(typeServer, false, serverNum);
+
+            myServers = ServerMaster.GetAServers();
+
+            for (int i = 0; myServers != null && i < myServers.Count; i++)
+            {
+                if (myServers[i].ServerNum == serverNum)
+                {
+                    resultServer = myServers[i];
+                }
+            }
+
+            if (resultServer == null)
+            {
+                error = "Can`t create server. Type: " + description.ServerType;
+                SendNewLogMessage(error, LogMessageType.Error);
+                return null;
+            }
+
+            // 4 проверяем наличие всех параметров, которые передал сигнал
+
+            for (int i = 0; i < description.ServerParameters.Count; i++)
+            {
+                TradeClientConnectorParameter parameterD = description.ServerParameters[i];
+                bool isInArray = false;
+
+                for (int j = 0; j < resultServer.ServerParameters.Count; j++)
+                {
+                    IServerParameter parameter = resultServer.ServerParameters[j];
+
+                    if (parameter.Name == parameterD.ParameterName)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    error = "Can`t find parameter in server. Parameter name: " + parameterD.ParameterName
+                        + " Parameter value: " + parameterD.ParameterValue;
+
+                    SendNewLogMessage(error, LogMessageType.Error);
+                    ServerMaster.DeleteServer(resultServer.ServerType, resultServer.ServerNum);
+                    return null;
+                }
+            }
+
+            // 5 подгружаем в сервер параметры
+
+            try
+            {
+                SetParametersInServer(resultServer, description.ServerParameters);
+            }
+            catch (Exception ex)
+            {
+                error = "Error on set parameters in server step. Exception: " + ex.ToString();
+
+                SendNewLogMessage(error, LogMessageType.Error);
+                ServerMaster.DeleteServer(resultServer.ServerType, resultServer.ServerNum);
+                return null;
+            }
+
+            return resultServer;
+        }
+
+        public static AServer GetServer(TradeClientConnector description, out string error)
+        {
+            AServer resultServer = null;
+
+            ServerType typeServer = description.ServerType;
+
+            ServerMaster.TryLoadServerInstance(typeServer);
+
+            // 1 сначала пытаемся взять сервер из уже ранее созданных
+
+            List<AServer> myServers = ServerMaster.GetAServers();
+
+            for (int i = 0; myServers != null && i < myServers.Count; i++)
+            {
+                AServer myServer = myServers[i];
+
+                if (myServer.ServerType != typeServer)
+                {
+                    continue;
+                }
+
+                List<IServerParameter> parameters = myServer.ServerParameters;
+
+                if (IsMyServer(parameters, description.ServerParameters))
+                {
+                    resultServer = myServer;
+
+                    error = "";
+                    return resultServer;
+                }
+            }
+
+            error = "No server with this params";
+            return resultServer;
+        }
+
+        private static bool IsMyServer(List<IServerParameter> parametersServer,
+    List<TradeClientConnectorParameter> parametersDescription)
+        {
+            for (int i = 0; i < parametersDescription.Count; i++)
+            {
+                TradeClientConnectorParameter parameterD = parametersDescription[i];
+
+                bool isInArray = false;
+
+                for (int j = 0; j < parametersServer.Count; j++)
+                {
+                    IServerParameter serverParameter = parametersServer[j];
+
+                    if (serverParameter.Name == parameterD.ParameterName)
+                    {
+                        if (serverParameter.Type == ServerParameterType.Bool)
+                        {
+                            ServerParameterBool serverParameterRealization = (ServerParameterBool)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                Convert.ToBoolean(parameterD.ParameterValue))
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.String)
+                        {
+                            ServerParameterString serverParameterRealization = (ServerParameterString)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                parameterD.ParameterValue)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Password)
+                        {
+                            ServerParameterPassword serverParameterRealization = (ServerParameterPassword)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                parameterD.ParameterValue)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Int)
+                        {
+                            ServerParameterInt serverParameterRealization = (ServerParameterInt)serverParameter;
+
+                            if (serverParameterRealization.Value.ToString() ==
+                                parameterD.ParameterValue)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Decimal)
+                        {
+                            ServerParameterDecimal serverParameterRealization = (ServerParameterDecimal)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                parameterD.ParameterValue.ToDecimal())
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Enum)
+                        {
+                            ServerParameterEnum serverParameterRealization = (ServerParameterEnum)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                parameterD.ParameterValue)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                    }
+
+                }
+
+                if (isInArray == false)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static void SetParametersInServer(AServer server, List<TradeClientConnectorParameter> parametersDescription)
+        {
+            List<IServerParameter> parametersServer = server.ServerParameters;
+
+            for (int i = 0; i < parametersDescription.Count; i++)
+            {
+                TradeClientConnectorParameter parameterD = parametersDescription[i];
+
+                for (int j = 0; j < parametersServer.Count; j++)
+                {
+                    IServerParameter serverParameter = parametersServer[j];
+
+                    if (serverParameter.Name == parameterD.ParameterName)
+                    {
+                        if (serverParameter.Type == ServerParameterType.Bool)
+                        {
+                            ServerParameterBool serverParameterBool = (ServerParameterBool)serverParameter;
+                            serverParameterBool.Value = Convert.ToBoolean(parameterD.ParameterValue);
+
+                            break;
+                        }
+                        else if (serverParameter.Type == ServerParameterType.String)
+                        {
+                            ServerParameterString serverParameterRealization = (ServerParameterString)serverParameter;
+                            serverParameterRealization.Value = parameterD.ParameterValue;
+
+                            break;
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Password)
+                        {
+                            ServerParameterPassword serverParameterRealization = (ServerParameterPassword)serverParameter;
+
+                            serverParameterRealization.Value = parameterD.ParameterValue;
+                            break;
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Int)
+                        {
+                            ServerParameterInt serverParameterRealization = (ServerParameterInt)serverParameter;
+                            serverParameterRealization.Value = Convert.ToInt32(parameterD.ParameterValue);
+
+                            break;
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Decimal)
+                        {
+                            ServerParameterDecimal serverParameterRealization = (ServerParameterDecimal)serverParameter;
+                            serverParameterRealization.Value = parameterD.ParameterValue.ToDecimal();
+
+                            break;
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Enum)
+                        {
+                            ServerParameterEnum serverParameterRealization = (ServerParameterEnum)serverParameter;
+                            serverParameterRealization.Value = parameterD.ParameterValue;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        #endregion
+
         #region Log
 
         /// <summary>
@@ -2106,12 +2469,6 @@ namespace OsEngine.Market
         /// Квик луа
         /// </summary>
         QuikLua,
-
-        /// <summary>
-        /// connection to terminal Quik by DDE
-        /// Квик
-        /// </summary>
-        QuikDde,
 
         /// <summary>
         /// Plaza 2
@@ -2357,6 +2714,12 @@ namespace OsEngine.Market
         /// downloading historical data from exchange OKX
         /// скачивание исторических данных с биржи OKX
         /// </summary>
-        OKXData
+        OKXData,
+
+        /// <summary>
+        /// downloading historical data from exchange Bybit
+        /// скачивание исторических данных с биржи Bybit
+        /// </summary>
+        BybitData
     }
 }

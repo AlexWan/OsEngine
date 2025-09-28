@@ -99,7 +99,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ордер на покупку
 
-            SendBuyOrder(mySecurity, md.Asks[0].Price);
+            SendBuyOrder(mySecurity, md.Asks[0].Price.ToDecimal());
 
             if (this._errors != null &&
                 this._errors.Count > 0)
@@ -110,7 +110,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ордер на продажу
 
-            SendSellOrder(mySecurity, md.Bids[0].Price);
+            SendSellOrder(mySecurity, md.Bids[0].Price.ToDecimal());
 
             TestEnded();
         }

@@ -66,7 +66,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (startProgram != StartProgram.IsOsOptimizer)
                 {
-                    _marketDepthPainter = new MarketDepthPainter(TabName);
+                    _marketDepthPainter = new MarketDepthPainter(TabName, _connector);
                     _marketDepthPainter.LogMessageEvent += SetNewLogMessage;
                 }
 
@@ -1283,32 +1283,32 @@ namespace OsEngine.OsTrader.Panels.Tab
         public MarketDepth MarketDepth { get; set; }
 
         /// <summary>
-        /// Best selling price
-        /// </summary>
-        public decimal PriceBestAsk
-        {
-            get
-            {
-                if (_connector == null)
-                {
-                    return 0;
-                }
-                return _connector.BestAsk;
-            }
-        }
-
-        /// <summary>
-        /// Best buy price
+        /// лучший Bid в стакане
         /// </summary>
         public decimal PriceBestBid
         {
             get
             {
-                if (_connector == null)
+                if (Connector == null)
                 {
                     return 0;
                 }
-                return _connector.BestBid;
+                return (decimal)Connector.BestBid;
+            }
+        }
+        
+        /// <summary>
+        /// лучший Аск в стакане
+        /// </summary>
+        public decimal PriceBestAsk
+        {
+            get
+            {
+                if (Connector == null)
+                {
+                    return 0;
+                }
+                return (decimal)Connector.BestAsk;
             }
         }
 
@@ -1323,7 +1323,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return 0;
                 }
-                return (_connector.BestAsk + _connector.BestBid) / 2;
+                return (decimal)(_connector.BestAsk + _connector.BestBid) / 2;
             }
         }
 
@@ -1639,7 +1639,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
                     return null;
                 }
-                decimal price = _connector.BestAsk;
+                decimal price = (decimal)_connector.BestAsk;
 
                 if (price == 0)
                 {
@@ -1795,7 +1795,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
-                    decimal lastPrice = _connector.BestBid;
+                    decimal lastPrice = (decimal)_connector.BestBid;
                     if (lastPrice.ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                     {
                         int point = lastPrice.ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
@@ -1914,7 +1914,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                decimal price = PriceBestAsk;
+                decimal price = (decimal)PriceBestAsk;
 
                 _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount,
                     newDeal, IcebergType.Open, volume, this, OrderPriceType.Market, minMillisecondsDistance);
@@ -2326,7 +2326,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                decimal price = _connector.BestAsk;
+                decimal price = (decimal)_connector.BestAsk;
 
                 if (price == 0)
                 {
@@ -2451,7 +2451,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
-                    decimal lastPrice = _connector.BestBid;
+                    decimal lastPrice = (decimal)_connector.BestBid;
                     if (lastPrice.ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                     {
                         int point = lastPrice.ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
@@ -2509,7 +2509,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                decimal price = PriceBestAsk;
+                decimal price = (decimal)PriceBestAsk;
 
                 _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen,
                     ordersCount, position, IcebergType.ModifyBuy, volume, this, OrderPriceType.Market, minMillisecondsDistance);
@@ -2691,7 +2691,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                decimal price = _connector.BestBid;
+                decimal price = (decimal)_connector.BestBid;
 
                 if (price == 0)
                 {
@@ -2845,7 +2845,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
-                    decimal lastPrice = _connector.BestBid;
+                    decimal lastPrice = (decimal)_connector.BestBid;
                     if (lastPrice.ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                     {
                         int point = lastPrice.ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
@@ -2972,7 +2972,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                decimal price = PriceBestBid;
+                decimal price = (decimal)PriceBestBid;
 
                 _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount,
                     newDeal, IcebergType.Open, volume, this, OrderPriceType.Market, minMillisecondsDistance);
@@ -3395,7 +3395,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                decimal price = _connector.BestBid;
+                decimal price = (decimal)_connector.BestBid;
 
                 if (price == 0)
                 {
@@ -3519,7 +3519,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
-                    decimal lastPrice = _connector.BestBid;
+                    decimal lastPrice = (decimal)_connector.BestBid;
                     if (lastPrice.ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                     { // truncate if decimal places
                         int point = lastPrice.ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
@@ -3577,7 +3577,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                decimal price = PriceBestBid;
+                decimal price = (decimal)PriceBestBid;
 
                 _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount,
                     position, IcebergType.ModifySell, volume, this, OrderPriceType.Market, minMillisecondsDistance);
@@ -3757,6 +3757,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i = 0; i < positions.Count; i++)
                     {
+                        if (positions[i] == null)
+                        {
+                            continue;
+                        }
                         CloseAtMarket(positions[i], positions[i].OpenVolume);
                     }
                 }
@@ -3906,7 +3910,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-                decimal price = _connector.BestAsk;
+                decimal price = (decimal)_connector.BestAsk;
 
                 if (price == 0)
                 {
@@ -3919,7 +3923,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         if (!Connector.EmulatorIsOn)
                         {
-                            price = _connector.BestBid - Security.PriceStep * 40;
+                            price = (decimal)_connector.BestBid - Security.PriceStep * 40;
                         }
                     }
                     else //if (position.Direction == Side.Sell)
@@ -4481,6 +4485,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     for (int i = 0; i < position.OpenOrders.Count; i++)
                     {
                         Order order = position.OpenOrders[i];
+
+                        if(order == null)
+                        {
+                            continue;
+                        }
+
                         if (order.State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(position.OpenOrders[i]);
@@ -4494,6 +4504,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     for (int i = 0; i < position.CloseOrders.Count; i++)
                     {
                         Order closeOrder = position.CloseOrders[i];
+
+                        if(closeOrder == null)
+                        {
+                            continue;
+                        }
 
                         if (closeOrder.State == OrderStateType.Active)
                         {
@@ -4889,6 +4904,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
                     {
+                        if(position.CloseOrders[i] == null)
+                        {
+                            continue;
+                        }
+
                         if (position.CloseOrders[i].State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(position.CloseOrders[i]);
@@ -4897,6 +4917,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     for (int i = 0; position.OpenOrders != null && i < position.OpenOrders.Count; i++)
                     {
+                        if (position.OpenOrders[i] == null)
+                        {
+                            continue;
+                        }
                         if (position.OpenOrders[i].State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(position.OpenOrders[i]);
@@ -5094,8 +5118,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     // check that the stop is no further than the activation price deep in the market
 
-                    decimal lastBid = PriceBestBid;
-                    decimal lastAsk = PriceBestAsk;
+                    decimal lastBid = (decimal)PriceBestBid;
+                    decimal lastAsk = (decimal)PriceBestAsk;
 
                     if (lastAsk != 0 && lastBid != 0)
                     {
@@ -5184,8 +5208,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     // check that the profit is no further than the activation price deep in the market
 
-                    decimal lastBid = PriceBestBid;
-                    decimal lastAsk = PriceBestAsk;
+                    decimal lastBid = (decimal)PriceBestBid;
+                    decimal lastAsk = (decimal)PriceBestAsk;
 
                     if (lastAsk != 0 && lastBid != 0)
                     {
@@ -5270,23 +5294,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
+
                     price = Math.Round(price, 0);
+
                     while (price % Security.PriceStep != 0)
                     {
                         price = price - 1;
                     }
-                }
-
-                if (side == Side.Buy &&
-                    Security.PriceLimitHigh != 0 && price > Security.PriceLimitHigh)
-                {
-                    price = Security.PriceLimitHigh;
-                }
-
-                if (side == Side.Sell &&
-                    Security.PriceLimitLow != 0 && price < Security.PriceLimitLow)
-                {
-                    price = Security.PriceLimitLow;
                 }
 
                 return price;
@@ -5345,11 +5359,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 { // внутри бумаги минимальный объём для одного ордера указан в валюте контракта
 
                     // 1 пытаемся взять текущую цену из стакана
-                    decimal lastPrice = this.PriceBestAsk;
+                    decimal lastPrice = (decimal)PriceBestAsk;
 
                     if(lastPrice == 0)
                     {
-                        lastPrice = this.PriceBestBid;
+                        lastPrice = (decimal)this.PriceBestBid;
                     }
 
                     // 2 пытаемся взять текущую цену из свечей
@@ -5645,11 +5659,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (position.Direction == Side.Buy)
                         {
-                            price = _connector.BestBid - signal.Slippage;
+                            price = (decimal)_connector.BestBid - signal.Slippage;
                         }
                         else
                         {
-                            price = _connector.BestAsk + signal.Slippage;
+                            price = (decimal)_connector.BestAsk + signal.Slippage;
                         }
 
                         CloseDeal(position, OrderPriceType.Limit, price, ManualPositionSupport.SecondToClose, true, true);
@@ -5666,7 +5680,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     else
                     {
-                        BuyAtLimit(signal.Volume, _connector.BestAsk + signal.Slippage);
+                        BuyAtLimit(signal.Volume, (decimal)_connector.BestAsk + signal.Slippage);
                     }
                 }
                 else if (signal.SignalType == SignalType.Sell)
@@ -5679,7 +5693,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     else
                     {
-                        SellAtLimit(signal.Volume, _connector.BestBid - signal.Slippage);
+                        SellAtLimit(signal.Volume, (decimal)_connector.BestBid - signal.Slippage);
                     }
                 }
             }
@@ -5765,6 +5779,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             for (int i = positions.Count - 1; i > -1 && i > positions.Count - 10; i--)
             {
+                if(positions[i] == null)
+                {
+                    continue;
+                }
                 if (positions[i].State == PositionStateType.ClosingSurplus)
                 {
                     haveSurplusPos = true;
@@ -5777,7 +5795,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            positions = PositionsAll.FindAll(position => position.State == PositionStateType.ClosingSurplus ||
+            positions = PositionsAll.FindAll(position => position != null && position.State == PositionStateType.ClosingSurplus ||
                 position.OpenVolume < 0);
 
             if (positions.Count == 0)
@@ -5813,12 +5831,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Sell && position.OpenVolume < 0)
                 {
-                    ShortUpdate(position, PriceBestBid - Security.PriceStep * 30,
+                    ShortUpdate(position, (decimal)PriceBestBid - Security.PriceStep * 30,
                         Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false, OrderPriceType.Limit, true);
                 }
                 if (position.Direction == Side.Buy && position.OpenVolume < 0)
                 {
-                    LongUpdate(position, PriceBestAsk + Security.PriceStep * 30,
+                    LongUpdate(position, (decimal)PriceBestAsk + Security.PriceStep * 30,
                         Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false, OrderPriceType.Limit, true);
                 }
             }
@@ -6143,7 +6161,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (marketDepth.Asks != null && marketDepth.Asks.Count > 0)
                         {
-                            CheckStop(openPositions[i], marketDepth.Asks[0].Price);
+                            CheckStop(openPositions[i], marketDepth.Asks[0].Price.ToDecimal());
                         }
 
                         if (openPositions.Count <= i)
@@ -6153,7 +6171,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (marketDepth.Bids != null && marketDepth.Bids.Count > 0)
                         {
-                            CheckStop(openPositions[i], marketDepth.Bids[0].Price);
+                            CheckStop(openPositions[i], marketDepth.Bids[0].Price.ToDecimal());
                         }
                     }
                 }
@@ -6190,16 +6208,27 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if(position.State == PositionStateType.Deleted)
+                {
+                    return;
+                }
+
                 if (position.State == PositionStateType.Done)
                 {
                     CloseAllOrderToPosition(position);
+
+                    if(position.CloseOrders == null)
+                    {
+                        return;
+                    }
 
                     if (StartProgram == StartProgram.IsOsTrader)
                     {
                         // высылаем оповещение, только если уже есть закрывающие MyTrades
 
-                        if (position.CloseOrders[position.CloseOrders.Count - 1].MyTrades != null
-                            && position.CloseOrders[position.CloseOrders.Count - 1].MyTrades.Count > 0)
+                        if (position.CloseOrders[^1] != null
+                            && position.CloseOrders[^1].MyTrades != null
+                            && position.CloseOrders[^1].MyTrades.Count > 0)
                         {
                             SetNewLogMessage(
                                 OsLocalization.Trader.Label408
@@ -6262,12 +6291,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (position.State == PositionStateType.Open)
                 {
+                    if (position.OpenOrders == null)
+                    {
+                        return;
+                    }
+
                     if (StartProgram == StartProgram.IsOsTrader)
                     {
                         // высылаем оповещение, только если уже есть закрывающие MyTrades
 
-                        if (position.OpenOrders[position.OpenOrders.Count - 1].MyTrades != null
-                            && position.OpenOrders[position.OpenOrders.Count - 1].MyTrades.Count > 0)
+                        if (position.OpenOrders[^1] != null
+                            && position.OpenOrders[^1].MyTrades != null
+                            && position.OpenOrders[^1].MyTrades.Count > 0)
                         {
                             SetNewLogMessage(
                             OsLocalization.Trader.Label407
@@ -6701,6 +6736,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
+                    if(openPositions[i] == null)
+                    {
+                        continue;
+                    }
+
                     if (openPositions[i].StopOrderIsActive == false &&
                         openPositions[i].ProfitOrderIsActive == false)
                     {
@@ -6709,6 +6749,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     for (int i2 = 0; i < openPositions.Count && i2 < newTrades.Count; i2++)
                     {
+                        if (openPositions[i] == null)
+                        {
+                            continue;
+                        }
+
                         if (CheckStop(openPositions[i], newTrades[i2].Price))
                         {
                             if (StartProgram != StartProgram.IsOsTrader)
@@ -6909,15 +6954,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Incoming new bid with ask
         /// </summary>
-        private void _connector_BestBidAskChangeEvent(decimal bestBid, decimal bestAsk)
+        private void _connector_BestBidAskChangeEvent(decimal bid, decimal ask)
         {
             if (_isDelete)
             {
                 return;
             }
-            _journal?.SetNewBidAsk(bestBid, bestAsk);
-            _marketDepthPainter?.ProcessBidAsk(bestBid, bestAsk);
-            BestBidAskChangeEvent?.Invoke(bestBid, bestAsk);
+            _journal?.SetNewBidAsk(bid, ask);
+            _marketDepthPainter?.ProcessBidAsk(bid, ask);
+            BestBidAskChangeEvent?.Invoke(ask, bid);
         }
 
         /// <summary>
@@ -7016,8 +7061,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         if (curPos.TimeForcibleRemoval < DateTime.Now
                            ||
-                           (curPos.Position.OpenOrders[curPos.Position.OpenOrders.Count - 1].MyTrades != null
-                                && curPos.Position.OpenOrders[curPos.Position.OpenOrders.Count - 1].MyTrades.Count > 0))
+                           (curPos.Position.OpenOrders[^1] != null 
+                            && curPos.Position.OpenOrders[^1].MyTrades != null
+                            && curPos.Position.OpenOrders[^1].MyTrades.Count > 0))
                         {
                             try
                             {
@@ -7047,8 +7093,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         if (curPos.TimeForcibleRemoval < DateTime.Now
                            ||
-                           (curPos.Position.CloseOrders[curPos.Position.CloseOrders.Count - 1].MyTrades != null
-                                && curPos.Position.CloseOrders[curPos.Position.CloseOrders.Count - 1].MyTrades.Count > 0))
+                           (curPos.Position.CloseOrders[^1] != null 
+                                &&  curPos.Position.CloseOrders[^1].MyTrades != null
+                                && curPos.Position.CloseOrders[^1].MyTrades.Count > 0))
                         {
                             try
                             {

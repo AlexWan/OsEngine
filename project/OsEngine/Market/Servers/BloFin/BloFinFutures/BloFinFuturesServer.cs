@@ -241,11 +241,11 @@ namespace OsEngine.Market.Servers.BloFin
 
         private string _webSocketUrlPrivate = "wss://openapi.blofin.com/ws/private";
 
-        private string _baseUrlDemo = "https://demo-trading-openapi.blofin.com";
+        //private string _baseUrlDemo = "https://demo-trading-openapi.blofin.com";
 
-        private string _webSocketUrlPublicDemo = "wss://demo-trading-openapi.blofin.com/ws/public";
+        //private string _webSocketUrlPublicDemo = "wss://demo-trading-openapi.blofin.com/ws/public";
 
-        private string _webSocketUrlPrivateDemo = "wss://demo-trading-openapi.blofin.com/ws/private";
+        //private string _webSocketUrlPrivateDemo = "wss://demo-trading-openapi.blofin.com/ws/private";
 
         private bool _hedgeMode;
 
@@ -611,7 +611,7 @@ namespace OsEngine.Market.Servers.BloFin
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
-            _webSocketPrivate.Connect();
+            _webSocketPrivate.ConnectAsync();
 
             _webSocketPublic = new WebSocket(_webSocketUrlPublic);
             /*_webSocketPublic.SslConfiguration.EnabledSslProtocols
@@ -622,7 +622,7 @@ namespace OsEngine.Market.Servers.BloFin
             _webSocketPublic.OnMessage += _webSocketPublic_OnMessage;
             _webSocketPublic.OnError += _webSocketPublic_OnError;
             _webSocketPublic.OnClose += _webSocketPublic_OnClose;
-            _webSocketPublic.Connect();
+            _webSocketPublic.ConnectAsync();
         }
 
         private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsKuCoinFutures";
@@ -705,7 +705,7 @@ namespace OsEngine.Market.Servers.BloFin
                 string nonce = Guid.NewGuid().ToString();
                 string signature = GenerateSignature(timestamp, Method.GET.ToString(), path, null, nonce);
 
-                _webSocketPrivate?.Send($"{{\"op\":\"login\",\"args\":[{{\"apiKey\":\"{_publicKey}\",\"passphrase\":\"{_password}\",\"timestamp\":\"{timestamp}\",\"sign\":\"{signature}\",\"nonce\":\"{nonce}\"}}]}}");
+                _webSocketPrivate?.SendAsync($"{{\"op\":\"login\",\"args\":[{{\"apiKey\":\"{_publicKey}\",\"passphrase\":\"{_password}\",\"timestamp\":\"{timestamp}\",\"sign\":\"{signature}\",\"nonce\":\"{nonce}\"}}]}}");
             }
             catch (Exception ex)
             {
@@ -936,7 +936,7 @@ namespace OsEngine.Market.Servers.BloFin
                     if (_webSocketPrivate != null && _webSocketPrivate.ReadyState == WebSocketState.Open ||
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting)
                     {
-                        _webSocketPrivate.Send($"ping");
+                        _webSocketPrivate.SendAsync($"ping");
                     }
                     else
                     {
@@ -946,7 +946,7 @@ namespace OsEngine.Market.Servers.BloFin
                     if (_webSocketPublic != null && _webSocketPublic.ReadyState == WebSocketState.Open ||
                         _webSocketPublic.ReadyState == WebSocketState.Connecting)
                     {
-                        _webSocketPublic.Send($"ping");
+                        _webSocketPublic.SendAsync($"ping");
                     }
                     else
                     {
@@ -993,8 +993,8 @@ namespace OsEngine.Market.Servers.BloFin
 
                 _subscribedSecutiries.Add(security);
 
-                _webSocketPublic?.Send($"{{\"op\":\"subscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
-                _webSocketPublic?.Send($"{{\"op\":\"subscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");
+                _webSocketPublic?.SendAsync($"{{\"op\":\"subscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
+                _webSocketPublic?.SendAsync($"{{\"op\":\"subscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");
             }
             catch (Exception ex)
             {
@@ -1006,9 +1006,9 @@ namespace OsEngine.Market.Servers.BloFin
         {
             try
             {
-                _webSocketPrivate?.Send("{\"op\":\"subscribe\",\"args\":[{\"channel\":\"orders\"}]}");
-                _webSocketPrivate?.Send("{\"op\":\"subscribe\",\"args\":[{\"channel\":\"positions\"}]}");
-                _webSocketPrivate?.Send("{\"op\":\"subscribe\",\"args\":[{\"channel\":\"account\"}]}");
+                _webSocketPrivate?.SendAsync("{\"op\":\"subscribe\",\"args\":[{\"channel\":\"orders\"}]}");
+                _webSocketPrivate?.SendAsync("{\"op\":\"subscribe\",\"args\":[{\"channel\":\"positions\"}]}");
+                _webSocketPrivate?.SendAsync("{\"op\":\"subscribe\",\"args\":[{\"channel\":\"account\"}]}");
             }
             catch (Exception ex)
             {
@@ -1027,8 +1027,8 @@ namespace OsEngine.Market.Servers.BloFin
                     {
                         Security security = _subscribedSecutiries[i];
 
-                        _webSocketPublic.Send($"{{\"op\":\"unsubscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
-                        _webSocketPublic.Send($"{{\"op\":\"unsubscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");
+                        _webSocketPublic.SendAsync($"{{\"op\":\"unsubscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
+                        _webSocketPublic.SendAsync($"{{\"op\":\"unsubscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");
                     }
                 }
                 catch
@@ -1042,9 +1042,9 @@ namespace OsEngine.Market.Servers.BloFin
             {
                 try
                 {
-                    _webSocketPrivate?.Send("{\"op\":\"unsubscribe\",\"args\":[{\"channel\":\"orders\"}]}");
-                    _webSocketPrivate?.Send("{\"op\":\"unsubscribe\",\"args\":[{\"channel\":\"positions\"}]}");
-                    _webSocketPrivate?.Send("{\"op\":\"unsubscribe\",\"args\":[{\"channel\":\"account\"}]}");
+                    _webSocketPrivate?.SendAsync("{\"op\":\"unsubscribe\",\"args\":[{\"channel\":\"orders\"}]}");
+                    _webSocketPrivate?.SendAsync("{\"op\":\"unsubscribe\",\"args\":[{\"channel\":\"positions\"}]}");
+                    _webSocketPrivate?.SendAsync("{\"op\":\"unsubscribe\",\"args\":[{\"channel\":\"account\"}]}");
                 }
                 catch
                 {
@@ -1058,7 +1058,7 @@ namespace OsEngine.Market.Servers.BloFin
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion 9
 
@@ -1219,8 +1219,8 @@ namespace OsEngine.Market.Servers.BloFin
 
                 for (int i = 0; i < responseDepth.data.asks.Count; i++)
                 {
-                    decimal ask = responseDepth.data.asks[i][1].ToString().ToDecimal();
-                    decimal price = responseDepth.data.asks[i][0].ToString().ToDecimal();
+                    double ask = responseDepth.data.asks[i][1].ToString().ToDouble();
+                    double price = responseDepth.data.asks[i][0].ToString().ToDouble();
 
                     if (ask == 0 ||
                         price == 0)
@@ -1236,8 +1236,8 @@ namespace OsEngine.Market.Servers.BloFin
 
                 for (int i = 0; i < responseDepth.data.bids.Count; i++)
                 {
-                    decimal bid = responseDepth.data.bids[i][1].ToString().ToDecimal();
-                    decimal price = responseDepth.data.bids[i][0].ToString().ToDecimal();
+                    double bid = responseDepth.data.bids[i][1].ToString().ToDouble();
+                    double price = responseDepth.data.bids[i][0].ToString().ToDouble();
 
                     if (bid == 0 ||
                         price == 0)
@@ -1629,7 +1629,7 @@ namespace OsEngine.Market.Servers.BloFin
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion 10
 
@@ -2198,9 +2198,9 @@ namespace OsEngine.Market.Servers.BloFin
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

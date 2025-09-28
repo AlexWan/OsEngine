@@ -1,0 +1,44 @@
+<Window x:Class="OsEngine.OsTrader.Panels.Tab.BotTabOptionsUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Options Setup" Height="660" Width="880" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen">
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="#FF2D3339" Offset="0"/>
+            <GradientStop Color="#FF21262C" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Background>
+    <Grid>
+        <!-- Left Panel: Configuration -->
+        <Rectangle Margin="5,5,0,35" HorizontalAlignment="Left" Width="200" Fill="#FF21262C" Stroke="#FF38414A"/>
+        <Label Content="Server" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <ComboBox Name="ComboBoxTypeServer" Margin="10,30,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+        
+        <Label Content="Portfolio" HorizontalAlignment="Left"  Margin="10,60,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <ComboBox Name="ComboBoxPortfolio" Margin="10,80,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+
+        <CheckBox Name="CheckBoxIsEmulator" Content="Execute in emulator" HorizontalAlignment="Left" Margin="10,110,0,0" VerticalAlignment="Top" Foreground="White"/>
+
+        <Label Content="Commission Type" HorizontalAlignment="Left"  Margin="10,140,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <ComboBox Name="ComboBoxCommissionType" Margin="10,160,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+        <Label Content="Commission Value" HorizontalAlignment="Left" Margin="10,190,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <TextBox Name ="TextBoxCommissionValue" Margin="10,210,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"  />
+
+        <!-- Right Panel: Underlying Asset Selection -->
+        <Rectangle Margin="210,5,10,35" Fill="#FF21262C" Stroke="#FF38414A"/>
+        <Label Content="Underlying Asset Selection" HorizontalAlignment="Left" Margin="215,10,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="White"/>
+
+
+
+        <Label Content="Class" HorizontalAlignment="Left" Margin="450,35,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <ComboBox Name="ComboBoxClass" Margin="490,35,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="150"/>
+        
+        <TextBox Name="TextBoxSearchSecurity" HorizontalAlignment="Right" Margin="0,35,15,0" Text="Search..." TextWrapping="Wrap" VerticalAlignment="Top" Width="150"/>
+
+        <WindowsFormsHost Name="HostUnderlyingAssets" Margin="215,60,15,40"/>
+
+        <!-- Bottom Buttons -->
+        <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="148"/>
+
+    </Grid>
+</Window>

@@ -659,7 +659,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 _webSocket.OnClose += WebSocket_Closed;
                 _webSocket.OnMessage += WebSocket_MessageReceived;
                 _webSocket.OnError += WebSocket_Error;
-                _webSocket.Connect();
+                _webSocket.ConnectAsync();
             }
             catch (Exception exception)
             {
@@ -798,8 +798,8 @@ namespace OsEngine.Market.Servers.TraderNet
                     return;
                 }
                                 
-                _webSocket.Send("[\"portfolio\"]");
-                _webSocket.Send("[\"orders\"]");
+                _webSocket.SendAsync("[\"portfolio\"]");
+                _webSocket.SendAsync("[\"orders\"]");
 
             }
             catch (Exception ex)
@@ -847,8 +847,8 @@ namespace OsEngine.Market.Servers.TraderNet
                 string quotesResponse = $"[\"quotes\", {GetStringFromList(_subscribedSecurities)}]";
                 string orderbookResponse = $"[\"orderBook\", {GetStringFromList(_subscribedSecurities)}]";
 
-                _webSocket.Send(quotesResponse);
-                _webSocket.Send(orderbookResponse);
+                _webSocket.SendAsync(quotesResponse);
+                _webSocket.SendAsync(orderbookResponse);
             }
             catch (Exception ex)
             {
@@ -880,7 +880,7 @@ namespace OsEngine.Market.Servers.TraderNet
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1164,15 +1164,15 @@ namespace OsEngine.Market.Servers.TraderNet
                     if (_listMD[responseDepth.i][j].s == "S")
                     {
                         MarketDepthLevel level = new MarketDepthLevel();
-                        level.Ask = _listMD[responseDepth.i][j].q.ToDecimal();
-                        level.Price = _listMD[responseDepth.i][j].p.ToDecimal();
+                        level.Ask = _listMD[responseDepth.i][j].q.ToDouble();
+                        level.Price = _listMD[responseDepth.i][j].p.ToDouble();
                         ascs.Add(level);
                     }
                     else
                     {
                         MarketDepthLevel level = new MarketDepthLevel();
-                        level.Bid = _listMD[responseDepth.i][j].q.ToDecimal();
-                        level.Price = _listMD[responseDepth.i][j].p.ToDecimal();
+                        level.Bid = _listMD[responseDepth.i][j].q.ToDouble();
+                        level.Price = _listMD[responseDepth.i][j].p.ToDouble();
                         bids.Add(level);
                     }
                 }
@@ -1263,7 +1263,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -1337,7 +1337,6 @@ namespace OsEngine.Market.Servers.TraderNet
                 if (!JsonResponse.Contains("result"))
                 {
                     return false;
-                    SendLogMessage($"CancelOrder: {JsonResponse}", LogMessageType.Error);
                 }
                 else
                 {
@@ -1814,9 +1813,9 @@ namespace OsEngine.Market.Servers.TraderNet
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

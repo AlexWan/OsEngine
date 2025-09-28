@@ -27,8 +27,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newDeal.Direction = direction;
             newDeal.State = PositionStateType.Opening;
 
-            newDeal.AddNewOpenOrder(CreateOrder(security, direction, priceOrder, volume, 
-                priceType, timeLife, startProgram,OrderPositionConditionType.Open, orderTypeTime, portfolio.ServerUniqueName));
+            Order orderNew = CreateOrder(security, direction, priceOrder, volume,
+                priceType, timeLife, startProgram, OrderPositionConditionType.Open, orderTypeTime, portfolio.ServerUniqueName);
+
+            newDeal.AddNewOpenOrder(orderNew);
 
             newDeal.NameBot = botName;
             newDeal.Lots = security.Lot;
@@ -44,8 +46,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 newDeal.PortfolioValueOnOpenPosition = Math.Round(portfolio.ValueCurrent,2);
             }
 
-            newDeal.OpenOrders[0].PortfolioNumber = portfolio.Number;
-            newDeal.OpenOrders[0].ServerName = portfolio.ServerUniqueName;
+            orderNew.PortfolioNumber = portfolio.Number;
+            orderNew.ServerName = portfolio.ServerUniqueName;
 
             return newDeal;
         }

@@ -926,7 +926,7 @@ namespace OsEngine.Market.Servers.BitMex
             _webSocket.OnMessage += _webSocket_MessageReceived;
             _webSocket.OnError += _webSocket_Error;
 
-            _webSocket.Connect();
+            _webSocket.ConnectAsync();
         }
 
         private void DeleteWebSocketConnection()
@@ -957,7 +957,7 @@ namespace OsEngine.Market.Servers.BitMex
             byte[] signatureBytes = hmacsha256(Encoding.UTF8.GetBytes(_secKey), Encoding.UTF8.GetBytes("GET/realtime" + nonce));
             string signatureString = ByteArrayToString(signatureBytes);
 
-            _webSocket.Send("{\"op\": \"authKeyExpires\", \"args\": [\"" + _id + "\"," + nonce + ",\"" + signatureString + "\"]}");
+            _webSocket.SendAsync("{\"op\": \"authKeyExpires\", \"args\": [\"" + _id + "\"," + nonce + ",\"" + signatureString + "\"]}");
         }
 
         #endregion
@@ -1061,7 +1061,7 @@ namespace OsEngine.Market.Servers.BitMex
                 ConnectEvent();
             }
 
-            _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"margin\", \"position\", \"order\", \"execution\"]}");  // Portfolio, Position, Orders, MyTrades
+            _webSocket.SendAsync("{\"op\": \"subscribe\", \"args\": [\"margin\", \"position\", \"order\", \"execution\"]}");  // Portfolio, Position, Orders, MyTrades
         }
 
         #endregion
@@ -1090,7 +1090,7 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         if (_timeLastSendPing.AddSeconds(25) < DateTime.UtcNow)
                         {
-                            _webSocket.Send("ping");
+                            _webSocket.SendAsync("ping");
                             _timeLastSendPing = DateTime.UtcNow;
                         }
                     }
@@ -1140,8 +1140,8 @@ namespace OsEngine.Market.Servers.BitMex
 
                 _subscribedSec.Add(security.Name);
 
-                _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"orderBookL2_25:" + security.Name + "\"]}"); // MarketDepth
-                _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"trade:" + security.Name + "\"]}");  // Trade
+                _webSocket.SendAsync("{\"op\": \"subscribe\", \"args\": [\"orderBookL2_25:" + security.Name + "\"]}"); // MarketDepth
+                _webSocket.SendAsync("{\"op\": \"subscribe\", \"args\": [\"trade:" + security.Name + "\"]}");  // Trade
 
             }
             catch (Exception exception)
@@ -1156,7 +1156,7 @@ namespace OsEngine.Market.Servers.BitMex
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1405,13 +1405,13 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             ascs.Add(new MarketDepthLevel()
                             {
-                                Ask = responseDepths.data[i].size.ToDecimal(),
-                                Price = responseDepths.data[i].price.ToDecimal(),
+                                Ask = responseDepths.data[i].size.ToDouble(),
+                                Price = responseDepths.data[i].price.ToDouble(),
                                 Id = Convert.ToInt64(responseDepths.data[i].id)
                             });
 
                             if (depth.Bids != null && depth.Bids.Count > 2 &&
-                                responseDepths.data[i].price.ToDecimal() < depth.Bids[0].Price)
+                                responseDepths.data[i].price.ToDouble() < depth.Bids[0].Price)
                             {
                                 depth.Bids.RemoveAt(0);
                             }
@@ -1420,13 +1420,13 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             bids.Add(new MarketDepthLevel()
                             {
-                                Bid = responseDepths.data[i].size.ToDecimal(),
-                                Price = responseDepths.data[i].price.ToDecimal(),
+                                Bid = responseDepths.data[i].size.ToDouble(),
+                                Price = responseDepths.data[i].price.ToDouble(),
                                 Id = Convert.ToInt64(responseDepths.data[i].id)
                             });
 
                             if (depth.Asks != null && depth.Asks.Count > 2 &&
-                                responseDepths.data[i].price.ToDecimal() > depth.Asks[0].Price)
+                                responseDepths.data[i].price.ToDouble() > depth.Asks[0].Price)
                             {
                                 depth.Asks.RemoveAt(0);
                             }
@@ -1461,18 +1461,18 @@ namespace OsEngine.Market.Servers.BitMex
                                 if (depth.Asks[j].Id == Convert.ToInt64(responseDepths.data[i].id)
                                     && responseDepths.action == "update")
                                 {
-                                    depth.Asks[j].Ask = responseDepths.data[i].size.ToDecimal();
+                                    depth.Asks[j].Ask = responseDepths.data[i].size.ToDouble();
                                 }
                                 else
                                 {
-                                    decimal priceLevel = responseDepths.data[i].price.ToDecimal();
+                                    double priceLevel = responseDepths.data[i].price.ToDouble();
 
                                     if (j == 0 && priceLevel < depth.Asks[j].Price)
                                     {
                                         depth.Asks.Insert(j, new MarketDepthLevel()
                                         {
-                                            Ask = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Ask = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
@@ -1480,8 +1480,8 @@ namespace OsEngine.Market.Servers.BitMex
                                     {
                                         depth.Asks.Insert(j + 1, new MarketDepthLevel()
                                         {
-                                            Ask = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Ask = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
@@ -1489,14 +1489,14 @@ namespace OsEngine.Market.Servers.BitMex
                                     {
                                         depth.Asks.Add(new MarketDepthLevel()
                                         {
-                                            Ask = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Ask = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
 
                                     if (depth.Bids != null && depth.Bids.Count > 2 &&
-                                        responseDepths.data[i].price.ToDecimal() < depth.Bids[0].Price)
+                                        responseDepths.data[i].price.ToDouble() < depth.Bids[0].Price)
                                     {
                                         depth.Bids.RemoveAt(0);
                                     }
@@ -1510,18 +1510,18 @@ namespace OsEngine.Market.Servers.BitMex
                                 if (depth.Bids[j].Id == Convert.ToInt64(responseDepths.data[i].id)
                                     && responseDepths.action == "update")
                                 {
-                                    depth.Bids[j].Bid = responseDepths.data[i].size.ToDecimal();
+                                    depth.Bids[j].Bid = responseDepths.data[i].size.ToDouble();
                                 }
                                 else
                                 {
-                                    decimal priceLevel = responseDepths.data[i].price.ToDecimal();
+                                    double priceLevel = responseDepths.data[i].price.ToDouble();
 
                                     if (j == 0 && priceLevel > depth.Bids[j].Price)
                                     {
                                         depth.Bids.Insert(j, new MarketDepthLevel()
                                         {
-                                            Bid = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Bid = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
@@ -1529,8 +1529,8 @@ namespace OsEngine.Market.Servers.BitMex
                                     {
                                         depth.Bids.Insert(j + 1, new MarketDepthLevel()
                                         {
-                                            Bid = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Bid = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
@@ -1538,14 +1538,14 @@ namespace OsEngine.Market.Servers.BitMex
                                     {
                                         depth.Bids.Add(new MarketDepthLevel()
                                         {
-                                            Bid = responseDepths.data[i].size.ToDecimal(),
-                                            Price = responseDepths.data[i].price.ToDecimal(),
+                                            Bid = responseDepths.data[i].size.ToDouble(),
+                                            Price = responseDepths.data[i].price.ToDouble(),
                                             Id = Convert.ToInt64(responseDepths.data[i].id)
                                         });
                                     }
 
                                     if (depth.Asks != null && depth.Asks.Count > 2 &&
-                                        responseDepths.data[i].price.ToDecimal() > depth.Asks[0].Price)
+                                        responseDepths.data[i].price.ToDouble() > depth.Asks[0].Price)
                                     {
                                         depth.Asks.RemoveAt(0);
                                     }
@@ -1733,7 +1733,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -2355,9 +2355,9 @@ namespace OsEngine.Market.Servers.BitMex
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

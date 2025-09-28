@@ -1460,7 +1460,7 @@ namespace OsEngine.OsOptimizer
                 }
 
             }
-            catch (Exception exception)
+            catch
             {
                 if (indexColumn == 2)
                 {

@@ -807,6 +807,11 @@ namespace OsEngine.OsTrader.Panels
                 {
                     ((BotTabNews)_panel.ActiveTab).ShowDialog();
                 }
+                else if (_panel.ActiveTab != null &&
+                 _panel.ActiveTab.GetType().Name == "BotTabOptions")
+                {
+                    ((BotTabOptions)_panel.ActiveTab).ShowDialog();
+                }
                 else
                 {
                     MessageBox.Show(OsLocalization.Trader.Label11);

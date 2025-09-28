@@ -1,14 +1,14 @@
-﻿using System;
+﻿using OsEngine.Entity;
+using OsEngine.Logging;
+using OsEngine.Market.Servers.Entity;
+using RestSharp;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Windows;
-using OsEngine.Entity;
-using OsEngine.Logging;
-using OsEngine.Market.Servers.Entity;
+
 
 namespace OsEngine.Market.Servers.MFD
 {
@@ -39,27 +39,18 @@ namespace OsEngine.Market.Servers.MFD
             }
         }
 
-        public ServerConnectStatus ServerStatus { get; set; }
-
-        public List<IServerParameter> ServerParameters { get; set; }
-
-        public DateTime ServerTime { get; set; }
-
         public void Connect(WebProxy proxy)
         {
-            string result = GetRequest("http://mfd.ru/export/");
+            _connectResult = GetStringRequest("http://mfd.ru/export/");
 
-            if (result == null)
+            if (!string.IsNullOrEmpty(_connectResult))
             {
-                ServerStatus = ServerConnectStatus.Disconnect;
+                ServerStatus = ServerConnectStatus.Connect;
+                ConnectEvent();
             }
             else
             {
-                ServerStatus = ServerConnectStatus.Connect;
-                if (ConnectEvent != null)
-                {
-                    ConnectEvent();
-                }
+                SendLogMessage($"Connect server error", LogMessageType.Error);
             }
         }
 
@@ -78,18 +69,25 @@ namespace OsEngine.Market.Servers.MFD
 
         #endregion
 
-        #region 2 Securities
+        #region 2 Properties
+
+        private string _connectResult;
+
+        public ServerConnectStatus ServerStatus { get; set; }
+
+        public List<IServerParameter> ServerParameters { get; set; }
+
+        public DateTime ServerTime { get; set; }
+
+        #endregion
+
+        #region 3 Securities
 
         public void GetSecurities()
         {
             SendLogMessage("Securities downloading...", LogMessageType.System);
 
-            string requestString =
-                "http://mfd.ru/export/";
-
-            string response = GetRequest(requestString);
-
-            string[] lines = response.Split('\n');
+            string[] lines = _connectResult.Split('\n');
 
             List<string> classes = GetClasses(lines);
 
@@ -162,60 +160,68 @@ namespace OsEngine.Market.Servers.MFD
         {
             string request = "http://mfd.ru/export/?groupId=" + curclass.Split('#')[1];
 
-            string response = GetRequest(request);
+            string response = GetStringRequest(request);
 
-            string[] pageLines = response.Split('\n');
-
-            string secInstr = "";
-
-            for (int i = 0; i < pageLines.Length; i++)
+            if (!string.IsNullOrEmpty(response))
             {
-                if (pageLines[i].Contains("<select name='AvailableTickers'"))
+                string[] pageLines = response.Split('\n');
+
+                string secInstr = "";
+
+                for (int i = 0; i < pageLines.Length; i++)
                 {
-                    secInstr = pageLines[i];
-                    break;
-                }
-            }
-
-            List<string> secInLines = ConvertToLines(secInstr);
-
-            // обрезаем строку
-
-            for (int i = 0; i < secInLines.Count; i++)
-            {
-                string line = secInLines[i];
-
-                line = line.Split('=')[line.Split('=').Length - 1];
-                line = line.Replace("\'", "");
-
-                secInLines[i] = line.Split('>')[1] + "#" + line.Split('>')[0];
-            }
-
-            List<Security> securities = new List<Security>();
-
-            for (int i = 0; i < secInLines.Count; i++)
-            {
-                if (secInLines[i].Contains("select"))
-                {
-                    continue;
+                    if (pageLines[i].Contains("<select name='AvailableTickers'"))
+                    {
+                        secInstr = pageLines[i];
+                        break;
+                    }
                 }
 
-                Security newSecurity = new Security();
-                newSecurity.NameClass = curclass;
-                newSecurity.Name = secInLines[i].Split('#')[0];
-                newSecurity.NameFull = newSecurity.Name;
-                newSecurity.NameId = secInLines[i];
+                List<string> secInLines = ConvertToLines(secInstr);
 
-                if (string.IsNullOrEmpty(newSecurity.Name))
+                // обрезаем строку
+
+                for (int i = 0; i < secInLines.Count; i++)
                 {
-                    newSecurity.Name = newSecurity.NameId;
-                    newSecurity.NameFull = newSecurity.NameId;
+                    string line = secInLines[i];
+
+                    line = line.Split('=')[line.Split('=').Length - 1];
+                    line = line.Replace("\'", "");
+
+                    secInLines[i] = line.Split('>')[1] + "#" + line.Split('>')[0];
                 }
 
-                securities.Add(newSecurity);
-            }
+                List<Security> securities = new List<Security>();
 
-            return securities;
+                for (int i = 0; i < secInLines.Count; i++)
+                {
+                    if (secInLines[i].Contains("select"))
+                    {
+                        continue;
+                    }
+
+                    Security newSecurity = new Security();
+                    newSecurity.NameClass = curclass;
+                    newSecurity.Name = secInLines[i].Split('#')[0];
+                    newSecurity.NameFull = newSecurity.Name;
+                    newSecurity.NameId = secInLines[i];
+
+                    if (string.IsNullOrEmpty(newSecurity.Name))
+                    {
+                        newSecurity.Name = newSecurity.NameId;
+                        newSecurity.NameFull = newSecurity.NameId;
+                    }
+
+                    securities.Add(newSecurity);
+                }
+
+                return securities;
+            }
+            else
+            {
+                SendLogMessage("Securities downloading by classes error", LogMessageType.Error);
+                return null;
+            }
         }
 
         private List<string> ConvertToLines(string str)
@@ -245,7 +251,7 @@ namespace OsEngine.Market.Servers.MFD
 
         #endregion
 
-        #region 3 Porfolio
+        #region 4 Porfolio
 
         public void GetPortfolios()
         {
@@ -263,42 +269,39 @@ namespace OsEngine.Market.Servers.MFD
 
         #endregion
 
-        #region 4 Data
+        #region 5 Data
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            lock (locker)
+            string minutes = "";
+
+            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 1)
             {
-                string minutes = "";
-
-                if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 1)
-                {
-                    minutes = "1";
-                }
-                if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 5)
-                {
-                    minutes = "2";
-                }
-                if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 10)
-                {
-                    minutes = "3";
-                }
-                if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 15)
-                {
-                    minutes = "4";
-                }
-                if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 30)
-                {
-                    minutes = "5";
-                }
-                if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 60)
-                {
-                    minutes = "6";
-                }
-
-                List<Candle> candles = GetCandles(security, startTime, endTime, minutes);
-                return candles;
+                minutes = "1";
             }
+            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 5)
+            {
+                minutes = "2";
+            }
+            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 10)
+            {
+                minutes = "3";
+            }
+            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 15)
+            {
+                minutes = "4";
+            }
+            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 30)
+            {
+                minutes = "5";
+            }
+            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 60)
+            {
+                minutes = "6";
+            }
+
+            List<Candle> candles = GetCandles(security, startTime, endTime, minutes);
+            return candles;
         }
 
         public List<Candle> GetCandles(Security security, DateTime startTime, DateTime endTime, string minutesCount)
@@ -376,49 +379,23 @@ namespace OsEngine.Market.Servers.MFD
             return result;
         }
 
-        private object locker = new object();
+        //  private object locker = new object();
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            lock (locker)
+            DateTime availableStartDate = DateTime.Now.Date.AddDays(-30);
+
+            // глубина тиков 1 мес.
+            if (startTime < availableStartDate && endTime < availableStartDate)
             {
-                DateTime curTime = startTime;
-
-                DateTime curEndTime = curTime.AddDays(20);
-
-                List<Trade> result = new List<Trade>();
-
-                while (true)
-                {
-                    List<Trade> trades = GetTradesByMonth(security, curTime, curEndTime);
-
-                    result.AddRange(trades);
-
-                    if (curEndTime.Date == endTime.Date)
-                    {
-                        break;
-                    }
-
-                    curTime = curTime.AddDays(20);
-                    curEndTime = curEndTime.AddDays(20);
-
-                    if (curEndTime > endTime)
-                    {
-                        curEndTime = endTime;
-                    }
-
-                    if (curTime >= endTime)
-                    {
-                        break;
-                    }
-                }
-
-                return result;
+                SendLogMessage("Attention! The trades data depth is not more than one month", LogMessageType.System);
+                return null;
             }
-        }
+            else if (startTime < availableStartDate && endTime >= availableStartDate)
+            {
+                startTime = availableStartDate;
+            }
 
-        private List<Trade> GetTradesByMonth(Security security, DateTime startTime, DateTime endTime)
-        {
             string fileName = "tick.txt";
 
             string requestStr = "http://mfd.ru/export/handler.ashx/" + fileName;
@@ -441,7 +418,7 @@ namespace OsEngine.Market.Servers.MFD
 
             string[] lines = response.Split('\n');
 
-            List<Trade> result = new List<Trade>();
+            List<Trade> trades = new List<Trade>();
 
             for (int i = 1; i < lines.Length; i++)
             {
@@ -460,78 +437,72 @@ namespace OsEngine.Market.Servers.MFD
                 trade.Time = timeStart;
                 trade.SecurityNameCode = security.Name;
 
-                result.Add(trade);
+                trades.Add(trade);
             }
 
-            return result;
+            return trades;
         }
 
         #endregion
 
-        #region 5 Queries
+        #region 6 Queries
 
-        private string GetRequest(string url)
+        private string GetStringRequest(string url)
         {
-            WebClient wb = new WebClient();
-            wb.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
-            wb.Encoding = Encoding.UTF8;
-
             try
             {
-                string str = wb.DownloadString(new Uri(url, UriKind.Absolute));
-                wb.Dispose();
-                return str;
+                RestRequest requestRest = new(Method.GET);
+                RestClient client = new(url);
+
+                string responseMessage = client.Execute(requestRest).Content;
+
+                return responseMessage;
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
-                wb.Dispose();
+
                 return null;
             }
         }
 
         private string GetFileRequest(string url)
         {
-            if (Directory.Exists(@"Data\Temp\") == false)
+            if (!Directory.Exists(@"Data\Temp\MfdTempFiles\"))
             {
-                Directory.CreateDirectory(@"Data\Temp\");
+                Directory.CreateDirectory(@"Data\Temp\MfdTempFiles\");
             }
-            string fileName = @"Data\Temp\tmpData" + ".txt";
+
+            string fileName = @"Data\Temp\MfdTempFiles\tmpData" + ".txt";
 
             if (File.Exists(fileName))
             {
                 File.Delete(fileName);
             }
 
-            WebClient wb = new WebClient();
-            wb.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
-            bool _tickLoaded = false;
+            RestRequest request = new RestRequest(Method.GET);
+            RestClient client = new RestClient(url);
 
             try
             {
+                IRestResponse response = client.Execute(request);
 
-                wb.DownloadFileAsync(new Uri(url, UriKind.Absolute), fileName);
-                wb.DownloadFileCompleted += delegate (object sender, AsyncCompletedEventArgs args)
+                if (response.StatusCode == HttpStatusCode.OK && response.RawBytes != null && response.RawBytes.Length > 0)
                 {
-                    _tickLoaded = true;
-                };
-
-            }
-            catch (Exception)
-            {
-                wb.Dispose();
-                return null;
-            }
-
-            while (true)
-            {
-                Thread.Sleep(1000);
-                if (_tickLoaded)
+                    using (FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        fileStream.Write(response.RawBytes, 0, response.RawBytes.Length);
+                    }
+                }
+                else
                 {
-                    break;
+                    SendLogMessage($"File downloading error: {response.ErrorMessage}, Status: {response.StatusCode}", LogMessageType.Error);
                 }
             }
-            wb.Dispose();
+            catch (Exception ex)
+            {
+                SendLogMessage($"File downloading error.\n{ex.Message}", LogMessageType.Error);
+            }
 
             if (!File.Exists(fileName))
             { // file is not uploaded / файл не загружен
@@ -554,7 +525,7 @@ namespace OsEngine.Market.Servers.MFD
 
         #endregion
 
-        #region 6 Log
+        #region 7 Log
 
         private void SendLogMessage(string message, LogMessageType type)
         {
@@ -572,89 +543,42 @@ namespace OsEngine.Market.Servers.MFD
 
         #endregion
 
-        #region 7 Unused methods
+        #region 8 Unused methods
 
-        public void SendOrder(Order order)
-        {
+        public void Subscribe(Security security) { }
 
-        }
+        public void SendOrder(Order order) { }
 
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
+        public void CancelAllOrders() { }
 
-        }
+        public void CancelAllOrdersToSecurity(Security security) { }
 
-        public bool CancelOrder(Order order)
-        {
-            return false;
-        }
+        public bool CancelOrder(Order order) { return false; }
 
-        public void CancelAllOrders()
-        {
+        public void ChangeOrderPrice(Order order, decimal newPrice) { }
 
-        }
+        public void GetAllActivOrders() { }
 
-        public void GetAllActivOrders()
-        {
+        public OrderStateType GetOrderStatus(Order order) { return OrderStateType.None; }
 
-        }
+        public bool SubscribeNews() { return false; }
 
-        public OrderStateType GetOrderStatus(Order order)
-        {
-            return OrderStateType.None;
-        }
+        public List<Order> GetActiveOrders(int startIndex, int count) { return null; }
 
-        public void Subscribe(Security security)
-        {
+        public List<Order> GetHistoricalOrders(int startIndex, int count) { return null; }
 
-        }
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount) { return null; }
 
-        public bool SubscribeNews()
-        {
-            return false;
-        }
+        public event Action<News> NewsEvent { add { } remove { } }
+        public event Action<Order> MyOrderEvent { add { } remove { } }
+        public event Action<MyTrade> MyTradeEvent { add { } remove { } }
+        public event Action<MarketDepth> MarketDepthEvent { add { } remove { } }
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
+        public event Action<Trade> NewTradesEvent { add { } remove { } }
 
-        public event Action<News> NewsEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public void GetOrdersState(List<Order> orders)
-        {
-
-        }
-
-        public void CancelAllOrdersToSecurity(Security security)
-        {
-
-        }
-
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
-
-        }
-
-        public List<Order> GetActiveOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public List<Order> GetHistoricalOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            return null;
-        }
-
-        public event Action<Order> MyOrderEvent;
-        public event Action<MyTrade> MyTradeEvent;
-        public event Action<MarketDepth> MarketDepthEvent;
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
-        public event Action<Trade> NewTradesEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

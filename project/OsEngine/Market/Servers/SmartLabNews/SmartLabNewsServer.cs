@@ -4,8 +4,8 @@ using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.ServiceModel.Syndication;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
@@ -377,13 +377,11 @@ namespace OsEngine.Market.Servers.SmartLabNews
                 return result;
             }
 
-            using (WebClient client = new WebClient())
+            using (HttpClient client =  new HttpClient())
             {
-                client.Encoding = Encoding.UTF8;
-
                 try
                 {
-                    string html = client.DownloadString(urlPost);
+                    string html = client.GetStringAsync(urlPost).GetAwaiter().GetResult();
 
                     string topicPattern = $@"<div class=""topic[^""]*""[^>]*tid=""{tid}""[^>]*>.*?<div class=""content"">(.*?)</div>";
 
@@ -478,55 +476,27 @@ namespace OsEngine.Market.Servers.SmartLabNews
 
         #region 6 Not used functions
 
-        public void CancelAllOrders()
-        {
-        }
+        public void CancelAllOrders() { }
 
-        public void CancelAllOrdersToSecurity(Security security)
-        {
-        }
+        public void CancelAllOrdersToSecurity(Security security) { }
 
-        public bool CancelOrder(Order order)
-        {
-            return false;
-        }
+        public bool CancelOrder(Order order) { return false; }
 
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
-        }
+        public void ChangeOrderPrice(Order order, decimal newPrice) { }
 
-        public void Subscribe(Security security)
-        {
-        }
+        public void Subscribe(Security security) { }
 
-        public void GetAllActivOrders()
-        {
-        }
+        public void GetAllActivOrders() { }
 
-        public List<Order> GetActiveOrders(int startIndex, int count)
-        {
-            return null;
-        }
+        public List<Order> GetActiveOrders(int startIndex, int count) { return null; }
 
-        public List<Order> GetHistoricalOrders(int startIndex, int count)
-        {
-            return null;
-        }
+        public List<Order> GetHistoricalOrders(int startIndex, int count) { return null; }
 
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
-        }
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime) { return null; }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            return null;
-        }
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount) { return null; }
 
-        public OrderStateType GetOrderStatus(Order order)
-        {
-            return OrderStateType.None;
-        }
+        public OrderStateType GetOrderStatus(Order order) { return OrderStateType.None; }
 
         public void GetPortfolios()
         {
@@ -555,26 +525,22 @@ namespace OsEngine.Market.Servers.SmartLabNews
             SecurityEvent(securities);
         }
 
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
-        }
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime) { return null; }
 
-        public void SendOrder(Order order)
-        {
-        }
+        public void SendOrder(Order order) { }
 
         public event Action<List<Security>> SecurityEvent;
         public event Action<List<Portfolio>> PortfolioEvent;
-        public event Action<MarketDepth> MarketDepthEvent;
-        public event Action<Trade> NewTradesEvent;
-        public event Action<Order> MyOrderEvent;
-        public event Action<MyTrade> MyTradeEvent;
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<MarketDepth> MarketDepthEvent { add { } remove { } }
+        public event Action<Trade> NewTradesEvent { add { } remove { } }
+        public event Action<Order> MyOrderEvent { add { } remove { } }
+        public event Action<MyTrade> MyTradeEvent { add { } remove { } }
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
+
         #endregion
     }
 }

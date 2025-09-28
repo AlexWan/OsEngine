@@ -296,7 +296,16 @@ namespace OsEngine.Market
 
                         for (int i = 0; i < _orders.Count; i++)
                         {
-                            Order order = _orders[i];
+                            Order order = null;
+
+                            try
+                            {
+                                order = _orders[i];
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
 
                             if (order == null)
                             {
@@ -745,6 +754,11 @@ namespace OsEngine.Market
         {
             try
             {
+                if(order == null)
+                {
+                    return;
+                }
+
                 if (order.ServerType == ServerType.Optimizer ||
                 order.ServerType == ServerType.Miner)
                 {
@@ -840,9 +854,20 @@ namespace OsEngine.Market
                         }
                     }
 
-                    if (_orders.Count > 5000)
+                    if (_startAllProgram == StartUiToPainter.IsTester
+                       || _startAllProgram == StartUiToPainter.IsTesterLight)
                     {
-                        _orders.RemoveAt(0);
+                        if (_orders.Count > 100)
+                        {
+                            _orders.RemoveAt(0);
+                        }
+                    }
+                    else
+                    {
+                        if (_orders.Count > 1000)
+                        {
+                            _orders.RemoveAt(0);
+                        }
                     }
                 }
             }
@@ -861,6 +886,12 @@ namespace OsEngine.Market
             try
             {
                 if (_orders == null || _orders.Count == 0)
+                {
+                    return;
+                }
+
+                if (_startAllProgram != StartUiToPainter.IsOsTrader
+                    && _startAllProgram != StartUiToPainter.IsOsTraderLight)
                 {
                     return;
                 }

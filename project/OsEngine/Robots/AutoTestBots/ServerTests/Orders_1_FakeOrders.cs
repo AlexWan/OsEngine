@@ -101,7 +101,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ордер с уменьшенным объёмом 
 
-            decimal price = Math.Round((md.Asks[0].Price + md.Bids[0].Price)/2,mySecurity.Decimals);
+            decimal price = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) /2,mySecurity.Decimals);
 
             SendFakeSmallVolume(mySecurity, price);
 

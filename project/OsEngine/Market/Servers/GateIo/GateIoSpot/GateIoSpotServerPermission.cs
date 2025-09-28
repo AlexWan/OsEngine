@@ -258,6 +258,19 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.gateio.ws",
+                };
+
+                return pingIpDomens;
+            }
+        }
+
         #endregion
     }
 }

@@ -489,16 +489,12 @@ namespace OsEngine.Market.Servers.Tester
                         SendLogMessage(ex.ToString(), LogMessageType.Error);
                     }
                 }
-
-                _isFirstStart = false;
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
-
-        private bool _isFirstStart = true;
 
         public bool IsAlreadyStarted;
 
@@ -889,7 +885,17 @@ namespace OsEngine.Market.Servers.Tester
                 Order order = OrdersActive[i];
                 // check availability of securities on the market / проверяем наличие инструмента на рынке
 
-                SecurityTester security = GetMySecurity(order);
+                SecurityTester security = null;
+                
+                if(order.MySecurityInTester != null)
+                {
+                    security = order.MySecurityInTester;
+                }
+                else
+                {
+                    security = GetMySecurity(order);
+                    order.MySecurityInTester = security;
+                }
 
                 if (security == null)
                 {
@@ -1172,7 +1178,17 @@ namespace OsEngine.Market.Servers.Tester
 
         private bool CheckOrdersInTickTest(Order order, Trade lastTrade, bool firstTime, bool isNewDay)
         {
-            SecurityTester security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
+            SecurityTester security = null;
+
+            if(order.MySecurityInTester != null)
+            {
+                security = order.MySecurityInTester;
+            }
+            else
+            {
+                security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
+                order.MySecurityInTester = security;
+            }
 
             if (security == null)
             {
@@ -1354,8 +1370,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return false;
             }
-            decimal sellBestPrice = lastMarketDepth.Asks[0].Price;
-            decimal buyBestPrice = lastMarketDepth.Bids[0].Price;
+            decimal sellBestPrice = lastMarketDepth.Asks[0].Price.ToDecimal();
+            decimal buyBestPrice = lastMarketDepth.Bids[0].Price.ToDecimal();
 
             DateTime time = lastMarketDepth.Time;
 
@@ -1677,7 +1693,17 @@ namespace OsEngine.Market.Servers.Tester
 
             if (orderOnBoard.IsStopOrProfit)
             {
-                SecurityTester security = GetMySecurity(order);
+                SecurityTester security = null;
+
+                if (order.MySecurityInTester != null)
+                {
+                    security = order.MySecurityInTester;
+                }
+                else
+                {
+                    security = GetMySecurity(order);
+                    order.MySecurityInTester = security;
+                }
 
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках
@@ -1763,7 +1789,7 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<Order> NewOrderIncomeEvent;
 
-        public event Action<Order> CancelOrderFailEvent;
+        public event Action<Order> CancelOrderFailEvent { add { } remove { } }
 
         #endregion
 
@@ -2370,7 +2396,7 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        public event Action<List<Security>> SecuritiesChangeEvent;
+        public event Action<List<Security>> SecuritiesChangeEvent { add { } remove { } }
 
         public void ShowSecuritiesDialog()
         {
@@ -3579,7 +3605,7 @@ namespace OsEngine.Market.Servers.Tester
                     trade2.SetMarketDepthFromString(lastString2);
                     security[security.Count - 1].TimeEnd = trade2.Time;
                 }
-                catch (Exception error)
+                catch
                 {
                     security.Remove(security[security.Count - 1]);
                 }
@@ -3978,9 +4004,9 @@ namespace OsEngine.Market.Servers.Tester
             return false;
         }
 
-        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
+        public event Action<OptionMarketData> NewAdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         public event Action NeedToReconnectEvent;
 
@@ -4282,9 +4308,9 @@ namespace OsEngine.Market.Servers.Tester
                 _dataIsActive = true;
             }
 
-            if (NewBidAscIncomeEvent != null)
+            if (NewBidAskIncomeEvent != null)
             {
-                NewBidAscIncomeEvent(candle.Close, candle.Close, GetSecurityForName(nameSecurity, ""));
+                NewBidAskIncomeEvent((decimal)candle.Close, (decimal)candle.Close, GetSecurityForName(nameSecurity, ""));
             }
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
@@ -4317,7 +4343,7 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
+        public event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
 
         #endregion
 
@@ -4411,9 +4437,9 @@ namespace OsEngine.Market.Servers.Tester
                     }
                 }
             }
-            if (NewBidAscIncomeEvent != null)
+            if (NewBidAskIncomeEvent != null)
             {
-                NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
+                NewBidAskIncomeEvent((decimal)tradesNew[tradesNew.Count - 1].Price, (decimal)tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
             }
         }
 
@@ -4457,11 +4483,11 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-        public event Action<Funding> NewFundingEvent;
-        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
+        public event Action<Funding> NewFundingEvent { add { } remove { } }
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

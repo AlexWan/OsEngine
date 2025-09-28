@@ -12,10 +12,12 @@ using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.OsTrader.ClientManagement;
 using OsEngine.OsTrader.MemoryRH;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
+using OsEngine.OsTrader.ServerAvailability;
 using OsEngine.PrimeSettings;
 using OsEngine.Robots;
 using System;
@@ -76,6 +78,7 @@ namespace OsEngine.OsTrader
                 ((TesterServer)ServerMaster.GetServers()[0]).TestingStartEvent += StrategyKeeper_TestingStartEvent;
                 ((TesterServer)ServerMaster.GetServers()[0]).TestingFastEvent += StrategyKeeper_TestingFastEvent;
                 ((TesterServer)ServerMaster.GetServers()[0]).TestingEndEvent += StrategyKeeper_TestingEndEvent;
+
             }
 
             if (_startProgram == StartProgram.IsOsTrader)
@@ -83,6 +86,9 @@ namespace OsEngine.OsTrader
                 ServerMaster.ActivateAutoConnection();
                 ServerMaster.ActivateProxy();
                 ServerMaster.ActivateCopyMaster();
+                ServerAvailabilityMaster.Activate();
+
+                ClientManagementMaster clientManagementMaster = new ClientManagementMaster();
 
                 if (PrimeSettingsMaster.MemoryCleanerRegime == MemoryCleanerRegime.At5Minutes)
                 {
@@ -1752,6 +1758,11 @@ namespace OsEngine.OsTrader
                          _activePanel.ActiveTab.GetType().Name == "BotTabNews")
                 {
                     ((BotTabNews)_activePanel.ActiveTab).ShowDialog();
+                }
+                else if (_activePanel.ActiveTab != null &&
+                      _activePanel.ActiveTab.GetType().Name == "BotTabOptions")
+                {
+                    ((BotTabOptions)_activePanel.ActiveTab).ShowDialog();
                 }
                 else
                 {

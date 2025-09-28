@@ -496,7 +496,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            decimal price = marketDepth.Bids[0].Price + (marketDepth.Asks[0].Price - marketDepth.Bids[0].Price) / 2;
+            decimal price = marketDepth.Bids[0].Price.ToDecimal() + (marketDepth.Asks[0].Price.ToDecimal() - marketDepth.Bids[0].Price.ToDecimal()) / 2;
 
             UpDateCandle(marketDepth.Time, price, 1, true, Side.None);
         }

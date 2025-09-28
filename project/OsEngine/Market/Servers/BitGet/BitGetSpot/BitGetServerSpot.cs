@@ -96,8 +96,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                    FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                     CreatePublicWebSocketConnect();
                     CreatePrivateWebSocketConnect();
                     _lastConnectionStartTime = DateTime.Now;
@@ -129,8 +127,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketPublicMessage = null;
-            FIFOListWebSocketPrivateMessage = null;
+            FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -832,7 +830,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 webSocketPublicNew.OnMessage += WebSocketPublic_MessageReceived;
                 webSocketPublicNew.OnError += WebSocketPublic_Error;
                 webSocketPublicNew.OnClose += WebSocketPublic_Closed;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -864,7 +862,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
                 _webSocketPrivate.OnError += WebSocketPrivate_Error;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.ConnectAsync();
             }
             catch (Exception exception)
             {
@@ -982,7 +980,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 string AuthJson = JsonConvert.SerializeObject(requestWebsocketAuth);
 
-                _webSocketPrivate.Send(AuthJson);
+                _webSocketPrivate.SendAsync(AuthJson);
             }
             catch (Exception ex)
             {
@@ -1212,7 +1210,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         if (webSocketPublic != null
                             && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send("ping");
+                            webSocketPublic.SendAsync("ping");
                         }
                         else
                         {
@@ -1225,7 +1223,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting)
                         )
                     {
-                        _webSocketPrivate.Send("ping");
+                        _webSocketPrivate.SendAsync("ping");
                     }
                     else
                     {
@@ -1319,18 +1317,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
+                        webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
                     }
                 }
 
                 if (_webSocketPrivate != null)
                 {
-                    _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{security.Name}\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{security.Name}\"}}]}}");
                 }
             }
             catch (Exception ex)
@@ -1343,7 +1341,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             try
             {
-                _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
+                _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
             }
             catch (Exception exception)
             {
@@ -1370,15 +1368,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                                 {
                                     for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
+                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
                                         }
 
-                                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
+                                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{_subscribedSecutiries[i2]}\"}}]}}");
                                     }
                                 }
                             }
@@ -1400,7 +1398,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
                 }
                 catch
                 {
@@ -1414,7 +1412,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1804,8 +1802,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 for (int i = 0; i < responseDepth.data[0].asks.Count; i++)
                 {
-                    decimal ask = responseDepth.data[0].asks[i][1].ToString().ToDecimal();
-                    decimal price = responseDepth.data[0].asks[i][0].ToString().ToDecimal();
+                    double ask = responseDepth.data[0].asks[i][1].ToString().ToDouble();
+                    double price = responseDepth.data[0].asks[i][0].ToString().ToDouble();
 
                     if (ask == 0 ||
                         price == 0)
@@ -1821,8 +1819,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 for (int i = 0; i < responseDepth.data[0].bids.Count; i++)
                 {
-                    decimal bid = responseDepth.data[0].bids[i][1].ToString().ToDecimal();
-                    decimal price = responseDepth.data[0].bids[i][0].ToString().ToDecimal();
+                    double bid = responseDepth.data[0].bids[i][1].ToString().ToDouble();
+                    double price = responseDepth.data[0].bids[i][0].ToString().ToDouble();
 
                     if (bid == 0 ||
                         price == 0)
@@ -1904,9 +1902,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
@@ -2065,20 +2063,32 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetAllOpenOrders();
+            List<Order> ordersOpenAll = GetAllActivOrdersArray(100, true);
 
-            if (orders == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < orders.Count; i++)
+            for (int i = 0; i < ordersOpenAll.Count; i++)
             {
                 if (MyOrderEvent != null)
                 {
-                    MyOrderEvent(orders[i]);
+                    MyOrderEvent(ordersOpenAll[i]);
                 }
             }
+        }
+
+        private List<Order> GetAllActivOrdersArray(int maxCountByCategory, bool onlyActive)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> orders = new List<Order>();
+
+            GetAllOpenOrders(orders, 100, true);
+
+            if (orders != null
+                && orders.Count > 0)
+            {
+                ordersOpenAll.AddRange(orders);
+            }
+
+            return ordersOpenAll;
         }
 
         public OrderStateType GetOrderStatus(Order order)
@@ -2214,13 +2224,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
-        public List<Order> GetAllOpenOrders()
+        public void GetAllOpenOrders(List<Order> array, int maxCount, bool onlyActive)
         {
             _rateGateOrder.WaitToProceed();
 
             try
             {
-                IRestResponse responseMessage = CreatePrivateQuery($"/api/v2/spot/trade/unfilled-orders", Method.GET, null, null);
+                IRestResponse responseMessage = CreatePrivateQuery($"/api/v2/spot/trade/unfilled-orders?limit=100", Method.GET, null, null);
 
                 string json = responseMessage.Content;
 
@@ -2232,54 +2242,98 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     {
                         if (stateResponse.data == null)
                         {
-                            return null;
+                            return;
                         }
 
                         List<Order> orders = new List<Order>();
 
                         for (int ind = 0; ind < stateResponse.data.Count; ind++)
                         {
-                            Order curOder = ConvertRestToOrder(stateResponse.data[ind]);
-                            orders.Add(curOder);
+                            RestMessageOrders item = stateResponse.data[ind];
+
+                            Order newOrder = new Order();
+
+                            OrderStateType stateType = GetOrderState(item.status);
+
+                            newOrder.SecurityNameCode = item.symbol;
+                            newOrder.SecurityClassCode = "Spot";
+                            newOrder.State = stateType;
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.uTime));
+
+                            if (newOrder.State == OrderStateType.Cancel)
+                            {
+                                newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.uTime));
+                            }
+
+                            if (newOrder.State == OrderStateType.Done)
+                            {
+                                newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.uTime));
+                            }
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item.clientOid);
+                            }
+                            catch
+                            {
+
+                            }
+
+                            newOrder.NumberMarket = item.orderId.ToString();
+                            newOrder.Side = item.side == "buy" ? Side.Buy : Side.Sell;
+                            newOrder.Volume = item.size.ToDecimal();
+                            newOrder.Price = item.priceAvg.ToDecimal();
+                            newOrder.ServerType = ServerType.BitGetSpot;
+                            newOrder.PortfolioNumber = "BitGetSpot";
+                            newOrder.TypeOrder = OrderPriceType.Limit;
+
+                            orders.Add(newOrder);
                         }
 
-                        return orders;
+                        if (orders.Count > 0)
+                        {
+                            array.AddRange(orders);
+
+                            if (array.Count > maxCount)
+                            {
+                                while (array.Count > maxCount)
+                                {
+                                    array.RemoveAt(array.Count - 1);
+                                }
+                                return;
+                            }
+                            else if (array.Count < 50)
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
+
+                        return;
                     }
                     else
                     {
                         SendLogMessage($"Code: {stateResponse.code}\n"
                             + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        return;
                     }
                 }
-                return null;
+                else
+                {
+                    SendLogMessage($"GetOpenOrders>. Order error. Code: {responseMessage.StatusCode}\n"
+                            + $"Message: {responseMessage.Content}", LogMessageType.Error);
+                    return;
+                }
             }
             catch (Exception e)
             {
                 SendLogMessage(e.Message, LogMessageType.Error);
-                return null;
+                return;
             }
-        }
-
-        private Order ConvertRestToOrder(RestMessageOrders item)
-        {
-            Order newOrder = new Order();
-
-            OrderStateType stateType = GetOrderState(item.status);
-
-            newOrder.SecurityNameCode = item.symbol;
-            newOrder.SecurityClassCode = "Spot";
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
-            int.TryParse(item.clientOid, out newOrder.NumberUser);
-            newOrder.NumberMarket = item.orderId.ToString();
-            newOrder.Side = item.side == "buy" ? Side.Buy : Side.Sell;
-            newOrder.State = stateType;
-            newOrder.Volume = item.size.ToDecimal();
-            newOrder.Price = item.priceAvg.ToDecimal();
-            newOrder.ServerType = ServerType.BitGetSpot;
-            newOrder.PortfolioNumber = "BitGetSpot";
-            newOrder.TypeOrder = OrderPriceType.Limit;
-
-            return newOrder;
         }
 
         private OrderStateType GetOrderState(string orderStateResponse)
@@ -2320,12 +2374,179 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public List<Order> GetActiveOrders(int startIndex, int count)
         {
-            return null;
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllActivOrdersArray(countToMethod, true);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
         }
 
         public List<Order> GetHistoricalOrders(int startIndex, int count)
         {
-            return null;
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllHistoricalOrdersArray(countToMethod, false);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
+        }
+
+        private List<Order> GetAllHistoricalOrdersArray(int maxCountByCategory, bool onlyActive)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> orders = new List<Order>();
+
+            GetAllHistoricalOrders(orders, 100, true);
+
+            if (orders != null
+                && orders.Count > 0)
+            {
+                ordersOpenAll.AddRange(orders);
+            }
+
+            return ordersOpenAll;
+        }
+
+        private void GetAllHistoricalOrders(List<Order> array, int maxCount, bool onlyActive)
+        {
+            _rateGateOrder.WaitToProceed();
+
+            try
+            {
+                IRestResponse responseMessage = CreatePrivateQuery($"/api/v2/spot/trade/history-orders?limit=100", Method.GET, null, null);
+
+                string json = responseMessage.Content;
+
+                ResponseRestMessage<List<RestMessageOrders>> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<RestMessageOrders>>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    if (stateResponse.code.Equals("00000") == true)
+                    {
+                        if (stateResponse.data == null)
+                        {
+                            return;
+                        }
+
+                        List<Order> orders = new List<Order>();
+
+                        for (int j = 0; j < stateResponse.data.Count; j++)
+                        {
+                            RestMessageOrders item = stateResponse.data[j];
+
+                            Order newOrder = new Order();
+
+                            OrderStateType stateType = GetOrderState(item.status);
+
+                            newOrder.SecurityNameCode = item.symbol;
+                            newOrder.SecurityClassCode = "Spot";
+                            newOrder.State = stateType;
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.uTime));
+
+                            if (newOrder.State == OrderStateType.Cancel)
+                            {
+                                newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.uTime));
+                            }
+
+                            if (newOrder.State == OrderStateType.Done)
+                            {
+                                newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.uTime));
+                            }
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item.clientOid);
+                            }
+                            catch
+                            {
+
+                            }
+
+                            newOrder.NumberMarket = item.orderId.ToString();
+                            newOrder.Side = item.side == "buy" ? Side.Buy : Side.Sell;
+                            newOrder.Volume = item.size.ToDecimal();
+                            newOrder.Price = item.price.ToDecimal();
+                            newOrder.ServerType = ServerType.BitGetSpot;
+                            newOrder.PortfolioNumber = "BitGetSpot";
+                            newOrder.TypeOrder = OrderPriceType.Limit;
+
+                            orders.Add(newOrder);
+                        }
+
+                        if (orders.Count > 0)
+                        {
+                            array.AddRange(orders);
+
+                            if (array.Count > maxCount)
+                            {
+                                while (array.Count > maxCount)
+                                {
+                                    array.RemoveAt(array.Count - 1);
+                                }
+                                return;
+                            }
+                            else if (array.Count < 50)
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
+
+                        return;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"GetHistoryOrder>. Order error. Code: {responseMessage.StatusCode}\n"
+                            + $"Message: {responseMessage.Content}", LogMessageType.Error);
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
+                return;
+            }
         }
 
         #endregion
@@ -2355,6 +2576,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
 
                 IRestResponse response = client.Execute(requestRest);
+
+                if (response.Content.Contains("\"Request timestamp expired\"")
+                    || response.Content == "")
+                {
+                    Disconnect();
+                }
 
                 return response;
             }
@@ -2395,6 +2622,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
 
                 IRestResponse response = client.Execute(requestRest);
+
+                if (response.Content.Contains("\"Request timestamp expired\"")
+                    || response.Content == "")
+                {
+                    Disconnect();
+                }
 
                 return response;
             }

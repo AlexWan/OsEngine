@@ -1332,7 +1332,7 @@ namespace OsEngine.Market.Servers.Atp
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1765,8 +1765,8 @@ namespace OsEngine.Market.Servers.Atp
         {
             MarketDepthLevel level = new MarketDepthLevel();
 
-            level.Bid = vol.ToDecimal();
-            level.Price = price.ToDecimal();
+            level.Bid = vol.ToDouble();
+            level.Price = price.ToDouble();
 
             return level;
         }
@@ -1775,8 +1775,8 @@ namespace OsEngine.Market.Servers.Atp
         {
             MarketDepthLevel level = new MarketDepthLevel();
 
-            level.Ask = vol.ToDecimal();
-            level.Price = price.ToDecimal();
+            level.Ask = vol.ToDouble();
+            level.Price = price.ToDouble();
 
             return level;
         }
@@ -1791,7 +1791,7 @@ namespace OsEngine.Market.Servers.Atp
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -1892,9 +1892,9 @@ namespace OsEngine.Market.Servers.Atp
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

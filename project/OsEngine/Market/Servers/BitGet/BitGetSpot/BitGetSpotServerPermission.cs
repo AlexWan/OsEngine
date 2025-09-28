@@ -168,11 +168,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             get { return false; }
         }
 
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
         public bool ManuallyClosePositionOnBoard_IsOn
         {
             get { return false; }
@@ -189,8 +184,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 string[] values = new string[]
                 {
-                    "USDT",
-                    "USDC",
+                    "USDT"
                 };
 
                 return values;
@@ -209,7 +203,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public bool CanGetOrderLists
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
@@ -264,6 +258,19 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         public int AsyncCandlesStarter_RateGateLimitMls
         {
             get { return 10; }
+        }
+
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.bitget.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

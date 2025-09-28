@@ -99,9 +99,40 @@ namespace OsEngine.Entity
         /// </summary>
         public static double ToDouble(this string value)
         {
-            return Convert.ToDouble(value.Replace(",",
-                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                CultureInfo.InvariantCulture);
+            if (string.IsNullOrEmpty(value))
+            {
+                return 0;
+            }
+            if (value.Contains("E"))
+            {
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result))
+                {
+                    return result;
+                }
+                return 0;
+            }
+            try
+            {
+                return Convert.ToDouble(value.Replace(",",
+                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                    CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                if (double.TryParse(value, out double result))
+                {
+                    return result;
+                }
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// conversion of double to Decimal type
+        /// </summary>
+        public static decimal ToDecimal(this double value)
+        {
+            return Convert.ToDecimal(value);
         }
 
         /// <summary>

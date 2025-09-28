@@ -119,7 +119,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 2 выставляем ордер на покупку. Далеко от края стакана
 
-            decimal price = Math.Round((md.Asks[0].Price + md.Bids[0].Price) / 2, mySecurity.Decimals);
+            decimal price = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity.Decimals);
             decimal volume = VolumeToTrade;
             price = Math.Round(price - price * 0.01m, mySecurity.Decimals); // проскальзывание 1%
 

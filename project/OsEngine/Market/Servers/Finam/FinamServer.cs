@@ -3,16 +3,15 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Finam.Entity;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
 using Action = System.Action;
 
 namespace OsEngine.Market.Servers.Finam
@@ -36,20 +35,18 @@ namespace OsEngine.Market.Servers.Finam
         {
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            if (!Directory.Exists(@"Data\Temp\"))
+            if (!Directory.Exists(@"Data\Temp\FinamTempFiles\"))
             {
-                Directory.CreateDirectory(@"Data\Temp\");
+                Directory.CreateDirectory(@"Data\Temp\FinamTempFiles\");
             }
         }
 
         public void Connect(WebProxy proxy)
         {
-            // проверка соединения
-            HttpWebResponse response = CheckFinamServer();
+            HttpResponseMessage response = CheckFinamServer();
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-
                 ServerStatus = ServerConnectStatus.Connect;
                 ConnectEvent();
             }
@@ -63,6 +60,16 @@ namespace OsEngine.Market.Servers.Finam
 
         public void Dispose()
         {
+            string[] files = Directory.GetFiles(@"Data\Temp\FinamTempFiles\");
+
+            if (files.Length > 0)
+            {
+                for (int i = 0; i < files.Length; i++)
+                {
+                    File.Delete(files[i]);
+                }
+            }
+
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -70,19 +77,15 @@ namespace OsEngine.Market.Servers.Finam
             }
         }
 
-        private HttpWebResponse CheckFinamServer()
+        private HttpResponseMessage CheckFinamServer()
         {
             string url = "https://www.finam.ru/profile/moex-akcii/sberbank/export/old/";
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-
-            // Добавление User-Agent  так как сервер разрешает заходить только из браузера
-            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3";
+            HttpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36");
 
             try
             {
-                // Получение ответа от сервера
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                HttpResponseMessage response = HttpClient.GetAsync(url).Result;
 
                 return response;
 
@@ -108,7 +111,7 @@ namespace OsEngine.Market.Servers.Finam
 
         #region 2 Properties
 
-        private string _serverAddress = "export.finam.ru";
+        public HttpClient HttpClient { get; set; } = new HttpClient();
 
         public DateTime ServerTime { get; set; }
 
@@ -154,30 +157,8 @@ namespace OsEngine.Market.Servers.Finam
         public void GetSecurities()
         {
             SendLogMessage("Downloading the list of securities...", LogMessageType.System);
-             
-            string response = "";
-            bool errorOnPage = false;
 
-            try
-            {
-                string path = $"https://www.finam.ru{GetIchartsPath()}";
-
-                response = GetPage(path);
-            }
-            catch (Exception e)
-            {
-                SendLogMessage("Tools data loading error.\r\nLoading tools data from cache.\r\nTools data may be obsolete. Error data:\r\n" + e, LogMessageType.System);
-                errorOnPage = true;
-            }
-
-            if (response == null
-                || response == ""
-                || response.Contains("Страница недоступна")
-                || response.Contains("<!DOCTYPE html>")
-                || errorOnPage)
-            {
-                response = GetSecFromFile();
-            }
+            string response = GetSecFromFile();
 
             string[] arra = response.Split('=');
             string[] arr = arra[1].Split('[')[1].Split(']')[0].Split(',');
@@ -512,52 +493,6 @@ namespace OsEngine.Market.Servers.Finam
             SecurityEvent(_securities);
         }
 
-        /// <summary>
-        /// get path to the latest cashed version of icharts.js
-        /// получить путь к последней кешированной версии icharts.js
-        /// </summary>
-        public static string GetIchartsPath()
-        {
-            string response = GetPage("https://www.finam.ru/profile/moex-akcii/sberbank/export/old/");
-
-            if (response == null)
-            {
-                return null;
-            }
-
-            string resultString = Regex.Match(response, @"\/cache\/.*\/icharts\/icharts\.js", RegexOptions.IgnoreCase).Value;
-
-            return resultString;
-        }
-
-        public static string GetPage(string uri)
-        {
-            try
-            {
-                if (ServicePointManager.SecurityProtocol != SecurityProtocolType.Tls12)
-                {
-                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                }
-
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-                string resultPage = "";
-
-                using (StreamReader sr = new StreamReader(response.GetResponseStream(), Encoding.Default, true))
-                {
-                    resultPage = sr.ReadToEnd();
-                    sr.Close();
-                }
-
-                return resultPage;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         private static string GetSecFromFile()
         {
             if (!File.Exists(@"FinamSecurities.txt"))
@@ -629,9 +564,8 @@ namespace OsEngine.Market.Servers.Finam
                     return null;
                 }
 
-                FinamDataSeries finamDataSeries = new FinamDataSeries();
+                FinamDataSeries finamDataSeries = new FinamDataSeries(this);
 
-                finamDataSeries.ServerPrefics = "http://" + _serverAddress;
                 finamDataSeries.TimeActual = actualTime;
                 finamDataSeries.Security = security;
                 finamDataSeries.SecurityFinam = _finamSecurities.Find(s => s.Id == security.NameId);
@@ -658,11 +592,6 @@ namespace OsEngine.Market.Servers.Finam
             }
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            return null;
-        }
-
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             try
@@ -673,9 +602,8 @@ namespace OsEngine.Market.Servers.Finam
                     return null;
                 }
 
-                FinamDataSeries finamDataSeries = new FinamDataSeries();
+                FinamDataSeries finamDataSeries = new FinamDataSeries(this);
 
-                finamDataSeries.ServerPrefics = "http://" + _serverAddress;
                 finamDataSeries.TimeActual = actualTime;
                 finamDataSeries.Security = security;
                 finamDataSeries.SecurityFinam = _finamSecurities.Find(s => s.Id == security.NameId);
@@ -706,7 +634,7 @@ namespace OsEngine.Market.Servers.Finam
 
         #region 6 Log
 
-        private void SendLogMessage(string message, LogMessageType messageType)
+        public void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent(message, messageType);
         }
@@ -716,72 +644,38 @@ namespace OsEngine.Market.Servers.Finam
 
         #region 7 Unused methods
 
-        public void Subscribe(Security security)
-        {
+        public void Subscribe(Security security) { }
 
-        }
+        public void SendOrder(Order order) { }
 
-        public void SendOrder(Order order)
-        {
+        public void CancelAllOrders() { }
 
-        }
+        public void CancelAllOrdersToSecurity(Security security) { }
 
-        public void CancelAllOrders()
-        {
+        public bool CancelOrder(Order order) { return false; }
 
-        }
+        public void ChangeOrderPrice(Order order, decimal newPrice) { }
 
-        public void CancelAllOrdersToSecurity(Security security)
-        {
+        public void GetAllActivOrders() { }
 
-        }
+        public OrderStateType GetOrderStatus(Order order) { return OrderStateType.None; }
 
-        public bool CancelOrder(Order order)
-        {
-            return false;
-        }
+        public bool SubscribeNews() { return false; }
 
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
+        public List<Order> GetActiveOrders(int startIndex, int count) { return null; }
 
-        }
+        public List<Order> GetHistoricalOrders(int startIndex, int count) { return null; }
 
-        public void GetAllActivOrders()
-        {
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount) { return null; }
 
-        }
-
-        public OrderStateType GetOrderStatus(Order order)
-        {
-            return OrderStateType.None;
-        }
-
-        public bool SubscribeNews()
-        {
-            return false;
-        }
-
-        public List<Order> GetActiveOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public List<Order> GetHistoricalOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public event Action<News> NewsEvent;
-
-        public event Action<MarketDepth> MarketDepthEvent;
-        public event Action<Trade> NewTradesEvent;
-        public event Action<Order> MyOrderEvent;
-        public event Action<MyTrade> MyTradeEvent;
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
+        public event Action<MarketDepth> MarketDepthEvent { add { } remove { } }
+        public event Action<Trade> NewTradesEvent { add { } remove { } }
+        public event Action<Order> MyOrderEvent { add { } remove { } }
+        public event Action<MyTrade> MyTradeEvent { add { } remove { } }
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
 

@@ -1002,8 +1002,8 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 return false;
             }
-            decimal sellBestPrice = lastMarketDepth.Asks[0].Price;
-            decimal buyBestPrice = lastMarketDepth.Bids[0].Price;
+            decimal sellBestPrice = lastMarketDepth.Asks[0].Price.ToDecimal();
+            decimal buyBestPrice = lastMarketDepth.Bids[0].Price.ToDecimal();
 
             DateTime time = lastMarketDepth.Time;
 
@@ -1407,7 +1407,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public event Action<Order> NewOrderIncomeEvent;
 
-        public event Action<Order> CancelOrderFailEvent;
+        public event Action<Order> CancelOrderFailEvent { add { } remove { } }
 
         #endregion
 
@@ -1738,7 +1738,7 @@ namespace OsEngine.Market.Servers.Optimizer
             return Portfolios[0];
         }
 
-        public event Action<List<Portfolio>> PortfoliosChangeEvent;
+        public event Action<List<Portfolio>> PortfoliosChangeEvent { add { } remove { } }
 
         #endregion
 
@@ -1784,7 +1784,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        public event Action<List<Security>> SecuritiesChangeEvent;
+        public event Action<List<Security>> SecuritiesChangeEvent { add { } remove { } }
 
         public void ShowSecuritiesDialog()
         {
@@ -1976,11 +1976,11 @@ namespace OsEngine.Market.Servers.Optimizer
             return false;
         }
 
-        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
+        public event Action<OptionMarketData> NewAdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
-        public event Action NeedToReconnectEvent;
+        public event Action NeedToReconnectEvent { add { } remove { } }
 
         #endregion
 
@@ -1995,9 +1995,9 @@ namespace OsEngine.Market.Servers.Optimizer
                 _dataIsActive = true;
             }
 
-            if (NewBidAscIncomeEvent != null)
+            if (NewBidAskIncomeEvent != null)
             {
-                NewBidAscIncomeEvent(candle.Close, candle.Close, GetSecurityForName(nameSecurity, ""));
+                NewBidAskIncomeEvent((decimal)candle.Close, (decimal)candle.Close, GetSecurityForName(nameSecurity, ""));
             }
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
@@ -2041,7 +2041,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
+        public event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
 
         public event Action<MarketDepth> NewMarketDepthEvent;
 
@@ -2128,9 +2128,9 @@ namespace OsEngine.Market.Servers.Optimizer
                 TestingProgressChangeEvent(lastCount, maxCount, NumberServer);
             }
 
-            if (NewBidAscIncomeEvent != null)
+            if (NewBidAskIncomeEvent != null)
             {
-                NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
+                NewBidAskIncomeEvent((decimal)tradesNew[tradesNew.Count - 1].Price, (decimal)tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
             }
         }
 
@@ -2173,11 +2173,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-        public event Action<Funding> NewFundingEvent;
-        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
+        public event Action<Funding> NewFundingEvent { add { } remove { } }
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

@@ -583,7 +583,6 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// bring the program to the start. Clear all objects involved in connecting to the server
         /// привести программу к моменту запуска. Очистить все объекты участвующие в подключении к серверу
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void Dispose()
         {
             try
@@ -817,9 +816,9 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (_bidAskToSend.TryDequeue(out bidAsk))
                         {
-                            if (NewBidAscIncomeEvent != null)
+                            if (NewBidAskIncomeEvent != null)
                             {
-                                NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
+                                NewBidAskIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                             }
                         }
                     }
@@ -1216,9 +1215,9 @@ namespace OsEngine.Market.Servers.AstsBridge
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
-        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
+        public event Action<OptionMarketData> NewAdditionalMarketDataEvent { add { } remove { } }
 
         /// <summary>
         /// candle series changed
@@ -1272,8 +1271,8 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             _bidAskToSend.Enqueue(new BidAskSender
             {
-                Bid = myDepth.Asks[0].Price,
-                Ask = myDepth.Bids[0].Price,
+                Bid = myDepth.Asks[0].Price.ToDecimal(),
+                Ask = myDepth.Bids[0].Price.ToDecimal(),
                 Security = GetSecurityForName(myDepth.SecurityNameCode, "")
             });
         }
@@ -1282,7 +1281,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// called when bid or ask changes
         /// вызывается когда изменяется бид или аск по инструменту
         /// </summary>
-        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
+        public event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
 
         /// <summary>
         /// called when depth changes
@@ -1586,7 +1585,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <summary>
         /// An attempt to revoke the order ended in an error
         /// </summary>
-        public event Action<Order> CancelOrderFailEvent;
+        public event Action<Order> CancelOrderFailEvent { add { } remove { } }
 
         // log messages
         // обработка лога
@@ -1620,11 +1619,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-        public event Action<Funding> NewFundingEvent;
-        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
+        public event Action<Funding> NewFundingEvent { add { } remove { } }
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent { add { } remove { } }
     }
 
     /// <summary>

@@ -18,26 +18,32 @@ namespace OsEngine.Market.Servers.OKX
         {
             get { return false; }
         }
+
         public bool DataFeedTf2SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf10SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf20SecondCanLoad
         {
             get { return false; ; }
         }
+
         public bool DataFeedTf30SecondCanLoad
         {
             get { return false; }
@@ -47,46 +53,57 @@ namespace OsEngine.Market.Servers.OKX
         {
             get { return false; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf10MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf30MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfDayCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfTickCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return true; }
@@ -136,11 +153,6 @@ namespace OsEngine.Market.Servers.OKX
             get { return true; }
         }
 
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
         public bool IsCanChangeOrderPrice
         {
             get { return false; }
@@ -163,7 +175,16 @@ namespace OsEngine.Market.Servers.OKX
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_LONG",
+                    "_SHORT"
+                };
+
+                return values;
+            }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
@@ -196,7 +217,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool CanGetOrderLists
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
@@ -251,6 +272,19 @@ namespace OsEngine.Market.Servers.OKX
         public int AsyncCandlesStarter_RateGateLimitMls
         {
             get { return 10; }
+        }
+
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "www.okx.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

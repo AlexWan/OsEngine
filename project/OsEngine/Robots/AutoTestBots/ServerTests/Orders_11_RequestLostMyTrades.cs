@@ -121,7 +121,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 2 выставляем ордер на покупку. Чтобы исполнился
 
-            decimal price = Math.Round(md.Asks[0].Price + md.Asks[0].Price * 0.01m, mySecurity.Decimals);
+            decimal price = Math.Round(md.Asks[0].Price.ToDecimal() + md.Asks[0].Price.ToDecimal() * 0.01m, mySecurity.Decimals);
             decimal volume = VolumeToTrade;
             Order newOrder = CreateOrder(mySecurity, price, volume, Side.Buy);
             _awaitOrderFirstStep = newOrder;

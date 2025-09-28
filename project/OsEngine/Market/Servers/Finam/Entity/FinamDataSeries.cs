@@ -1,16 +1,17 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Text;
-using System.Threading;
-
 
 namespace OsEngine.Market.Servers.Finam.Entity
 {
-    public class FinamDataSeries
+    public class FinamDataSeries(FinamServerRealization server)
     {
+        private readonly FinamServerRealization _server = server;
+
         private TimeFrame _timeFrame;
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace OsEngine.Market.Servers.Finam.Entity
         /// prefix for the server address
         /// префикс для адреса сервера
         /// </summary>
-        public string ServerPrefics { get; set; }
+        public string ServerPrefics { get; set; } = "http://export.finam.ru";
 
         /// <summary>
         /// security in the Finam specification
@@ -174,7 +175,6 @@ namespace OsEngine.Market.Servers.Finam.Entity
 
                 Trades = listTrades;
             }
-
         }
 
         /// <summary>
@@ -256,7 +256,6 @@ namespace OsEngine.Market.Servers.Finam.Entity
                 dayStart += TimeStart.Day;
             }
 
-
             string timeStartInStrToName =
                 timeStart.Year.ToString()[2].ToString()
                 + timeStart.Year.ToString()[3].ToString()
@@ -332,7 +331,7 @@ namespace OsEngine.Market.Servers.Finam.Entity
                 secName = Extensions.RemoveExcessFromSecurityName(secName);
             }
 
-            string fileName = @"Data\Temp\" + secName + "_" + timeStart.ToShortDateString() + ".txt";
+            string fileName = @"Data\Temp\FinamTempFiles\" + secName + "_" + timeStart.ToShortDateString() + ".txt";
 
             if (timeStart.Date != DateTime.Now.Date &&
                 File.Exists(fileName))
@@ -343,75 +342,26 @@ namespace OsEngine.Market.Servers.Finam.Entity
             // request data
             // запрашиваем данные
 
-            WebClient wb = new WebClient();
-
             try
             {
-                _tickLoaded = false;
-                wb.DownloadFileAsync(new Uri(url, UriKind.Absolute), fileName);
-                wb.DownloadFileCompleted += wb_DownloadFileCompleted;
-            }
-            catch (Exception)
-            {
-                wb.Dispose();
-                return null;
-            }
-
-            DateTime timeWaiting = DateTime.Now;
-
-            while (true)
-            {
-                Thread.Sleep(1000);
-                if (_tickLoaded)
+                using (HttpResponseMessage response = _server.HttpClient.GetAsync(url).GetAwaiter().GetResult())
                 {
-                    break;
-                }
+                    response.EnsureSuccessStatusCode();
 
-                if (timeWaiting.AddMinutes(10) < DateTime.Now)
-                {
-                    // пытаемся дважды запросить данные рекурсией
-                    // если не выходит, возвращаем null
-                    if (iteration == 1)
+                    using (Stream contentStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+
+                    using (FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None))
                     {
-                        iteration++;
-                        wb.CancelAsync();
-                        wb.Dispose();
-                        wb.DownloadFileCompleted -= wb_DownloadFileCompleted;
-                        try
-                        {
-                            File.Delete(fileName);
-                        }
-                        catch
-                        {
-
-                        }
-
-                        Thread.Sleep(5000);
-                        return GetTrades(timeStart, timeEnd, iteration);
-                    }
-                    else
-                    {
-                        wb.CancelAsync();
-                        wb.DownloadFileCompleted -= wb_DownloadFileCompleted;
-                        wb.Dispose();
-                        try
-                        {
-                            File.Delete(fileName);
-                        }
-                        catch
-                        {
-
-                        }
-                        Thread.Sleep(5000);
-                        return null;
+                        contentStream.CopyTo(fileStream);
                     }
                 }
-            }
-            wb.Dispose();
 
-            if (!File.Exists(fileName))
-            { // file is not uploaded / файл не загружен
+            }
+            catch (Exception ex)
+            {
+                _server.SendLogMessage("Сouldn't upload trades file.\n" + ex, LogMessageType.Error);
                 return null;
+
             }
 
             StringBuilder list = new StringBuilder();
@@ -455,12 +405,6 @@ namespace OsEngine.Market.Servers.Finam.Entity
             return fileName;
         }
 
-        void wb_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
-        {
-            _tickLoaded = true;
-        }
-
-        private bool _tickLoaded;
 
         /// <summary>
         /// update candles
@@ -469,7 +413,6 @@ namespace OsEngine.Market.Servers.Finam.Entity
         /// <returns></returns>
         private List<Candle> GetCandles()
         {
-
             DateTime timeStart = TimeStart;
 
             DateTime timeEnd = TimeEnd;
@@ -524,7 +467,6 @@ namespace OsEngine.Market.Servers.Finam.Entity
         /// <returns></returns>
         private List<Candle> GetCandles(DateTime timeStart, DateTime timeEnd)
         {
-
             //http://195.128.78.52/GBPUSD_141201_141206.csv?market=5&em=86&code=GBPUSD&df=1&mf=11&yf=2014&from=01.12.2014&dt=6&mt=11&yt=2014&to=06.12.2014&
             //p=2&f=GBPUSD_141201_141206&e=.csv&cn=GBPUSD&dtf=1&tmf=3&MSOR=1&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=1
 
@@ -544,16 +486,16 @@ namespace OsEngine.Market.Servers.Finam.Entity
 
             string url = ServerPrefics + "/" + "export9.out?";
 
-           // https://export.finam.ru/export9.out?
-           // market=91
-           // &em=420446
-           // &token=03AFcWeA7iP0so0-DqoyTulIsrxzG29wc4FscBa3E3NoHLgjLCK3bUKBwOCxew7UMS2i49RQRtE2q7YlyeXAIc6Z5BnoMEoiK5Xc_P8bJTOHp7FCATG7j5iZOI3tm75ZvMrxUI3_NYv3h608s6dYxZoHI_e1azzBfyU_0cvUw57Oeccgx24axPdtiebt5LIXgUbUI7g39w57HXNXlqdE3HFxw7n6JzeqXbZX0dVfD0mip3UjBCexOnjR8anpM4kAgHfqtEan1w-oARO8jW_1ud8zK7liOKqiuLWMB4RDf_BWzue4zPRF9LplZJPZ2ZF04rTWRIig2tP6xru5H9HbfFR88PqLRPX_2J-yE4DcYCabh4QVco43H9gJMUEb4ZF6i5qsTLn0RyDcBGALK4Ykrdu8a2fgM2zFm2cKA0inzr3324WgqV4dcdglljybW8BXQNMETn4Ee8hsjsqOzsdWONT79UMVNixPcjPA4JV_fPrfb_js5lq2z0mj14QEzLy0-1r7r_AEfwQD-jvWyX6eeLDbHQ6NoZYotSvEvkZfnggMr6eAGpmXw6bvDCNI1DSeNZVTdcTFis_xV5J2H3dxQTIS8zRv2GSFRSbMsrizkPGva-mi3A4Q2ySiArzxENC60befDJvq7Rbn7NZF6PXebZG_Np4DiimkCbISQkUMzS8SUNj5zBW79YtnJxPAKXMcj8WQDYfnaA33lUAIH6g7Y169hpwlE4snDFxjfyJZbDC15z8cH80XeI5G1sFBj552PQDUMgl53sRU7wcsfbv5ezsMvN3_OsiixmpHam9D3LtDtN8sQVvJ9cLPiFmQI6iUVLR_WnVvXyLUMYWLn9OqK-SBiPRgCIvAGGV0LK3lvrhnqJjwPhCyAXEPVGK3HL9_hcCkBPoaaUDjtocmpfJ-J3b5Wmcx3wy0f1kw
-           // &code=RI.MOEXBC
-           // &apply=0
-           // &df=1
-           // &mf=2
-           // &yf=2025
-           // &from=01.03.2025&dt=1&mt=3&yt=2025&to=01.04.2025&p=7&f=RI.MOEXBC_250301_250401&e=.txt&cn=RI.MOEXBC&dtf=1&tmf=1&MSOR=1&mstime=on&mstimever=1&sep=1&sep2=1&datf=2&at=1
+            // https://export.finam.ru/export9.out?
+            // market=91
+            // &em=420446
+            // &token=03AFcWeA7iP0so0-DqoyTulIsrxzG29wc4FscBa3E3NoHLgjLCK3bUKBwOCxew7UMS2i49RQRtE2q7YlyeXAIc6Z5BnoMEoiK5Xc_P8bJTOHp7FCATG7j5iZOI3tm75ZvMrxUI3_NYv3h608s6dYxZoHI_e1azzBfyU_0cvUw57Oeccgx24axPdtiebt5LIXgUbUI7g39w57HXNXlqdE3HFxw7n6JzeqXbZX0dVfD0mip3UjBCexOnjR8anpM4kAgHfqtEan1w-oARO8jW_1ud8zK7liOKqiuLWMB4RDf_BWzue4zPRF9LplZJPZ2ZF04rTWRIig2tP6xru5H9HbfFR88PqLRPX_2J-yE4DcYCabh4QVco43H9gJMUEb4ZF6i5qsTLn0RyDcBGALK4Ykrdu8a2fgM2zFm2cKA0inzr3324WgqV4dcdglljybW8BXQNMETn4Ee8hsjsqOzsdWONT79UMVNixPcjPA4JV_fPrfb_js5lq2z0mj14QEzLy0-1r7r_AEfwQD-jvWyX6eeLDbHQ6NoZYotSvEvkZfnggMr6eAGpmXw6bvDCNI1DSeNZVTdcTFis_xV5J2H3dxQTIS8zRv2GSFRSbMsrizkPGva-mi3A4Q2ySiArzxENC60befDJvq7Rbn7NZF6PXebZG_Np4DiimkCbISQkUMzS8SUNj5zBW79YtnJxPAKXMcj8WQDYfnaA33lUAIH6g7Y169hpwlE4snDFxjfyJZbDC15z8cH80XeI5G1sFBj552PQDUMgl53sRU7wcsfbv5ezsMvN3_OsiixmpHam9D3LtDtN8sQVvJ9cLPiFmQI6iUVLR_WnVvXyLUMYWLn9OqK-SBiPRgCIvAGGV0LK3lvrhnqJjwPhCyAXEPVGK3HL9_hcCkBPoaaUDjtocmpfJ-J3b5Wmcx3wy0f1kw
+            // &code=RI.MOEXBC
+            // &apply=0
+            // &df=1
+            // &mf=2
+            // &yf=2025
+            // &from=01.03.2025&dt=1&mt=3&yt=2025&to=01.04.2025&p=7&f=RI.MOEXBC_250301_250401&e=.txt&cn=RI.MOEXBC&dtf=1&tmf=1&MSOR=1&mstime=on&mstimever=1&sep=1&sep2=1&datf=2&at=1
 
             url += "market=" + SecurityFinam.MarketId + "&";
             url += "em=" + SecurityFinam.Id + "&";
@@ -582,11 +524,10 @@ namespace OsEngine.Market.Servers.Finam.Entity
             url += "datf=" + "5" + "&";
             url += "at=" + "0";
 
-            WebClient wb = new WebClient();
 
             //url = "http://export.finam.ru/export9.out?market=1&em=16842&code=GAZP&df=26&mf=8&yf=2023&from=26.09.2023&dt=28&mt=8&yt=2023&to=28.09.2023&p=3&f=GAZP_20230926_20230928&e=.txt&cn=GAZP&dtf=1&tmf=1&MSOR=0&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=0";
 
-            string response = wb.DownloadString(url);
+            string response = _server.HttpClient.GetStringAsync(url).GetAwaiter().GetResult();
 
             if (response != "")
             {

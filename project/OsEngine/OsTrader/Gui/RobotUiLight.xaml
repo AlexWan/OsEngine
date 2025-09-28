@@ -99,6 +99,7 @@
                         <Button Name="ButtonSupportTable" Content="Support table" VerticalAlignment="Bottom" Click="ButtonSupportTable_Click" Margin="0,0,5,1" HorizontalAlignment="Right" Width="133" Height="22"/>
                         <Button Name="ButtonProxy" Content="Proxy" VerticalAlignment="Bottom" Grid.Column="1" HorizontalAlignment="Left" Width="133" Click="ButtonProxy_Click" Margin="3,0,0,1" Height="22"/>
                         <Button Name="ButtonSystemStress" Content="System stress" VerticalAlignment="Bottom" Grid.Column="1" HorizontalAlignment="Left" Width="133" Margin="152,0,0,1" Height="22" Click="ButtonSystemStress_Click"/>
+                        <Button Name="ButtonServerAvailability" Content="Server availability" VerticalAlignment="Bottom" Grid.Column="1" HorizontalAlignment="Left" Width="133" Margin="295,0,0,1" Height="22" Click="ButtonServerAvailability_Click"/>
                     </Grid>
                 </TabItem>
 

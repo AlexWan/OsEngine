@@ -478,7 +478,7 @@ namespace OsEngine.OsTrader
                     position.CloseOrders.Count != 0 &&
                     position.State != PositionStateType.ClosingFail)
                 {
-                    closePrice = position.CloseOrders[position.CloseOrders.Count - 1].Price;
+                    closePrice = position.ClosePrice;
                 }
             }
 
@@ -640,7 +640,6 @@ namespace OsEngine.OsTrader
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
         private void Sort(DataGridView grid)
         {
             try
@@ -720,7 +719,6 @@ namespace OsEngine.OsTrader
             }
         }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
         private void CheckPosition(DataGridView grid, List<Position> positions)
         {
             if (grid.InvokeRequired)

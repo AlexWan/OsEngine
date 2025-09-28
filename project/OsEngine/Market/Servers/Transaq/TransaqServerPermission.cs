@@ -259,6 +259,19 @@ namespace OsEngine.Market.Servers.Transaq
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "tr1.finam.ru"
+                };
+
+                return pingIpDomens;
+            }
+        }
+
         #endregion
     }
 }

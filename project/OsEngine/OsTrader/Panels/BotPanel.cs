@@ -64,7 +64,12 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         ///  source for the news feed
         /// </summary>
-        News
+        News,
+
+        /// <summary>
+        /// source for options trading
+        /// </summary>
+        Options
     }
 
     /// <summary>
@@ -1017,11 +1022,18 @@ position => position.State != PositionStateType.OpeningFail
 
                     for(int i2 = 0;i2 < journals[i].AllPosition.Count;i2++)
                     {
-                        if (journals[i].AllPosition[i2].State == PositionStateType.OpeningFail)
+                        Position position = journals[i].AllPosition[i2];
+
+                        if (position == null)
                         {
                             continue;
                         }
-                        allPositionOpen.Add(journals[i].AllPosition[i2]);
+
+                        if (position.State == PositionStateType.OpeningFail)
+                        {
+                            continue;
+                        }
+                        allPositionOpen.Add(position);
                     }
 
                     if (allPositionOpen == null || allPositionOpen.Count == 0)
@@ -1066,6 +1078,74 @@ position => position.State != PositionStateType.OpeningFail
                     result.AddRange(journals[i].OpenPositions);
                 }
                 return result;
+            }
+        }
+
+        /// <summary>
+        /// number of long positions on the robot tabs
+        /// </summary>
+        public int AllPositionsLongCount
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null
+                    || journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                List<Position> pos = new List<Position>();
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i] == null)
+                    {
+                        continue;
+                    }
+                    if (journals[i].OpenAllLongPositions == null
+                        || journals[i].OpenAllLongPositions.Count == 0)
+                    {
+                        continue;
+                    }
+                    pos.AddRange(journals[i].OpenAllLongPositions);
+                }
+                return pos.Count;
+            }
+        }
+
+        /// <summary>
+        /// number of short positions on the robot tabs
+        /// </summary>
+        public int AllPositionsShortCount
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null
+                    || journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                List<Position> pos = new List<Position>();
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i] == null)
+                    {
+                        continue;
+                    }
+                    if (journals[i].OpenAllShortPositions == null
+                        || journals[i].OpenAllShortPositions.Count == 0)
+                    {
+                        continue;
+                    }
+                    pos.AddRange(journals[i].OpenAllShortPositions);
+                }
+                return pos.Count;
             }
         }
 
@@ -1833,6 +1913,10 @@ position => position.State != PositionStateType.OpeningFail
                     ((BotTabScreener)newTab).UserSelectActionEvent += UserSetPositionAction;
                     ((BotTabScreener)newTab).NewTabCreateEvent += (tab) => NewTabCreateEvent?.Invoke();
                 }
+                else if (tabType == BotTabType.Options)
+                {
+                    newTab = new BotTabOptions(nameTab, StartProgram);
+                }
                 else
                 {
                     return null;
@@ -2020,11 +2104,11 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (ActiveTab.TabType == BotTabType.Simple)
                 {
-                    ((BotTabSimple)ActiveTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, 
-                        _hostCloseDeals, _rectangle, _hostAlerts, _textBoxLimitPrice, 
+                    ((BotTabSimple)ActiveTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals,
+                        _hostCloseDeals, _rectangle, _hostAlerts, _textBoxLimitPrice,
                         _gridChartControlPanel, _textBoxVolume, _hostGrids);
 
-                    for(int i = 0;i < _tabControlControl.Items.Count;i++)
+                    for (int i = 0; i < _tabControlControl.Items.Count; i++)
                     {
                         TabItem itemN = (TabItem)_tabControlControl.Items[i];
                         itemN.IsEnabled = true;
@@ -2053,6 +2137,10 @@ position => position.State != PositionStateType.OpeningFail
                     else if (ActiveTab.TabType == BotTabType.Screener)
                     {
                         ((BotTabScreener)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
+                    }
+                    else if (ActiveTab.TabType == BotTabType.Options)
+                    {
+                        ((BotTabOptions)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
                     }
                     else if (ActiveTab.TabType == BotTabType.Pair)
                     {
@@ -2286,12 +2374,13 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
+                if(_botTabs== null
+                    ||  _botTabs.Count == 0)
                 {
-                    return _botTabs[i].EventsIsOn;
+                    return false;
                 }
 
-                return false;
+                 return _botTabs[0].EventsIsOn;
             }
             set
             {

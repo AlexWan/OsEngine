@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Connectors;
 
 namespace OsEngine.Entity
 {
@@ -67,12 +68,13 @@ namespace OsEngine.Entity
 
         // main object
 
-        public MarketDepthPainter(string botName)
+        public MarketDepthPainter(string botName, ConnectorCandles connector)
         {
             Activate();
 
             MarketDepthsToCheck.Add(this);
             _name = botName;
+            _connector = connector;
         }
 
         /// <summary>
@@ -93,13 +95,16 @@ namespace OsEngine.Entity
 
             _marketDepthTable = null;
             _hostMd = null;
+            _connector = null;
         }
+
+        private ConnectorCandles _connector;
 
         private string _name;
 
         private WindowsFormsHost _hostMd;
 
-        DataGridView _marketDepthTable;
+        private DataGridView _marketDepthTable;
 
         private System.Windows.Controls.TextBox _textBoxLimitPrice;
 
@@ -195,7 +200,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void _textBoxLimitPrice_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void _textBoxLimitPrice_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
             {
@@ -219,7 +224,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void _glassBox_SelectionChanged(object sender, EventArgs e)
+        private void _glassBox_SelectionChanged(object sender, EventArgs e)
         {
             try
             {
@@ -395,14 +400,24 @@ namespace OsEngine.Entity
                 return;
             }
 
-            MarketDepth depth = _currentMaretDepth;
-            _currentMaretDepth = null;
+            if(_connector == null)
+            {
+                return;
+            }
 
-            if (depth != null)
+            MarketDepthLoadRegime paintRegime = _connector.MarketDepthPaintRegime;
+
+            MarketDepth depth = _currentMarketDepth;
+            _currentMarketDepth = null;
+
+            if ((paintRegime == MarketDepthLoadRegime.All
+                || paintRegime == MarketDepthLoadRegime.Unknown)
+                && depth != null)
             {
                 PaintMarketDepth(depth);
             }
-            else
+            else if (paintRegime == MarketDepthLoadRegime.BidAsk
+                  || paintRegime == MarketDepthLoadRegime.Unknown)
             {
                 if (_bid != 0 && _ask != 0)
                 {
@@ -417,11 +432,11 @@ namespace OsEngine.Entity
 
         private DateTime _lastMdTimeEntry;
 
-        private MarketDepth _currentMaretDepth;
+        private MarketDepth _currentMarketDepth;
 
         public void ProcessMarketDepth(MarketDepth depth)
         {
-            _currentMaretDepth = depth;
+            _currentMarketDepth = depth;
             _lastMdTimeEntry = DateTime.Now;
         }
 
@@ -442,11 +457,11 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                decimal maxVol = 0;
+                double maxVol = 0;
 
-                decimal allBid = 0;
+                double allBid = 0;
 
-                decimal allAsk = 0;
+                double allAsk = 0;
 
                 for (int i = 0; depth.Bids != null && i < 25; i++)
                 {
@@ -575,7 +590,7 @@ namespace OsEngine.Entity
                     }
                 }
 
-                decimal maxSeries;
+                double maxSeries;
 
                 if (allAsk > allBid)
                 {
@@ -587,7 +602,7 @@ namespace OsEngine.Entity
                 }
                 // volume cumulative for ask
                 // объём комулятивный для аска
-                decimal summ = 0;
+                double summ = 0;
                 for (int i = 0; depth.Bids != null && i < 25 && i < depth.Bids.Count; i++)
                 {
                     summ += depth.Bids[i].Bid;
@@ -633,9 +648,9 @@ namespace OsEngine.Entity
                 }
                 // _glassBox.Refresh();
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
         }
 
@@ -746,5 +761,12 @@ namespace OsEngine.Entity
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
+    }
+
+    public enum MarketDepthLoadRegime
+    {
+        Unknown,
+        All,
+        BidAsk
     }
 }

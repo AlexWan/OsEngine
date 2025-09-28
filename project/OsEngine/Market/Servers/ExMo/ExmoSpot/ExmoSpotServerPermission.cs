@@ -256,6 +256,19 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.exmo.me",
+                };
+
+                return pingIpDomens;
+            }
+        }
+
         #endregion
     }
 }

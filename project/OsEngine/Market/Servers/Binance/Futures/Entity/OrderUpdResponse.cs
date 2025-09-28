@@ -1,8 +1,4 @@
-﻿
-using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
-using System.Collections.Generic;
-
-namespace OsEngine.Market.Servers.Binance.Futures.Entity
+﻿namespace OsEngine.Market.Servers.Binance.Futures.Entity
 {
     public class OrderBinFutResp
     {

@@ -2430,9 +2430,9 @@ namespace OsEngine.OsData
                     _countTriesToLoadSet = Convert.ToInt32(reader.ReadLine());
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                //ignore
             }
         }
 
@@ -2449,9 +2449,9 @@ namespace OsEngine.OsData
 
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
         }
 
@@ -2500,9 +2500,9 @@ namespace OsEngine.OsData
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
 
             result.CandlesCount = candlesCount;
@@ -2540,9 +2540,9 @@ namespace OsEngine.OsData
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
 
             if (candles.Count != 0)
@@ -2579,9 +2579,9 @@ namespace OsEngine.OsData
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
         }
 
@@ -2627,9 +2627,9 @@ namespace OsEngine.OsData
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
 
             info.TradesCount = tradesCount;
@@ -2668,9 +2668,9 @@ namespace OsEngine.OsData
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
 
             if (trades.Count != 0)
@@ -2713,9 +2713,9 @@ namespace OsEngine.OsData
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                // ignore
             }
         }
 

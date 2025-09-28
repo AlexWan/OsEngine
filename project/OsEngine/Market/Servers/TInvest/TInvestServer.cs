@@ -1025,6 +1025,12 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.PortfolioName = portf.Number;
                 newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                 newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+
+                if (newPos.ValueBlocked != 0)
+                {
+                    newPos.ValueCurrent += newPos.ValueBlocked;
+                }
+
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
@@ -1060,6 +1066,12 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.PortfolioName = portf.Number;
                 newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                 newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+
+                if (newPos.ValueBlocked != 0)
+                {
+                    newPos.ValueCurrent += newPos.ValueBlocked;
+                }
+
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
@@ -1095,6 +1107,12 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.PortfolioName = portf.Number;
                 newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                 newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+
+                if (newPos.ValueBlocked != 0)
+                {
+                    newPos.ValueCurrent += newPos.ValueBlocked;
+                }
+
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
@@ -1664,7 +1682,7 @@ namespace OsEngine.Market.Servers.TInvest
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1816,7 +1834,7 @@ namespace OsEngine.Market.Servers.TInvest
                         for (int i = 0; i < marketDataResponse.Orderbook.Bids.Count; i++)
                         {
                             MarketDepthLevel newBid = new MarketDepthLevel();
-                            newBid.Price = GetValue(marketDataResponse.Orderbook.Bids[i].Price);
+                            newBid.Price = Convert.ToDouble(GetValue(marketDataResponse.Orderbook.Bids[i].Price));
                             newBid.Bid = marketDataResponse.Orderbook.Bids[i].Quantity;
                             depth.Bids.Add(newBid);
                         }
@@ -1824,7 +1842,7 @@ namespace OsEngine.Market.Servers.TInvest
                         for (int i = 0; i < marketDataResponse.Orderbook.Asks.Count; i++)
                         {
                             MarketDepthLevel newAsk = new MarketDepthLevel();
-                            newAsk.Price = GetValue(marketDataResponse.Orderbook.Asks[i].Price);
+                            newAsk.Price = Convert.ToDouble(GetValue(marketDataResponse.Orderbook.Asks[i].Price));
                             newAsk.Ask = marketDataResponse.Orderbook.Asks[i].Quantity;
                             depth.Asks.Add(newAsk);
                         }
@@ -2001,8 +2019,8 @@ namespace OsEngine.Market.Servers.TInvest
             List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
             MarketDepthLevel newBid = new MarketDepthLevel();
-            newBid.Bid = trade.Volume;
-            newBid.Price = trade.Price;
+            newBid.Bid = Convert.ToDouble(trade.Volume);
+            newBid.Price = Convert.ToDouble(trade.Price);
             bids.Add(newBid);
 
             MarketDepth depth = new MarketDepth();
@@ -2014,8 +2032,8 @@ namespace OsEngine.Market.Servers.TInvest
             List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
 
             MarketDepthLevel newAsk = new MarketDepthLevel();
-            newAsk.Ask = trade.Volume;
-            newAsk.Price = trade.Price;
+            newAsk.Ask = Convert.ToDouble(trade.Volume);
+            newAsk.Price = Convert.ToDouble(trade.Price);
             asks.Add(newAsk);
 
             depth.Asks = asks;
@@ -2273,6 +2291,12 @@ namespace OsEngine.Market.Servers.TInvest
                             newPos.PortfolioName = portf.Number;
                             newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                             newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+
+                            if(newPos.ValueBlocked != 0)
+                            {
+                                newPos.ValueCurrent += newPos.ValueBlocked;
+                            }
+
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                             portf.SetNewPosition(newPos);
@@ -2691,23 +2715,17 @@ namespace OsEngine.Market.Servers.TInvest
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
         #region 9 Trade
 
-        private RateGate _rateGateOrders = new RateGate(100, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
+        private RateGate _rateGateOrders = new RateGate(98, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
         private string _rageGateOrdersLocker = "_rageGateOrdersLocker";
 
-        private RateGate _rateGatePostOrders = new RateGate(300, TimeSpan.FromMinutes(1));
+        private RateGate _rateGatePostOrders = new RateGate(500, TimeSpan.FromMinutes(1));
         private string _rageGatePostOrdersLocker = "_rageGatePostOrdersLocker";
-
-        private RateGate _rateGateCancelOrders = new RateGate(100, TimeSpan.FromMinutes(1));
-        private string _rageGateCancelOrdersLocker = "_rageGateCancelOrdersLocker";
-
-        private RateGate _rateGateStatusOrders = new RateGate(200, TimeSpan.FromMinutes(1));
-        private string _rageGateStatusOrdersLocker = "_rageGateStatusOrdersLocker";
 
         public void SendOrder(Order order)
         {
@@ -2946,9 +2964,9 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                 }
 
-                lock (_rageGateCancelOrdersLocker)
+                lock (_rageGateOrdersLocker)
                 {
-                    _rateGateCancelOrders.WaitToProceed();
+                    _rateGateOrders.WaitToProceed();
                 }
 
                 CancelOrderRequest request = new CancelOrderRequest();
@@ -2974,12 +2992,12 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (response != null)
                 {
-                    order.State = OrderStateType.Cancel;
+                    /*order.State = OrderStateType.Cancel;
 
                     if (MyOrderEvent != null)
                     {
                         MyOrderEvent(order);
-                    }
+                    }*/
                     return true;
                 }
                 else
@@ -3005,7 +3023,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         public void CancelAllOrders()
         {
-            List<Order> orders = GetAllOrdersFromExchange();
+            List<Order> orders = GetAllOrdersFromExchange(true);
 
             for (int i = 0; i < orders.Count; i++)
             {
@@ -3020,7 +3038,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         public void CancelAllOrdersToSecurity(Security security)
         {
-            List<Order> orders = GetAllOrdersFromExchange();
+            List<Order> orders = GetAllOrdersFromExchange(true);
 
             for (int i = 0; i < orders.Count; i++)
             {
@@ -3036,7 +3054,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetAllOrdersFromExchange();
+            List<Order> orders = GetAllOrdersFromExchange(true);
 
             for (int i = 0; orders != null && i < orders.Count; i++)
             {
@@ -3063,9 +3081,9 @@ namespace OsEngine.Market.Servers.TInvest
 
         public OrderStateType GetOrderStatusWithTrades(Order order, bool processTrades)
         {
-            lock(_rageGateStatusOrdersLocker)
+            lock (_rageGateOrdersLocker)
             {
-                _rateGateStatusOrders.WaitToProceed();
+                _rateGateOrders.WaitToProceed();
             }
 
             try
@@ -3201,13 +3219,13 @@ namespace OsEngine.Market.Servers.TInvest
            return GetOrderStatusWithTrades(order, true);
         }
 
-        private List<Order> GetAllOrdersFromExchange()
+        private List<Order> GetAllOrdersFromExchange(bool onlyActive)
         {
             List<Order> orders = new List<Order>();
 
             for (int i = 0; i < _myPortfolios.Count; i++)
             {
-                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number);
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number,onlyActive);
                 if (newOrders != null && newOrders.Count > 0)
                 {
                     orders.AddRange(newOrders);
@@ -3217,11 +3235,14 @@ namespace OsEngine.Market.Servers.TInvest
             return orders;
         }
 
-        private List<Order> GetAllOrdersFromExchangeByPortfolio(string accountId)
+        private List<Order> GetAllOrdersFromExchangeByPortfolio(string accountId, bool onlyActive)
         {
-            _rateGateOrders.WaitToProceed();
+            lock (_rageGateOrdersLocker)
+            {
+                _rateGateOrders.WaitToProceed();
+            }
 
-            if(_securities == null 
+            if (_securities == null 
                 || _securities.Count == 0)
             {
                 return null;
@@ -3231,6 +3252,17 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 GetOrdersRequest getOrdersRequest = new GetOrdersRequest();
                 getOrdersRequest.AccountId = accountId;
+
+                if(onlyActive == false)
+                {
+                    getOrdersRequest.AdvancedFilters = new GetOrdersRequest.Types.GetOrdersRequestFilters();
+                    getOrdersRequest.AdvancedFilters.ExecutionStatus.Add(OrderExecutionReportStatus.ExecutionReportStatusCancelled);
+                    getOrdersRequest.AdvancedFilters.ExecutionStatus.Add(OrderExecutionReportStatus.ExecutionReportStatusRejected);
+                    getOrdersRequest.AdvancedFilters.ExecutionStatus.Add(OrderExecutionReportStatus.ExecutionReportStatusFill);
+
+                    getOrdersRequest.AdvancedFilters.From = DateTime.UtcNow.Date.ToTimestamp();
+                    getOrdersRequest.AdvancedFilters.To = DateTime.UtcNow.ToTimestamp();
+                }
 
                 GetOrdersResponse response = _ordersClient.GetOrders(getOrdersRequest, _gRpcMetadata);
 
@@ -3289,6 +3321,7 @@ namespace OsEngine.Market.Servers.TInvest
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusFill)
                         {
                             newOrder.State = OrderStateType.Done;
+                            newOrder.TimeDone = state.OrderDate.ToDateTime().AddHours(3);// convert to MSK
                         }
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusRejected)
                         {
@@ -3297,6 +3330,7 @@ namespace OsEngine.Market.Servers.TInvest
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusCancelled)
                         {
                             newOrder.State = OrderStateType.Cancel;
+                            newOrder.TimeCancel = state.OrderDate.ToDateTime().AddHours(3);// convert to MSK
                         }
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
                         {
@@ -3332,12 +3366,117 @@ namespace OsEngine.Market.Servers.TInvest
 
         public List<Order> GetActiveOrders(int startIndex, int count)
         {
-            return null;
+            // 1 берём все ордера
+
+            List<Order> orders = new List<Order>();
+
+            for (int i = 0; i < _myPortfolios.Count; i++)
+            {
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number, true);
+                if (newOrders != null && newOrders.Count > 0)
+                {
+                    orders.AddRange(newOrders);
+                }
+            }
+
+            // 2 оставляем только активные
+
+            List<Order> ordersActive = new List<Order>();
+
+            for(int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+
+                if(order.State != OrderStateType.Active
+                    && order.State != OrderStateType.Pending
+                    && order.State != OrderStateType.Partial)
+                {
+                    continue;
+                }
+
+                ordersActive.Add(order);
+            }
+
+            if(ordersActive.Count > 1)
+            {
+                ordersActive = ordersActive.OrderBy(x => x.TimeCallBack).ToList();
+            }
+
+            // 3 берём из массива по индексам
+
+            List<Order> resultExit = new List<Order>();
+
+            if (ordersActive.Count !=  0
+                && startIndex < ordersActive.Count)
+            {
+                if (startIndex + count < ordersActive.Count)
+                {
+                    resultExit = ordersActive.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = ordersActive.GetRange(startIndex, ordersActive.Count - startIndex);
+                }
+            }
+
+            return resultExit;
         }
 
         public List<Order> GetHistoricalOrders(int startIndex, int count)
         {
-            return null;
+            // 1 берём все ордера
+
+            List<Order> orders = new List<Order>();
+
+            for (int i = 0; i < _myPortfolios.Count; i++)
+            {
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number, false);
+                if (newOrders != null && newOrders.Count > 0)
+                {
+                    orders.AddRange(newOrders);
+                }
+            }
+
+            // 2 оставляем только исторические, не активные ордера
+
+            List<Order> ordersDontActive = new List<Order>();
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+
+                if (order.State == OrderStateType.Active
+                    || order.State == OrderStateType.Pending
+                    || order.State == OrderStateType.Partial)
+                {
+                    continue;
+                }
+                ordersDontActive.Add(order);
+            }
+
+            if (ordersDontActive.Count > 1)
+            {
+                ordersDontActive = ordersDontActive.OrderBy(x => x.TimeCallBack).ToList();
+            }
+
+            // 3 берём из массива по индексам
+
+            List<Order> resultExit = new List<Order>();
+
+            if (ordersDontActive.Count != 0
+                && startIndex < ordersDontActive.Count)
+            {
+                if (startIndex + count < ordersDontActive.Count)
+                {
+                    resultExit = ordersDontActive.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = ordersDontActive.GetRange(startIndex, ordersDontActive.Count - startIndex);
+                }
+            }
+
+            return resultExit;
         }
 
         #endregion
@@ -3433,9 +3572,9 @@ namespace OsEngine.Market.Servers.TInvest
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

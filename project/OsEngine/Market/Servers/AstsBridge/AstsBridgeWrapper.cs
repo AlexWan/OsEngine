@@ -3559,7 +3559,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 string buySell = table.Rows[i].GetAsString("BUYSELL");
 
                 MarketDepthLevel level = new MarketDepthLevel();
-                level.Price = table.Rows[i].GetAsDecimal("PRICE", mySecurity.Decimals);
+                level.Price = Convert.ToDouble(table.Rows[i].GetAsDecimal("PRICE", mySecurity.Decimals));
                 
                 if(buySell == "B")
                 {

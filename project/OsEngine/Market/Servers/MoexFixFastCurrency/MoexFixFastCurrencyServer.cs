@@ -919,7 +919,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1199,7 +1199,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                 length = _socketsTrades[s].Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -1650,7 +1650,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                 length = _socketsOrders[s].Receive(buffer);
                             }
                         }
-                        catch (SocketException exception)
+                        catch (SocketException)
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
@@ -1928,9 +1928,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                 MarketDepthLevel level = new MarketDepthLevel();
 
                                 string MDEntryType = groupVal.GetString("MDEntryType");
-                                decimal price = groupVal.GetString("MDEntryPx").ToDecimal();
+                                double price = groupVal.GetString("MDEntryPx").ToDouble();
                                 string Id = groupVal.GetString("MDEntryID");
-                                decimal volume = groupVal.GetString("MDEntrySize").ToDecimal();
+                                double volume = groupVal.GetString("MDEntrySize").ToDouble();
 
                                 string orderType;
 
@@ -1966,8 +1966,8 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
                                 newOrderChange.UniqueName = uniqueName;
                                 newOrderChange.MDEntryID = Id;
-                                newOrderChange.Price = price;
-                                newOrderChange.Volume = volume;
+                                newOrderChange.Price = price.ToDecimal();
+                                newOrderChange.Volume = volume.ToDecimal();
                                 newOrderChange.OrderType = orderType;
                                 newOrderChange.Action = string.Empty;
 
@@ -2116,8 +2116,8 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             {
                 asks.Add(new MarketDepthLevel()
                 {
-                    Price = levelAsk.Current.Key,
-                    Ask = levelAsk.Current.Value
+                    Price = Convert.ToDouble(levelAsk.Current.Key),
+                    Ask = Convert.ToDouble(levelAsk.Current.Value)
                 });
             }
 
@@ -2145,8 +2145,8 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             {
                 bids.Add(new MarketDepthLevel()
                 {
-                    Price = levelBid.Current.Key,
-                    Bid = levelBid.Current.Value
+                    Price = Convert.ToDouble(levelBid.Current.Key),
+                    Bid = Convert.ToDouble(levelBid.Current.Value)
                 });
             }
 
@@ -2837,11 +2837,11 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                     FastDecoder decoder = new FastDecoder(context, stream);
                                     msg = decoder.ReadMessage();
                                 }
-                                catch (NullReferenceException ex)
+                                catch (NullReferenceException)
                                 {
                                     // в редких случаях исключение возникает в самой библиотеке OpenFast
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                     // Иногда просто что-то глючит, но он все равно читает сообщение
                                 }
@@ -2947,7 +2947,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -3348,9 +3348,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

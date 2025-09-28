@@ -587,7 +587,7 @@ namespace OsEngine.Market.Servers.BitMart
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -619,7 +619,7 @@ namespace OsEngine.Market.Servers.BitMart
                 _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                 _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.ConnectAsync();
             }
             catch (Exception exception)
             {
@@ -723,7 +723,7 @@ namespace OsEngine.Market.Servers.BitMart
             string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
             string sign = GenerateSignature(timeStamp, "bitmart.WebSocket");
 
-            _webSocketPrivate.Send($"{{\"op\": \"login\", \"args\": [\"{_publicKey}\", \"{timeStamp}\", \"{sign}\"]}}");
+            _webSocketPrivate.SendAsync($"{{\"op\": \"login\", \"args\": [\"{_publicKey}\", \"{timeStamp}\", \"{sign}\"]}}");
         }
 
         #endregion
@@ -1005,7 +1005,7 @@ namespace OsEngine.Market.Servers.BitMart
                         if (webSocketPublic != null
                             && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send("ping");
+                            webSocketPublic.SendAsync("ping");
                         }
                         else
                         {
@@ -1017,7 +1017,7 @@ namespace OsEngine.Market.Servers.BitMart
                         (_webSocketPrivate.ReadyState == WebSocketState.Open ||
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting))
                     {
-                        _webSocketPrivate.Send("ping");
+                        _webSocketPrivate.SendAsync("ping");
                     }
                     else
                     {
@@ -1102,8 +1102,8 @@ namespace OsEngine.Market.Servers.BitMart
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\", \"args\": [\"spot/trade:{security.Name}\"]}}");
-                    webSocketPublic.Send($"{{\"op\": \"subscribe\", \"args\": [\"spot/depth20:{security.Name}\"]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\", \"args\": [\"spot/trade:{security.Name}\"]}}");
+                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\", \"args\": [\"spot/depth20:{security.Name}\"]}}");
                 }
             }
             catch (Exception exception)
@@ -1116,8 +1116,8 @@ namespace OsEngine.Market.Servers.BitMart
         {
             try
             {
-                _webSocketPrivate.Send($"{{\"op\": \"subscribe\", \"args\": [\"spot/user/orders:ALL_SYMBOLS\"]}}");
-                _webSocketPrivate.Send($"{{\"op\": \"subscribe\", \"args\": [\"spot/user/balance:BALANCE_UPDATE\"]}}");
+                _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\", \"args\": [\"spot/user/orders:ALL_SYMBOLS\"]}}");
+                _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\", \"args\": [\"spot/user/balance:BALANCE_UPDATE\"]}}");
             }
             catch (Exception exception)
             {
@@ -1146,8 +1146,8 @@ namespace OsEngine.Market.Servers.BitMart
                                     {
                                         string securityName = _subscribedSecurities[j];
 
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\", \"args\": [\"spot/trade:{securityName}\"]}}");
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\", \"args\": [\"spot/depth20:{securityName}\"]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\", \"args\": [\"spot/trade:{securityName}\"]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\", \"args\": [\"spot/depth20:{securityName}\"]}}");
                                     }
                                 }
                             }
@@ -1169,8 +1169,8 @@ namespace OsEngine.Market.Servers.BitMart
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\", \"args\": [\"spot/user/orders:ALL_SYMBOLS\"]}}");
-                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\", \"args\": [\"spot/user/balance:BALANCE_UPDATE\"]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\", \"args\": [\"spot/user/orders:ALL_SYMBOLS\"]}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\", \"args\": [\"spot/user/balance:BALANCE_UPDATE\"]}}");
                 }
                 catch
                 {
@@ -1184,7 +1184,7 @@ namespace OsEngine.Market.Servers.BitMart
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1342,16 +1342,16 @@ namespace OsEngine.Market.Servers.BitMart
                     for (int k = 0; k < messDepth.bids.Count; k++)
                     {
                         MarketDepthLevel newBid = new MarketDepthLevel();
-                        newBid.Price = messDepth.bids[k][0].ToDecimal();
-                        newBid.Bid = messDepth.bids[k][1].ToDecimal();
+                        newBid.Price = messDepth.bids[k][0].ToDouble();
+                        newBid.Bid = messDepth.bids[k][1].ToDouble();
                         depth.Bids.Add(newBid);
                     }
 
                     for (int k = 0; k < messDepth.asks.Count; k++)
                     {
                         MarketDepthLevel newAsk = new MarketDepthLevel();
-                        newAsk.Price = messDepth.asks[k][0].ToDecimal();
-                        newAsk.Ask = messDepth.asks[k][1].ToDecimal();
+                        newAsk.Price = messDepth.asks[k][0].ToDouble();
+                        newAsk.Ask = messDepth.asks[k][1].ToDouble();
                         depth.Asks.Add(newAsk);
                     }
 
@@ -1637,11 +1637,11 @@ namespace OsEngine.Market.Servers.BitMart
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
 

@@ -41,12 +41,15 @@ namespace OsEngine.Journal
         {
             try
             {
-                _positionController.Delete();
-                _positionController.PositionStateChangeEvent -= _positionController_DealStateChangeEvent;
-                _positionController.PositionNetVolumeChangeEvent -= _positionController_PositionNetVolumeChangeEvent;
-                _positionController.UserSelectActionEvent -= _positionController_UserSelectActionEvent;
-                _positionController.LogMessageEvent -= SendNewLogMessage;
-                _positionController = null;
+                if (_positionController != null)
+                {
+                    _positionController.Delete();
+                    _positionController.PositionStateChangeEvent -= _positionController_DealStateChangeEvent;
+                    _positionController.PositionNetVolumeChangeEvent -= _positionController_PositionNetVolumeChangeEvent;
+                    _positionController.UserSelectActionEvent -= _positionController_UserSelectActionEvent;
+                    _positionController.LogMessageEvent -= SendNewLogMessage;
+                    _positionController = null;
+                }
             }
             catch (Exception error)
             {
@@ -346,7 +349,9 @@ namespace OsEngine.Journal
                 {
                     for (int i2 = 1; i2 < orders.Count; i2++)
                     {
-                        if (orders[i2].NumberUser < orders[i2 - 1].NumberUser)
+                        if (orders[i2] != null
+                            && orders[i2 - 1] != null
+                            && orders[i2].NumberUser < orders[i2 - 1].NumberUser)
                         {
                             Order order = orders[i2];
                             orders[i2] = orders[i2 - 1];
@@ -445,26 +450,31 @@ namespace OsEngine.Journal
 
             List<Position> positionsOpen = this.OpenPositions;
 
-            if(positionsOpen != null)
+            if (positionsOpen != null)
             {
                 for (int i = positionsOpen.Count - 1; i > -1; i--)
                 {
                     Position positionCurrent = positionsOpen[i];
 
+                    if (positionCurrent == null)
+                    {
+                        continue;
+                    }
+
                     List<Order> openOrders = positionCurrent.OpenOrders;
 
                     if (openOrders != null
-                        && openOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
+                        && openOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser) != null)
                     {
-                        return openOrders.Find(order1 => order1.NumberUser == order.NumberUser);
+                        return openOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser);
                     }
 
                     List<Order> closingOrders = positionCurrent.CloseOrders;
 
                     if (closingOrders != null
-                        && closingOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
+                        && closingOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser) != null)
                     {
-                        return closingOrders.Find(order1 => order1.NumberUser == order.NumberUser);
+                        return closingOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser);
                     }
                 }
             }
@@ -482,19 +492,24 @@ namespace OsEngine.Journal
             {
                 Position positionCurrent = positions[i];
 
+                if (positionCurrent == null)
+                {
+                    continue;
+                }
+
                 List<Order> openOrders = positionCurrent.OpenOrders;
 
-                if (openOrders != null 
-                    && openOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
+                if (openOrders != null
+                    && openOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser) != null)
                 {
-                    return openOrders.Find(order1 => order1.NumberUser == order.NumberUser);
+                    return openOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser);
                 }
                 List<Order> closingOrders = positionCurrent.CloseOrders;
 
-                if (closingOrders != null 
-                    && closingOrders.Find(order1 => order1.NumberUser == order.NumberUser) != null)
+                if (closingOrders != null
+                    && closingOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser) != null)
                 {
-                    return closingOrders.Find(order1 => order1.NumberUser == order.NumberUser);
+                    return closingOrders.Find(order1 => order1 != null && order1.NumberUser == order.NumberUser);
                 }
             }
 
@@ -552,11 +567,6 @@ namespace OsEngine.Journal
                 position.State = PositionStateType.Deleted;
 
                 _positionController.DeletePosition(position);
-
-                if (PositionStateChangeEvent != null)
-                {
-                    PositionStateChangeEvent(position);
-                }
             }
             catch (Exception error)
             {

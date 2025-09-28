@@ -260,6 +260,20 @@ namespace OsEngine.Market.Servers.Deribit
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "www.deribit.com",
+                    "test.deribit.com"
+                };
+
+                return pingIpDomens;
+            }
+        }
+
         #endregion
     }
 }

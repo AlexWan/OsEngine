@@ -272,7 +272,7 @@ namespace OsEngine.Journal.Internal
             foreach (Position deal in deals)
             {
                 // 1. Get the portfolio return percentage for the trade
-                decimal tradeReturnPercent = deal.ProfitPortfolioPercent;
+                decimal tradeReturnPercent = deal.ProfitOperationPercent;
 
                 // 2. Apply scaling from MultToJournal (e.g., 50% → 0.5)
                 decimal scaledReturn = tradeReturnPercent * (deal.MultToJournal / 100m);
@@ -349,7 +349,7 @@ namespace OsEngine.Journal.Internal
             List<decimal> portfolioReturns = new List<decimal>();
             foreach (Position deal in deals)
             {
-                decimal scaledReturn = (deal.ProfitPortfolioPercent * (deal.MultToJournal / 100m));
+                decimal scaledReturn = (deal.ProfitOperationPercent * (deal.MultToJournal / 100m));
                 decimal days = (decimal)(deal.TimeClose - deal.TimeOpen).TotalDays;
 
                 if (days == 0)

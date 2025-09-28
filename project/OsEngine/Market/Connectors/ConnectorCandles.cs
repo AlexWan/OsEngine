@@ -479,8 +479,7 @@ namespace OsEngine.Market.Connectors
             get
             {
                 if (ServerType == ServerType.Tester ||
-                     ServerType == ServerType.Optimizer ||
-                    ServerType == ServerType.BitMex)
+                     ServerType == ServerType.Optimizer)
                 {
                     return true;
                 }
@@ -521,6 +520,46 @@ namespace OsEngine.Market.Connectors
                 }
 
                 return serverPermision.IsCanChangeOrderPrice;
+            }
+        }
+
+        public MarketDepthLoadRegime MarketDepthPaintRegime
+        {
+            get
+            {
+                if (ServerType == ServerType.Tester ||
+                    ServerType == ServerType.Optimizer)
+                {
+                    return MarketDepthLoadRegime.Unknown;
+                }
+                else
+                {
+                    IServer server = _myServer;
+
+                    if(server == null)
+                    {
+                        return MarketDepthLoadRegime.All;
+                    }
+
+                    if(server.GetType().BaseType.Name == "AServer")
+                    {
+                        AServer Aserver = (AServer)server;
+
+                        if(Aserver._needToUseFullMarketDepth.Value == true)
+                        {
+                            return MarketDepthLoadRegime.All;
+                        }
+                        else
+                        {
+                            return MarketDepthLoadRegime.BidAsk;
+                        }
+
+                    }
+                    else
+                    {
+                        return MarketDepthLoadRegime.All;
+                    }
+                }
             }
         }
 
@@ -1045,7 +1084,7 @@ namespace OsEngine.Market.Connectors
 
         private void UnSubscribeOnServer(IServer server)
         {
-            server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
+            server.NewBidAskIncomeEvent -= ConnectorBotNewBidAskIncomeEvent;
             server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
             server.CancelOrderFailEvent -= _myServer_CancelOrderFailEvent;
             server.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
@@ -1061,7 +1100,7 @@ namespace OsEngine.Market.Connectors
 
         private void SubscribeOnServer(IServer server)
         {
-            server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
+            server.NewBidAskIncomeEvent -= ConnectorBotNewBidAskIncomeEvent;
             server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
             server.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
             server.CancelOrderFailEvent -= _myServer_CancelOrderFailEvent;
@@ -1077,7 +1116,7 @@ namespace OsEngine.Market.Connectors
             if (NeedToLoadServerData)
             {
                 server.NewMarketDepthEvent += ConnectorBot_NewMarketDepthEvent;
-                server.NewBidAscIncomeEvent += ConnectorBotNewBidAscIncomeEvent;
+                server.NewBidAskIncomeEvent += ConnectorBotNewBidAskIncomeEvent;
                 server.NewTradeEvent += ConnectorBot_NewTradeEvent;
                 server.TimeServerChangeEvent += myServer_TimeServerChangeEvent;
                 server.NewMyTradeEvent += ConnectorBot_NewMyTradeEvent;
@@ -1289,7 +1328,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// incoming best bid with ask
         /// </summary>
-        private void ConnectorBotNewBidAscIncomeEvent(decimal bestBid, decimal bestAsk, Security security)
+        private void ConnectorBotNewBidAskIncomeEvent(decimal bestBid, decimal bestAsk, Security security)
         {
             try
             {
@@ -1308,7 +1347,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (_emulator != null)
                         {
-                            _emulator.ProcessBidAsc(_bestBid, _bestAsk);
+                            _emulator.ProcessBidAsk((decimal)_bestBid, (decimal)_bestAsk);
                         }
                     }
                     if (BestBidAskChangeEvent != null
@@ -1358,7 +1397,7 @@ namespace OsEngine.Market.Connectors
                 if (glass.Bids != null &&
                      glass.Bids.Count > 0)
                 {
-                    bestBid = glass.Bids[0].Price;
+                    bestBid = glass.Bids[0].Price.ToDecimal();
                 }
 
                 decimal bestAsk = 0;
@@ -1366,14 +1405,14 @@ namespace OsEngine.Market.Connectors
                 if (glass.Asks != null &&
                     glass.Asks.Count > 0)
                 {
-                    bestAsk = glass.Asks[0].Price;
+                    bestAsk = glass.Asks[0].Price.ToDecimal();
                 }
 
                 if (EmulatorIsOn)
                 {
                     if (_emulator != null)
                     {
-                        _emulator.ProcessBidAsc(bestAsk, bestBid);
+                        _emulator.ProcessBidAsk(bestAsk, bestBid);
                     }
                 }
 
@@ -1514,6 +1553,8 @@ namespace OsEngine.Market.Connectors
                 _optionMarketData.Rho = data.Rho;
                 _optionMarketData.OpenInterest = data.OpenInterest;
                 _optionMarketData.TimeCreate = data.TimeCreate;
+
+                AdditionalDataEvent?.Invoke(_optionMarketData);
             }
             catch (Exception error)
             {
@@ -1986,7 +2027,7 @@ namespace OsEngine.Market.Connectors
                 return;
             }
 
-            _emulator.ProcessBidAsc(price, price);
+            _emulator.ProcessBidAsk(price, price);
         }
 
         #endregion
@@ -2022,6 +2063,11 @@ namespace OsEngine.Market.Connectors
         /// myTrade are changed
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
+
+        /// <summary>
+        /// new additional market data event
+        /// </summary>
+        public event Action<OptionMarketData> AdditionalDataEvent;
 
         /// <summary>
         /// new trade in the trades feed

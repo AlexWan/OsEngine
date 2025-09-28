@@ -33,6 +33,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
@@ -44,16 +45,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         }
 
         public bool DataFeedTf30SecondCanLoad
-        {
-            get { return false; }
-        }
-
-        public bool DataFeedTfTickCanLoad
-        {
-            get { return false; }
-        }
-
-        public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
         }
@@ -104,6 +95,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         }
 
         public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfTickCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
         }
@@ -169,7 +170,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_LONG",
+                    "_SHORT",
+                    "_BOTH"
+                };
+
+                return values;
+            }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
@@ -190,11 +201,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         }
 
         public bool ManuallyClosePositionOnBoard_IsOn
-        {
-            get { return true; }
-        }
-
-        public bool IsTradeServer
         {
             get { return true; }
         }
@@ -269,6 +275,19 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         public int AsyncCandlesStarter_RateGateLimitMls
         {
             get { return 10; }
+        }
+
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api-futures.kucoin.com",
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

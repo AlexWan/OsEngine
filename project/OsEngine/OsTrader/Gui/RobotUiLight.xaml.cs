@@ -3,15 +3,16 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Language;
-using OsEngine.Market;
 using OsEngine.Layout;
+using OsEngine.Market;
 using OsEngine.Market.SupportTable;
 using OsEngine.OsTrader.Gui.BlockInterface;
-using System;
+using OsEngine.OsTrader.ServerAvailability;
 using OsEngine.OsTrader.SystemAnalyze;
+using System;
+using System.Windows;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -114,6 +115,7 @@ namespace OsEngine.OsTrader.Gui
             ButtonSupportTable.Content = OsLocalization.Market.Label81;
             ButtonProxy.Content = OsLocalization.Market.Label172;
             ButtonSystemStress.Content = OsLocalization.Trader.Label560;
+            ButtonServerAvailability.Content = OsLocalization.Trader.Label605;
             LabelPageActive.Content = OsLocalization.Trader.Label576;
             LabelFromActive.Content = OsLocalization.Trader.Label577;
             LabelCountActive.Content = OsLocalization.Trader.Label578;
@@ -143,13 +145,17 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonProxy_Click(object sender, RoutedEventArgs e)
         {
-            
             ServerMaster.ShowProxyDialog();
         }
 
         private void ButtonSystemStress_Click(object sender, RoutedEventArgs e)
         {
             SystemUsageAnalyzeMaster.ShowDialog();
+        }
+
+        private void ButtonServerAvailability_Click(object sender, RoutedEventArgs e)
+        {
+            ServerAvailabilityMaster.ShowDialog();
         }
 
         // смещение областей

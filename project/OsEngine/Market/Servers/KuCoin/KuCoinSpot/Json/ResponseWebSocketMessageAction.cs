@@ -13,23 +13,26 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
     }
     public class ResponseWebSocketMessageAction<T>
     {
-        public string type;
-        public string topic;
-        public string subject;
-        public T data;
+        public string topic { get; set; }
+        public string type { get; set; }
+        public string subject { get; set; }
+        public string userId { get; set; }
+        public string channelType { get; set; }
+        public T data { get; set; }
     }
 
     public class ResponseWebSocketMessageTrade
     {
-        public string sequence;
-        public string type;
-        public string symbol;
-        public string size;
-        public string side;
-        public string price;
-        public string takerOrderId;
-        public string makerOrderId;
-        public string time;
+        public string makerOrderId { get; set; }
+        public string price { get; set; }
+        public string sequence { get; set; }
+        public string side { get; set; }
+        public string size { get; set; }
+        public string symbol { get; set; }
+        public string takerOrderId { get; set; }
+        public string time { get; set; }
+        public string tradeId { get; set; }
+        public string type { get; set; }
     }
 
     public class ResponseWebSocketDepthItem
@@ -42,28 +45,28 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
 
     public class ResponseWebSocketOrder
     {
-        // https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change-v2
-        public string symbol; //  KCS-USDT ,
-        public string orderType; //  limit ,
-        public string side; //  sell ,
-        public string orderId; //  5efab07953bdea00089965fa ,
-        public string liquidity; //  taker ,
-        public string type; //  match ,
-        public string orderTime; // 1593487482038606180,
-        public string size; //  0.1 ,
-        public string filledSize; //  0.1 ,
-        public string price; //  0.938 ,
-        public string matchPrice; //  0.96738 ,
-        public string matchSize; //  0.1 ,
-        public string tradeId; //  5efab07a4ee4c7000a82d6d9 ,
-        public string clientOid; //  1593487481000313 ,
-        public string remainSize; //  0 ,
-        public string status; //  match ,
-        public string canceledSize; //  0.1 , // Cumulative number of cancellations
-        public string canceledFunds; //  0.1 , // Market order accumulative cancellation funds
-        public string originSize; //  0.1 , // original quantity
-        public string originFunds; //  0.1 , // Market order original funds
-        public string ts; // 1593487482038606180 nanoseconds
+        public string clientOid { get; set; }
+        public string orderId { get; set; }
+        public string orderTime { get; set; }
+        public string orderType { get; set; }
+        public string originSize { get; set; }
+        public string side { get; set; }
+        public string status { get; set; }
+        public string symbol { get; set; }
+        public string ts { get; set; }
+        public string type { get; set; }
+        public string canceledSize { get; set; }
+        public string filledSize { get; set; }
+        public string price { get; set; }
+        public string remainSize { get; set; }
+        public string size { get; set; }
+        public string oldSize { get; set; }
+        public string feeType { get; set; }
+        public string liquidity { get; set; }
+        public string matchPrice { get; set; }
+        public string matchSize { get; set; }
+        public string tradeId { get; set; }
+        public string remainFunds { get; set; }
     }
 
     public class RelationContext
@@ -109,13 +112,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public string close { get; set; }
         public string datetime { get; set; }
         public string high { get; set; }
-        public string lastSize { get; set; }
         public string lastTradedPrice { get; set; }
         public string low { get; set; }
         public string makerCoefficient { get; set; }
         public string makerFeeRate { get; set; }
         public string marginTrade { get; set; }
-        public string mark { get; set; } // 0,1,2
+        public string mark { get; set; }
         public string market { get; set; }
         public MarketChange marketChange1h { get; set; }
         public MarketChange marketChange24h { get; set; }

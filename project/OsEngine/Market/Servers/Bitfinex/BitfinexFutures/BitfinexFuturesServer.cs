@@ -1038,7 +1038,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 webSocketPublicMarketDepthsNew.OnClose += WebSocketPublicMarketDepthsNew_OnClose;
                 webSocketPublicMarketDepthsNew.OnMessage += WebSocketPublicMarketDepthsNew_OnMessage;
                 webSocketPublicMarketDepthsNew.OnError += WebSocketPublicMarketDepthsNew_OnError;
-                webSocketPublicMarketDepthsNew.Connect();
+                webSocketPublicMarketDepthsNew.ConnectAsync();
 
                 return webSocketPublicMarketDepthsNew;
             }
@@ -1077,7 +1077,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 webSocketPublicTradesNew.OnClose += WebSocketPublicTradesNew_OnClose;
                 webSocketPublicTradesNew.OnMessage += WebSocketPublicTradesNew_OnMessage;
                 webSocketPublicTradesNew.OnError += WebSocketPublicTradesNew_OnError;
-                webSocketPublicTradesNew.Connect();
+                webSocketPublicTradesNew.ConnectAsync();
 
                 return webSocketPublicTradesNew;
             }
@@ -1105,7 +1105,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
                 _webSocketPrivate.OnError += WebSocketPrivate_Error;
 
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.ConnectAsync();
             }
             catch (Exception exception)
             {
@@ -1512,7 +1512,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 };
 
                 string authJson = JsonConvert.SerializeObject(payload);
-                _webSocketPrivate.Send(authJson);
+                _webSocketPrivate.SendAsync(authJson);
             }
             catch (Exception exception)
             {
@@ -1601,7 +1601,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                         if (webSocketPublicMarketDepths != null
                             && webSocketPublicMarketDepths?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublicMarketDepths?.Send("{\"event\":\"ping\", \"cid\":1204}");
+                            webSocketPublicMarketDepths?.SendAsync("{\"event\":\"ping\", \"cid\":1204}");
                         }
                         else
                         {
@@ -1615,7 +1615,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                         if (webSocketPublicTrades != null
                             && webSocketPublicTrades?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublicTrades.Send("{\"event\":\"ping\", \"cid\":1254}");
+                            webSocketPublicTrades.SendAsync("{\"event\":\"ping\", \"cid\":1254}");
                         }
                         else
                         {
@@ -1627,7 +1627,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                         && (_webSocketPrivate.ReadyState == WebSocketState.Open
                     || _webSocketPrivate.ReadyState == WebSocketState.Connecting))
                     {
-                        _webSocketPrivate.Send("{\"event\":\"ping\", \"cid\":1274}");
+                        _webSocketPrivate.SendAsync("{\"event\":\"ping\", \"cid\":1274}");
                     }
                     else
                     {
@@ -1738,8 +1738,8 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 if (webSocketPublicMarketDepths != null
                     && webSocketPublicTrades != null)
                 {
-                    webSocketPublicMarketDepths.Send($"{{\"event\":\"subscribe\",\"channel\":\"book\",\"symbol\":\"{security.Name}\",\"prec\":\"P0\",\"freq\":\"F0\",\"len\":\"25\"}}");
-                    webSocketPublicTrades.Send($"{{\"event\":\"subscribe\",\"channel\":\"trades\",\"symbol\":\"{security.Name}\"}}");
+                    webSocketPublicMarketDepths.SendAsync($"{{\"event\":\"subscribe\",\"channel\":\"book\",\"symbol\":\"{security.Name}\",\"prec\":\"P0\",\"freq\":\"F0\",\"len\":\"25\"}}");
+                    webSocketPublicTrades.SendAsync($"{{\"event\":\"subscribe\",\"channel\":\"trades\",\"symbol\":\"{security.Name}\"}}");
                 }
             }
             catch (Exception exception)
@@ -1773,7 +1773,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
 
                             string message = "{\"event\":\"unsubscribe\",\"chanId\":" + chanId + "}";
 
-                            webSocketPublicMarketDepths.Send(message);
+                            webSocketPublicMarketDepths.SendAsync(message);
 
                             k++;
                         }
@@ -1798,7 +1798,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
 
                             string message = "{\"event\":\"unsubscribe\",\"chanId\":" + chanId + "}";
 
-                            webSocketPublicTrades.Send(message);
+                            webSocketPublicTrades.SendAsync(message);
 
                             j++;
                         }
@@ -2149,16 +2149,16 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                     {
                         bids.Add(new MarketDepthLevel()
                         {
-                            Bid = (value[2]).ToString().ToDecimal(),
-                            Price = (value[0]).ToString().ToDecimal(),
+                            Bid = (value[2]).ToString().ToDouble(),
+                            Price = (value[0]).ToString().ToDouble(),
                         });
                     }
                     else
                     {
                         asks.Add(new MarketDepthLevel()
                         {
-                            Ask = Math.Abs((value[2]).ToString().ToDecimal()),
-                            Price = (value[0]).ToString().ToDecimal(),
+                            Ask = Math.Abs((value[2]).ToString().ToDouble()),
+                            Price = (value[0]).ToString().ToDouble(),
                         });
                     }
                 }
@@ -2232,9 +2232,9 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                     return;
                 }
 
-                decimal price = (update[0]).ToString().ToDecimal();
-                decimal count = (update[1]).ToString().ToDecimal();
-                decimal amount = (update[2]).ToString().ToDecimal();
+                double price = (update[0]).ToString().ToDouble();
+                double count = (update[1]).ToString().ToDouble();
+                double amount = (update[2]).ToString().ToDouble();
 
                 needDepth.Time = ServerTime;
 
@@ -3210,9 +3210,9 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
             return null;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public bool SubscribeNews()
         {
@@ -3289,9 +3289,9 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

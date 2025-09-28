@@ -785,7 +785,7 @@ namespace OsEngine.Market.Servers.Transaq
                         {
                             pointCost = securityData.Point_cost.ToDecimal();
                         }
-                        catch (Exception e)
+                        catch
                         {
                             decimal.TryParse(securityData.Point_cost, NumberStyles.Float, CultureInfo.InvariantCulture, out pointCost);
                         }
@@ -1526,7 +1526,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 return osCandles;
             }
-            catch (Exception e)
+            catch
             {
                 return null;
             }
@@ -1865,7 +1865,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         #region 8 Trade
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SendOrder(Order order)
         {
             try
@@ -1986,7 +1985,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         private string _sendOrdersLocker = "sendOrdersLocker";
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public bool CancelOrder(Order order)
         {
             try
@@ -2126,7 +2124,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// обработчик данных пришедших через каллбек
         /// </summary>
         /// <param name="pData">data from Transaq / данные, поступившие от транзака</param>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private bool CallBackDataHandler(IntPtr pData)
         {
             try
@@ -2149,7 +2146,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// takes messages from the shared queue, converts them to C# classes, and sends them to up
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
         /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void Converter()
         {
             while (true)
@@ -2865,10 +2861,10 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     if (sortedQuote[i].Buy > 0)
                     {
-                        MarketDepthLevel needLevel = needDepth.Bids.Find(level => level.Price == sortedQuote[i].Price);
+                        MarketDepthLevel needLevel = needDepth.Bids.Find(level => level.Price == Convert.ToDouble(sortedQuote[i].Price));
                         if (needLevel != null)
                         {
-                            needLevel.Bid = sortedQuote[i].Buy;
+                            needLevel.Bid = Convert.ToDouble(sortedQuote[i].Buy);
                         }
                         else
                         {
@@ -2879,8 +2875,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                             needDepth.Bids.Add(new MarketDepthLevel()
                             {
-                                Price = sortedQuote[i].Price,
-                                Bid = sortedQuote[i].Buy,
+                                Price = Convert.ToDouble(sortedQuote[i].Price),
+                                Bid = Convert.ToDouble(sortedQuote[i].Buy),
                             });
                             needDepth.Bids.Sort((a, b) =>
                             {
@@ -2908,10 +2904,10 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (sortedQuote[i].Sell > 0)
                     {
-                        MarketDepthLevel needLevel = needDepth.Asks.Find(level => level.Price == sortedQuote[i].Price);
+                        MarketDepthLevel needLevel = needDepth.Asks.Find(level => level.Price == Convert.ToDouble(sortedQuote[i].Price));
                         if (needLevel != null)
                         {
-                            needLevel.Ask = sortedQuote[i].Sell;
+                            needLevel.Ask = Convert.ToDouble(sortedQuote[i].Sell);
                         }
                         else
                         {
@@ -2922,8 +2918,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                             needDepth.Asks.Add(new MarketDepthLevel()
                             {
-                                Price = sortedQuote[i].Price,
-                                Ask = sortedQuote[i].Sell,
+                                Price = Convert.ToDouble(sortedQuote[i].Price),
+                                Ask = Convert.ToDouble(sortedQuote[i].Sell),
                             });
                             needDepth.Asks.Sort((a, b) =>
                             {
@@ -2951,7 +2947,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (sortedQuote[i].Buy == -1)
                     {
-                        int deleteLevelIndex = needDepth.Bids.FindIndex(level => level.Price == sortedQuote[i].Price);
+                        int deleteLevelIndex = needDepth.Bids.FindIndex(level => level.Price == Convert.ToDouble(sortedQuote[i].Price));
                         if (deleteLevelIndex != -1)
                         {
                             needDepth.Bids.RemoveAt(deleteLevelIndex);
@@ -2960,7 +2956,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (sortedQuote[i].Sell == -1)
                     {
-                        int deleteLevelIndex = needDepth.Asks.FindIndex(level => level.Price == sortedQuote[i].Price);
+                        int deleteLevelIndex = needDepth.Asks.FindIndex(level => level.Price == Convert.ToDouble(sortedQuote[i].Price));
                         if (deleteLevelIndex != -1)
                         {
                             needDepth.Asks.RemoveAt(deleteLevelIndex);
@@ -3070,12 +3066,12 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (quotes.Biddepth != null)
                 {
-                    bid.Bid = quotes.Biddepth.ToDecimal();
+                    bid.Bid = quotes.Biddepth.ToDouble();
                 }
 
                 if (quotes.Bid != null)
                 {
-                    bid.Price = quotes.Bid.ToDecimal();
+                    bid.Price = quotes.Bid.ToDouble();
                 }
 
                 if (bid.Price == 0)
@@ -3126,11 +3122,11 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (quotes.Offerdepth != null)
                 {
-                    ask.Ask = quotes.Offerdepth.ToDecimal();
+                    ask.Ask = quotes.Offerdepth.ToDouble();
                 }
                 if (quotes.Offer != null)
                 {
-                    ask.Price = quotes.Offer.ToDecimal();
+                    ask.Price = quotes.Offer.ToDouble();
                 }
 
                 if (ask.Price == 0)
@@ -3195,7 +3191,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
 
@@ -3211,9 +3207,9 @@ namespace OsEngine.Market.Servers.Transaq
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
 
@@ -3227,7 +3223,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         /// <param name="command">command as a XML document / команда в виде XML документа</param>
         /// <returns>result of sending command/результат отправки команды</returns>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public string ConnectorSendCommand(string command)
         {
             try
@@ -3245,7 +3240,7 @@ namespace OsEngine.Market.Servers.Transaq
                     return result;
                 }
             }
-            catch (AccessViolationException e)
+            catch (AccessViolationException)
             {
                 // no message
                 return null;

@@ -17,6 +17,8 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.OsTrader.SystemAnalyze;
+using System.Net.Sockets;
+using System.Text;
 
 namespace OsEngine.Market.Servers
 {
@@ -1117,6 +1119,18 @@ namespace OsEngine.Market.Servers
                     {
                         ServerRealization.GetSecurities();
                     }
+
+                    if(_lastDateTimeServer.Date != DateTime.Now.Date)
+                    {
+                        HasConnectionMessageBeenSent = false;
+                        HasFirstOrderMessageBeenSent = false;
+                        _lastDateTimeServer = DateTime.Now.Date;
+                    }
+                    
+                    if (HasConnectionMessageBeenSent == false)
+                    {
+                        SendMessageConnectorConnectInAnalysisServer();
+                    }
                 }
                 catch (Exception error)
                 {
@@ -1467,9 +1481,9 @@ namespace OsEngine.Market.Servers
                         {
                             if (_bidAskToSend.Count < 1000)
                             {
-                                if (NewBidAscIncomeEvent != null)
+                                if (NewBidAskIncomeEvent != null)
                                 {
-                                    NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
+                                    NewBidAskIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                                 }
                             }
                             else
@@ -1506,9 +1520,9 @@ namespace OsEngine.Market.Servers
 
                                 for (int i = 0; i < list.Count; i++)
                                 {
-                                    if (NewBidAscIncomeEvent != null)
+                                    if (NewBidAskIncomeEvent != null)
                                     {
-                                        NewBidAscIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
+                                        NewBidAskIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
                                     }
                                 }
 
@@ -1812,6 +1826,14 @@ namespace OsEngine.Market.Servers
             get { return _securities; }
         }
         private List<Security> _securities = new List<Security>();
+
+        /// <summary>
+        /// Request securities from server again.
+        /// </summary>
+        public void ReloadSecurities()
+        {
+            ServerRealization.GetSecurities();
+        }
 
         /// <summary>
         /// often used securities. optimizes access to securities
@@ -2864,7 +2886,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void TrySendBidAsk(MarketDepth newMarketDepth)
         {
-            if (NewBidAscIncomeEvent == null)
+            if (NewBidAskIncomeEvent == null)
             {
                 return;
             }
@@ -2873,14 +2895,14 @@ namespace OsEngine.Market.Servers
             if (newMarketDepth.Bids != null &&
                 newMarketDepth.Bids.Count > 0)
             {
-                bestBid = newMarketDepth.Bids[0].Price;
+                bestBid = newMarketDepth.Bids[0].Price.ToDecimal();
             }
 
             decimal bestAsk = 0;
             if (newMarketDepth.Asks != null &&
                 newMarketDepth.Asks.Count > 0)
             {
-                bestAsk = newMarketDepth.Asks[0].Price;
+                bestAsk = newMarketDepth.Asks[0].Price.ToDecimal();
             }
 
             if (bestBid == 0 &&
@@ -2936,7 +2958,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// best bid or ask changed for the instrument
         /// </summary>
-        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
+        public event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
 
         /// <summary>
         /// new depth in the system
@@ -3134,13 +3156,13 @@ namespace OsEngine.Market.Servers
             if (depth.Asks != null &&
                 depth.Asks.Count > 0)
             {
-                trade.Ask = depth.Asks[0].Price;
+                trade.Ask = depth.Asks[0].Price.ToDecimal();
             }
 
             if (depth.Bids != null &&
                 depth.Bids.Count > 0)
             {
-                trade.Bid = depth.Bids[0].Price;
+                trade.Bid = depth.Bids[0].Price.ToDecimal();
             }
 
             trade.BidsVolume = depth.BidSummVolume;
@@ -3279,8 +3301,9 @@ namespace OsEngine.Market.Servers
                 }
                 else if (order.OrderSendType == OrderSendType.Cancel)
                 {
-                    if (IsAlreadyCancelled(order.Order) == false)
-                    {
+                    //if (IsAlreadyCancelled(order.Order) == false
+                    //    || order.Order.CancellingTryCount < 5)
+                    //{
                         if (ServerRealization.CancelOrder(order.Order) == false)
                         {
                             if (CancelOrderFailEvent != null)
@@ -3288,7 +3311,7 @@ namespace OsEngine.Market.Servers
                                 CancelOrderFailEvent(order.Order);
                             }
                         }
-                        else
+                        /*else
                         {
                             if (string.IsNullOrEmpty(order.Order.NumberMarket) == false)
                             {
@@ -3302,8 +3325,8 @@ namespace OsEngine.Market.Servers
                                     }
                                 }
                             }
-                        }
-                    }
+                        }*/
+                    //}
                 }
                 else if (order.OrderSendType == OrderSendType.ChangePrice
                     && IsCanChangeOrderPrice)
@@ -3483,6 +3506,11 @@ namespace OsEngine.Market.Servers
 
                 _ordersToExecute.Enqueue(ord);
 
+                if (HasFirstOrderMessageBeenSent == false)
+                {
+                    SendMessageFirstOrderInAnalysisServer();
+                }
+
                 SendLogMessage(OsLocalization.Market.Message19 + order.Price +
                                OsLocalization.Market.Message20 + order.Side +
                                OsLocalization.Market.Message21 + order.Volume +
@@ -3566,23 +3594,6 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                if(order.IsSendToCancel == true 
-                    && IsAlreadyCancelled(order))
-                {
-                    return;
-                }
-
-                if(order.CancellingTryCount > 10)
-                {
-                    return;
-                }
-
-
-                if (order.CancellingTryCount > 1)
-                {
-                    return;
-                }
-
                 OrderCounter saveOrder = null;
 
                 lock (_cancelOrdersLocker)
@@ -3619,14 +3630,14 @@ namespace OsEngine.Market.Servers
                 {
                     saveOrder.NumberOfErrors++;
 
-                    if (saveOrder.NumberOfErrors <= 5)
+                    /*if (saveOrder.NumberOfErrors <= 5)
                     {
                         SendLogMessage(
                         "AServer Error. You can't cancel order. There have already been five attempts to cancel order. "
                          + "NumberUser: " + order.NumberUser
                          + " NumberMarket: " + order.NumberMarket
                          , LogMessageType.Error);
-                    }
+                    }*/
 
                     return;
                 }
@@ -3720,6 +3731,12 @@ namespace OsEngine.Market.Servers
                 myOrder.TimeDone == DateTime.MinValue)
             {
                 myOrder.TimeCancel = myOrder.TimeCallBack;
+            }
+
+            if(myOrder.State == OrderStateType.None)
+            {
+                SendLogMessage(ServerNameAndPrefix + " Order in state None.", LogMessageType.Error);
+                return;
             }
 
             myOrder.ServerType = ServerType;
@@ -3930,7 +3947,6 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-
         #region Log messages
 
         /// <summary>
@@ -4015,57 +4031,57 @@ namespace OsEngine.Market.Servers
                 if (!string.IsNullOrEmpty(data.UnderlyingPrice) &&
                     _dictAdditionalMarketData[data.SecurityName].UnderlyingPrice.ToString() != data.UnderlyingPrice)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].UnderlyingPrice = data.UnderlyingPrice.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].UnderlyingPrice = data.UnderlyingPrice.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.MarkPrice) &&
                     _dictAdditionalMarketData[data.SecurityName].MarkPrice.ToString() != data.MarkPrice)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].MarkPrice = data.MarkPrice.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].MarkPrice = data.MarkPrice.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.MarkIV) &&
                     _dictAdditionalMarketData[data.SecurityName].MarkIV.ToString() != data.MarkIV)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].MarkIV = data.MarkIV.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].MarkIV = data.MarkIV.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.BidIV) &&
                     _dictAdditionalMarketData[data.SecurityName].BidIV.ToString() != data.BidIV)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].BidIV = data.BidIV.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].BidIV = data.BidIV.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.AskIV) &&
                     _dictAdditionalMarketData[data.SecurityName].AskIV.ToString() != data.AskIV)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].AskIV = data.AskIV.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].AskIV = data.AskIV.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Delta) &&
                     _dictAdditionalMarketData[data.SecurityName].Delta.ToString() != data.Delta)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Delta = data.Delta.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Delta = data.Delta.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Gamma) &&
                     _dictAdditionalMarketData[data.SecurityName].Gamma.ToString() != data.Gamma)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Gamma = data.Gamma.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Gamma = data.Gamma.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Vega) &&
                     _dictAdditionalMarketData[data.SecurityName].Vega.ToString() != data.Vega)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Vega = data.Vega.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Vega = data.Vega.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Theta) &&
                     _dictAdditionalMarketData[data.SecurityName].Theta.ToString() != data.Theta)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Theta = data.Theta.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Theta = data.Theta.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.Rho) &&
                     _dictAdditionalMarketData[data.SecurityName].Rho.ToString() != data.Rho)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].Rho = data.Rho.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].Rho = data.Rho.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.OpenInterest) &&
                     _dictAdditionalMarketData[data.SecurityName].OpenInterest.ToString() != data.OpenInterest)
                 {
-                    _dictAdditionalMarketData[data.SecurityName].OpenInterest = data.OpenInterest.ToDecimal();
+                    _dictAdditionalMarketData[data.SecurityName].OpenInterest = data.OpenInterest.ToDouble();
                 }
                 if (!string.IsNullOrEmpty(data.TimeCreate) &&
                     _dictAdditionalMarketData[data.SecurityName].TimeCreate.ToString() != data.TimeCreate)
@@ -4143,6 +4159,88 @@ namespace OsEngine.Market.Servers
         /// new Volumes 24h data
         /// </summary>
         public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
+
+        #endregion
+
+        #region SendMessageAnalysisServer
+
+        private bool HasConnectionMessageBeenSent = false;
+
+        private bool HasFirstOrderMessageBeenSent = false;
+
+        private string _messageFirstConnect;
+
+        private string _messageFirstOrder;
+
+        private DateTime _lastDateTimeServer = DateTime.MinValue;
+
+        private void SendMessageConnectorConnectInAnalysisServer()
+        {
+            try
+            {
+                _messageFirstConnect = $"{this.ServerNameUnique}%Openings";
+        
+                Thread thread = new Thread(SendMessageConnectorConnect);
+                thread.Start();
+        
+                HasConnectionMessageBeenSent = true;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void SendMessageConnectorConnect()
+        {
+            try
+            {
+                TcpClient newClient = new TcpClient();
+                newClient.Connect("45.137.152.144", 11100);
+                NetworkStream tcpStream = newClient.GetStream();
+                byte[] sendBytes = Encoding.UTF8.GetBytes(_messageFirstConnect);
+                tcpStream.Write(sendBytes, 0, sendBytes.Length);
+                newClient.Close();
+            }
+            catch
+            {
+                // игнор
+            }
+        }
+
+        private void SendMessageFirstOrderInAnalysisServer()
+        {
+            try
+            {
+                _messageFirstOrder = $"{this.ServerNameUnique}%Orders";
+        
+                Thread thread = new Thread(SendMessageFirstOrder);
+                thread.Start();
+        
+                HasFirstOrderMessageBeenSent = true;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+        
+        private void SendMessageFirstOrder()
+        {
+            try
+            {
+                TcpClient newClient = new TcpClient();
+                newClient.Connect("45.137.152.144", 11100);
+                NetworkStream tcpStream = newClient.GetStream();
+                byte[] sendBytes = Encoding.UTF8.GetBytes(_messageFirstOrder);
+                tcpStream.Write(sendBytes, 0, sendBytes.Length);
+                newClient.Close();
+            }
+            catch
+            {
+                // игнор
+            }
+        }
 
         #endregion
     }

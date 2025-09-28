@@ -239,6 +239,11 @@ namespace OsEngine.Market.Servers.Finam
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

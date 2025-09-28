@@ -60,6 +60,12 @@
     </ItemGroup>
   </Target>
   <ItemGroup>
+    <Compile Remove="lua\**" />
+    <EmbeddedResource Remove="lua\**" />
+    <None Remove="lua\**" />
+    <Page Remove="lua\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="BytesRoad.Net.Ftp">
       <HintPath>bin\Debug\BytesRoad.Net.Ftp.dll</HintPath>
     </Reference>
@@ -81,9 +87,6 @@
     </Reference>
     <Reference Include="OpenFAST">
       <HintPath>bin\Debug\OpenFAST.dll</HintPath>
-    </Reference>
-    <Reference Include="qc">
-      <HintPath>bin\Debug\qC.dll</HintPath>
     </Reference>
     <Reference Include="QUIKSharp">
       <HintPath>bin\Debug\QuikSharp.dll</HintPath>
@@ -224,12 +227,6 @@
     <Content Include="Images\MainWIndow\tbank.mp4">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="lua\clibs64\5.1_MD\socket\core.dll" />
-    <Content Include="lua\clibs64\5.1_MT\socket\core.dll" />
-    <Content Include="lua\clibs64\53_MD\socket\core.dll" />
-    <Content Include="lua\clibs64\53_MT\socket\core.dll" />
-    <Content Include="lua\clibs\5.1_MD\socket\core.dll" />
-    <Content Include="lua\clibs\5.1_MT\socket\core.dll" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\generateButton.png" />

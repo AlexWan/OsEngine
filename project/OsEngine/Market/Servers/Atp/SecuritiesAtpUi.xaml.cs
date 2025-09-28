@@ -238,8 +238,6 @@ namespace OsEngine.Market.Servers.Atp
                 return;
             }
 
-            bool isInArray;
-
             for (int i = 0; i < securities.Count; i++)
             {
                 DataGridViewRow nRow = GetSecurityRow(securities[i]);

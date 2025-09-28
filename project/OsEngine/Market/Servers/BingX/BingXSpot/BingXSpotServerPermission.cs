@@ -263,6 +263,19 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "open-api.bingx.com"
+                };
+
+                return pingIpDomens;
+            }
+        }
+
         #endregion
     }
 }

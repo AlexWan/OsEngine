@@ -424,7 +424,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private void ThreadUpdatePortfolio()
         {
-            Thread.Sleep(5000);
+            Thread.Sleep(30000);
 
             while (true)
             {
@@ -982,7 +982,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 webSocketPublicNew.OnMessage += webSocketPublic_OnMessage;
                 webSocketPublicNew.OnError += webSocketPublic_OnError;
                 webSocketPublicNew.OnClose += webSocketPublic_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -1007,7 +1007,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += webSocketPrivate_OnError;
                 _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.ConnectAsync();
 
             }
             catch (Exception exception)
@@ -1291,7 +1291,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             try
             {
                 string authRequest = BuildSign(DateTime.UtcNow);
-                _webSocketPrivate.Send(authRequest);
+                _webSocketPrivate.SendAsync(authRequest);
 
                 SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
                 CheckActivationSockets();
@@ -1341,7 +1341,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         {
                             // Supports two-way heartbeat
                             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                            webSocketPublic.Send($"{{\"ping\": \"{timestamp}\"}}");
+                            webSocketPublic.SendAsync($"{{\"ping\": \"{timestamp}\"}}");
                         }
                         else
                         {
@@ -1440,10 +1440,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
             if (webSocketPublic != null)
             {
                 string topic = $"market.{security.Name}.depth.step0";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
                 topic = $"market.{security.Name}.trade.detail";
-                webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
             }
 
@@ -1451,7 +1451,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 if (_extendedMarketData)
                 {
-                    _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"public.{security.Name}.funding_rate\", \"cid\": \"{clientId}\" }}");
+                    _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"public.{security.Name}.funding_rate\", \"cid\": \"{clientId}\" }}");
                     GetFundingHistory(security.Name);
                 }
             }
@@ -1513,9 +1513,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 channelAccounts = "accounts_unify.USDT";
             }
 
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
         }
 
         private void CreatePingMessageWebSocketPublic(string message)
@@ -1537,7 +1537,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         if (webSocketPublic != null
                         && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            webSocketPublic.Send($"{{\"pong\": \"{response.ping}\"}}");
+                            webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
                         }
                     }
                     catch (Exception ex)
@@ -1561,7 +1561,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 try
                 {
 
-                    _webSocketPrivate.Send($"{{\"op\": \"pong\",\"ts\": \"{response.ts}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"pong\",\"ts\": \"{response.ts}\"}}");
                 }
                 catch (Exception ex)
                 {
@@ -1592,10 +1592,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                     string securityName = _subscribedSecurities[j];
 
                                     string topic = $"market.{securityName}.depth.step0";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
 
                                     topic = $"market.{securityName}.trade.detail";
-                                    webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
                                 }
                             }
                         }
@@ -1621,13 +1621,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         channelAccounts = "accounts_unify.USDT";
                     }
 
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelOrders}\"}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelAccounts}\"}}");
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelPositions}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelOrders}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelAccounts}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelPositions}\"}}");
 
                     if (_extendedMarketData)
                     {
-                        _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"public.*.funding_rate\"}}");
+                        _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"public.*.funding_rate\"}}");
                     }
                 }
                 catch
@@ -1761,7 +1761,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -2058,8 +2058,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             continue;
                         }
 
-                        decimal ask = item.asks[i][1].ToString().ToDecimal();
-                        decimal price = item.asks[i][0].ToString().ToDecimal();
+                        double ask = item.asks[i][1].ToString().ToDouble();
+                        double price = item.asks[i][0].ToString().ToDouble();
 
                         if (ask == 0 ||
                             price == 0)
@@ -2083,8 +2083,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             continue;
                         }
 
-                        decimal bid = item.bids[i][1].ToString().ToDecimal();
-                        decimal price = item.bids[i][0].ToString().ToDecimal();
+                        double bid = item.bids[i][1].ToString().ToDouble();
+                        double price = item.bids[i][0].ToString().ToDouble();
 
                         if (bid == 0 ||
                             price == 0)
@@ -2484,7 +2484,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<Funding> FundingUpdateEvent;
 
@@ -2538,7 +2538,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
                 else if (order.TypeOrder == OrderPriceType.Market)
                 {
-                    jsonContent.Add("order_price_type", "market");
+                    if ("COIN".Equals(((ServerParameterEnum)ServerParameters[2]).Value))
+                    {
+                        jsonContent.Add("order_price_type", "limit");
+                        jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
+                    }
+                    else
+                    {
+                        jsonContent.Add("order_price_type", "market");
+                    }
                 }
 
                 jsonContent.Add("channel_code", "AAe2ccbd47");
@@ -2681,7 +2689,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetAllOpenOrders();
+            List<Order> orders = GetAllActivOrdersArray(100, true);
 
             for (int i = 0; orders != null && i < orders.Count; i++)
             {
@@ -2706,7 +2714,24 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private List<Order> GetAllOpenOrders()
+        private List<Order> GetAllActivOrdersArray(int maxCountByCategory, bool onlyActive)
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> orders = new List<Order>();
+
+            GetAllOpenOrders(orders, 1, 100, true);
+
+            if (orders != null
+                && orders.Count > 0)
+            {
+                ordersOpenAll.AddRange(orders);
+            }
+
+            return ordersOpenAll;
+        }
+
+        private void GetAllOpenOrders(List<Order> array, int pageIndex, int maxCount, bool onlyActive)
         {
             _rateGateSendOrder.WaitToProceed();
 
@@ -2714,10 +2739,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             try
             {
+                Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+                jsonContent.Add("page_index", pageIndex.ToString());
+                jsonContent.Add("page_size", "20");
+
                 string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_openorders");
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
+                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
                 IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
@@ -2732,10 +2762,21 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                             Order newOrder = new Order();
 
-                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.update_time));
-                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
                             newOrder.ServerType = ServerType.HTXSwap;
                             newOrder.SecurityNameCode = item.contract_code;
+                            newOrder.State = GetOrderState(item.status);
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.update_time));
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
+
+                            if (newOrder.State == OrderStateType.Cancel)
+                            {
+                                newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.update_time));
+                            }
+
+                            if (newOrder.State == OrderStateType.Done)
+                            {
+                                newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.update_time));
+                            }
 
                             try
                             {
@@ -2748,7 +2789,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                             newOrder.NumberMarket = item.order_id.ToString();
                             newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
-                            newOrder.State = GetOrderState(item.status);
                             newOrder.Volume = item.volume.ToDecimal();
                             newOrder.Price = item.price.ToDecimal();
                             newOrder.PortfolioNumber = $"HTXSwapPortfolio";
@@ -2766,23 +2806,61 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                             orders.Add(newOrder);
                         }
-                        return orders;
+
+                        if (orders.Count > 0)
+                        {
+                            array.AddRange(orders);
+
+                            if (array.Count > maxCount)
+                            {
+                                while (array.Count > maxCount)
+                                {
+                                    array.RemoveAt(array.Count - 1);
+                                }
+                                return;
+                            }
+                            else if (array.Count < 20)
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
+
+                        if (response.data.orders.Count > 1)
+                        {
+                            int totalPage = Convert.ToInt32(response.data.total_page);
+                            int currentPage = Convert.ToInt32(response.data.current_page);
+                            //int totalSize = Convert.ToInt32(response.data.total_size);
+
+                            while (currentPage < totalPage)
+                            {
+                                currentPage++;
+                                GetAllOpenOrders(array, currentPage, maxCount, onlyActive);
+                            }
+                        }
+
+                        return;
                     }
                     else
                     {
                         SendLogMessage($"Get all open orders failed: {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
+                        return;
                     }
                 }
                 else
                 {
                     SendLogMessage("Get all open orders request error " + responseMessage.StatusCode + "  " + responseMessage.Content, LogMessageType.Error);
+                    return;
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return;
             }
-            return null;
         }
 
         public OrderStateType GetOrderStatus(Order order)
@@ -3030,7 +3108,26 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public List<Order> GetActiveOrders(int startIndex, int count)
         {
-            return null;
+            int countToMethod = startIndex + count;
+
+            List<Order> result = GetAllActivOrdersArray(countToMethod, true);
+
+            List<Order> resultExit = new List<Order>();
+
+            if (result != null
+                && startIndex < result.Count)
+            {
+                if (startIndex + count < result.Count)
+                {
+                    resultExit = result.GetRange(startIndex, count);
+                }
+                else
+                {
+                    resultExit = result.GetRange(startIndex, result.Count - startIndex);
+                }
+            }
+
+            return resultExit;
         }
 
         public List<Order> GetHistoricalOrders(int startIndex, int count)

@@ -607,17 +607,17 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     if (newLevel.Action == OrderBook.Types.Row.Types.Action.Remove || newLevel.Action == OrderBook.Types.Row.Types.Action.Unspecified) continue;
 
                     MarketDepthLevel level = new MarketDepthLevel();
-                    level.Price = newLevel.Price.Value.ToString().ToDecimal();
+                    level.Price = newLevel.Price.Value.ToString().ToDouble();
 
                     if (newLevel.SideCase == OrderBook.Types.Row.SideOneofCase.BuySize)
                     {
-                        level.Bid = newLevel.BuySize.Value.ToString().ToDecimal();
+                        level.Bid = newLevel.BuySize.Value.ToString().ToDouble();
                         depth.Bids.Add(level);
                     }
 
                     if (newLevel.SideCase == OrderBook.Types.Row.SideOneofCase.SellSize)
                     {
-                        level.Ask = newLevel.SellSize.Value.ToString().ToDecimal();
+                        level.Ask = newLevel.SellSize.Value.ToString().ToDouble();
                         depth.Asks.Add(level);
                     }
                 }
@@ -647,6 +647,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null; // Недоступно
+            /*
             LatestTradesResponse resp = null;
             try
             {
@@ -687,7 +688,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 }
             }
 
-            return trades.Count > 0 ? trades : null;
+            return trades.Count > 0 ? trades : null;*/
         }
 
         private RateGate _rateGateAssetsGetAsset = new RateGate(200, TimeSpan.FromMinutes(1));
@@ -903,7 +904,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         List<Security> _subscribedSecurities = new List<Security>();
 
@@ -1040,7 +1041,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     {
                         hasData = stream.ResponseStream.MoveNext().Result;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         Thread.Sleep(5);
                     }
@@ -1086,7 +1087,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex)
+            catch
             {
             }
         }
@@ -1110,7 +1111,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     {
                         hasData = stream.ResponseStream.MoveNext(token).Result;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         Thread.Sleep(5);
                         continue;
@@ -1153,17 +1154,17 @@ namespace OsEngine.Market.Servers.FinamGrpc
                                 if (newLevel.Action == StreamOrderBook.Types.Row.Types.Action.Remove || newLevel.Action == StreamOrderBook.Types.Row.Types.Action.Unspecified) continue;
                                 MarketDepthLevel level = new MarketDepthLevel
                                 {
-                                    Price = newLevel.Price.Value.ToString().ToDecimal()
+                                    Price = newLevel.Price.Value.ToString().ToDouble()
                                 };
 
                                 if (newLevel.SideCase == StreamOrderBook.Types.Row.SideOneofCase.BuySize)
                                 {
-                                    level.Bid = newLevel.BuySize.Value.ToString().ToDecimal();
+                                    level.Bid = newLevel.BuySize.Value.ToString().ToDouble();
                                     depth.Bids.Add(level);
                                 }
                                 else if (newLevel.SideCase == StreamOrderBook.Types.Row.SideOneofCase.SellSize)
                                 {
-                                    level.Ask = newLevel.SellSize.Value.ToString().ToDecimal();
+                                    level.Ask = newLevel.SellSize.Value.ToString().ToDouble();
                                     depth.Asks.Add(level);
                                 }
                             }
@@ -1189,7 +1190,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex)
+            catch
             {
             }
         }
@@ -1432,7 +1433,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             return myOrder;
         }
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<MarketDepth> MarketDepthEvent;
 
@@ -2068,9 +2069,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
 

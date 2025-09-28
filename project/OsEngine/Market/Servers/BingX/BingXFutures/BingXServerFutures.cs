@@ -925,7 +925,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -966,7 +966,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
 
-            _webSocketPrivate.Connect();
+            _webSocketPrivate.ConnectAsync();
         }
 
         private void DeleteWebSocketConnection()
@@ -1130,7 +1130,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        _webSocketPublic[i].Send("Pong");
+                        _webSocketPublic[i].SendAsync("Pong");
                     }
 
                     return;
@@ -1239,7 +1239,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 if (item.Contains("Ping")) // send immediately upon receipt. 
                 {
-                    _webSocketPrivate.Send("Pong");
+                    _webSocketPrivate.SendAsync("Pong");
                     return;
                 }
 
@@ -1386,12 +1386,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
-                    webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20@500ms\"}}");
+                    webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
+                    webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20@500ms\"}}");
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\"}}");
+                        webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\"}}");
                         GetFundingHistory(security.Name);
                     }
                 }
@@ -1482,12 +1482,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                                 {
                                     string name = _subscribedSecutiries[i2];
 
-                                    webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
-                                    webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
+                                    webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
+                                    webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
 
                                     if (_extendedMarketData)
                                     {
-                                        webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{name}@ticker\"}}");
+                                        webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{name}@ticker\"}}");
                                     }
                                 }
                             }
@@ -1697,7 +1697,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -2106,8 +2106,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     MarketDepthLevel level = new MarketDepthLevel()
                     {
-                        Price = responceDepths.data.asks[i][0].ToDecimal(),
-                        Ask = responceDepths.data.asks[i][1].ToDecimal()
+                        Price = responceDepths.data.asks[i][0].ToDouble(),
+                        Ask = responceDepths.data.asks[i][1].ToDouble()
                     };
 
                     ascs.Insert(0, level);
@@ -2117,8 +2117,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Price = responceDepths.data.bids[i][0].ToDecimal(),
-                        Bid = responceDepths.data.bids[i][1].ToDecimal()
+                        Price = responceDepths.data.bids[i][0].ToDouble(),
+                        Bid = responceDepths.data.bids[i][1].ToDouble()
                     });
                 }
 
@@ -2150,7 +2150,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public event Action<MarketDepth> MarketDepthEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<Funding> FundingUpdateEvent;
 

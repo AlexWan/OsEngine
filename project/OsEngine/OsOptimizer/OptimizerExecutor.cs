@@ -74,7 +74,7 @@ namespace OsEngine.OsOptimizer
 
         #region Optimization algorithm
 
-        private async void PrimeThreadWorkerPlace()
+        private void PrimeThreadWorkerPlace()
         {
             ReportsToFazes = new List<OptimizerFazeReport>();
 
@@ -329,7 +329,7 @@ namespace OsEngine.OsOptimizer
 
         public List<OptimizerFazeReport> ReportsToFazes = new List<OptimizerFazeReport>();
 
-        private async void StartOptimizeFazeInSample(OptimizerFaze faze, OptimizerFazeReport report,
+        private void StartOptimizeFazeInSample(OptimizerFaze faze, OptimizerFazeReport report,
             List<IIStrategyParameter> allParameters, List<bool> parametersToOptimization)
         {
             ReloadAllParam(allParameters);
@@ -1061,7 +1061,7 @@ namespace OsEngine.OsOptimizer
 
         public event Action<int, int> PrimeProgressChangeEvent;
 
-        public event Action<NeedToMoveUiTo> NeedToMoveUiToEvent;
+        public event Action<NeedToMoveUiTo> NeedToMoveUiToEvent { add { } remove { } }
 
         #endregion
 

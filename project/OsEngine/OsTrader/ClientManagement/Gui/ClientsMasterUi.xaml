@@ -1,0 +1,24 @@
+﻿<Window x:Class="OsEngine.OsTrader.ClientManagement.ClientsMasterUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.ClientManagement"
+        mc:Ignorable="d"
+        Title="Clients main UI" Height="369" Width="655" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <TabControl Foreground="Black" Margin="0,0,0,0">
+            <TabItem Name="TabItem1" Header=" Clients ">
+                <Grid>
+                    <WindowsFormsHost Name="HostClients" Foreground="Black" Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItem2" Header=" Logging ">
+                <Grid>
+                    <WindowsFormsHost Name="HostLog" Foreground="Black" Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>

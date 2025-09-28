@@ -265,6 +265,19 @@ namespace OsEngine.Market.Servers.BitMart
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api-cloud.bitmart.com"
+                };
+
+                return pingIpDomens;
+            }
+        }
+
         #endregion
     }
 }

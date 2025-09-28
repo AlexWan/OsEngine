@@ -227,7 +227,6 @@ namespace OsEngine.Entity
                             }
                         }
                         else if (serverType == ServerType.Plaza ||
-                                 serverType == ServerType.QuikDde ||
                                  serverType == ServerType.AstsBridge ||
                                  serverType == ServerType.NinjaTrader ||
                                  serverType == ServerType.MoexFixFastSpot)
@@ -385,7 +384,7 @@ namespace OsEngine.Entity
             try
             {
                 if (series == null
-                    || series.UID == null)
+                    || series.UID == Guid.Empty)
                 {
                     return;
                 }
@@ -398,7 +397,7 @@ namespace OsEngine.Entity
                     CandleSeries curSeries = _activeSeriesBasedOnTrades[i];
 
                     if (curSeries == null ||
-                        curSeries.UID == null)
+                        curSeries.UID == Guid.Empty)
                     {
                         return;
                     }
@@ -420,7 +419,7 @@ namespace OsEngine.Entity
                     CandleSeries curSeries = _activeSeriesBasedOnMd[i];
 
                     if (curSeries == null ||
-                        curSeries.UID == null)
+                        curSeries.UID == Guid.Empty)
                     {
                         return;
                     }
@@ -576,11 +575,20 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
                 {
+                    if (_activeSeriesBasedOnTrades[i] == null)
+                    {
+                        continue;
+                    }
+
                     _activeSeriesBasedOnTrades[i].SetNewTime(dateTime);
                 }
 
                 for (int i = 0; _activeSeriesBasedOnMd != null && i < _activeSeriesBasedOnMd.Count; i++)
                 {
+                    if (_activeSeriesBasedOnMd[i] == null)
+                    {
+                        continue;
+                    }
                     _activeSeriesBasedOnMd[i].SetNewTime(dateTime);
                 }
 

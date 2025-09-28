@@ -522,7 +522,7 @@ namespace OsEngine.Market.Servers.Deribit
             webSocket.OnClose += WebSocket_OnClose;
             webSocket.OnMessage += WebSocket_OnMessage;
             webSocket.OnError += WebSocket_OnError;
-            webSocket.Connect();
+            webSocket.ConnectAsync();
         }
 
         private void DeleteWebscoektConnection()
@@ -669,7 +669,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                         string json = JsonConvert.SerializeObject(jsonRequest);
 
-                        webSocket.Send(json);
+                        webSocket.SendAsync(json);
 
                         _timeLastSendPing = DateTime.Now;
                     }
@@ -712,7 +712,7 @@ namespace OsEngine.Market.Servers.Deribit
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -906,8 +906,8 @@ namespace OsEngine.Market.Servers.Deribit
                 for (int i = 0; i < item.asks.Count; i++)
                 {
                     MarketDepthLevel level = new MarketDepthLevel();
-                    level.Ask = item.asks[i][1].ToString().ToDecimal();
-                    level.Price = item.asks[i][0].ToString().ToDecimal();
+                    level.Ask = item.asks[i][1].ToString().ToDouble();
+                    level.Price = item.asks[i][0].ToString().ToDouble();
                     ascs.Add(level);
                 }
             }
@@ -917,8 +917,8 @@ namespace OsEngine.Market.Servers.Deribit
                 for (int i = 0; i < item.bids.Count; i++)
                 {
                     MarketDepthLevel level = new MarketDepthLevel();
-                    level.Bid = item.bids[i][1].ToString().ToDecimal();
-                    level.Price = item.bids[i][0].ToString().ToDecimal();
+                    level.Bid = item.bids[i][1].ToString().ToDouble();
+                    level.Price = item.bids[i][0].ToString().ToDouble();
                     bids.Add(level);
                 }
             }
@@ -1589,7 +1589,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             string json = JsonConvert.SerializeObject(jsonRequest);
 
-            webSocket.Send(json);
+            webSocket.SendAsync(json);
         }
 
         private void CreateAuthMessageWebSocket()
@@ -1617,7 +1617,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             string json = JsonConvert.SerializeObject(jsonRequest);
 
-            webSocket.Send(json);
+            webSocket.SendAsync(json);
         }
 
         private void UnsubscribeFromAllWebSockets()
@@ -1634,7 +1634,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             string json = JsonConvert.SerializeObject(jsonRequest);
 
-            webSocket.Send(json);
+            webSocket.SendAsync(json);
         }
 
         private void CreateQueryPortfolio(bool IsUpdateValueBegin, string currency)
@@ -1788,9 +1788,9 @@ namespace OsEngine.Market.Servers.Deribit
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

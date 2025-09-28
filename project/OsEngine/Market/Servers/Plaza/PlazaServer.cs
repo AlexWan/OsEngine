@@ -718,7 +718,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerInfo != null)
                 {
@@ -808,7 +808,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (CGateException error)
+            catch (CGateException)
             {
                 if (_listenerPortfolio != null)
                 {
@@ -898,7 +898,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerPosition != null)
                 {
@@ -987,7 +987,7 @@ namespace OsEngine.Market.Servers.Plaza
                 }
 
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerTrade != null)
                 {
@@ -1062,7 +1062,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _listenerMarketDepth.Open("mode=snapshot+online");
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerMarketDepth != null)
                 {
@@ -1153,7 +1153,7 @@ namespace OsEngine.Market.Servers.Plaza
                     }
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerOrderAndMyDeal != null)
                 {
@@ -1219,7 +1219,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _listenerUserOrderBook.Open("mode=online");
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerUserOrderBook != null)
                 {
@@ -1294,7 +1294,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _publisher = null;
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_publisher != null)
                 {
@@ -1353,7 +1353,7 @@ namespace OsEngine.Market.Servers.Plaza
                     _listenerOrderSendMirror.Open("mode=online");
                 }
             }
-            catch (Exception error)
+            catch
             {
                 if (_listenerOrderSendMirror != null)
                 {
@@ -1998,7 +1998,7 @@ namespace OsEngine.Market.Servers.Plaza
                 depthLevel.Ask = replmsg["volume"].asInt();
             }
 
-            depthLevel.Price = Convert.ToDecimal(replmsg["price"].asDecimal());
+            depthLevel.Price = Convert.ToDouble(replmsg["price"].asDecimal());
             depthLevel.Id = replmsg["replID"].asLong();
 
             // take our depth | берём наш стакан
@@ -2250,7 +2250,7 @@ namespace OsEngine.Market.Servers.Plaza
                     for (int i = 0; i < asks.Count; i++)
                     {
                         // proccess the situation when this level is already there | обрабатываем ситуацию когда такой уровень уже есть
-                        if (asks[i].Price == revisionInArray.Price)
+                        if (asks[i].Price == Convert.ToDouble(revisionInArray.Price))
                         {
                             asks.Remove(asks[i]);
                             break;
@@ -2280,7 +2280,7 @@ namespace OsEngine.Market.Servers.Plaza
                     for (int i = 0; i < bids.Count; i++)
                     {
                         // proccess the situation when this level is already there | обрабатываем ситуацию когда такой уровень уже есть
-                        if (bids[i].Price == revisionInArray.Price)
+                        if (bids[i].Price == Convert.ToDouble(revisionInArray.Price))
                         {
                             bids.Remove(bids[i]);
                             break;
@@ -2327,7 +2327,7 @@ namespace OsEngine.Market.Servers.Plaza
 
                     for (int i = 0; i < ask.Count; i++)
                     {
-                        if (ask[i].Price == info.Price)
+                        if (ask[i].Price == Convert.ToDouble(info.Price))
                         {
                             ask.Remove(ask[i]);
                             myDepth.Bids = ask;
@@ -2341,7 +2341,7 @@ namespace OsEngine.Market.Servers.Plaza
 
                     for (int i = 0; i < bid.Count; i++)
                     {
-                        if (bid[i].Price == info.Price)
+                        if (bid[i].Price == Convert.ToDouble(info.Price))
                         {
                             bid.Remove(bid[i]);
                             myDepth.Asks = bid;
@@ -2365,7 +2365,7 @@ namespace OsEngine.Market.Servers.Plaza
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -3167,11 +3167,11 @@ namespace OsEngine.Market.Servers.Plaza
             return -1;
         }
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

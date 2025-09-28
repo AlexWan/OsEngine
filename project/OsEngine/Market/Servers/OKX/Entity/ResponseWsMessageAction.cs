@@ -41,52 +41,80 @@ namespace OsEngine.Market.Servers.OKX.Entity
     }
     public class ResponseWsOrders
     {
-        public string accFillSz;
-        public string amendResult;
-        public string avgPx;
-        public string cTime;
-        public string category;
-        public string ccy;
-        public string clOrdId;
-        public string code;
-        public string execType;
-        public string fee;
-        public string feeCcy;
-        public string fillFee;
-        public string fillFeeCcy;
-        public string fillNotionalUsd;
-        public string fillPx;
-        public string fillSz;
-        public string fillTime;
-        public string instId;
-        public string instType;
-        public string lever;
-        public string msg;
-        public string notionalUsd;
-        public string ordId;
-        public string ordType;
-        public string pnl;
-        public string posSide;
-        public string px;
-        public string rebate;
-        public string rebateCcy;
-        public string reduceOnly;
-        public string reqId;
-        public string side;
-        public string slOrdPx;
-        public string slTriggerPx;
-        public string slTriggerPxType;
-        public string source;
-        public string state;
-        public string sz;
-        public string tag;
-        public string tdMode;
-        public string tgtCcy;
-        public string tpOrdPx;
-        public string tpTriggerPx;
-        public string tpTriggerPxType;
-        public string tradeId;
-        public string uTime;
+        public string accFillSz { get; set; }
+        public string algoClOrdId { get; set; }
+        public string algoId { get; set; }
+        public string amendResult { get; set; }
+        public string amendSource { get; set; }
+        public string avgPx { get; set; }
+        public string cancelSource { get; set; }
+        public string category { get; set; }
+        public string ccy { get; set; }
+        public string clOrdId { get; set; }
+        public string code { get; set; }
+        public string cTime { get; set; }
+        public string execType { get; set; }
+        public string fee { get; set; }
+        public string feeCcy { get; set; }
+        public string fillFee { get; set; }
+        public string fillFeeCcy { get; set; }
+        public string fillNotionalUsd { get; set; }
+        public string fillPx { get; set; }
+        public string fillSz { get; set; }
+        public string fillPnl { get; set; }
+        public string fillTime { get; set; }
+        public string fillPxVol { get; set; }
+        public string fillPxUsd { get; set; }
+        public string fillMarkVol { get; set; }
+        public string fillFwdPx { get; set; }
+        public string fillMarkPx { get; set; }
+        public string fillIdxPx { get; set; }
+        public string instId { get; set; }
+        public string instType { get; set; }
+        public string lever { get; set; }
+        public string msg { get; set; }
+        public string notionalUsd { get; set; }
+        public string ordId { get; set; }
+        public string ordType { get; set; }
+        public string pnl { get; set; }
+        public string posSide { get; set; }
+        public string px { get; set; }
+        public string pxUsd { get; set; }
+        public string pxVol { get; set; }
+        public string pxType { get; set; }
+        public string quickMgnType { get; set; }
+        public string rebate { get; set; }
+        public string rebateCcy { get; set; }
+        public string reduceOnly { get; set; }
+        public string reqId { get; set; }
+        public string side { get; set; }
+        public string attachAlgoClOrdId { get; set; }
+        public string slOrdPx { get; set; }
+        public string slTriggerPx { get; set; }
+        public string slTriggerPxType { get; set; }
+        public string source { get; set; }
+        public string state { get; set; }
+        public string stpId { get; set; }
+        public string stpMode { get; set; }
+        public string sz { get; set; }
+        public string tag { get; set; }
+        public string tdMode { get; set; }
+        public string tgtCcy { get; set; }
+        public string tpOrdPx { get; set; }
+        public string tpTriggerPx { get; set; }
+        public string tpTriggerPxType { get; set; }
+        public List<object> attachAlgoOrds { get; set; }
+        public string tradeId { get; set; }
+        public string tradeQuoteCcy { get; set; }
+        public string lastPx { get; set; }
+        public string uTime { get; set; }
+        public string isTpLimit { get; set; }
+        public LinkedAlgoOrd linkedAlgoOrd { get; set; }
+    }
+
+    public class LinkedAlgoOrd
+    {
+        public string algoId { get; set; }
     }
 
     public class ResponseWsAccount

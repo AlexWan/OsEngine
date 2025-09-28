@@ -44,7 +44,7 @@ namespace OsEngine.Entity
                 decimal vol = 0;
                 for (int i = 0; Asks != null && i < Asks.Count; i++)
                 {
-                    vol += Asks[i].Ask;
+                    vol += Asks[i].Ask.ToDecimal();
                 }
                 return vol;
             }
@@ -60,7 +60,7 @@ namespace OsEngine.Entity
                 decimal vol = 0;
                 for (int i = 0; Bids != null && i < Bids.Count; i++)
                 {
-                    vol += Bids[i].Bid;
+                    vol += Bids[i].Bid.ToDecimal();
                 }
                 return vol;
             }
@@ -91,8 +91,8 @@ namespace OsEngine.Entity
                 string[] val = bids[i].Split('&');
 
                 MarketDepthLevel newBid = new MarketDepthLevel();
-                newBid.Ask = Convert.ToDecimal(val[0]);
-                newBid.Price = Convert.ToDecimal(val[1]);
+                newBid.Ask = val[0].ToDouble();
+                newBid.Price = val[1].ToDouble();
                 Asks.Add(newBid);
             }
 
@@ -105,8 +105,8 @@ namespace OsEngine.Entity
                 string[] val = asks[i].Split('&');
 
                 MarketDepthLevel newAsk = new MarketDepthLevel();
-                newAsk.Bid = Convert.ToDecimal(val[0]);
-                newAsk.Price = Convert.ToDecimal(val[1]);
+                newAsk.Bid = val[0].ToDouble();
+                newAsk.Price = val[1].ToDouble();
                 Bids.Add(newAsk);
             }
         }
@@ -186,17 +186,17 @@ namespace OsEngine.Entity
         /// <summary>
         /// Number of contracts for SALE at this price level
         /// </summary>
-        public decimal Ask;
+        public double Ask;
 
         /// <summary>
         /// Number of contracts for BUY this price level
         /// </summary>
-        public decimal Bid;
+        public double Bid;
 
         /// <summary>
         /// Price
         /// </summary>
-        public decimal Price;
+        public double Price;
 
         /// <summary>
         /// Unique price level number, required for working with BitMex

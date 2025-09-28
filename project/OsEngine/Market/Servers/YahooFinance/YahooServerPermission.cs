@@ -257,6 +257,19 @@ namespace OsEngine.Market.Servers.YahooFinance
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "query2.finance.yahoo.com",
+                };
+
+                return pingIpDomens;
+            }
+        }
+
         #endregion
     }
 }

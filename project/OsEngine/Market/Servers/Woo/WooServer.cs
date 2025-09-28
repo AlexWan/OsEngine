@@ -808,7 +808,7 @@ namespace OsEngine.Market.Servers.Woo
                 webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                 webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                webSocketPublicNew.Connect();
+                webSocketPublicNew.ConnectAsync();
 
                 return webSocketPublicNew;
             }
@@ -850,7 +850,7 @@ namespace OsEngine.Market.Servers.Woo
                 _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                 _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                _webSocketPrivate.Connect();
+                _webSocketPrivate.ConnectAsync();
             }
             catch (Exception exception)
             {
@@ -1139,7 +1139,7 @@ namespace OsEngine.Market.Servers.Woo
                 CheckSocketsActivate();
                 SendLogMessage("BitMartSpot WebSocket Private connection open", LogMessageType.System);
 
-                _webSocketPrivate.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"account\",\"balance\", \"position\", \"executionreport\"]}}");
+                _webSocketPrivate.SendAsync($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"account\",\"balance\", \"position\", \"executionreport\"]}}");
             }
             catch (Exception error)
             {
@@ -1173,7 +1173,7 @@ namespace OsEngine.Market.Servers.Woo
                             && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
                             long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                            webSocketPublic.Send($"{{ \"cmd\": \"PING\", \"ts\": {timestamp} }}");
+                            webSocketPublic.SendAsync($"{{ \"cmd\": \"PING\", \"ts\": {timestamp} }}");
                         }
                         else
                         {
@@ -1186,7 +1186,7 @@ namespace OsEngine.Market.Servers.Woo
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting))
                     {
                         long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                        _webSocketPrivate.Send($"{{ \"cmd\": \"PING\", \"ts\": {timestamp} }}");
+                        _webSocketPrivate.SendAsync($"{{ \"cmd\": \"PING\", \"ts\": {timestamp} }}");
                     }
                     else
                     {
@@ -1265,14 +1265,14 @@ namespace OsEngine.Market.Servers.Woo
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"trade@{security.Name}\"]}}");
-                    webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"orderbookupdate@{security.Name}@50\"]}}");
+                    webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"trade@{security.Name}\"]}}");
+                    webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"orderbookupdate@{security.Name}@50\"]}}");
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"ticker@{security.Name}\"]}}");
-                        webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"estfundingrate@{security.Name}\"]}}");
-                        webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"openinterest@{security.Name}\"]}}");
+                        webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"ticker@{security.Name}\"]}}");
+                        webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"estfundingrate@{security.Name}\"]}}");
+                        webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"openinterest@{security.Name}\"]}}");
                         GetFundingData(security.Name);
                         GetFundingHistory(security.Name);
                     }
@@ -1418,14 +1418,14 @@ namespace OsEngine.Market.Servers.Woo
                                     {
                                         string securityName = _subscribedSecurities[j];
 
-                                        webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"trade@{securityName}\"]}}");
-                                        webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"orderbookupdate@{securityName}@50\"]}}");
+                                        webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"trade@{securityName}\"]}}");
+                                        webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"orderbookupdate@{securityName}@50\"]}}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"ticker@{securityName}\"]}}");
-                                            webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"estfundingrate@{securityName}\"]}}");
-                                            webSocketPublic.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"openinterest@{securityName}\"]}}");
+                                            webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"ticker@{securityName}\"]}}");
+                                            webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"estfundingrate@{securityName}\"]}}");
+                                            webSocketPublic.SendAsync($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"openinterest@{securityName}\"]}}");
                                         }
                                     }
                                 }
@@ -1448,7 +1448,7 @@ namespace OsEngine.Market.Servers.Woo
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"account\",\"balance\", \"position\", \"executionreport\"]}}");
+                    _webSocketPrivate.SendAsync($"{{\"id\": 1, \"cmd\": \"UN_SUBSCRIBE\", \"params\": [\"account\",\"balance\", \"position\", \"executionreport\"]}}");
                 }
                 catch
                 {
@@ -1462,7 +1462,7 @@ namespace OsEngine.Market.Servers.Woo
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1787,20 +1787,20 @@ namespace OsEngine.Market.Servers.Woo
                             {
                                 asks.Add(new MarketDepthLevel()
                                 {
-                                    Ask = response.data.asks[i].quantity.ToDecimal(),
-                                    Price = response.data.asks[i].price.ToDecimal(),
+                                    Ask = response.data.asks[i].quantity.ToDouble(),
+                                    Price = response.data.asks[i].price.ToDouble(),
                                 });
                             }
                         }
 
-                        if (response.data.bids.Count != null)
+                        if (response.data.bids != null)
                         {
                             for (int i = 0; i < response.data.bids.Count; i++)
                             {
                                 bids.Add(new MarketDepthLevel()
                                 {
-                                    Bid = response.data.bids[i].quantity.ToDecimal(),
-                                    Price = response.data.bids[i].price.ToDecimal(),
+                                    Bid = response.data.bids[i].quantity.ToDouble(),
+                                    Price = response.data.bids[i].price.ToDouble(),
                                 });
                             }
                         }
@@ -1871,8 +1871,8 @@ namespace OsEngine.Market.Servers.Woo
                 {
                     for (int i = 0; i < item.asks.Count; i++)
                     {
-                        decimal aPrice = item.asks[i][0].ToDecimal();
-                        decimal aAsk = item.asks[i][1].ToDecimal();
+                        double aPrice = item.asks[i][0].ToDouble();
+                        double aAsk = item.asks[i][1].ToDouble();
 
                         if (marketDepth.Asks.Exists(a => a.Price == aPrice))
                         {
@@ -1909,8 +1909,8 @@ namespace OsEngine.Market.Servers.Woo
                 {
                     for (int i = 0; i < item.bids.Count; i++)
                     {
-                        decimal bPrice = item.bids[i][0].ToDecimal();
-                        decimal bBid = item.bids[i][1].ToDecimal();
+                        double bPrice = item.bids[i][0].ToDouble();
+                        double bBid = item.bids[i][1].ToDouble();
 
                         if (marketDepth.Bids.Exists(b => b.Price == bPrice))
                         {
@@ -2327,7 +2327,7 @@ namespace OsEngine.Market.Servers.Woo
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public event Action<Funding> FundingUpdateEvent;
 

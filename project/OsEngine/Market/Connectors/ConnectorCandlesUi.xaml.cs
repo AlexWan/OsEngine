@@ -587,10 +587,14 @@ namespace OsEngine.Market.Connectors
                     curPortfolio = ComboBoxPortfolio.SelectedItem.ToString();
                 }
 
+                if(_connectorBot.Portfolio != null)
+                {
+                    curPortfolio = _connectorBot.Portfolio.Number;
+                }
+
                 ComboBoxPortfolio.Items.Clear();
 
                 string portfolio = _connectorBot.PortfolioName;
-
 
                 if (portfolio != null)
                 {
@@ -601,10 +605,6 @@ namespace OsEngine.Market.Connectors
 
                 if (portfolios == null)
                 {
-                    if (portfolio != null)
-                    {
-                        ComboBoxPortfolio.SelectedItem = _connectorBot.PortfolioName;
-                    }
                     return;
                 }
 

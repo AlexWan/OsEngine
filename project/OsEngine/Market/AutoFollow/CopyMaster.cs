@@ -88,9 +88,9 @@ namespace OsEngine.Market.AutoFollow
                     reader.Close();
                 }
             }
-            catch (Exception error)
+            catch
             {
-                //SendLogMessage(error.ToString(), LogMessageType.Error);
+                // игнор
             }
         }
 

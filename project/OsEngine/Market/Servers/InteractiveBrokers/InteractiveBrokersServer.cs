@@ -946,7 +946,7 @@ contract =>
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         #endregion
 
@@ -1048,16 +1048,16 @@ contract =>
                     if (sideLine == Side.Buy)
                     {
                         MarketDepthLevel level = bids[position];
-                        level.Bid = Convert.ToDecimal(size);
+                        level.Bid = size;
                         level.Ask = 0;
-                        level.Price = price;
+                        level.Price = Convert.ToDouble(price);
                     }
                     else if (sideLine == Side.Sell)
                     {
                         MarketDepthLevel level = asks[position];
                         level.Bid = 0;
-                        level.Ask = Convert.ToDecimal(size);
-                        level.Price = price;
+                        level.Ask = size;
+                        level.Price = Convert.ToDouble(price);
                     }
                 }
 
@@ -1119,8 +1119,8 @@ contract =>
                 return;
             }
 
-            myDepth.Asks[0].Price = trade.Price + mySecurity.PriceStep;
-            myDepth.Bids[0].Price = trade.Price - mySecurity.PriceStep;
+            myDepth.Asks[0].Price = Convert.ToDouble(trade.Price + mySecurity.PriceStep);
+            myDepth.Bids[0].Price = Convert.ToDouble(trade.Price - mySecurity.PriceStep);
 
             myDepth.Asks[0].Ask = 1;
             myDepth.Bids[0].Bid = 1;
@@ -1291,7 +1291,7 @@ contract =>
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         public List<Order> GetActiveOrders(int startIndex, int count)
         {
@@ -1317,9 +1317,9 @@ contract =>
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

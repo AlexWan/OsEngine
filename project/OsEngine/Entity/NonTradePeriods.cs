@@ -51,7 +51,7 @@ namespace OsEngine.Entity
                     writer.Close();
                 }
             }
-            catch (Exception error)
+            catch
             {
                 // ignore
             }

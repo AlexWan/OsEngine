@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -6,23 +6,24 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.AE.Json;
 using OsEngine.Market.Servers.Entity;
-using System;
-using System.IO;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
-using OsEngine.Entity.WebSocketOsEngine;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using OptionType = OsEngine.Entity.OptionType;
 using Order = OsEngine.Entity.Order;
 using Position = OsEngine.Entity.Position;
-using System.Net;
-using System.Security.Cryptography;
 
 namespace OsEngine.Market.Servers.AE
 {
@@ -91,7 +92,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.Connect: {ex}", LogMessageType.Error);
             }
         }
 
@@ -138,6 +139,7 @@ namespace OsEngine.Market.Servers.AE
         private string _username;
         private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
         private Dictionary<string, Order> _sentOrders = new Dictionary<string, Order>();
+        private Timer _loginTimeoutTimer;
 
         #endregion
 
@@ -213,7 +215,10 @@ namespace OsEngine.Market.Servers.AE
 
                 newSecurity.DecimalsVolume = 0;
 
-                _securities.Add(newSecurity);
+                if (!_securities.Any(s => s.NameId == newSecurity.NameId))
+                {
+                    _securities.Add(newSecurity);
+                }
             }
 
             SecurityEvent!(_securities);
@@ -272,6 +277,11 @@ namespace OsEngine.Market.Servers.AE
                 }
             }
 
+            if (externalId == null) // this order was sent not via our terminal
+            {
+                return;
+            }
+
             if (!_orderNumbers.ContainsKey(externalId)) // this order was sent not via our terminal
             {
                 return;
@@ -303,6 +313,61 @@ namespace OsEngine.Market.Servers.AE
 
             Security sec = _securities.Find((s) => s.NameId == q.Ticker);
 
+            if (q.Volatility != null) // needs to be before orderbook so MarkIV already available
+            {
+                OptionMarketDataForConnector data = new OptionMarketDataForConnector();
+
+                data.MarkIV = q.Volatility.ToString();
+                data.SecurityName = q.Ticker;
+                data.TimeCreate = new DateTimeOffset(q.Timestamp).ToUnixTimeMilliseconds().ToString();
+                data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
+
+                AdditionalMarketDataEvent!(data);
+            }
+
+            if (q.Ask != null) // orderbook DTO construction
+            {
+                MarketDepth newMarketDepth = new MarketDepth();
+                MarketDepthLevel askLevel = new MarketDepthLevel();
+
+                if(q.AskVolume != null)
+                {
+                    askLevel.Ask = Convert.ToDouble(q.AskVolume);
+                }
+                
+                if(q.Ask != null)
+                {
+                    askLevel.Price = Convert.ToDouble(q.Ask);
+                }
+                
+                MarketDepthLevel bidLevel = new MarketDepthLevel();
+
+                if(q.BidVolume != null)
+                {
+                    bidLevel.Bid = Convert.ToDouble(q.BidVolume);
+                }
+                
+                if(q.Bid != null)
+                {
+                    bidLevel.Price = Convert.ToDouble(q.Bid);
+                }
+                
+                newMarketDepth.Asks.Add(askLevel);
+                newMarketDepth.Bids.Add(bidLevel);
+
+                newMarketDepth.SecurityNameCode = q.Ticker;
+                newMarketDepth.Time = q.Timestamp;
+
+                if (newMarketDepth.Time == _lastMDTime)
+                {
+                    newMarketDepth.Time = newMarketDepth.Time.AddTicks(1);
+                }
+
+                _lastMDTime = newMarketDepth.Time;
+
+                MarketDepthEvent!(newMarketDepth);
+            }
+
             if (q.LastPrice != null) // quote is trade
             {
                 Trade newTrade = new Trade();
@@ -313,49 +378,10 @@ namespace OsEngine.Market.Servers.AE
                 newTrade.SecurityNameCode = q.Ticker;
                 newTrade.Side = q.LastVolume > 0 ? Side.Buy : Side.Sell;
 
-                if (q.Volatility != null) // needs to be before orderbook so MarkIV already available
-                {
-                    OptionMarketDataForConnector data = new OptionMarketDataForConnector();
-
-                    data.MarkIV = q.Volatility.ToString();
-                    data.SecurityName = q.Ticker;
-                    data.TimeCreate = new DateTimeOffset(q.Timestamp).ToUnixTimeMilliseconds().ToString();
-                    data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
-
-                    AdditionalMarketDataEvent!(data);
-                }
-
-                if (q.Ask != null) // orderbook DTO construction
-                {
-                    newTrade.Ask = q.Ask ?? 0;
-                    newTrade.AsksVolume = q.AskVolume ?? 0;
-                    newTrade.Bid = q.Bid ?? 0;
-                    newTrade.BidsVolume = q.BidVolume ?? 0;
-
-                    MarketDepth newMarketDepth = new MarketDepth();
-                    MarketDepthLevel askLevel = new MarketDepthLevel();
-                    askLevel.Ask = newTrade.AsksVolume;
-                    askLevel.Price = newTrade.Ask;
-
-                    MarketDepthLevel bidLevel = new MarketDepthLevel();
-                    bidLevel.Bid = newTrade.BidsVolume;
-                    bidLevel.Price = newTrade.Bid;
-
-                    newMarketDepth.Asks.Add(askLevel);
-                    newMarketDepth.Bids.Add(bidLevel);
-
-                    newMarketDepth.SecurityNameCode = q.Ticker;
-                    newMarketDepth.Time = q.Timestamp;
-
-                    if (newMarketDepth.Time == _lastMDTime)
-                    {
-                        newMarketDepth.Time = newMarketDepth.Time.AddTicks(1);
-                    }
-
-                    _lastMDTime = newMarketDepth.Time;
-
-                    MarketDepthEvent!(newMarketDepth);
-                }
+                newTrade.Ask = q.Ask ?? 0;
+                newTrade.AsksVolume = q.AskVolume ?? 0;
+                newTrade.Bid = q.Bid ?? 0;
+                newTrade.BidsVolume = q.BidVolume ?? 0;
 
                 NewTradesEvent!(newTrade);
             }
@@ -623,7 +649,7 @@ namespace OsEngine.Market.Servers.AE
 
             lock (_socketLocker)
             {
-                _ws.Send(json);
+                _ws.SendAsync(json);
             }
         }
 
@@ -660,18 +686,31 @@ namespace OsEngine.Market.Servers.AE
                     
                     try
                     {
-                        _ws.Connect();
+                        _ws.ConnectAsync(TimeSpan.FromSeconds(5));
                     }
                     catch (Exception ex)
                     {
-                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                        SendLogMessage($"AExchangeServer.CreateWebSocketConnection: WebSocket connection failed: {ex}", LogMessageType.Error);
                     }
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CreateWebSocketConnection: {exception}", LogMessageType.Error);
             }
+        }
+
+        private void Reconnect()
+        {
+            // Use a separate thread to avoid blocking the event handler
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                SendLogMessage("Attempting to reconnect...", LogMessageType.System);
+                DeleteWebSocketConnection();
+                Thread.Sleep(5000); // Pause before reconnecting
+                CreateWebSocketConnection();
+            }).Start();
         }
 
         private void DeleteWebSocketConnection()
@@ -682,15 +721,18 @@ namespace OsEngine.Market.Servers.AE
                 {
                     if (_ws != null)
                     {
-                        _ws.CloseAsync();
+                        _ws.OnOpen -= WebSocketData_Opened;
+                        _ws.OnClose -= WebSocketData_Closed;
+                        _ws.OnMessage -= WebSocketData_MessageReceived;
+                        _ws.OnError -= WebSocketData_Error;
+                        _ws.Dispose(); // Use Dispose which handles closing
+                        _ws = null;
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-            }
-            finally
-            {
+                SendLogMessage($"AExchangeServer.DeleteWebSocketConnection: {ex}", LogMessageType.Error);
             }
         }
 
@@ -719,7 +761,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CheckActivationSockets: {ex}", LogMessageType.Error);
             }
         }
 
@@ -745,7 +787,16 @@ namespace OsEngine.Market.Servers.AE
 
             SendLogMessage("Login sent to AE", LogMessageType.System);
 
+            _loginTimeoutTimer?.Dispose();
+            _loginTimeoutTimer = new Timer(LoginTimerElapsed, null, TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+
             CheckActivationSockets();
+        }
+
+        private void LoginTimerElapsed(object state)
+        {
+            SendLogMessage("AExchangeServer.LoginTimerElapsed: Login response timed out. Reconnecting.", LogMessageType.Error);
+            Reconnect();
         }
 
         private void WebSocketData_Closed(object sender, CloseEventArgs e)
@@ -754,49 +805,28 @@ namespace OsEngine.Market.Servers.AE
             if (e.Code == "1015")
             {
                 SendLogMessage($"Connection to AE closed unexpectedly Close code = {e.Code} with reason = {e.Reason}. Attempting reconnect.", LogMessageType.System);
-                _ws.Connect();
+                _ws.ConnectAsync();
                 return;
             }
 
-            try
-            {
-                SendLogMessage($"Connection to AE closed. Close code = {e.Code} with reason = {e.Reason}", LogMessageType.System);
-
-                lock (_socketLocker)
-                {
-                    _ws.OnOpen -= WebSocketData_Opened;
-                    _ws.OnClose -= WebSocketData_Closed;
-                    _ws.OnMessage -= WebSocketData_MessageReceived;
-                    _ws.OnError -= WebSocketData_Error;
-
-                    _ws = null;
-                }
-
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
+            SendLogMessage($"Connection to AE closed. Code: {e.Code}, Reason: {e.Reason}", LogMessageType.System);
+            ServerStatus = ServerConnectStatus.Disconnect;
+            DisconnectEvent?.Invoke();
+            Reconnect();
         }
 
         private void WebSocketData_Error(object sender, OsEngine.Entity.WebSocketOsEngine.ErrorEventArgs error)
         {
-            try
+            if (error.Exception != null)
             {
-                if (error.Exception != null)
-                {
-                    SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
-                }
+                if (error.Exception.ToString().Contains("501"))
+                        SendLogMessage($"AExchangeServer.WebSocketData_Error (are you trying to connect many times using same certificate?): {error.Exception}", LogMessageType.Error);
+                    else
+                        SendLogMessage($"AExchangeServer.WebSocketData_Error: {error.Exception}", LogMessageType.Error);
             }
-            catch (Exception ex)
-            {
-                SendLogMessage("Data socket error: " + ex.ToString(), LogMessageType.Error);
-            }
+            ServerStatus = ServerConnectStatus.Disconnect;
+            DisconnectEvent?.Invoke();
+            Reconnect();
         }
 
         private void WebSocketData_MessageReceived(object sender, MessageEventArgs e)
@@ -832,7 +862,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception error)
             {
-                SendLogMessage("AE websocket error. " + error.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.WebSocketData_MessageReceived: {error}", LogMessageType.Error);
             }
         }
 
@@ -867,7 +897,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage(exception.ToString(),LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.Subscribe: {exception}", LogMessageType.Error);
             }
         }
 
@@ -876,7 +906,7 @@ namespace OsEngine.Market.Servers.AE
             return false;
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
@@ -927,6 +957,8 @@ namespace OsEngine.Market.Servers.AE
                         UpdateInstruments(message);
                     } else if (baseMessage.Type == "Accounts")
                     {
+                        _loginTimeoutTimer?.Dispose();
+                        _loginTimeoutTimer = null;
                         UpdateAccounts(message);
                     } else if (baseMessage.Type == "Q")
                     {
@@ -956,7 +988,7 @@ namespace OsEngine.Market.Servers.AE
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    SendLogMessage($"AExchangeServer.DataMessageReader: {exception}", LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
@@ -1011,7 +1043,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order sending error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.SendOrder: {exception}", LogMessageType.Error);
             }
         }
 
@@ -1039,7 +1071,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CancelOrder: {exception}", LogMessageType.Error);
             }
             return true;
         }
@@ -1070,7 +1102,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CancelAllOrders: {exception}", LogMessageType.Error);
             }
         }
 
@@ -1091,7 +1123,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"AExchangeServer.CancelAllOrdersToSecurity: {exception}", LogMessageType.Error);
             }
         }
 
@@ -1124,30 +1156,51 @@ namespace OsEngine.Market.Servers.AE
         private static X509Certificate2 LoadPemCertificate(string pemFilePath, string pemPassphrase)
         {
             var pemContent = File.ReadAllText(pemFilePath);
+            X509Certificate2 certificate;
 
             var certStart = pemContent.IndexOf("-----BEGIN CERTIFICATE-----");
-            var certEnd = pemContent.IndexOf("-----END CERTIFICATE-----") + "-----END CERTIFICATE-----".Length;
+            if (certStart == -1)
+            {
+                throw new InvalidOperationException("Could not find a certificate in the PEM file.");
+            }
+            var certEnd = pemContent.IndexOf("-----END CERTIFICATE-----", certStart) + "-----END CERTIFICATE-----".Length;
             var certPem = pemContent.Substring(certStart, certEnd - certStart);
 
-            var keyStart = pemContent.IndexOf("-----BEGIN ENCRYPTED PRIVATE KEY-----");
-            if (keyStart == -1) keyStart = pemContent.IndexOf("-----BEGIN PRIVATE KEY-----");
+            string keyPem = null;
+            string[] allKeyLabels = { "ENCRYPTED PRIVATE KEY", "RSA PRIVATE KEY", "PRIVATE KEY", "EC PRIVATE KEY" };
 
-            var keyEnd = pemContent.IndexOf("-----END ENCRYPTED PRIVATE KEY-----");
-            if (keyEnd == -1) keyEnd = pemContent.IndexOf("-----END PRIVATE KEY-----") + "-----END PRIVATE KEY-----".Length;
-            else keyEnd += "-----END ENCRYPTED PRIVATE KEY-----".Length;
+            foreach (var label in allKeyLabels)
+            {
+                var beginLabel = $"-----BEGIN {label}-----";
+                var keyStart = pemContent.IndexOf(beginLabel);
+                if (keyStart != -1)
+                {
+                    var endLabel = $"-----END {label}-----";
+                    var keyEnd = pemContent.IndexOf(endLabel, keyStart) + endLabel.Length;
+                    keyPem = pemContent.Substring(keyStart, keyEnd - keyStart);
+                    break;
+                }
+            }
 
-            var keyPem = pemContent.Substring(keyStart, keyEnd - keyStart);
+            if (keyPem == null)
+            {
+                throw new InvalidOperationException("Could not find a private key in the PEM file.");
+            }
 
-            var cert = X509Certificate2.CreateFromPem(certPem);
-            using var rsa = RSA.Create();
-
-            if (keyPem.Contains("ENCRYPTED"))
-                rsa.ImportFromEncryptedPem(keyPem, pemPassphrase);
+            if (pemContent.Contains("Proc-Type: 4,ENCRYPTED") || keyPem.Contains("-----BEGIN ENCRYPTED PRIVATE KEY-----"))
+            {
+                certificate = X509Certificate2.CreateFromEncryptedPem(certPem, keyPem, pemPassphrase);
+            }
             else
-                rsa.ImportFromPem(keyPem);
+            {
+                certificate = X509Certificate2.CreateFromPem(certPem, keyPem);
+            }
 
-            var certWithKey = cert.CopyWithPrivateKey(rsa);
-            return new X509Certificate2(certWithKey.Export(X509ContentType.Pfx));
+            // Re-load the certificate with appropriate key storage flags using the project's custom helper.
+            // This is crucial for ensuring the key is accessible by the application.
+            // A null/empty password for export is handled to support unencrypted keys.
+            var pfxBytes = certificate.Export(X509ContentType.Pfx, string.IsNullOrEmpty(pemPassphrase) ? null : pemPassphrase);
+            return X509CertificateLoader.LoadPkcs12(pfxBytes, pemPassphrase, X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
         }
 
         #endregion
@@ -1161,9 +1214,9 @@ namespace OsEngine.Market.Servers.AE
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
     }

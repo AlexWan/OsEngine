@@ -778,11 +778,29 @@ namespace OsEngine.Logging
 
         private void TryLoadLog()
         {
-            if (!Directory.Exists(@"Engine\Log\"))
+            try
             {
-                return;
-            }
+                List<LogMessage> messages = LoadMessageFromLastDay();
 
+                if (messages == null
+                    || messages.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < messages.Count; i++)
+                {
+                    _incomingMessages.Enqueue(messages[i]);
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        public List<LogMessage> LoadMessageFromLastDay()
+        {
             try
             {
                 string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
@@ -790,8 +808,10 @@ namespace OsEngine.Logging
 
                 if (!File.Exists(path))
                 {
-                    return;
+                    return null;
                 }
+
+                List<LogMessage> result = new List<LogMessage>();
 
                 using (StreamReader reader = new StreamReader(
                         path))
@@ -806,7 +826,7 @@ namespace OsEngine.Logging
 
                     if (messages.Count == 0)
                     {
-                        return;
+                        return null;
                     }
 
                     int startInd = messages.Count - 10;
@@ -834,8 +854,7 @@ namespace OsEngine.Logging
                             message.Time = Convert.ToDateTime(msgArray[0]);
                             message.Type = LogMessageType.OldSession;
                             message.Message = msgArray[1] + " " + msgArray[2];
-
-                            _incomingMessages.Enqueue(message);
+                            result.Add(message);
                         }
                         catch
                         {
@@ -843,11 +862,15 @@ namespace OsEngine.Logging
                         }
                     }
                 }
+
+                return result;
             }
-            catch (Exception error)
+            catch
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                // ignore
             }
+
+            return null;
         }
 
         // distribution

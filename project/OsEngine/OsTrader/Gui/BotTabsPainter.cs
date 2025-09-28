@@ -16,6 +16,7 @@ using OsEngine.Journal;
 using OsEngine.Logging;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market;
+using OsEngine.OsTrader.ClientManagement;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -284,12 +285,17 @@ namespace OsEngine.OsTrader.Gui
 
                 if(rowIndex == botsCount + 1)
                 { // последняя строка
+
                     if (_master._startProgram == StartProgram.IsOsTrader
-                       && coluIndex == 6)
+                       && coluIndex == 5)
                     {
                         ServerMaster.ShowApiDialog();
                     }
-
+                    else if (_master._startProgram == StartProgram.IsOsTrader
+                       && coluIndex == 6)
+                    {
+                        ClientManagementMaster.Instance.ShowDialogClientsMaster();
+                    }
                     if (_master._startProgram == StartProgram.IsOsTrader
                         && coluIndex == 7)
                     {
@@ -563,8 +569,6 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                int rowIndex = -1;
-
                 for (int i = 1; i < _master.PanelsArray.Count; i++)
                 {
                     if (_master.PanelsArray[i].NameStrategyUniq == _lastSelectedBot.NameStrategyUniq)
@@ -580,7 +584,7 @@ namespace OsEngine.OsTrader.Gui
             }
             catch (Exception ex)
             {
-                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _master.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -588,8 +592,6 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                int rowIndex = -1;
-
                 for (int i = 0; i < _master.PanelsArray.Count-1; i++)
                 {
                     if (_master.PanelsArray[i].NameStrategyUniq == _lastSelectedBot.NameStrategyUniq)
@@ -962,9 +964,18 @@ colum9.HeaderText = "Journal";
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[5].Value = "";
 
-            row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[6].Value = "";
-            row.Cells[6].ReadOnly = true;
+            
+            if (_master._startProgram == StartProgram.IsOsTrader)
+            {
+                row.Cells.Add(new DataGridViewButtonCell());
+                row.Cells[6].Value = OsLocalization.Trader.Label584;  //"Clients";
+            }
+            else
+            {
+                row.Cells.Add(new DataGridViewTextBoxCell());
+                row.Cells[6].Value = "";
+                row.Cells[6].ReadOnly = true;
+            }
 
             row.Cells.Add(new DataGridViewButtonCell());
 

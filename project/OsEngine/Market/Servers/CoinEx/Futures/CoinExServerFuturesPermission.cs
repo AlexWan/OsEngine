@@ -264,6 +264,19 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.coinex.com"
+                };
+
+                return pingIpDomens;
+            }
+        }
+
         #endregion
     }
 }

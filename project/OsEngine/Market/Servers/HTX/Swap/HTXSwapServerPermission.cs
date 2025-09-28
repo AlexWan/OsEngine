@@ -33,6 +33,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
@@ -48,23 +49,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
             get { return false; }
         }
 
-        public bool DataFeedTfTickCanLoad
-        {
-            get { return false; }
-        }
-        public bool DataFeedTfMarketDepthCanLoad
-        {
-            get { return false; }
-        }
-
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
             get { return true; }
@@ -73,27 +67,43 @@ namespace OsEngine.Market.Servers.HTX.Swap
         {
             get { return false; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf30MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfTickCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
         }
@@ -104,8 +114,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
+
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 10; }
@@ -115,6 +126,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
         {
             get { return false; }
         }
+
         public bool UseStandardCandlesStarter
         {
             get { return true; }
@@ -155,7 +167,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 TimeFrameDayIsOn = true
             };
 
-
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
             get
@@ -187,10 +198,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
         {
             get { return true; }
         }
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
 
         public bool CanQueryOrdersAfterReconnect
         {
@@ -204,7 +211,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public bool CanGetOrderLists
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
@@ -262,6 +269,19 @@ namespace OsEngine.Market.Servers.HTX.Swap
         public int AsyncCandlesStarter_RateGateLimitMls
         {
             get { return 10; }
+        }
+
+        public string[] IpAddresServer
+        {
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "api.hbdm.com"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

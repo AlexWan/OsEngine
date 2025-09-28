@@ -132,7 +132,7 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
-            decimal bestBidVolume = md.Bids[0].Bid;
+            decimal bestBidVolume = md.Bids[0].Bid.ToDecimal();
 
             for (int i = 1; i < md.Bids.Count; i++)
             {
@@ -140,7 +140,7 @@ namespace OsEngine.Robots.Screeners
                 // more than the specified value - then we do not enter
                 // we need a stove
 
-                decimal curVolume = md.Bids[i].Bid;
+                decimal curVolume = md.Bids[i].Bid.ToDecimal();
                 decimal ratio = bestBidVolume / curVolume;
 
                 if (ratio < _bestBidMinRatioToAll.ValueDecimal)
@@ -149,7 +149,7 @@ namespace OsEngine.Robots.Screeners
                 }
             }
 
-            decimal openOrderPrice = md.Bids[0].Price + tab.Security.PriceStep;
+            decimal openOrderPrice = md.Bids[0].Price.ToDecimal() + tab.Security.PriceStep;
             decimal volume = GetVolume(tab);
 
             tab.ManualPositionSupport.DisableManualSupport();

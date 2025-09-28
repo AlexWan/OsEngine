@@ -258,6 +258,11 @@ namespace OsEngine.Market.Servers.AscendexSpot
             get { return 10; }
         }
 
+        public string[] IpAddresServer
+        {
+            get { return null; }    
+        }
+
         #endregion
     }
 }

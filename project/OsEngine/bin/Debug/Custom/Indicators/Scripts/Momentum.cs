@@ -41,38 +41,38 @@ namespace OsEngine.Indicators
 
             if (_candlePoint.ValueString == "Close")
             {
-                decimal divider = candles[index - _length.ValueInt].Close * 100;
+                decimal divider = candles[index - _length.ValueInt].Close;
 
                 if (divider != 0)
                 {
-                    value = (candles[index].Close / divider);
+                    value = (candles[index].Close / divider) * 100;
                 }
             }
             if (_candlePoint.ValueString == "Open")
             {
-                decimal divider = candles[index - _length.ValueInt].Open * 100;
+                decimal divider = candles[index - _length.ValueInt].Open;
 
                 if (divider != 0)
                 {
-                    value = candles[index].Open;
+                    value = (candles[index].Open / divider) * 100;
                 }
             }
             if (_candlePoint.ValueString == "High")
             {
-                decimal divider = candles[index - _length.ValueInt].High * 100;
+                decimal divider = candles[index - _length.ValueInt].High;
 
                 if (divider != 0)
                 {
-                    value = candles[index].High / divider;
+                    value = (candles[index].High / divider) * 100;
                 }
             }
             if (_candlePoint.ValueString == "Low")
             {
-                decimal divider = candles[index - _length.ValueInt].High * 100;
+                decimal divider = candles[index - _length.ValueInt].Low;
 
                 if (divider != 0)
                 {
-                    value = candles[index].Low / divider;
+                    value = (candles[index].Low / divider) * 100;
                 }
             }
 
