@@ -119,27 +119,22 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
    
 
 
-    public class XTFuturesTradeHistoryResult
-    {
-        public List<XTFuturesTradeHistoryItem> items { get; set; }
-        public string page { get; set; }
-        public string ps { get; set; }
-        public string total { get; set; }
-    }
 
-    public class XTFuturesTradeHistoryItem
-    {
-        public string fee { get; set; }          // Fee
-        public string feeCoin { get; set; }       // Currency of fee
-        public string orderId { get; set; }         // Order ID
-        public string execId { get; set; }          // Trade ID
-        public string price { get; set; }        // Price
-        public string quantity { get; set; }     // Volume
-        public string symbol { get; set; }        // Trading pair
-        public string timestamp { get; set; }       // Time
-        public string takerMaker { get; set; }    // TAKER or MAKER
-    }
 
+    //public class XTFuturesTradeHistoryItem
+    //{
+    //    public string fee { get; set; }          // Fee
+    //    public string feeCoin { get; set; }       // Currency of fee
+    //    public string orderId { get; set; }         // Order ID
+    //    public string execId { get; set; }          // Trade ID
+    //    public string price { get; set; }        // Price
+    //    public string quantity { get; set; }     // Volume
+    //    public string symbol { get; set; }        // Trading pair
+    //    public string timestamp { get; set; }       // Time
+    //    public string takerMaker { get; set; }    // TAKER or MAKER
+    //}
+
+   
     public class XTFuturesCancaledOrderResponse
     {
         public string cancelId { get; set; } //"6216559590087220004", Canceled Order Id
@@ -169,6 +164,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string time { get; set; } //"time": 1655958915583,
         public string updateTime { get; set; } //"updatedTime": 1655958915583
     }
+
+
+    public class XTFuturesOrderHistoryResult
+    {
+        public string hasNext { get; set; }   // "true"/"false"
+        public string hasPrev { get; set; }   // "true"/"false"
+        public List<XTFuturesOrderItem> items { get; set; }
+    }
+
     public class XTFuturesOrderResult
     {
         public List<XTFuturesOrderItem> items { get; set; } // List of orders
@@ -218,29 +222,29 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string systemCancel { get; set; }     // system cancel flag (true/false)
         public string profit { get; set; }           // profit flag (true/false)
     }
-    //public class XTFuturesOrderItem
-    //{
-    //    public string clientOrderId { get; set; }     // Client order ID
-    //    public string avgPrice { get; set; }         // Average price
-    //    public string closePosition { get; set; }    // Whether to close all when order condition is triggered
-    //    public string closeProfit { get; set; }      // Offset profit and loss
-    //    public string createdTime { get; set; }      // Create time
-    //    public string executedQty { get; set; }      // Executed volume (Cont)
-    //    public string forceClose { get; set; }       // Is it a liquidation order
-    //    public string marginFrozen { get; set; }     // Occupied margin
-    //    public string orderId { get; set; }          // Order ID
-    //    public string orderSide { get; set; }        // Order side (BUY/SELL)
-    //    public string orderType { get; set; }        // Order type (LIMIT/MARKET)
-    //    public string origQty { get; set; }          // Original quantity (Cont)
-    //    public string positionSide { get; set; }     // Position side (LONG/SHORT)
-    //    public string price { get; set; }            // Order price
-    //    public string sourceId { get; set; }         // Triggering condition ID
-    //    public string state { get; set; }            // Order state: NEW, PARTIALLY_FILLED, FILLED, etc.
-    //    public string symbol { get; set; }           // Trading pair
-    //    public string timeInForce { get; set; }      // Time in force (GTC/IOC/FOK/GTX)
-    //    public string triggerProfitPrice { get; set; } // Take profit trigger price
-    //    public string triggerStopPrice { get; set; }   // Stop loss trigger price
-    //}
+    public class XTFuturesOrderById
+    {
+        public string clientOrderId { get; set; }     // Client order ID
+        public string avgPrice { get; set; }         // Average price
+        public string closePosition { get; set; }    // Whether to close all when order condition is triggered
+        public string closeProfit { get; set; }      // Offset profit and loss
+        public string createdTime { get; set; }      // Create time
+        public string executedQty { get; set; }      // Executed volume (Cont)
+        public string forceClose { get; set; }       // Is it a liquidation order
+        public string marginFrozen { get; set; }     // Occupied margin
+        public string orderId { get; set; }          // Order ID
+        public string orderSide { get; set; }        // Order side (BUY/SELL)
+        public string orderType { get; set; }        // Order type (LIMIT/MARKET)
+        public string origQty { get; set; }          // Original quantity (Cont)
+        public string positionSide { get; set; }     // Position side (LONG/SHORT)
+        public string price { get; set; }            // Order price
+        public string sourceId { get; set; }         // Triggering condition ID
+        public string state { get; set; }            // Order state: NEW, PARTIALLY_FILLED, FILLED, etc.
+        public string symbol { get; set; }           // Trading pair
+        public string timeInForce { get; set; }      // Time in force (GTC/IOC/FOK/GTX)
+        public string triggerProfitPrice { get; set; } // Take profit trigger price
+        public string triggerStopPrice { get; set; }   // Stop loss trigger price
+    }
 
 
     public class ListenKeyResponse

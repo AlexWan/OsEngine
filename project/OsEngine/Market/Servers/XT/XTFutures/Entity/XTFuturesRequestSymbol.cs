@@ -27,7 +27,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string code { get; set; }
         public string msg { get; set; }
     }
-
+    public class MarkPriceResult
+    {
+        public decimal p { get; set; }   // Price
+        public string s { get; set; }    // Symbol
+        public long t { get; set; }      // Time (timestamp)
+    }
     public class XTFuturesSymbolListResult
     {
         public string time { get; set; }
@@ -115,15 +120,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string userId { get; set; }     // User ID
         public string coin { get; set; }       // Currency (e.g., usdt)
         public string underlyingType { get; set; }  // Coin standard (1 = coin-margined, 2 = usdt-margined)
-        public string walletBalance { get; set; }   // Wallet balance
-        public string openOrderMarginFrozen { get; set; } // Frozen due to open orders
-        public string isolatedMargin { get; set; }  // Isolated margin
-        public string crossedMargin { get; set; }   // Cross margin
+        public string walletBalance { get; set; }   // Currency balance
+        public string openOrderMarginFrozen { get; set; } // Order frozen
+        public string isolatedMargin { get; set; }  //  Margin freeze
+        public string crossedMargin { get; set; }   // Full margin freeze
         public string amount { get; set; }          // Net asset balance
         public string totalAmount { get; set; }     // Margin balance
         public string convertBtcAmount { get; set; }    // Wallet balance converted to BTC
         public string convertUsdtAmount { get; set; }   // Wallet balance converted to USDT
-        public string profit { get; set; }          // Realized PnL
+        public string profit { get; set; }          // Realized PnL(Profit and loss)
         public string notProfit { get; set; }       // Unrealized PnL
         public string bonus { get; set; }           // Bonus / trial funds
         public string coupon { get; set; }          // Coupon deduction
@@ -151,5 +156,33 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string triggerProfitPrice { get; set; }// TP trigger price
         public string triggerStopPrice { get; set; }  // SL trigger price
     }
+    public class XTFuturesTradeHistoryItem
+    {
+        public string orderId { get; set; }
+        public string execId { get; set; }
+        public string symbol { get; set; }
+        public string contractSize { get; set; }
+        public string quantity { get; set; }
+        public string price { get; set; }
+        public string fee { get; set; }
+        public string couponDeductFee { get; set; }
+        public string bonusDeductFee { get; set; }
+        public string feeCoin { get; set; }
+        public string timestamp { get; set; }
+        public string takerMaker { get; set; }
+        public string orderSide { get; set; }
+        public string positionSide { get; set; }
+    }
+
+
+
+    public class XTFuturesTradeHistoryResult
+    {
+        public List<XTFuturesTradeHistoryItem> items { get; set; }
+        public string page { get; set; }
+        public string ps { get; set; }
+        public string total { get; set; }
+    }
+
 }
 

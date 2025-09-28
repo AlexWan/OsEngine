@@ -12,19 +12,21 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using OsEngine.Entity.WebSocketOsEngine;
 using RestSharp;
 using JsonConvert = Newtonsoft.Json.JsonConvert;
-using Tinkoff.InvestApi.V1;
 using Trade = OsEngine.Entity.Trade;
 using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
-using OsEngine.Market.Servers.Deribit.Entity;
-using static Google.Rpc.Context.AttributeContext.Types;
-using TL;
-using System.Windows.Documents;
 using System.Globalization;
+using Security = OsEngine.Entity.Security;
+using System.Linq;
+using Grpc.Tradeapi.V1.Orders;
+using OsEngine.Market.Servers.AscendexSpot.Entity;
+using OsEngine.Market.Servers.HTX.Swap.Entity;
+using System.Windows;
+using OpenFAST.Debug;
+using OsEngine.Market.Servers.Transaq.TransaqEntity;
 
 
 
@@ -80,9 +82,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 threadForGetPortfolios.Start();
             }
 
-       
-     
-
             public DateTime ServerTime { get; set; }
 
             public void Connect(WebProxy proxy)
@@ -99,7 +98,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-                    IRestResponse responseMessage = CreatePublicQuery("/future/public/client", "", Method.GET);
+                    IRestResponse responseMessage = CreatePublicQuery("/future/public/client", Method.GET, "");
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
@@ -122,31 +121,16 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             CreateWebSocketConnection();
                             CheckFullActivation();
                         }
-                        catch (HttpRequestException httpEx)
-                        {
-                           
-                            SendLogMessage("Connection cannot be open. XT. HTTP Error", LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent?.Invoke();
-                        }
-                        catch (TaskCanceledException tcEx)
-                        {
-                            
-                            SendLogMessage("Connection cannot be open. XT. Timeout", LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent?.Invoke();
-                        }
                         catch (Exception exception)
                         {
-                           
-                            SendLogMessage("Connection cannot be open. XT. Error request", LogMessageType.Error);
+                            SendLogMessage("Connection cannot be open. XTFutures.  Error", LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent?.Invoke();
                         }
                     }
                     else
                     {
-                        SendLogMessage("Connection cannot be open. XT. Error request", LogMessageType.Error);
+                        SendLogMessage("Connection cannot be open. XTFutures. Error request", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent?.Invoke();
                     }
@@ -211,7 +195,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         _webSocketPublicTrades.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"trades@{securityName}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                     }
 
-                    _webSocketPrivate.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"balance\",\"order\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
+                    _webSocketPrivate.Send($"{{\"method\": \"unsubscribe\", \"params\": [\"balance\",\"order\",\"trade\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                 }
                 catch
                 {
@@ -265,7 +249,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-                    IRestResponse response = CreatePublicQuery("/future/market/v3/public/symbol/list", "", Method.GET);
+                    IRestResponse response = CreatePublicQuery("/future/market/v3/public/symbol/list", Method.GET, "");
 
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
@@ -302,16 +286,21 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                     newSecurity.NameId = securityList.result.symbols[i].symbolGroupId;
                                     newSecurity.SecurityType = SecurityType.Futures;
                                     newSecurity.Lot = 1;
-                                    if (securityList.result.symbols[i].tradeSwitch == "false")
+                                    newSecurity.PriceLimitLow = securityList.result.symbols[i].minPrice.ToDecimal();
+                                    newSecurity.PriceLimitHigh = securityList.result.symbols[i].maxPrice.ToDecimal();
+
+                                    if (securityList.result.symbols[i].tradeSwitch == "false" ||
+                                        securityList.result.symbols[i].contractType != "PERPETUAL")
                                     {
                                         continue;
                                     }
+
                                     newSecurity.State = SecurityStateType.Activ;
                                     newSecurity.PriceStep = (securityList.result.symbols[i].minStepPrice).ToDecimal();
-                                    newSecurity.Decimals = Convert.ToInt32(securityList.result.symbols[i].quoteCoinPrecision);
+                                    newSecurity.Decimals = Convert.ToInt32(securityList.result.symbols[i].pricePrecision);
                                     newSecurity.PriceStepCost = newSecurity.PriceStep;
-                                    newSecurity.DecimalsVolume = Convert.ToInt32(securityList.result.symbols[i].quoteCoinPrecision);
-                                    newSecurity.MinTradeAmount =(securityList.result.symbols[i].minQty).ToDecimal();
+                                    newSecurity.DecimalsVolume = Convert.ToInt32(securityList.result.symbols[i].quantityPrecision);
+                                    newSecurity.MinTradeAmount = securityList.result.symbols[i].minNotional.ToDecimal();
                                     newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
                                     newSecurity.VolumeStep = newSecurity.DecimalsVolume.GetValueByDecimals();
 
@@ -328,7 +317,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
                         else
                         {
-                            SendLogMessage($"GetSecurities> Http State Code: {securityList.returnCode}",
+                            SendLogMessage($"GetSecurities> State Code: {securityList.returnCode}",
                                 LogMessageType.Error);
 
                             if (securityList != null && securityList.returnCode != null)
@@ -339,7 +328,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
                     }
                 }
-
                 catch (Exception exception)
                 {
                     SendLogMessage("GetSecurities error: " + exception.ToString(), LogMessageType.Error);
@@ -361,7 +349,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     GetNewPortfolio();
                 }
 
-                CreateQueryPortfolio(true);
+                CreateQueryPortfolio(/*true*/);
             }
 
             private void GetNewPortfolio()
@@ -369,17 +357,18 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 _portfolios = new List<Portfolio>();
 
                 Portfolio portfolioInitial = new Portfolio();
-                portfolioInitial.Number = "XTFuturesPortfolio";
+                portfolioInitial.Number = _portfolioName;
                 portfolioInitial.ValueBegin = 1;
                 portfolioInitial.ValueCurrent = 1;
                 portfolioInitial.ValueBlocked = 0;
 
                 _portfolios.Add(portfolioInitial);
 
-                PortfolioEvent(_portfolios);
+             PortfolioEvent(_portfolios);
+               // PortfolioEvent(new List<Portfolio> { portfolios});
             }
 
-            private  void UpdatePortfolios()
+            private void UpdatePortfolios()
             {
                 while (true)
                 {
@@ -398,7 +387,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             GetNewPortfolio();
                         }
 
-                        CreateQueryPortfolio(false);
+                        CreateQueryPortfolio(/*false*/);
                     }
                     catch (Exception error)
                     {
@@ -544,7 +533,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private string GetStringInterval(TimeSpan tf)
             {
-                // Type of candlestick patterns: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 1w
                 if (tf.Minutes != 0)
                 {
                     return $"{tf.Minutes}m";
@@ -1001,8 +989,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     CheckFullActivation();
                     SendLogMessage("WebSocketPrivate Connection to private data is Open", LogMessageType.System);
-                    _webSocketPrivate.Send($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"balance@{_listenKey}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-
+                    _webSocketPrivate.Send($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"order@{_listenKey}\",\"trade@{_listenKey}\",\"balance@{_listenKey}\"],\"id\":\"sub-1\"}}");
                 }
                 catch (Exception ex)
                 {
@@ -1014,7 +1001,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             #region 8 WebSocket check alive
 
-            private  void ConnectionCheck()
+            private void ConnectionCheck()
             {
                 while (true)
                 {
@@ -1105,7 +1092,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private ConcurrentQueue<string> FIFOListWebSocketPublicTradesMessage = new ConcurrentQueue<string>();
 
-            private  void PublicMarketDepthsMessageReader()
+            private void PublicMarketDepthsMessageReader()
             {
                 while (true)
                 {
@@ -1153,12 +1140,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     catch (Exception exception)
                     {
                         Thread.Sleep(2000);
-                       
+
                     }
                 }
             }
 
-            private  void PublicTradesMessageReader()
+            private void PublicTradesMessageReader()
             {
                 while (true)
                 {
@@ -1205,7 +1192,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private  void PrivateMessageReader()
+            private void PrivateMessageReader()
             {
                 while (true)
                 {
@@ -1250,6 +1237,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         {
                             UpdatePortfolio(message);
                         }
+
+                        if (action.topic.Equals("trade"))
+                        {
+                            UpdateMyTrade(message);
+                            continue;
+                        }
                     }
                     catch (Exception exception)
                     {
@@ -1273,9 +1266,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     trade.SecurityNameCode = responseTrade.data?.s ?? string.Empty;
                     trade.Price = (responseTrade.data?.p).ToDecimal();
                     trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data?.t));
-                    trade.Volume =(responseTrade.data?.a).ToDecimal();
+                    trade.Volume = (responseTrade.data?.a).ToDecimal();
                     trade.Side = responseTrade.data?.m?.Equals("BID", StringComparison.OrdinalIgnoreCase) == true ? Side.Buy : Side.Sell;
-
+                    trade.Id = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data?.t)).ToString();
                     NewTradesEvent?.Invoke(trade);
                 }
                 catch (Exception exception)
@@ -1373,11 +1366,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 int take = Math.Min(maxLevels, side.Count);
                 for (int i = 0; i < take; i++)
                 {
-                    if (side[i] == null || side[i].Count < 2) 
-                    { 
+                    if (side[i] == null || side[i].Count < 2)
+                    {
                         continue;
                     }
-                    
+
                     decimal p = (side[i][0]).ToDecimal();
                     decimal q = (side[i][1]).ToDecimal();
                     if (q <= 0m) continue;
@@ -1400,7 +1393,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 for (int i = 0; i < side.Count; i++)
                 {
-                    decimal p =(side[i][0]).ToDecimal();
+                    decimal p = (side[i][0]).ToDecimal();
                     decimal q = (side[i][1]).ToDecimal();
                     UpsertLevel(dest, p, q, isAsk);
                 }
@@ -1436,7 +1429,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         ApplySnapshotSide(d.a, md.Asks, isAsk: true, maxLevels: level);
                         ApplySnapshotSide(d.b, md.Bids, isAsk: false, maxLevels: level);
 
-
+                        //  md.id = responseDepth.data.id;
                         md.Time = ServerTime;
                         if (md.Time < _lastTimeMd) md.Time = _lastTimeMd;
                         else if (md.Time == _lastTimeMd)
@@ -1553,38 +1546,47 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesWsTrade> response = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesWsTrade>>(message);
+                    var response = JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesTradeHistoryResult>>(message);
 
-                    if (response != null) { return; }
+                    if (response == null)
                     {
-
-                        MyTrade myTrade = new MyTrade();
-
-                        myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.timestamp));
-                        myTrade.NumberOrderParent = response.data.clientOrderId;
-                        myTrade.NumberTrade = response.data.orderId;
-                        myTrade.Price = (response.data.price).ToDecimal();
-                        myTrade.SecurityNameCode = response.data.symbol;
-                        myTrade.Side = response.data.orderSide.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
-
-                        string commissionSecName = response.data.fee;
-
-                        if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
+                        return;
+                    }
+                    //response.result != null/* && response.result. != null*/)
+                    {
+                        for (int i = 0; i < response.result.items.Count; i++)
                         {
-                            myTrade.Volume = response.data.quantity.ToDecimal() - response.data.fee.ToDecimal();
+                            MyTrade myTrade = new MyTrade();
 
-                            int decimalVolum = GetDecimalsVolume(myTrade.SecurityNameCode);
-                            if (decimalVolum > 0)
+                            var it = response.result.items[i];
+
+                            myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(it.timestamp));
+                            myTrade.NumberOrderParent = it.orderId;
+                            myTrade.NumberTrade = it.execId;
+                            myTrade.Price = (it.price).ToDecimal();
+                            myTrade.SecurityNameCode = it.symbol;
+                            myTrade.Side = it.orderSide.Equals("BUY") ? Side.Buy : Side.Sell;
+
+                            string commissionSecName = it.fee;
+
+                            if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
                             {
-                                myTrade.Volume = Math.Floor(myTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
-                            }
-                        }
-                        else
-                        {
-                            myTrade.Volume = response.data.quantity.ToDecimal();
-                        }
+                                myTrade.Volume = it.quantity.ToDecimal() - it.fee.ToDecimal();
 
-                        MyTradeEvent?.Invoke(myTrade);
+                                int decimalVolum = GetDecimalsVolume(myTrade.SecurityNameCode);
+
+                                if (decimalVolum > 0)
+                                {
+                                    myTrade.Volume = Math.Floor(myTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
+                                }
+                            }
+                            else
+                            {
+                                myTrade.Volume = it.quantity.ToDecimal();
+                            }
+
+                            MyTradeEvent?.Invoke(myTrade);
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -1637,68 +1639,50 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWsUpdateOrder> order = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWsUpdateOrder>>(message);
 
-                    if (order.data == null)
-                    {
-                        return;
-                    }
-
-                    XTFuturesResponseWsUpdateOrder item = order.data;
-
-                    OrderStateType stateType = GetOrderState(item.state);
-
-                    if (item.type.Equals("Market", StringComparison.OrdinalIgnoreCase)
-                        && stateType == OrderStateType.Active)
+                    if (order == null)
                     {
                         return;
                     }
 
                     Order newOrder = new Order();
+
+                    XTFuturesResponseWsUpdateOrder item = order.data;
+
                     newOrder.SecurityNameCode = item.symbol;
                     newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-
-
-                    //if (item.orderId != null)
-                    //{
-                    //    try
-                    //    {
-                    //        newOrder.NumberUser = Convert.ToInt32(item.ci);
-                    //    }
-                    //    catch
-                    //    {
-                    //        SendLogMessage("Strange order num: " + item.ci, LogMessageType.Error);
-                    //        return;
-                    //    }
-                    //}
-
+                    newOrder.SecurityClassCode = GetNameClass(item.symbol);
                     newOrder.NumberMarket = item.orderId;
-
-                    OrderPriceType.TryParse(item.type, true, out newOrder.TypeOrder);
-
-                    newOrder.Side = item.orderSide.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
-                    newOrder.State = stateType;
+                    newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
 
 
-                    if (newOrder.TypeOrder == OrderPriceType.Market && newOrder.Side == Side.Buy)
+                    newOrder.Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
+                    newOrder.State = GetOrderState(item.state);
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                    if (string.Equals(item.orderType, "MARKET", StringComparison.OrdinalIgnoreCase))
                     {
-                        newOrder.Volume = item.origQty.ToDecimal();
-                        newOrder.Price = item.price.ToDecimal();
+                        newOrder.TypeOrder = OrderPriceType.Market; 
                     }
+
                     else
-                    {
-                        newOrder.Volume = item.origQty?.ToDecimal() ?? 0;
-                        newOrder.Price = item.price?.ToDecimal() ?? 0;
+                    { 
+                        newOrder.TypeOrder = OrderPriceType.Limit;
                     }
+
+                 
+                   // newOrder.TypeOrder = item.orderType.Equals("LIMIT", StringComparison.OrdinalIgnoreCase) ? OrderPriceType.Limit : OrderPriceType.Market;
 
                     newOrder.ServerType = ServerType.XTFutures;
-                    newOrder.PortfolioNumber = "XTFuturesPortfolio";
+                    newOrder.PortfolioNumber = _portfolioName;
+                    newOrder.Volume = item.origQty.ToDecimal();
+                    newOrder.Price = item.price.ToDecimal();
+                    
 
-                    MyOrderEvent?.Invoke(newOrder);
 
-                    if (stateType == OrderStateType.Done || stateType == OrderStateType.Partial)
+                    if (newOrder.State == OrderStateType.Done || newOrder.State == OrderStateType.Partial)
                     {
-                        //CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, 1);
-                        UpdateMyTrade(newOrder.NumberMarket);
+                        CreateQueryMyTrade(newOrder.NumberMarket);
                     }
+                    MyOrderEvent?.Invoke(newOrder);
                 }
                 catch (Exception exception)
                 {
@@ -1772,12 +1756,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private readonly RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
-            int leverage;
+            private readonly RateGate _rateGateChangeOrderPrice = new RateGate(1, TimeSpan.FromMilliseconds(60));
+
             public bool SetLeverage(string symbol, string positionSide, int leverage = 1)
             {
                 var body = new { symbol, positionSide, leverage };
 
-                var resp = SendPrivate(
+                var resp = CreatePrivateQuery(
                     "/future/user/v1/position/adjust-leverage",
                     Method.POST,
                     query: null,
@@ -1790,54 +1775,125 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 return false;
             }
+            private decimal GetMarkPrice(string symbol)
+            {
+                var response = CreatePublicQuery(
+        "/future/market/v1/public/q/symbol-mark-price", Method.GET, $"symbol={symbol}");
+
+
+
+                if (response == null || response.StatusCode != HttpStatusCode.OK)
+                    return 0m;
+
+                var stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<MarkPriceResult>>(response.Content);
+
+                if (stateResponse == null) return 0m;
+                //if (stateResponse.returnCode = "0" && stateResponse.result == null)
+                //{
+                return stateResponse.result.p;
+                //}
+
+            }
+            public XTFuturesBalance GetBalance(string coin)
+            {
+                var response = CreatePrivateQuery("/future/user/v1/compat/balance/list", Method.GET);
+                if (response == null) return null;
+
+                var stateResponse = JsonConvert.DeserializeObject<
+                    XTFuturesResponseRestNew<List<XTFuturesBalance>>>(response.Content);
+
+                if (stateResponse?.result == null)
+                    return null;
+
+                return stateResponse.result
+                    .FirstOrDefault(x => x.coin.Equals(coin, StringComparison.OrdinalIgnoreCase));
+            }
+            private string NormalizeSymbol(string symbol)
+            {
+                if (string.IsNullOrWhiteSpace(symbol))
+                    return string.Empty;
+
+                // убираем разделители
+                symbol = symbol.Replace("/", "").Replace("-", "").Trim();
+
+                // если длина > 4, делим на base и quote
+                // пример: BTCUSDT -> BTC + USDT
+                if (symbol.Length > 4)
+                {
+                    string baseCoin = symbol.Substring(0, symbol.Length - 4);
+                    string quoteCoin = symbol.Substring(symbol.Length - 4);
+                    return $"{baseCoin.ToLower()}_{quoteCoin.ToLower()}";
+                }
+
+                return symbol.ToLower();
+            }
+            private decimal GetContractSize(string symbol)
+            {
+                string apiSymbol = NormalizeSymbol(symbol); // нормализуем BTCUSDT -> btc_usdt
+
+                var response = CreatePublicQuery(
+                    "/future/market/v1/public/symbol/detail",
+                    Method.GET, $"symbol={apiSymbol}"
+
+                );
+
+                if (response == null || response.StatusCode != HttpStatusCode.OK)
+                    return 0m;
+
+                var stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesSymbol>>(response.Content);
+
+                if (stateResponse == null)// ||
+                                          //    stateResponse.returnCode != 0 ||
+                                          //    stateResponse.result == null)
+                    return 0m;
+
+                return (stateResponse.result.contractSize).ToDecimal();
+            }
+
+            public int CalcOrigQty(Order order, decimal percent = 0.1m, int leverage = 1)
+            {
+                // 1) Баланс
+                string symbol = (order.SecurityNameCode);
+                var balance = GetBalance("USDT");
+                if (balance == null) return 0;
+
+                decimal wallet = balance.walletBalance.ToDecimal();
+                decimal frozen = balance.openOrderMarginFrozen.ToDecimal();
+                decimal available = wallet - frozen;
+
+                // 2) Данные по рынку
+                decimal markPrice = GetMarkPrice(order.SecurityNameCode);
+                decimal contractSize = GetContractSize(symbol);
+
+                if (markPrice <= 0 || contractSize <= 0 || available <= 0)
+                    return 0;
+
+                // 3) Формула
+                decimal raw = (available * percent * leverage) / (markPrice * contractSize);
+                return (int)Math.Truncate(raw);
+            }
             public void SendOrder(Order order)
             {
                 _rateGateSendOrder.WaitToProceed();
 
                 try
                 {
-                  //  string side = .ToString().ToUpper();
-                   // SetLeverage(order.SecurityNameCode, side, leverage);
-
                     XTFuturesSendOrderRequestData data = new XTFuturesSendOrderRequestData();
                     data.symbol = order.SecurityNameCode;
                     data.clientOrderId = (order.NumberUser).ToString();
-                    data.orderSide = order.Side.ToString().ToUpper();
-                    data.orderType = order.TypeOrder.ToString().ToUpper();
-                    data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
+                    data.orderSide = order.Side == Side.Buy ? "BUY" : "SELL";
+                    bool isMarket = order.TypeOrder == OrderPriceType.Market;
 
-                    if (order.TypeOrder == OrderPriceType.Limit)
-                    {
-                        data.price = order.Price.ToString().Replace(",", ".");
-                        data.origQty = order.Volume.ToString().Replace(",", ".");
-                    }
-                    else
-                    {
-                        if (data.orderSide == "Buy")
-                        {
-
-                            data.origQty = (order.Volume * order.Price).ToString().Replace(",", ".");
-                        }
-                        else
-                        {
-
-                            data.origQty = order.Volume.ToString().Replace(",", ".");
-                        }
-                    }
-                    data.positionSide = (order.Side == Side.Buy) ? "LONG" : "SHORT";
+                    data.orderType = isMarket ? "MARKET" : "LIMIT";
+                    data.price = isMarket ? null : order.Price.ToString(CultureInfo.InvariantCulture);
+                    data.timeInForce = isMarket ? null : "GTC";
                     
-                    var serSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
-                    string jsonBody = JsonConvert.SerializeObject(data, serSettings);
-
-                    // 5) Запрос: один универсальный метод
-                    IRestResponse responseMessage = SendPrivate(
+                    data.origQty = order.Volume.ToString(CultureInfo.InvariantCulture);
+                    data.positionSide = order.Side == Side.Buy ? "LONG" : "SHORT";
+                    order.PortfolioNumber = _portfolioName;
+                    IRestResponse responseMessage = CreatePrivateQuery(
                         "/future/trade/v1/order/create",
-                        Method.POST,
-                        query: null,
-                        body: jsonBody // строка — отправится как JSON без повторной сериализации
-                    );
-
-
+                        Method.POST, null, data);
 
                     XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
 
@@ -1845,36 +1901,31 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
-                            SendLogMessage($"Order num {order.NumberUser} on XT exchange.", LogMessageType.Trade);
-                            order.State = OrderStateType.Active;
-                            order.NumberMarket = stateResponse.result;
-                            if (order.TypeOrder == OrderPriceType.Market)
                             {
-                                order.State = OrderStateType.Done;
-                                //  CreateQueryMyTrade(order.SecurityNameCode, stateResponse.result, 1);
-                                UpdateMyTrade(order.NumberMarket);
+                                order.NumberMarket = stateResponse.result;
+
+                                SendLogMessage($"Order sent OK. NumUser: {order.NumberUser}, OrderId: {order.NumberMarket}", LogMessageType.Trade);
+
+                                if (order.TypeOrder == OrderPriceType.Market)
+                                {
+                                    order.State = OrderStateType.Done;
+                                    CreateQueryMyTrade(order.NumberMarket);
+                                }
+                                else
+                                {
+                                    order.State = OrderStateType.Active;
+                                }
+
+                                MyOrderEvent?.Invoke(order);
                             }
-
-
-                            MyOrderEvent?.Invoke(order);
-                        }
-                        else
-                        {
-                            CreateOrderFail(order);
-                            SendLogMessage($"SendOrder Fail, Code: {stateResponse.error.msg}\n"
-                                + $"Message code: {stateResponse.error.code}", LogMessageType.Error);
                         }
                     }
                     else
                     {
                         CreateOrderFail(order);
-                        SendLogMessage($"SendOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                        if (stateResponse != null && stateResponse.returnCode != null)
-                        {
-                            SendLogMessage($"SendOrder Fail, Code: {stateResponse.error.msg}\n"
+                        SendLogMessage($"SendOrder Fail, Code: {stateResponse.error.msg}\n"
                                 + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
-                        }
+
                     }
                 }
                 catch (Exception exception)
@@ -1885,7 +1936,74 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public void ChangeOrderPrice(Order order, decimal newPrice)
             {
+                _rateGateChangeOrderPrice.WaitToProceed();
 
+                try
+                {
+
+                    if (order.TypeOrder == OrderPriceType.Market || order.State == OrderStateType.Done)
+                    {
+                        SendLogMessage("ChangeOrderPrice> Can't change price for  Order Market", LogMessageType.Error);
+                        return;
+                    }
+
+                    var body = new
+                    {
+                        orderId = long.Parse(order.NumberMarket, CultureInfo.InvariantCulture),
+                        price = newPrice.ToString("0.##########", CultureInfo.InvariantCulture),
+                        origQty = order.Volume.ToString("0.##########", CultureInfo.InvariantCulture)
+                    };
+                    if (newPrice <= 0)
+                    {
+                        SendLogMessage($"ChangeOrderPrice> bad price: {newPrice}", LogMessageType.Error);
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(order.NumberMarket))
+                    {
+                        SendLogMessage("ChangeOrderPrice> empty exchange order id (NumberMarket)", LogMessageType.Error);
+                        return;
+                    }
+                    //{\"returnCode\":0,\"msgInfo\":\"success\",\"error\":null,\"result\":\"541214599826300736\"}"
+                    IRestResponse response = CreatePrivateQuery("/future/trade/v1/order/update", Method.POST, null, body);
+
+                    if (order.State == OrderStateType.Cancel || order.State == OrderStateType.Done)
+                    {
+                        return;
+                    }
+
+                    XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(response.Content);
+
+                    if (response.StatusCode == HttpStatusCode.OK && stateResponse != null && stateResponse.returnCode == "0")
+                    {
+                        order.PortfolioNumber = _portfolioName;
+
+                        if (!string.IsNullOrEmpty(stateResponse.result))
+                        {
+                            order.Price = newPrice;
+                            order.Volume = order.Volume;
+                            // order.State = OrderStateType.Pending;
+
+
+                            SendLogMessage($"Success! Order {order.NumberMarket} updated. New orderId={stateResponse.result}, price={newPrice}, qty={order.Volume}", LogMessageType.Error);
+                        }
+                        else
+                        {
+                            SendLogMessage($"Update returned an empty result {response.Content}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        string code = stateResponse?.error?.code ?? "";
+                        string msg = stateResponse?.error?.msg ?? "";
+                        SendLogMessage($"Error: returnCode={stateResponse?.returnCode}, code={code}, msg={msg}, raw={response.Content}", LogMessageType.Error);
+                    }
+                }
+
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
             }
 
             public void CancelAllOrders()
@@ -1894,33 +2012,30 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-                    //        IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel-all", Method.POST, null, null,
-                    //BodyKind.None, null, null, null);
-                    IRestResponse responseMessage = SendPrivate("/future/trade/v1/order/cancel-all",Method.POST);
-            
+                    var body = new { symbol = "" };
+
+                    IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel-all", Method.POST, null, body);
+
                     XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
 
-                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
                         if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.CurrentCulture))
                         {
-                            // ignore
+                            // ignore//SendLogMessage($"CancelAllOrders SUCCESS, Code: {stateResponse.returnCode}\n"
+                            //  +$"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
                         }
-                        else
-                        {
-                            SendLogMessage($"CancelAllOrders error, Code: {stateResponse.returnCode}\n"
-                                           + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
-                        }
+
                     }
                     else
                     {
-                        SendLogMessage($"CancelAllOrders> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                        SendLogMessage($"CancelAllOrders>  error State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
-                        if (stateResponse != null && stateResponse.returnCode != null)
-                        {
-                            SendLogMessage($"CancelAllOrders error, Code: {stateResponse.returnCode}\n"
-                                           + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
-                        }
+                        //if (stateResponse != null && stateResponse.returnCode != null)
+                        //{
+                        //    SendLogMessage($"CancelAllOrders error, Code: {stateResponse.returnCode}\n"
+                        //                   + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        //}
                     }
                 }
                 catch (Exception exception)
@@ -1934,13 +2049,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 _rateGateCancelOrder.WaitToProceed();
 
                 try
-               {
+                {
                     var jsonRequest = JsonConvert.SerializeObject(
             new XTFuturesCancelAllOrdersRequestData { symbol = security.Name },
             new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
         );
 
-                    var responseMessage = SendPrivate(
+                    var responseMessage = CreatePrivateQuery(
                         "/future/trade/v1/order/cancel-all",
                         Method.POST,
                         query: null,
@@ -1948,7 +2063,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     );
                     XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
 
-                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
                         if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.CurrentCulture))
                         {
@@ -1962,7 +2077,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
                     else
                     {
-                        SendLogMessage($"CancelAllOrdersToSecurity> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                        SendLogMessage($"CancelAllOrdersToSecurity>  State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
                         if (stateResponse != null && stateResponse.returnCode != null)
                         {
@@ -1983,18 +2098,22 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-                    var jsonBody = $"{{\"orderId\":\"{order.NumberMarket.ToString(CultureInfo.InvariantCulture)}\"}}";
+                    //  var jsonBody = $"{{\"orderId\":\"{order.NumberMarket.ToString(CultureInfo.InvariantCulture)}\"}}";
+                    var body = new
+                    {
+                        orderId = order.NumberMarket.ToString(CultureInfo.InvariantCulture)
+                    };
 
-                    var response = SendPrivate(
+                    var response = CreatePrivateQuery(
                         "/future/trade/v1/order/cancel",
                         Method.POST,
                         query: null,
-                        body: jsonBody // строка уйдёт как application/json без доп. сериализации
+                        body: body // строка уйдёт как application/json без доп. сериализации
                     );
 
                     XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(response.Content);
 
-                    if (response.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
                         if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
@@ -2011,7 +2130,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     else
                     {
                         GetOrderStatus(order);
-                        SendLogMessage($"CancelOrder> Http State Code: {response.StatusCode}", LogMessageType.Error);
+                        SendLogMessage($"CancelOrder>  State Code: {response.StatusCode}", LogMessageType.Error);
 
                         if (stateResponse != null && stateResponse.returnCode != null)
                         {
@@ -2034,7 +2153,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 MyOrderEvent?.Invoke(order);
             }
 
-            public void GetAllActivOrders()
+            public void GetAllActivOrders()  ///future/trade/v1/order/list-open-order
             {
                 List<Order> orders = GetAllOrdersFromExchange();
 
@@ -2050,81 +2169,24 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private Order OrderUpdate(XTFuturesOrderItem orderResponse)
-            {
-                XTFuturesOrderItem item = orderResponse;
-
-                Order newOrder = new Order();
-
-                newOrder.SecurityNameCode = item.symbol;
-
-                if (!string.IsNullOrEmpty(item.createdTime))
-                {
-                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
-                }
-                else
-                {
-                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-                }
-
-                if (GetOrderState(item.state) == OrderStateType.Done)
-                {
-                    newOrder.TimeDone = newOrder.TimeCallBack;
-                }
-                else if (GetOrderState(item.state) == OrderStateType.Cancel)
-                {
-                    newOrder.TimeCancel = newOrder.TimeCallBack;
-                }
-
-                if (!string.IsNullOrEmpty(item.clientOrderId))
-                {
-                    newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
-                }
-
-                newOrder.NumberMarket = item.orderId;
-                newOrder.Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
-
-                newOrder.State = GetOrderState(item.state);
-                newOrder.Volume = item.origQty.ToDecimal();
-                newOrder.PortfolioNumber = "XTFuturesPortfolio";
-
-                if (string.IsNullOrEmpty(item.avgPrice) == false
-                    && item.avgPrice != "0")
-                {
-                    newOrder.Price = item.avgPrice.ToDecimal();
-                }
-                else if (string.IsNullOrEmpty(item.price) == false
-                         && item.price != "0")
-                {
-                    newOrder.Price = item.price.ToDecimal();
-                }
-
-                newOrder.TypeOrder = item.orderType.Equals("MARKET", StringComparison.OrdinalIgnoreCase) ? OrderPriceType.Market : OrderPriceType.Limit;
-
-                newOrder.ServerType = ServerType.XTFutures;
-
-                return newOrder;
-            }
-
-            private readonly RateGate _rateGateOpenOrder = new RateGate(1, TimeSpan.FromMilliseconds(100));
-
-            private List<Order> GetAllOrdersFromExchange()
+            private List<Order> GetOrderHistory(string symbol)
             {
                 _rateGateOpenOrder.WaitToProceed();
 
                 try
                 {
-                    var responseMessage = SendPrivate(
-                    "/future/trade/v1/order/list",
-                    Method.GET
-                );
-                    XTFuturesResponseRest<XTFuturesOrderResult> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesOrderResult>>(responseMessage.Content);
+                    string query = "symbol=" + symbol;
+
+                    var responseMessage = CreatePrivateQuery("/future/trade/v1/order/list-history", Method.GET, query,null);
+
+                    XTFuturesResponseRest<XTFuturesOrderResult> stateResponse =
+                        JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesOrderResult>>(responseMessage.Content);
 
                     if (stateResponse == null)
-                    {
                         return null;
-                    }
-                    if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+
+                    if (stateResponse.returnCode.Equals("0") &&
+                        stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                     {
                         var result = stateResponse.result.items;
 
@@ -2135,91 +2197,339 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                         List<Order> orders = new List<Order>();
 
-
                         for (int i = 0; i < result.Count; i++)
                         {
-                            var order = OrderUpdate(result[i]);
-                            if (order == null)
-                                continue;
+                            var item = result[i];
 
-                            if (order.TimeCreate == default)
-                                order.TimeCreate = order.TimeCallBack;
+                            Order order = new Order
+                            {
+                                NumberMarket = item.orderId,
+                                SecurityNameCode = item.symbol,
+                                SecurityClassCode = GetNameClass(item.symbol),
+                                Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell,
+                                State = GetOrderState(item.state),
+                                TypeOrder = item.orderType.Equals("LIMIT", StringComparison.OrdinalIgnoreCase) ? OrderPriceType.Limit : OrderPriceType.Market,
+                                Volume = item.origQty.ToDecimal(),
+                                Price = item.price.ToDecimal(),
+                                PortfolioNumber = _portfolioName
+                            };
 
                             orders.Add(order);
                         }
 
-                        return orders; 
+                        return orders;
                     }
 
                     return null; // или return new List<Order>();
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("GetAllOrdersFromExchange error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("GetAllOrdersFromExchange error: " + exception, LogMessageType.Error);
                     return null;
                 }
             }
 
-            public OrderStateType GetOrderStatus(Order order)
+            private List<Order> SeeOrderList()
             {
-                _rateGateOpenOrder.WaitToProceed();////переделать
+                _rateGateOpenOrder.WaitToProceed();
 
                 try
                 {
-                    var query = "orderId=" + order.NumberMarket.ToString(CultureInfo.InvariantCulture);
-                    var orderId = order.NumberMarket.ToString(CultureInfo.InvariantCulture);
-                    //var query = "orderId=" + Safe(orderId);   // на будущее — не сломается
-                    var responseMessage = SendPrivate("/future/trade/v1/order/detail", Method.GET, query);
-             
-                    XTFuturesResponseRest<XTFuturesOrderItem> response = JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesOrderItem>>(responseMessage.Content);
+                    var responseMessage = CreatePrivateQuery("/future/trade/v1/order/list", Method.GET);
 
-                    if (response.returnCode != "0" || response == null)
+                    XTFuturesResponseRest<XTFuturesOrderResult> stateResponse =
+                        JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesOrderResult>>(responseMessage.Content);
+
+                    if (stateResponse == null)
+                        return null;
+
+                    if (stateResponse.returnCode.Equals("0") &&
+                        stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                     {
-                        SendLogMessage($"GetOrderStatus error, code: {response.returnCode}\n"
-                            + $"Message code: {response.msgInfo}", LogMessageType.Error);
-                        return OrderStateType.None;
+                        var result = stateResponse.result.items;
+
+                        if (result == null)
+                        {
+                            return new List<Order>();
+                        }
+
+                        List<Order> orders = new List<Order>();
+
+                        for (int i = 0; i < result.Count; i++)
+                        {
+                            var item = result[i];
+
+                            Order order = new Order
+                            {
+                                NumberMarket = item.orderId,
+                                SecurityNameCode = item.symbol,
+                                TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime)),
+                                Volume = (item.origQty).ToDecimal(),
+                                Price = item.price.ToDecimal(),
+                                Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell,
+                                State = GetOrderState(item.state)
+                            };
+
+                            orders.Add(order);
+                        }
+
+                        return orders;
                     }
+
+                    return null; // или return new List<Order>();
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("GetAllOrdersFromExchange error: " + exception, LogMessageType.Error);
+                    return null;
+                }
+            }
+
+           
+
+            private readonly RateGate _rateGateOpenOrder = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+            private List<Order> GetAllOrdersFromExchange()
+            {
+                _rateGateOpenOrder.WaitToProceed();
+
+                try
+                {//{\"returnCode\":0,\"msgInfo\":\"success\",\"error\":null,\"result\":{\"page\":1,\"ps\":10,\"total\":60,\"items\":[{\"orderId\":\"542507954757522176\",\"clientOrderId\":null,\"symbol\":\"gmt_usdt\",\"contractSize\":1.000000000000000000,\"orderType\":\"MARKET\",\"orderSide\":\"SELL\",\"positionSide\":\"LONG\",\"positionType\":\"CROSSED\",\"timeInForce\":\"IOC\",\"closePosition\":false,\"price\":\"0\",\"origQty\":\"136\",\"avgPrice\":\"0.0374\",\"executedQty\":\"136\",\"marginFrozen\":\"0\",\"remark\":null,\"sourceId\":null,\"sourceType\":\"DEFAULT\",\"forceClose\":false,\"leverage\":1,\"openPrice\":\"0.0379\",\"closeProfit\":\"-0.068\",\"state\":\"FILLED\",\"createdTime\":1759045975709,\"updatedTime\":1759045975784,\"welfareAccount\":false,\"triggerPriceType\":null,\"triggerProfitPrice\":null,\"profitDelegateOrderType\":null,\"profitDelegateTimeInForce\":null,\"profitDelegatePrice\":null,\"triggerStopPrice\":null,\"stopDelegateOrderType\":null,\"stopDelegateTimeInForce\":null,\"stopDelegatePrice\":null,\"markPrice\":\"0.0375\",\"desc\":null,\"systemCancel\":false,\"profit\":false},{\"orderId\":\"542322734448463680\",\"clientOrderId\":\"730325\",\"..."
+                    var responseMessage = CreatePrivateQuery("/future/trade/v1/order/list", Method.GET);
+
+                    XTFuturesResponseRest<XTFuturesOrderResult> stateResponse =
+                        JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesOrderResult>>(responseMessage.Content);
+
+                    if (stateResponse == null)
+                        return null;
+
+                    if (stateResponse.returnCode.Equals("0") &&
+                        stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var result = stateResponse.result.items;
+
+                        if (result == null)
+                        {
+                            return new List<Order>();
+                        }
+
+                        List<Order> orders = new List<Order>();
+
+                        for (int i = 0; i < result.Count; i++)
+                        {
+                            var item = result[i];
+
+                            Order order = new Order
+                            {
+                                NumberUser = Convert.ToInt32(item.clientOrderId),
+                                NumberMarket = item.orderId,
+                                SecurityNameCode = item.symbol,
+                                ServerType = ServerType.XTFutures,
+                                TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime)),
+                                Volume = (item.origQty).ToDecimal(),
+                                Price = item.price.ToDecimal(),
+                                Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell,
+                                State = GetOrderState(item.state),
+                                SecurityClassCode = GetNameClass(item.symbol),
+                                TypeOrder = item.orderType.Equals("LIMIT", StringComparison.OrdinalIgnoreCase) ? OrderPriceType.Limit : OrderPriceType.Market,
+                                PortfolioNumber =_portfolioName
+                            };
+
+                            orders.Add(order);
+                        }
+
+                        return orders;
+                    }
+
+                    return null; // или return new List<Order>();
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("GetAllOrdersFromExchange error: " + exception, LogMessageType.Error);
+                    return null;
+                }
+            }
+
+            public Order GetOrderStatusById(string NumberMarket)
+            {
+                try
+                {
+                    _rateGateOpenOrder.WaitToProceed();////переделать.WaitToProceed();
+
+                    Order order = new Order();
+
+                    if (NumberMarket == null)
+                    {
+                        SendLogMessage("GetOrderStatus> Order is null or empty", LogMessageType.Error);
+                        return new Order();
+                    }
+
+                    string query = "orderId=" + order.NumberMarket.ToString(CultureInfo.InvariantCulture);
+
+                    var responseMessage = CreatePrivateQuery("/future/trade/v1/order/detail", Method.GET, query, null);
+
+                    if (responseMessage == null)
+                    {
+                        // return OrderStateType.None;
+                    }
+
+                    XTFuturesResponseRest<XTFuturesOrderDetailById> response = JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesOrderDetailById>>(responseMessage.Content);
 
                     if (response.returnCode.Equals("0") && response.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                     {
 
-                        Order newOrder = OrderUpdate(response.result);
+                        XTFuturesOrderDetailById orderData = response.result;
 
-                        if (newOrder == null)
+                        order.SecurityNameCode = orderData.symbol;
+                        order.SecurityClassCode = GetNameClass(orderData.symbol);
+                        order.NumberMarket = orderData.orderId;
+                        // order.NumberUser = Convert.ToInt32(orderData.clientOrderId);
+                        order.Price = orderData.price.ToDecimal();
+                        order.PortfolioNumber = _portfolioName;
+                        order.Side = orderData.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
+                        order.TypeOrder = orderData.orderType == "Limit" ? OrderPriceType.Limit : OrderPriceType.Market;
+                        order.Volume = orderData.origQty.ToDecimal();
+                        order.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(orderData.createdTime));
+
+                        order.State = GetOrderState(orderData.state);
+
+                        if (orderData.state == "Filled" || orderData.state == "PartiallyFilled")
                         {
-                            return OrderStateType.None;
+                            if (order.State == OrderStateType.Done
+                          || order.State == OrderStateType.Partial)
+                            {
+                                CreateQueryMyTrade(order.NumberMarket);
+                            }
+
+                            ////MyTrade myTrade = new MyTrade();
+
+                            ////myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(orderData.lastExecTime));
+                            ////myTrade.SecurityNameCode = orderData.symbol;
+                            ////myTrade.Price = orderData.price.ToDecimal();
+                            ////myTrade.NumberTrade = orderData.seqNum;
+                            ////myTrade.NumberOrderParent = orderData.orderId;
+                            ////myTrade.Volume = orderData.orderQty.ToDecimal();
+                            ////myTrade.Side = orderData.side == "Buy" ? Side.Buy : Side.Sell;
+
+                            //MyTradeEvent?.Invoke(myTrade);
                         }
 
-                        Order myOrder = newOrder;
-
-                        MyOrderEvent?.Invoke(myOrder);
-
-                        if (myOrder.State == OrderStateType.Done
-                           || myOrder.State == OrderStateType.Partial)
-                        {
-                            CreateQueryMyTrade(myOrder.NumberMarket);
-                        }
-
-                        return myOrder.State;
+                        return order;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Get order status. Error:{response.returnCode}", LogMessageType.Error);
                     }
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("GetOrderStatus error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage($"Exception in GetOrderStatusById: {exception}", LogMessageType.Error);
+
                 }
 
-                return OrderStateType.None;
+                return null;
             }
+
+            public OrderStateType GetOrderStatus(Order order)
+            {
+                _rateGateOpenOrder.WaitToProceed();
+
+                try
+                {
+                    if (order == null)
+                    {
+                        SendLogMessage("GetOrderStatus > Order is null", LogMessageType.Error);
+                        return OrderStateType.None;
+                    }
+
+                    List<Order> orders = GetAllOrdersFromExchange();
+                    if (orders == null || orders.Count == 0)
+                    {
+                        return OrderStateType.None;
+                    }
+
+                    Order found = null;
+
+                    for (int i = 0; i < orders.Count; i++)
+                    {
+                        var o = orders[i];
+
+                        if ((!string.IsNullOrWhiteSpace(order.NumberMarket) && o.NumberMarket == order.NumberMarket)
+                            || (order.NumberUser != 0 && o.NumberUser == order.NumberUser))
+                        {
+                            found = o;
+                            break;
+                        }
+                    }
+
+                    if (found == null)
+                    {
+                        return OrderStateType.None;
+                    }
+
+
+                    MyOrderEvent?.Invoke(found);
+
+                    if (found.State == OrderStateType.Done || found.State == OrderStateType.Partial)
+                    {
+                        CreateQueryMyTrade(found.NumberMarket);
+                    }
+
+                    return found.State;
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage($"Exception in GetOrderStatus: {exception}", LogMessageType.Error);
+                    return OrderStateType.None;
+                }
+            }
+
+            //string query = "orderId=" + order.NumberMarket.ToString(CultureInfo.InvariantCulture);
+
+            //var responseMessage = CreatePrivateQuery("/future/trade/v1/order/detail", Method.GET, query);
+
+            //XTFuturesResponseRest<XTFuturesOrderItem> response = JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesOrderItem>>(responseMessage.Content);
+
+            //if (response == null)
+            //{
+            //    return OrderStateType.None;
+            //}
+
+            //if (response.returnCode.Equals("0") && response.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+            //{
+
+
+            //Order myOrder = OrderMapping(response.result);
+
+            //if (myOrder == null)
+            //{
+            //    return OrderStateType.None;
+            //}
+
+            //if (myOrder.State == OrderStateType.Done
+            //   || myOrder.State == OrderStateType.Partial)
+            //{
+            //    CreateQueryMyTrade(myOrder.NumberMarket);
+            //}
+
+
+            //            MyOrderEvent?.Invoke(myOrder);
+            //            return myOrder.State;
+            //        }
+
+            //    catch (Exception exception)
+            //    {
+            //        SendLogMessage("GetOrderStatus error: " + exception.ToString(), LogMessageType.Error);
+            //    }
+
+            //    return OrderStateType.None;
+            //}
 
             #endregion
 
             #region 12 Queries
 
             private readonly string _baseUrl = "https://fapi.xt.com";
-
-            private readonly string _timeOut = "50000";
-
-            private readonly string _encry = "HmacSHA256";
 
             private List<string> _subscribedSecurities = new List<string>();
 
@@ -2233,15 +2543,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 try
                 {
-                    //IRestResponse responseMessage = CreatePrivateQuery("/future/user/v1/user/listen-key",
-                    //    Method.GET,
-                    //    null, null,
-                    //    BodyKind.None,
-                    //    null, null,
-                    //    null);
-                    var responseMessage = SendPrivate(
-    "/future/user/v1/user/listen-key",Method.GET);
-    
+                    var responseMessage = CreatePrivateQuery("/future/user/v1/user/listen-key", Method.GET);
 
                     ListenKeyResponse stateResponse = JsonConvert.DeserializeObject<ListenKeyResponse>(responseMessage.Content);
 
@@ -2266,7 +2568,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
                     else
                     {
-                        SendLogMessage($"Receiving Token> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                        SendLogMessage($"Receiving Token>  State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
                         if (stateResponse != null && stateResponse.returnCode != null)
                         {
@@ -2300,20 +2602,20 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private readonly RateGate _rateGateGetPortfolio = new RateGate(1, TimeSpan.FromMilliseconds(100));
-
-            private void CreateQueryPortfolio(bool isUpdateValueBegin)
+            private readonly RateGate _rateGateGetPortfolio = new RateGate(1, TimeSpan.FromMilliseconds(333));
+            private string _portfolioName = "XTFuturesPortfolio";
+            private void CreateQueryPortfolio(/*bool isUpdateValueBegin*/)
             {
                 _rateGateGetPortfolio.WaitToProceed();
 
                 try
                 {
-                    IRestResponse response = SendPrivate("/future/user/v1/compat/balance/list", Method.GET);
-                      
-                    if (response == null) { return; }
+                    IRestResponse response = CreatePrivateQuery("/future/user/v1/compat/balance/list", Method.GET);
 
-                    //string json = response.Content;
-                    //var сode = response.StatusCode;
+                    if (response == null)
+                    {
+                        return;
+                    }
 
                     XTFuturesResponseRestNew<List<XTFuturesBalance>> stateResponse =
                     JsonConvert.DeserializeObject<XTFuturesResponseRestNew<List<XTFuturesBalance>>>(response.Content);
@@ -2322,22 +2624,95 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
-                            UpdatePortfolioRest(response.Content, isUpdateValueBegin);
+                            //UpdatePortfolioRest(response.Content, isUpdateValueBegin);
+
+
+
+                            //if (stateResponse.result[i].walletBalance == "0")
+                            //{
+                            //portfolio.ValueBegin = 1;
+                            //portfolio.ValueCurrent = 1;
+                            //}
+                            //else
+                            //{
+                            //    if (isUpdateValueBegin)
+                            //    {
+                            //        portfolio.ValueBegin = Math.Round(stateResponse.result.walletBalance.ToDecimal(), 5);
+                            //    }
+
+                            //    portfolio.ValueCurrent = Math.Round(stateResponse.result.convertUsdtAmount.ToDecimal(), 5);
+                            //}
+                            Portfolio portfolio = new Portfolio();
+
+
+                            portfolio.Number = _portfolioName;
+                            portfolio.ValueBegin = 1;
+                            portfolio.ValueCurrent = 1;
+                            List<PositionOnBoard> alreadySendPositions = new List<PositionOnBoard>();
+
+                            for (int i = 0; i < stateResponse.result.Count; i++)
+                            {
+                                PositionOnBoard position = new PositionOnBoard();
+
+                                position.PortfolioName = _portfolioName;
+                                position.SecurityNameCode = stateResponse.result[i].coin;
+                                position.ValueBegin = stateResponse.result[i].walletBalance.ToDecimal();
+                                position.ValueCurrent = stateResponse.result[i].walletBalance.ToDecimal() - stateResponse.result[i].openOrderMarginFrozen.ToDecimal();
+                                position.ValueBlocked = stateResponse.result[i].openOrderMarginFrozen.ToDecimal();
+
+                                portfolio.SetNewPosition(position);
+                                alreadySendPositions.Add(position);
+                            }
+
+                            PortfolioEvent(new List<Portfolio> { portfolio });
+
+
+                            //List<PositionOnBoard> alreadySendPositions = new List<PositionOnBoard>();
+
+                            //for (int i = 0; i < stateResponse.result.Count; i++)
+                            //{
+                            //    PositionOnBoard pos = new PositionOnBoard
+                            //    {
+                            //        PortfolioName = _portfolioName,
+                            //        SecurityNameCode = stateResponse.result[i].coin,
+                            //        ValueBlocked = stateResponse.result[i].openOrderMarginFrozen.ToDecimal(),
+                            //        ValueCurrent = stateResponse.result[i].walletBalance.ToDecimal() - stateResponse.result[i].openOrderMarginFrozen.ToDecimal()
+                            //    };
+
+                            //    if (isUpdateValueBegin)
+                            //    {
+                            //        pos.ValueBegin = stateResponse.result[i].walletBalance.ToDecimal();
+                            //    }
+
+                            //    bool canSend = true;
+
+                            //for (int j = 0; j < alreadySendPositions.Count; j++)
+                            //{
+                            //    if (!alreadySendPositions[j].SecurityNameCode.Equals(pos.SecurityNameCode, StringComparison.OrdinalIgnoreCase)
+                            //        || pos.ValueCurrent != 0)
+                            //        continue;
+
+                            //    canSend = false;
+                            //    break;
+                            //}
+
+                            //if (!canSend)
+                            //{
+                            //    continue;
+                            //}
+
+                            //portfolio.SetNewPosition(pos);
+                            //alreadySendPositions.Add(pos);
+                            //}
+
+                            //PortfolioEvent(_portfolios);
                         }
                         else
                         {
-                            SendLogMessage($"CreateQueryPortfolio error, Code: {stateResponse.rc}\n"
-                                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
-                        }
-                    }
-                    else
-                    {
-                        SendLogMessage($"CreateQueryPortfolio> Http State Code: {response.StatusCode}", LogMessageType.Error);
 
-                        if (stateResponse != null && stateResponse.rc != null)
-                        {
                             SendLogMessage($"CreateQueryPortfolio error, Code: {stateResponse.rc}\n"
                                            + $"Message code: {stateResponse.mc}", LogMessageType.Error);
+
                         }
                     }
                 }
@@ -2367,16 +2742,18 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     Portfolio portfolio = _portfolios[0];
 
                     int idx = 0;
-                    for (int i = 0; i < assets.result.Count; i++)
-                    {
-                        if (string.Equals(assets.result[i].coin, "usdt", StringComparison.OrdinalIgnoreCase))
-                        { idx = i; break; }
-                    }
+                    //for (int i = 0; i < assets.result.Count; i++)
+                    //{
+                    //    if (string.Equals(assets.result[i].coin, "usdt", StringComparison.OrdinalIgnoreCase))
+                    //    { idx = i; break; }
+                    //}
+
                     //if (assets.result[i].walletBalance == "0")
                     //{
-                    //    portfolio.ValueBegin = 1;
-                    //    portfolio.ValueCurrent = 1;
+                    portfolio.ValueBegin = 1;
+                    portfolio.ValueCurrent = 1;
                     //}
+
                     //else
                     //{
                     //    if (isUpdateValueBegin)
@@ -2393,7 +2770,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         PositionOnBoard pos = new PositionOnBoard
                         {
-                            PortfolioName = "XTFuturesPortfolio",
+                            PortfolioName = _portfolioName,
                             SecurityNameCode = assets.result[i].coin,
                             ValueBlocked = assets.result[i].openOrderMarginFrozen.ToDecimal(),
                             ValueCurrent = assets.result[i].walletBalance.ToDecimal() - assets.result[i].openOrderMarginFrozen.ToDecimal()
@@ -2441,9 +2818,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 var list = new List<MyTrade>();
                 try
                 {
-                    var orderIdStr = orderId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var orderIdStr = orderId.ToString(CultureInfo.InvariantCulture);
 
-                    var response = SendPrivate(
+                    var response = CreatePrivateQuery(
                         "/future/trade/v1/order/trade-list",
                         Method.GET,
                         query: "orderId=" + orderIdStr
@@ -2469,10 +2846,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                 trade.Price = data.price.ToDecimal();
                                 trade.Volume = data.quantity.ToDecimal();
                                 trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(data.timestamp));
+                                trade.Side = data.orderSide.Equals("BUY") ? Side.Buy : Side.Sell;
 
                                 MyTradeEvent?.Invoke(trade);
                             }
-
                         }
 
                         else
@@ -2483,7 +2860,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
                     else
                     {
-                        SendLogMessage($"CreateQueryMyTrade> Http State Code: {stateResponse.returnCode}", LogMessageType.Error);
+                        SendLogMessage($"CreateQueryMyTrade>  State Code: {stateResponse.returnCode}", LogMessageType.Error);
 
                         if (stateResponse != null && stateResponse.returnCode != null)
                         {
@@ -2517,7 +2894,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                  + "&limit=" + limit;
 
 
-                    IRestResponse responseMessage = CreatePublicQuery("/future/market/v1/public/q/kline", param, Method.GET);
+                    IRestResponse responseMessage = CreatePublicQuery("/future/market/v1/public/q/kline", Method.GET, param);
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
@@ -2559,32 +2936,44 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 return null;
             }
-
-            IRestResponse CreatePublicQuery(string path, string parameters, Method method)
+            IRestResponse CreatePublicQuery(string path, Method method, string parameters = "")
             {
                 RestClient client = new RestClient(_baseUrl);
 
-                // GET — параметры в query
                 if (method == Method.GET && !string.IsNullOrEmpty(parameters))
                 {
                     path += "?" + parameters;
                 }
 
                 RestRequest request = new RestRequest(path, method);
-
                 request.AddHeader("Accept", "application/json");
-                request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
-
-                // POST — параметры в тело
-                if (method == Method.POST && !string.IsNullOrEmpty(parameters))
-                {
-                    request.AddParameter("application/x-www-form-urlencoded", parameters, ParameterType.RequestBody);
-                }
 
                 IRestResponse response = client.Execute(request);
                 return response;
             }
-        
+            //IRestResponse CreatePublicQuery(string path, string parameters, Method method)
+            //{
+            //    RestClient client = new RestClient(_baseUrl);
+
+            //    if (method == Method.GET && !string.IsNullOrEmpty(parameters))
+            //    {
+            //        path += "?" + parameters;
+            //    }
+
+            //    RestRequest request = new RestRequest(path, method);
+
+            //    request.AddHeader("Accept", "application/json");
+            //    request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            //    if (method == Method.POST && !string.IsNullOrEmpty(parameters))
+            //    {
+            //        request.AddParameter("application/x-www-form-urlencoded", parameters, ParameterType.RequestBody);
+            //    }
+
+            //    IRestResponse response = client.Execute(request);
+            //    return response;
+            //}
+
             private string HmacSHA256(string key, string data)
             {
                 using (var h = new HMACSHA256(Encoding.UTF8.GetBytes(key)))
@@ -2594,28 +2983,26 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private string _recvWindow = null;
-     
+            private string _recvWindow = "5000";
 
-            private IRestResponse SendPrivate(
-    string path,
-    Method method,                 // Method.GET или Method.POST
-    string query = null,           // готовая строка: k=v&k2=v2 (или null)
-    object body = null)           // объект для POST (сериализуем в JSON); для GET игнорируется
+
+            private IRestResponse CreatePrivateQuery(string path, Method method, string query = null, object body = null)
             {
                 try
                 {
-                    // 1) URL ресурса (path + ?query)
                     string resource = string.IsNullOrEmpty(query) ? path : $"{path}?{query}";
 
-                    // 2) подготовим body (только для POST)
                     string bodyString = "";
+                    var jsonSettings = new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore, // не включать null-поля
+                        Culture = CultureInfo.InvariantCulture
+                    };
                     if (method == Method.POST && body != null)
                     {
                         bodyString = body is string s ? s : JsonConvert.SerializeObject(body, Formatting.None);
                     }
 
-                    // 3) подпись
                     string ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                     string X = $"validate-appkey={_publicKey}&validate-timestamp={ts}";
 
@@ -2623,14 +3010,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     if (!string.IsNullOrEmpty(query)) yb.Append('#').Append(query);
                     if (method == Method.POST && bodyString.Length > 0)
                         yb.Append('#').Append(bodyString);
+
                     string signInput = X + yb;
                     string signature = HmacSHA256(_secretKey, signInput);
 
-                    // 4) собираем запрос
                     var client = new RestClient(_baseUrl);
                     var request = new RestRequest(resource, method);
 
-                    // общие заголовки
+
                     request.AddHeader("Accept", "application/json");
                     request.AddHeader("validate-appkey", _publicKey);
                     request.AddHeader("validate-timestamp", ts);
@@ -2639,7 +3026,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     if (!string.IsNullOrEmpty(_recvWindow))
                         request.AddHeader("validate-recvwindow", _recvWindow);
 
-                    // тело — только для POST и только если есть bodyString
                     if (method == Method.POST && bodyString.Length > 0)
                     {
                         request.AddHeader("Content-Type", "application/json");
@@ -2654,7 +3040,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     return null;
                 }
             }
-            
+
             #endregion
 
             #region 13 Log

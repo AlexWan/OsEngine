@@ -125,7 +125,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public bool IsCanChangeOrderPrice
         {
-            get { return false; }
+            get { return true; }
         }
         
         public bool UseStandardCandlesStarter
@@ -200,7 +200,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public bool CanGetOrderLists
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
