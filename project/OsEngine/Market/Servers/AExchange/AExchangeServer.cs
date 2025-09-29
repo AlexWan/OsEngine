@@ -410,8 +410,12 @@ namespace OsEngine.Market.Servers.AE
             }
 
             portf.Number = account.AccountNumber;
-            portf.ValueCurrent = account.Money ?? 0;
-            portf.ValueBlocked = account.GuaranteeMargin ?? 0; 
+
+            if (account.Money != null)
+                portf.ValueCurrent = account.Money ?? 0;
+
+            if (account.GuaranteeMargin != null)
+                portf.ValueBlocked = account.GuaranteeMargin ?? 0; 
 
             PortfolioEvent!(_myPortfolios);
         }
