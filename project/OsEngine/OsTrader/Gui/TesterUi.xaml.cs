@@ -258,7 +258,15 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonDeleteBot_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.DeleteActive();
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label4);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptAction == false)
+            {
+                return;
+            }
+
+            _strategyKeeper.DeleteRobotActive();
         }
 
         private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)

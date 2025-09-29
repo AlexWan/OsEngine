@@ -280,7 +280,16 @@ namespace OsEngine.OsTrader.Gui
                 else if (coluIndex == 9 &&
         rowIndex < botsCount)
                 { // вызываем окно удаление робота
-                    _master.DeleteByNum(rowIndex);
+
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label4);
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptAction == false)
+                    {
+                        return;
+                    }
+
+                    _master.DeleteRobotByNum(rowIndex);
                 }
 
                 if(rowIndex == botsCount + 1)
@@ -632,7 +641,16 @@ namespace OsEngine.OsTrader.Gui
                     return;
                 }
 
-                _master.DeleteByNum(rowIndex);
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label4);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                _master.DeleteRobotByNum(rowIndex);
             }
             catch (Exception ex)
             {

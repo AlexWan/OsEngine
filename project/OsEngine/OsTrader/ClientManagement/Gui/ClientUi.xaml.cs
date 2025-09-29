@@ -1003,7 +1003,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
         {
             string error = "";
 
-            _client.DeployOrUpdateRobot(robotNumber,out error);
+            _client.DeployOrUpdateRobot(robotNumber, out error);
 
             if(error != "Success")
             {
@@ -1013,7 +1013,14 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         private void CollapseRobot(int robotNumber)
         {
-            _client.CollapseRobot(robotNumber);
+            string error = "";
+
+            _client.CollapseRobot(robotNumber, out error);
+
+            if (error != "Success")
+            {
+                _client.SendNewLogMessage(error, Logging.LogMessageType.Error);
+            }
         }
 
         private void ShowRobotsChartDialog(int robotNumber)

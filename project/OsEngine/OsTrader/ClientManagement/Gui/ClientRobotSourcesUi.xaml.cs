@@ -194,7 +194,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             _client = null;
         }
 
-        #region 
+        #region Securities
 
         private DataGridView _securitiesGrid;
 
@@ -310,11 +310,11 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 {
                     if (_securitiesGrid.Rows[i].Cells[1].Value != null)
                     {
-                        _source.Securities[i].Name = _securitiesGrid.Rows[i].Cells[1].Value.ToString();
+                        _source.Securities[i].Class = _securitiesGrid.Rows[i].Cells[1].Value.ToString();
                     }
                     if (_securitiesGrid.Rows[i].Cells[2].Value != null)
                     {
-                        _source.Securities[i].Class = _securitiesGrid.Rows[i].Cells[2].Value.ToString();
+                        _source.Securities[i].Name = _securitiesGrid.Rows[i].Cells[2].Value.ToString();
                     }
                 }
 
@@ -465,7 +465,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             // 2 обновляем данные
 
             TextBoxServerNum.Text = source.ClientServerNum.ToString();
-            TextBoxPortfolio.Text = source.PortfolioName.ToString();
+            TextBoxPortfolio.Text = source.PortfolioName;
             
 
             ComboBoxCommissionType.Items.Clear();

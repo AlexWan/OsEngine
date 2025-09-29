@@ -2012,6 +2012,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 HostCandleSeriesParameters.Child = _candlesRealizationGrid;
 
                 _candlesRealizationGrid.CellEndEdit += _candlesRealizationGrid_CellEndEdit;
+                _candlesRealizationGrid.DataError += _candlesRealizationGrid_DataError;
             }
             catch (Exception ex)
             {
@@ -2019,10 +2020,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        private void _candlesRealizationGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
+        }
+
         private void DeleteCandleRealizationGrid()
         {
             DataGridFactory.ClearLinks(_candlesRealizationGrid);
             _candlesRealizationGrid.CellEndEdit -= _candlesRealizationGrid_CellEndEdit;
+            _candlesRealizationGrid.DataError -= _candlesRealizationGrid_DataError;
             _candlesRealizationGrid = null;
             HostCandleSeriesParameters.Child = null;
         }

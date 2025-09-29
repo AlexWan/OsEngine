@@ -509,7 +509,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public int ClientServerNum;
 
-        public string PortfolioName;
+        public string PortfolioName = "";
 
         public BotTabType BotTabType;
 
@@ -640,8 +640,8 @@ namespace OsEngine.OsTrader.ClientManagement
                     continue;
                 }
                 TradeClientSecurity newSec = new TradeClientSecurity();
-                newSec.Class = saveArray[i];
-                newSec.Name = saveArray[i + 1];
+                newSec.Name = saveArray[i];
+                newSec.Class = saveArray[i + 1];
                 Securities.Add(newSec);
             }
         }

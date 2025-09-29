@@ -391,7 +391,6 @@ namespace OsEngine.OsTrader.ClientManagement
 
         #endregion
 
-
         #region Client server controls
 
         public AServer DeployServer(int connectorNumber)
@@ -635,7 +634,6 @@ namespace OsEngine.OsTrader.ClientManagement
                 }
             }
 
-
             // 7 устанавливаем настройки источников по роботу
 
             List<IIBotTab> tabsInRobot = bot.GetTabs();
@@ -665,11 +663,59 @@ namespace OsEngine.OsTrader.ClientManagement
             error = "Success";
         }
 
-        public void CollapseRobot(int robotNumber)
+        public void CollapseRobot(int robotNumber, out string error)
         {
+            // 1 берём настройки робота.
 
+            TradeClientRobot botClient = null;
 
+            for (int i = 0; i < RobotsSettings.Count; i++)
+            {
+                if (RobotsSettings[i].Number == robotNumber)
+                {
+                    botClient = RobotsSettings[i];
+                    break;
+                }
+            }
 
+            if (botClient == null)
+            {
+                error = "No number robot in array. Number: " + robotNumber;
+                return;
+            }
+
+            // 1.1. Костыль на доступные данных по названию робота в слепке робота
+
+            if (botClient.BotClassName == "None"
+                || string.IsNullOrEmpty(botClient.BotClassName))
+            {
+                error = "No bot class name. Class: " + botClient.BotClassName;
+                return;
+            }
+
+            string botName = botClient.UniqueNameFull;
+
+            // 2 ищем робота в общих массивах ботов
+
+            BotPanel bot = null;
+
+            List<BotPanel> robotsInArray = OsTraderMaster.Master.PanelsArray;
+
+            for (int i = 0; i < robotsInArray.Count; i++)
+            {
+                if (robotsInArray[i].NameStrategyUniq == botName)
+                {
+                    bot = robotsInArray[i];
+                    break;
+                }
+            }
+
+            if(bot != null)
+            {
+                OsTraderMaster.Master.DeleteRobotByInstance(bot);
+            }
+
+            error = "Success";
         }
 
         public void ShowRobotsChartDialog(int robotNumber)

@@ -215,7 +215,15 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                _strategyKeeper.DeleteActive();
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label4);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                _strategyKeeper.DeleteRobotActive();
             }
             catch (Exception ex)
             {

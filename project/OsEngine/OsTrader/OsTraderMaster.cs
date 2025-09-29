@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -1466,7 +1467,7 @@ namespace OsEngine.OsTrader
         /// <summary>
         /// Remove active bot
         /// </summary>
-        public void DeleteActive()
+        public void DeleteRobotActive()
         {
             try
             {
@@ -1487,14 +1488,7 @@ namespace OsEngine.OsTrader
                         }
                     }
                 }
-
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label4);
-                ui.ShowDialog();
-
-                if (ui.UserAcceptAction == false)
-                {
-                    return;
-                }
+               
 
                 _activePanel.StopPaint();
 
@@ -1539,13 +1533,41 @@ namespace OsEngine.OsTrader
         /// <summary>
         /// Delete robot by index
         /// </summary>
-        public void DeleteByNum(int index)
+        public void DeleteRobotByNum(int index)
         {
-            BotPanel botToDel = PanelsArray[index];
+            try
+            {
+                BotPanel botToDel = PanelsArray[index];
+                ReloadActiveBot(botToDel);
+                DeleteRobotActive();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
 
-            ReloadActiveBot(botToDel);
+        public void DeleteRobotByInstance(BotPanel bot)
+        {
+            try
+            {
+                for (int i = 0; i < PanelsArray.Count; i++)
+                {
+                    BotPanel currentBot = PanelsArray[i];
 
-            DeleteActive();
+                    if (currentBot.NameStrategyUniq == bot.NameStrategyUniq)
+                    {
+                        ReloadActiveBot(currentBot);
+                        DeleteRobotActive();
+
+                        return;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
