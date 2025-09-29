@@ -93,6 +93,10 @@ namespace OsEngine.OsTrader.ClientManagement
             }
 
             TradeClient newClient = new TradeClient();
+
+            Guid uid = Guid.NewGuid();
+            newClient.ClientUid = uid.ToString();
+
             newClient.LogMessageEvent += SendNewLogMessage;
             newClient.NameChangeEvent += NewClient_NameChangeEvent;
             newClient.Number = newClientNumber;

@@ -278,6 +278,35 @@ namespace OsEngine.OsTrader.Panels.Tab
             return false;
         }
 
+        public void SetNewSecuritiesList(List<ActivatedSecurity> securitiesList)
+        {
+            // 1 удаляем старые источники
+
+            bool isDeleteTab = false;
+
+            ConnectorCandles[] connectors = Tabs.ToArray();
+
+            for (int i = 0; i < connectors.Length; i++)
+            {
+                connectors[i].Delete();
+                isDeleteTab = true;
+            }
+
+            if (isDeleteTab == true)
+            {
+                Save();
+            }
+
+            // 2 создаём новые источники
+
+            for (int i = 0; i < securitiesList.Count; i++)
+            {
+                TryRunSecurity(securitiesList[i], _creator);
+            }
+
+            Save();
+        }
+
         private void _uiSecuritiesSelection_Closed(object sender, EventArgs e)
         {
             try
@@ -295,12 +324,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 bool isDeleteTab = false;
 
-                for (int i = 0; i < Tabs.Count; i++)
+                ConnectorCandles[] connectors = Tabs.ToArray();
+
+                for (int i = 0; i < connectors.Length; i++)
                 {
-                    if (Tabs[i].TimeFrame != _creator.TimeFrame)
+                    if (connectors[i].TimeFrame != _creator.TimeFrame)
                     {
-                        Tabs[i].Delete();
-                        Tabs.RemoveAt(i);
+                        connectors[i].Delete();
                         isDeleteTab = true;
                     }
                 }

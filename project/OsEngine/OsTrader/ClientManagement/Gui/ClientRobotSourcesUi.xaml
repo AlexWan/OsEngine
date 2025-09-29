@@ -18,19 +18,21 @@
                     <Label Name="LabelServerNum" Content="Server num" HorizontalAlignment="Left" Margin="75,37,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxServerNum" Margin="211,37,94,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelCommissionType" Content="Commission type" HorizontalAlignment="Left" Margin="75,75,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxCommissionType" Margin="211,75,94,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelCommissionType" Content="Commission type" HorizontalAlignment="Left" Margin="75,106,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxCommissionType" Margin="211,106,94,0" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelCommissionValue" Content="Commission value" HorizontalAlignment="Left" Margin="75,103,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxCommissionValue" Margin="211,103,94,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <Label Name="LabelCommissionValue" Content="Commission value" HorizontalAlignment="Left" Margin="75,134,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxCommissionValue" Margin="211,134,94,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelCollectCandleMarketDataType" Content="Collect candles type" HorizontalAlignment="Left" Margin="75,131,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxCandleMarketDataType" Margin="211,131,93,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelCollectCandleMarketDataType" Content="Collect candles type" HorizontalAlignment="Left" Margin="75,162,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxCandleMarketDataType" Margin="211,162,93,0" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxSaveTradesInCandle" Content="Save trades in candle" HorizontalAlignment="Left" Margin="211,159,0,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxSaveTradesInCandle" Content="Save trades in candle" HorizontalAlignment="Left" Margin="211,190,0,0" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelTimeFrame" Content="Time Frame" HorizontalAlignment="Left" Margin="75,187,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxTimeFrame" Margin="211,187,93,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelTimeFrame" Content="Time Frame" HorizontalAlignment="Left" Margin="75,218,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxTimeFrame" Margin="211,218,93,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelPortfolio" Content="Portfolio" HorizontalAlignment="Left" Margin="76,65,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxPortfolio" Margin="212,65,93,0" TextWrapping="Wrap" VerticalAlignment="Top" />
                 </Grid>
             </TabItem>
 

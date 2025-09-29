@@ -44,6 +44,8 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             ComboBoxRegime.SelectedItem = _client.Regime.ToString();
             ComboBoxRegime.SelectionChanged += ComboBoxRegime_SelectionChanged;
 
+            TextBoxUid.Text= _client.ClientUid.ToString();
+
             CreateConnectorsGrid();
             RePaintConnectorsGrid();
 
@@ -60,6 +62,8 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             TabItem1.Header = OsLocalization.Trader.Label585;
             TabItem2.Header = OsLocalization.Trader.Label587;
             TabItem3.Header = OsLocalization.Trader.Label332;
+
+            LabelUid.Content = "";
 
             this.Closed += ClientUi_Closed;
 
@@ -356,14 +360,14 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                    && columnIndex == 4)
                 { // Deploy
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    Deploy(number);
+                    _client.DeployServer(number);
                     RePaintConnectorsGrid();
                 }
                 else if (rowIndex < _client.ConnectorsSettings.Count
                    && columnIndex == 5)
                 { // Collapse
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    Collapse(number);
+                    _client.CollapseSever(number);
                     RePaintConnectorsGrid();
                 }
                 else if (rowIndex < _client.ConnectorsSettings.Count
@@ -371,7 +375,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 { // GUI
 
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    ShowGui(number);
+                    _client.ShowGuiServer(number);
                     RePaintConnectorsGrid();
                 }
                 else if (rowIndex < _client.ConnectorsSettings.Count
@@ -379,7 +383,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 { //8 "Connect";
 
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    Connect(number);
+                    _client.ConnectServer(number);
                     RePaintConnectorsGrid();
                 }
                 else if (rowIndex < _client.ConnectorsSettings.Count
@@ -387,7 +391,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 { //9 "Disconnect";
 
                     int number = Convert.ToInt32(_clientConnectorsGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                    Disconnect(number);
+                    _client.DisconnectServer(number);
                     RePaintConnectorsGrid();
                 }
             }
@@ -611,74 +615,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         #endregion
 
-        #region Client server controls
-
-        private void Deploy(int  connectorNumber)
-        {
-            if(connectorNumber >= _client.ConnectorsSettings.Count)
-            {
-                return;
-            }
-
-            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
-
-            connector.Deploy();
-        }
-
-        private void Collapse(int connectorNumber)
-        {
-            if (connectorNumber >= _client.ConnectorsSettings.Count)
-            {
-                return;
-            }
-
-            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
-
-            connector.Collapse();
-
-        }
-
-        private void ShowGui(int connectorNumber)
-        {
-            if (connectorNumber >= _client.ConnectorsSettings.Count)
-            {
-                return;
-            }
-
-            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
-
-            connector.ShowGui();
-
-        }
-
-        private void Connect(int connectorNumber)
-        {
-            if (connectorNumber >= _client.ConnectorsSettings.Count)
-            {
-                return;
-            }
-
-            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
-
-            connector.Connect();
-
-        }
-
-        private void Disconnect(int connectorNumber)
-        {
-            if (connectorNumber >= _client.ConnectorsSettings.Count)
-            {
-                return;
-            }
-
-            TradeClientConnector connector = _client.ConnectorsSettings[connectorNumber];
-
-            connector.Disconnect();
-
-        }
-
-        #endregion
-
         #region Client robots grid
 
         private DataGridView _clientRobotsGrid;
@@ -846,12 +782,14 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 { // Deploy
                     int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
                     DeployRobot(number);
+                    RePaintRobotsGrid();
                 }
                 else if (rowIndex < _client.RobotsSettings.Count
                    && columnIndex == 6)
                 { // Collapse
                     int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
                     CollapseRobot(number);
+                    RePaintRobotsGrid();
                 }
                 else if (rowIndex < _client.RobotsSettings.Count
                     && columnIndex == 9)
@@ -1061,25 +999,26 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             bot.ShowSourcesDialog(_client);
         }
 
-        private void ShowRobotsChartDialog(int robotNumber)
-        {
-
-
-
-        }
-
         private void DeployRobot(int robotNumber)
         {
+            string error = "";
 
+            _client.DeployOrUpdateRobot(robotNumber,out error);
 
-
+            if(error != "Success")
+            {
+                _client.SendNewLogMessage(error,Logging.LogMessageType.Error);
+            }
         }
 
         private void CollapseRobot(int robotNumber)
         {
+            _client.CollapseRobot(robotNumber);
+        }
 
-
-
+        private void ShowRobotsChartDialog(int robotNumber)
+        {
+            _client.ShowRobotsChartDialog(robotNumber);
         }
 
         #endregion

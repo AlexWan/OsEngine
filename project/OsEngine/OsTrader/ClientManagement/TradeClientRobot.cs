@@ -18,6 +18,11 @@ namespace OsEngine.OsTrader.ClientManagement
 {
     public class TradeClientRobot
     {
+        public TradeClientRobot(string clientName)
+        {
+            ClientUid = clientName;
+        }
+
         public int Number;
 
         public bool IsOn;
@@ -58,7 +63,7 @@ namespace OsEngine.OsTrader.ClientManagement
         }
         private string _botClassName = "None";
 
-        private bool _isScript = false;
+        public bool IsScript = false;
 
         public string DeployStatus
         {
@@ -84,6 +89,8 @@ namespace OsEngine.OsTrader.ClientManagement
             }
         }
 
+        public string ClientUid;
+
         public string GetSaveString()
         {
             string saveStr = "";
@@ -91,7 +98,7 @@ namespace OsEngine.OsTrader.ClientManagement
             saveStr += Number + "&";
             saveStr += IsOn + "&";
             saveStr += BotClassName + "&";
-            saveStr += "&";
+            saveStr += ClientUid + "&";
             saveStr += "&";
             saveStr += "&";
             saveStr += "&";
@@ -122,6 +129,7 @@ namespace OsEngine.OsTrader.ClientManagement
             Number = Convert.ToInt32(saveValues[0]);
             IsOn = Convert.ToBoolean(saveValues[1]);
             _botClassName = saveValues[2];
+            ClientUid = saveValues[3];
 
             string[] parameters = saveValues[7].Split("^");
 
@@ -215,6 +223,16 @@ namespace OsEngine.OsTrader.ClientManagement
 
         }
 
+        public string UniqueNameFull
+        {
+            get
+            {
+                string result = ClientUid + _botClassName + Number;
+
+                return result;
+            }
+        }
+
         #region Parameters
 
         public List<IIStrategyParameter> Parameters = new List<IIStrategyParameter>();
@@ -255,7 +273,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
             CheckBotPosition(_botClassName);
 
-            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, _isScript);
+            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, IsScript);
 
             if (bot == null)
             {
@@ -281,7 +299,7 @@ namespace OsEngine.OsTrader.ClientManagement
             bot.Delete();
         }
 
-        private void CheckBotPosition(string botClassName)
+        public void CheckBotPosition(string botClassName)
         {
             bool isInArray = false;
 
@@ -292,20 +310,20 @@ namespace OsEngine.OsTrader.ClientManagement
                 if (scriptsNames[i] == botClassName)
                 {
                     isInArray = true;
-                    _isScript = true;
+                    IsScript = true;
                     break;
                 }
             }
 
             if (isInArray == false)
             {
-                _isScript = false;
+                IsScript = false;
             }
         }
 
         private bool CheckBotSources(string botClassName)
         {
-            BotPanel bot = BotFactory.GetStrategyForName(botClassName, "", StartProgram.IsOsOptimizer, _isScript);
+            BotPanel bot = BotFactory.GetStrategyForName(botClassName, "", StartProgram.IsOsOptimizer, IsScript);
 
             if (bot == null)
             {
@@ -422,7 +440,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
             CheckBotPosition(_botClassName);
 
-            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, _isScript);
+            BotPanel bot = BotFactory.GetStrategyForName(_botClassName, "", StartProgram.IsOsOptimizer, IsScript);
 
             if (bot == null)
             {
@@ -490,6 +508,8 @@ namespace OsEngine.OsTrader.ClientManagement
         // Common
 
         public int ClientServerNum;
+
+        public string PortfolioName;
 
         public BotTabType BotTabType;
 
@@ -570,7 +590,7 @@ namespace OsEngine.OsTrader.ClientManagement
             save += IndexSecCount + "#";// 14
             save += IndexMultType + "#";// 15
             save += DaysLookBackInBuilding + "#";// 16
-            save += "#";// 17
+            save += PortfolioName + "#";// 17
             save += "#";// 18
             save += "#";// 19
             save += "#";// 20
@@ -611,6 +631,7 @@ namespace OsEngine.OsTrader.ClientManagement
             IndexSecCount = Convert.ToInt32(saveArray[14]);
             Enum.TryParse(saveArray[15], out IndexMultType);
             DaysLookBackInBuilding = Convert.ToInt32(saveArray[16]);
+            PortfolioName = saveArray[17];
 
             for (int i = 26; i < saveArray.Length; i+=2)
             {

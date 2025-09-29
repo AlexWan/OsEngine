@@ -52,7 +52,6 @@ namespace OsEngine.OsTrader
         /// <param name="hostGlass">market depth area</param>
         /// <param name="hostOpenDeals">open positions table area</param>
         /// <param name="hostCloseDeals">closed positions table area</param>
-        /// <param name="hostAllDeals">area of all positions</param>
         /// <param name="hostLogBot">bot log area</param>
         /// <param name="hostLogPrime">prime log area</param>
         /// <param name="rectangleAroundChart">square by chart</param>
@@ -1587,6 +1586,47 @@ namespace OsEngine.OsTrader
                 PanelsArray.Add(newRobot);
 
                 if(BotCreateEvent != null)
+                {
+                    BotCreateEvent(newRobot);
+                }
+
+                newRobot.NewTabCreateEvent += () =>
+                {
+                    ReloadRiskJournals();
+                };
+
+                SendNewLogMessage(OsLocalization.Trader.Label9 + newRobot.NameStrategyUniq, LogMessageType.System);
+
+                ReloadActiveBot(newRobot);
+                Save();
+
+                ReloadRiskJournals();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Create bot
+        /// </summary>
+        public void CreateNewBot(BotPanel newRobot)
+        {
+            try
+            {
+                if (newRobot == null)
+                {
+                    return;
+                }
+
+                if (PanelsArray == null)
+                {
+                    PanelsArray = new List<BotPanel>();
+                }
+                PanelsArray.Add(newRobot);
+
+                if (BotCreateEvent != null)
                 {
                     BotCreateEvent(newRobot);
                 }

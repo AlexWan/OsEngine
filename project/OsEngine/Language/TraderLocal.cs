@@ -2370,5 +2370,9 @@ namespace OsEngine.Language
         public string Label617 => OsLocalization.ConvertToLocString(
         "Eng:Save trades in candle_" +
         "Ru:Сохранять трейды в свечках_");
+
+        public string Label618 => OsLocalization.ConvertToLocString(
+        "Eng:Identifier (UID)_" +
+        "Ru:Идентификатор_");
     }
 }

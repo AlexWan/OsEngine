@@ -28,6 +28,8 @@
         <TextBox Name="TextBoxClientName" HorizontalAlignment="Left" Margin="99,10,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="98,38,0,0" VerticalAlignment="Top" Width="122"/>
+        <Label Name="LabelUid" Content="Uid" HorizontalAlignment="Left" Margin="254,10,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxUid" Margin="343,10,10,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
 
 
     </Grid>

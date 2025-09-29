@@ -11,7 +11,6 @@ using System.Media;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;

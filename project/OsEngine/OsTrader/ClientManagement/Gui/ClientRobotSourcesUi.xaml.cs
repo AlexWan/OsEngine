@@ -38,7 +38,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
             TextBoxSelectedRobot.Text = robot.BotClassName;
 
-            for(int i = 0;i < _robot.SourceSettings.Count;i++)
+            for (int i = 0;i < _robot.SourceSettings.Count;i++)
             {
                 BotTabType botTab = _robot.SourceSettings[i].BotTabType;
 
@@ -171,6 +171,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             LabelIndexMultType.Content = OsLocalization.Trader.Label383;
             LabelDaysLookBackInBuilding.Content = OsLocalization.Trader.Label384;
             CheckBoxPercentNormalization.Content = OsLocalization.Trader.Label431;
+            LabelPortfolio.Content = OsLocalization.Trader.Label21;
         }
 
         private TradeClient _client;
@@ -459,10 +460,13 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             CheckBoxSaveTradesInCandle.Checked -= CheckBoxSaveTradesInCandle_Checked;
             CheckBoxSaveTradesInCandle.Unchecked -= CheckBoxSaveTradesInCandle_Checked;
             ComboBoxTimeFrame.SelectionChanged -= ComboBoxTimeFrame_SelectionChanged;
+            TextBoxPortfolio.TextChanged -= TextBoxPortfolio_TextChanged;
 
             // 2 обновляем данные
 
             TextBoxServerNum.Text = source.ClientServerNum.ToString();
+            TextBoxPortfolio.Text = source.PortfolioName.ToString();
+            
 
             ComboBoxCommissionType.Items.Clear();
             ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
@@ -502,6 +506,20 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             CheckBoxSaveTradesInCandle.Checked += CheckBoxSaveTradesInCandle_Checked;
             CheckBoxSaveTradesInCandle.Unchecked += CheckBoxSaveTradesInCandle_Checked;
             ComboBoxTimeFrame.SelectionChanged += ComboBoxTimeFrame_SelectionChanged;
+            TextBoxPortfolio.TextChanged += TextBoxPortfolio_TextChanged;
+        }
+
+        private void TextBoxPortfolio_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                _source.PortfolioName = TextBoxPortfolio.Text;
+                _client.Save();
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void ComboBoxTimeFrame_SelectionChanged(object sender, SelectionChangedEventArgs e)
