@@ -3925,23 +3925,39 @@ namespace OsEngine.Market.Servers.Bybit
                         MyOrderEvent?.Invoke(order);
                         return true;
                     }
-                }
+                    else
+                    {
+                        OrderStateType state = GetOrderStatus(order);
 
-                OrderStateType state = GetOrderStatus(order);
-
-                if (state == OrderStateType.None)
-                {
-                    SendLogMessage($"Cancel Order Error. Code: {order.NumberUser}.", LogMessageType.Error);
-                    return false;
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Cancel Order Error. {place_order_response}.", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
                 }
                 else
                 {
-                    return true;
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"Cancel Order Error. {place_order_response}.", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                SendLogMessage($" Cancel Order Error. Order num {order.NumberUser}, {order.SecurityNameCode}", LogMessageType.Error);
+                SendLogMessage($" Cancel Order Error. Order num {ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 return false;
             }
         }
