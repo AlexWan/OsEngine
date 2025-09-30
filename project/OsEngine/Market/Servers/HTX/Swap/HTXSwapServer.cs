@@ -122,7 +122,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
 
-            if (((ServerParameterEnum)ServerParameters[4]).Value == "Cross")
+            if (((ServerParameterEnum)ServerParameters[4]).Value == "Cross"
+                && "USDT".Equals(((ServerParameterEnum)ServerParameters[2]).Value))
             {
                 _marginMode = "cross";
             }
@@ -367,12 +368,17 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         #region 3 Securities
 
-        private List<Security> _listSecurities = new List<Security>();
+        private List<Security> _listSecurities;
 
         private RateGate _rateGateSecurities = new RateGate(240, TimeSpan.FromMilliseconds(3000));
 
         public void GetSecurities()
         {
+            if (_listSecurities == null)
+            {
+                _listSecurities = new List<Security>();
+            }
+
             _rateGateSecurities.WaitToProceed();
 
             try
@@ -410,7 +416,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newSecurity.State = SecurityStateType.Activ;
                                 newSecurity.MinTradeAmount = item.contract_size.ToDecimal();
                                 newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
-                                newSecurity.VolumeStep = item.contract_size.DecimalsCount();
+                                newSecurity.VolumeStep = item.contract_size.ToDecimal();
 
                                 _listSecurities.Add(newSecurity);
                             }
@@ -2604,6 +2610,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     {
                         jsonContent.Add("order_price_type", "limit");
                         jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
+
+                        if (order.Price == 0)
+                        {
+                            return;
+                        }
                     }
                     else
                     {
@@ -2766,6 +2777,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public void CancelAllOrdersToSecurity(Security security)
         {
+            if ("COIN".Equals(((ServerParameterEnum)ServerParameters[2]).Value))
+            {
+                return;
+            }
+
             _rateGateCancelOrder.WaitToProceed();
 
             try
@@ -3131,7 +3147,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                     else
                     {
-                        SendLogMessage($"Get order from exchange failed: {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
+                        SendLogMessage($"Get order from exchange failed: {responseMessage.Content}", LogMessageType.Error);
                     }
                 }
                 else
