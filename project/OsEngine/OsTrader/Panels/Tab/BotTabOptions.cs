@@ -262,7 +262,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     double strike = (double)row.Cells["Strike"].Value;
-                    var strikeData = _allOptionsData.Where(o => (double)o.Security.Strike == strike).ToList();
+                    var strikeData = _allOptionsData.Where(o => o != null && o.Security != null && (double)o.Security.Strike == strike).ToList();
                     var callData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
                     var putData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
 
@@ -575,7 +575,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (allSecurities == null) return;
 
             var oldTabsToDispose = new List<BotTabSimple>();
-            var optionsToTrade = new List<Security>();
 
             lock (_locker)
             {
@@ -586,7 +585,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 oldTabsToDispose = _simpleTabs.Values.ToList();
                 _simpleTabs.Clear();
 
-                optionsToTrade = allSecurities.Where(s =>
+                var optionsToTrade = allSecurities.Where(s =>
                         s.SecurityType == SecurityType.Option && UnderlyingAssets.Contains(s.UnderlyingAsset))
                     .OrderBy(o => o.Expiration).ToList();
                 var underlyingAssetSecurities = allSecurities.Where(s => UnderlyingAssets.Contains(s.Name)).ToList();
@@ -609,7 +608,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.Delete();
             }
 
-            PopulateExpirationFilter(optionsToTrade);
             InitializeUaGrid();
             SelectFirstUnderlyingAsset();
             SetJournalsInPosViewer(); // Add this call
@@ -629,7 +627,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (_uaGrid.Rows.Count > 0)
             {
                 _uaGrid.Rows[0].Selected = true;
-                RefreshOptionsGrid();
+                // The SelectionChanged event will handle the rest
             }
         }
 
@@ -705,9 +703,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // Update expiration filter on the UI thread
                 _mainControl.Invoke(new Action(() =>
                 {
-                    var allOptions = _allOptionsData.Select(o => o.Security).ToList();
-                    PopulateExpirationFilter(allOptions);
-                    RefreshOptionsGrid();
+                    UpdateExpirationFilter();
                 }));
             }
         }
@@ -748,7 +744,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 { HeaderText = "Chart", Name = "UaChart", UseColumnTextForButtonValue = true, Text = "Open" });
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn
                 { HeaderText = "Qty", Name = "UaQty", ReadOnly = false, Width = 40 });
-            _uaGrid.SelectionChanged += (sender, args) => RefreshOptionsGrid();
+            _uaGrid.SelectionChanged += UaGrid_SelectionChanged;
             _uaGrid.CellClick += _uaGrid_CellClick;
             _uaGrid.CellValueChanged += _uaGrid_CellValueChanged; // Add this line
 
@@ -763,7 +759,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Margin = new Padding(0, 3, 0, 0), BackColor = Color.FromArgb(21, 26, 30),
                 ForeColor = Color.FromArgb(154, 156, 158), FlatStyle = FlatStyle.Flat
             };
-            _expirationComboBox.SelectedIndexChanged += (sender, args) => RefreshOptionsGrid();
+            _expirationComboBox.SelectedIndexChanged += ExpirationComboBox_SelectedIndexChanged;
             filterPanel.Controls.Add(_expirationComboBox);
             filterPanel.Controls.Add(new Label()
             {
@@ -991,29 +987,56 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void PopulateExpirationFilter(List<Security> options)
+        private void UaGrid_SelectionChanged(object sender, EventArgs e)
+        {
+            UpdateExpirationFilter();
+        }
+
+        private void ExpirationComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RefreshOptionsGrid();
+        }
+
+        private void UpdateExpirationFilter()
         {
             if (_expirationComboBox.InvokeRequired)
             {
-                _expirationComboBox.Invoke(new Action<List<Security>>(PopulateExpirationFilter), options);
+                _expirationComboBox.Invoke(new Action(UpdateExpirationFilter));
                 return;
             }
 
-            var dates = options.Select(o => o.Expiration.Date).Distinct().OrderBy(d => d).ToList();
+            string previouslySelected = _expirationComboBox.SelectedItem?.ToString();
             _expirationComboBox.Items.Clear();
             _expirationComboBox.Items.Add("All");
-            foreach (var date in dates)
+
+            if (_uaGrid.SelectedRows.Count > 0)
             {
-                _expirationComboBox.Items.Add(date.ToShortDateString());
+                var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
+
+                var expirationsForUa = _allOptionsData
+                    .Where(o => o.Security.UnderlyingAsset == selectedUaName)
+                    .Select(o => o.Security.Expiration.Date)
+                    .Distinct()
+                    .OrderBy(d => d)
+                    .ToList();
+
+                foreach (var date in expirationsForUa)
+                {
+                    _expirationComboBox.Items.Add(date.ToShortDateString());
+                }
             }
 
-            if (_expirationComboBox.Items.Count > 1)
+            if (previouslySelected != null && _expirationComboBox.Items.Contains(previouslySelected))
+            {
+                _expirationComboBox.SelectedItem = previouslySelected;
+            }
+            else if (_expirationComboBox.Items.Count > 1)
             {
                 _expirationComboBox.SelectedIndex = 1;
             }
             else
             {
-                _expirationComboBox.SelectedItem = "All";
+                _expirationComboBox.SelectedIndex = 0; // "All"
             }
         }
 
@@ -1166,7 +1189,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (!isCallChart && !isPutChart && !isCallPnl && !isPutPnl) return;
 
             var strike = (double)_optionsGrid.Rows[e.RowIndex].Cells["Strike"].Value;
-            var strikeData = _allOptionsData.Where(o => (double)o.Security.Strike == strike).ToList();
+            var strikeData = _allOptionsData.Where(o => o != null && o.Security != null && (double)o.Security.Strike == strike).ToList();
 
             if (isCallPnl || isPutPnl)
             {
