@@ -5,7 +5,6 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetSpot.Entity;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.MoexAlgopack.Entity;
 using RestSharp;
 using System;
 using System.Collections.Concurrent;
@@ -213,8 +212,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
 
                 ResponseRestMessage<List<RestMessageSymbol>> symbols = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<RestMessageSymbol>>());
-
-                //List<Security> securities = new List<Security>();
 
                 if (symbols.data.Count == 0)
                 {
