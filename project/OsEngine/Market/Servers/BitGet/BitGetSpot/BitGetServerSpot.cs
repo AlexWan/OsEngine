@@ -5,6 +5,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetSpot.Entity;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.MoexAlgopack.Entity;
 using RestSharp;
 using System;
 using System.Collections.Concurrent;
@@ -181,8 +182,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         #region 3 Securities
 
+        private List<Security> _securities;
+
         public void GetSecurities()
         {
+            if (_securities == null)
+            {
+                _securities = new List<Security>();
+            }
+
             _rateGateSecurity.WaitToProceed();
 
             try
@@ -206,7 +214,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 ResponseRestMessage<List<RestMessageSymbol>> symbols = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<RestMessageSymbol>>());
 
-                List<Security> securities = new List<Security>();
+                //List<Security> securities = new List<Security>();
 
                 if (symbols.data.Count == 0)
                 {
@@ -247,11 +255,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                             newSecurity.VolumeStep = GetVolumeStep(newSecurity.DecimalsVolume);
                         }
 
-                        securities.Add(newSecurity);
+                        _securities.Add(newSecurity);
                     }
                 }
 
-                SecurityEvent(securities);
+                SecurityEvent(_securities);
             }
             catch (Exception exception)
             {
@@ -1705,6 +1713,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                             if (myTrade.SecurityNameCode.StartsWith(item.fillFeeCoin))
                             {
                                 myTrade.Volume = Math.Round(item.baseVolume.ToDecimal() + item.fillFee.ToDecimal(), 6, MidpointRounding.AwayFromZero);
+                                int decimalVolume = GetVolumeDecimals(myTrade.SecurityNameCode);
+
+                                if (decimalVolume > 0)
+                                {
+                                    myTrade.Volume = Math.Floor(myTrade.Volume * (decimal)Math.Pow(10, decimalVolume)) / (decimal)Math.Pow(10, decimalVolume);
+                                }
                             }
                             else
                             {
@@ -1724,6 +1738,19 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
+        }
+
+        private int GetVolumeDecimals(string security)
+        {
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (security == _securities[i].Name)
+                {
+                    return _securities[i].DecimalsVolume;
+                }
+            }
+
+            return 0;
         }
 
         private void UpdateTrade(string message)
