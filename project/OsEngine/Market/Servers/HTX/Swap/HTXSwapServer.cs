@@ -31,12 +31,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
             HTXSwapServerRealization realization = new HTXSwapServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString("Access Key", "");
-            CreateParameterPassword("Secret Key", "");
+            CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("USDT/COIN", "USDT", new List<string>() { "COIN", "USDT" });
             CreateParameterBoolean("Hedge Mode", true);
+            CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
+            CreateParameterString("Leverage", "1");
             CreateParameterBoolean("Extended Data", false);
             ServerParameters[3].ValueChange += HTXSwapServer_ValueChange;
+
         }
 
         private void HTXSwapServer_ValueChange()
@@ -112,7 +115,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
 
-            if (((ServerParameterBool)ServerParameters[4]).Value == true)
+            if (((ServerParameterEnum)ServerParameters[4]).Value == "Cross")
+            {
+                _marginMode = "cross";
+            }
+            else
+            {
+                _marginMode = "isolated";
+            }
+
+            _leverage = ((ServerParameterString)ServerParameters[5]).Value;
+
+            if (((ServerParameterBool)ServerParameters[6]).Value == true)
             {
                 _extendedMarketData = true;
             }
@@ -235,6 +249,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private bool _usdtSwapValue;
 
+        private string _marginMode = "cross";
+
+        private string _leverage;
+
         public bool HedgeMode
         {
             get { return _hedgeMode; }
@@ -287,7 +305,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
 
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
-                jsonContent.Add("margin_account", nameSecurity);
+
+                if (_marginMode == "isolated")
+                {
+                    jsonContent.Add("margin_account", nameSecurity);
+                }
+                else
+                {
+                    string marginAccount = nameSecurity.Split('-')[1];
+                    jsonContent.Add("margin_account", marginAccount);
+                }
 
                 if (HedgeMode)
                 {
@@ -298,7 +325,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     jsonContent.Add("position_mode", "single_side");
                 }
 
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_switch_position_mode");
+                string url = null;
+
+                if (_marginMode == "isolated")
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_switch_position_mode");
+                }
+                else
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_switch_position_mode");
+                }
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
@@ -360,14 +396,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newSecurity.NameId = item.contract_code;
                                 newSecurity.SecurityType = SecurityType.Futures;
                                 newSecurity.DecimalsVolume = item.contract_size.DecimalsCount();
-                                newSecurity.Lot = item.contract_size.ToDecimal();
+                                newSecurity.Lot = 1; //item.contract_size.ToDecimal();
                                 newSecurity.PriceStep = item.price_tick.ToDecimal();
                                 newSecurity.Decimals = item.price_tick.DecimalsCount();
                                 newSecurity.PriceStepCost = newSecurity.PriceStep;
                                 newSecurity.State = SecurityStateType.Activ;
-                                newSecurity.MinTradeAmount = 1;//item.contract_size.ToDecimal();
+                                newSecurity.MinTradeAmount = item.contract_size.ToDecimal();
                                 newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
-                                newSecurity.VolumeStep = 1; //newSecurity.DecimalsVolume.GetValueByDecimals();
+                                newSecurity.VolumeStep = item.contract_size.DecimalsCount();
 
                                 _listSecurities.Add(newSecurity);
                             }
@@ -626,7 +662,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 pos.SecurityNameCode = itemPortfolio[i].margin_asset.ToString();
                 pos.ValueBlocked = Math.Round(itemPortfolio[i].margin_frozen.ToDecimal(), 5);
                 pos.ValueCurrent = Math.Round(itemPortfolio[i].margin_balance.ToDecimal(), 5);
-                positionBlocked += pos.ValueBlocked;
+                positionBlocked += Math.Round(itemPortfolio[i].margin_frozen.ToDecimal(), 5);
 
                 if (IsUpdateValueBegin)
                 {
@@ -1508,6 +1544,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
             string channelAccounts = "accounts.*";
             string channelPositions = "positions.*";
 
+            if (_marginMode == "cross")
+            {
+                channelOrders = "orders_cross.*";
+                channelAccounts = "accounts_cross.*";
+                channelPositions = "positions_cross.*";
+            }
+
             if (_usdtSwapValue)
             {
                 channelAccounts = "accounts_unify.USDT";
@@ -1615,6 +1658,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     string channelOrders = "orders.*";
                     string channelAccounts = "accounts.*";
                     string channelPositions = "positions.*";
+
+                    if (_marginMode == "cross")
+                    {
+                        channelOrders = "orders_cross.*";
+                        channelAccounts = "accounts_cross.*";
+                        channelPositions = "positions_cross.*";
+                    }
 
                     if (_usdtSwapValue)
                     {
@@ -1884,13 +1934,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             continue;
                         }
 
-                        if (message.Contains("orders."))
+                        if (message.Contains("orders.")
+                            || message.Contains("orders_cross."))
                         {
                             UpdateOrder(message);
                             continue;
                         }
 
-                        if (message.Contains("accounts") || message.Contains("accounts_unify"))
+                        if (message.Contains("accounts")
+                            || message.Contains("accounts_unify"))
                         {
                             UpdatePortfolioFromSubscribe(message);
                             continue;
@@ -2162,7 +2214,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 myTrade.Price = response.trade[i].trade_price.ToDecimal();
                 myTrade.SecurityNameCode = response.contract_code;
                 myTrade.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
-                myTrade.Volume = response.trade[i].trade_volume.ToDecimal();
+                myTrade.Volume = response.trade[i].trade_volume.ToDecimal() * GetVolume(myTrade.SecurityNameCode); ;
 
                 MyTradeEvent(myTrade);
             }
@@ -2215,7 +2267,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 newOrder.PortfolioNumber = $"HTXSwapPortfolio";
                 //newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
-                newOrder.Volume = response.volume.ToDecimal();
+                newOrder.Volume = response.volume.ToDecimal() * GetVolume(newOrder.SecurityNameCode);
 
                 MyOrderEvent(newOrder);
 
@@ -2299,7 +2351,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                         pos.PortfolioName = "HTXSwapPortfolio";
                         pos.SecurityNameCode = _usdtSwapValue ? item[i].margin_asset : item[i].symbol;
-                        pos.ValueBlocked = item[i].margin_frozen.ToDecimal();
+
+                        decimal frozen = item[i].margin_balance.ToDecimal() - item[i].withdraw_available.ToDecimal();
+                        pos.ValueBlocked = Math.Round(frozen, 5);
                         pos.ValueCurrent = Math.Round(item[i].margin_balance.ToDecimal(), 5);
 
                         if (!_usdtSwapValue)
@@ -2402,11 +2456,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     if (item[i].direction == "buy")
                     {
-                        pos.ValueCurrent = item[i].volume.ToDecimal();
+                        pos.ValueCurrent = item[i].volume.ToDecimal() * GetVolume(item[i].contract_code);
                     }
                     else if (item[i].direction == "sell")
                     {
-                        pos.ValueCurrent = -item[i].volume.ToDecimal();
+                        pos.ValueCurrent = -item[i].volume.ToDecimal() * GetVolume(item[i].contract_code);
                     }
 
                     //pos.ValueBlocked = item[i].frozen.ToDecimal();
@@ -2467,7 +2521,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                 }
 
-
                 PortfolioEvent(Portfolios);
             }
             catch (Exception ex)
@@ -2514,7 +2567,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("contract_code", order.SecurityNameCode);
                 jsonContent.Add("client_order_id", order.NumberUser.ToString());
                 jsonContent.Add("direction", order.Side == Side.Buy ? "buy" : "sell");
-                jsonContent.Add("volume", order.Volume.ToString("0.#####").Replace(",", "."));
+
+                decimal volume = order.Volume / GetVolume(order.SecurityNameCode);
+                jsonContent.Add("volume", volume.ToString("0.#####").Replace(",", "."));
 
                 if (HedgeMode
                     || "COIN".Equals(((ServerParameterEnum)ServerParameters[2]).Value))
@@ -2529,7 +2584,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                 }
 
-                jsonContent.Add("lever_rate", "1");
+                jsonContent.Add("lever_rate", _leverage);
 
                 if (order.TypeOrder == OrderPriceType.Limit)
                 {
@@ -2551,7 +2606,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 jsonContent.Add("channel_code", "AAe2ccbd47");
 
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order");
+                string url = null;
+
+                if (_marginMode == "isolated")
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order");
+                }
+                else
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_order");
+                }
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
@@ -2584,6 +2648,26 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
+        private decimal GetVolume(string securityName)
+        {
+            decimal minVolume = 1;
+
+            for (int i = 0; i < _listSecurities.Count; i++)
+            {
+                if (_listSecurities[i].Name == securityName)
+                {
+                    minVolume = _listSecurities[i].MinTradeAmount;
+                }
+            }
+
+            if (minVolume <= 0)
+            {
+                return 1;
+            }
+
+            return minVolume;
+        }
+
         private void CreateOrderFail(Order order)
         {
             order.State = OrderStateType.Fail;
@@ -2606,7 +2690,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("order_id", order.NumberMarket);
                 jsonContent.Add("contract_code", order.SecurityNameCode);
 
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cancel");
+                string url = null;
+
+                if (_marginMode == "isolated")
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cancel");
+                }
+                else
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_cancel");
+                }
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
@@ -2673,7 +2766,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
                 jsonContent.Add("contract_code", security.Name);
 
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cancelall");
+                string url = null;
+
+                if (_marginMode == "isolated")
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cancelall");
+                }
+                else
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_cancelall");
+                }
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
@@ -2743,7 +2845,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("page_index", pageIndex.ToString());
                 jsonContent.Add("page_size", "20");
 
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_openorders");
+                string url = null;
+
+                if (_marginMode == "isolated")
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_openorders");
+                }
+                else
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_openorders");
+                }
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
@@ -2789,7 +2900,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                             newOrder.NumberMarket = item.order_id.ToString();
                             newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
-                            newOrder.Volume = item.volume.ToDecimal();
+                            newOrder.Volume = item.volume.ToDecimal() * GetVolume(newOrder.SecurityNameCode);
                             newOrder.Price = item.price.ToDecimal();
                             newOrder.PortfolioNumber = $"HTXSwapPortfolio";
 
@@ -2951,7 +3062,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     jsonContent.Add("client_order_id", numberUser);
                 }
 
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order_info");
+                string url = null;
+
+                if (_marginMode == "isolated")
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order_info");
+                }
+                else
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_order_info");
+                }
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
@@ -2984,7 +3104,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             newOrder.NumberMarket = item.order_id.ToString();
                             newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
                             newOrder.State = GetOrderState(item.status);
-                            newOrder.Volume = item.volume.ToDecimal();
+                            newOrder.Volume = item.volume.ToDecimal() * GetVolume(newOrder.SecurityNameCode);
                             newOrder.Price = item.price.ToDecimal();
                             newOrder.PortfolioNumber = $"HTXSwapPortfolio";
 
@@ -3031,7 +3151,17 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("order_id", orderId);
                 //jsonContent.Add("created_at", TimeManager.GetTimeStampMilliSecondsToDateTime(createdOrderTime));
 
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order_detail");
+                string url = null;
+
+                if (_marginMode == "isolated")
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order_detail");
+                }
+                else
+                {
+                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_order_detail");
+                }
+
 
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
@@ -3061,7 +3191,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                                 newTrade.NumberTrade = num;
                                 newTrade.NumberOrderParent = response.data.order_id;
-                                newTrade.Volume = response.data.trades[i].trade_volume.ToDecimal();
+                                newTrade.Volume = response.data.trades[i].trade_volume.ToDecimal() * GetVolume(newTrade.SecurityNameCode);
                                 newTrade.Price = response.data.trades[i].trade_price.ToDecimal();
                                 newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.trades[i].created_at));
 
