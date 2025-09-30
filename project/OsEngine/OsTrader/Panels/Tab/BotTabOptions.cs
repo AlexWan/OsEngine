@@ -262,7 +262,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     double strike = (double)row.Cells["Strike"].Value;
-                    var strikeData = _allOptionsData.Where(o => (double)o.Security.Strike == strike).ToList();
+                    var strikeData = _allOptionsData.Where(o => o != null && o.Security != null && (double)o.Security.Strike == strike).ToList();
                     var callData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
                     var putData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
 
@@ -574,34 +574,40 @@ namespace OsEngine.OsTrader.Panels.Tab
             var allSecurities = server.Securities;
             if (allSecurities == null) return;
 
-            // Clear previous data
-            _allOptionsData.Clear();
-            _uaData.Clear();
-            foreach (var tab in _simpleTabs.Values)
+            var oldTabsToDispose = new List<BotTabSimple>();
+
+            lock (_locker)
+            {
+                // Clear previous data
+                _allOptionsData.Clear();
+                _uaData.Clear();
+
+                oldTabsToDispose = _simpleTabs.Values.ToList();
+                _simpleTabs.Clear();
+
+                var optionsToTrade = allSecurities.Where(s =>
+                        s.SecurityType == SecurityType.Option && UnderlyingAssets.Contains(s.UnderlyingAsset))
+                    .OrderBy(o => o.Expiration).ToList();
+                var underlyingAssetSecurities = allSecurities.Where(s => UnderlyingAssets.Contains(s.Name)).ToList();
+
+                foreach (var uaSec in underlyingAssetSecurities)
+                {
+                    var tab = CreateSimpleTab(uaSec, server);
+                    _uaData.Add(new UnderlyingAssetDataRow { Security = uaSec, SimpleTab = tab });
+                }
+
+                foreach (var option in optionsToTrade)
+                {
+                    var tab = CreateSimpleTab(option, server);
+                    _allOptionsData.Add(new OptionDataRow { Security = option, SimpleTab = tab });
+                }
+            }
+
+            foreach (var tab in oldTabsToDispose)
             {
                 tab.Delete();
             }
 
-            _simpleTabs.Clear();
-
-            var optionsToTrade = allSecurities.Where(s =>
-                    s.SecurityType == SecurityType.Option && UnderlyingAssets.Contains(s.UnderlyingAsset))
-                .OrderBy(o => o.Expiration).ToList();
-            var underlyingAssetSecurities = allSecurities.Where(s => UnderlyingAssets.Contains(s.Name)).ToList();
-
-            foreach (var uaSec in underlyingAssetSecurities)
-            {
-                var tab = CreateSimpleTab(uaSec, server);
-                _uaData.Add(new UnderlyingAssetDataRow { Security = uaSec, SimpleTab = tab });
-            }
-
-            foreach (var option in optionsToTrade)
-            {
-                var tab = CreateSimpleTab(option, server);
-                _allOptionsData.Add(new OptionDataRow { Security = option, SimpleTab = tab });
-            }
-
-            PopulateExpirationFilter(optionsToTrade);
             InitializeUaGrid();
             SelectFirstUnderlyingAsset();
             SetJournalsInPosViewer(); // Add this call
@@ -621,7 +627,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (_uaGrid.Rows.Count > 0)
             {
                 _uaGrid.Rows[0].Selected = true;
-                RefreshOptionsGrid();
+                // The SelectionChanged event will handle the rest
             }
         }
 
@@ -697,9 +703,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // Update expiration filter on the UI thread
                 _mainControl.Invoke(new Action(() =>
                 {
-                    var allOptions = _allOptionsData.Select(o => o.Security).ToList();
-                    PopulateExpirationFilter(allOptions);
-                    RefreshOptionsGrid();
+                    UpdateExpirationFilter();
                 }));
             }
         }
@@ -740,7 +744,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 { HeaderText = "Chart", Name = "UaChart", UseColumnTextForButtonValue = true, Text = "Open" });
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn
                 { HeaderText = "Qty", Name = "UaQty", ReadOnly = false, Width = 40 });
-            _uaGrid.SelectionChanged += (sender, args) => RefreshOptionsGrid();
+            _uaGrid.SelectionChanged += UaGrid_SelectionChanged;
             _uaGrid.CellClick += _uaGrid_CellClick;
             _uaGrid.CellValueChanged += _uaGrid_CellValueChanged; // Add this line
 
@@ -755,7 +759,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Margin = new Padding(0, 3, 0, 0), BackColor = Color.FromArgb(21, 26, 30),
                 ForeColor = Color.FromArgb(154, 156, 158), FlatStyle = FlatStyle.Flat
             };
-            _expirationComboBox.SelectedIndexChanged += (sender, args) => RefreshOptionsGrid();
+            _expirationComboBox.SelectedIndexChanged += ExpirationComboBox_SelectedIndexChanged;
             filterPanel.Controls.Add(_expirationComboBox);
             filterPanel.Controls.Add(new Label()
             {
@@ -983,29 +987,56 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void PopulateExpirationFilter(List<Security> options)
+        private void UaGrid_SelectionChanged(object sender, EventArgs e)
+        {
+            UpdateExpirationFilter();
+        }
+
+        private void ExpirationComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RefreshOptionsGrid();
+        }
+
+        private void UpdateExpirationFilter()
         {
             if (_expirationComboBox.InvokeRequired)
             {
-                _expirationComboBox.Invoke(new Action<List<Security>>(PopulateExpirationFilter), options);
+                _expirationComboBox.Invoke(new Action(UpdateExpirationFilter));
                 return;
             }
 
-            var dates = options.Select(o => o.Expiration.Date).Distinct().OrderBy(d => d).ToList();
+            string previouslySelected = _expirationComboBox.SelectedItem?.ToString();
             _expirationComboBox.Items.Clear();
             _expirationComboBox.Items.Add("All");
-            foreach (var date in dates)
+
+            if (_uaGrid.SelectedRows.Count > 0)
             {
-                _expirationComboBox.Items.Add(date.ToShortDateString());
+                var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
+
+                var expirationsForUa = _allOptionsData
+                    .Where(o => o.Security.UnderlyingAsset == selectedUaName)
+                    .Select(o => o.Security.Expiration.Date)
+                    .Distinct()
+                    .OrderBy(d => d)
+                    .ToList();
+
+                foreach (var date in expirationsForUa)
+                {
+                    _expirationComboBox.Items.Add(date.ToShortDateString());
+                }
             }
 
-            if (_expirationComboBox.Items.Count > 1)
+            if (previouslySelected != null && _expirationComboBox.Items.Contains(previouslySelected))
+            {
+                _expirationComboBox.SelectedItem = previouslySelected;
+            }
+            else if (_expirationComboBox.Items.Count > 1)
             {
                 _expirationComboBox.SelectedIndex = 1;
             }
             else
             {
-                _expirationComboBox.SelectedItem = "All";
+                _expirationComboBox.SelectedIndex = 0; // "All"
             }
         }
 
@@ -1158,7 +1189,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (!isCallChart && !isPutChart && !isCallPnl && !isPutPnl) return;
 
             var strike = (double)_optionsGrid.Rows[e.RowIndex].Cells["Strike"].Value;
-            var strikeData = _allOptionsData.Where(o => (double)o.Security.Strike == strike).ToList();
+            var strikeData = _allOptionsData.Where(o => o != null && o.Security != null && (double)o.Security.Strike == strike).ToList();
 
             if (isCallPnl || isPutPnl)
             {
@@ -1294,7 +1325,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             lock (_locker)
             {
-                var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == data.SecurityName);
+                var optionData = _allOptionsData.FirstOrDefault(o => o != null && o.Security != null && o.Security.Name == data.SecurityName);
                 if (optionData != null)
                 {
                     if (data.Delta != 0)
@@ -1341,7 +1372,31 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             lock (_locker)
             {
-                var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == trade.SecurityNameCode);
+                OptionDataRow optionData = null;
+                foreach (var o in _allOptionsData)
+                {
+                    if (o == null)
+                    {
+                        LogMessageEvent?.Invoke("Null OptionDataRow found in _allOptionsData during TickChange event.", LogMessageType.Error);
+                        continue;
+                    }
+                    if (o.Security == null)
+                    {
+                        LogMessageEvent?.Invoke($"OptionDataRow with null Security found for a ticker.", LogMessageType.Error);
+                        continue;
+                    }
+                    if (trade == null)
+                    {
+                        LogMessageEvent?.Invoke("Trade object is null in Connector_TickChangeEvent.", LogMessageType.Error);
+                        break;
+                    }
+                    if (o.Security.Name == trade.SecurityNameCode)
+                    {
+                        optionData = o;
+                        break;
+                    }
+                }
+
                 if (optionData != null)
                 {
                     if (trade.Price > 0)
@@ -1352,7 +1407,30 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == trade.SecurityNameCode);
+                UnderlyingAssetDataRow uaData = null;
+                foreach (var ud in _uaData)
+                {
+                    if (ud == null)
+                    {
+                        LogMessageEvent?.Invoke("Null UnderlyingAssetDataRow found in _uaData during TickChange event.", LogMessageType.Error);
+                        continue;
+                    }
+                    if (ud.Security == null)
+                    {
+                        LogMessageEvent?.Invoke($"UnderlyingAssetDataRow with null Security found.", LogMessageType.Error);
+                        continue;
+                    }
+                    if (trade == null)
+                    {
+                        LogMessageEvent?.Invoke("Trade object is null in Connector_TickChangeEvent.", LogMessageType.Error);
+                        break;
+                    }
+                    if (ud.Security.Name == trade.SecurityNameCode)
+                    {
+                        uaData = ud;
+                        break;
+                    }
+                }
                 if (uaData != null)
                 {
                     if (trade.Price > 0)
@@ -1372,7 +1450,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             lock (_locker)
             {
-                var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == marketDepth.SecurityNameCode);
+                var optionData = _allOptionsData.FirstOrDefault(o => o != null && o.Security != null && o.Security.Name == marketDepth.SecurityNameCode);
                 if (optionData != null)
                 {
                     double bestBid = 0;
@@ -1400,7 +1478,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == marketDepth.SecurityNameCode);
+                var uaData = _uaData.FirstOrDefault(ud => ud != null && ud.Security != null && ud.Security.Name == marketDepth.SecurityNameCode);
                 if (uaData != null)
                 {
                     double bestBid = 0;
