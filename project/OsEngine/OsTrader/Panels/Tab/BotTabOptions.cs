@@ -574,31 +574,39 @@ namespace OsEngine.OsTrader.Panels.Tab
             var allSecurities = server.Securities;
             if (allSecurities == null) return;
 
-            // Clear previous data
-            _allOptionsData.Clear();
-            _uaData.Clear();
-            foreach (var tab in _simpleTabs.Values)
+            var oldTabsToDispose = new List<BotTabSimple>();
+            var optionsToTrade = new List<Security>();
+
+            lock (_locker)
+            {
+                // Clear previous data
+                _allOptionsData.Clear();
+                _uaData.Clear();
+
+                oldTabsToDispose = _simpleTabs.Values.ToList();
+                _simpleTabs.Clear();
+
+                optionsToTrade = allSecurities.Where(s =>
+                        s.SecurityType == SecurityType.Option && UnderlyingAssets.Contains(s.UnderlyingAsset))
+                    .OrderBy(o => o.Expiration).ToList();
+                var underlyingAssetSecurities = allSecurities.Where(s => UnderlyingAssets.Contains(s.Name)).ToList();
+
+                foreach (var uaSec in underlyingAssetSecurities)
+                {
+                    var tab = CreateSimpleTab(uaSec, server);
+                    _uaData.Add(new UnderlyingAssetDataRow { Security = uaSec, SimpleTab = tab });
+                }
+
+                foreach (var option in optionsToTrade)
+                {
+                    var tab = CreateSimpleTab(option, server);
+                    _allOptionsData.Add(new OptionDataRow { Security = option, SimpleTab = tab });
+                }
+            }
+
+            foreach (var tab in oldTabsToDispose)
             {
                 tab.Delete();
-            }
-
-            _simpleTabs.Clear();
-
-            var optionsToTrade = allSecurities.Where(s =>
-                    s.SecurityType == SecurityType.Option && UnderlyingAssets.Contains(s.UnderlyingAsset))
-                .OrderBy(o => o.Expiration).ToList();
-            var underlyingAssetSecurities = allSecurities.Where(s => UnderlyingAssets.Contains(s.Name)).ToList();
-
-            foreach (var uaSec in underlyingAssetSecurities)
-            {
-                var tab = CreateSimpleTab(uaSec, server);
-                _uaData.Add(new UnderlyingAssetDataRow { Security = uaSec, SimpleTab = tab });
-            }
-
-            foreach (var option in optionsToTrade)
-            {
-                var tab = CreateSimpleTab(option, server);
-                _allOptionsData.Add(new OptionDataRow { Security = option, SimpleTab = tab });
             }
 
             PopulateExpirationFilter(optionsToTrade);
@@ -1294,7 +1302,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             lock (_locker)
             {
-                var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == data.SecurityName);
+                var optionData = _allOptionsData.FirstOrDefault(o => o != null && o.Security != null && o.Security.Name == data.SecurityName);
                 if (optionData != null)
                 {
                     if (data.Delta != 0)
@@ -1341,7 +1349,31 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             lock (_locker)
             {
-                var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == trade.SecurityNameCode);
+                OptionDataRow optionData = null;
+                foreach (var o in _allOptionsData)
+                {
+                    if (o == null)
+                    {
+                        LogMessageEvent?.Invoke("Null OptionDataRow found in _allOptionsData during TickChange event.", LogMessageType.Error);
+                        continue;
+                    }
+                    if (o.Security == null)
+                    {
+                        LogMessageEvent?.Invoke($"OptionDataRow with null Security found for a ticker.", LogMessageType.Error);
+                        continue;
+                    }
+                    if (trade == null)
+                    {
+                        LogMessageEvent?.Invoke("Trade object is null in Connector_TickChangeEvent.", LogMessageType.Error);
+                        break;
+                    }
+                    if (o.Security.Name == trade.SecurityNameCode)
+                    {
+                        optionData = o;
+                        break;
+                    }
+                }
+
                 if (optionData != null)
                 {
                     if (trade.Price > 0)
@@ -1352,7 +1384,30 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == trade.SecurityNameCode);
+                UnderlyingAssetDataRow uaData = null;
+                foreach (var ud in _uaData)
+                {
+                    if (ud == null)
+                    {
+                        LogMessageEvent?.Invoke("Null UnderlyingAssetDataRow found in _uaData during TickChange event.", LogMessageType.Error);
+                        continue;
+                    }
+                    if (ud.Security == null)
+                    {
+                        LogMessageEvent?.Invoke($"UnderlyingAssetDataRow with null Security found.", LogMessageType.Error);
+                        continue;
+                    }
+                    if (trade == null)
+                    {
+                        LogMessageEvent?.Invoke("Trade object is null in Connector_TickChangeEvent.", LogMessageType.Error);
+                        break;
+                    }
+                    if (ud.Security.Name == trade.SecurityNameCode)
+                    {
+                        uaData = ud;
+                        break;
+                    }
+                }
                 if (uaData != null)
                 {
                     if (trade.Price > 0)
@@ -1372,7 +1427,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             lock (_locker)
             {
-                var optionData = _allOptionsData.FirstOrDefault(o => o.Security.Name == marketDepth.SecurityNameCode);
+                var optionData = _allOptionsData.FirstOrDefault(o => o != null && o.Security != null && o.Security.Name == marketDepth.SecurityNameCode);
                 if (optionData != null)
                 {
                     double bestBid = 0;
@@ -1400,7 +1455,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == marketDepth.SecurityNameCode);
+                var uaData = _uaData.FirstOrDefault(ud => ud != null && ud.Security != null && ud.Security.Name == marketDepth.SecurityNameCode);
                 if (uaData != null)
                 {
                     double bestBid = 0;
