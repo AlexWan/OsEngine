@@ -595,10 +595,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         {
                             sizeUSDT = onePortf.marginBalance.ToDecimal();
                         }
-                        else if (onePortf.asset.Equals("USDC")
+                        else if ((onePortf.asset.Equals("USDC")
                             || onePortf.asset.Equals("BTC")
                             || onePortf.asset.Equals("BNB")
                             || onePortf.asset.Equals("ETH"))
+                            && onePortf.marginBalance.ToDecimal() != 0)
                         {
                             positionInUSDT += GetPriceSecurity(onePortf.asset + "USDT") * onePortf.marginBalance.ToDecimal();
                         }
@@ -673,7 +674,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 res = CreateQuery(Method.GET, "/fapi/v1/ticker/price", param, true);
 
-                if (res == null)
+                if (res == null
+                    || res == "")
                 {
                     return 0;
                 }
