@@ -1042,13 +1042,24 @@ namespace OsEngine.Language
          "Ru:Устанавливаем кредитное плечо от 1 до максимально разрешенного биржей. Работает только для линейных фьючерсов. Если поле оставить пустым, то используется плечо, которое вы установили на бирже_");
 
         public string Label252 => OsLocalization.ConvertToLocString(
-        "Eng:If true, we request information on open interest, funding, volume24, and whether you use options. If you don't use this data, it's recommended to set it to false_" +
-        "Ru:Если true - то запрашиваем информацию по открытому интересу, фандингу, объему24 и если вы используйте опционы. Если вы не используйте эти данные, то рекомендуется установить false_");
+        "Eng:If True, we request information on open interest, funding, and volume24. It should also be true if you're using options. If you're not using this data, it's recommended to set it to False_" +
+        "Ru:Если True - то запрашиваем информацию по открытому интересу, фандингу, объему24. А так же должно быть true, если вы задействуйте опционы. Если вы не используйте эти данные, то рекомендуется установить False_");
 
         public string Label253 => OsLocalization.ConvertToLocString(
-         "Eng:If true, we request options. If you don't use them, we recommend setting it to false_" +
-         "Ru:Если true - то запрашиваем опционы. Если вы их не используйте, то ремендуется установить false_");
+         "Eng:If True, we request options. If you don't use them, we recommend setting it to False_" +
+         "Ru:Если True - то запрашиваем опционы. Если вы их не используйте, то ремендуется установить False_");
 
+        public string Label254 => OsLocalization.ConvertToLocString(
+         "Eng:Selection of perpetual futures. USDT - USDT-M perpetual futures, where the stablecoin USDT is used as margin (collateral) and the currency for calculating profit and loss. COIN - COIN-M perpetual futures, where the underlying cryptocurrency (e.g., BTC or ETH) serves as both collateral and the currency for calculating profit and loss_" +
+         "Ru:Выбор бессрочных фьючерсов. USDT - бессрочные фьючерсы USDT-M, где в качестве маржи (залога) и валюты для расчета прибыли и убытков используется стейблкоин USDT. COIN - бессрочные фьючерсы COIN-M, где базовой криптовалютой (например, BTC или ETH) выступает и залог, и валюта расчета прибыли и убытков_");
+
+        public string Label255 => OsLocalization.ConvertToLocString(
+        "Eng:Select a hedging mode. If True, hedging mode is enabled; if False, one-way mode is enabled_" +
+        "Ru:Выбор режима хеджирования. Если True - то включен режим хеджирования, если False - включен односторонний режим_");
+
+        public string Label256 => OsLocalization.ConvertToLocString(
+         "Eng:Set leverage from 1 to the maximum allowed by the exchange_" +
+         "Ru:Устанавливаем кредитное плечо от 1 до максимально разрешенного биржей_");
 
 
 
