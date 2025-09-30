@@ -39,11 +39,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             TextBoxClientName.Text = _client.Name;
             TextBoxClientName.TextChanged += TextBoxClientName_TextChanged;
 
-            ComboBoxRegime.Items.Add(TradeClientRegime.Manual.ToString());
-            ComboBoxRegime.Items.Add(TradeClientRegime.Auto.ToString());
-            ComboBoxRegime.SelectedItem = _client.Regime.ToString();
-            ComboBoxRegime.SelectionChanged += ComboBoxRegime_SelectionChanged;
-
             TextBoxUid.Text= _client.ClientUid.ToString();
 
             CreateConnectorsGrid();
@@ -57,7 +52,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             this.Title = OsLocalization.Trader.Label592 + " " + _client.Number + " " + _client.Name;
 
             LabelName.Content = OsLocalization.Trader.Label61;
-            LabelRegime.Content = OsLocalization.Trader.Label468;
 
             TabItem1.Header = OsLocalization.Trader.Label585;
             TabItem2.Header = OsLocalization.Trader.Label587;
@@ -98,19 +92,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
         }
 
         private bool _isClosed;
-
-        private void ComboBoxRegime_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            try
-            {
-                Enum.TryParse(ComboBoxRegime.SelectedItem.ToString(),out _client.Regime);
-                _client.Save();
-            }
-            catch
-            {
-                // ignore
-            }
-        }
 
         private void TextBoxClientName_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -680,22 +661,6 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum6);
 
-            DataGridViewColumn colum7 = new DataGridViewColumn();
-            colum7.CellTemplate = cell0;
-            colum7.HeaderText = OsLocalization.Trader.Label184; //"On/Off";
-            colum7.ReadOnly = false;
-            colum7.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _clientRobotsGrid.Columns.Add(colum7);
-
-            DataGridViewColumn colum8 = new DataGridViewColumn();
-            colum8.CellTemplate = cell0;
-            colum8.HeaderText = OsLocalization.Trader.Label185; // "Emulator";
-            colum8.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colum8.ReadOnly = false;
-            colum8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _clientRobotsGrid.Columns.Add(colum8);
-
             DataGridViewColumn colum9 = new DataGridViewColumn();
             colum9.CellTemplate = cell0;
             colum9.HeaderText = ""; //"Chart";
@@ -703,12 +668,40 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             colum9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _clientRobotsGrid.Columns.Add(colum9);
 
-            DataGridViewColumn column10 = new DataGridViewColumn();
-            column10.HeaderText = ""; // Delete
-            column10.CellTemplate = cell0;
-            column10.ReadOnly = true;
-            column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _clientRobotsGrid.Columns.Add(column10);
+            DataGridViewColumn colum10 = new DataGridViewColumn();
+            colum10.CellTemplate = cell0;
+            colum10.HeaderText = ""; //"Close poses";
+            colum10.ReadOnly = false;
+            colum10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum10);
+
+            DataGridViewColumn colum11 = new DataGridViewColumn();
+            colum11.CellTemplate = cell0;
+            colum11.HeaderText = ""; //"Off";
+            colum11.ReadOnly = false;
+            colum11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum11);
+
+            DataGridViewColumn colum12 = new DataGridViewColumn();
+            colum12.CellTemplate = cell0;
+            colum12.HeaderText = ""; //"On";
+            colum12.ReadOnly = false;
+            colum12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum12);
+
+            DataGridViewColumn colum13 = new DataGridViewColumn();
+            colum13.CellTemplate = cell0;
+            colum13.HeaderText = OsLocalization.Trader.Label621; //"On";
+            colum13.ReadOnly = false;
+            colum13.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(colum13);
+
+            DataGridViewColumn column15 = new DataGridViewColumn();
+            column15.HeaderText = ""; // Delete
+            column15.CellTemplate = cell0;
+            column15.ReadOnly = true;
+            column15.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _clientRobotsGrid.Columns.Add(column15);
 
             HostClientRobots.Child = _clientRobotsGrid;
             _clientRobotsGrid.CellClick += _clientRobotsGrid_CellClick;
@@ -731,10 +724,12 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 //4 "Deploy status"
                 //5 "Deploy";
                 //6 "Collapse";
-                //7 "On/Off";
-                //8 "Emulator";
-                //9 "Chart";
-                //10 Delete / Add new
+                //7 "Chart";
+                //8 Close poses
+                //9 Off
+                //10 On
+                //11 Is On
+                //11 Delete / Add new
 
                 int columnIndex = e.ColumnIndex;
                 int rowIndex = e.RowIndex;
@@ -745,12 +740,12 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 }
 
                 if (rowIndex == _client.RobotsSettings.Count
-                    && columnIndex == 10)
+                    && columnIndex == 12)
                 { // Add new
                     _client.AddNewRobot();
                 }
                 else if (rowIndex < _client.RobotsSettings.Count
-                   && columnIndex == 10)
+                   && columnIndex == 12)
                 { // Delete
                     int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
 
@@ -792,11 +787,30 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                     RePaintRobotsGrid();
                 }
                 else if (rowIndex < _client.RobotsSettings.Count
-                    && columnIndex == 9)
-                { //8 "Chart";
-
+                    && columnIndex == 7)
+                { //7 "Chart";
                     int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
                     ShowRobotsChartDialog(number);
+                }
+                else if (rowIndex < _client.RobotsSettings.Count
+                    && columnIndex == 8)
+                { //8 "Close poses";
+                    int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    CloseAllPositionsInRobot(number);
+                }
+                else if (rowIndex < _client.RobotsSettings.Count
+                    && columnIndex == 9)
+                { //9 "Off";
+                    int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    OffRobot(number);
+                    RePaintRobotsGrid();
+                }
+                else if (rowIndex < _client.RobotsSettings.Count
+                    && columnIndex == 10)
+                { //10 "On";
+                    int number = Convert.ToInt32(_clientRobotsGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                    OnRobot(number);
+                    RePaintRobotsGrid();
                 }
             }
             catch (Exception ex)
@@ -822,10 +836,12 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
                 //4 "Deploy status"
                 //5 "Deploy";
                 //6 "Collapse";
-                //7 On/Off";
-                //8 "Emulator";
-                //9 "Chart";
-                //10 Delete
+                //7 "Chart";
+                //8 Close poses
+                //9 Off
+                //10 On
+                //11 Is On
+                //11 Delete / Add new
 
                 _clientRobotsGrid.Rows.Clear();
 
@@ -860,10 +876,12 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             //4 "Deploy status"
             //5 "Deploy";
             //6 "Collapse";
-            //7 On/Off";
-            //8 "Emulator";
-            //9 "Chart";
-            //10 Delete
+            //7 "Chart";
+            //8 Close poses
+            //9 Off
+            //10 On
+            //11 Is On
+            //11 Delete / Add new
 
             DataGridViewRow row = new DataGridViewRow();
 
@@ -877,7 +895,9 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             row.Cells.Add(new DataGridViewTextBoxCell());// 7
             row.Cells.Add(new DataGridViewTextBoxCell());// 8
             row.Cells.Add(new DataGridViewTextBoxCell());// 9
-            row.Cells.Add(new DataGridViewButtonCell());// 10
+            row.Cells.Add(new DataGridViewTextBoxCell());// 10
+            row.Cells.Add(new DataGridViewTextBoxCell());// 11
+            row.Cells.Add(new DataGridViewButtonCell());// 12
 
             row.Cells[^1].Value = OsLocalization.Trader.Label589;
 
@@ -898,10 +918,12 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             //4 "Deploy status"
             //5 "Deploy";
             //6 "Collapse";
-            //7 On/Off";
-            //8 "Emulator";
-            //9 "Chart";
-            //10 Delete
+            //7 "Chart";
+            //8 Close poses
+            //9 Off
+            //10 On
+            //11 Is On
+            //12 Delete / Add new
 
             DataGridViewRow row = new DataGridViewRow();
 
@@ -918,7 +940,7 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             row.Cells[^1].Value = OsLocalization.Trader.Label296;
 
             row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[^1].Value = robot.DeployStatus;
+            row.Cells[^1].Value = _client.GetDeployStatus(robot.Number);
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].Value = OsLocalization.Trader.Label588;
@@ -926,16 +948,20 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].Value = OsLocalization.Trader.Label600;
 
-            row.Cells.Add(new DataGridViewCheckBoxCell());
-            row.Cells[^1].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            row.Cells[^1].Value = robot.RobotsIsOn;
-
-            row.Cells.Add(new DataGridViewCheckBoxCell());
-            row.Cells[^1].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            row.Cells[^1].Value = robot.EmulatorIsOn;
-
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].Value = OsLocalization.Trader.Label172;
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].Value = OsLocalization.Trader.Label619;
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].Value = OsLocalization.Trader.Label620;
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].Value = OsLocalization.Trader.Label621;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[^1].Value = robot.EventsIsOn;
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].Value = OsLocalization.Trader.Label470;
@@ -1025,7 +1051,50 @@ namespace OsEngine.OsTrader.ClientManagement.Gui
 
         private void ShowRobotsChartDialog(int robotNumber)
         {
-            _client.ShowRobotsChartDialog(robotNumber);
+            string error = "";
+
+            _client.ShowRobotsChartDialog(robotNumber, out error);
+
+            if (error != "Success")
+            {
+                _client.SendNewLogMessage(error, Logging.LogMessageType.Error);
+            }
+        }
+
+        private void CloseAllPositionsInRobot(int robotNumber)
+        {
+            string error = "";
+
+            _client.CloseAllPositionsInRobot(robotNumber, out error);
+
+            if (error != "Success")
+            {
+                _client.SendNewLogMessage(error, Logging.LogMessageType.Error);
+            }
+        }
+
+        private void OffRobot(int robotNumber)
+        {
+            string error = "";
+
+            _client.OffRobot(robotNumber, out error);
+
+            if (error != "Success")
+            {
+                _client.SendNewLogMessage(error, Logging.LogMessageType.Error);
+            }
+        }
+
+        private void OnRobot(int robotNumber)
+        {
+            string error = "";
+
+            _client.OnRobot(robotNumber, out error);
+
+            if (error != "Success")
+            {
+                _client.SendNewLogMessage(error, Logging.LogMessageType.Error);
+            }
         }
 
         #endregion

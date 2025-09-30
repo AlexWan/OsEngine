@@ -3,9 +3,11 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
 
@@ -86,6 +88,113 @@ namespace OsEngine.OsTrader.ClientManagement
                     ServerParameters.Add(newParam);
                 }
             }
+        }
+
+        public bool IsMyServer(AServer server)
+        {
+            if(server.ServerType != ServerType)
+            {
+                return false;
+            }
+
+            List<IServerParameter> parametersServer = server.ServerParameters;
+
+            List<TradeClientConnectorParameter> parametersDescription = ServerParameters;
+
+            if(parametersDescription.Count == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < parametersDescription.Count; i++)
+            {
+                TradeClientConnectorParameter parameterD = parametersDescription[i];
+
+                bool isInArray = false;
+
+                for (int j = 0; j < parametersServer.Count; j++)
+                {
+                    IServerParameter serverParameter = parametersServer[j];
+
+                    if (serverParameter.Name == parameterD.ParameterName)
+                    {
+                        if (serverParameter.Type == ServerParameterType.Bool)
+                        {
+                            ServerParameterBool serverParameterRealization = (ServerParameterBool)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                Convert.ToBoolean(parameterD.ParameterValue))
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.String)
+                        {
+                            ServerParameterString serverParameterRealization = (ServerParameterString)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                parameterD.ParameterValue)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Password)
+                        {
+                            ServerParameterPassword serverParameterRealization = (ServerParameterPassword)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                parameterD.ParameterValue)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Int)
+                        {
+                            ServerParameterInt serverParameterRealization = (ServerParameterInt)serverParameter;
+
+                            if (serverParameterRealization.Value.ToString() ==
+                                parameterD.ParameterValue)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Decimal)
+                        {
+                            ServerParameterDecimal serverParameterRealization = (ServerParameterDecimal)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                parameterD.ParameterValue.ToDecimal())
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                        else if (serverParameter.Type == ServerParameterType.Enum)
+                        {
+                            ServerParameterEnum serverParameterRealization = (ServerParameterEnum)serverParameter;
+
+                            if (serverParameterRealization.Value ==
+                                parameterD.ParameterValue)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+                    }
+
+                }
+
+                if (isInArray == false)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         #region Parameters

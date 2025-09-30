@@ -17,7 +17,7 @@ namespace OsEngine.OsTrader.ClientManagement
     /// </summary>
     public partial class ClientsMasterUi : Window
     {
-        ClientManagementMaster _master;
+        private ClientManagementMaster _master;
 
         public ClientsMasterUi()
         {
@@ -38,6 +38,7 @@ namespace OsEngine.OsTrader.ClientManagement
             TabItem1.Header = OsLocalization.Trader.Label584;
             TabItem2.Header = OsLocalization.Trader.Label332;
             this.Title = OsLocalization.Trader.Label591;
+            ButtonSynchronize.Content = OsLocalization.Trader.Label622;
 
             Closed += ClientsUi_Closed;
         }
@@ -66,6 +67,11 @@ namespace OsEngine.OsTrader.ClientManagement
         private void _master_DeleteClientEvent(TradeClient client)
         {
             RePaintClientsGrid();
+        }
+
+        private void ButtonSynchronize_Click(object sender, RoutedEventArgs e)
+        {
+            _master.Synchronize();
         }
 
         #region Clients grid
@@ -289,6 +295,7 @@ namespace OsEngine.OsTrader.ClientManagement
         }
 
         #endregion
+
 
     }
 }

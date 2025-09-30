@@ -5,7 +5,10 @@
 
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.ClientManagement.Gui;
+using OsEngine.OsTrader.Panels;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,6 +20,11 @@ namespace OsEngine.OsTrader.ClientManagement
         #region Static part
 
         public static ClientManagementMaster Instance { get; set; }
+
+        public static void Activate()
+        {
+            Instance = new ClientManagementMaster();
+        }
 
         #endregion
 
@@ -33,6 +41,13 @@ namespace OsEngine.OsTrader.ClientManagement
             }
 
             LoadClients();
+
+            ServerMaster.ShowClientManagerDialogEvent += ServerMaster_ShowClientManagerDialogEvent;
+        }
+
+        private void ServerMaster_ShowClientManagerDialogEvent()
+        {
+            this.ShowDialogClientsMaster();
         }
 
         public Log Log;
@@ -144,6 +159,124 @@ namespace OsEngine.OsTrader.ClientManagement
         public event Action<TradeClient> DeleteClientEvent;
 
         public event Action ClientChangeNameEvent;
+
+        #endregion
+
+        #region Synchronize
+
+        public void Synchronize()
+        {
+            try
+            {
+                // 1 сворачиваем не работающие сервера
+                CollapseDontUseServers();
+
+                // 2 сворачиваем не принадлежащие клиентам роботов
+                CollapseDontUseRobots();
+
+                // 3 развернуть все необходимые коннекторы
+                DeployAllConnectors();
+
+                // 4 развернуть все необходимые роботы
+                DeployAllRobots();
+
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
+        public void CollapseDontUseServers()
+        {
+            List<AServer> servers = ServerMaster.GetAServers();
+
+            if(servers.Count == 0)
+            {
+                return;
+            }
+
+            AServer[] serversArray = servers.ToArray();
+
+            for(int i = 0;i < serversArray.Length;i++)
+            {
+                if (ServerIsUsedInClients(serversArray[i]) == false)
+                {
+                    ServerMaster.DeleteServer(serversArray[i].ServerType, serversArray[i].ServerNum);
+                }
+            }
+        }
+
+        private bool ServerIsUsedInClients(AServer server)
+        {
+            for (int i = 0; i < Clients.Count; i++)
+            {
+                TradeClient client = Clients[i];
+
+                if (client.IsMyServer(server) == true)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void CollapseDontUseRobots()
+        {
+            List<BotPanel> robots = OsTraderMaster.Master.PanelsArray;
+
+            if(robots.Count == 0)
+            {
+                return;
+            }
+
+            BotPanel[] robotsArray = robots.ToArray();
+
+            for(int i = 0;i < robotsArray.Length;i++)
+            {
+                BotPanel bot = robotsArray[i];
+
+                if(BotIsUsedClients(bot) == false)
+                {
+                    bot.OnOffEventsInTabs = false;
+                    OsTraderMaster.Master.DeleteRobotByInstance(bot);
+                }
+            }
+        }
+
+        private bool BotIsUsedClients(BotPanel bot)
+        {
+            for (int i = 0; i < Clients.Count; i++)
+            {
+                TradeClient client = Clients[i];
+
+                if (client.IsMyRobot(bot)== true)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void DeployAllConnectors()
+        {
+            for(int i = 0;i < Clients.Count;i++)
+            {
+                TradeClient client = Clients[i];
+
+                client.DeployAndConnectAllServers();
+            }
+        }
+
+        public void DeployAllRobots()
+        {
+            for (int i = 0; i < Clients.Count; i++)
+            {
+                TradeClient client = Clients[i];
+
+                client.DeployAllRobots();
+            }
+        }
 
         #endregion
 

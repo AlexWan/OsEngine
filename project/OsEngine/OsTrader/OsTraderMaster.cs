@@ -88,7 +88,7 @@ namespace OsEngine.OsTrader
                 ServerMaster.ActivateCopyMaster();
                 ServerAvailabilityMaster.Activate();
 
-                ClientManagementMaster clientManagementMaster = new ClientManagementMaster();
+                ClientManagementMaster.Activate();
 
                 if (PrimeSettingsMaster.MemoryCleanerRegime == MemoryCleanerRegime.At5Minutes)
                 {

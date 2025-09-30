@@ -249,6 +249,30 @@ namespace OsEngine.Market
             }
         }
 
+        public static void SaveServerInstanceByType(ServerType serverType)
+        {
+            try
+            {
+                List<AServer> serversArray = new List<AServer>();
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType == serverType)
+                    {
+                        serversArray.Add((AServer)servers[i]);
+                    }
+                }
+
+                TrySaveServerInstance(serversArray);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
         #endregion
 
         #region Creating and storing servers
@@ -860,11 +884,6 @@ namespace OsEngine.Market
         {
             try
             {
-                if (uniqueNum < 1)
-                {
-                    return;
-                }
-
                 lock (_serversArrayLocker)
                 {
                     for (int i = 0; i < _servers.Count; i++)
@@ -876,6 +895,14 @@ namespace OsEngine.Market
                             if (serverCurrent.ServerType == type
                                 && serverCurrent.ServerNum == uniqueNum)
                             {
+                                if (uniqueNum < 1)
+                                {
+                                    // стандартный сервер под номером 0. Удалять нельзя
+                                    // отключаем
+                                    serverCurrent.StopServer();
+                                    return;
+                                }
+
                                 serverCurrent.StopServer();
                                 serverCurrent.Delete();
 
@@ -901,9 +928,9 @@ namespace OsEngine.Market
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1963,7 +1990,17 @@ namespace OsEngine.Market
             }
         }
 
+        public static void ShowClientManagerDialog()
+        {
+            if (ShowClientManagerDialogEvent != null)
+            {
+                ShowClientManagerDialogEvent();
+            }
+        }
+
         public static event Action ShowApiDialogEvent;
+
+        public static event Action ShowClientManagerDialogEvent;
 
         #endregion
 
@@ -2054,6 +2091,8 @@ namespace OsEngine.Market
             // 3 создаём сервер
 
             ServerMaster.CreateServer(typeServer, false, serverNum);
+
+            ServerMaster.SaveServerInstanceByType(typeServer);
 
             myServers = ServerMaster.GetAServers();
 

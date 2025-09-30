@@ -2374,5 +2374,21 @@ namespace OsEngine.Language
         public string Label618 => OsLocalization.ConvertToLocString(
         "Eng:Identifier (UID)_" +
         "Ru:Идентификатор_");
+
+        public string Label619 => OsLocalization.ConvertToLocString(
+        "Eng:Close positions_" +
+        "Ru:Закрыть позиции_");
+
+        public string Label620 => OsLocalization.ConvertToLocString(
+        "Eng:Off_" +
+        "Ru:Выкл_");
+
+        public string Label621 => OsLocalization.ConvertToLocString(
+        "Eng:On_" +
+        "Ru:Вкл_");
+
+        public string Label622 => OsLocalization.ConvertToLocString(
+        "Eng:Synchronize_" +
+        "Ru:Синхронизировать_");
     }
 }

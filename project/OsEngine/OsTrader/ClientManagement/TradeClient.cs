@@ -3,12 +3,10 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Candles.Series;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.MoexAlgopack.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Robots;
@@ -22,7 +20,7 @@ namespace OsEngine.OsTrader.ClientManagement
     {
         public TradeClient()
         {
-          
+
         }
 
         public Log Log;
@@ -37,7 +35,7 @@ namespace OsEngine.OsTrader.ClientManagement
             {
                 _number = value;
 
-                if(Log == null)
+                if (Log == null)
                 {
                     Log = new Log("TradeClient" + Number, Entity.StartProgram.IsOsTrader);
                 }
@@ -53,22 +51,20 @@ namespace OsEngine.OsTrader.ClientManagement
             }
             set
             {
-                if(_name == value)
+                if (_name == value)
                 {
                     return;
                 }
 
-                _name = value.Replace("#","").Replace("&", "");
+                _name = value.Replace("#", "").Replace("&", "");
 
-                if(NameChangeEvent != null)
+                if (NameChangeEvent != null)
                 {
                     NameChangeEvent();
                 }
             }
         }
         private string _name;
-
-        public TradeClientRegime Regime;
 
         public string ClientUid;
 
@@ -88,7 +84,7 @@ namespace OsEngine.OsTrader.ClientManagement
                 {
                     writer.WriteLine(Number);
                     writer.WriteLine(Name);
-                    writer.WriteLine(Regime.ToString());
+                    writer.WriteLine("");
                     writer.WriteLine(ClientUid);
                     writer.WriteLine("");
                     writer.WriteLine("");
@@ -119,7 +115,7 @@ namespace OsEngine.OsTrader.ClientManagement
                 {
                     Number = Convert.ToInt32(reader.ReadLine());
                     Name = reader.ReadLine();
-                    Enum.TryParse(reader.ReadLine(), out Regime);
+                    reader.ReadLine();
                     ClientUid = reader.ReadLine();
                     reader.ReadLine();
                     reader.ReadLine();
@@ -141,7 +137,7 @@ namespace OsEngine.OsTrader.ClientManagement
         {
             try
             {
-                if(RobotsSettings.Count > 0)
+                if (RobotsSettings.Count > 0)
                 {
                     TradeClientRobot[] robots = RobotsSettings.ToArray();
 
@@ -151,7 +147,7 @@ namespace OsEngine.OsTrader.ClientManagement
                     }
                 }
 
-                if(ConnectorsSettings.Count > 0)
+                if (ConnectorsSettings.Count > 0)
                 {
                     TradeClientConnector[] connectors = ConnectorsSettings.ToArray();
 
@@ -182,11 +178,11 @@ namespace OsEngine.OsTrader.ClientManagement
         {
             string saveStr = "";
 
-            for(int i = 0;i < ConnectorsSettings.Count;i++)
+            for (int i = 0; i < ConnectorsSettings.Count; i++)
             {
                 saveStr += ConnectorsSettings[i].GetSaveString();
 
-                if(i + 1 != ConnectorsSettings.Count)
+                if (i + 1 != ConnectorsSettings.Count)
                 {
                     saveStr += "#";
                 }
@@ -199,11 +195,11 @@ namespace OsEngine.OsTrader.ClientManagement
         {
             string[] connectors = saveStr.Split('#');
 
-            for(int i = 0;i < connectors.Length;i++)
+            for (int i = 0; i < connectors.Length; i++)
             {
                 string currentSaveStr = connectors[i];
 
-                if(string.IsNullOrEmpty(currentSaveStr) == true)
+                if (string.IsNullOrEmpty(currentSaveStr) == true)
                 {
                     continue;
                 }
@@ -297,7 +293,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
         private void LoadRobotsFromString(string saveStr)
         {
-            if(saveStr == null)
+            if (saveStr == null)
             {
                 return;
             }
@@ -375,14 +371,132 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public void UpdateInfo()
         {
-            if(RobotsSettings.Count == 0)
+            if (RobotsSettings.Count == 0)
             {
                 return;
             }
-            if(NewRobotEvent != null)
+            if (NewRobotEvent != null)
             {
                 NewRobotEvent(RobotsSettings[0]);
             }
+        }
+
+        public string GetDeployStatus(int number)
+        {
+            BotPanel bot = GetBotPanel(number);
+
+            if (bot != null)
+            {
+                return "Deploy";
+            }
+            else
+            {
+                return "Collapse";
+            }
+        }
+
+        public BotPanel GetBotPanel(int robotNumber)
+        {
+            try
+            {
+                // 1 берём настройки робота.
+
+                TradeClientRobot botClient = null;
+
+                for (int i = 0; i < RobotsSettings.Count; i++)
+                {
+                    if (RobotsSettings[i].Number == robotNumber)
+                    {
+                        botClient = RobotsSettings[i];
+                        break;
+                    }
+                }
+
+                if (botClient == null)
+                {
+                    return null;
+                }
+
+                // 1.1. Костыль на доступные данных по названию робота в слепке робота
+
+                if (botClient.BotClassName == "None"
+                    || string.IsNullOrEmpty(botClient.BotClassName))
+                {
+                    return null;
+                }
+
+                string botName = botClient.UniqueNameFull;
+
+                // 2 ищем робота в общих массивах ботов
+
+                BotPanel bot = null;
+
+                List<BotPanel> robotsInArray = OsTraderMaster.Master.PanelsArray;
+
+                for (int i = 0; i < robotsInArray.Count; i++)
+                {
+                    if (robotsInArray[i].NameStrategyUniq == botName)
+                    {
+                        bot = robotsInArray[i];
+                        break;
+                    }
+                }
+
+                return bot;
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
+
+        public TradeClientRobot GetBotSettings(int robotNumber)
+        {
+            try
+            {
+                // 1 берём настройки робота.
+
+                TradeClientRobot botClient = null;
+
+                for (int i = 0; i < RobotsSettings.Count; i++)
+                {
+                    if (RobotsSettings[i].Number == robotNumber)
+                    {
+                        botClient = RobotsSettings[i];
+                        break;
+                    }
+                }
+
+                if (botClient == null)
+                {
+                    return null;
+                }
+
+                return botClient;
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
+
+        public bool IsMyRobot(BotPanel robot)
+        {
+            for (int i = 0; i < RobotsSettings.Count; i++)
+            {
+                TradeClientRobot botSettings = RobotsSettings[i];
+
+                if (botSettings.UniqueNameFull == robot.NameStrategyUniq)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public event Action<TradeClientRobot> NewRobotEvent;
@@ -392,6 +506,17 @@ namespace OsEngine.OsTrader.ClientManagement
         #endregion
 
         #region Client server controls
+
+        public void DeployAndConnectAllServers()
+        {
+            for (int i = 0; i < ConnectorsSettings.Count;i++)
+            {
+                int number = ConnectorsSettings[i].Number;
+
+                DeployServer(number);
+                ConnectServer(number);
+            }
+        }
 
         public AServer DeployServer(int connectorNumber)
         {
@@ -459,9 +584,41 @@ namespace OsEngine.OsTrader.ClientManagement
 
         }
 
+        public bool IsMyServer(AServer server)
+        {
+            for(int i = 0;i < ConnectorsSettings.Count;i++)
+            {
+                TradeClientConnector connector = ConnectorsSettings[i];
+
+                if (connector.IsMyServer(server))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         #endregion
 
-        #region Deploy robots and servers
+        #region Deploy robots
+
+        public void DeployAllRobots()
+        {
+            for (int i = 0; i < RobotsSettings.Count; i++)
+            {
+                int number = RobotsSettings[i].Number;
+
+                string error;
+
+                DeployOrUpdateRobot(number, out error);
+
+                if(error != "Success")
+                {
+                    SendNewLogMessage(error,LogMessageType.Error);
+                }
+            }
+        }
 
         public void DeployOrUpdateRobot(int robotNumber, out string error)
         {
@@ -487,7 +644,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
             // 1.1. Костыль на доступные данных по названию робота в слепке робота
 
-            if(botClient.BotClassName == "None"
+            if (botClient.BotClassName == "None"
                 || string.IsNullOrEmpty(botClient.BotClassName))
             {
                 error = "No bot class name. Class: " + botClient.BotClassName;
@@ -496,14 +653,14 @@ namespace OsEngine.OsTrader.ClientManagement
 
             // 1.2. Костыль на доступность настроек коннектора
 
-            if(this.ConnectorsSettings == null
+            if (this.ConnectorsSettings == null
                 || this.ConnectorsSettings.Count == 0)
             {
                 error = "No connectors settings to client";
                 return;
             }
 
-            for(int i = 0;i < ConnectorsSettings.Count;i++)
+            for (int i = 0; i < ConnectorsSettings.Count; i++)
             {
                 if (ConnectorsSettings[i].ServerParameters.Count == 0)
                 {
@@ -527,7 +684,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
             List<BotPanel> robotsInArray = OsTraderMaster.Master.PanelsArray;
 
-            for(int i = 0;i < robotsInArray.Count;i++)
+            for (int i = 0; i < robotsInArray.Count; i++)
             {
                 if (robotsInArray[i].NameStrategyUniq == botName)
                 {
@@ -535,10 +692,10 @@ namespace OsEngine.OsTrader.ClientManagement
                     break;
                 }
             }
-         
+
             // 3 создаём нового робота, если старого не нашли
 
-            if(bot == null)
+            if (bot == null)
             {
                 try
                 {
@@ -576,26 +733,29 @@ namespace OsEngine.OsTrader.ClientManagement
                             && bot.Parameters[i2].Type == parameterToSet.Type)
                         {
                             bot.Parameters[i2].LoadParamFromString(parameterToSet.GetStringToSave().Split('#'));
+                            bot.SaveParameters();
                             break;
                         }
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 error = "Can`t set parameters to bot. Error: " + ex.ToString();
                 return;
             }
 
+            bot.OnOffEventsInTabs = botClient.EventsIsOn;
+
             // 5 разворачиваем коннекторы для робота
 
             List<AServer> servers = new List<AServer>();
 
-            for(int i = 0;i < ConnectorsSettings.Count;i++)
+            for (int i = 0; i < ConnectorsSettings.Count; i++)
             {
                 AServer server = DeployServer(ConnectorsSettings[i].Number);
 
-                if(server == null)
+                if (server == null)
                 {
                     error = "Can`t create server by settings. ServerNum: " + ConnectorsSettings[i].Number;
                     return;
@@ -610,9 +770,9 @@ namespace OsEngine.OsTrader.ClientManagement
 
             DateTime _endAwait = DateTime.Now.AddMinutes(1);
 
-            while(true)
+            while (true)
             {
-                if(_endAwait < DateTime.Now)
+                if (_endAwait < DateTime.Now)
                 {
                     error = "No connection to server.";
                     return;
@@ -628,7 +788,7 @@ namespace OsEngine.OsTrader.ClientManagement
                     }
                 }
 
-                if(allConnected == true)
+                if (allConnected == true)
                 {
                     break;
                 }
@@ -638,18 +798,18 @@ namespace OsEngine.OsTrader.ClientManagement
 
             List<IIBotTab> tabsInRobot = bot.GetTabs();
 
-            if(botClient.SourceSettings.Count != tabsInRobot.Count)
+            if (botClient.SourceSettings.Count != tabsInRobot.Count)
             {
                 error = "botClient.SourceSettings.Count != tabsInRobot.Count";
                 return;
             }
 
-            for(int i = 0;i < botClient.SourceSettings.Count;i++)
+            for (int i = 0; i < botClient.SourceSettings.Count; i++)
             {
                 IIBotTab tabInRobot = tabsInRobot[i];
                 TradeClientSourceSettings tabInClient = botClient.SourceSettings[i];
 
-                if(tabInClient.BotTabType != tabInRobot.TabType)
+                if (tabInClient.BotTabType != tabInRobot.TabType)
                 {
                     error = "tabInClient.BotTabType != tabInRobot.TabType";
                     return;
@@ -710,7 +870,7 @@ namespace OsEngine.OsTrader.ClientManagement
                 }
             }
 
-            if(bot != null)
+            if (bot != null)
             {
                 OsTraderMaster.Master.DeleteRobotByInstance(bot);
             }
@@ -718,16 +878,67 @@ namespace OsEngine.OsTrader.ClientManagement
             error = "Success";
         }
 
-        public void ShowRobotsChartDialog(int robotNumber)
+        public void ShowRobotsChartDialog(int robotNumber, out string error)
         {
+            // 1 берём настройки робота.
 
+            TradeClientRobot botClient = null;
 
+            for (int i = 0; i < RobotsSettings.Count; i++)
+            {
+                if (RobotsSettings[i].Number == robotNumber)
+                {
+                    botClient = RobotsSettings[i];
+                    break;
+                }
+            }
 
+            if (botClient == null)
+            {
+                error = "No number robot in array. Number: " + robotNumber;
+                return;
+            }
+
+            // 1.1. Костыль на доступные данных по названию робота в слепке робота
+
+            if (botClient.BotClassName == "None"
+                || string.IsNullOrEmpty(botClient.BotClassName))
+            {
+                error = "No bot class name. Class: " + botClient.BotClassName;
+                return;
+            }
+
+            string botName = botClient.UniqueNameFull;
+
+            // 2 сначала ищем робота в общих массивах ботов
+
+            BotPanel bot = null;
+
+            List<BotPanel> robotsInArray = OsTraderMaster.Master.PanelsArray;
+
+            for (int i = 0; i < robotsInArray.Count; i++)
+            {
+                if (robotsInArray[i].NameStrategyUniq == botName)
+                {
+                    bot = robotsInArray[i];
+                    break;
+                }
+            }
+
+            if (bot == null)
+            {
+                error = "No deploy robot";
+                return;
+            }
+
+            bot.ShowChartDialog();
+
+            error = "Success";
         }
 
         private void SetSettingsInSource(IIBotTab tabInRobot, TradeClientSourceSettings tabInClient, AServer myServer)
         {
-            if(tabInRobot.TabType == BotTabType.Simple)
+            if (tabInRobot.TabType == BotTabType.Simple)
             {
                 BotTabSimple simple = (BotTabSimple)tabInRobot;
 
@@ -742,6 +953,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
                 simple.CommissionType = tabInClient.CommissionType;
                 simple.CommissionValue = tabInClient.CommissionValue;
+                simple.Connector.Save();
             }
             else if (tabInRobot.TabType == BotTabType.Index)
             {
@@ -758,6 +970,8 @@ namespace OsEngine.OsTrader.ClientManagement
                 index.AutoFormulaBuilder.IndexSecCount = tabInClient.IndexSecCount;
                 index.AutoFormulaBuilder.IndexMultType = tabInClient.IndexMultType;
                 index.AutoFormulaBuilder.DaysLookBackInBuilding = tabInClient.DaysLookBackInBuilding;
+                index.AutoFormulaBuilder.WriteLogMessageOnRebuild = false;
+                index.Save();
 
                 List<ActivatedSecurity> securitiesList = new List<ActivatedSecurity>();
 
@@ -783,7 +997,18 @@ namespace OsEngine.OsTrader.ClientManagement
                     securitiesList.Add(sec);
                 }
 
+                index.Creator = new MassSourcesCreator(StartProgram.IsOsTrader);
+                index.Creator.SecuritiesNames = securitiesList;
+                index.Creator.SaveTradesInCandles = tabInClient.SaveTradesInCandle;
+                index.Creator.PortfolioName = tabInClient.PortfolioName;
+                index.Creator.SecuritiesClass = securitiesList[0].SecurityClass;
+                index.Creator.CommissionType = tabInClient.CommissionType;
+                index.Creator.CommissionValue = tabInClient.CommissionValue;
+                index.Creator.ServerType = myServer.ServerType;
+                index.Creator.ServerName = myServer.ServerNameUnique;
+
                 index.SetNewSecuritiesList(securitiesList);
+                
             }
             else if (tabInRobot.TabType == BotTabType.Screener)
             {
@@ -797,6 +1022,7 @@ namespace OsEngine.OsTrader.ClientManagement
 
                 screener.ServerName = myServer.ServerNameUnique;
                 screener.ServerType = myServer.ServerType;
+                screener.PortfolioName = tabInClient.PortfolioName;
 
                 List<ActivatedSecurity> securitiesList = new List<ActivatedSecurity>();
 
@@ -827,6 +1053,73 @@ namespace OsEngine.OsTrader.ClientManagement
             }
         }
 
+        public void CloseAllPositionsInRobot(int robotNumber, out string error)
+        {
+            BotPanel bot = GetBotPanel(robotNumber);
+
+            if (bot != null)
+            {
+                bot.CloseAllToMarket();
+                error = "Success";
+                return;
+            }
+            else
+            {
+                error = "No deploy robot";
+                return;
+            }
+        }
+
+        public void OffRobot(int robotNumber, out string error)
+        {
+            TradeClientRobot botSettings = GetBotSettings(robotNumber);
+
+            if(botSettings != null)
+            {
+                botSettings.EventsIsOn = false;
+                Save();
+            }
+
+            BotPanel bot = GetBotPanel(robotNumber);
+
+            if (bot != null)
+            {
+                bot.OnOffEventsInTabs = false;
+                error = "Success";
+                return;
+            }
+            else
+            {
+                error = "No deploy robot";
+                return;
+            }
+        }
+
+        public void OnRobot(int robotNumber, out string error)
+        {
+            TradeClientRobot botSettings = GetBotSettings(robotNumber);
+
+            if (botSettings != null)
+            {
+                botSettings.EventsIsOn = true;
+                Save();
+            }
+
+            BotPanel bot = GetBotPanel(robotNumber);
+
+            if (bot != null)
+            {
+                bot.OnOffEventsInTabs = true;
+                error = "Success";
+                return;
+            }
+            else
+            {
+                error = "No deploy robot";
+                return;
+            }
+        }
+
         #endregion
     }
 
@@ -835,5 +1128,4 @@ namespace OsEngine.OsTrader.ClientManagement
         Manual,
         Auto
     }
-
 }

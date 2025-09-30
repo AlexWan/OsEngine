@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Clients main UI" Height="369" Width="655" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
-        <TabControl Foreground="Black" Margin="0,0,0,0">
+        <TabControl Foreground="Black" Margin="0,0,0,40">
             <TabItem Name="TabItem1" Header=" Clients ">
                 <Grid>
                     <WindowsFormsHost Name="HostClients" Foreground="Black" Margin="0,0,0,0"/>
@@ -19,6 +19,7 @@
                 </Grid>
             </TabItem>
         </TabControl>
+        <Button Name="ButtonSynchronize" Content="Synchronize" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="252" Click="ButtonSynchronize_Click"/>
 
     </Grid>
 </Window>

@@ -1598,7 +1598,7 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
-        /// emergency closing of all positions
+        /// emergency closing of all positions. And Off robots
         /// </summary>
         public void CloseAndOffAllToMarket()
         {
@@ -1621,6 +1621,27 @@ position => position.State != PositionStateType.OpeningFail
                             testServer.TesterRegime = TesterRegime.Pause;
                         }
 
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// emergency closing of all positions
+        /// </summary>
+        public void CloseAllToMarket()
+        {
+            try
+            {
+                for (int i = 0; i < _botTabs.Count; i++)
+                {
+                    if (_botTabs[i] is BotTabSimple bot)
+                    {
+                        bot.CloseAllAtMarket();
                     }
                 }
             }

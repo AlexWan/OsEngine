@@ -263,8 +263,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             if(UiSecuritiesSelection == null)
             {
-                _creator = GetCurrentCreator();
-                UiSecuritiesSelection = new MassSourcesCreateUi(_creator);
+                Creator = GetCurrentCreator();
+                UiSecuritiesSelection = new MassSourcesCreateUi(Creator);
                 UiSecuritiesSelection.LogMessageEvent += SendNewLogMessage;
                 UiSecuritiesSelection.Closed += _uiSecuritiesSelection_Closed;
                 UiSecuritiesSelection.Show();
@@ -301,7 +301,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             for (int i = 0; i < securitiesList.Count; i++)
             {
-                TryRunSecurity(securitiesList[i], _creator);
+                TryRunSecurity(securitiesList[i], Creator);
             }
 
             Save();
@@ -328,7 +328,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < connectors.Length; i++)
                 {
-                    if (connectors[i].TimeFrame != _creator.TimeFrame)
+                    if (connectors[i].TimeFrame != Creator.TimeFrame)
                     {
                         connectors[i].Delete();
                         isDeleteTab = true;
@@ -342,14 +342,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 // 2 создаём источники которые выбрал пользователь
 
-                _creator = UiSecuritiesSelection.SourcesCreator;
+                Creator = UiSecuritiesSelection.SourcesCreator;
 
-                if (_creator.SecuritiesNames != null &&
-                    _creator.SecuritiesNames.Count != 0)
+                if (Creator.SecuritiesNames != null &&
+                    Creator.SecuritiesNames.Count != 0)
                 {
-                    for (int i = 0; i < _creator.SecuritiesNames.Count; i++)
+                    for (int i = 0; i < Creator.SecuritiesNames.Count; i++)
                     {
-                        TryRunSecurity(_creator.SecuritiesNames[i], _creator);
+                        TryRunSecurity(Creator.SecuritiesNames[i], Creator);
                     }
 
                     Save();
@@ -367,7 +367,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public MassSourcesCreateUi UiSecuritiesSelection;
 
-        private MassSourcesCreator _creator;
+        public MassSourcesCreator Creator;
 
         /// <summary>
         /// request a class that stores a list of sources to be deployed for the index

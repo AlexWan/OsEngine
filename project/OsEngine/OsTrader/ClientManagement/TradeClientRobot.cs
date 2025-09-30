@@ -12,7 +12,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Robots;
 using System;
 using System.Collections.Generic;
-using System.Runtime.Intrinsics.Arm;
+
 
 namespace OsEngine.OsTrader.ClientManagement
 {
@@ -24,8 +24,6 @@ namespace OsEngine.OsTrader.ClientManagement
         }
 
         public int Number;
-
-        public bool IsOn;
 
         public string BotClassName
         {
@@ -65,41 +63,19 @@ namespace OsEngine.OsTrader.ClientManagement
 
         public bool IsScript = false;
 
-        public string DeployStatus
-        {
-            get
-            {
-                return "Unknown";
-            }
-        }
-
-        public bool RobotsIsOn
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public bool EmulatorIsOn
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public string ClientUid;
+
+        public bool EventsIsOn = true;
 
         public string GetSaveString()
         {
             string saveStr = "";
 
             saveStr += Number + "&";
-            saveStr += IsOn + "&";
+            saveStr += "&";
             saveStr += BotClassName + "&";
             saveStr += ClientUid + "&";
-            saveStr += "&";
+            saveStr += EventsIsOn + "&";
             saveStr += "&";
             saveStr += "&";
 
@@ -127,9 +103,14 @@ namespace OsEngine.OsTrader.ClientManagement
             string[] saveValues = saveString.Split("&");
 
             Number = Convert.ToInt32(saveValues[0]);
-            IsOn = Convert.ToBoolean(saveValues[1]);
+
             _botClassName = saveValues[2];
             ClientUid = saveValues[3];
+
+            if(saveValues[4] != "")
+            {
+                EventsIsOn = Convert.ToBoolean(saveValues[4]);
+            }
 
             string[] parameters = saveValues[7].Split("^");
 
