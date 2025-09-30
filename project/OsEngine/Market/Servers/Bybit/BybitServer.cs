@@ -751,11 +751,12 @@ namespace OsEngine.Market.Servers.Bybit
                             security.NameClass = oneSec.quoteCoin + "_Options";
                             security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
                             security.OptionType = oneSec.optionsType == "Call" ? OptionType.Call : OptionType.Put;
-                            security.UnderlyingAsset = oneSec.baseCoin + oneSec.quoteCoin;
 
                             // https://bybit-exchange.github.io/docs/api-explorer/v5/market/instrument
                             // get strike price from symbol signature
                             string[] tokens = oneSec.symbol.Split('-');
+
+                            security.UnderlyingAsset = oneSec.baseCoin + oneSec.quoteCoin + "-" + tokens[1] + ".P";
 
                             // Strike price is always the 3rd token
                             string strikeStr = tokens[2].Trim();
