@@ -40,6 +40,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
             CreateParameterBoolean("Extended Data", false);
             ServerParameters[3].ValueChange += HTXSwapServer_ValueChange;
 
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label254;
+            ServerParameters[3].Comment = OsLocalization.Market.Label255;
+            ServerParameters[4].Comment = OsLocalization.Market.Label249;
+            ServerParameters[5].Comment = OsLocalization.Market.Label256;
+            ServerParameters[6].Comment = OsLocalization.Market.Label252;
         }
 
         private void HTXSwapServer_ValueChange()
