@@ -12,7 +12,6 @@ using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
-using OsEngine.OsTrader.ClientManagement;
 using OsEngine.OsTrader.MemoryRH;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
@@ -87,8 +86,6 @@ namespace OsEngine.OsTrader
                 ServerMaster.ActivateProxy();
                 ServerMaster.ActivateCopyMaster();
                 ServerAvailabilityMaster.Activate();
-
-                ClientManagementMaster.Activate();
 
                 if (PrimeSettingsMaster.MemoryCleanerRegime == MemoryCleanerRegime.At5Minutes)
                 {

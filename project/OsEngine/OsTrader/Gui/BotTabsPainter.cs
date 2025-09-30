@@ -16,7 +16,6 @@ using OsEngine.Journal;
 using OsEngine.Logging;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market;
-using OsEngine.OsTrader.ClientManagement;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -982,19 +981,10 @@ colum9.HeaderText = "Journal";
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[5].Value = "";
 
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[6].Value = "";
+            row.Cells[6].ReadOnly = true;
             
-            if (_master._startProgram == StartProgram.IsOsTrader)
-            {
-                row.Cells.Add(new DataGridViewButtonCell());
-                row.Cells[6].Value = OsLocalization.Trader.Label584;  //"Clients";
-            }
-            else
-            {
-                row.Cells.Add(new DataGridViewTextBoxCell());
-                row.Cells[6].Value = "";
-                row.Cells[6].ReadOnly = true;
-            }
-
             row.Cells.Add(new DataGridViewButtonCell());
 
             if(_master._startProgram == StartProgram.IsOsTrader)
