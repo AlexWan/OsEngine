@@ -294,32 +294,62 @@ namespace OsEngine.Market.Servers.Finam.Entity
 
             string url = ServerPrefics + "/" + "export9.out?";
 
-            url += "market=" + SecurityFinam.MarketId + "&";
-            url += "em=" + SecurityFinam.Id + "&";
-            url += "code=" + SecurityFinam.Code + "&";
-            url += "df=" + (timeStart.Day) + "&";
-            url += "mf=" + (timeStart.Month - 1) + "&";
-            url += "yf=" + (timeStart.Year) + "&";
-            url += "from=" + timeFrom + "&";
-            url += "apply=0&";
-            url += "dt=" + (timeEnd.Day) + "&";
-            url += "mt=" + (timeEnd.Month - 1) + "&";
-            url += "yt=" + (timeEnd.Year) + "&";
-            url += "to=" + timeTo + "&";
-
-            url += "p=" + 1 + "&";
-            url += "f=" + urlToSec + "&";
-            url += "e=" + ".txt" + "&";
-            url += "cn=" + SecurityFinam.Name + "&";
-            url += "dtf=" + 1 + "&";
-            url += "tmf=" + 1 + "&";
-            url += "MSOR=" + 1 + "&";
-            url += "mstime=" + "on" + "&";
-            url += "mstimever=" + "1" + "&";
-            url += "sep=" + "1" + "&";
-            url += "sep2=" + "1" + "&";
-            url += "datf=" + "12" + "&";
-            url += "at=" + "0";
+            if (SecurityFinam.Url.Contains("undefined"))
+            {
+                url += "apply=0&";
+                url += "p=" + 1 + "&";
+                url += "e=" + ".txt" + "&";
+                url += "dtf=" + 1 + "&";
+                url += "tmf=" + 1 + "&";
+                url += "MSOR=" + 1 + "&";
+                url += "mstimever=" + "on" + "&";
+                url += "sep=" + "1" + "&";
+                url += "sep2=" + "1" + "&";
+                url += "datf=" + "12" + "&";
+                url += "at=" + "0" + "&";
+                url += "from=" + timeFrom + "&";
+                url += "to=" + timeTo + "&";
+                url += "em=" + SecurityFinam.Id + "&";
+                url += "code=" + SecurityFinam.Code + "&";
+                url += "f=" + SecurityFinam.Code + "_" + timeStartInStrToName + "_" + timeEndInStrToName + "&";
+                url += "cn=" + SecurityFinam.Code + "&";
+                url += "market=undefined&";
+                url += "yf=" + (timeStart.Year) + "&";
+                url += "yt=" + (timeEnd.Year) + "&";
+                url += "df=" + (timeStart.Day) + "&";
+                url += "dt=" + (timeEnd.Day) + "&";
+                url += "mf=" + (timeStart.Month - 1) + "&";
+                url += "mt=" + (timeEnd.Month - 1) + "&";
+                url += "token=0";
+            }
+            else
+            {
+                url += "market=" + SecurityFinam.MarketId + "&";
+                url += "em=" + SecurityFinam.Id + "&";
+                url += "code=" + SecurityFinam.Code + "&";
+                url += "df=" + (timeStart.Day) + "&";
+                url += "mf=" + (timeStart.Month - 1) + "&";
+                url += "yf=" + (timeStart.Year) + "&";
+                url += "from=" + timeFrom + "&";
+                url += "apply=0&";
+                url += "dt=" + (timeEnd.Day) + "&";
+                url += "mt=" + (timeEnd.Month - 1) + "&";
+                url += "yt=" + (timeEnd.Year) + "&";
+                url += "to=" + timeTo + "&";
+                url += "p=" + 1 + "&";
+                url += "f=" + urlToSec + "&";
+                url += "e=" + ".txt" + "&";
+                url += "cn=" + SecurityFinam.Name + "&";
+                url += "dtf=" + 1 + "&";
+                url += "tmf=" + 1 + "&";
+                url += "MSOR=" + 1 + "&";
+                url += "mstime=" + "on" + "&";
+                url += "mstimever=" + "1" + "&";
+                url += "sep=" + "1" + "&";
+                url += "sep2=" + "1" + "&";
+                url += "datf=" + "12" + "&";
+                url += "at=" + "0";
+            }
 
             // if we have already downloaded this trades series, try to get it from the general storage
             // если мы уже эту серию трейдов качали, пробуем достать её из общего хранилища
