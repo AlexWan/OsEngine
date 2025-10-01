@@ -4,9 +4,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
 {
     public class ResponseWebSocketMessageAction<T>
     {
-        public string action;
-        public ResponseWebSocketMessageArg arg;
-        public T data;
+        public string action { get; set; }
+        public ResponseWebSocketMessageArg arg { get; set; }
+        public T data { get; set; }
+        public string ts { get; set; }
     }
 
     public class ResponseWebsocketTrade
@@ -27,9 +28,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
 
     public class ResponseWebSocketMessageArg
     {
-        public string instType;
-        public string channel;
-        public string instId;
+        public string instType { get; set; }
+        public string channel { get; set; }
+        public string instId { get; set; }
     }
 
     public class ResponseWebSocketDepthItem
@@ -42,25 +43,61 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
 
     public class ResponseWebSocketOrder
     {
-        public string orderType;
-        public string status;
-        public string instId;
-        public string cTime;
-        public string clientOid;
-        public string orderId;
-        public string side;
-        public string size;
-        public string baseVolume;
-        public string accBaseVolume;
-        public string price;
-        public string fillTime;
-        public string tradeId;
-        public string fillPrice;
-        public string posMode;
-        public string tradeSide;
-        public string posSide;
-        public string fillFee;
-        public string fillFeeCoin;
+        public string instId { get; set; }
+        public string orderId { get; set; }
+        public string clientOid { get; set; }
+        public string price { get; set; }
+        public string size { get; set; }
+        public string newSize { get; set; }
+        public string notional { get; set; }
+        public string orderType { get; set; }
+        public string force { get; set; }
+        public string side { get; set; }
+        public string fillPrice { get; set; }
+        public string tradeId { get; set; }
+        public string baseVolume { get; set; }
+        public string fillTime { get; set; }
+        public string fillFee { get; set; }
+        public string fillFeeCoin { get; set; }
+        public string tradeScope { get; set; }
+        public string accBaseVolume { get; set; }
+        public string priceAvg { get; set; }
+        public string status { get; set; }
+        public string cTime { get; set; }
+        public string uTime { get; set; }
+        public string stpMode { get; set; }
+        public List<FeeDetailOrder> feeDetail { get; set; }
+        public string enterPointSource { get; set; }
+    }
+
+    public class FeeDetailOrder
+    {
+        public string feeCoin { get; set; }
+        public string fee { get; set; }
+    }
+
+    public class ResponseWebSocketMyTrade
+    {
+        public string orderId { get; set; }
+        public string tradeId { get; set; }
+        public string symbol { get; set; }
+        public string orderType { get; set; }
+        public string side { get; set; }
+        public string priceAvg { get; set; }
+        public string size { get; set; }
+        public string amount { get; set; }
+        public string tradeScope { get; set; }
+        public List<FeeDetailMyTrade> feeDetail { get; set; }
+        public string cTime { get; set; }
+        public string uTime { get; set; }
+    }
+
+    public class FeeDetailMyTrade
+    {
+        public string feeCoin { get; set; }
+        public string deduction { get; set; }
+        public string totalDeductionFee { get; set; }
+        public string totalFee { get; set; }
     }
 
     public class ResponseWebSocketAccount
