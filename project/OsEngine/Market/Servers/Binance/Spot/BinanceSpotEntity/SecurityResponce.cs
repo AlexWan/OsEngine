@@ -46,8 +46,8 @@ namespace OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity
         public List<string> timeInForce { get; set; }
         public string contractSize { get; set; }
         public string equalQtyPrecision { get; set; }
-        public string? underlyingType { get; set; }
-        public List<string>? underlyingSubType { get; set; }
+        public string underlyingType { get; set; }
+        public List<string> underlyingSubType { get; set; }
         public string settlePlan { get; set; }
         public string triggerProtect { get; set; }
         public string liquidationFee { get; set; }

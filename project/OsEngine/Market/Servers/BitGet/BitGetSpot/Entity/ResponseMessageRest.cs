@@ -4,14 +4,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
 {
     public class ResponseRestMessage<T>
     {
-        public string code;
-        public string msg;
-        public string requestTime;
-        public T data;
+        public string code { get; set; }
+        public string msg { get; set; }
+        public string requestTime { get; set; }
+        public T data { get; set; }
     }
 
     public class RestMessageCandle
     {
+        public string code { get; set; }
+        public string msg { get; set; }
+
+        public string requestTime { get; set; }
         public List<List<string>> data { get; set; }
     }
 
