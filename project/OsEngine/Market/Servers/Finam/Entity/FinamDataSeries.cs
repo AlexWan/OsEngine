@@ -516,44 +516,62 @@ namespace OsEngine.Market.Servers.Finam.Entity
 
             string url = ServerPrefics + "/" + "export9.out?";
 
-            // https://export.finam.ru/export9.out?
-            // market=91
-            // &em=420446
-            // &token=03AFcWeA7iP0so0-DqoyTulIsrxzG29wc4FscBa3E3NoHLgjLCK3bUKBwOCxew7UMS2i49RQRtE2q7YlyeXAIc6Z5BnoMEoiK5Xc_P8bJTOHp7FCATG7j5iZOI3tm75ZvMrxUI3_NYv3h608s6dYxZoHI_e1azzBfyU_0cvUw57Oeccgx24axPdtiebt5LIXgUbUI7g39w57HXNXlqdE3HFxw7n6JzeqXbZX0dVfD0mip3UjBCexOnjR8anpM4kAgHfqtEan1w-oARO8jW_1ud8zK7liOKqiuLWMB4RDf_BWzue4zPRF9LplZJPZ2ZF04rTWRIig2tP6xru5H9HbfFR88PqLRPX_2J-yE4DcYCabh4QVco43H9gJMUEb4ZF6i5qsTLn0RyDcBGALK4Ykrdu8a2fgM2zFm2cKA0inzr3324WgqV4dcdglljybW8BXQNMETn4Ee8hsjsqOzsdWONT79UMVNixPcjPA4JV_fPrfb_js5lq2z0mj14QEzLy0-1r7r_AEfwQD-jvWyX6eeLDbHQ6NoZYotSvEvkZfnggMr6eAGpmXw6bvDCNI1DSeNZVTdcTFis_xV5J2H3dxQTIS8zRv2GSFRSbMsrizkPGva-mi3A4Q2ySiArzxENC60befDJvq7Rbn7NZF6PXebZG_Np4DiimkCbISQkUMzS8SUNj5zBW79YtnJxPAKXMcj8WQDYfnaA33lUAIH6g7Y169hpwlE4snDFxjfyJZbDC15z8cH80XeI5G1sFBj552PQDUMgl53sRU7wcsfbv5ezsMvN3_OsiixmpHam9D3LtDtN8sQVvJ9cLPiFmQI6iUVLR_WnVvXyLUMYWLn9OqK-SBiPRgCIvAGGV0LK3lvrhnqJjwPhCyAXEPVGK3HL9_hcCkBPoaaUDjtocmpfJ-J3b5Wmcx3wy0f1kw
-            // &code=RI.MOEXBC
-            // &apply=0
-            // &df=1
-            // &mf=2
-            // &yf=2025
-            // &from=01.03.2025&dt=1&mt=3&yt=2025&to=01.04.2025&p=7&f=RI.MOEXBC_250301_250401&e=.txt&cn=RI.MOEXBC&dtf=1&tmf=1&MSOR=1&mstime=on&mstimever=1&sep=1&sep2=1&datf=2&at=1
-
-            url += "market=" + SecurityFinam.MarketId + "&";
-            url += "em=" + SecurityFinam.Id + "&";
-            url += "code=" + SecurityFinam.Code + "&";
-            url += "df=" + (timeStart.Day) + "&";
-            url += "mf=" + (timeStart.Month - 1) + "&";
-            url += "yf=" + (timeStart.Year) + "&";
-            url += "from=" + timeFrom + "&";
-
-            url += "dt=" + (timeEnd.Day) + "&";
-            url += "mt=" + (timeEnd.Month - 1) + "&";
-            url += "yt=" + (timeEnd.Year) + "&";
-            url += "to=" + timeTo + "&";
-            url += "apply=0&";
-            url += "p=" + _timeFrameFinam + "&";
-            url += "f=" + fileName + "&";
-            url += "e=" + ".txt" + "&";
-            url += "cn=" + SecurityFinam.Name + "&";
-            url += "dtf=" + 1 + "&";
-            url += "tmf=" + 1 + "&";
-            url += "MSOR=" + 1 + "&";
-            url += "mstime=" + "on" + "&";
-            url += "mstimever=" + "1" + "&";
-            url += "sep=" + "1" + "&";
-            url += "sep2=" + "1" + "&";
-            url += "datf=" + "5" + "&";
-            url += "at=" + "0";
-
+            if (SecurityFinam.Url.Contains("undefined"))
+            {
+                url += "apply=0&";
+                url += "p=" + _timeFrameFinam + "&";
+                url += "e=" + ".txt" + "&";
+                url += "dtf=" + 1 + "&";
+                url += "tmf=" + 1 + "&";
+                url += "MSOR=" + 1 + "&";
+                url += "mstimever=" + "on" + "&";
+                url += "sep=" + "1" + "&";
+                url += "sep2=" + "1" + "&";
+                url += "datf=" + "5" + "&";
+                url += "at=" + "0" + "&";
+                url += "from=" + timeFrom + "&";
+                url += "to=" + timeTo + "&";
+                url += "em=" + SecurityFinam.Id + "&";
+                url += "code=" + SecurityFinam.Code + "&";
+                url += "f=" + SecurityFinam.Code + "_" + timeStartInStrToName + "_" + timeEndInStrToName + "&";
+                url += "cn=" + SecurityFinam.Code + "&";
+                url += "market=undefined&";
+                url += "yf=" + (timeStart.Year) + "&";
+                url += "yt=" + (timeEnd.Year) + "&";
+                url += "df=" + (timeStart.Day) + "&";
+                url += "dt=" + (timeEnd.Day) + "&";
+                url += "mf=" + (timeStart.Month - 1) + "&";
+                url += "mt=" + (timeEnd.Month - 1) + "&";
+                url += "token=0";
+            }
+            else
+            {
+                url += "market=" + SecurityFinam.MarketId + "&";
+                url += "em=" + SecurityFinam.Id + "&";
+                url += "code=" + SecurityFinam.Code + "&";
+                url += "df=" + (timeStart.Day) + "&";
+                url += "mf=" + (timeStart.Month - 1) + "&";
+                url += "yf=" + (timeStart.Year) + "&";
+                url += "from=" + timeFrom + "&";
+                url += "dt=" + (timeEnd.Day) + "&";
+                url += "mt=" + (timeEnd.Month - 1) + "&";
+                url += "yt=" + (timeEnd.Year) + "&";
+                url += "to=" + timeTo + "&";
+                url += "apply=0&";
+                url += "p=" + _timeFrameFinam + "&";
+                url += "f=" + fileName + "&";
+                url += "e=" + ".txt" + "&";
+                url += "cn=" + SecurityFinam.Name + "&";
+                url += "dtf=" + 1 + "&";
+                url += "tmf=" + 1 + "&";
+                url += "MSOR=" + 1 + "&";
+                url += "mstime=" + "on" + "&";
+                url += "mstimever=" + "1" + "&";
+                url += "sep=" + "1" + "&";
+                url += "sep2=" + "1" + "&";
+                url += "datf=" + "5" + "&";
+                url += "at=" + "0";
+            }
 
             //url = "http://export.finam.ru/export9.out?market=1&em=16842&code=GAZP&df=26&mf=8&yf=2023&from=26.09.2023&dt=28&mt=8&yt=2023&to=28.09.2023&p=3&f=GAZP_20230926_20230928&e=.txt&cn=GAZP&dtf=1&tmf=1&MSOR=0&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=0";
 
@@ -596,7 +614,5 @@ namespace OsEngine.Market.Servers.Finam.Entity
 
             return null;
         }
-
-
     }
 }
