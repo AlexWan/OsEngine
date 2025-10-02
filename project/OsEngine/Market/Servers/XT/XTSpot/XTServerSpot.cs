@@ -1414,7 +1414,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("SnapshotDepth error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("UpdateTrade error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
 

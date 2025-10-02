@@ -2227,7 +2227,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 myTrade.Price = response.trade[i].trade_price.ToDecimal();
                 myTrade.SecurityNameCode = response.contract_code;
                 myTrade.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
-                myTrade.Volume = response.trade[i].trade_volume.ToDecimal() * GetVolume(myTrade.SecurityNameCode); ;
+                myTrade.Volume = response.trade[i].trade_volume.ToDecimal() * GetVolume(myTrade.SecurityNameCode); 
 
                 MyTradeEvent(myTrade);
             }
