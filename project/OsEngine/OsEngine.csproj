@@ -66,6 +66,10 @@
     <Page Remove="lua\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Robots\DataTransferObjects.cs" />
+    <Compile Remove="Robots\OptionsDataCollector.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="BytesRoad.Net.Ftp">
       <HintPath>bin\Debug\BytesRoad.Net.Ftp.dll</HintPath>
     </Reference>
