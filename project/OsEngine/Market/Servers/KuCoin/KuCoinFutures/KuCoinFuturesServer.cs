@@ -36,6 +36,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             CreateParameterBoolean("HedgeMode", true);
             ServerParameters[3].ValueChange += KuCoinFuturesServer_ValueChange;
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
+            CreateParameterString("Leverage", "1");
             CreateParameterBoolean("Extended Data", false);
         }
 
@@ -104,7 +105,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 _marginMode = "ISOLATED";
             }
 
-            if (((ServerParameterBool)ServerParameters[5]).Value == true)
+            _leverage = ((ServerParameterString)ServerParameters[5]).Value;
+
+            if (((ServerParameterBool)ServerParameters[6]).Value == true)
             {
                 _extendedMarketData = true;
             }
@@ -204,6 +207,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private string _marginMode;
 
+        private string _leverage;
+
         private List<string> _listCurrency = new List<string>() { "XBT", "ETH", "USDC", "USDT", "SOL", "DOT", "XRP" }; // list of currencies on the exchange
 
         public bool HedgeMode
@@ -266,8 +271,15 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
+        private List<Security> _securities = new List<Security>();
+
         public void GetSecurities()
         {
+            if (_securities == null)
+            {
+                _securities = new List<Security>();
+            }
+
             _rateGateSecurity.WaitToProceed();
 
             try
@@ -282,8 +294,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                     if (symbols.code.Equals("200000") == true)
                     {
-                        List<Security> securities = new List<Security>();
-
                         for (int i = 0; i < symbols.data.Count; i++)
                         {
                             ResponseSymbol item = symbols.data[i];
@@ -311,19 +321,19 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                                 newSecurity.PriceStep = item.tickSize.ToDecimal();
                                 newSecurity.PriceStepCost = newSecurity.PriceStep;
-                                newSecurity.Lot = item.lotSize.ToDecimal() * Math.Abs(item.multiplier.ToDecimal());
+                                newSecurity.Lot = item.lotSize.ToDecimal() /* Math.Abs(item.multiplier.ToDecimal())*/;
 
                                 newSecurity.Decimals = item.tickSize.DecimalsCount();
                                 newSecurity.DecimalsVolume = item.multiplier.DecimalsCount();
                                 newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
-                                newSecurity.MinTradeAmount = 1; //Math.Abs(item.multiplier.ToDecimal());
-                                newSecurity.VolumeStep = 1; //Math.Abs(item.multiplier.ToDecimal());
+                                newSecurity.MinTradeAmount = Math.Abs(item.multiplier.ToDecimal());
+                                newSecurity.VolumeStep = Math.Abs(item.multiplier.ToDecimal());
 
-                                securities.Add(newSecurity);
+                                _securities.Add(newSecurity);
                             }
                         }
 
-                        SecurityEvent(securities);
+                        SecurityEvent(_securities);
                     }
                     else
                     {
@@ -363,7 +373,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 try
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(15000);
 
                     for (int i = 0; i < _listCurrency.Count; i++)
                     {
@@ -491,11 +501,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                             }
 
                             pos.UnrealizedPnl = item.unrealisedPnl.ToDecimal();
-                            pos.ValueCurrent = item.currentQty.ToDecimal();
+                            pos.ValueCurrent = item.currentQty.ToDecimal() * GetVolume(item.symbol);
 
                             if (IsUpdateValueBegin)
                             {
-                                pos.ValueBegin = item.currentQty.ToDecimal();
+                                pos.ValueBegin = item.currentQty.ToDecimal() * GetVolume(item.symbol);
                             }
 
                             portfolio.SetNewPosition(pos);
@@ -1833,7 +1843,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     pos.SecurityNameCode = data.symbol;
                 }
 
-                pos.ValueCurrent = data.currentQty.ToDecimal();
+                pos.ValueCurrent = data.currentQty.ToDecimal() * GetVolume(data.symbol);
                 portfolio.SetNewPosition(pos);
                 PortfolioEvent(Portfolios);
             }
@@ -1884,65 +1894,36 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 OrderPriceType.TryParse(item.orderType, true, out newOrder.TypeOrder);
                 newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
-                newOrder.Volume = item.size.Replace('.', ',').ToDecimal();
-                newOrder.VolumeExecute = item.remainSize.ToDecimal();
+                newOrder.Volume = item.size.Replace('.', ',').ToDecimal() * GetVolume(newOrder.SecurityNameCode);
+                //newOrder.VolumeExecute = item.remainSize.ToDecimal();
                 newOrder.Price = item.price != null ? item.price.Replace('.', ',').ToDecimal() : 0;
                 newOrder.State = stateType;
                 newOrder.ServerType = ServerType.KuCoinFutures;
                 newOrder.PortfolioNumber = "KuCoinFutures";
-
-                //if (item.status == "open")
-                //{
-                //    newOrder.State = OrderStateType.Active;
-                //}
-                //else if (item.type == "canceled")
-                //{
-                //    newOrder.State = OrderStateType.Cancel;
-                //}
-                //else if ((item.status == "match" && item.type == "match")
-                //    || (item.status == "done" && item.type == "match"))
-                //{
-                //    if (newOrder.VolumeExecute > 0)
-                //    {
-                //        newOrder.State = OrderStateType.Partial;
-                //    }
-                //    else
-                //    {
-                //        newOrder.State = OrderStateType.Done;
-                //    }
-                //}
-                //else
-                //{
-                //    return;
-                //}
-
-                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
-                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
+                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts) / 1000000);
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts) / 1000000);
 
                 if (newOrder.State == OrderStateType.Cancel)
                 {
-                    newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
+                    newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts) / 1000000);
                 }
 
                 if (newOrder.State == OrderStateType.Done)
                 {
-                    newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000);
+                    newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts) / 1000000);
                 }
 
-                if (/*newOrder.State == OrderStateType.Done*/
-                    //|| newOrder.State == OrderStateType.Partial
-                    (item.status == "match" && item.type == "match")
-                    || (item.status == "done" && item.type == "match"))
+                if (newOrder.State == OrderStateType.Partial)
                 {
                     MyTrade myTrade = new MyTrade();
 
-                    myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.orderTime) / 1000000); //from nanoseconds to ms
+                    myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts) / 1000000); //from nanoseconds to ms
                     myTrade.NumberOrderParent = item.orderId;
                     myTrade.NumberTrade = item.tradeId;
                     myTrade.Price = item.matchPrice.ToDecimal();
                     myTrade.SecurityNameCode = item.symbol;
                     myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
-                    myTrade.Volume = item.matchSize.ToDecimal();
+                    myTrade.Volume = item.matchSize.ToDecimal() * GetVolume(item.symbol);
 
                     MyTradeEvent(myTrade);
                 }
@@ -1955,38 +1936,34 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
-        private OrderStateType GetOrderState(string orderStatusResponse, string orderTypeResponse)
+        private OrderStateType GetOrderState(string status, string type)
         {
-            OrderStateType stateType;
 
-            switch (orderStatusResponse)
+            if (status == "open")
             {
-                case ("open"):
-                    stateType = OrderStateType.Active;
-                    break;
-
-                case ("match"):
-                    stateType = OrderStateType.Partial;
-                    break;
-
-                case ("done"):
-                    if (orderTypeResponse == "canceled")
-                    {
-                        stateType = OrderStateType.Cancel;
-                    }
-                    else //(orderTypeResponse == "filled")
-                    {
-                        stateType = OrderStateType.Done;
-                    }
-
-                    break;
-
-                default:
-                    stateType = OrderStateType.None;
-                    break;
+                return OrderStateType.Active;
+            }
+            else if (status == "match")
+            {
+                return OrderStateType.Partial;
+            }
+            else if (status == "done")
+            {
+                if (type == "canceled")
+                {
+                    return OrderStateType.Cancel;
+                }
+                else if (type == "filled")
+                {
+                    return OrderStateType.Done;
+                }
+                else if (type == "match")
+                {
+                    return OrderStateType.Partial;
+                }
             }
 
-            return stateType;
+            return OrderStateType.None;
         }
 
         private void UpdateFundingRate(string message)
@@ -2038,16 +2015,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             try
             {
                 string posSide = "BOTH";
-                string closeOrder = "false";
 
                 if (HedgeMode)
                 {
-                    posSide = order.Side == Side.Buy ? "LONG" : "SHORT";
-
                     if (order.PositionConditionType == OrderPositionConditionType.Close)
                     {
                         posSide = order.Side == Side.Buy ? "SHORT" : "LONG";
-                        closeOrder = "true";
+                    }
+                    else
+                    {
+                        posSide = order.Side == Side.Buy ? "LONG" : "SHORT";
                     }
                 }
 
@@ -2057,11 +2034,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 data.side = order.Side.ToString().ToLower();
                 data.type = order.TypeOrder.ToString().ToLower();
                 data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
-                data.size = order.Volume.ToString().Replace(",", ".");
-                data.leverage = "1";
+
+                decimal volume = order.Volume / GetVolume(order.SecurityNameCode);
+                data.size = volume.ToString().Replace(",", ".");
+                data.leverage = _leverage;
                 data.positionSide = posSide;
                 data.marginMode = _marginMode;
-               // data.closeOrder = closeOrder;
 
                 JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
                 dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// if it's a market order, then we ignore the price parameter
@@ -2110,6 +2088,26 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 SendLogMessage($"Order send error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        private decimal GetVolume(string securityName)
+        {
+            decimal minVolume = 1;
+
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (_securities[i].Name == securityName)
+                {
+                    minVolume = _securities[i].MinTradeAmount;
+                }
+            }
+
+            if (minVolume <= 0)
+            {
+                return 1;
+            }
+
+            return minVolume;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -2317,7 +2315,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                                 newOrder.State = OrderStateType.Done;
                             }
 
-                            newOrder.Volume = order.data.items[i].size == null ? order.data.items[i].filledSize.Replace('.', ',').ToDecimal() : order.data.items[i].size.Replace('.', ',').ToDecimal();
+                            newOrder.Volume = order.data.items[i].size == null ? order.data.items[i].filledSize.Replace('.', ',').ToDecimal() * GetVolume(newOrder.SecurityNameCode) : order.data.items[i].size.Replace('.', ',').ToDecimal() * GetVolume(newOrder.SecurityNameCode);
 
                             newOrder.Price = order.data.items[i].price != null ? order.data.items[i].price.Replace('.', ',').ToDecimal() : 0;
                             newOrder.PortfolioNumber = "KuCoinFutures";
@@ -2462,7 +2460,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                                 newOrder.TimeCancel = newOrder.TimeCreate;
                             }
 
-                            newOrder.Volume = order.data.size == null ? order.data.filledSize.Replace('.', ',').ToDecimal() : order.data.size.Replace('.', ',').ToDecimal();
+                            newOrder.Volume = order.data.size == null ? order.data.filledSize.Replace('.', ',').ToDecimal() * GetVolume(newOrder.SecurityNameCode) : order.data.size.Replace('.', ',').ToDecimal() * GetVolume(newOrder.SecurityNameCode);
                             newOrder.Price = order.data.price != null ? order.data.price.Replace('.', ',').ToDecimal() : 0;
                             newOrder.PortfolioNumber = "KuCoinFutures";
                         }
@@ -2520,7 +2518,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                             myTrade.Price = responseT.price.ToDecimal();
                             myTrade.SecurityNameCode = responseT.symbol;
                             myTrade.Side = responseT.side.Equals("buy") ? Side.Buy : Side.Sell;
-                            myTrade.Volume = responseT.size.ToDecimal();
+                            myTrade.Volume = responseT.size.ToDecimal() * GetVolume(myTrade.SecurityNameCode);
 
                             MyTradeEvent(myTrade);
                         }
