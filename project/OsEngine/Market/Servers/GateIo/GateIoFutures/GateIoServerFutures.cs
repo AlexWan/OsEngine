@@ -2681,7 +2681,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         private string SHA512HexHashString(string stringIn)
         {
             string hashString;
-            using (var sha256 = SHA512Managed.Create())
+            using (var sha256 = SHA512.Create())
             {
                 var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(stringIn));
                 hashString = ToHex(hash, false);
