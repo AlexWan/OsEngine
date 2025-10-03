@@ -165,7 +165,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool IsUseLotToCalculateProfit
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool ManuallyClosePositionOnBoard_IsOn
