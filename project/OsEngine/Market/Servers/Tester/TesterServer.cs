@@ -1279,7 +1279,14 @@ namespace OsEngine.Market.Servers.Tester
                         slippage = _slippageToSimpleOrder;
                     }
 
-                    ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slippage);
+                    decimal realPrice = order.Price;
+
+                    if (isNewDay == true)
+                    {
+                        realPrice = lastTrade.Price;
+                    }
+
+                    ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, slippage);
 
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
@@ -1328,7 +1335,14 @@ namespace OsEngine.Market.Servers.Tester
                         slippage = _slippageToSimpleOrder;
                     }
 
-                    ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slippage);
+                    decimal realPrice = order.Price;
+
+                    if (isNewDay == true)
+                    {
+                        realPrice = lastTrade.Price;
+                    }
+
+                    ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, slippage);
 
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
