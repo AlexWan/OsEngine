@@ -1600,10 +1600,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             _updateTimer?.Dispose();
             _dailyReloadTimer?.Dispose(); // Dispose the new timer
 
+            ServerMaster.ServerCreateEvent -= ServerMaster_ServerCreateEvent;
             if (_server != null)
             {
-                _server.SecuritiesChangeEvent -= OnSecuritiesChanged; // Unsubscribe
+                _server.ConnectStatusChangeEvent -= ServerOnConnectStatusChangeEvent;
+                _server.SecuritiesChangeEvent -= Server_SecuritiesChangeEvent;
             }
+
+            _mainControl?.Dispose();
+            _uaGrid?.Dispose();
+            _optionsGrid?.Dispose();
+            _expirationComboBox?.Dispose();
+            _strikesToShowNumericUpDown?.Dispose();
 
             foreach (var tab in _simpleTabs.Values)
             {
