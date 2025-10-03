@@ -64,15 +64,6 @@ namespace OsEngine.Market.Servers.OKX
             thread.Start();
         }
 
-        public ServerType ServerType
-        {
-            get { return ServerType.OKX; }
-        }
-
-        public ServerConnectStatus ServerStatus { get; set; }
-
-        public DateTime ServerTime { get; set; }
-
         private WebProxy _myProxy;
 
         public void Connect(WebProxy proxy)
@@ -191,6 +182,15 @@ namespace OsEngine.Market.Servers.OKX
                 DisconnectEvent();
             }
         }
+
+        public ServerType ServerType
+        {
+            get { return ServerType.OKX; }
+        }
+
+        public ServerConnectStatus ServerStatus { get; set; }
+
+        public DateTime ServerTime { get; set; }
 
         public event Action ConnectEvent;
 
@@ -442,13 +442,14 @@ namespace OsEngine.Market.Servers.OKX
 
                 security.Name = item.instId;
                 security.NameFull = item.instId;
+                security.NameId = item.instId;
 
                 if (item.lotSz == string.Empty)
                 {
                     continue;
                 }
 
-                security.Lot = item.lotSz.ToDecimal();
+                security.Lot = 1;//item.lotSz.ToDecimal();
                 string volStep = item.minSz.Replace(',', '.');
 
                 if (volStep != null
@@ -460,8 +461,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 security.MinTradeAmountType = MinTradeAmountType.Contract;
                 security.MinTradeAmount = item.minSz.ToDecimal();
-                security.VolumeStep = item.lotSz.ToDecimal();
-
+                security.VolumeStep = item.minSz.ToDecimal();
 
                 if (securityType == SecurityType.CurrencyPair)
                 {
@@ -479,7 +479,9 @@ namespace OsEngine.Market.Servers.OKX
                         security.NameClass = "SWAP_" + item.settleCcy;
                     }
 
-                    security.Lot = item.ctVal.ToDecimal();
+                    security.NameId = item.instId + "_" + item.ctVal.ToDecimal();
+                    security.MinTradeAmount = item.minSz.ToDecimal() * item.ctVal.ToDecimal();
+                    security.VolumeStep = item.lotSz.ToDecimal() * item.ctVal.ToDecimal();
                 }
 
                 if (securityType == SecurityType.Option)
@@ -493,11 +495,10 @@ namespace OsEngine.Market.Servers.OKX
                         security.NameClass = "OPTION_" + item.quoteCcy;
                     }
 
-                    security.Lot = item.ctVal.ToDecimal();
+                    //security.Lot = item.ctVal.ToDecimal();
                 }
 
                 security.Exchange = ServerType.OKX.ToString();
-                security.NameId = item.instId;
                 security.SecurityType = securityType;
                 security.PriceStep = item.tickSz.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
@@ -512,8 +513,6 @@ namespace OsEngine.Market.Servers.OKX
                     security.Decimals = 0;
                 }
 
-
-
                 security.State = SecurityStateType.Activ;
                 _securities.Add(security);
             }
@@ -523,8 +522,6 @@ namespace OsEngine.Market.Servers.OKX
                 SecurityEvent(_securities);
             }
         }
-
-
 
         public event Action<List<Security>> SecurityEvent;
 
@@ -2012,21 +2009,21 @@ namespace OsEngine.Market.Servers.OKX
                                 if (item.posSide.Contains("long"))
                                 {
                                     pos.SecurityNameCode = item.instId + "_LONG";
-                                    pos.ValueCurrent = Math.Round(GetAvailPos(item.pos), 6);
+                                    pos.ValueCurrent = Math.Round(GetAvailPos(item.pos) * GetVolume(item.instId), 6);
                                     pos.ValueBlocked = 0;
                                     pos.UnrealizedPnl = Math.Round(GetAvailPos(item.upl), 6);
                                 }
                                 else if (item.posSide.Contains("short"))
                                 {
                                     pos.SecurityNameCode = item.instId + "_SHORT";
-                                    pos.ValueCurrent = -Math.Round(GetAvailPos(item.pos), 6);
+                                    pos.ValueCurrent = -Math.Round(GetAvailPos(item.pos) * GetVolume(item.instId), 6);
                                     pos.ValueBlocked = 0;
                                     pos.UnrealizedPnl = Math.Round(GetAvailPos(item.upl), 6);
                                 }
                                 else if (item.posSide.Contains("net"))
                                 {
                                     pos.SecurityNameCode = item.instId;
-                                    pos.ValueCurrent = Math.Round(GetAvailPos(item.pos), 6);
+                                    pos.ValueCurrent = Math.Round(GetAvailPos(item.pos) * GetVolume(item.instId), 6);
                                     pos.ValueBlocked = 0;
                                     pos.UnrealizedPnl = Math.Round(GetAvailPos(item.upl), 6);
                                 }
@@ -2318,22 +2315,44 @@ namespace OsEngine.Market.Servers.OKX
                         MyTrade myTrade = new MyTrade();
 
                         myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
+                        myTrade.SecurityNameCode = item.instId;
                         myTrade.NumberOrderParent = item.ordId.ToString();
                         myTrade.NumberTrade = item.tradeId.ToString();
 
-                        if (string.IsNullOrEmpty(item.fee))
+                        if (item.instId.Contains("SWAP"))
                         {
-                            myTrade.Volume = item.fillSz.ToDecimal();
-                        }
-                        else
-                        {// there is a commission
-                            if (item.instId.StartsWith(item.feeCcy))
-                            { // the commission is taken in the traded currency, not in the exchange currency
-                                myTrade.Volume = item.fillSz.ToDecimal() + item.fee.ToDecimal();
+                            if (string.IsNullOrEmpty(item.fee))
+                            {
+                                myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
                             }
                             else
+                            {// there is a commission
+                                if (item.instId.StartsWith(item.feeCcy))
+                                { // the commission is taken in the traded currency, not in the exchange currency
+                                    myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId) + item.fee.ToDecimal();
+                                }
+                                else
+                                {
+                                    myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (string.IsNullOrEmpty(item.fee))
                             {
                                 myTrade.Volume = item.fillSz.ToDecimal();
+                            }
+                            else
+                            {// there is a commission
+                                if (item.instId.StartsWith(item.feeCcy))
+                                { // the commission is taken in the traded currency, not in the exchange currency
+                                    myTrade.Volume = item.fillSz.ToDecimal() + item.fee.ToDecimal();
+                                }
+                                else
+                                {
+                                    myTrade.Volume = item.fillSz.ToDecimal();
+                                }
                             }
                         }
 
@@ -2342,7 +2361,6 @@ namespace OsEngine.Market.Servers.OKX
                             myTrade.Price = item.fillPx.ToDecimal();
                         }
 
-                        myTrade.SecurityNameCode = item.instId;
                         myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
 
                         MyTradeEvent(myTrade);
@@ -2388,7 +2406,16 @@ namespace OsEngine.Market.Servers.OKX
 
             newOrder.NumberMarket = item.ordId.ToString();
             newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
-            newOrder.Volume = item.sz.ToDecimal();
+
+            if (item.instId.Contains("SWAP"))
+            {
+                newOrder.Volume = item.sz.ToDecimal() * GetVolume(item.instId);
+            }
+            else
+            {
+                newOrder.Volume = item.sz.ToDecimal();
+            }
+
             newOrder.PortfolioNumber = "OKX";
 
             //if (string.IsNullOrEmpty(item.avgPx) == false
@@ -2398,7 +2425,7 @@ namespace OsEngine.Market.Servers.OKX
             //}
             /*else*/
             if (string.IsNullOrEmpty(item.px) == false
-       && item.px != "0")
+                && item.px != "0")
             {
                 newOrder.Price = item.px.ToDecimal();
             }
@@ -2760,7 +2787,9 @@ namespace OsEngine.Market.Servers.OKX
                 orderRequest.Add("side", order.Side == Side.Buy ? "buy" : "sell");
                 orderRequest.Add("ordType", order.TypeOrder.ToString().ToLower());
                 orderRequest.Add("px", order.Price.ToString().Replace(",", "."));
-                orderRequest.Add("sz", order.Volume.ToString().Replace(",", "."));
+
+                decimal volume = order.Volume / GetVolume(order.SecurityNameCode);
+                orderRequest.Add("sz", volume.ToString().Replace(",", "."));
                 orderRequest.Add("posSide", posSide);
                 orderRequest.Add("tag", "5faf8b0e85c1BCDE");
 
@@ -2784,6 +2813,26 @@ namespace OsEngine.Market.Servers.OKX
             {
                 SendLogMessage($"SendOrderSwap - {ex.Message}", LogMessageType.Error);
             }
+        }
+
+        private decimal GetVolume(string securityName)
+        {
+            decimal minVolume = 1;
+
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (_securities[i].Name == securityName)
+                {
+                    minVolume = _securities[i].NameId.Split('_')[1].ToDecimal();
+                }
+            }
+
+            if (minVolume <= 0)
+            {
+                return 1;
+            }
+
+            return minVolume;
         }
 
         private void CreateOrderFail(Order order)
@@ -3130,22 +3179,44 @@ namespace OsEngine.Market.Servers.OKX
                 MyTrade myTrade = new MyTrade();
 
                 myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts));
+                myTrade.SecurityNameCode = item.instId;
                 myTrade.NumberOrderParent = item.ordId.ToString();
                 myTrade.NumberTrade = item.tradeId.ToString();
 
-                if (string.IsNullOrEmpty(item.fee))
+                if (item.instId.Contains("SWAP"))
                 {
-                    myTrade.Volume = item.fillSz.ToDecimal();
-                }
-                else
-                {// there is a commission
-                    if (item.instId.StartsWith(item.feeCcy))
-                    { // the commission is taken in the traded currency, not in the exchange currency
-                        myTrade.Volume = item.fillSz.ToDecimal() + item.fee.ToDecimal();
+                    if (string.IsNullOrEmpty(item.fee))
+                    {
+                        myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
                     }
                     else
+                    {// there is a commission
+                        if (item.instId.StartsWith(item.feeCcy))
+                        { // the commission is taken in the traded currency, not in the exchange currency
+                            myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId) + item.fee.ToDecimal();
+                        }
+                        else
+                        {
+                            myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+                        }
+                    }
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(item.fee))
                     {
                         myTrade.Volume = item.fillSz.ToDecimal();
+                    }
+                    else
+                    {// there is a commission
+                        if (item.instId.StartsWith(item.feeCcy))
+                        { // the commission is taken in the traded currency, not in the exchange currency
+                            myTrade.Volume = item.fillSz.ToDecimal() + item.fee.ToDecimal();
+                        }
+                        else
+                        {
+                            myTrade.Volume = item.fillSz.ToDecimal();
+                        }
                     }
                 }
 
@@ -3154,7 +3225,6 @@ namespace OsEngine.Market.Servers.OKX
                     myTrade.Price = item.fillPx.ToDecimal();
                 }
 
-                myTrade.SecurityNameCode = item.instId;
                 myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
 
                 myTrades.Add(myTrade);
