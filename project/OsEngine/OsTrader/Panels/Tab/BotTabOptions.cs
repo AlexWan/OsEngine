@@ -572,6 +572,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (server == null) return;
 
+            if (_server != null)
+            {
+                _server.SecuritiesChangeEvent -= OnSecuritiesChanged;
+            }
             _server = server; // Store the server instance
             _server.SecuritiesChangeEvent += OnSecuritiesChanged; // Subscribe to event
 
