@@ -438,6 +438,7 @@
         }
       },
       "System.Text.Encoding.CodePages/9.0.5": {},
+
       "System.Text.Encoding.Extensions/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.1",
@@ -458,6 +459,7 @@
         }
       },
       "System.Threading.Channels/9.0.5": {},
+
       "System.Threading.Tasks/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.1",

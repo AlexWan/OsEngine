@@ -61,7 +61,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf10MinuteCanLoad
@@ -71,27 +71,27 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf1HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf2HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf4HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTfDayCanLoad
@@ -101,12 +101,12 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool DataFeedTfTickCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         #endregion
