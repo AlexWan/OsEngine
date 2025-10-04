@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Language;
+using OsEngine.Market;
 using System;
 using System.Windows;
 using System.Windows.Forms;
@@ -40,6 +41,7 @@ namespace OsEngine.Entity
             }
 
             _grid.CellClick -= _grid_CellClick;
+            _grid.DataError -= _grid_DataError;
             DataGridFactory.ClearLinks(_grid);
             _grid.Rows.Clear();
             _grid = null;
@@ -74,13 +76,19 @@ namespace OsEngine.Entity
             colum01.CellTemplate = cell0;
             colum01.HeaderText = "";
             colum01.Width = 50;
-            
+
             colum01.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             _grid.Columns.Add(colum01);
 
             HostTableColors.Child = _grid;
 
             _grid.CellClick += _grid_CellClick;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void _grid_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -93,7 +101,7 @@ namespace OsEngine.Entity
             {
                 return;
             }
-            else if(columnInd == 1)
+            else if (columnInd == 1)
             {
 
                 for (int i = 0; i < _grid.Rows.Count; i++)

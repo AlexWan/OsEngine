@@ -11,6 +11,7 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
 using System.Windows.Media;
+using OsEngine.Market;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -96,6 +97,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("WilliamsRange");
 
             _gridViewIndicators.Click += delegate { _lastScriptGrid = false; };
+            _gridViewIndicators.DataError += _gridViewIndicators_DataError;
 
             _gridViewAreas = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
@@ -133,12 +135,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     string areaName = _gridViewAreas.Rows[e.RowIndex].Cells[0].Value.ToString();
 
-                    if(areaName == "Prime")
+                    if (areaName == "Prime")
                     {
                         CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel5);
                         ui.ShowDialog();
                     }
-                    else if(areaName == "NewArea")
+                    else if (areaName == "NewArea")
                     {
                         CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel6);
                         ui.ShowDialog();
@@ -152,6 +154,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             };
 
             _gridViewAreas.Rows.Add("NewArea");
+            _gridViewAreas.DataError += _gridViewIndicators_DataError;
 
             Title = OsLocalization.Charts.TitleIndicatorCreateUi;
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
@@ -177,6 +180,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             this.Activate();
             this.Focus();
+        }
+
+        private void _gridViewIndicators_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         public IIndicator IndicatorCandle;
@@ -1029,6 +1037,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _gridNamesScript.Rows.Add(indName[i]);
             }
             _gridNamesScript.Click += delegate { _lastScriptGrid = true; };
+            _gridNamesScript.DataError += _gridViewIndicators_DataError;
         }
 
         private void AcceptCreationScriptIndicator()
