@@ -492,7 +492,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (server != null && server.ServerStatus == ServerConnectStatus.Connect)
             {
-                SetUnderlyingAssetsAndStart(UnderlyingAssets, PortfolioName, server);
+                if (server.Securities != null && server.Securities.Count > 0)
+                {
+                    SetUnderlyingAssetsAndStart(UnderlyingAssets, PortfolioName, server);
+                }
+                else
+                {
+                    server.SecuritiesChangeEvent += Server_SecuritiesChangeEvent;
+                }
             }
             else if (server != null)
             {
@@ -565,6 +572,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (server == null) return;
 
+            if (_server != null)
+            {
+                _server.SecuritiesChangeEvent -= OnSecuritiesChanged;
+            }
             _server = server; // Store the server instance
             _server.SecuritiesChangeEvent += OnSecuritiesChanged; // Subscribe to event
 
@@ -672,41 +683,75 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void OnSecuritiesChanged(List<Security> securities)
-        {
-            if (_isDisposed || UnderlyingAssets == null || UnderlyingAssets.Count == 0)
+            private void OnSecuritiesChanged(List<Security> securities)
             {
-                return;
-            }
-
-            lock (_locker)
-            {
-                var newOptions = securities.Where(s =>
-                    s.SecurityType == SecurityType.Option &&
-                    UnderlyingAssets.Contains(s.UnderlyingAsset) &&
-                    _allOptionsData.All(o => o.Security.Name != s.Name) // Ensure it's a new option
-                ).ToList();
-
-                if (newOptions.Count == 0)
+                if (_isDisposed || UnderlyingAssets == null || UnderlyingAssets.Count == 0)
                 {
                     return;
                 }
 
-                LogMessageEvent?.Invoke($"Discovered {newOptions.Count} new options.", LogMessageType.System);
-
-                foreach (var option in newOptions)
+                lock (_locker)
                 {
-                    var tab = CreateSimpleTab(option, _server);
-                    _allOptionsData.Add(new OptionDataRow { Security = option, SimpleTab = tab });
+                    var newSecurityNames = new HashSet<string>(
+                        securities
+                            .Where(s => (s.SecurityType == SecurityType.Option && UnderlyingAssets.Contains(s.UnderlyingAsset)) ||
+                                        (s.SecurityType != SecurityType.Option && UnderlyingAssets.Contains(s.Name)))
+                            .Select(s => s.Name)
+                    );
+
+                    var currentSecurityNames = new HashSet<string>(_simpleTabs.Keys);
+
+                    var securitiesToRemove = currentSecurityNames.Except(newSecurityNames).ToList();
+
+                    if (securitiesToRemove.Any())
+                    {
+                        LogMessageEvent?.Invoke($"Removing {securitiesToRemove.Count} expired/delisted securities.", LogMessageType.System);
+                        foreach (var secName in securitiesToRemove)
+                        {
+                            if (_simpleTabs.TryGetValue(secName, out var tabToRemove))
+                            {
+                                _simpleTabs.Remove(secName);
+                                tabToRemove.Delete();
+                                _allOptionsData.RemoveAll(o => o.Security.Name == secName);
+                                _uaData.RemoveAll(u => u.Security.Name == secName);
+                            }
+                        }
+                    }
+
+                    var securitiesToAddNames = newSecurityNames.Except(currentSecurityNames).ToList();
+                    var newSecurityObjects = securities.Where(s => securitiesToAddNames.Contains(s.Name)).ToList();
+
+                    if (newSecurityObjects.Any())
+                    {
+                        LogMessageEvent?.Invoke($"Discovered {newSecurityObjects.Count} new securities.", LogMessageType.System);
+                        foreach (var security in newSecurityObjects)
+                        {
+                            var tab = CreateSimpleTab(security, _server);
+                            if (security.SecurityType == SecurityType.Option)
+                            {
+                                _allOptionsData.Add(new OptionDataRow { Security = security, SimpleTab = tab });
+                            }
+                            else
+                            {
+                                _uaData.Add(new UnderlyingAssetDataRow { Security = security, SimpleTab = tab });
+                            }
+                        }
+                    }
+
+                    if (securitiesToRemove.Any() || newSecurityObjects.Any())
+                    {
+                        if (_mainControl.IsHandleCreated)
+                        {
+                            _mainControl.Invoke(new Action(() =>
+                            {
+                                InitializeUaGrid();
+                                UpdateExpirationFilter();
+                                RefreshOptionsGrid();
+                            }));
+                        }
+                    }
                 }
-
-                // Update expiration filter on the UI thread
-                _mainControl.Invoke(new Action(() =>
-                {
-                    UpdateExpirationFilter();
-                }));
             }
-        }
 
         #endregion
 
@@ -1370,6 +1415,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             var trade = trades[trades.Count - 1];
 
+            if (trade == null)
+            {
+                LogMessageEvent?.Invoke("Trade object is null in Connector_TickChangeEvent.", LogMessageType.Error);
+                return;
+            }
+
             lock (_locker)
             {
                 OptionDataRow optionData = null;
@@ -1384,11 +1435,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         LogMessageEvent?.Invoke($"OptionDataRow with null Security found for a ticker.", LogMessageType.Error);
                         continue;
-                    }
-                    if (trade == null)
-                    {
-                        LogMessageEvent?.Invoke("Trade object is null in Connector_TickChangeEvent.", LogMessageType.Error);
-                        break;
                     }
                     if (o.Security.Name == trade.SecurityNameCode)
                     {
@@ -1419,11 +1465,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         LogMessageEvent?.Invoke($"UnderlyingAssetDataRow with null Security found.", LogMessageType.Error);
                         continue;
-                    }
-                    if (trade == null)
-                    {
-                        LogMessageEvent?.Invoke("Trade object is null in Connector_TickChangeEvent.", LogMessageType.Error);
-                        break;
                     }
                     if (ud.Security.Name == trade.SecurityNameCode)
                     {
@@ -1559,10 +1600,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             _updateTimer?.Dispose();
             _dailyReloadTimer?.Dispose(); // Dispose the new timer
 
+            ServerMaster.ServerCreateEvent -= ServerMaster_ServerCreateEvent;
             if (_server != null)
             {
-                _server.SecuritiesChangeEvent -= OnSecuritiesChanged; // Unsubscribe
+                _server.ConnectStatusChangeEvent -= ServerOnConnectStatusChangeEvent;
+                _server.SecuritiesChangeEvent -= Server_SecuritiesChangeEvent;
             }
+
+            _mainControl?.Dispose();
+            _uaGrid?.Dispose();
+            _optionsGrid?.Dispose();
+            _expirationComboBox?.Dispose();
+            _strikesToShowNumericUpDown?.Dispose();
 
             foreach (var tab in _simpleTabs.Values)
             {
