@@ -22,7 +22,7 @@ namespace OsEngine.Alerts
 {
     public class AlertMaster
     {
-        public AlertMaster(string name, ConnectorCandles connector, ChartCandleMaster chartMaster) 
+        public AlertMaster(string name, ConnectorCandles connector, ChartCandleMaster chartMaster)
         {
             _name = name;
             _connector = connector;
@@ -319,6 +319,12 @@ namespace OsEngine.Alerts
             GridViewBox.Rows.Add(null, null);
             GridViewBox.Click += GridViewBox_Click;
             GridViewBox.DoubleClick += GridViewBox_DoubleClick;
+            GridViewBox.DataError += GridViewBox_DataError;
+        }
+
+        private void GridViewBox_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void DeleteGrid()
@@ -335,11 +341,12 @@ namespace OsEngine.Alerts
                 return;
             }
 
-            if(GridViewBox != null)
+            if (GridViewBox != null)
             {
                 DataGridFactory.ClearLinks(GridViewBox);
                 GridViewBox.Click -= GridViewBox_Click;
                 GridViewBox.DoubleClick -= GridViewBox_DoubleClick;
+                GridViewBox.DataError -= GridViewBox_DataError;
                 GridViewBox.Rows.Clear();
                 GridViewBox.Columns.Clear();
                 GridViewBox = null;
@@ -354,7 +361,7 @@ namespace OsEngine.Alerts
                 return;
             }
 
-            if(GridViewBox.Rows.Count == 0)
+            if (GridViewBox.Rows.Count == 0)
             {
                 return;
             }
@@ -456,9 +463,9 @@ namespace OsEngine.Alerts
 
         #region Alerts creation and deletion
 
-        private List<IIAlert> _alertArray; 
+        private List<IIAlert> _alertArray;
 
-        private void Load() 
+        private void Load()
         {
             if (!File.Exists(@"Engine\" + _name + "AlertKeeper.txt"))
             {
@@ -467,7 +474,7 @@ namespace OsEngine.Alerts
                 return;
             }
 
-            if(_connector.StartProgram != StartProgram.IsOsTrader)
+            if (_connector.StartProgram != StartProgram.IsOsTrader)
             {
                 return;
             }
@@ -518,7 +525,7 @@ namespace OsEngine.Alerts
             }
             catch (Exception error)
             {
-                SendNewMessage(error.ToString(),LogMessageType.Error);
+                SendNewMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -575,7 +582,7 @@ namespace OsEngine.Alerts
                     File.Delete(@"Engine\" + _name + "AlertKeeper.txt");
                 }
 
-                if(_alertArray != null)
+                if (_alertArray != null)
                 {
                     for (int i = 0; i < _alertArray.Count; i++)
                     {
@@ -606,7 +613,7 @@ namespace OsEngine.Alerts
 
         private void DeleteVisual()
         {
-            if(HostAlert == null)
+            if (HostAlert == null)
             {
                 return;
             }
@@ -622,6 +629,7 @@ namespace OsEngine.Alerts
                 GridViewBox.Rows.Clear();
                 GridViewBox.Click -= GridViewBox_Click;
                 GridViewBox.DoubleClick -= GridViewBox_DoubleClick;
+                GridViewBox.DataError -= GridViewBox_DataError;
                 DataGridFactory.ClearLinks(GridViewBox);
                 GridViewBox = null;
             }
@@ -633,7 +641,7 @@ namespace OsEngine.Alerts
             }
         }
 
-        public void DeleteFromNumber(int number) 
+        public void DeleteFromNumber(int number)
         {
             try
             {
@@ -658,7 +666,7 @@ namespace OsEngine.Alerts
             try
             {
                 if (_alertArray == null
-                     || alert == null 
+                     || alert == null
                      || _alertArray.Count == 0)
                 {
                     return;
@@ -667,8 +675,8 @@ namespace OsEngine.Alerts
                 _chartMaster.DeleteAlert(alert);
 
                 alert.Delete();
-               
-                for (int i = 0;i < _alertArray.Count;i++)
+
+                for (int i = 0; i < _alertArray.Count; i++)
                 {
                     if (_alertArray[i].Name == alert.Name)
                     {
@@ -687,7 +695,7 @@ namespace OsEngine.Alerts
             }
         }
 
-        public void SetNewAlert(IIAlert newAlert) 
+        public void SetNewAlert(IIAlert newAlert)
         {
             try
             {
@@ -785,7 +793,7 @@ namespace OsEngine.Alerts
                 }
                 if (_alertArray[number].TypeAlert == AlertType.PriceAlert)
                 {
-                   ((AlertToPrice)_alertArray[number]).ShowDialog();
+                    ((AlertToPrice)_alertArray[number]).ShowDialog();
                     Save();
                 }
             }
