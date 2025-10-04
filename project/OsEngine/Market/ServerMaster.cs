@@ -458,7 +458,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
                 serverTypes.Add(ServerType.Bybit);
-                serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Woo);
                 serverTypes.Add(ServerType.BitGetSpot);
                 serverTypes.Add(ServerType.BitGetFutures);
