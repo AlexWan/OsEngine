@@ -43,7 +43,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         private System.Threading.Timer _updateTimer;
         private readonly object _locker = new object();
         private GlobalPositionViewer _positionViewer;
-        private System.Threading.Timer _dailyReloadTimer;
         private IServer _server;
 
         #endregion
@@ -623,7 +622,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             SelectFirstUnderlyingAsset();
             SetJournalsInPosViewer(); // Add this call
 
-            InitializeDailyReloadTimer(); // Call new method to set up the timer
             SaveSettings();
         }
 
@@ -642,44 +640,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void InitializeDailyReloadTimer()
+        public void ReloadSecuritiesNow()
         {
-            if (_dailyReloadTimer != null)
+            if (_server != null && _server.ServerStatus == ServerConnectStatus.Connect)
             {
-                _dailyReloadTimer.Dispose();
-            }
-
-            var now = DateTime.UtcNow;
-            var nineAmUtc = DateTime.UtcNow.Date.AddHours(9).AddMinutes(5);
-            if (now > nineAmUtc)
-            {
-                nineAmUtc = nineAmUtc.AddDays(1);
-            }
-
-            var initialDelay = nineAmUtc - now;
-            var twentyFourHours = TimeSpan.FromHours(24);
-
-            _dailyReloadTimer = new System.Threading.Timer(
-                DailyReloadCallback,
-                null,
-                initialDelay,
-                twentyFourHours
-            );
-        }
-
-        private void DailyReloadCallback(object state)
-        {
-            try
-            {
-                if (_server != null && _server.ServerStatus == ServerConnectStatus.Connect)
-                {
-                    LogMessageEvent?.Invoke("Executing daily securities reload.", LogMessageType.System);
-                    ((AServer)_server).ReloadSecurities();
-                }
-            }
-            catch (Exception e)
-            {
-                LogMessageEvent?.Invoke($"Error during daily securities reload: {e.Message}", LogMessageType.Error);
+                LogMessageEvent?.Invoke("Executing daily securities reload.", LogMessageType.System);
+                ((AServer)_server).ReloadSecurities();
             }
         }
 
@@ -1598,7 +1564,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _isDisposed = true;
             _updateTimer?.Dispose();
-            _dailyReloadTimer?.Dispose(); // Dispose the new timer
 
             ServerMaster.ServerCreateEvent -= ServerMaster_ServerCreateEvent;
             if (_server != null)
