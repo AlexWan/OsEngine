@@ -8,6 +8,7 @@ using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using OsEngine.Market;
 
 namespace OsEngine.Entity
 {
@@ -49,37 +50,53 @@ namespace OsEngine.Entity
             _position = null;
 
             //main grid
-            if(_mainPosGrid != null)
+            if (_mainPosGrid != null)
             {
                 FormsHostMainGrid.Child = null;
                 DataGridFactory.ClearLinks(_mainPosGrid);
+                _mainPosGrid.DataError -= _mainPosGrid_DataError;
+                _mainPosGrid.Rows.Clear();
+                _mainPosGrid.DataSource = null;
+                _mainPosGrid.Dispose();
                 _mainPosGrid = null;
             }
 
             // orders grid
-            if(_openOrdersGrid != null)
+            if (_openOrdersGrid != null)
             {
                 FormsHostOpenDealGrid.Child = null;
                 DataGridFactory.ClearLinks(_openOrdersGrid);
                 _openOrdersGrid.Click -= OpenOrdersGrid_Click;
+                _openOrdersGrid.DataError -= _mainPosGrid_DataError;
+                _openOrdersGrid.Rows.Clear();
+                _openOrdersGrid.DataSource = null;
+                _openOrdersGrid.Dispose();
                 _openOrdersGrid = null;
             }
 
-            if(_closeOrdersGrid != null)
+            if (_closeOrdersGrid != null)
             {
                 FormsHostCloseDealGrid.Child = null;
                 DataGridFactory.ClearLinks(_closeOrdersGrid);
                 _closeOrdersGrid.Click -= CloseOrdersGrid_Click;
+                _closeOrdersGrid.DataError -= _mainPosGrid_DataError;
+                _closeOrdersGrid.Rows.Clear();
+                _closeOrdersGrid.DataSource = null;
+                _closeOrdersGrid.Dispose();
                 _closeOrdersGrid = null;
             }
 
             // trade grid
 
-            if(_tradesGrid != null)
+            if (_tradesGrid != null)
             {
                 FormsHostTreid.Child = null;
                 DataGridFactory.ClearLinks(_tradesGrid);
                 _tradesGrid.Click -= _tradesGrid_Click;
+                _tradesGrid.DataError -= _mainPosGrid_DataError;
+                _tradesGrid.Rows.Clear();
+                _tradesGrid.DataSource = null;
+                _tradesGrid.Dispose();
                 _tradesGrid = null;
             }
         }
@@ -105,6 +122,12 @@ namespace OsEngine.Entity
             newGrid.ScrollBars = ScrollBars.Vertical;
             FormsHostMainGrid.Child = newGrid;
             _mainPosGrid = newGrid;
+            _mainPosGrid.DataError += _mainPosGrid_DataError;
+        }
+
+        private void _mainPosGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void PaintPosTable()
@@ -226,11 +249,12 @@ namespace OsEngine.Entity
             openOrdersGrid.Click += OpenOrdersGrid_Click;
             _openOrdersGrid = openOrdersGrid;
             FormsHostOpenDealGrid.Child = openOrdersGrid;
-
+            _openOrdersGrid.DataError += _mainPosGrid_DataError;
             DataGridView closeOrdersGrid = CreateOrderTable();
             closeOrdersGrid.Click += CloseOrdersGrid_Click;
             _closeOrdersGrid = closeOrdersGrid;
             FormsHostCloseDealGrid.Child = closeOrdersGrid;
+            _closeOrdersGrid.DataError += _mainPosGrid_DataError;
         }
 
         private DataGridView CreateOrderTable()
@@ -349,7 +373,7 @@ namespace OsEngine.Entity
                 _closeOrdersGrid.ContextMenuStrip = menu;
                 _closeOrdersGrid.ContextMenuStrip.Show(_closeOrdersGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
             }
@@ -585,6 +609,7 @@ namespace OsEngine.Entity
             _tradesGrid.SelectionMode = DataGridViewSelectionMode.CellSelect;
             FormsHostTreid.Child = _tradesGrid;
             _tradesGrid.Click += _tradesGrid_Click;
+            _tradesGrid.DataError += _mainPosGrid_DataError;
         }
 
         private void PaintTradeTable()
@@ -710,7 +735,7 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; i < ordersOpen.Count; i++)
                 {
-                    if(ordersOpen[i].MyTrades == null ||
+                    if (ordersOpen[i].MyTrades == null ||
                         ordersOpen[i].MyTrades.Count == 0)
                     {
                         continue;
@@ -742,7 +767,7 @@ namespace OsEngine.Entity
                 MouseEventArgs mouse = (MouseEventArgs)e;
                 if (mouse.Button != MouseButtons.Right)
                 {
-                    if(_tradesGrid.ContextMenuStrip != null)
+                    if (_tradesGrid.ContextMenuStrip != null)
                     {
                         _tradesGrid.ContextMenuStrip = null;
                     }
@@ -1012,7 +1037,7 @@ namespace OsEngine.Entity
             List<Order> openOrders = _position.OpenOrders;
             List<Order> closeOrders = _position.CloseOrders;
 
-            if(_mainPosGrid.Rows[0].Cells[4].Value == null)
+            if (_mainPosGrid.Rows[0].Cells[4].Value == null)
             {
                 return;
             }
@@ -1026,7 +1051,7 @@ namespace OsEngine.Entity
 
                 List<MyTrade> trades = openOrders[i].MyTrades;
 
-                for(int i2 =0;trades != null && i2 < trades.Count;i2++)
+                for (int i2 = 0; trades != null && i2 < trades.Count; i2++)
                 {
                     trades[i2].SecurityNameCode = securityName;
                 }
@@ -1121,11 +1146,11 @@ namespace OsEngine.Entity
 
             DataGridViewRow nRow = _mainPosGrid.Rows[0];
 
-            if(nRow.Cells[4].Value != null)
+            if (nRow.Cells[4].Value != null)
             {
                 position.SecurityName = nRow.Cells[4].Value.ToString();
             }
-            
+
             Enum.TryParse(nRow.Cells[5].Value.ToString(), out position.Direction);
 
             PositionStateType newState;
@@ -1141,17 +1166,17 @@ namespace OsEngine.Entity
                 position.StopOrderPrice = nRow.Cells[14].Value.ToString().ToDecimal();
                 position.ProfitOrderRedLine = nRow.Cells[15].Value.ToString().ToDecimal();
                 position.ProfitOrderPrice = nRow.Cells[16].Value.ToString().ToDecimal();
-                if(nRow.Cells[17].Value != null)
+                if (nRow.Cells[17].Value != null)
                 {
                     position.SignalTypeOpen = nRow.Cells[17].Value.ToString().RemoveExcessFromSecurityName();
                 }
-                
-                if(nRow.Cells[18].Value != null)
+
+                if (nRow.Cells[18].Value != null)
                 {
                     position.SignalTypeClose = nRow.Cells[18].Value.ToString().RemoveExcessFromSecurityName();
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
@@ -1161,11 +1186,11 @@ namespace OsEngine.Entity
         {
             List<MyTrade> allTrades = new List<MyTrade>();
 
-            for(int i = 0; _position.OpenOrders != null && i < _position.OpenOrders.Count;i++)
+            for (int i = 0; _position.OpenOrders != null && i < _position.OpenOrders.Count; i++)
             {
                 List<MyTrade> trades = _position.OpenOrders[i].MyTrades;
 
-                if(trades == null || trades.Count == 0)
+                if (trades == null || trades.Count == 0)
                 {
                     continue;
                 }
@@ -1185,7 +1210,7 @@ namespace OsEngine.Entity
                 allTrades.AddRange(trades);
             }
 
-            for(int i = 0;i < allTrades.Count;i++)
+            for (int i = 0; i < allTrades.Count; i++)
             {
                 SaveMyTradeState(allTrades[i]);
             }
@@ -1195,11 +1220,11 @@ namespace OsEngine.Entity
         {
             DataGridViewRowCollection rows = _tradesGrid.Rows;
 
-            for(int i = 0;i < rows.Count;i++)
+            for (int i = 0; i < rows.Count; i++)
             {
                 string num = rows[i].Cells[0].Value.ToString();
 
-                if(trade.NumberTrade == num)
+                if (trade.NumberTrade == num)
                 {
                     trade.Price = rows[i].Cells[4].Value.ToString().ToDecimal();
                     trade.Volume = rows[i].Cells[5].Value.ToString().ToDecimal();

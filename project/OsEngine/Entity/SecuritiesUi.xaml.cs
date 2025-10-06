@@ -35,7 +35,7 @@ namespace OsEngine.Entity
             UpdateClassComboBox(server.Securities);
 
             CreateTable();
-          
+
             ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
             PaintSecurities(server.Securities);
 
@@ -68,7 +68,11 @@ namespace OsEngine.Entity
                 _server = null;
 
                 _gridSecurities.CellValueChanged -= _grid_CellValueChanged;
+                _gridSecurities.DataError -= _gridSecurities_DataError;
                 DataGridFactory.ClearLinks(_gridSecurities);
+                _gridSecurities.Columns.Clear();
+                _gridSecurities.DataSource = null;
+                _gridSecurities.Dispose();
                 _gridSecurities = null;
                 HostSecurities.Child = null;
 
@@ -323,7 +327,12 @@ namespace OsEngine.Entity
             HostSecurities.Child.Show();
             HostSecurities.Child.Refresh();
             _gridSecurities.CellValueChanged += _grid_CellValueChanged;
+            _gridSecurities.DataError += _gridSecurities_DataError;
+        }
 
+        private void _gridSecurities_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -332,7 +341,7 @@ namespace OsEngine.Entity
             {
                 SaveFromTable(e.RowIndex);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
@@ -496,7 +505,7 @@ namespace OsEngine.Entity
 
                 _gridSecurities.Rows.Clear();
 
-                if(rows.Count > 0)
+                if (rows.Count > 0)
                 {
                     _gridSecurities.Rows.AddRange(rows.ToArray());
                 }
@@ -556,7 +565,7 @@ namespace OsEngine.Entity
             int priceDecimals = Convert.ToInt32(row.Cells[9].Value);
             int volumeDecimals = Convert.ToInt32(row.Cells[10].Value);
             MinTradeAmountType minVolumeType;
-            Enum.TryParse(row.Cells[11].Value.ToString(),out minVolumeType);
+            Enum.TryParse(row.Cells[11].Value.ToString(), out minVolumeType);
             decimal minVolume = row.Cells[12].Value.ToString().ToDecimal();
             decimal volumeStep = row.Cells[13].Value.ToString().ToDecimal();
             decimal priceLimitHigh = row.Cells[14].Value.ToString().ToDecimal();
@@ -575,11 +584,11 @@ namespace OsEngine.Entity
 
             Security mySecurity = null;
 
-            for(int i = 0;i < securities.Count;i++)
+            for (int i = 0; i < securities.Count; i++)
             {
                 if (securities[i].Name == secName
-                    && securities[i].NameFull == secFullName 
-                    && securities[i].NameId == secId 
+                    && securities[i].NameFull == secFullName
+                    && securities[i].NameId == secId
                     && securities[i].NameClass == secClass
                     && securities[i].SecurityType.ToString() == secType)
                 {
@@ -588,7 +597,7 @@ namespace OsEngine.Entity
                 }
             }
 
-            if(mySecurity == null)
+            if (mySecurity == null)
             {
                 return;
             }
@@ -606,7 +615,7 @@ namespace OsEngine.Entity
             mySecurity.Strike = strike;
             mySecurity.VolumeStep = volumeStep;
 
-            if(Directory.Exists(@"Engine\ServerDopSettings") == false)
+            if (Directory.Exists(@"Engine\ServerDopSettings") == false)
             {
                 Directory.CreateDirectory(@"Engine\ServerDopSettings");
             }
@@ -618,7 +627,7 @@ namespace OsEngine.Entity
 
             string fileName = mySecurity.Name.RemoveExcessFromSecurityName();
 
-            if(string.IsNullOrEmpty(mySecurity.NameId) == false)
+            if (string.IsNullOrEmpty(mySecurity.NameId) == false)
             {
                 fileName += "_" + mySecurity.NameId.RemoveExcessFromSecurityName();
             }
@@ -629,9 +638,9 @@ namespace OsEngine.Entity
             }
 
             fileName += "_" + mySecurity.SecurityType.ToString().RemoveExcessFromSecurityName();
-            
 
-            string filePath = @"Engine\ServerDopSettings\" + _server.ServerType +"\\" + fileName + ".txt";
+
+            string filePath = @"Engine\ServerDopSettings\" + _server.ServerType + "\\" + fileName + ".txt";
 
             try
             {
@@ -645,7 +654,7 @@ namespace OsEngine.Entity
             }
             catch (Exception)
             {
-                
+
             }
         }
 
@@ -754,15 +763,15 @@ namespace OsEngine.Entity
                         }
 
                         _searchResults.Add(i);
-                    }					
+                    }
                 }
-				
+
                 if (_searchResults.Count > 1 && _searchResults.Contains(indexFirstSec) && _searchResults.IndexOf(indexFirstSec) != 0)
                 {
                     int index = _searchResults.IndexOf(indexFirstSec);
                     _searchResults.RemoveAt(index);
                     _searchResults.Insert(0, indexFirstSec);
-                }							
+                }
             }
             catch (Exception ex)
             {
