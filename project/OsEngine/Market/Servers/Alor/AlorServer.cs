@@ -350,10 +350,19 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.SecurityType = instrumentType;
                     newSecurity.Exchange = item.exchange;
                     newSecurity.DecimalsVolume = 0;
-                    newSecurity.Lot = item.lotsize.ToDecimal();
                     newSecurity.VolumeStep = 1;
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.symbol + "_" + item.board;
+
+                    if (newSecurity.Name == "SBERF"
+                      || newSecurity.Name == "GAZPF")
+                    {
+                        newSecurity.Lot = 100;
+                    }
+                    else
+                    {
+                        newSecurity.Lot = item.lotsize.ToDecimal();
+                    }
 
                     if (newSecurity.SecurityType == SecurityType.Option)
                     {
