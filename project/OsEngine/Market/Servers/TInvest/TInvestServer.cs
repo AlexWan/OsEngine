@@ -781,8 +781,17 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.NameClass = SecurityType.Futures.ToString();
 
+                    if(newSecurity.Name == "SBERF"
+                        || newSecurity.Name == "GAZPF")
+                    {
+                        newSecurity.Lot = 100;
+                    }
+                    else
+                    {
+                        newSecurity.Lot = item.Lot;
+                    }
+
                     newSecurity.SecurityType = SecurityType.Futures;
-                    newSecurity.Lot = item.Lot;
                     newSecurity.VolumeStep = 1;
                     newSecurity.Go = GetValue(item.InitialMarginOnBuy); // есть еще при продаже (одинаковые?)
 
