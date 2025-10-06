@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market;
 using OsEngine.Market.Connectors;
 
 namespace OsEngine.Entity
@@ -151,7 +152,6 @@ namespace OsEngine.Entity
 
                 _marketDepthTable.Columns.Add(column1);
 
-
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
                 DataGridViewColumn column3 = new DataGridViewColumn();
                 column3.CellTemplate = cell3;
@@ -178,7 +178,7 @@ namespace OsEngine.Entity
 
                 DataGridViewCellStyle styleBlue = new DataGridViewCellStyle();
                 styleBlue.Alignment = DataGridViewContentAlignment.MiddleRight;
-                styleBlue.ForeColor = Color.FromArgb(57, 157,54);
+                styleBlue.ForeColor = Color.FromArgb(57, 157, 54);
                 styleBlue.Font = new Font("Areal", 3);
 
                 for (int i = 0; i < 25; i++)
@@ -193,11 +193,18 @@ namespace OsEngine.Entity
 
                 _marketDepthTable.Rows[22].Cells[0].Selected = true;
                 _marketDepthTable.Rows[22].Cells[0].Selected = false;
+
+                _marketDepthTable.DataError += _marketDepthTable_DataError;
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void _marketDepthTable_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void _textBoxLimitPrice_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -244,7 +251,7 @@ namespace OsEngine.Entity
                     {
                         return;
                     }
-  
+
                     price = _marketDepthTable.Rows[_marketDepthTable.CurrentCell.RowIndex].Cells[2].Value.ToString().ToDecimal();
                 }
                 catch (Exception)
@@ -259,12 +266,12 @@ namespace OsEngine.Entity
                 if (_hostMd != null)
                 {
                     _lastSelectPrice = price;
-                    if(_textBoxLimitPrice != null)
+                    if (_textBoxLimitPrice != null)
                     {
                         _textBoxLimitPrice.Text = Convert.ToDouble(_lastSelectPrice).ToString(new CultureInfo("RU-ru"));
                     }
-                    
-                    if(UserClickOnMDAndSelectPriceEvent != null)
+
+                    if (UserClickOnMDAndSelectPriceEvent != null)
                     {
                         UserClickOnMDAndSelectPriceEvent(_lastSelectPrice);
                     }
@@ -284,31 +291,31 @@ namespace OsEngine.Entity
             {
                 if (glass.Dispatcher.CheckAccess() == false)
                 {
-                    glass.Dispatcher.Invoke(new Action<WindowsFormsHost, System.Windows.Controls.TextBox, System.Windows.Controls.TextBox>(StartPaint), glass, textBoxLimitPrice,textBoxVolume);
+                    glass.Dispatcher.Invoke(new Action<WindowsFormsHost, System.Windows.Controls.TextBox, System.Windows.Controls.TextBox>(StartPaint), glass, textBoxLimitPrice, textBoxVolume);
                     return;
                 }
 
-                if(_marketDepthTable == null)
+                if (_marketDepthTable == null)
                 {
                     CreateMarketDepthControl();
                     TryPaintMarketDepth();
                 }
 
-                if(textBoxVolume != null)
+                if (textBoxVolume != null)
                 {
                     _textBoxVolume = textBoxVolume;
 
-                    if(string.IsNullOrEmpty(_lastVolumeText) == false)
+                    if (string.IsNullOrEmpty(_lastVolumeText) == false)
                     {
                         _textBoxVolume.Text = _lastVolumeText;
                     }
                 }
-                
-                if(textBoxLimitPrice != null)
+
+                if (textBoxLimitPrice != null)
                 {
                     _textBoxLimitPrice = textBoxLimitPrice;
 
-                    if(string.IsNullOrEmpty(_lastPriceText) == false)
+                    if (string.IsNullOrEmpty(_lastPriceText) == false)
                     {
                         _textBoxLimitPrice.Text = _lastPriceText;
                     }
@@ -323,7 +330,7 @@ namespace OsEngine.Entity
                 _hostMd.Child = _marketDepthTable;
                 _hostMd.Child.Refresh();
 
-                if(_lastMarketDepth != null)
+                if (_lastMarketDepth != null)
                 {
                     ProcessMarketDepth(_lastMarketDepth);
                 }
@@ -336,7 +343,7 @@ namespace OsEngine.Entity
 
         private string _lastPriceText;
 
-        private string _lastVolumeText; 
+        private string _lastVolumeText;
 
         public void StopPaint()
         {
@@ -359,7 +366,7 @@ namespace OsEngine.Entity
                     _textBoxLimitPrice = null;
                 }
 
-                if(_textBoxVolume != null)
+                if (_textBoxVolume != null)
                 {
                     _lastVolumeText = _textBoxVolume.Text;
                     _textBoxVolume = null;
@@ -371,12 +378,15 @@ namespace OsEngine.Entity
                     _hostMd = null;
                 }
 
-                if(_marketDepthTable != null)
+                if (_marketDepthTable != null)
                 {
-
                     _marketDepthTable.SelectionChanged -= _glassBox_SelectionChanged;
                     _marketDepthTable.Rows.Clear();
+                    _marketDepthTable.Columns.Clear();
                     DataGridFactory.ClearLinks(_marketDepthTable);
+                    _marketDepthTable.DataError -= _marketDepthTable_DataError;
+                    _marketDepthTable.DataSource = null;
+                    _marketDepthTable.Dispose();
                     _marketDepthTable = null;
                 }
             }
@@ -395,12 +405,12 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if(_marketDepthTable == null)
+            if (_marketDepthTable == null)
             {
                 return;
             }
 
-            if(_connector == null)
+            if (_connector == null)
             {
                 return;
             }
@@ -470,13 +480,13 @@ namespace OsEngine.Entity
                         string price = depth.Bids[i].Price.ToStringWithNoEndZero();
                         string bid = depth.Bids[i].Bid.ToStringWithNoEndZero();
 
-                        if(_marketDepthTable.Rows[25 + i].Cells[2].Value == null ||
+                        if (_marketDepthTable.Rows[25 + i].Cells[2].Value == null ||
                             _marketDepthTable.Rows[25 + i].Cells[2].Value.ToString() != price)
                         {
                             _marketDepthTable.Rows[25 + i].Cells[2].Value = price;
                         }
-                        
-                        if(_marketDepthTable.Rows[25 + i].Cells[3].Value == null ||
+
+                        if (_marketDepthTable.Rows[25 + i].Cells[3].Value == null ||
                             _marketDepthTable.Rows[25 + i].Cells[3].Value.ToString() != bid)
                         {
                             _marketDepthTable.Rows[25 + i].Cells[3].Value = bid;
@@ -505,13 +515,13 @@ namespace OsEngine.Entity
                         string price = depth.Asks[i].Price.ToStringWithNoEndZero();
                         string ask = depth.Asks[i].Ask.ToStringWithNoEndZero();
 
-                        if(_marketDepthTable.Rows[24 - i].Cells[2].Value == null ||
+                        if (_marketDepthTable.Rows[24 - i].Cells[2].Value == null ||
                             _marketDepthTable.Rows[24 - i].Cells[2].Value.ToString() != price)
                         {
                             _marketDepthTable.Rows[24 - i].Cells[2].Value = price;
                         }
-                        
-                        if(_marketDepthTable.Rows[24 - i].Cells[3].Value == null ||
+
+                        if (_marketDepthTable.Rows[24 - i].Cells[3].Value == null ||
                             _marketDepthTable.Rows[24 - i].Cells[3].Value.ToString() != ask)
                         {
                             _marketDepthTable.Rows[24 - i].Cells[3].Value = ask;
@@ -554,7 +564,7 @@ namespace OsEngine.Entity
                         builder.Append('|');
                     }
 
-                    if(_marketDepthTable.Rows[25 + i].Cells[1].Value == null ||
+                    if (_marketDepthTable.Rows[25 + i].Cells[1].Value == null ||
                         _marketDepthTable.Rows[25 + i].Cells[1].Value.ToString() != builder.ToString())
                     {
                         _marketDepthTable.Rows[25 + i].Cells[1].Value = builder.ToString();
@@ -565,7 +575,7 @@ namespace OsEngine.Entity
                 // объём в палках для бида
                 for (int i = 0; depth.Asks != null && i < 25 && i < depth.Asks.Count; i++)
                 {
-                    if(maxVol == 0)
+                    if (maxVol == 0)
                     {
                         break;
                     }
@@ -578,12 +588,12 @@ namespace OsEngine.Entity
 
                     StringBuilder builder = new StringBuilder(percentFromMax);
 
-                    for (int i2 = 0; i2 < percentFromMax ; i2++)
+                    for (int i2 = 0; i2 < percentFromMax; i2++)
                     {
                         builder.Append('|');
                     }
 
-                    if(_marketDepthTable.Rows[24 - i].Cells[1].Value == null ||
+                    if (_marketDepthTable.Rows[24 - i].Cells[1].Value == null ||
                         _marketDepthTable.Rows[24 - i].Cells[1].Value.ToString() != builder.ToString())
                     {
                         _marketDepthTable.Rows[24 - i].Cells[1].Value = builder.ToString();
@@ -668,7 +678,7 @@ namespace OsEngine.Entity
         {
             try
             {
-                if (_hostMd == null 
+                if (_hostMd == null
                     || _marketDepthTable == null)
                 {
                     return;
@@ -691,11 +701,11 @@ namespace OsEngine.Entity
                 if (_marketDepthTable.Rows[26].Cells[2].Value != null ||
                          _marketDepthTable.Rows[23].Cells[2].Value != null)
                 {
-                    if(_lastMdTimeEntry.AddSeconds(5) < DateTime.Now)
+                    if (_lastMdTimeEntry.AddSeconds(5) < DateTime.Now)
                     {
                         for (int i = 0; i < 25; i++)
                         {
-                            if(i == 0 &&
+                            if (i == 0 &&
                                 _marketDepthTable.Rows[25].Cells[1].Value != null)
                             {
                                 _marketDepthTable.Rows[25].Cells[0].Value = null;

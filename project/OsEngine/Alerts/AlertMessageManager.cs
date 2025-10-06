@@ -164,7 +164,6 @@ namespace OsEngine.Alerts
             {
                 try
                 {
-
                     DataGridFactory.ClearLinks(_grid);
                     _grid.DataError -= _grid_DataError;
                     _grid.Rows.Clear();
