@@ -23,10 +23,19 @@ namespace OsEngine.Alerts
             HostAlerts.Child.Show();
             Title = OsLocalization.Alerts.TitleAlertMessageFullUi;
 
-            OsLocalization.LocalizationTypeChangeEvent += delegate { Title = OsLocalization.Alerts.TitleAlertMessageFullUi; };
-
             this.Activate();
             this.Focus();
+
+            this.Closed += AlertMessageFullUi_Closed;
         }
+
+        private void AlertMessageFullUi_Closed(object sender, System.EventArgs e)
+        {
+            HostAlerts.Child = null;
+            HostAlerts = null;
+
+
+
+        } 
     }
 }
