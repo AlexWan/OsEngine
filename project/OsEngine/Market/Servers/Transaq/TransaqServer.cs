@@ -771,6 +771,12 @@ namespace OsEngine.Market.Servers.Transaq
                             security.Lot = 1;
                         }
 
+                        if (security.Name == "SBERF"
+                         || security.Name == "GAZPF")
+                        {
+                            security.Lot = 100;
+                        }
+
                         security.PriceStep = securityData.Minstep.ToDecimal();
 
                         if (security.PriceStep == 0
