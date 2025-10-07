@@ -177,6 +177,12 @@ namespace OsEngine.Logging
             _grid.Rows.Add(null, null);
             _grid.DoubleClick += _grid_DoubleClick;
             _grid.Click += _grid_Click;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void _grid_Click(object sender, EventArgs e)
@@ -187,7 +193,7 @@ namespace OsEngine.Logging
 
                 if (mouse.Button != MouseButtons.Right)
                 {
-                    if(_grid.ContextMenuStrip != null)
+                    if (_grid.ContextMenuStrip != null)
                     {
                         _grid.ContextMenuStrip = null;
                     }
@@ -277,6 +283,7 @@ namespace OsEngine.Logging
             if (_grid != null)
             {
                 _grid.DoubleClick -= _grid_DoubleClick;
+                _grid.DataError -= _grid_DataError;
                 _grid.Rows.Clear();
                 _grid.Columns.Clear();
                 DataGridFactory.ClearLinks(_grid);
@@ -634,7 +641,7 @@ namespace OsEngine.Logging
                     _messageSender.AddNewMessage(messageLog);
                 }
             }
-            if (type == LogMessageType.Error 
+            if (type == LogMessageType.Error
                 && _errorLogShutDown == false)
             {
                 LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
@@ -675,7 +682,7 @@ namespace OsEngine.Logging
                     return;
                 }
 
-                if(_grid != null 
+                if (_grid != null
                     && _grid.Rows != null
                     && _grid.Rows.Count > 15000)
                 {
@@ -993,6 +1000,13 @@ namespace OsEngine.Logging
             column.ReadOnly = false;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridErrorLog.Columns.Add(column);
+
+            _gridErrorLog.DataError += _gridErrorLog_DataError;
+        }
+
+        private static void _gridErrorLog_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private static bool _errorLogShutDown = false;
@@ -1113,6 +1127,7 @@ namespace OsEngine.Logging
         private static void _logErrorUi_Closing(object sender, CancelEventArgs e)
         {
             _logErrorUi.Closing -= _logErrorUi_Closing;
+            _gridErrorLog.DataError -= _gridErrorLog_DataError;
             _logErrorUi = null;
         }
     }
