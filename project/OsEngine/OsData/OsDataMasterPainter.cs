@@ -15,8 +15,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using ContextMenu = System.Windows.Forms.ContextMenuStrip;
-using MenuItem = System.Windows.Forms.ToolStripMenuItem;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Point = System.Drawing.Point;
 
@@ -84,7 +82,6 @@ namespace OsEngine.OsData
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
 
         private void ServerMaster_ServerDeleteEvent(IServer server)
         {
@@ -402,8 +399,14 @@ namespace OsEngine.OsData
 
             _gridSources = newGrid;
             _gridSources.DoubleClick += GridSources_DoubleClick;
+            _gridSources.DataError += _gridSources_DataError;
             _hostSource.Child = _gridSources;
             _hostSource.VerticalAlignment = VerticalAlignment.Top;
+        }
+
+        private void _gridSources_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void FilterTextBox_TextChanged(object sender, EventArgs e)
@@ -584,6 +587,7 @@ namespace OsEngine.OsData
             _gridSets = newGrid;
             _gridSets.Click += GridSet_Click;
             _gridSets.DoubleClick += GridSet_DoubleClick;
+            _gridSets.DataError += _gridSources_DataError;
             _hostSets.Child = _gridSets;
         }
 
