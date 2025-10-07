@@ -1570,6 +1570,25 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _server.ConnectStatusChangeEvent -= ServerOnConnectStatusChangeEvent;
                 _server.SecuritiesChangeEvent -= Server_SecuritiesChangeEvent;
+                _server.SecuritiesChangeEvent -= OnSecuritiesChanged; // Add this
+            }
+
+            if (_uaGrid != null)
+            {
+                _uaGrid.SelectionChanged -= UaGrid_SelectionChanged;
+                _uaGrid.CellClick -= _uaGrid_CellClick;
+                _uaGrid.CellValueChanged -= _uaGrid_CellValueChanged;
+            }
+
+            if (_expirationComboBox != null)
+            {
+                _expirationComboBox.SelectedIndexChanged -= ExpirationComboBox_SelectedIndexChanged;
+            }
+
+            if (_optionsGrid != null)
+            {
+                _optionsGrid.CellClick -= _optionsGrid_CellClick;
+                _optionsGrid.CellValueChanged -= _optionsGrid_CellValueChanged;
             }
 
             _mainControl?.Dispose();
