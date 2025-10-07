@@ -190,7 +190,7 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
-                if (_startProgram == StartProgram.IsOsOptimizer 
+                if (_startProgram == StartProgram.IsOsOptimizer
                     || _startProgram == StartProgram.IsTester)
                 {
                     return;
@@ -228,12 +228,13 @@ namespace OsEngine.Journal.Internal
                 if (_gridOpenDeal != null)
                 {
                     _gridOpenDeal.Click -= _gridOpenDeal_Click;
+                    _gridOpenDeal.DataError -= _gridOpenDeal_DataError;
                     _gridOpenDeal = null;
-
                 }
                 if (_gridCloseDeal != null)
                 {
                     _gridCloseDeal.Click -= _gridCloseDeal_Click;
+                    _gridCloseDeal.DataError -= _gridOpenDeal_DataError;
                     _gridCloseDeal = null;
                 }
 
@@ -380,7 +381,7 @@ namespace OsEngine.Journal.Internal
                 {
                     Position pos = deals[i];
 
-                    if(pos == null)
+                    if (pos == null)
                     {
                         continue;
                     }
@@ -485,7 +486,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if(position == null)
+            if (position == null)
             {
                 return;
             }
@@ -621,7 +622,7 @@ namespace OsEngine.Journal.Internal
                     {
                         for (int indexOpenOrd = 0; curPosition.OpenOrders != null && indexOpenOrd < curPosition.OpenOrders.Count; indexOpenOrd++)
                         {
-                            if(curPosition.OpenOrders[indexOpenOrd] == null)
+                            if (curPosition.OpenOrders[indexOpenOrd] == null)
                             {
                                 continue;
                             }
@@ -684,7 +685,7 @@ namespace OsEngine.Journal.Internal
 
             bool isMyTrade = false;
 
-            lock(_dealsLocker)
+            lock (_dealsLocker)
             {
                 for (int i = _deals.Count - 1; i > -1; i--)
                 {
@@ -775,7 +776,7 @@ namespace OsEngine.Journal.Internal
                 }
             }
 
-            if(isMyTrade)
+            if (isMyTrade)
             {
                 _needToSave = true;
                 return true;
@@ -805,7 +806,7 @@ namespace OsEngine.Journal.Internal
                 {
                     Position pos = positions[i];
 
-                    if(pos == null)
+                    if (pos == null)
                     {
                         continue;
                     }
@@ -1109,7 +1110,7 @@ namespace OsEngine.Journal.Internal
                     if (_deals != null && _deals.Count != 0)
                     {
                         _closePositions = _deals.FindAll(
-                            position => position != null 
+                            position => position != null
                                         && (position.State == PositionStateType.Done
                                         || position.State == PositionStateType.OpeningFail));
                     }
@@ -1282,7 +1283,14 @@ namespace OsEngine.Journal.Internal
 
             _gridCloseDeal.ScrollBars = ScrollBars.Vertical;
             _gridOpenDeal.Click += _gridOpenDeal_Click;
+            _gridOpenDeal.DataError += _gridOpenDeal_DataError;
             _gridCloseDeal.Click += _gridCloseDeal_Click;
+            _gridCloseDeal.DataError += _gridOpenDeal_DataError;
+        }
+
+        private void _gridOpenDeal_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private DataGridView CreateNewTable()
@@ -1442,24 +1450,33 @@ namespace OsEngine.Journal.Internal
 
         public void StopPaint()
         {
-            if (_hostCloseDeal == null)
+            try
             {
-                return;
-            }
-            if (!_hostCloseDeal.Dispatcher.CheckAccess())
-            {
-                _hostCloseDeal.Dispatcher.Invoke(StopPaint);
-                return;
-            }
+                if (_hostCloseDeal == null)
+                {
+                    return;
+                }
 
-            if (_hostCloseDeal != null)
-            {
-                _hostCloseDeal.Child = null;
-                _hostOpenDeal.Child = null;
-                _hostOpenDeal = null;
-                _hostCloseDeal = null;
+                if (!_hostCloseDeal.Dispatcher.CheckAccess())
+                {
+                    _hostCloseDeal.Dispatcher.Invoke(StopPaint);
+                    return;
+                }
+
+                if (_hostCloseDeal != null)
+                {
+                    _hostCloseDeal.Child = null;
+                    _hostOpenDeal.Child = null;
+                    _hostOpenDeal = null;
+                    _hostCloseDeal = null;
+                }
+
+                _positionsToPaint.Clear();
             }
-            _positionsToPaint.Clear();
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void PaintPosition(Position position)
@@ -1875,7 +1892,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if(CanShowToolStripMenu == false)
+            if (CanShowToolStripMenu == false)
             {
                 return;
             }
