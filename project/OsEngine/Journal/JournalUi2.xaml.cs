@@ -24,6 +24,7 @@ using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using System.Threading;
 using OsEngine.Layout;
+using OsEngine.Market;
 
 namespace OsEngine.Journal
 {
@@ -43,7 +44,7 @@ namespace OsEngine.Journal
             _startProgram = startProgram;
             _botsJournals = botsJournals;
 
-            if(botsJournals.Count > 1)
+            if (botsJournals.Count > 1)
             {
                 LoadGroups();
             }
@@ -128,7 +129,7 @@ namespace OsEngine.Journal
                 botNames += botsJournals[i].BotName;
             }
 
-            if(botsJournals.Count > 1)
+            if (botsJournals.Count > 1)
             {
                 JournalName = "Journal2Ui_" + "CommonJournal" + startProgram.ToString();
             }
@@ -215,6 +216,8 @@ namespace OsEngine.Journal
                 {
                     DataGridFactory.ClearLinks(_gridStatistics);
                     _gridStatistics.Rows.Clear();
+                    _gridStatistics.DataError -= _gridStatistics_DataError;
+                    _gridStatistics.Dispose();
                     _gridStatistics = null;
                     HostStatistics.Child.Hide();
                     HostStatistics.Child = null;
@@ -227,7 +230,10 @@ namespace OsEngine.Journal
                     _openPositionGrid.Rows.Clear();
                     _openPositionGrid.Click -= _openPositionGrid_Click;
                     _openPositionGrid.DoubleClick -= _openPositionGrid_DoubleClick;
+                    _openPositionGrid.DataError -= _gridStatistics_DataError;
+                    _openPositionGrid.Dispose();
                     _openPositionGrid = null;
+
                     if (HostOpenPosition.Child != null)
                     {
                         HostOpenPosition.Child.Hide();
@@ -243,8 +249,11 @@ namespace OsEngine.Journal
                     _closePositionGrid.Rows.Clear();
                     _closePositionGrid.Click -= _closePositionGrid_Click;
                     _closePositionGrid.DoubleClick -= _closePositionGrid_DoubleClick;
+                    _closePositionGrid.DataError -= _gridStatistics_DataError;
+                    _closePositionGrid.Dispose();
                     _closePositionGrid = null;
-                    if(HostClosePosition.Child != null)
+
+                    if (HostClosePosition.Child != null)
                     {
                         HostClosePosition.Child.Hide();
                         HostClosePosition.Child = null;
@@ -258,22 +267,26 @@ namespace OsEngine.Journal
                     HostBotsSelected.Child = null;
                     _gridLeftBotsPanel.CellEndEdit -= _gridLeftBotsPanel_CellEndEdit;
                     _gridLeftBotsPanel.CellBeginEdit -= _gridLeftBotsPanel_CellBeginEdit;
+                    _gridLeftBotsPanel.DataError -= _gridStatistics_DataError;
                     DataGridFactory.ClearLinks(_gridLeftBotsPanel);
+                    _gridLeftBotsPanel.Dispose();
                     _gridLeftBotsPanel = null;
                 }
 
-                if(_gridLeftSecuritiesPanel != null)
+                if (_gridLeftSecuritiesPanel != null)
                 {
                     HostSecuritiesSelected.Child = null;
                     _gridLeftSecuritiesPanel.CellClick -= _gridLeftSecuritiesPanel_CellClick;
+                    _gridLeftSecuritiesPanel.DataError -= _gridStatistics_DataError;
                     DataGridFactory.ClearLinks(_gridLeftSecuritiesPanel);
+                    _gridLeftSecuritiesPanel.Dispose();
                     _gridLeftSecuritiesPanel = null;
                 }
-                
+
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -438,12 +451,12 @@ namespace OsEngine.Journal
                     }
 
                     PaintTitleAbsProfit(allSortPoses);
-                    
+
                 }
             }
             catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -460,7 +473,7 @@ namespace OsEngine.Journal
             }
             else
             {
-                if(Title != OsLocalization.Journal.TitleJournalUi)
+                if (Title != OsLocalization.Journal.TitleJournalUi)
                 {
                     Title = OsLocalization.Journal.TitleJournalUi;
                 }
@@ -477,7 +490,7 @@ namespace OsEngine.Journal
                 RePaint();
                 SaveSettings();
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -495,7 +508,7 @@ namespace OsEngine.Journal
                 RePaint();
                 _volumeControlUpdated = false;
             }
-            catch( Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -539,6 +552,7 @@ namespace OsEngine.Journal
 
                 HostStatistics.Child = _gridStatistics;
                 HostStatistics.Child.Show();
+                _gridStatistics.DataError += _gridStatistics_DataError;
 
                 DataGridViewColumn column0 = new DataGridViewColumn();
                 column0.CellTemplate = cell0;
@@ -615,6 +629,11 @@ namespace OsEngine.Journal
             }
         }
 
+        private void _gridStatistics_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
+        }
+
         private void PaintStatTable(List<Position> positionsAll, List<Position> positionsLong, List<Position> positionsShort, bool needShowTickState)
         {
             try
@@ -671,9 +690,9 @@ namespace OsEngine.Journal
                     }
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -770,7 +789,7 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                if(e.X == _lastMouseXValue)
+                if (e.X == _lastMouseXValue)
                 {
                     return;
                 }
@@ -812,7 +831,7 @@ namespace OsEngine.Journal
 
                 int firstPoint = 0;
 
-                if(_chartEquity.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                if (_chartEquity.ChartAreas[0].AxisX.ScaleView.IsZoomed)
                 {
                     firstPoint = Convert.ToInt32(_chartEquity.ChartAreas[0].AxisX.ScaleView.Position);
                     curPointNum = firstPoint + curPointNum;
@@ -888,9 +907,9 @@ namespace OsEngine.Journal
 
                 _lastSeriesEquityChartPointWithLabel = numPointInt;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1010,7 +1029,7 @@ namespace OsEngine.Journal
                     profitBar.Points.AddXY(i, Math.Round(curProfit, 3));
 
                     profitBar.Points[profitBar.Points.Count - 1].LabelForeColor = Color.DarkOrange;
-                    profitBar.Points[profitBar.Points.Count - 1].AxisLabel 
+                    profitBar.Points[profitBar.Points.Count - 1].AxisLabel
                         = positionsAll[i].SecurityName + "\n" +
                           Math.Round(curProfit, 3).ToString() + "\n" +
                           positionsAll[i].NameBot;
@@ -1057,7 +1076,7 @@ namespace OsEngine.Journal
                     profitShort.Points.AddXY(i, Math.Round(profitSumShort, 3));
                     profitShort.Points[profitShort.Points.Count - 1].AxisLabel = Math.Round(profitSumShort, 3).ToString();
 
-                    if(positionsAll[i].State != PositionStateType.Done)
+                    if (positionsAll[i].State != PositionStateType.Done)
                     {
                         profitBar.Points[profitBar.Points.Count - 1].Color = Color.BlueViolet;
                     }
@@ -1170,7 +1189,7 @@ namespace OsEngine.Journal
                     }
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -1270,9 +1289,9 @@ namespace OsEngine.Journal
                 VolumeShowNumbers.SelectionChanged += VolumeShowNumbers_SelectionChanged;
                 TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1366,7 +1385,7 @@ namespace OsEngine.Journal
                     Position pos = positionsAll[i];
                     decimal maxVolume = pos.MaxVolume;
 
-                    if(maxVolume == 0)
+                    if (maxVolume == 0)
                     {
                         continue;
                     }
@@ -1378,7 +1397,7 @@ namespace OsEngine.Journal
                     int indexOpen = allChange.FindIndex(change => change == timeCreate);
                     int indexClose = allChange.FindIndex(change => change == timeClose);
 
-                    if(indexOpen != -1)
+                    if (indexOpen != -1)
                     {
                         for (int i2 = indexOpen; i2 < volume.Volume.Count; i2++)
                         {
@@ -1444,9 +1463,9 @@ namespace OsEngine.Journal
                     y += step;
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1502,7 +1521,7 @@ namespace OsEngine.Journal
                     {
                         minVolume = volume[i];
                     }
-                    volumeSeries.Points.AddXY(i,Convert.ToDouble(volume[i]));
+                    volumeSeries.Points.AddXY(i, Convert.ToDouble(volume[i]));
                     volumeSeries.Points[volumeSeries.Points.Count - 1].AxisLabel = times[i].ToString(_currentCulture);
                 }
 
@@ -1536,7 +1555,7 @@ namespace OsEngine.Journal
             }
             catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1593,9 +1612,9 @@ namespace OsEngine.Journal
                     _chartVolume.Series[i].Points[index].LabelBackColor = Color.FromArgb(17, 18, 23);
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1640,8 +1659,8 @@ namespace OsEngine.Journal
                 }
                 RePaint();
             }
-            catch(Exception error) 
-            { 
+            catch (Exception error)
+            {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
@@ -1786,9 +1805,9 @@ namespace OsEngine.Journal
 
                 _lastSeriesDrawDownPointWithLabel = numPointInt;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1849,7 +1868,7 @@ namespace OsEngine.Journal
                 for (int i = 0; i < ddPunct.Count; i++)
                 {
                     decimal val = Math.Round(ddPunct[i], 6);
-                    drowDownPunct.Points.AddXY(i,Convert.ToDouble(val));
+                    drowDownPunct.Points.AddXY(i, Convert.ToDouble(val));
 
                     drowDownPunct.Points[drowDownPunct.Points.Count - 1].AxisLabel =
                    positionsAll[i].TimeCreate.ToString(_currentCulture);
@@ -1942,7 +1961,7 @@ namespace OsEngine.Journal
                 drowDownPercent.BorderWidth = 2;
                 drowDownPercent.ShadowOffset = 2;
                 drowDownPercent.XAxisType = AxisType.Primary;
-                
+
                 for (int i = 0; i < ddPepcent.Count; i++)
                 {
                     decimal val = Math.Round(ddPepcent[i], 6);
@@ -1968,8 +1987,8 @@ namespace OsEngine.Journal
                 {
                     _chartDd.ChartAreas[1].AxisY2.IntervalType = DateTimeIntervalType.Number;
                     _chartDd.ChartAreas[1].AxisY2.IntervalOffsetType = DateTimeIntervalType.Number;
-                    _chartDd.ChartAreas[1].AxisY2.Maximum = Math.Round(-Convert.ToDouble(minOnY2) * 0.05,6);
-                    _chartDd.ChartAreas[1].AxisY2.Minimum = Math.Round(Convert.ToDouble(minOnY2) + Convert.ToDouble(minOnY2) * 0.05,6);
+                    _chartDd.ChartAreas[1].AxisY2.Maximum = Math.Round(-Convert.ToDouble(minOnY2) * 0.05, 6);
+                    _chartDd.ChartAreas[1].AxisY2.Minimum = Math.Round(Convert.ToDouble(minOnY2) + Convert.ToDouble(minOnY2) * 0.05, 6);
                 }
             }
             catch (Exception ex)
@@ -1992,10 +2011,11 @@ namespace OsEngine.Journal
                 HostOpenPosition.Child = _openPositionGrid;
                 _openPositionGrid.Click += _openPositionGrid_Click;
                 _openPositionGrid.DoubleClick += _openPositionGrid_DoubleClick;
+                _openPositionGrid.DataError += _gridStatistics_DataError;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage (ex.ToString(), LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2010,7 +2030,7 @@ namespace OsEngine.Journal
 
                 List<Position> openPositions = new List<Position>();
 
-                for (int i = 0; i < positionsAll.Count;i++)
+                for (int i = 0; i < positionsAll.Count; i++)
                 {
                     if (positionsAll[i].State != PositionStateType.Done &&
                         positionsAll[i].State != PositionStateType.OpeningFail)
@@ -2046,9 +2066,9 @@ namespace OsEngine.Journal
                     _openPositionGrid.Rows.Insert(0, GetRow(openPositions[i]));
                 }
             }
-            catch( Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(), LogMessageType.Error); 
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
 
             HostOpenPosition.Child = _openPositionGrid;
@@ -2183,7 +2203,7 @@ namespace OsEngine.Journal
             int number;
             try
             {
-                if(_openPositionGrid.CurrentCell == null)
+                if (_openPositionGrid.CurrentCell == null)
                 {
                     return;
                 }
@@ -2205,7 +2225,7 @@ namespace OsEngine.Journal
                 MouseEventArgs mouse = (MouseEventArgs)e;
                 if (mouse.Button != MouseButtons.Right)
                 {
-                    if(_openPositionGrid.ContextMenuStrip != null)
+                    if (_openPositionGrid.ContextMenuStrip != null)
                     {
                         _openPositionGrid.ContextMenuStrip = null;
                     }
@@ -2233,7 +2253,7 @@ namespace OsEngine.Journal
                         itemsBots[i].Click += OpenDealCreatePosition_Click;
                     }
 
-                    var item = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem13};
+                    var item = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem13 };
                     item.DropDownItems.AddRange(itemsBots.ToArray());
 
                     items.Add(item);
@@ -2347,7 +2367,7 @@ namespace OsEngine.Journal
 
                 ToolStripMenuItem tab = (ToolStripMenuItem)sender;
 
-                string botName = tab.Text; 
+                string botName = tab.Text;
 
                 Position newPos = new Position();
 
@@ -2356,7 +2376,7 @@ namespace OsEngine.Journal
 
                 BotPanelJournal myJournal = null;
 
-                for(int i = 0;i < _botsJournals.Count;i++)
+                for (int i = 0; i < _botsJournals.Count; i++)
                 {
                     if (_botsJournals[i].BotName == botName)
                     {
@@ -2366,7 +2386,7 @@ namespace OsEngine.Journal
                     }
                 }
 
-                if(myJournal == null)
+                if (myJournal == null)
                 {
                     return;
                 }
@@ -2375,9 +2395,9 @@ namespace OsEngine.Journal
 
                 RePaint();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2477,6 +2497,7 @@ namespace OsEngine.Journal
                 HostClosePosition.Child = _closePositionGrid;
                 _closePositionGrid.Click += _closePositionGrid_Click;
                 _closePositionGrid.DoubleClick += _closePositionGrid_DoubleClick;
+                _closePositionGrid.DataError += _gridStatistics_DataError;
             }
             catch (Exception ex)
             {
@@ -2499,7 +2520,7 @@ namespace OsEngine.Journal
                 _closePositionGrid.Rows.Clear();
                 _closePositionGrid.ClearSelection();
 
-                if(ComboBoxClosePosesShowNumbers.Items == null ||
+                if (ComboBoxClosePosesShowNumbers.Items == null ||
                     ComboBoxClosePosesShowNumbers.Items.Count == 0)
                 {
                     return;
@@ -2512,7 +2533,7 @@ namespace OsEngine.Journal
 
                 List<Position> closePositions = GetClosePositions();
 
-                if(closePositions == null ||
+                if (closePositions == null ||
                     closePositions.Count == 0)
                 {
                     HostClosePosition.Child = _openPositionGrid;
@@ -2534,9 +2555,9 @@ namespace OsEngine.Journal
                     return;
                 }
             }
-            catch(Exception ex )
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
             HostClosePosition.Child = _openPositionGrid;
         }
@@ -2564,7 +2585,7 @@ namespace OsEngine.Journal
                 return null;
             }
 
-            for(int i = 0;i < positionsAll.Count;i++)
+            for (int i = 0; i < positionsAll.Count; i++)
             {
                 if (positionsAll[i] == null)
                 {
@@ -2613,7 +2634,7 @@ namespace OsEngine.Journal
             {
                 Position pos = positionsAll[i];
 
-                if(pos == null)
+                if (pos == null)
                 {
                     continue;
                 }
@@ -2629,7 +2650,7 @@ namespace OsEngine.Journal
                 {
                     closePositions.Add(pos);
                 }
-                else if(pos.State == PositionStateType.OpeningFail 
+                else if (pos.State == PositionStateType.OpeningFail
                     && showDontOpenPositions == true)
                 {
                     closePositions.Add(pos);
@@ -2641,7 +2662,7 @@ namespace OsEngine.Journal
                 return null;
             }
 
-            if(closePositions.Count > 1)
+            if (closePositions.Count > 1)
             {
                 closePositions = closePositions.OrderBy(x => x.TimeClose).ToList();
             }
@@ -2678,7 +2699,7 @@ namespace OsEngine.Journal
             }
             catch (Exception ex)
             {
-                SendNewLogMessage (ex.ToString(),LogMessageType.Error); 
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2798,7 +2819,7 @@ namespace OsEngine.Journal
             int number;
             try
             {
-                if(_closePositionGrid.CurrentCell == null)
+                if (_closePositionGrid.CurrentCell == null)
                 {
                     return;
                 }
@@ -2842,9 +2863,9 @@ namespace OsEngine.Journal
                 SelectCLosePosesPages();
                 RePaint();
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2895,9 +2916,9 @@ namespace OsEngine.Journal
                 SelectCLosePosesPages();
                 RePaint();
             }
-            catch(Exception error )
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2939,7 +2960,7 @@ namespace OsEngine.Journal
 
             List<Position> closePositions = GetClosePositions();
 
-            if(closePositions == null
+            if (closePositions == null
                 || closePositions.Count == 0)
             {
                 return;
@@ -2947,7 +2968,7 @@ namespace OsEngine.Journal
 
             int curPositionNum = 0;
 
-            while(curPositionNum < closePositions.Count)
+            while (curPositionNum < closePositions.Count)
             {
                 ComboBoxClosePosesShowNumbers.Items.Add(curPositionNum + " > " + (curPositionNum + countPosOnPage));
                 curPositionNum += countPosOnPage;
@@ -2955,7 +2976,7 @@ namespace OsEngine.Journal
 
             _volumeControlUpdated = true;
 
-            ComboBoxClosePosesShowNumbers.SelectedIndex = ComboBoxClosePosesShowNumbers.Items.Count-1;
+            ComboBoxClosePosesShowNumbers.SelectedIndex = ComboBoxClosePosesShowNumbers.Items.Count - 1;
             ComboBoxClosePosesShowNumbers.SelectionChanged += ComboBoxClosePosesShowNumbers_SelectionChanged;
 
             _volumeControlUpdated = true;
@@ -2985,7 +3006,7 @@ namespace OsEngine.Journal
             try
             {
                 _gridLeftBotsPanel
-    = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
+                    = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
 
                 _gridLeftBotsPanel.AllowUserToResizeRows = true;
                 _gridLeftBotsPanel.ScrollBars = ScrollBars.Vertical;
@@ -3041,10 +3062,11 @@ namespace OsEngine.Journal
 
                 _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
                 _gridLeftBotsPanel.CellBeginEdit += _gridLeftBotsPanel_CellBeginEdit;
+                _gridLeftBotsPanel.DataError += _gridStatistics_DataError;
             }
-            catch(Exception error )
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3086,9 +3108,9 @@ namespace OsEngine.Journal
 
                 _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3116,7 +3138,7 @@ namespace OsEngine.Journal
                         Thread.Sleep(200);
                     }
                 }
-                catch(Exception error)
+                catch (Exception error)
                 {
                     SendNewLogMessage(error.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
@@ -3191,9 +3213,9 @@ namespace OsEngine.Journal
                 }
                 return groupsInStrArray;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -3232,9 +3254,9 @@ namespace OsEngine.Journal
 
                 return rows;
             }
-            catch(Exception error )
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
             return null;
         }
@@ -3279,7 +3301,7 @@ namespace OsEngine.Journal
 
                 return rows;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -3308,7 +3330,7 @@ namespace OsEngine.Journal
 
                 return groups;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -3337,7 +3359,7 @@ namespace OsEngine.Journal
                             {
                                 Position pos = poses[i3];
 
-                                if(pos == null)
+                                if (pos == null)
                                 {
                                     continue;
                                 }
@@ -3351,9 +3373,9 @@ namespace OsEngine.Journal
 
                 return journals;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -3453,9 +3475,9 @@ namespace OsEngine.Journal
                     Task.Run(ChangeOnOffAwait);
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3472,7 +3494,7 @@ namespace OsEngine.Journal
                     ChangeMult(e);
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -3521,9 +3543,9 @@ namespace OsEngine.Journal
                 CreateSlidersShowPositions();
                 _needToRaPaintBotsGrid = true;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3667,9 +3689,9 @@ namespace OsEngine.Journal
                 HideLeftPanel();
                 SaveSettings();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3680,9 +3702,9 @@ namespace OsEngine.Journal
                 ShowLeftPanel();
                 SaveSettings();
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3736,7 +3758,7 @@ namespace OsEngine.Journal
             try
             {
                 _gridLeftSecuritiesPanel
-    = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
+                    = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
 
                 _gridLeftSecuritiesPanel.AllowUserToResizeRows = true;
                 _gridLeftSecuritiesPanel.ScrollBars = ScrollBars.Vertical;
@@ -3769,6 +3791,7 @@ namespace OsEngine.Journal
                 HostSecuritiesSelected.Child.Show();
 
                 _gridLeftSecuritiesPanel.CellClick += _gridLeftSecuritiesPanel_CellClick;
+                _gridLeftSecuritiesPanel.DataError += _gridStatistics_DataError;
             }
             catch (Exception error)
             {
@@ -3807,7 +3830,7 @@ namespace OsEngine.Journal
 
                 // securities row
 
-                for (int i = 0;i < securities.Count;i++)
+                for (int i = 0; i < securities.Count; i++)
                 {
                     DataGridViewRow newRow = new DataGridViewRow();
 
@@ -3915,7 +3938,7 @@ namespace OsEngine.Journal
                 return securities;
             }
 
-            for (int i = 0;i < _allPositions.Count;i++)
+            for (int i = 0; i < _allPositions.Count; i++)
             {
                 Position position = _allPositions[i];
 
@@ -3927,16 +3950,16 @@ namespace OsEngine.Journal
 
                 bool isInArray = false;
 
-                for(int i2 = 0;i2 < securities.Count;i2++)
+                for (int i2 = 0; i2 < securities.Count; i2++)
                 {
                     if (securities[i2].Name == security.Name)
                     {
-                        isInArray = true; 
+                        isInArray = true;
                         break;
                     }
                 }
 
-                if(isInArray == false)
+                if (isInArray == false)
                 {
                     securities.Add(security);
                 }
@@ -3951,13 +3974,13 @@ namespace OsEngine.Journal
         {
             _selectedSecurities.Clear();
 
-            for(int i = 1;i <_gridLeftSecuritiesPanel.Rows.Count;i++)
+            for (int i = 1; i < _gridLeftSecuritiesPanel.Rows.Count; i++)
             {
                 DataGridViewRow row = _gridLeftSecuritiesPanel.Rows[i];
 
                 SecurityToPaint newSecurity = new SecurityToPaint();
 
-                if(row.Cells[1].Value == null)
+                if (row.Cells[1].Value == null)
                 {
                     continue;
                 }
@@ -4005,7 +4028,7 @@ namespace OsEngine.Journal
                     }
                 }
 
-                for(int i = 0;i < positionsAll.Count;i++)
+                for (int i = 0; i < positionsAll.Count; i++)
                 {
                     if (positionsAll[i] == null)
                     {
@@ -4044,7 +4067,7 @@ namespace OsEngine.Journal
 
                 int lastPositionsCount = 0;
 
-                if(_allPositions != null 
+                if (_allPositions != null
                     && _allPositions.Count != 0)
                 {
                     lastPositionsCount = _allPositions.Count;
@@ -4052,7 +4075,7 @@ namespace OsEngine.Journal
 
                 if (positionsAll.Count > 1)
                 {
-                    for(int i = 0;i < positionsAll.Count;i++)
+                    for (int i = 0; i < positionsAll.Count; i++)
                     {
                         if (positionsAll[i] == null)
                         {
@@ -4116,7 +4139,7 @@ namespace OsEngine.Journal
                 _minTime = _startTime;
                 _maxTime = _endTime;
 
-                if(startTime != DateTime.MaxValue
+                if (startTime != DateTime.MaxValue
                     && startTime != DateTime.MinValue)
                 {
                     startTime = startTime.AddDays(-1);
@@ -4126,7 +4149,7 @@ namespace OsEngine.Journal
                     startTime = DateTime.MinValue;
                 }
 
-                if(endTime != DateTime.MinValue
+                if (endTime != DateTime.MinValue
                      && endTime != DateTime.MaxValue)
                 {
                     endTime = endTime.AddDays(1);
@@ -4191,9 +4214,9 @@ namespace OsEngine.Journal
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -4229,7 +4252,7 @@ namespace OsEngine.Journal
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -4299,7 +4322,7 @@ namespace OsEngine.Journal
                 SliderFrom.ValueChanged += SliderFrom_ValueChanged;
                 SliderTo.ValueChanged += SliderTo_ValueChanged;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -4323,9 +4346,9 @@ namespace OsEngine.Journal
                 IsSlide = true;
                 SaveSettings();
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 

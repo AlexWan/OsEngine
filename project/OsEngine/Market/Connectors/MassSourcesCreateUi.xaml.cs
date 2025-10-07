@@ -458,9 +458,9 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                IServer server = 
+                IServer server =
                     serversAll.Find(
-                        server1 => 
+                        server1 =>
                         server1.ServerType == _selectedServerType
                         && server1.ServerNameAndPrefix == _selectedServerName);
 
@@ -631,9 +631,9 @@ namespace OsEngine.Market.Connectors
                 }
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = 
-                    serversAll.Find(server1 => 
-                    server1.ServerType == _selectedServerType 
+                IServer server =
+                    serversAll.Find(server1 =>
+                    server1.ServerType == _selectedServerType
                     && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
@@ -761,12 +761,20 @@ namespace OsEngine.Market.Connectors
             SecuritiesHost.Child = _gridSecurities;
 
             _gridSecurities.CellClick += _gridSecurities_CellClick;
+            _gridSecurities.DataError += _gridSecurities_DataError;
+        }
+
+        private void _gridSecurities_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void DeleteGridSecurities()
         {
             DataGridFactory.ClearLinks(_gridSecurities);
             _gridSecurities.CellClick -= _gridSecurities_CellClick;
+            _gridSecurities.DataError -= _gridSecurities_DataError;
+            _gridSecurities = null; 
             SecuritiesHost.Child = null;
         }
 
@@ -1452,6 +1460,7 @@ namespace OsEngine.Market.Connectors
                 HostCandleSeriesParameters.Child = _candlesRealizationGrid;
 
                 _candlesRealizationGrid.CellEndEdit += _candlesRealizationGrid_CellEndEdit;
+                _candlesRealizationGrid.DataError += _candlesRealizationGrid_DataError;
             }
             catch (Exception ex)
             {
@@ -1459,10 +1468,16 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        private void _candlesRealizationGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
+        }
+
         private void DeleteCandleRealizationGrid()
         {
             DataGridFactory.ClearLinks(_candlesRealizationGrid);
             _candlesRealizationGrid.CellEndEdit -= _candlesRealizationGrid_CellEndEdit;
+            _candlesRealizationGrid.DataError -= _candlesRealizationGrid_DataError;
             _candlesRealizationGrid = null;
             HostCandleSeriesParameters.Child = null;
         }

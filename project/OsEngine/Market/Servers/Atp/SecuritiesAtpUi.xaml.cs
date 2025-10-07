@@ -55,6 +55,7 @@ namespace OsEngine.Market.Servers.Atp
             Closed -= SecuritiesUi_Closed;
 
             _grid.CellClick -= _grid_CellClick;
+            _grid.DataError -= _grid_DataError;
             DataGridFactory.ClearLinks(_grid);
             _grid = null;
             HostSecurities.Child = null;
@@ -72,6 +73,12 @@ namespace OsEngine.Market.Servers.Atp
             HostSecurities.Child.Show();
             HostSecurities.Child.Refresh();
             _grid.CellClick += _grid_CellClick;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         public static DataGridView GetDataGridSecurities()
