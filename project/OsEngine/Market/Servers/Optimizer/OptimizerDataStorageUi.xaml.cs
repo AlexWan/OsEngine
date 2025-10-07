@@ -151,6 +151,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 DataGridFactory.ClearLinks(_myGridView);
                 _myGridView.DoubleClick -= _myGridView_DoubleClick;
                 _myGridView.CellValueChanged -= _myGridView_CellValueChanged;
+                _myGridView.DataError -= _myGridView_DataError;
                 HostSecurities.Child = null;
                 _myGridView = null;
             }
@@ -161,6 +162,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 DataGridFactory.ClearLinks(_gridNonTradePeriods);
                 _gridNonTradePeriods.CellValueChanged -= _gridNonTradePeriods_CellValueChanged;
                 _gridNonTradePeriods.CellClick -= _gridNonTradePeriods_CellClick;
+                _gridNonTradePeriods.DataError -= _myGridView_DataError;
                 _gridNonTradePeriods = null;
             }
 
@@ -170,6 +172,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 DataGridFactory.ClearLinks(_gridClearing);
                 _gridClearing.CellClick -= _gridClearing_CellClick;
                 _gridClearing.CellValueChanged -= _gridClearing_CellValueChanged;
+                _gridClearing.DataError -= _myGridView_DataError;
                 _gridClearing = null;
             }
 
@@ -266,9 +269,15 @@ namespace OsEngine.Market.Servers.Optimizer
 
             _myGridView.DoubleClick += _myGridView_DoubleClick;
             _myGridView.CellValueChanged += _myGridView_CellValueChanged;
+            _myGridView.DataError += _myGridView_DataError;
             HostSecurities.Child = _myGridView;
             HostSecurities.Child.Show();
             _myGridView.Rows.Add();
+        }
+
+        private void _myGridView_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _master.SendLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void PaintGrid()
@@ -586,6 +595,7 @@ namespace OsEngine.Market.Servers.Optimizer
             HostClearing.Child = _gridClearing;
             _gridClearing.CellClick += _gridClearing_CellClick;
             _gridClearing.CellValueChanged += _gridClearing_CellValueChanged;
+            _gridClearing.DataError += _myGridView_DataError;
         }
 
         public void PaintClearingGrid()
@@ -825,6 +835,7 @@ namespace OsEngine.Market.Servers.Optimizer
             HostNonTradePeriods.Child = _gridNonTradePeriods;
             _gridNonTradePeriods.CellValueChanged += _gridNonTradePeriods_CellValueChanged;
             _gridNonTradePeriods.CellClick += _gridNonTradePeriods_CellClick;
+            _gridNonTradePeriods.DataError += _myGridView_DataError;
         }
 
         public void PaintNonTradePeriodsGrid()
