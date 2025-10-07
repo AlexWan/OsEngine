@@ -11,7 +11,6 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using System.Threading;
-using Grpc.Core;
 
 namespace OsEngine.Market.Servers
 {
@@ -34,7 +33,7 @@ namespace OsEngine.Market.Servers
             this.Closed += ComparePositionsModuleUi_Closed;
 
             LabelConnectionName.Content = OsLocalization.Market.Label136;
-            LabelConnectionName.Content += " " + _comparePositionsModule.Server.ServerNameAndPrefix.Replace("_","-");
+            LabelConnectionName.Content += " " + _comparePositionsModule.Server.ServerNameAndPrefix.Replace("_", "-");
             Title = OsLocalization.Market.Label137;
             CheckBoxAutoLogMessageOnError.Content = OsLocalization.Market.Label138;
             LabelVerificationPeriod.Content = OsLocalization.Market.Label139;
@@ -54,7 +53,7 @@ namespace OsEngine.Market.Servers
                 }
             }
 
-            if(isInArray == true)
+            if (isInArray == true)
             {
                 CheckBoxAutoLogMessageOnError.IsChecked = true;
             }
@@ -62,7 +61,7 @@ namespace OsEngine.Market.Servers
             {
                 CheckBoxAutoLogMessageOnError.IsChecked = false;
             }
-         
+
             CheckBoxAutoLogMessageOnError.Click += CheckBoxAutoLogMessageOnError_Click;
 
             ComboBoxVerificationPeriod.Items.Add(ComparePositionsVerificationPeriod.Min1.ToString());
@@ -93,6 +92,8 @@ namespace OsEngine.Market.Servers
 
                 DataGridFactory.ClearLinks(_grid);
                 _grid.CellClick -= _grid_CellClick;
+                _grid.DataError -= _grid_DataError;
+                _grid = null;
                 Host.Child = null;
 
             }
@@ -106,7 +107,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if(string.IsNullOrEmpty(TextBoxTimeDelaySeconds.Text) == true)
+                if (string.IsNullOrEmpty(TextBoxTimeDelaySeconds.Text) == true)
                 {
                     return;
                 }
@@ -124,20 +125,20 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if(CheckBoxAutoLogMessageOnError.IsChecked.Value == true)
+                if (CheckBoxAutoLogMessageOnError.IsChecked.Value == true)
                 {
                     bool isInArray = false;
 
-                    for(int i =0;i < _comparePositionsModule.PortfoliosToWatch.Count;i++)
+                    for (int i = 0; i < _comparePositionsModule.PortfoliosToWatch.Count; i++)
                     {
                         if (_comparePositionsModule.PortfoliosToWatch[i] == PortfolioName)
                         {
-                            isInArray = true; 
-                            break;    
+                            isInArray = true;
+                            break;
                         }
                     }
 
-                    if(isInArray == false)
+                    if (isInArray == false)
                     {
                         _comparePositionsModule.PortfoliosToWatch.Add(PortfolioName);
                         _comparePositionsModule.Save();
@@ -281,11 +282,17 @@ namespace OsEngine.Market.Servers
             Host.Child = _grid;
 
             _grid.CellClick += _grid_CellClick;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _comparePositionsModule.Server.Log.ProcessMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void RePainterThread()
         {
-            while(true)
+            while (true)
             {
                 try
                 {
@@ -303,9 +310,9 @@ namespace OsEngine.Market.Servers
 
                     RePaintGrids();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(),Logging.LogMessageType.Error);
+                    _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
                 }
             }
         }
@@ -322,7 +329,7 @@ namespace OsEngine.Market.Servers
 
                 List<ComparePositionsPortfolio> portfolioCompare = _comparePositionsModule.UpdateCompareData();
 
-                if(portfolioCompare == null)
+                if (portfolioCompare == null)
                 {
                     _grid.Rows.Clear();
                     return;
@@ -330,7 +337,7 @@ namespace OsEngine.Market.Servers
 
                 List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
-                for(int i = 0;i < portfolioCompare.Count;i++)
+                for (int i = 0; i < portfolioCompare.Count; i++)
                 {
                     if (portfolioCompare[i].PortfolioName != PortfolioName)
                     {
@@ -342,7 +349,7 @@ namespace OsEngine.Market.Servers
                     rows.AddRange(rowsCurrentPortfolio);
                 }
 
-                if(rows.Count != _grid.Rows.Count)
+                if (rows.Count != _grid.Rows.Count)
                 { // переписываем полностью. Изменилось кол-во строк
                     Host.Child = null;
 
@@ -358,7 +365,7 @@ namespace OsEngine.Market.Servers
                 }
                 else
                 {
-                    for(int i = 1; i < _grid.Rows.Count;i++)
+                    for (int i = 1; i < _grid.Rows.Count; i++)
                     {
                         TryRePaintRow(_grid.Rows[i], rows[i]);
                     }
@@ -373,7 +380,7 @@ namespace OsEngine.Market.Servers
 
         private void TryRePaintRow(DataGridViewRow oldRow, DataGridViewRow newRow)
         {
-            for(int i = 1; i < oldRow.Cells.Count ; i++)
+            for (int i = 1; i < oldRow.Cells.Count; i++)
             {
                 if (oldRow.Cells[i].Value != newRow.Cells[i].Value)
                 {
@@ -407,7 +414,7 @@ namespace OsEngine.Market.Servers
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[2].Value = portfolio.CompareSecurities[i].Status.ToString();
 
-                if(portfolio.CompareSecurities[i].IsIgnored == false)
+                if (portfolio.CompareSecurities[i].IsIgnored == false)
                 {
                     if (portfolio.CompareSecurities[i].Status == ComparePositionsStatus.Normal)
                     {
@@ -464,7 +471,7 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                if(e.RowIndex < 0)
+                if (e.RowIndex < 0)
                 {
                     return;
                 }
