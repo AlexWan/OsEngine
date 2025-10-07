@@ -155,6 +155,7 @@ namespace OsEngine.Market
                 if (_gridSources != null)
                 {
                     _gridSources.DoubleClick -= _gridSources_DoubleClick;
+                    _gridSources.DataError -= _gridSources_DataError;
                     _gridSources.Rows.Clear();
                     _gridSources.Columns.Clear();
                     DataGridFactory.ClearLinks(_gridSources);
@@ -185,8 +186,14 @@ namespace OsEngine.Market
             _gridSources.DoubleClick += _gridSources_DoubleClick;
             _gridSources.Click += _gridSources_Click;
             _gridSources.CellMouseClick += _gridSources_CellMouseClick;
+            _gridSources.DataError += _gridSources_DataError;
             _hostServers.Child = _gridSources;
             _hostServers.VerticalAlignment = VerticalAlignment.Top;
+        }
+
+        private void _gridSources_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.Log?.ProcessMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void RePaintSourceGrid()
@@ -486,7 +493,7 @@ namespace OsEngine.Market
             {
                 if (e.Button != MouseButtons.Right)
                 {
-                    if(_gridSources.ContextMenuStrip != null)
+                    if (_gridSources.ContextMenuStrip != null)
                     {
                         _gridSources.ContextMenuStrip = null;
                     }
