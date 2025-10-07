@@ -25,7 +25,7 @@ namespace OsEngine.Market.Servers.Tester
     /// Interaction logic for TesterServerUi.xaml
     /// Логика взаимодействия для TesterServerUi.xaml
     /// </summary>
-    public partial class TesterServerUi 
+    public partial class TesterServerUi
     {
         public TesterServerUi(TesterServer server, Log log)
         {
@@ -69,7 +69,7 @@ namespace OsEngine.Market.Servers.Tester
             Height = 130;
             Width = 670;
 
-            if(_server.ServerStatus == ServerConnectStatus.Disconnect)
+            if (_server.ServerStatus == ServerConnectStatus.Disconnect)
             {
                 ButtonStartTest.Content = OsLocalization.Market.Label134;
                 ButtonStartTest.IsEnabled = false;
@@ -158,7 +158,7 @@ namespace OsEngine.Market.Servers.Tester
 
             // sets
 
-            for (int i = 0;sets != null && sets.Count != 0 && i < sets.Count; i++)
+            for (int i = 0; sets != null && sets.Count != 0 && i < sets.Count; i++)
             {
                 ComboBoxSets.Items.Add(sets[i]);
             }
@@ -167,7 +167,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 ComboBoxSets.SelectedItem = _server.ActiveSet.Split('_')[1];
             }
-            
+
             ComboBoxSets.SelectionChanged += ComboBoxSets_SelectionChanged;
 
             CheckBoxRemoveTrades.IsChecked = _server.RemoveTradesFromMemory;
@@ -181,7 +181,7 @@ namespace OsEngine.Market.Servers.Tester
             ComboBoxDataType.Items.Add(TesterDataType.MarketDepthAllCandleState);
             ComboBoxDataType.Items.Add(TesterDataType.MarketDepthOnlyReadyCandle);
             ComboBoxDataType.SelectedItem = _server.TypeTesterData;
-            ComboBoxDataType.SelectionChanged +=ComboBoxDataType_SelectionChanged;
+            ComboBoxDataType.SelectionChanged += ComboBoxDataType_SelectionChanged;
 
             TextBoxDataPath.Text = _server.PathToFolder;
             ComboBoxDataSourceType.Items.Add(TesterSourceDataType.Folder);
@@ -232,7 +232,7 @@ namespace OsEngine.Market.Servers.Tester
             this.Activate();
             this.Focus();
 
-            if(server.GuiIsOpenFullSettings)
+            if (server.GuiIsOpenFullSettings)
             {
                 ButtonSynchronizer_Click(null, null);
             }
@@ -269,23 +269,35 @@ namespace OsEngine.Market.Servers.Tester
 
             _server = null;
 
-            DataGridFactory.ClearLinks(_securitiesGrid);
-            _securitiesGrid.DoubleClick -= _myGridView_DoubleClick;
-            _securitiesGrid.CellValueChanged -= _myGridView_CellValueChanged;
-            HostSecurities.Child = null;
-            _securitiesGrid = null;
+            if (_securitiesGrid != null)
+            {
+                DataGridFactory.ClearLinks(_securitiesGrid);
+                _securitiesGrid.DoubleClick -= _myGridView_DoubleClick;
+                _securitiesGrid.CellValueChanged -= _myGridView_CellValueChanged;
+                _securitiesGrid.DataError -= _gridClearing_DataError;
+                HostSecurities.Child = null;
+                _securitiesGrid = null;
+            }
 
-            DataGridFactory.ClearLinks(_gridClearing);
-            _gridClearing.CellClick -= _gridClearing_CellClick;
-            _gridClearing.CellValueChanged -= _gridClearing_CellValueChanged;
-            HostClearing.Child = null;
-            _gridClearing = null;
+            if (_gridClearing != null)
+            {
+                DataGridFactory.ClearLinks(_gridClearing);
+                _gridClearing.CellClick -= _gridClearing_CellClick;
+                _gridClearing.CellValueChanged -= _gridClearing_CellValueChanged;
+                _gridClearing.DataError -= _gridClearing_DataError;
+                HostClearing.Child = null;
+                _gridClearing = null;
+            }
 
-            DataGridFactory.ClearLinks(_gridNonTradePeriods);
-            _gridNonTradePeriods.CellValueChanged -= _gridNonTradePeriods_CellValueChanged;
-            _gridNonTradePeriods.CellClick -= _gridNonTradePeriods_CellClick;
-            HostNonTradePeriods.Child = null;
-            _gridNonTradePeriods = null;
+            if (_gridNonTradePeriods != null)
+            {
+                DataGridFactory.ClearLinks(_gridNonTradePeriods);
+                _gridNonTradePeriods.CellValueChanged -= _gridNonTradePeriods_CellValueChanged;
+                _gridNonTradePeriods.CellClick -= _gridNonTradePeriods_CellClick;
+                _gridNonTradePeriods.DataError -= _gridClearing_DataError;
+                HostNonTradePeriods.Child = null;
+                _gridNonTradePeriods = null;
+            }
 
             _log.StopPaint();
             _log = null;
@@ -325,7 +337,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 Thread.Sleep(100);
 
-                if(_uiIsClosed)
+                if (_uiIsClosed)
                 {
                     return;
                 }
@@ -376,7 +388,7 @@ namespace OsEngine.Market.Servers.Tester
                 TextBoxSlippageSimpleOrder.Text = _server.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
                 // ignore
             }
-            
+
         }
 
         private void TextBoxStartDeposit_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -482,13 +494,13 @@ namespace OsEngine.Market.Servers.Tester
 
         private void ButtonStartThreadWorkArea()
         {
-            while(true)
+            while (true)
             {
                 try
                 {
                     Thread.Sleep(1000);
 
-                    if(_uiIsClosed)
+                    if (_uiIsClosed)
                     {
                         return;
                     }
@@ -506,7 +518,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
                 catch (Exception e)
                 {
-                    _server.SendLogMessage(e.ToString(),LogMessageType.Error);
+                    _server.SendLogMessage(e.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -580,7 +592,7 @@ namespace OsEngine.Market.Servers.Tester
 
         private void PaintPausePlayButtonByActualServerState()
         {
-            if(ButtonPausePlay.Dispatcher.CheckAccess() == false)
+            if (ButtonPausePlay.Dispatcher.CheckAccess() == false)
             {
                 ButtonPausePlay.Dispatcher.Invoke(PaintPausePlayButtonByActualServerState);
                 return;
@@ -593,7 +605,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 ButtonPausePlay.Content = "| |";
             }
-            else if(regime == TesterRegime.Pause)
+            else if (regime == TesterRegime.Pause)
             {
                 ButtonPausePlay.Content = ">";
             }
@@ -613,20 +625,20 @@ namespace OsEngine.Market.Servers.Tester
 
         private void ButtonGoTo_Click(object sender, RoutedEventArgs e)
         {
-           
-            if(_goToUi == null)
+
+            if (_goToUi == null)
             {
                 _goToUi = new GoToUi(_server.TimeStart, _server.TimeEnd, _server.TimeNow);
                 _goToUi.Show();
                 _goToUi.SetLocation(this.Left + this.Width, this.Top);
 
-                _goToUi.Closing += (a,b) =>
+                _goToUi.Closing += (a, b) =>
                 {
-                    if(_goToUi.IsChange)
+                    if (_goToUi.IsChange)
                     {
                         _server.ToDateTimeTestingFast(_goToUi.TimeGoTo);
                     }
-                    
+
                     _goToUi = null;
                 };
             }
@@ -638,7 +650,7 @@ namespace OsEngine.Market.Servers.Tester
 
         private void buttonStartTest_Click(object sender, RoutedEventArgs e)
         {
-            if(_server.TimeStart == DateTime.MinValue)
+            if (_server.TimeStart == DateTime.MinValue)
             {
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Market.Label133);
                 ui.ShowDialog();
@@ -701,7 +713,7 @@ namespace OsEngine.Market.Servers.Tester
 
         private void ResizeWorker()
         {
-            while(true)
+            while (true)
             {
                 try
                 {
@@ -723,9 +735,9 @@ namespace OsEngine.Market.Servers.Tester
                     Resize();
 
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    _server?.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                    _server?.SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -751,8 +763,8 @@ namespace OsEngine.Market.Servers.Tester
             areaLineProfit.Position.Height = 70;
             areaLineProfit.Position.Width = 100;
             areaLineProfit.Position.Y = 0;
-            areaLineProfit.CursorX.IsUserSelectionEnabled = false; 
-            areaLineProfit.CursorX.IsUserEnabled = false; 
+            areaLineProfit.CursorX.IsUserSelectionEnabled = false;
+            areaLineProfit.CursorX.IsUserEnabled = false;
             areaLineProfit.AxisX.Enabled = AxisEnabled.False;
 
             _chartReport.ChartAreas.Add(areaLineProfit);
@@ -866,7 +878,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            if(_server == null)
+            if (_server == null)
             {
                 return;
             }
@@ -880,12 +892,12 @@ namespace OsEngine.Market.Servers.Tester
 
             if (portfolio.Count != 0)
             {
-                _chartReport.Series[0].Points.AddXY(_chartReport.Series[0].Points.Count, portfolio[portfolio.Count-1]);
+                _chartReport.Series[0].Points.AddXY(_chartReport.Series[0].Points.Count, portfolio[portfolio.Count - 1]);
 
                 if (portfolio.Count == 1)
                 {
                     _chartReport.Series[1].Points.AddXY(_chartReport.Series[1].Points.Count, portfolio[0] - 1000000);
-                   return;
+                    return;
                 }
 
                 _chartReport.Series[1].Points.AddXY(_chartReport.Series[1].Points.Count, portfolio[portfolio.Count - 1] - portfolio[portfolio.Count - 1 - 1]);
@@ -997,7 +1009,7 @@ namespace OsEngine.Market.Servers.Tester
                 area.AxisY2.Maximum = max;
                 area.AxisY2.Minimum = min;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _server?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -1054,6 +1066,12 @@ namespace OsEngine.Market.Servers.Tester
             HostClearing.Child = _gridClearing;
             _gridClearing.CellClick += _gridClearing_CellClick;
             _gridClearing.CellValueChanged += _gridClearing_CellValueChanged;
+            _gridClearing.DataError += _gridClearing_DataError;
+        }
+
+        private void _gridClearing_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _server.SendLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         public void PaintClearingGrid()
@@ -1070,9 +1088,9 @@ namespace OsEngine.Market.Servers.Tester
 
                 _gridClearing.Rows.Clear();
 
-                for(int i = 0;i < _server.ClearingTimes.Count;i++)
+                for (int i = 0; i < _server.ClearingTimes.Count; i++)
                 {
-                    _gridClearing.Rows.Add(GetClearingRow(_server.ClearingTimes[i],i+1));
+                    _gridClearing.Rows.Add(GetClearingRow(_server.ClearingTimes[i], i + 1));
                 }
 
                 _gridClearing.Rows.Add(GetClearingLastRow());
@@ -1113,7 +1131,7 @@ namespace OsEngine.Market.Servers.Tester
 
             string timeOfDay = clearing.Time.Hour.ToString();
 
-            if(timeOfDay.Length == 1)
+            if (timeOfDay.Length == 1)
             {
                 timeOfDay = "0" + timeOfDay;
             }
@@ -1230,7 +1248,7 @@ namespace OsEngine.Market.Servers.Tester
             }
             catch (Exception ex)
             {
-                _server.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                _server.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1293,6 +1311,7 @@ namespace OsEngine.Market.Servers.Tester
             HostNonTradePeriods.Child = _gridNonTradePeriods;
             _gridNonTradePeriods.CellValueChanged += _gridNonTradePeriods_CellValueChanged;
             _gridNonTradePeriods.CellClick += _gridNonTradePeriods_CellClick;
+            _gridNonTradePeriods.DataError += _gridClearing_DataError;
         }
 
         public void PaintNonTradePeriodsGrid()
@@ -1495,16 +1514,16 @@ namespace OsEngine.Market.Servers.Tester
 
         private void SecuritiesGridPainterWorkerPlace()
         {
-            while(true)
+            while (true)
             {
                 Thread.Sleep(5000);
 
-                if(_uiIsClosed)
+                if (_uiIsClosed)
                 {
                     return;
                 }
 
-                if(_needToRePaintGrid)
+                if (_needToRePaintGrid)
                 {
                     _needToRePaintGrid = false;
 
@@ -1512,7 +1531,7 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         PaintGrid();
                     }
-                    catch(Exception error)
+                    catch (Exception error)
                     {
                         _server.SendLogMessage(error.ToString(), LogMessageType.Error);
                     }
@@ -1530,6 +1549,7 @@ namespace OsEngine.Market.Servers.Tester
             HostSecurities.Child.Show();
             _securitiesGrid.Rows.Add();
             _securitiesGrid.CellValueChanged += _myGridView_CellValueChanged;
+            _securitiesGrid.DataError += _gridClearing_DataError;
         }
 
         private void PaintGrid()
@@ -1631,7 +1651,7 @@ namespace OsEngine.Market.Servers.Tester
                 SliderFrom.ValueChanged += SliderFrom_ValueChanged;
                 SliderTo.ValueChanged += SliderTo_ValueChanged;
 
-                if(displayedRow > 0
+                if (displayedRow > 0
                     && displayedRow < _securitiesGrid.Rows.Count)
                 {
                     _securitiesGrid.FirstDisplayedScrollingRowIndex = displayedRow;
@@ -1685,7 +1705,7 @@ namespace OsEngine.Market.Servers.Tester
 
             string str = row.Cells[1].Value.ToString();
 
-            Security security = _server.GetSecurityForName(str,"");
+            Security security = _server.GetSecurityForName(str, "");
 
             if (security == null)
             {
@@ -1711,7 +1731,7 @@ namespace OsEngine.Market.Servers.Tester
             TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
 
             DateTime to = DateTime.MinValue.AddMinutes(SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value);
-            _server.TimeEnd= to;
+            _server.TimeEnd = to;
             _server.SaveSecurityTestSettings();
             TextBoxTo.Text = to.ToString(_currentCulture);
 
@@ -1733,7 +1753,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
             {
-                SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum -SliderFrom.Value;
+                SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderFrom.Value;
             }
 
             TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
@@ -1759,7 +1779,7 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             _server.TimeEnd = to;
-           // SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - to.Minute;
+            // SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - to.Minute;
             // SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value
             SliderTo.Value = SliderFrom.Minimum + SliderTo.Maximum - (to - DateTime.MinValue).TotalMinutes;
         }
@@ -1830,9 +1850,9 @@ namespace OsEngine.Market.Servers.Tester
                     _server.OrderExecutionType = type;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _server.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                _server.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
