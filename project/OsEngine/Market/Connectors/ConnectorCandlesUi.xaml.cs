@@ -859,6 +859,7 @@ namespace OsEngine.Market.Connectors
             DataGridFactory.ClearLinks(_gridSecurities);
             _gridSecurities.CellClick -= _gridSecurities_CellClick;
             _gridSecurities.DataError -= _gridSecurities_DataError;
+            _gridSecurities = null;
             SecurityTable.Child = null;
         }
 
