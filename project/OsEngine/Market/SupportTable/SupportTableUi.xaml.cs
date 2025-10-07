@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Language;
 using System;
 using System.Collections.Generic;
@@ -19,6 +24,7 @@ namespace OsEngine.Market.SupportTable
 
             CreateTables();
             PaintTables();
+            this.Closed += SupportTableUi_Closed;
 
             Title = OsLocalization.Market.Label77;
 
@@ -32,6 +38,56 @@ namespace OsEngine.Market.SupportTable
             LabelNoSup.Content = OsLocalization.Market.Label76;
         }
 
+        private void SupportTableUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (HostMoexConnections != null)
+                {
+                    HostMoexConnections.Child = null;
+                    HostMoexConnections = null;
+                }
+
+                if (HostInternationalConnections != null)
+                {
+                    HostInternationalConnections.Child = null;
+                    HostInternationalConnections = null;
+                }
+
+                if (HostCryptoConnections != null)
+                {
+                    HostCryptoConnections.Child = null;
+                    HostCryptoConnections = null;
+                }
+
+                if (_gridMoex != null)
+                {
+                    _gridMoex.DataError -= _gridMoex_DataError;
+                    DataGridFactory.ClearLinks(_gridMoex);
+                    _gridMoex = null;
+                }
+
+                if (_gridInternational != null)
+                {
+                    _gridInternational.DataError -= _gridMoex_DataError;
+                    DataGridFactory.ClearLinks(_gridInternational);
+                    _gridInternational = null;
+                }
+
+                if (_gridCrypto != null)
+                {
+                    _gridCrypto.CellClick -= _gridCrypto_CellClick1;
+                    _gridCrypto.DataError -= _gridMoex_DataError;
+                    DataGridFactory.ClearLinks(_gridCrypto);
+                    _gridCrypto = null;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         DataGridView _gridMoex;
         DataGridView _gridInternational;
         DataGridView _gridCrypto;
@@ -42,19 +98,27 @@ namespace OsEngine.Market.SupportTable
             {
                 _gridMoex = GetNoDiscountGridSupport();
                 HostMoexConnections.Child = _gridMoex;
+                _gridMoex.DataError += _gridMoex_DataError;
+
 
                 _gridInternational = GetNoDiscountGridSupport();
                 HostInternationalConnections.Child = _gridInternational;
+                _gridInternational.DataError += _gridMoex_DataError;
 
                 _gridCrypto = GetDiscountGridSupport();
                 HostCryptoConnections.Child = _gridCrypto;
                 _gridCrypto.CellClick += _gridCrypto_CellClick1;
+                _gridCrypto.DataError += _gridMoex_DataError;
             }
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show(ex.Message.ToString());
             }
+        }
 
+        private void _gridMoex_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            System.Windows.MessageBox.Show(e.ToString());
         }
 
         private DataGridView GetDiscountGridSupport()
@@ -296,8 +360,6 @@ namespace OsEngine.Market.SupportTable
                 pref = "\\Images\\Connections\\Discounts\\" + discount.ToString() + ".png";
             }
 
-
-
             System.Drawing.Image image = 
                 System.Drawing.Image.FromFile(Environment.CurrentDirectory + pref);
 
@@ -320,7 +382,6 @@ namespace OsEngine.Market.SupportTable
             {
                 pref = "\\Images\\Connections\\Support\\Prime.png";
             }
-
 
             System.Drawing.Image image =
                 System.Drawing.Image.FromFile(Environment.CurrentDirectory + pref);
