@@ -3001,12 +3001,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (response != null)
                 {
-                    /*order.State = OrderStateType.Cancel;
-
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }*/
+                    GetOrderStatus(order);
                     return true;
                 }
                 else
