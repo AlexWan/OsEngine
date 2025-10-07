@@ -26,6 +26,7 @@ using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
 using MenuItem = System.Windows.Forms.ToolStripMenuItem;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using OsEngine.Layout;
+using OsEngine.Market;
 
 namespace OsEngine.Journal
 {
@@ -39,7 +40,7 @@ namespace OsEngine.Journal
 
         public bool IsErase;
 
-        public JournalUi(List<BotPanelJournal> botsJournals,StartProgram startProgram)
+        public JournalUi(List<BotPanelJournal> botsJournals, StartProgram startProgram)
         {
             _startProgram = startProgram;
             _botsJournals = botsJournals;
@@ -179,6 +180,8 @@ namespace OsEngine.Journal
                 {
                     DataGridFactory.ClearLinks(_gridStatistics);
                     _gridStatistics.Rows.Clear();
+                    _gridStatistics.DataError -= _gridStatistics_DataError;
+                    _gridStatistics.Dispose();
                     _gridStatistics = null;
                     HostStatistics.Child.Hide();
                     HostStatistics.Child = null;
@@ -191,6 +194,8 @@ namespace OsEngine.Journal
                     _openPositionGrid.Rows.Clear();
                     _openPositionGrid.Click -= _openPositionGrid_Click;
                     _openPositionGrid.DoubleClick -= _openPositionGrid_DoubleClick;
+                    _openPositionGrid.DataError -= _gridStatistics_DataError;
+                    _openPositionGrid.Dispose();
                     _openPositionGrid = null;
                     HostOpenPosition.Child.Hide();
                     HostOpenPosition.Child = null;
@@ -203,6 +208,8 @@ namespace OsEngine.Journal
                     _closePositionGrid.Rows.Clear();
                     _closePositionGrid.Click -= _closePositionGrid_Click;
                     _closePositionGrid.DoubleClick -= _closePositionGrid_DoubleClick;
+                    _closePositionGrid.DataError -= _gridStatistics_DataError;
+                    _closePositionGrid.Dispose();
                     _closePositionGrid = null;
                     HostClosePosition.Child.Hide();
                     HostClosePosition.Child = null;
@@ -240,7 +247,7 @@ namespace OsEngine.Journal
                 }
                 catch (Exception ex)
                 {
-                    SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                    SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -672,6 +679,8 @@ namespace OsEngine.Journal
                 HostStatistics.Child = _gridStatistics;
                 HostStatistics.Child.Show();
 
+                _gridStatistics.DataError += _gridStatistics_DataError;
+
                 DataGridViewColumn column0 = new DataGridViewColumn();
                 column0.CellTemplate = cell0;
                 column0.HeaderText = @"";
@@ -745,6 +754,11 @@ namespace OsEngine.Journal
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void _gridStatistics_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void PaintStatTable(List<Position> positionsAll, List<Position> positionsLong, List<Position> positionsShort, bool needShowTickState)
@@ -1895,6 +1909,7 @@ namespace OsEngine.Journal
                 HostOpenPosition.Child = _openPositionGrid;
                 _openPositionGrid.Click += _openPositionGrid_Click;
                 _openPositionGrid.DoubleClick += _openPositionGrid_DoubleClick;
+                _openPositionGrid.DataError += _gridStatistics_DataError;
             }
             catch (Exception error)
             {
@@ -2266,6 +2281,7 @@ namespace OsEngine.Journal
                 HostClosePosition.Child = _closePositionGrid;
                 _closePositionGrid.Click += _closePositionGrid_Click;
                 _closePositionGrid.DoubleClick += _closePositionGrid_DoubleClick;
+                _closePositionGrid.DataError += _gridStatistics_DataError;
             }
             catch (Exception error)
             {
