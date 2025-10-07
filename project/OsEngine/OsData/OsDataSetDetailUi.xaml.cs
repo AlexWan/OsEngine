@@ -46,9 +46,18 @@ namespace OsEngine.OsData
                 _isDeleted = true;
                 _loader = null;
 
-                _grid.CellClick -= _grid_CellClick;
-                DataGridFactory.ClearLinks(_grid);
-                _grid = null;
+                if (HostDataPiesDetails != null)
+                {
+                    HostDataPiesDetails.Child = null;
+                }
+
+                if (_grid != null)
+                {
+                    _grid.CellClick -= _grid_CellClick;
+                    _grid.DataError -= _grid_DataError;
+                    DataGridFactory.ClearLinks(_grid);
+                    _grid = null;
+                }
             }
             catch
             {
@@ -58,11 +67,11 @@ namespace OsEngine.OsData
 
         private async void PainterThreadArea()
         {
-            while(true)
+            while (true)
             {
                 await Task.Delay(10000);
 
-                if(_isDeleted)
+                if (_isDeleted)
                 {
                     return;
                 }
@@ -99,9 +108,9 @@ namespace OsEngine.OsData
 
                 PaintTable();
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-               System.Windows.MessageBox.Show(error.Message);
+                System.Windows.MessageBox.Show(error.Message);
             }
         }
 
@@ -194,6 +203,12 @@ namespace OsEngine.OsData
 
             HostDataPiesDetails.Child = _grid;
             _grid.CellClick += _grid_CellClick;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _loader.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void _grid_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -228,6 +243,7 @@ namespace OsEngine.OsData
                     Process.Start("explorer.exe", tempFile);
 
                 }
+
                 if (col == 6)
                 { // открыть папку
 
@@ -264,25 +280,26 @@ namespace OsEngine.OsData
                     RePaintAll();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _loader.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                _loader.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
         public void PaintTable()
         {
-            if(_grid == null)
+            if (_grid == null)
             {
                 return;
             }
+
             if (_grid.InvokeRequired)
             {
                 _grid.Invoke(new Action(PaintTable));
                 return;
             }
 
-            if(_grid.Rows.Count != _loader.DataPies.Count)
+            if (_grid.Rows.Count != _loader.DataPies.Count)
             {
                 _grid.Rows.Clear();
 
@@ -295,34 +312,34 @@ namespace OsEngine.OsData
             {
                 for (int i = 0; i < _loader.DataPies.Count; i++)
                 {
-                    UpDateRow(_grid.Rows[i],_loader.DataPies[i]);
+                    UpDateRow(_grid.Rows[i], _loader.DataPies[i]);
                 }
             }
         }
 
         private void UpDateRow(DataGridViewRow nRow, DataPie pie)
         {
-            if(nRow.Cells[0].Value.ToString() != pie.ObjectCount.ToString())
+            if (nRow.Cells[0].Value.ToString() != pie.ObjectCount.ToString())
             {
                 nRow.Cells[0].Value = pie.ObjectCount.ToString();
             }
-           
+
             if (nRow.Cells[1].Value.ToString() != pie.Start.ToString(_curCulture))
             {
                 nRow.Cells[1].Value = pie.Start.ToString(_curCulture);
             }
-            
-            if(nRow.Cells[2].Value.ToString() != pie.End.ToString(_curCulture))
+
+            if (nRow.Cells[2].Value.ToString() != pie.End.ToString(_curCulture))
             {
                 nRow.Cells[2].Value = pie.End.ToString(_curCulture);
             }
-            
+
             if (nRow.Cells[3].Value.ToString() != pie.StartFact.ToString(_curCulture))
             {
                 nRow.Cells[3].Value = pie.StartFact.ToString(_curCulture);
             }
-            
-            if(nRow.Cells[4].Value.ToString() != pie.EndFact.ToString(_curCulture))
+
+            if (nRow.Cells[4].Value.ToString() != pie.EndFact.ToString(_curCulture))
             {
                 nRow.Cells[4].Value = pie.EndFact.ToString(_curCulture);
             }
@@ -376,9 +393,6 @@ namespace OsEngine.OsData
             //nRow.Height = nRow.Height + 5;
 
             return nRow;
-
-
-
         }
     }
 }
