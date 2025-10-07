@@ -11,6 +11,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using System.Windows;
 using System.Windows.Input;
+using OsEngine.Market;
 
 namespace OsEngine.OsData
 {
@@ -74,13 +75,23 @@ namespace OsEngine.OsData
                 TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
 
                 _securities = null;
-                HostSecurity.Child = null;
-                DataGridFactory.ClearLinks(_gridSecurities);
-                _gridSecurities = null;
+
+                if (HostSecurity != null)
+                {
+                    HostSecurity.Child = null;
+                    HostSecurity = null;
+                }
+                
+                if (_gridSecurities != null)
+                {
+                    DataGridFactory.ClearLinks(_gridSecurities);
+                    _gridSecurities.DataError -= _gridSecurities_DataError;
+                    _gridSecurities = null;
+                } 
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -127,6 +138,13 @@ namespace OsEngine.OsData
             _gridSecurities.Columns.Add(colum6);
 
             HostSecurity.Child = _gridSecurities;
+
+            _gridSecurities.DataError += _gridSecurities_DataError;
+        }
+
+        private void _gridSecurities_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.Log?.ProcessMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void GetClasses()
