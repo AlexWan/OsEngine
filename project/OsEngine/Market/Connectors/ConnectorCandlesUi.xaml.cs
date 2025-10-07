@@ -281,7 +281,7 @@ namespace OsEngine.Market.Connectors
 
                 if (string.IsNullOrEmpty(security))
                 {
-                    if(_gridSecurities.Rows != null 
+                    if (_gridSecurities.Rows != null
                         && _gridSecurities.Rows.Count > 0)
                     {
                         Thread worker = new Thread(LightToSecurityGrid);
@@ -587,7 +587,7 @@ namespace OsEngine.Market.Connectors
                     curPortfolio = ComboBoxPortfolio.SelectedItem.ToString();
                 }
 
-                if(_connectorBot.Portfolio != null)
+                if (_connectorBot.Portfolio != null)
                 {
                     curPortfolio = _connectorBot.Portfolio.Number;
                 }
@@ -778,11 +778,17 @@ namespace OsEngine.Market.Connectors
                 SecurityTable.Child = _gridSecurities;
 
                 _gridSecurities.CellClick += _gridSecurities_CellClick;
+                _gridSecurities.DataError += _gridSecurities_DataError;
             }
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void _gridSecurities_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void LoadSecurityOnBox()
@@ -852,6 +858,7 @@ namespace OsEngine.Market.Connectors
         {
             DataGridFactory.ClearLinks(_gridSecurities);
             _gridSecurities.CellClick -= _gridSecurities_CellClick;
+            _gridSecurities.DataError -= _gridSecurities_DataError;
             SecurityTable.Child = null;
         }
 
@@ -859,8 +866,8 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if(_gridSecurities.Rows == null ||
-                    _gridSecurities.Rows.Count ==0)
+                if (_gridSecurities.Rows == null ||
+                    _gridSecurities.Rows.Count == 0)
                 {
                     return;
                 }
@@ -870,8 +877,8 @@ namespace OsEngine.Market.Connectors
                 int columnInd = e.ColumnIndex;
                 int rowInd = e.RowIndex;
 
-                if(columnInd < 0
-                    || rowInd < 0 
+                if (columnInd < 0
+                    || rowInd < 0
                     || rowInd >= _gridSecurities.Rows.Count)
                 {
                     return;
@@ -1048,14 +1055,14 @@ namespace OsEngine.Market.Connectors
             {
                 int startRow = 0;
 
-                if(_gridSecurities.FirstDisplayedScrollingRowIndex > 0)
+                if (_gridSecurities.FirstDisplayedScrollingRowIndex > 0)
                 {
                     startRow = _gridSecurities.FirstDisplayedScrollingRowIndex;
                 }
 
                 int endIndex = startRow + 5;
 
-                for(int i = startRow; i < _gridSecurities.Rows.Count && i < endIndex; i++)
+                for (int i = startRow; i < _gridSecurities.Rows.Count && i < endIndex; i++)
                 {
                     if (_gridSecurities.Rows[i].Cells.Count < 4)
                     {
@@ -1069,9 +1076,9 @@ namespace OsEngine.Market.Connectors
                     SetColorOnRow(_gridSecurities.Rows[i], _gridSecurities.Rows[i].Cells[0].Style.BackColor);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1081,7 +1088,7 @@ namespace OsEngine.Market.Connectors
             {
                 if (!ComboBoxClass.CheckAccess())
                 {
-                    ComboBoxClass.Dispatcher.Invoke(SetColorOnRow,row,color);
+                    ComboBoxClass.Dispatcher.Invoke(SetColorOnRow, row, color);
                     return;
                 }
 
@@ -1472,7 +1479,7 @@ namespace OsEngine.Market.Connectors
         private void _candlesRealizationGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             SendNewLogMessage(e.ToString(), LogMessageType.Error);
-        } 
+        }
 
         private void DeleteCandleRealizationGrid()
         {
