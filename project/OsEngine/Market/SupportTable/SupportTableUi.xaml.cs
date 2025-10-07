@@ -118,7 +118,7 @@ namespace OsEngine.Market.SupportTable
 
         private void _gridMoex_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            ServerMaster.SendNewLogMessage($"Support table error: {e.ToString()}", Logging.LogMessageType.Error);
+            System.Windows.MessageBox.Show(e.ToString());
         }
 
         private DataGridView GetDiscountGridSupport()
