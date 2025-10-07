@@ -195,7 +195,7 @@ namespace OsEngine.Robots
 
             // The prev value of the indicator
             _prevADX = _ADX.DataSeries[0].Values[_ADX.DataSeries[0].Values.Count - 2];
-            _lastMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 2];
+            _prevMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 2];
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
