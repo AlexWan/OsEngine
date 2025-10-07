@@ -781,15 +781,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.NameClass = SecurityType.Futures.ToString();
 
-                    if(newSecurity.Name == "SBERF"
-                        || newSecurity.Name == "GAZPF")
-                    {
-                        newSecurity.Lot = 100;
-                    }
-                    else
-                    {
-                        newSecurity.Lot = item.Lot;
-                    }
+                    newSecurity.Lot = item.Lot;
 
                     newSecurity.SecurityType = SecurityType.Futures;
                     newSecurity.VolumeStep = 1;
