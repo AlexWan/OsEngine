@@ -2646,6 +2646,9 @@ namespace OsEngine.Market.Servers.TInvest
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
                         {
                             order.State = OrderStateType.Active;
+
+                            if (order.TypeOrder == OrderPriceType.Limit && order.Price == 0)
+                                continue; // ignore such status
                         }
                         else if (state.ExecutionReportStatus ==
                                  OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
