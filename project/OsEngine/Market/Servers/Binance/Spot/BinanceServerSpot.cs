@@ -1125,7 +1125,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             if (_spotSocketClient == null)
             {
-                _spotSocketClient = CreateUserDataStream("api/v1/userDataStream", BinanceExchangeType.SpotExchange);
+                _spotSocketClient = CreateUserDataStream("api/v3/userDataStream", BinanceExchangeType.SpotExchange);
 
                 if (_spotSocketClient == null)
                 {
