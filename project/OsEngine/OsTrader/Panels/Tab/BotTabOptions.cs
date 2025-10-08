@@ -49,6 +49,17 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Properties
 
+        public List<BotTabSimple> Tabs
+        {
+            get
+            {
+                lock (_locker)
+                {
+                    return _simpleTabs.Values.ToList();
+                }
+            }
+        }
+
         public List<string> UnderlyingAssets { get; private set; }
         public string PortfolioName { get; private set; }
         public ServerType ServerType { get; set; }
