@@ -2265,6 +2265,7 @@ namespace OsEngine.Market.Servers.Bybit
                     webSocketPrivate.OnOpen -= WebSocketPrivate_Opened;
 
                     webSocketPrivate.CloseAsync();
+                    webSocketPrivate.Dispose();
                     webSocketPrivate = null;
                 }
                 catch (Exception ex)
@@ -2315,6 +2316,7 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         webSocketPublicSpot.CloseAsync();
                     }
+                    webSocketPublicSpot.Dispose();
                     webSocketPublicSpot = null;
                 }
             }
@@ -2362,6 +2364,7 @@ namespace OsEngine.Market.Servers.Bybit
                         webSocketPublicLinear.CloseAsync();
                     }
 
+                    webSocketPublicLinear.Dispose();
                     webSocketPublicLinear = null;
                 }
             }
@@ -2409,6 +2412,7 @@ namespace OsEngine.Market.Servers.Bybit
                         webSocketPublicInverse.CloseAsync();
                     }
 
+                    webSocketPublicInverse.Dispose();
                     webSocketPublicInverse = null;
                 }
             }
@@ -2458,6 +2462,7 @@ namespace OsEngine.Market.Servers.Bybit
                         webSocketPublicOption.CloseAsync();
                     }
 
+                    webSocketPublicOption.Dispose();
                     webSocketPublicOption = null;
                 }
             }
