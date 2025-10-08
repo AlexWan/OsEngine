@@ -2654,6 +2654,10 @@ namespace OsEngine.Market.Servers.TInvest
                                  OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
                         {
                             order.State = OrderStateType.Partial;
+                            if (state.CompletionTime != null)
+                            {
+                                order.State = OrderStateType.Cancel; // partially filled orders never go to cancelled state 
+                            }
                         }
 
                         if (orderStateResponse.OrderState.Trades != null)
@@ -2996,7 +3000,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (response != null)
                 {
-                    GetOrderStatus(order);
                     return true;
                 }
                 else
