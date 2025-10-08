@@ -2615,13 +2615,13 @@ namespace OsEngine.Market.Servers.TInvest
                         order.SecurityNameCode = security.Name;
                         order.PortfolioNumber = state.AccountId;
                         order.Side = state.Direction == OrderDirection.Buy ? Side.Buy : Side.Sell;
-                        order.TypeOrder = state.OrderType == OrderType.Limit
+                        order.TypeOrder = state.OrderType == OrderType.Limit || state.OrderType == OrderType.Unspecified
                             ? OrderPriceType.Limit
                             : OrderPriceType.Market;
 
                         order.Volume = state.LotsRequested;
                         order.VolumeExecute = state.LotsExecuted;
-                        order.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialOrderPrice) / order.Volume : 0;
+                        order.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.OrderPrice) : 0;
                         order.TimeCallBack = state.CreatedAt?.ToDateTime().AddHours(3) ?? DateTime.UtcNow.AddHours(3);// convert to MSK
                         order.SecurityClassCode = security.NameClass;
 
@@ -2646,11 +2646,18 @@ namespace OsEngine.Market.Servers.TInvest
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
                         {
                             order.State = OrderStateType.Active;
+
+                            if (order.TypeOrder == OrderPriceType.Limit && order.Price == 0)
+                                continue; // ignore such status
                         }
                         else if (state.ExecutionReportStatus ==
                                  OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
                         {
                             order.State = OrderStateType.Partial;
+                            if (state.CompletionTime != null)
+                            {
+                                order.State = OrderStateType.Cancel; // partially filled orders never go to cancelled state 
+                            }
                         }
 
                         if (orderStateResponse.OrderState.Trades != null)
@@ -2993,7 +3000,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (response != null)
                 {
-                    GetOrderStatus(order);
                     return true;
                 }
                 else
