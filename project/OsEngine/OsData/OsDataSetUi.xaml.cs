@@ -139,9 +139,18 @@ namespace OsEngine.OsData
             try
             {
                 _set = null;
-                HostSecurities.Child = null;
-                DataGridFactory.ClearLinks(_grid);
-                _grid = null;
+
+                if (HostSecurities != null)
+                {
+                    HostSecurities.Child = null;
+                }
+                
+                if (_grid != null)
+                {
+                    DataGridFactory.ClearLinks(_grid);
+                    _grid.DataError -= _grid_DataError;
+                    _grid = null;
+                }
             }
             catch
             {
@@ -460,6 +469,12 @@ namespace OsEngine.OsData
             _grid.Columns.Add(column1);
 
             HostSecurities.Child = _grid;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void ReloadSecuritiesOnTable()
