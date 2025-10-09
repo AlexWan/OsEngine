@@ -288,6 +288,12 @@ namespace OsEngine.OsOptimizer
             _gridStepsOfOptimization.Rows.Add(null, null);
 
             _hostStepsOfOptimization.Child = _gridStepsOfOptimization;
+            _gridStepsOfOptimization.DataError += _gridStepsOfOptimization_DataError;
+        }
+
+        private void _gridStepsOfOptimization_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void UpdGridStepsOfOptimization()
