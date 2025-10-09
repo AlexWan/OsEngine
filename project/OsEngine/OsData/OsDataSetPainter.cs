@@ -439,6 +439,10 @@ namespace OsEngine.OsData
                         {
                             candles = loader.GetExtCandlesFromTrades();
                         }
+                        else if (loader.TimeFrame == TimeFrame.Tick) 
+                        {
+                            return;
+                        }
                         else
                         {
                             candles = loader.GetCandlesAllHistory();
