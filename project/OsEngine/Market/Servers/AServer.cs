@@ -142,10 +142,10 @@ namespace OsEngine.Market.Servers
                     ServerParameters[ServerParameters.Count - 1].Comment = OsLocalization.Market.Label192;
                 }
 
-                if(ServerPermission != null 
+                if (ServerPermission != null
                     && ServerPermission.IsSupports_AsyncOrderSending)
                 {
-                    _asyncOrdersSender 
+                    _asyncOrdersSender
                         = new AServerAsyncOrderSender(ServerPermission.AsyncOrderSending_RateGateLimitMls);
                     _asyncOrdersSender.ExecuteOrderInRealizationEvent += ExecuteOrderInRealization;
                 }
@@ -158,7 +158,7 @@ namespace OsEngine.Market.Servers
 
                     CreateParameterBoolean(OsLocalization.Market.Label242, false);
                     _needToCheckDataFeedOnDisconnect = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
-                    ServerParameters[ServerParameters.Count-1].Comment = OsLocalization.Market.Label243;
+                    ServerParameters[ServerParameters.Count - 1].Comment = OsLocalization.Market.Label243;
                 }
 
                 _serverStandardParamsCount = ServerParameters.Count;
@@ -656,7 +656,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void _needToLoadCandlesCountParam_ValueChange()
         {
-            if(_needToLoadCandlesCountParam.Value > 20000)
+            if (_needToLoadCandlesCountParam.Value > 20000)
             {
                 _needToLoadCandlesCountParam.Value = 20000;
                 return;
@@ -1064,12 +1064,12 @@ namespace OsEngine.Market.Servers
 
                         DeleteCandleManager();
 
-                        if(ServerPermission != null 
+                        if (ServerPermission != null
                             && ServerPermission.IsSupports_ProxyFor_MultipleInstances)
                         {
                             WebProxy proxy = GetProxy();
 
-                            if(proxy != null)
+                            if (proxy != null)
                             {
                                 SendLogMessage(OsLocalization.Market.Label173 + "\n" + proxy.Address, LogMessageType.System);
                             }
@@ -1120,13 +1120,13 @@ namespace OsEngine.Market.Servers
                         ServerRealization.GetSecurities();
                     }
 
-                    if(_lastDateTimeServer.Date != DateTime.Now.Date)
+                    if (_lastDateTimeServer.Date != DateTime.Now.Date)
                     {
                         HasConnectionMessageBeenSent = false;
                         HasFirstOrderMessageBeenSent = false;
                         _lastDateTimeServer = DateTime.Now.Date;
                     }
-                    
+
                     if (HasConnectionMessageBeenSent == false)
                     {
                         SendMessageConnectorConnectInAnalysisServer();
@@ -1199,541 +1199,539 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-                #region Thread 2. Data forwarding operations
-        
-                private async void HighPriorityDataThreadArea()
+        #region Thread 2. Data forwarding operations
+
+        private async void HighPriorityDataThreadArea()
+        {
+            while (true)
+            {
+                try
                 {
-                    while (true)
+                    bool workDone = false;
+
+                    if (!_ordersToSend.IsEmpty)
                     {
-                        try
+                        workDone = true;
+                        Order order;
+                        while (_ordersToSend.TryDequeue(out order))
                         {
-                            bool workDone = false;
-        
-                            if (!_ordersToSend.IsEmpty)
+                            if (TestValue_CanSendOrdersUp)
                             {
-                                workDone = true;
-                                Order order;
-                                while (_ordersToSend.TryDequeue(out order))
+                                if (NewOrderIncomeEvent != null)
                                 {
-                                    if (TestValue_CanSendOrdersUp)
+                                    NewOrderIncomeEvent(order);
+                                }
+
+                                _ordersHub.SetOrderFromApi(order);
+
+                                for (int i = 0; i < _myTrades.Count; i++)
+                                {
+                                    if (_myTrades[i].NumberOrderParent == order.NumberMarket)
                                     {
-                                        if (NewOrderIncomeEvent != null)
-                                        {
-                                            NewOrderIncomeEvent(order);
-                                        }
-        
-                                        _ordersHub.SetOrderFromApi(order);
-        
-                                        for (int i = 0; i < _myTrades.Count; i++)
-                                        {
-                                            if (_myTrades[i].NumberOrderParent == order.NumberMarket)
-                                            {
-                                                _myTradesToSend.Enqueue(_myTrades[i]);
-                                            }
-                                        }
+                                        _myTradesToSend.Enqueue(_myTrades[i]);
                                     }
                                 }
                             }
-        
-                            if (!_myTradesToSend.IsEmpty)
-                            {
-                                workDone = true;
-                                MyTrade myTrade;
-        
-                                while (_myTradesToSend.TryDequeue(out myTrade))
-                                {
-                                    if (TestValue_CanSendOrdersUp
-                                        && TestValue_CanSendMyTradesUp)
-                                    {
-                                        if (NewMyTradeEvent != null)
-                                        {
-                                            NewMyTradeEvent(myTrade);
-                                        }
-        
-                                        _ordersHub.SetMyTradeFromApi(myTrade);
-        
-                                        bool isInArray = false;
-        
-                                        for (int i = 0; i < _myTrades.Count; i++)
-                                        {
-                                            if (_myTrades[i].NumberTrade == myTrade.NumberTrade)
-                                            {
-                                                isInArray = true;
-                                                break;
-                                            }
-                                        }
-        
-                                        if (isInArray == false)
-                                        {
-                                            _myTrades.Add(myTrade);
-                                        }
-        
-                                        while (_myTrades.Count > 1000)
-                                        {
-                                            _myTrades.RemoveAt(0);
-                                        }
-        
-                                        _needToBeepOnTrade = true;
-                                    }
-                                }
-                            }
-        
-                            if (!_portfolioToSend.IsEmpty)
-                            {
-                                workDone = true;
-                                List<Portfolio> portfolio;
-        
-                                while (_portfolioToSend.TryDequeue(out portfolio))
-                                {
-                                    if (PortfoliosChangeEvent != null)
-                                    {
-                                        PortfoliosChangeEvent(portfolio);
-                                    }
-                                }
-                            }
-        
-                            if (workDone == false)
-                            {
-                                if (MainWindow.ProccesIsWorked == false)
-                                {
-                                    return;
-                                }
-                                await Task.Delay(1);
-                            }
-                        }
-                        catch (Exception error)
-                        {
-                            SendLogMessage(error.ToString(), LogMessageType.Error);
                         }
                     }
-                }
-        
-                private async void MediumPriorityDataThreadArea()
-                {
-                    while (true)
+
+                    if (!_myTradesToSend.IsEmpty)
                     {
-                        try
+                        workDone = true;
+                        MyTrade myTrade;
+
+                        while (_myTradesToSend.TryDequeue(out myTrade))
                         {
-                            bool workDone = false;
-        
-                            if (!_tradesToSend.IsEmpty)
+                            if (TestValue_CanSendOrdersUp
+                                && TestValue_CanSendMyTradesUp)
                             {
-                                workDone = true;
-                                List<Trade> trades;
-        
-                                if (_tradesToSend.TryDequeue(out trades))
+                                if (NewMyTradeEvent != null)
                                 {
-                                    List<List<Trade>> list = new List<List<Trade>>();
-                                    list.Add(trades);
-        
-                                    while (_tradesToSend.Count != 0)
+                                    NewMyTradeEvent(myTrade);
+                                }
+
+                                _ordersHub.SetMyTradeFromApi(myTrade);
+
+                                bool isInArray = false;
+
+                                for (int i = 0; i < _myTrades.Count; i++)
+                                {
+                                    if (_myTrades[i].NumberTrade == myTrade.NumberTrade)
                                     {
-                                        List<Trade> newTrades = null;
-        
-                                        if (_tradesToSend.TryDequeue(out newTrades))
-                                        {
-                                            bool isInArray = false;
-        
-                                            for (int i = 0; i < list.Count; i++)
-                                            {
-                                                if (list[i][0].SecurityNameCode == newTrades[0].SecurityNameCode)
-                                                {
-                                                    list[i] = newTrades;
-                                                    isInArray = true;
-                                                }
-                                            }
-        
-                                            if (isInArray == false)
-                                            {
-                                                list.Add(newTrades);
-                                            }
-                                        }
+                                        isInArray = true;
+                                        break;
                                     }
-        
+                                }
+
+                                if (isInArray == false)
+                                {
+                                    _myTrades.Add(myTrade);
+                                }
+
+                                while (_myTrades.Count > 1000)
+                                {
+                                    _myTrades.RemoveAt(0);
+                                }
+
+                                _needToBeepOnTrade = true;
+                            }
+                        }
+                    }
+
+                    if (!_portfolioToSend.IsEmpty)
+                    {
+                        workDone = true;
+                        List<Portfolio> portfolio;
+
+                        while (_portfolioToSend.TryDequeue(out portfolio))
+                        {
+                            if (PortfoliosChangeEvent != null)
+                            {
+                                PortfoliosChangeEvent(portfolio);
+                            }
+                        }
+                    }
+
+                    if (workDone == false)
+                    {
+                        if (MainWindow.ProccesIsWorked == false)
+                        {
+                            return;
+                        }
+                        await Task.Delay(1);
+                    }
+                }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        private async void MediumPriorityDataThreadArea()
+        {
+            while (true)
+            {
+                try
+                {
+                    bool workDone = false;
+
+                    if (!_tradesToSend.IsEmpty)
+                    {
+                        workDone = true;
+                        List<Trade> trades;
+
+                        if (_tradesToSend.TryDequeue(out trades))
+                        {
+                            List<List<Trade>> list = new List<List<Trade>>();
+                            list.Add(trades);
+
+                            while (_tradesToSend.Count != 0)
+                            {
+                                List<Trade> newTrades = null;
+
+                                if (_tradesToSend.TryDequeue(out newTrades))
+                                {
+                                    bool isInArray = false;
+
                                     for (int i = 0; i < list.Count; i++)
                                     {
-                                        if (_needToCheckDataFeedOnDisconnect != null
-                                            && _needToCheckDataFeedOnDisconnect.Value)
+                                        if (list[i][0].SecurityNameCode == newTrades[0].SecurityNameCode)
                                         {
-                                            SecurityFlowTime tradeTime = new SecurityFlowTime();
-                                            tradeTime.SecurityName = list[i][0].SecurityNameCode;
-                                            tradeTime.LastTimeTrade = DateTime.Now;
-                                            _securitiesFeedFlow.Enqueue(tradeTime);
-                                        }
-        
-                                        if (NewTradeEvent != null)
-                                        {
-                                            NewTradeEvent(list[i]);
+                                            list[i] = newTrades;
+                                            isInArray = true;
                                         }
                                     }
-        
-                                    if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
-        
+
+                                    if (isInArray == false)
                                     {
-                                        for (int i = 0; i < _allTrades.Length; i++)
-                                        {
-                                            List<Trade> curTrades = _allTrades[i];
-        
-                                            if (curTrades.Count > 100)
-                                            {
-                                                curTrades = curTrades.GetRange(curTrades.Count - 101, 100);
-                                                _allTrades[i] = curTrades;
-                                            }
-                                        }
+                                        list.Add(newTrades);
                                     }
                                 }
                             }
-        
-                            if (!_marketDepthsToSend.IsEmpty)
+
+                            for (int i = 0; i < list.Count; i++)
                             {
-                                workDone = true;
-                                MarketDepth depth;
-        
-                                if (_marketDepthsToSend.TryDequeue(out depth))
+                                if (_needToCheckDataFeedOnDisconnect != null
+                                    && _needToCheckDataFeedOnDisconnect.Value)
                                 {
-                                    if (_marketDepthsToSend.Count < 1000)
+                                    SecurityFlowTime tradeTime = new SecurityFlowTime();
+                                    tradeTime.SecurityName = list[i][0].SecurityNameCode;
+                                    tradeTime.LastTimeTrade = DateTime.Now;
+                                    _securitiesFeedFlow.Enqueue(tradeTime);
+                                }
+
+                                if (NewTradeEvent != null)
+                                {
+                                    NewTradeEvent(list[i]);
+                                }
+                            }
+
+                            if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
+
+                            {
+                                for (int i = 0; i < _allTrades.Length; i++)
+                                {
+                                    List<Trade> curTrades = _allTrades[i];
+
+                                    if (curTrades.Count > 100)
                                     {
-                                        if (NewMarketDepthEvent != null)
-                                        {
-                                            NewMarketDepthEvent(depth);
-                                        }
-        
-                                        if (_needToCheckDataFeedOnDisconnect != null
-                                            && _needToCheckDataFeedOnDisconnect.Value)
-                                        {
-                                            SecurityFlowTime tradeTime = new SecurityFlowTime();
-                                            tradeTime.SecurityName = depth.SecurityNameCode;
-                                            tradeTime.LastTimeMarketDepth = DateTime.Now;
-                                            _securitiesFeedFlow.Enqueue(tradeTime);
-                                        }
+                                        curTrades = curTrades.GetRange(curTrades.Count - 101, 100);
+                                        _allTrades[i] = curTrades;
                                     }
-                                    else
+                                }
+                            }
+                        }
+                    }
+
+                    if (!_marketDepthsToSend.IsEmpty)
+                    {
+                        workDone = true;
+                        MarketDepth depth;
+
+                        if (_marketDepthsToSend.TryDequeue(out depth))
+                        {
+                            if (_marketDepthsToSend.Count < 1000)
+                            {
+                                if (NewMarketDepthEvent != null)
+                                {
+                                    NewMarketDepthEvent(depth);
+                                }
+
+                                if (_needToCheckDataFeedOnDisconnect != null
+                                    && _needToCheckDataFeedOnDisconnect.Value)
+                                {
+                                    SecurityFlowTime tradeTime = new SecurityFlowTime();
+                                    tradeTime.SecurityName = depth.SecurityNameCode;
+                                    tradeTime.LastTimeMarketDepth = DateTime.Now;
+                                    _securitiesFeedFlow.Enqueue(tradeTime);
+                                }
+                            }
+                            else
+                            {
+                                List<MarketDepth> list = new List<MarketDepth>();
+
+                                list.Add(depth);
+
+                                while (_marketDepthsToSend.Count != 0)
+                                {
+                                    MarketDepth newDepth = null;
+
+                                    if (_marketDepthsToSend.TryDequeue(out newDepth))
                                     {
-                                        List<MarketDepth> list = new List<MarketDepth>();
-        
-                                        list.Add(depth);
-        
-                                        while (_marketDepthsToSend.Count != 0)
-                                        {
-                                            MarketDepth newDepth = null;
-        
-                                            if (_marketDepthsToSend.TryDequeue(out newDepth))
-                                            {
-                                                bool isInArray = false;
-        
-                                                for (int i = 0; i < list.Count; i++)
-                                                {
-                                                    if (list[i].SecurityNameCode == newDepth.SecurityNameCode)
-                                                    {
-                                                        list[i] = newDepth;
-                                                        isInArray = true;
-                                                    }
-                                                }
-        
-                                                if (isInArray == false)
-                                                {
-                                                    list.Add(newDepth);
-                                                }
-                                            }
-                                        }
-        
+                                        bool isInArray = false;
+
                                         for (int i = 0; i < list.Count; i++)
                                         {
-                                            if (_needToCheckDataFeedOnDisconnect != null
-                                            && _needToCheckDataFeedOnDisconnect.Value)
+                                            if (list[i].SecurityNameCode == newDepth.SecurityNameCode)
                                             {
-                                                SecurityFlowTime tradeTime = new SecurityFlowTime();
-                                                tradeTime.SecurityName = list[i].SecurityNameCode;
-                                                tradeTime.LastTimeMarketDepth = DateTime.Now;
-                                                _securitiesFeedFlow.Enqueue(tradeTime);
-                                            }
-        
-                                            if (NewMarketDepthEvent != null)
-                                            {
-                                                NewMarketDepthEvent(list[i]);
+                                                list[i] = newDepth;
+                                                isInArray = true;
                                             }
                                         }
-        
-                                        SystemUsageAnalyzeMaster.MarketDepthClearingCount += 1;
+
+                                        if (isInArray == false)
+                                        {
+                                            list.Add(newDepth);
+                                        }
                                     }
                                 }
-                            }
-        
-                            if (!_bidAskToSend.IsEmpty)
-                            {
-                                workDone = true;
-                                BidAskSender bidAsk;
-        
-                                if (_bidAskToSend.TryDequeue(out bidAsk))
+
+                                for (int i = 0; i < list.Count; i++)
                                 {
-                                    if (_bidAskToSend.Count < 1000)
+                                    if (_needToCheckDataFeedOnDisconnect != null
+                                    && _needToCheckDataFeedOnDisconnect.Value)
                                     {
-                                        if (NewBidAskIncomeEvent != null)
-                                        {
-                                            NewBidAskIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
-                                        }
+                                        SecurityFlowTime tradeTime = new SecurityFlowTime();
+                                        tradeTime.SecurityName = list[i].SecurityNameCode;
+                                        tradeTime.LastTimeMarketDepth = DateTime.Now;
+                                        _securitiesFeedFlow.Enqueue(tradeTime);
                                     }
-                                    else
+
+                                    if (NewMarketDepthEvent != null)
                                     {
-                                        List<BidAskSender> list = new List<BidAskSender>();
-                                        list.Add(bidAsk);
-        
-                                        while (_bidAskToSend.Count != 0)
-                                        {
-                                            BidAskSender newBidAsk = null;
-        
-                                            if (_bidAskToSend.TryDequeue(out newBidAsk))
-                                            {
-                                                bool isInArray = false;
-        
-                                                for (int i = 0; i < list.Count; i++)
-                                                {
-                                                    if (list[i].Security.Name == newBidAsk.Security.Name)
-                                                    {
-                                                        list[i] = newBidAsk;
-                                                        isInArray = true;
-                                                    }
-                                                }
-        
-                                                if (isInArray == false)
-                                                {
-                                                    list.Add(newBidAsk);
-                                                }
-                                            }
-                                        }
-        
-                                        for (int i = 0; i < list.Count; i++) 
-                                        {
-                                            if (NewBidAskIncomeEvent != null)
-                                            {
-                                                NewBidAskIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
-                                            }
-                                        }
-        
-                                        SystemUsageAnalyzeMaster.BidAskClearingCount += 1;
+                                        NewMarketDepthEvent(list[i]);
                                     }
                                 }
+
+                                SystemUsageAnalyzeMaster.MarketDepthClearingCount += 1;
                             }
-        
-                            if (workDone == false)
-                            {
-                                if (MainWindow.ProccesIsWorked == false)
-                                {
-                                    return;
-                                }
-                                await Task.Delay(1);
-                            }
-                        }
-                        catch (Exception error)
-                        {
-                            SendLogMessage(error.ToString(), LogMessageType.Error);
                         }
                     }
-                }
-        
-                /// <summary>
-                /// workplace of the thread sending data to the top
-                /// </summary>
-                private async void LowPriorityDataThreadArea()
-                {
-                    while (true)
+
+                    if (!_bidAskToSend.IsEmpty)
                     {
-                        try
+                        workDone = true;
+                        BidAskSender bidAsk;
+
+                        if (_bidAskToSend.TryDequeue(out bidAsk))
                         {
-                            bool workDone = false;
-        
-                            if (!_securitiesToSend.IsEmpty)
+                            if (_bidAskToSend.Count < 1000)
                             {
-                                workDone = true;
-                                List<Security> security;
-        
-                                while (_securitiesToSend.TryDequeue(out security))
+                                if (NewBidAskIncomeEvent != null)
                                 {
-                                    if (SecuritiesChangeEvent != null)
-                                    {
-                                        SecuritiesChangeEvent(security);
-                                    }
+                                    NewBidAskIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                                 }
                             }
-                            if (!_newServerTime.IsEmpty)
+                            else
                             {
-                                workDone = true;
-                                DateTime time = DateTime.MinValue;
-                                DateTime newTime;
-        
-                                while (_newServerTime.TryDequeue(out newTime))
+                                List<BidAskSender> list = new List<BidAskSender>();
+                                list.Add(bidAsk);
+
+                                while (_bidAskToSend.Count != 0)
                                 {
-                                    time = newTime;
-                                }
-        
-                                if(time != DateTime.MinValue)
-                                {
-                                    if (TimeServerChangeEvent != null)
+                                    BidAskSender newBidAsk = null;
+
+                                    if (_bidAskToSend.TryDequeue(out newBidAsk))
                                     {
-                                        TimeServerChangeEvent(_serverTime);
+                                        bool isInArray = false;
+
+                                        for (int i = 0; i < list.Count; i++)
+                                        {
+                                            if (list[i].Security.Name == newBidAsk.Security.Name)
+                                            {
+                                                list[i] = newBidAsk;
+                                                isInArray = true;
+                                            }
+                                        }
+
+                                        if (isInArray == false)
+                                        {
+                                            list.Add(newBidAsk);
+                                        }
                                     }
                                 }
+
+                                for (int i = 0; i < list.Count; i++)
+                                {
+                                    if (NewBidAskIncomeEvent != null)
+                                    {
+                                        NewBidAskIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
+                                    }
+                                }
+
+                                SystemUsageAnalyzeMaster.BidAskClearingCount += 1;
                             }
-        
-                            if (!_candleSeriesToSend.IsEmpty)
-                            {
-                                workDone = true;
-                                CandleSeries series;
-        
-                                while (_candleSeriesToSend.TryDequeue(out series))
-                                {
-                                    if (NewCandleIncomeEvent != null)
-                                    {
-                                        NewCandleIncomeEvent(series);
-                                    }
-                                }
-                            }
-        
-                            if (!_newsToSend.IsEmpty)
-                            {
-                                workDone = true;
-                                News news;
-        
-                                while (_newsToSend.TryDequeue(out news))
-                                {
-                                    if (NewsEvent != null)
-                                    {
-                                        NewsEvent(news);
-                                    }
-                                }
-                            }
-        
-                            if (!_additionalMarketDataToSend.IsEmpty)
-                            {
-                                workDone = true;
-                                
-                                if(_additionalMarketDataToSend.Count < 1000)
-                                {
-                                    OptionMarketDataForConnector data;
-                                    while (_additionalMarketDataToSend.TryDequeue(out data))
-                                    {
-                                        ConvertableMarketData(data);
-                                    }
-                                }
-                                else
-                                {
-                                    Dictionary<string, OptionMarketDataForConnector> lastData = new Dictionary<string, OptionMarketDataForConnector>();
-        
-                                    OptionMarketDataForConnector data;
-                                    while (_additionalMarketDataToSend.TryDequeue(out data))
-                                    {
-                                        if(lastData.ContainsKey(data.SecurityName) == false)
-                                        {
-                                            lastData.Add(data.SecurityName, data);
-                                        }
-                                        else
-                                        {
-                                            lastData[data.SecurityName] = data;
-                                        }
-                                    }
-                                    foreach (var val in lastData.Values)
-                                    {
-                                        ConvertableMarketData(val);
-                                    }
-                                }
-                            }
-        
-                            if (!_fundingToSend.IsEmpty)
-                            {
-                                workDone = true;
-        
-                                if(_fundingToSend.Count < 1000)
-                                {
-                                    Funding data;
-                                    while (_fundingToSend.TryDequeue(out data))
-                                    {
-                                        if (NewFundingEvent != null)
-                                        {
-                                            NewFundingEvent(data);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    Dictionary<string, Funding> lastData = new Dictionary<string, Funding>();
-        
-                                    Funding data;
-                                    while (_fundingToSend.TryDequeue(out data))
-                                    {
-                                        if (lastData.ContainsKey(data.SecurityNameCode) == false)
-                                        {
-                                            lastData.Add(data.SecurityNameCode, data);
-                                        }
-                                        else
-                                        {
-                                            lastData[data.SecurityNameCode] = data;
-                                        }
-                                    }
-                                    foreach (var val in lastData.Values)
-                                    {
-                                        if (NewFundingEvent != null)
-                                        {
-                                            NewFundingEvent(val);
-                                        }
-                                    }
-                                }
-                            }
-        
-                            if (!_securityVolumesToSend.IsEmpty)
-                            {
-                                workDone = true;
-                                if(_securityVolumesToSend.Count < 1000)
-                                {
-                                    SecurityVolumes data;
-                                    while (_securityVolumesToSend.TryDequeue(out data))
-                                    {
-                                        if (NewVolume24hUpdateEvent != null)
-                                        {
-                                            NewVolume24hUpdateEvent(data);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    Dictionary<string, SecurityVolumes> lastData = new Dictionary<string, SecurityVolumes>();
-        
-                                    SecurityVolumes data;
-                                    while (_securityVolumesToSend.TryDequeue(out data))
-                                    {
-                                        if (lastData.ContainsKey(data.SecurityNameCode) == false)
-                                        {
-                                            lastData.Add(data.SecurityNameCode, data);
-                                        }
-                                        else
-                                        {
-                                            lastData[data.SecurityNameCode] = data;
-                                        }
-                                    }
-                                    foreach (var val in lastData.Values)
-                                    {
-                                        if (NewVolume24hUpdateEvent != null)
-                                        {
-                                            NewVolume24hUpdateEvent(val);
-                                        }
-                                    }
-                                }
-                            }
-        
-                            if (workDone == false)
-                            {
-                                if (MainWindow.ProccesIsWorked == false)
-                                {
-                                    return;
-                                }
-                                await Task.Delay(1);
-                            }
-                        }
-                        catch (Exception error)
-                        {
-                            SendLogMessage(error.ToString(), LogMessageType.Error);
                         }
                     }
+
+                    if (workDone == false)
+                    {
+                        if (MainWindow.ProccesIsWorked == false)
+                        {
+                            return;
+                        }
+                        await Task.Delay(1);
+                    }
                 }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        private async void LowPriorityDataThreadArea()
+        {
+            while (true)
+            {
+                try
+                {
+                    bool workDone = false;
+
+                    if (!_securitiesToSend.IsEmpty)
+                    {
+                        workDone = true;
+                        List<Security> security;
+
+                        while (_securitiesToSend.TryDequeue(out security))
+                        {
+                            if (SecuritiesChangeEvent != null)
+                            {
+                                SecuritiesChangeEvent(security);
+                            }
+                        }
+                    }
+                    if (!_newServerTime.IsEmpty)
+                    {
+                        workDone = true;
+                        DateTime time = DateTime.MinValue;
+                        DateTime newTime;
+
+                        while (_newServerTime.TryDequeue(out newTime))
+                        {
+                            time = newTime;
+                        }
+
+                        if (time != DateTime.MinValue)
+                        {
+                            if (TimeServerChangeEvent != null)
+                            {
+                                TimeServerChangeEvent(_serverTime);
+                            }
+                        }
+                    }
+
+                    if (!_candleSeriesToSend.IsEmpty)
+                    {
+                        workDone = true;
+                        CandleSeries series;
+
+                        while (_candleSeriesToSend.TryDequeue(out series))
+                        {
+                            if (NewCandleIncomeEvent != null)
+                            {
+                                NewCandleIncomeEvent(series);
+                            }
+                        }
+                    }
+
+                    if (!_newsToSend.IsEmpty)
+                    {
+                        workDone = true;
+                        News news;
+
+                        while (_newsToSend.TryDequeue(out news))
+                        {
+                            if (NewsEvent != null)
+                            {
+                                NewsEvent(news);
+                            }
+                        }
+                    }
+
+                    if (!_additionalMarketDataToSend.IsEmpty)
+                    {
+                        workDone = true;
+
+                        if (_additionalMarketDataToSend.Count < 1000)
+                        {
+                            OptionMarketDataForConnector data;
+                            while (_additionalMarketDataToSend.TryDequeue(out data))
+                            {
+                                ConvertableMarketData(data);
+                            }
+                        }
+                        else
+                        {
+                            Dictionary<string, OptionMarketDataForConnector> lastData = new Dictionary<string, OptionMarketDataForConnector>();
+
+                            OptionMarketDataForConnector data;
+                            while (_additionalMarketDataToSend.TryDequeue(out data))
+                            {
+                                if (lastData.ContainsKey(data.SecurityName) == false)
+                                {
+                                    lastData.Add(data.SecurityName, data);
+                                }
+                                else
+                                {
+                                    lastData[data.SecurityName] = data;
+                                }
+                            }
+                            foreach (var val in lastData.Values)
+                            {
+                                ConvertableMarketData(val);
+                            }
+                        }
+                    }
+
+                    if (!_fundingToSend.IsEmpty)
+                    {
+                        workDone = true;
+
+                        if (_fundingToSend.Count < 1000)
+                        {
+                            Funding data;
+                            while (_fundingToSend.TryDequeue(out data))
+                            {
+                                if (NewFundingEvent != null)
+                                {
+                                    NewFundingEvent(data);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Dictionary<string, Funding> lastData = new Dictionary<string, Funding>();
+
+                            Funding data;
+                            while (_fundingToSend.TryDequeue(out data))
+                            {
+                                if (lastData.ContainsKey(data.SecurityNameCode) == false)
+                                {
+                                    lastData.Add(data.SecurityNameCode, data);
+                                }
+                                else
+                                {
+                                    lastData[data.SecurityNameCode] = data;
+                                }
+                            }
+                            foreach (var val in lastData.Values)
+                            {
+                                if (NewFundingEvent != null)
+                                {
+                                    NewFundingEvent(val);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!_securityVolumesToSend.IsEmpty)
+                    {
+                        workDone = true;
+                        if (_securityVolumesToSend.Count < 1000)
+                        {
+                            SecurityVolumes data;
+                            while (_securityVolumesToSend.TryDequeue(out data))
+                            {
+                                if (NewVolume24hUpdateEvent != null)
+                                {
+                                    NewVolume24hUpdateEvent(data);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Dictionary<string, SecurityVolumes> lastData = new Dictionary<string, SecurityVolumes>();
+
+                            SecurityVolumes data;
+                            while (_securityVolumesToSend.TryDequeue(out data))
+                            {
+                                if (lastData.ContainsKey(data.SecurityNameCode) == false)
+                                {
+                                    lastData.Add(data.SecurityNameCode, data);
+                                }
+                                else
+                                {
+                                    lastData[data.SecurityNameCode] = data;
+                                }
+                            }
+                            foreach (var val in lastData.Values)
+                            {
+                                if (NewVolume24hUpdateEvent != null)
+                                {
+                                    NewVolume24hUpdateEvent(val);
+                                }
+                            }
+                        }
+                    }
+
+                    if (workDone == false)
+                    {
+                        if (MainWindow.ProccesIsWorked == false)
+                        {
+                            return;
+                        }
+                        await Task.Delay(1);
+                    }
+                }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
         /// <summary>
         /// queue of new orders
         /// </summary>
@@ -1894,7 +1892,7 @@ namespace OsEngine.Market.Servers
                         portf[i].ServerUniqueName = this.ServerNameAndPrefix;
                     }
 
-                    if(portf[i].ServerUniqueName != this.ServerNameAndPrefix)
+                    if (portf[i].ServerUniqueName != this.ServerNameAndPrefix)
                     {
                         portf[i].ServerUniqueName = this.ServerNameAndPrefix;
                     }
@@ -2017,7 +2015,7 @@ namespace OsEngine.Market.Servers
                     return _securities[i];
                 }
             }
-            
+
             return null;
         }
 
@@ -2346,7 +2344,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if(ServerStatus != ServerConnectStatus.Connect)
+                if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     return;
                 }
@@ -2370,7 +2368,7 @@ namespace OsEngine.Market.Servers
                     RemoveSecurityFromSubscribed(security.Name, security.NameClass);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -2392,10 +2390,10 @@ namespace OsEngine.Market.Servers
 
                     List<Candle> candlesAll = series.CandlesAll;
 
-                    if(candlesStorage != null 
+                    if (candlesStorage != null
                         && candlesStorage.Count > 0
                         && candlesAll != null)
-                    {                    
+                    {
                         // копируем в новый массив данные по открытому интересу
                         for (int i = 0, j = 0; i < candlesStorage.Count && j < candlesAll.Count; i++, j++)
                         {
@@ -2404,7 +2402,7 @@ namespace OsEngine.Market.Servers
 
                             if (candleStorage.TimeStart == candleAll.TimeStart)
                             {
-                                if(candleStorage.OpenInterest > candleAll.OpenInterest)
+                                if (candleStorage.OpenInterest > candleAll.OpenInterest)
                                 {
                                     candleAll.OpenInterest = candleStorage.OpenInterest;
                                 }
@@ -2521,7 +2519,7 @@ namespace OsEngine.Market.Servers
 
         private void SetSecurityInSubscribed(string securityName, string securityClass)
         {
-            if(ServerPermission != null)
+            if (ServerPermission != null)
             {
                 string[] ignoreClasses = ServerPermission.CheckDataFeedLogic_ExceptionSecuritiesClass;
 
@@ -2596,7 +2594,7 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    if(_needToCheckDataFeedOnDisconnect.Value == false)
+                    if (_needToCheckDataFeedOnDisconnect.Value == false)
                     {
                         continue;
                     }
@@ -3160,7 +3158,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
         {
-            if(trades == null)
+            if (trades == null)
             {
                 return;
             }
@@ -3409,14 +3407,14 @@ namespace OsEngine.Market.Servers
 
                         if (_ordersToExecute.TryDequeue(out order))
                         {
-                            if(_asyncOrdersSender != null)
+                            if (_asyncOrdersSender != null)
                             {
                                 _asyncOrdersSender.ExecuteAsync(order);
                             }
                             else
                             {
                                 ExecuteOrderInRealization(order);
-                            } 
+                            }
                         }
                     }
                 }
@@ -3442,28 +3440,28 @@ namespace OsEngine.Market.Servers
                     //if (IsAlreadyCancelled(order.Order) == false
                     //    || order.Order.CancellingTryCount < 5)
                     //{
-                        if (ServerRealization.CancelOrder(order.Order) == false)
+                    if (ServerRealization.CancelOrder(order.Order) == false)
+                    {
+                        if (CancelOrderFailEvent != null)
                         {
-                            if (CancelOrderFailEvent != null)
-                            {
-                                CancelOrderFailEvent(order.Order);
-                            }
+                            CancelOrderFailEvent(order.Order);
                         }
-                        /*else
+                    }
+                    /*else
+                    {
+                        if (string.IsNullOrEmpty(order.Order.NumberMarket) == false)
                         {
-                            if (string.IsNullOrEmpty(order.Order.NumberMarket) == false)
+                            lock (_cancelledOrdersNumbersLocker)
                             {
-                                lock (_cancelledOrdersNumbersLocker)
-                                {
-                                    _cancelledOrdersNumbers.Add(order.Order.NumberMarket);
+                                _cancelledOrdersNumbers.Add(order.Order.NumberMarket);
 
-                                    if (_cancelledOrdersNumbers.Count > 150)
-                                    {
-                                        _cancelledOrdersNumbers.RemoveAt(0);
-                                    }
+                                if (_cancelledOrdersNumbers.Count > 150)
+                                {
+                                    _cancelledOrdersNumbers.RemoveAt(0);
                                 }
                             }
-                        }*/
+                        }
+                    }*/
                     //}
                 }
                 else if (order.OrderSendType == OrderSendType.ChangePrice
@@ -3563,7 +3561,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if(string.IsNullOrEmpty(order.ServerName))
+                if (string.IsNullOrEmpty(order.ServerName))
                 {
                     order.ServerName = this.ServerNameAndPrefix;
                 }
@@ -3871,7 +3869,7 @@ namespace OsEngine.Market.Servers
                 myOrder.TimeCancel = myOrder.TimeCallBack;
             }
 
-            if(myOrder.State == OrderStateType.None)
+            if (myOrder.State == OrderStateType.None)
             {
                 SendLogMessage(ServerNameAndPrefix + " Order in state None.", LogMessageType.Error);
                 return;
@@ -3977,7 +3975,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public List<Order> GetActiveOrders()
         {
-           return GetActiveOrders(0, 100);
+            return GetActiveOrders(0, 100);
         }
 
         /// <summary>
@@ -3996,9 +3994,9 @@ namespace OsEngine.Market.Servers
 
                 return ServerRealization.GetActiveOrders(startIndex, count);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -4317,10 +4315,10 @@ namespace OsEngine.Market.Servers
             try
             {
                 _messageFirstConnect = $"{this.ServerNameUnique}%Openings";
-        
+
                 Thread thread = new Thread(SendMessageConnectorConnect);
                 thread.Start();
-        
+
                 HasConnectionMessageBeenSent = true;
             }
             catch
@@ -4351,10 +4349,10 @@ namespace OsEngine.Market.Servers
             try
             {
                 _messageFirstOrder = $"{this.ServerNameUnique}%Orders";
-        
+
                 Thread thread = new Thread(SendMessageFirstOrder);
                 thread.Start();
-        
+
                 HasFirstOrderMessageBeenSent = true;
             }
             catch
@@ -4362,7 +4360,7 @@ namespace OsEngine.Market.Servers
                 // ignore
             }
         }
-        
+
         private void SendMessageFirstOrder()
         {
             try
