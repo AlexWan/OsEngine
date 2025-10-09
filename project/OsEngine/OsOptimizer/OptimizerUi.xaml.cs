@@ -25,7 +25,7 @@ using System.Globalization;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using System.Windows.Forms.DataVisualization.Charting;
-using System.Windows.Media;
+
 
 namespace OsEngine.OsOptimizer
 {
@@ -205,12 +205,115 @@ namespace OsEngine.OsOptimizer
 
         private void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
-            ui.ShowDialog();
-
-            if (ui.UserAcceptAction == false)
+            try
             {
-                e.Cancel = true;
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    e.Cancel = true;
+                }
+
+                ComboBoxThreadsCount.SelectionChanged -= ComboBoxThreadsCount_SelectionChanged;
+
+                TextBoxStartPortfolio.TextChanged -= TextBoxStartPortfolio_TextChanged;
+                CommissionTypeComboBox.SelectionChanged -= CommissionTypeComboBoxOnSelectionChanged;
+
+                CommissionValueTextBox.TextChanged -= CommissionValueTextBoxOnTextChanged;
+
+                CheckBoxFilterProfitIsOn.Click -= CheckBoxFilterIsOn_Click;
+                CheckBoxFilterMaxDrowDownIsOn.Click -= CheckBoxFilterIsOn_Click;
+                CheckBoxFilterMiddleProfitIsOn.Click -= CheckBoxFilterIsOn_Click;
+                CheckBoxFilterProfitFactorIsOn.Click -= CheckBoxFilterIsOn_Click;
+                CheckBoxFilterDealsCount.Click -= CheckBoxFilterIsOn_Click;
+
+                TextBoxFilterProfitValue.TextChanged -= TextBoxFilterValue_TextChanged;
+                TextBoxMaxDrowDownValue.TextChanged -= TextBoxFilterValue_TextChanged;
+                TextBoxFilterMiddleProfitValue.TextChanged -= TextBoxFilterValue_TextChanged;
+                TextBoxFilterProfitFactorValue.TextChanged -= TextBoxFilterValue_TextChanged;
+                TextBoxFilterDealsCount.TextChanged -= TextBoxFilterValue_TextChanged;
+
+                CheckBoxLastInSample.Click -= CheckBoxLastInSample_Click;
+
+                DatePickerStart.SelectedDateChanged -= DatePickerStart_SelectedDateChanged;
+                DatePickerEnd.SelectedDateChanged -= DatePickerEnd_SelectedDateChanged;
+                TextBoxPercentFiltration.TextChanged -= TextBoxPercentFiltration_TextChanged;
+
+                _master.NewSecurityEvent -= _master_NewSecurityEvent;
+                _master.DateTimeStartEndChange -= _master_DateTimeStartEndChange;
+                _master.TestReadyEvent -= _master_TestReadyEvent;
+                _master.TimeToEndChangeEvent -= _master_TimeToEndChangeEvent;
+
+                _master = null;
+
+                if (HostTabsSimple != null)
+                {
+                    HostTabsSimple.Child = null;
+                }
+
+                if (HostStepsOptimize != null)
+                {
+                    HostStepsOptimize.Child = null;
+                }
+
+                if (HostParam != null)
+                {
+                    HostParam.Child = null;
+                }
+
+                if (WindowsFormsHostFazeNumOnTubResult != null)
+                {
+                    WindowsFormsHostFazeNumOnTubResult.Child = null;
+                }
+
+                if (WindowsFormsHostResults != null)
+                {
+                    WindowsFormsHostResults.Child = null;
+                }
+
+                if (_gridSources != null)
+                {
+                    _gridSources.CellValueChanged -= _grid_CellValueChanged;
+                    _gridSources.CellClick -= _gridSources_CellClick;
+                    _gridSources.DataError -= _gridSources_DataError;
+                    DataGridFactory.ClearLinks(_gridSources);
+                    _gridSources = null;
+                }
+
+                if (_gridFazes != null)
+                {
+                    _gridFazes.CellValueChanged -= _gridFazes_CellValueChanged;
+                    _gridFazes.DataError -= _gridSources_DataError;
+                    DataGridFactory.ClearLinks(_gridFazes);
+                    _gridFazes = null;
+                }
+
+                if (_gridParameters != null)
+                {
+                    _gridParameters.DataError -= _gridSources_DataError;
+                    DataGridFactory.ClearLinks(_gridParameters);
+                    _gridParameters = null;
+                }
+
+                if (_gridFazesEnd != null)
+                {
+                    _gridFazesEnd.CellClick -= _gridFazesEnd_CellClick;
+                    _gridFazesEnd.DataError -= _gridSources_DataError;
+                    DataGridFactory.ClearLinks(_gridFazesEnd);
+                    _gridFazesEnd = null;
+                }
+
+                if (_gridResults != null)
+                {
+                    _gridResults.DataError -= _gridSources_DataError;
+                    DataGridFactory.ClearLinks(_gridResults);
+                    _gridResults = null;
+                }
+            }
+            catch
+            { 
+
             }
         }
 
@@ -922,6 +1025,12 @@ namespace OsEngine.OsOptimizer
 
             _gridSources.CellValueChanged += _grid_CellValueChanged;
             _gridSources.CellClick += _gridSources_CellClick;
+            _gridSources.DataError += _gridSources_DataError;
+        }
+
+        private void _gridSources_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _master.SendLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void PaintTableSources()
@@ -1431,6 +1540,7 @@ namespace OsEngine.OsOptimizer
             HostStepsOptimize.Child = _gridFazes;
 
             _gridFazes.CellValueChanged += _gridFazes_CellValueChanged;
+            _gridFazes.DataError += _gridSources_DataError;
         }
 
         private void _gridFazes_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -1604,6 +1714,7 @@ namespace OsEngine.OsOptimizer
             _gridParameters.DataError += _gridParameters_DataError;
 
             HostParam.Child = _gridParameters;
+            _gridParameters.DataError += _gridSources_DataError;
         }
 
         private void _gridParameters_DataError(object sender, DataGridViewDataErrorEventArgs e)
@@ -2522,6 +2633,7 @@ namespace OsEngine.OsOptimizer
             WindowsFormsHostFazeNumOnTubResult.Child = _gridFazesEnd;
 
             _gridFazesEnd.CellClick += _gridFazesEnd_CellClick;
+            _gridFazesEnd.DataError += _gridSources_DataError;
         }
 
         private void PaintTableFazes()
@@ -2686,6 +2798,7 @@ namespace OsEngine.OsOptimizer
             _gridResults.Rows.Add(null, null);
 
             WindowsFormsHostResults.Child = _gridResults;
+            _gridResults.DataError += _gridSources_DataError;
         }
 
         private void UpdateHeaders()
