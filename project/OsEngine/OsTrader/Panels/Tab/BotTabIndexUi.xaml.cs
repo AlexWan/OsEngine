@@ -137,32 +137,44 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
         {
-            _windowIsClosed = true;
-
-            if (_uiNewSecurities != null)
+            try
             {
-                _uiNewSecurities.Close();
+                _windowIsClosed = true;
+
+                if (_uiNewSecurities != null)
+                {
+                    _uiNewSecurities.Close();
+                }
+
+                ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
+                ComboBoxDayOfWeekToRebuildIndex.SelectionChanged -= ComboBoxDayOfWeekToRebuildIndex_SelectionChanged;
+                ComboBoxHourInDayToRebuildIndex.SelectionChanged -= ComboBoxHourInDayToRebuildIndex_SelectionChanged;
+                CheckBoxWriteLogMessageOnRebuild.Click -= CheckBoxWriteLogMessageOnRebuild_Click;
+                ComboBoxIndexSortType.SelectionChanged -= ComboBoxIndexSortType_SelectionChanged;
+                ComboBoxIndexSecCount.SelectionChanged -= ComboBoxIndexSecCount_SelectionChanged;
+                ComboBoxIndexMultType.SelectionChanged -= ComboBoxIndexMultType_SelectionChanged;
+                ComboBoxDaysLookBackInBuilding.SelectionChanged -= ComboBoxDaysLookBackInBuilding_SelectionChanged;
+                ButtonRebuildFormulaNow.Click -= ButtonRebuildFormulaNow_Click;
+
+                this.Closed -= BotTabIndexUi_Closed;
+
+                if (_sourcesGrid != null)
+                {
+                    _sourcesGrid.CellClick -= _sourcesGrid_CellClick;
+                    _sourcesGrid.CellDoubleClick -= Grid1CellValueChangeClick;
+                    _sourcesGrid.DataError -= _sourcesGrid_DataError;
+                    DataGridFactory.ClearLinks(_sourcesGrid);
+                    _sourcesGrid.Rows.Clear();
+                    _sourcesGrid = null;
+                }
+                
+                _spread = null;
             }
-
-            ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
-            ComboBoxDayOfWeekToRebuildIndex.SelectionChanged -= ComboBoxDayOfWeekToRebuildIndex_SelectionChanged;
-            ComboBoxHourInDayToRebuildIndex.SelectionChanged -= ComboBoxHourInDayToRebuildIndex_SelectionChanged;
-            CheckBoxWriteLogMessageOnRebuild.Click -= CheckBoxWriteLogMessageOnRebuild_Click;
-            ComboBoxIndexSortType.SelectionChanged -= ComboBoxIndexSortType_SelectionChanged;
-            ComboBoxIndexSecCount.SelectionChanged -= ComboBoxIndexSecCount_SelectionChanged;
-            ComboBoxIndexMultType.SelectionChanged -= ComboBoxIndexMultType_SelectionChanged;
-            ComboBoxDaysLookBackInBuilding.SelectionChanged -= ComboBoxDaysLookBackInBuilding_SelectionChanged;
-            ButtonRebuildFormulaNow.Click -= ButtonRebuildFormulaNow_Click;
-
-            _sourcesGrid.CellDoubleClick -= Grid1CellValueChangeClick;
-            _sourcesGrid.CellClick -= _sourcesGrid_CellClick;
-
-            this.Closed -= BotTabIndexUi_Closed;
-
-            DataGridFactory.ClearLinks(_sourcesGrid);
-            _sourcesGrid.Rows.Clear();
-            _sourcesGrid = null;
-            _spread = null;
+            catch (Exception ex)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.Message);
+                ui.ShowDialog();
+            }
         }
 
         private bool _windowIsClosed;
@@ -349,6 +361,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _sourcesGrid.CellDoubleClick += Grid1CellValueChangeClick;
             _sourcesGrid.CellClick += _sourcesGrid_CellClick;
+            _sourcesGrid.DataError += _sourcesGrid_DataError;
 
             DataGridViewTextBoxCell fcell0 = new DataGridViewTextBoxCell();
 
@@ -403,6 +416,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             _sourcesGrid.Columns.Add(fcolumn6);
 
             HostSecurity1.Child = _sourcesGrid;
+        }
+
+        private void _sourcesGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(e.ToString());
+            ui.ShowDialog();
         }
 
         private void Grid1CellValueChangeClick(object sender, DataGridViewCellEventArgs e)
@@ -568,7 +587,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ButtonAddSecurity_Click(object sender, RoutedEventArgs e)
         {
-            if(_spread.ShowNewSecurityDialog())
+            if (_spread.ShowNewSecurityDialog())
             {
                 _uiNewSecurities = _spread.UiSecuritiesSelection;
                 _uiNewSecurities.Closed += UiSecuritiesSelection_Closed;
@@ -579,7 +598,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void UiSecuritiesSelection_Closed(object sender, EventArgs e)
         {
-            if(_windowIsClosed == false)
+            if (_windowIsClosed == false)
             {
                 ReloadSecurityTable();
                 IndexOrSourcesChanged = true;
