@@ -67,6 +67,42 @@ namespace OsEngine.OsOptimizer
 
             this.Activate();
             this.Focus();
+            this.Closed += OptimizerReportUi_Closed;
+        }
+
+        private void OptimizerReportUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (WindowsFormsHostFazeNumOnTubResult != null)
+                {
+                    WindowsFormsHostFazeNumOnTubResult.Child = null;
+                }
+
+                if (WindowsFormsHostResults != null)
+                {
+                    WindowsFormsHostResults.Child = null;
+                }
+
+                if (_gridFazesEnd != null)
+                {
+                    _gridFazesEnd.CellClick -= _gridFazesEnd_CellClick;
+                    _gridFazesEnd.DataError -= _gridFazesEnd_DataError;
+                    DataGridFactory.ClearLinks(_gridFazesEnd);
+                    _gridFazesEnd = null;
+                }
+
+                if (_gridResults != null)
+                {
+                    _gridResults.DataError -= _gridFazesEnd_DataError;
+                    DataGridFactory.ClearLinks(_gridResults);
+                    _gridResults = null;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         public void Paint(List<OptimizerFazeReport> reports)
@@ -152,9 +188,9 @@ namespace OsEngine.OsOptimizer
                 {
                     bot.Delete();
                 }
-                catch(Exception error)
+                catch (Exception error)
                 {
-                    _master.SendLogMessage(error.ToString(),LogMessageType.Error);
+                    _master.SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
             };
         }
@@ -343,6 +379,12 @@ namespace OsEngine.OsOptimizer
             WindowsFormsHostFazeNumOnTubResult.Child = _gridFazesEnd;
 
             _gridFazesEnd.CellClick += _gridFazesEnd_CellClick;
+            _gridFazesEnd.DataError += _gridFazesEnd_DataError;
+        }
+
+        private void _gridFazesEnd_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _master.SendLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void PaintTableFazes()
@@ -354,9 +396,6 @@ namespace OsEngine.OsOptimizer
             }
 
             _gridFazesEnd.Rows.Clear();
-
-
-
 
             List<OptimizerFaze> fazes = new List<OptimizerFaze>();
 
@@ -515,6 +554,7 @@ namespace OsEngine.OsOptimizer
             _gridResults.Rows.Add(null, null);
 
             WindowsFormsHostResults.Child = _gridResults;
+            _gridResults.DataError += _gridFazesEnd_DataError;
         }
 
         private void UpdateHeaders()
@@ -531,7 +571,7 @@ namespace OsEngine.OsOptimizer
 
             Color cellColor = Color.Black;
 
-            for(int i = 0;i < _gridResults.Columns.Count;i++)
+            for (int i = 0; i < _gridResults.Columns.Count; i++)
             {
                 _gridResults.Columns[i].HeaderCell.Style.BackColor = _gridResults.Columns[i].HeaderCell.Style.SelectionBackColor;
             }
@@ -769,7 +809,7 @@ namespace OsEngine.OsOptimizer
 
             int rowSelect = _gridResults.SelectedCells[0].RowIndex;
 
-            if(rowSelect != 0)
+            if (rowSelect != 0)
             {
                 return;
             }
@@ -821,7 +861,7 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            if(currentSelection == _sortBotsType)
+            if (currentSelection == _sortBotsType)
             {
                 return;
             }
@@ -849,7 +889,7 @@ namespace OsEngine.OsOptimizer
 
         private void PaintBotInTable(string botName)
         {
-            for(int i2 = 0; i2 < _gridResults.Rows.Count;i2++)
+            for (int i2 = 0; i2 < _gridResults.Rows.Count; i2++)
             {
                 DataGridViewRow row = _gridResults.Rows[i2];
 
@@ -937,7 +977,7 @@ namespace OsEngine.OsOptimizer
                     _chartSeriesResult.Series[0].Points[i].LabelForeColor = Color.White;
                 }
 
-                if(index >= _chartSeriesResult.Series[0].Points.Count)
+                if (index >= _chartSeriesResult.Series[0].Points.Count)
                 {
                     return;
                 }
@@ -1125,23 +1165,23 @@ namespace OsEngine.OsOptimizer
 
                     index--;
 
-                    if(index >= 0 
+                    if (index >= 0
                         && index < _chartSeriesResult.Series[0].Points.Count)
                     {
                         _chartSeriesResult.Series[0].Points[index].Label
                       = _chartSeriesResult.Series[0].Points[index].ToolTip;
 
-                        string botName = 
+                        string botName =
                             _chartSeriesResult.Series[0].Points[index].ToolTip.Split('\n')[0];
                         PaintBotInTable(botName);
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-        }   
+        }
 
         List<ChartOptimizationResultValue> _lastValues;
 
