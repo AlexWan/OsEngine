@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
 using OsEngine.Market;
@@ -108,8 +113,15 @@ namespace OsEngine.OsTrader.ServerAvailability
 
             dataGrid.Columns.Add(column0);
 
+            dataGrid.DataError += DataGrid_DataError;
+
             HostPingValues.Child = dataGrid;
             return dataGrid;
+        }
+
+        private void DataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private DataGridView CreateConnectorChart()
@@ -147,6 +159,7 @@ namespace OsEngine.OsTrader.ServerAvailability
 
                 HostActiveConnections.Child = dataGrid;
                 dataGrid.CellValueChanged += _dataGridConnector_CellValueChanged;
+                dataGrid.DataError += DataGrid_DataError;
 
                 return dataGrid;
             }
