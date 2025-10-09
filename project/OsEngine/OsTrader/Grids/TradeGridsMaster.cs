@@ -336,14 +336,6 @@ namespace OsEngine.OsTrader.Grids
                     _hostGrid.Child = null;
                     _hostGrid = null;
                 }
-
-                if (_gridViewInstances != null)
-                {
-                    _gridViewInstances.CellClick -= _gridViewInstances_CellClick;
-                    _gridViewInstances.DataError -= _gridViewInstances_DataError;
-                    DataGridFactory.ClearLinks(_gridViewInstances);
-                    _gridViewInstances = null;
-                }
             }
             catch (Exception ex)
             {

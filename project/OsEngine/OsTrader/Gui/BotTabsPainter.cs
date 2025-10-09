@@ -146,6 +146,12 @@ namespace OsEngine.OsTrader.Gui
             _grid.CellEndEdit += _grid_CellEndEdit;
             _grid.MouseLeave += _grid_MouseLeave;
             _grid.CellMouseClick += _grid_CellMouseClick;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _master.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void _grid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
