@@ -31,10 +31,16 @@ namespace OsEngine.OsTrader
             _positionHost.Child.Show();
             _grid.Click += _grid_Click;
             _grid.DoubleClick += _gridOpenPoses_DoubleClick;
+            _grid.DataError += _grid_DataError;
             _currentCulture = OsLocalization.CurCulture;
 
             Task task = new Task(WatcherThreadWorkArea);
             task.Start();
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         CultureInfo _currentCulture;
@@ -90,15 +96,30 @@ namespace OsEngine.OsTrader
 
         public void ClearDelete()
         {
-            _tabsToWatch.Clear();
-            _isDeleted = true;
-            _positionHost.Child = null;
-            _positionHost = null;
+            try
+            {
+                _tabsToWatch.Clear();
+                _isDeleted = true;
 
-            DataGridFactory.ClearLinks(_grid);
-            _grid.Click -= _grid_Click;
-            _grid.DoubleClick -= _gridOpenPoses_DoubleClick;
-            _grid = null;
+                if (_positionHost != null)
+                {
+                    _positionHost.Child = null;
+                    _positionHost = null;
+                }
+
+                if (_grid != null)
+                {
+                    DataGridFactory.ClearLinks(_grid);
+                    _grid.Click -= _grid_Click;
+                    _grid.DoubleClick -= _gridOpenPoses_DoubleClick;
+                    _grid.DataError -= _grid_DataError;
+                    _grid = null;
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         WindowsFormsHost _positionHost;
@@ -202,7 +223,7 @@ namespace OsEngine.OsTrader
 
             if (mouse.Button != MouseButtons.Right)
             {
-                if(_grid.ContextMenuStrip != null)
+                if (_grid.ContextMenuStrip != null)
                 {
                     _grid.ContextMenuStrip = null;
                 }
@@ -270,7 +291,7 @@ namespace OsEngine.OsTrader
                 {
                     if (_grid.CurrentCell == null)
                     {
-                        return;  
+                        return;
                     }
                     number = Convert.ToInt32(_grid.Rows[_grid.CurrentCell.RowIndex].Cells[0].Value);
                 }
@@ -306,7 +327,7 @@ namespace OsEngine.OsTrader
                 return;
             }
 
-            while(true)
+            while (true)
             {
                 try
                 {
@@ -449,7 +470,6 @@ positionOpener.LifeTimeType
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[10].Value = position.LifeTimeType.ToString();
-
 
                 return nRow;
             }
