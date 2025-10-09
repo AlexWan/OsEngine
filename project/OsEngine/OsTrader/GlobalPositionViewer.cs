@@ -149,6 +149,7 @@ namespace OsEngine.OsTrader
                 DataGridFactory.ClearLinks(_gridOpenPoses);
                 _gridOpenPoses.Click -= _gridAllPositions_Click;
                 _gridOpenPoses.DoubleClick -= _gridOpenPoses_DoubleClick;
+                _gridOpenPoses.DataError -= _gridOpenPoses_DataError;
                 _gridOpenPoses = null;
             }
 
@@ -157,6 +158,7 @@ namespace OsEngine.OsTrader
                 DataGridFactory.ClearLinks(_gridClosePoses);
                 _gridClosePoses.Click -= _gridClosePoses_Click;
                 _gridClosePoses.DoubleClick -= _gridClosePoses_DoubleClick;
+                _gridClosePoses.DataError -= _gridOpenPoses_DataError;
                 _gridClosePoses = null;
             }
         }
@@ -241,6 +243,7 @@ namespace OsEngine.OsTrader
                         _gridOpenPoses = CreateNewTable();
                         _gridOpenPoses.Click += _gridAllPositions_Click;
                         _gridOpenPoses.DoubleClick += _gridOpenPoses_DoubleClick;
+                        _gridOpenPoses.DataError += _gridOpenPoses_DataError;
                     }
 
                     if (openPositionHost != null)
@@ -258,6 +261,7 @@ namespace OsEngine.OsTrader
                         _gridClosePoses = CreateNewTable();
                         _gridClosePoses.Click += _gridClosePoses_Click;
                         _gridClosePoses.DoubleClick += _gridClosePoses_DoubleClick;
+                        _gridClosePoses.DataError += _gridOpenPoses_DataError;
                     }
 
                     if (closePositionHost != null)
@@ -272,6 +276,11 @@ namespace OsEngine.OsTrader
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void _gridOpenPoses_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private DataGridView CreateNewTable()
