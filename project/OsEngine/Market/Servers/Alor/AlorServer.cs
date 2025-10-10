@@ -17,6 +17,7 @@ using System.Net;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using Microsoft.Extensions.Logging.Abstractions;
+using TL.Methods;
 
 namespace OsEngine.Market.Servers.Alor
 {
@@ -2486,6 +2487,11 @@ namespace OsEngine.Market.Servers.Alor
             requestObj.instrument.symbol = order.SecurityNameCode;
             requestObj.user = new User();
             requestObj.user.portfolio = order.PortfolioNumber.Split('_')[0];
+
+            if (order.OrderTypeTime == OrderTypeTime.BookOrCancel)
+                 requestObj.timeInForce = "bookorcancel";
+            else if (order.OrderTypeTime == OrderTypeTime.GTC)
+                requestObj.timeInForce = "goodtillcancelled";
 
             return requestObj;
         }
