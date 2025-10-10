@@ -211,11 +211,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 Polygon = null;
 
-                DataGridFactory.ClearLinks(_grid);
-                _grid.Rows.Clear();
-                _grid.Columns.Clear();
-                _grid = null;
-                HostSequence.Child = null;
+                if (HostSequence != null)
+                {
+                    HostSequence.Child = null;
+                }
+
+                if (_grid != null)
+                {
+                    DataGridFactory.ClearLinks(_grid);
+                    _grid.Rows.Clear();
+                    _grid.Columns.Clear();
+                    _grid.DataError -= _grid_DataError;
+                    _grid = null;
+                }
 
                 HostLog.Child = null;
                 HostSec1.Child = null;
@@ -750,6 +758,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             _grid = newGrid;
 
             HostSequence.Child = _grid;
+
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            Polygon.SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void PainterThread()
