@@ -29,7 +29,7 @@ namespace OsEngine.Robots
 
         private List<string> _names;
 
-        public BotCreateUi2(List<string> botsIncluded, 
+        public BotCreateUi2(List<string> botsIncluded,
             List<string> botsFromScript, StartProgram startProgram, List<string> names)
         {
             InitializeComponent();
@@ -124,14 +124,14 @@ namespace OsEngine.Robots
         {
             try
             {
-                if(TextBoxName.Text.Length > 20)
+                if (TextBoxName.Text.Length > 20)
                 {
                     TextBoxName.Text = TextBoxName.Text.Substring(0, 20);
                 }
             }
             catch
             {
-               // ignore
+                // ignore
             }
         }
 
@@ -142,22 +142,38 @@ namespace OsEngine.Robots
 
         private void BotCreateUi2_Closed(object sender, EventArgs e)
         {
-            _botsIncluded = null;
-            _botsFromScript = null;
-            _lastLoadDescriptions = null;
+            try
+            {
+                _botsIncluded = null;
+                _botsFromScript = null;
+                _lastLoadDescriptions = null;
 
-            _grid.CellClick -= _grid_CellClick;
-            _grid.Rows.Clear();
-            DataGridFactory.ClearLinks(_grid);
-            _grid = null;
+                if (HostBots != null)
+                {
+                    HostBots.Child = null;
+                }
 
-            TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
-            TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
-            TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
-            TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
-            ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
-            ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
-            TextBoxName.TextChanged -= TextBoxName_TextChanged;
+                if (_grid != null)
+                {
+                    _grid.CellClick -= _grid_CellClick;
+                    _grid.DataError -= _grid_DataError;
+                    _grid.Rows.Clear();
+                    DataGridFactory.ClearLinks(_grid);
+                    _grid = null;
+                }
+
+                TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+                ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+                TextBoxName.TextChanged -= TextBoxName_TextChanged;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private List<string> _botsIncluded;
@@ -234,6 +250,12 @@ namespace OsEngine.Robots
             HostBots.Child = _grid;
 
             _grid.CellClick += _grid_CellClick;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void _grid_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -669,7 +691,7 @@ namespace OsEngine.Robots
                         {
                             // ignore
                         }
-                       
+
                     }
 
                     reader.Close();
@@ -1058,7 +1080,7 @@ namespace OsEngine.Robots
 
                     Thread worker = new Thread(PaintBotsNameOnGrid);
                     worker.Start();
-                    
+
                     return;
                 }
 
@@ -1133,7 +1155,7 @@ namespace OsEngine.Robots
             {
                 int firstRow = _grid.FirstDisplayedScrollingRowIndex;
 
-                if(firstRow < 0)
+                if (firstRow < 0)
                 {
                     firstRow = 0;
                 }
