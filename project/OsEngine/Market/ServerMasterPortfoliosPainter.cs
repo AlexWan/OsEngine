@@ -82,7 +82,7 @@ namespace OsEngine.Market
         /// </summary>
         private void ServerMaster_ServerCreateEvent(IServer server)
         {
-            if(server.ServerType == ServerType.Optimizer)
+            if (server.ServerType == ServerType.Optimizer)
             {
                 return;
             }
@@ -118,7 +118,7 @@ namespace OsEngine.Market
         /// </summary>
         public void StartPaint()
         {
-            if(_hostPortfolio.Dispatcher.CheckAccess() == false)
+            if (_hostPortfolio.Dispatcher.CheckAccess() == false)
             {
                 _hostPortfolio.Dispatcher.Invoke(new Action(StartPaint));
                 return;
@@ -149,10 +149,11 @@ namespace OsEngine.Market
         {
             try
             {
-                if(_gridPortfolio == null)
+                if (_gridPortfolio == null)
                 {
                     _gridPortfolio = DataGridFactory.GetDataGridPortfolios();
                     _gridPortfolio.CellClick += _gridPortfolio_CellClick;
+                    _gridPortfolio.DataError += _gridPortfolio_DataError;
                 }
 
                 _hostPortfolio = hostPortfolio;
@@ -164,6 +165,11 @@ namespace OsEngine.Market
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void _gridPortfolio_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         #endregion
@@ -192,7 +198,7 @@ namespace OsEngine.Market
                         _needToPaintPortfolio = false;
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                 }
@@ -249,8 +255,8 @@ namespace OsEngine.Market
                         }
 
                         List<Portfolio> portfolios =
-                            _portfolios.FindAll(p => 
-                            p != null 
+                            _portfolios.FindAll(p =>
+                            p != null
                             && p.Number == _portfolios[i].Number
                             && p.ServerUniqueName == _portfolios[i].ServerUniqueName
                             );
@@ -281,7 +287,7 @@ namespace OsEngine.Market
 
                 // 2 Sort
 
-                if(_portfolios.Count > 1)
+                if (_portfolios.Count > 1)
                 {
                     _portfolios = _portfolios.OrderBy(x => x.ServerUniqueName).ToList();
                 }
@@ -315,17 +321,17 @@ namespace OsEngine.Market
                     }
                 }
 
-               if (curUpRow != 0 && curUpRow != -1)
-               {
-                   _gridPortfolio.FirstDisplayedScrollingRowIndex = curUpRow;
-               }
+                if (curUpRow != 0 && curUpRow != -1)
+                {
+                    _gridPortfolio.FirstDisplayedScrollingRowIndex = curUpRow;
+                }
 
-               if (curSelectRow != 0 &&
-                   _gridPortfolio.Rows.Count > curSelectRow
-                   && curSelectRow != -1)
-               {
-                   _gridPortfolio.Rows[curSelectRow].Selected = true;
-               }
+                if (curSelectRow != 0 &&
+                    _gridPortfolio.Rows.Count > curSelectRow
+                    && curSelectRow != -1)
+                {
+                    _gridPortfolio.Rows[curSelectRow].Selected = true;
+                }
 
             }
             catch (Exception error)
@@ -342,7 +348,7 @@ namespace OsEngine.Market
             try
             {
                 if (portfolio.ValueBegin == 0
-                    && portfolio.ValueCurrent == 0 
+                    && portfolio.ValueCurrent == 0
                     && portfolio.ValueBlocked == 0)
                 {
                     List<PositionOnBoard> poses = portfolio.GetPositionOnBoard();
@@ -445,7 +451,7 @@ namespace OsEngine.Market
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[nRow.Cells.Count-1].Value = positionsOnBoard[i].SecurityNameCode;
+                        nRow.Cells[nRow.Cells.Count - 1].Value = positionsOnBoard[i].SecurityNameCode;
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells[nRow.Cells.Count - 1].Value = positionsOnBoard[i].ValueBegin.ToStringWithNoEndZero().ToDecimal();
@@ -487,7 +493,7 @@ namespace OsEngine.Market
                 }
             }
             catch
-            {   
+            {
                 // ignore. Let us sometimes face with null-value, when deleting the original order or modification, but don't break work of mail thread
                 // игнорим. Пусть иногда натыкаемся на налл, при удалении исходного ордера или модификации
                 // зато не мешаем основному потоку работать
@@ -533,19 +539,19 @@ namespace OsEngine.Market
 
                         string currentServerName = portfolios[i].ServerUniqueName;
 
-                        if(currentServerName == null)
+                        if (currentServerName == null)
                         {
                             currentServerName = "";
                         }
 
-                        if(currentServerName.Split('_').Length == 3)
+                        if (currentServerName.Split('_').Length == 3)
                         {
                             currentServerName = currentServerName.Split('_')[0] + "_" + currentServerName.Split('_')[1];
                         }
 
                         Portfolio portf = _portfolios.Find(
-                            portfolio => 
-                            portfolio != null 
+                            portfolio =>
+                            portfolio != null
                             && portfolio.Number == portfolios[i].Number
                             && portfolio.ServerUniqueName.Contains(portfolios[i].ServerUniqueName)
                             );
@@ -589,20 +595,20 @@ namespace OsEngine.Market
 
             IServerPermission permission = ServerMaster.GetServerPermission(myServer.ServerType);
 
-            if(permission != null )
+            if (permission != null)
             {
-                if(permission.ManuallyClosePositionOnBoard_IsOn == false)
+                if (permission.ManuallyClosePositionOnBoard_IsOn == false)
                 {
                     return false;
                 }
 
                 string[] exceptionValues = permission.ManuallyClosePositionOnBoard_ExceptionPositionNames;
 
-                for(int i = 0; exceptionValues != null && i < exceptionValues.Length;i++)
+                for (int i = 0; exceptionValues != null && i < exceptionValues.Length; i++)
                 {
                     string curName = exceptionValues[i];
 
-                    if(positionOnBoard.SecurityNameCode.Equals(curName))
+                    if (positionOnBoard.SecurityNameCode.Equals(curName))
                     {
                         return false;
                     }
@@ -621,7 +627,7 @@ namespace OsEngine.Market
         {
             string trueNameSec = secName;
 
-            if(server.ServerType == ServerType.Tester)
+            if (server.ServerType == ServerType.Tester)
             {
                 return trueNameSec;
             }
@@ -629,15 +635,15 @@ namespace OsEngine.Market
             IServerPermission permission = ServerMaster.GetServerPermission(server.ServerType);
 
 
-            if(permission != null )
+            if (permission != null)
             {
                 string[] trimValues = permission.ManuallyClosePositionOnBoard_ValuesForTrimmingName;
 
-                for(int i = 0; trimValues != null && i < trimValues.Length;i++)
+                for (int i = 0; trimValues != null && i < trimValues.Length; i++)
                 {
                     string value = trimValues[i];
 
-                    if(string.IsNullOrEmpty(value))
+                    if (string.IsNullOrEmpty(value))
                     {
                         continue;
                     }
@@ -656,7 +662,7 @@ namespace OsEngine.Market
         {
             List<IServer> servers = ServerMaster.GetServers();
 
-            if(serverName.Split('_').Length == 3)
+            if (serverName.Split('_').Length == 3)
             {
                 string newName = serverName.Split('_')[0] + "_" + serverName.Split('_')[1];
 
@@ -743,9 +749,9 @@ namespace OsEngine.Market
                     ShowPositionsCompareUi(sender, e);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                ServerMaster.SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -780,9 +786,9 @@ namespace OsEngine.Market
 
                 aServer.ShowComparePositionsModuleDialog(portfolioName);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -851,9 +857,9 @@ namespace OsEngine.Market
                     Task.Run(() => ClearPositionOnBoardEvent(trimmedSecName, myServer, secName));
                 }
             }
-            catch (Exception ex )
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
