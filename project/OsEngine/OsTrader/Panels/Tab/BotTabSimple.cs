@@ -6962,7 +6962,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             _journal?.SetNewBidAsk(bid, ask);
             _marketDepthPainter?.ProcessBidAsk(bid, ask);
-            BestBidAskChangeEvent?.Invoke(ask, bid);
+            BestBidAskChangeEvent?.Invoke(bid, ask);
         }
 
         /// <summary>
