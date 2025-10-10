@@ -3,20 +3,19 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using System.Threading;
-using OsEngine.Market;
-using OsEngine.Alerts;
-using OsEngine.Journal;
-using OsEngine.Market.Servers;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -197,6 +196,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     _grid.Rows.Clear();
                     _grid.CellClick -= _grid_CellClick;
+                    _grid.DataError -= _grid_DataError;
                     DataGridFactory.ClearLinks(_grid);
                 }
                 if (_host != null)
@@ -994,7 +994,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Is this pair of securities in trade?
         /// </summary>
-        public bool HaveThisPairInTrade(string sec1, string sec2, string secClass, 
+        public bool HaveThisPairInTrade(string sec1, string sec2, string secClass,
             TimeFrame timeFrame, ServerType serverType, string serverName)
         {
             for (int i = 0; i < Pairs.Count; i++)
@@ -1417,7 +1417,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _positionViewer.ClearJournalsArray();
 
-                List<Journal.Journal> journals = new List<Journal.Journal>();   
+                List<Journal.Journal> journals = new List<Journal.Journal>();
 
                 for (int i = 0; i < Pairs.Count; i++)
                 {
@@ -1435,7 +1435,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if(journals.Count > 0)
+                if (journals.Count > 0)
                 {
                     _positionViewer.SetJournals(journals);
                 }
@@ -1498,6 +1498,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _grid = newGrid;
             _grid.CellClick += _grid_CellClick;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         /// <summary>
@@ -1950,7 +1956,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (ui.UserAcceptAction)
                     {
-                        DeletePair(tabNum,true);
+                        DeletePair(tabNum, true);
                     }
                 }
                 else if (column == 1)
@@ -3081,7 +3087,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void Tab2_CandleUpdateEvent(List<Candle> candles)
         {
-            if(Tab2.StartProgram != StartProgram.IsOsTrader)
+            if (Tab2.StartProgram != StartProgram.IsOsTrader)
             {
                 return;
             }
@@ -3094,8 +3100,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             List<Candle> candles1 = Tab1.CandlesAll;
             List<Candle> candles2 = Tab2.CandlesAll;
 
-            if(candles1 == null 
-                || candles1.Count == 0 
+            if (candles1 == null
+                || candles1.Count == 0
                 || candles2 == null
                 || candles2.Count == 0)
             {
@@ -3104,13 +3110,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (candles1[^1].TimeStart == candles2[^1].TimeStart)
             {
-                if(_timeToRebuildIndicators == DateTime.MinValue)
+                if (_timeToRebuildIndicators == DateTime.MinValue)
                 {
                     _timeToRebuildIndicators = DateTime.Now.AddSeconds(10);
                     return;
                 }
 
-                if(_timeToRebuildIndicators > DateTime.Now)
+                if (_timeToRebuildIndicators > DateTime.Now)
                 {
                     return;
                 }
@@ -3271,7 +3277,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ReloadCointegration(_candles1, _candles2);
             }
 
-            if(canSendEvent == true)
+            if (canSendEvent == true)
             {
                 if (CandlesInPairSyncFinishedEvent != null)
                 {

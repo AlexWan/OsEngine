@@ -1,9 +1,13 @@
+/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
 using OsEngine.Robots.Engines;
 using System;
@@ -11,11 +15,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Windows.Forms;
-using OsEngine.OsTrader;
-using OsEngine.Journal;
-using System.Drawing.Drawing2D;
+
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -241,7 +242,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (_isDisposed 
+                if (_isDisposed
                     || _mainControl.IsHandleCreated == false
                     || _paintIsOn == false)
                 {
@@ -250,9 +251,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _mainControl.Invoke(new Action(RedrawGrid));
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                if(LogMessageEvent != null)
+                if (LogMessageEvent != null)
                 {
                     LogMessageEvent(e.ToString(), LogMessageType.Error);
                 }
@@ -660,75 +661,75 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-            private void OnSecuritiesChanged(List<Security> securities)
+        private void OnSecuritiesChanged(List<Security> securities)
+        {
+            if (_isDisposed || UnderlyingAssets == null || UnderlyingAssets.Count == 0)
             {
-                if (_isDisposed || UnderlyingAssets == null || UnderlyingAssets.Count == 0)
+                return;
+            }
+
+            lock (_locker)
+            {
+                var newSecurityNames = new HashSet<string>(
+                    securities
+                        .Where(s => (s.SecurityType == SecurityType.Option && UnderlyingAssets.Contains(s.UnderlyingAsset)) ||
+                                    (s.SecurityType != SecurityType.Option && UnderlyingAssets.Contains(s.Name)))
+                        .Select(s => s.Name)
+                );
+
+                var currentSecurityNames = new HashSet<string>(_simpleTabs.Keys);
+
+                var securitiesToRemove = currentSecurityNames.Except(newSecurityNames).ToList();
+
+                if (securitiesToRemove.Any())
                 {
-                    return;
+                    LogMessageEvent?.Invoke($"Removing {securitiesToRemove.Count} expired/delisted securities.", LogMessageType.System);
+                    foreach (var secName in securitiesToRemove)
+                    {
+                        if (_simpleTabs.TryGetValue(secName, out var tabToRemove))
+                        {
+                            _simpleTabs.Remove(secName);
+                            tabToRemove.Delete();
+                            _allOptionsData.RemoveAll(o => o.Security.Name == secName);
+                            _uaData.RemoveAll(u => u.Security.Name == secName);
+                        }
+                    }
                 }
 
-                lock (_locker)
+                var securitiesToAddNames = newSecurityNames.Except(currentSecurityNames).ToList();
+                var newSecurityObjects = securities.Where(s => securitiesToAddNames.Contains(s.Name)).ToList();
+
+                if (newSecurityObjects.Any())
                 {
-                    var newSecurityNames = new HashSet<string>(
-                        securities
-                            .Where(s => (s.SecurityType == SecurityType.Option && UnderlyingAssets.Contains(s.UnderlyingAsset)) ||
-                                        (s.SecurityType != SecurityType.Option && UnderlyingAssets.Contains(s.Name)))
-                            .Select(s => s.Name)
-                    );
-
-                    var currentSecurityNames = new HashSet<string>(_simpleTabs.Keys);
-
-                    var securitiesToRemove = currentSecurityNames.Except(newSecurityNames).ToList();
-
-                    if (securitiesToRemove.Any())
+                    LogMessageEvent?.Invoke($"Discovered {newSecurityObjects.Count} new securities.", LogMessageType.System);
+                    foreach (var security in newSecurityObjects)
                     {
-                        LogMessageEvent?.Invoke($"Removing {securitiesToRemove.Count} expired/delisted securities.", LogMessageType.System);
-                        foreach (var secName in securitiesToRemove)
+                        var tab = CreateSimpleTab(security, _server);
+                        if (security.SecurityType == SecurityType.Option)
                         {
-                            if (_simpleTabs.TryGetValue(secName, out var tabToRemove))
-                            {
-                                _simpleTabs.Remove(secName);
-                                tabToRemove.Delete();
-                                _allOptionsData.RemoveAll(o => o.Security.Name == secName);
-                                _uaData.RemoveAll(u => u.Security.Name == secName);
-                            }
+                            _allOptionsData.Add(new OptionDataRow { Security = security, SimpleTab = tab });
+                        }
+                        else
+                        {
+                            _uaData.Add(new UnderlyingAssetDataRow { Security = security, SimpleTab = tab });
                         }
                     }
+                }
 
-                    var securitiesToAddNames = newSecurityNames.Except(currentSecurityNames).ToList();
-                    var newSecurityObjects = securities.Where(s => securitiesToAddNames.Contains(s.Name)).ToList();
-
-                    if (newSecurityObjects.Any())
+                if (securitiesToRemove.Any() || newSecurityObjects.Any())
+                {
+                    if (_mainControl.IsHandleCreated)
                     {
-                        LogMessageEvent?.Invoke($"Discovered {newSecurityObjects.Count} new securities.", LogMessageType.System);
-                        foreach (var security in newSecurityObjects)
+                        _mainControl.Invoke(new Action(() =>
                         {
-                            var tab = CreateSimpleTab(security, _server);
-                            if (security.SecurityType == SecurityType.Option)
-                            {
-                                _allOptionsData.Add(new OptionDataRow { Security = security, SimpleTab = tab });
-                            }
-                            else
-                            {
-                                _uaData.Add(new UnderlyingAssetDataRow { Security = security, SimpleTab = tab });
-                            }
-                        }
-                    }
-
-                    if (securitiesToRemove.Any() || newSecurityObjects.Any())
-                    {
-                        if (_mainControl.IsHandleCreated)
-                        {
-                            _mainControl.Invoke(new Action(() =>
-                            {
-                                InitializeUaGrid();
-                                UpdateExpirationFilter();
-                                RefreshOptionsGrid();
-                            }));
-                        }
+                            InitializeUaGrid();
+                            UpdateExpirationFilter();
+                            RefreshOptionsGrid();
+                        }));
                     }
                 }
             }
+        }
 
         #endregion
 
@@ -744,54 +745,74 @@ namespace OsEngine.OsTrader.Panels.Tab
             _uaGrid = CreateNewGrid();
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "Underlying Asset", Name = "Name", ReadOnly = true,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, MinimumWidth = 120
+                HeaderText = "Underlying Asset",
+                Name = "Name",
+                ReadOnly = true,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                MinimumWidth = 120
             });
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "Bid", Name = "Bid", ReadOnly = true,
+                HeaderText = "Bid",
+                Name = "Bid",
+                ReadOnly = true,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
             });
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "Ask", Name = "Ask", ReadOnly = true,
+                HeaderText = "Ask",
+                Name = "Ask",
+                ReadOnly = true,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
             });
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "Last Price", Name = "LastPrice", ReadOnly = true,
+                HeaderText = "Last Price",
+                Name = "LastPrice",
+                ReadOnly = true,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
             });
             _uaGrid.Columns.Add(new DataGridViewButtonColumn
-                { HeaderText = "Chart", Name = "UaChart", UseColumnTextForButtonValue = true, Text = "Open" });
+            { HeaderText = "Chart", Name = "UaChart", UseColumnTextForButtonValue = true, Text = "Open" });
             _uaGrid.Columns.Add(new DataGridViewTextBoxColumn
-                { HeaderText = "Qty", Name = "UaQty", ReadOnly = false, Width = 40 });
+            { HeaderText = "Qty", Name = "UaQty", ReadOnly = false, Width = 40 });
             _uaGrid.SelectionChanged += UaGrid_SelectionChanged;
             _uaGrid.CellClick += _uaGrid_CellClick;
             _uaGrid.CellValueChanged += _uaGrid_CellValueChanged; // Add this line
+            _uaGrid.DataError += _uaGrid_DataError;
 
             var filterPanel = new FlowLayoutPanel() { Dock = DockStyle.Fill, BackColor = Color.FromArgb(21, 26, 30) };
             filterPanel.Controls.Add(new Label()
             {
-                Text = "Expiration:", Margin = new Padding(5, 6, 0, 0), ForeColor = Color.FromArgb(154, 156, 158),
+                Text = "Expiration:",
+                Margin = new Padding(5, 6, 0, 0),
+                ForeColor = Color.FromArgb(154, 156, 158),
                 AutoSize = true
             });
             _expirationComboBox = new ComboBox()
             {
-                Margin = new Padding(0, 3, 0, 0), BackColor = Color.FromArgb(21, 26, 30),
-                ForeColor = Color.FromArgb(154, 156, 158), FlatStyle = FlatStyle.Flat
+                Margin = new Padding(0, 3, 0, 0),
+                BackColor = Color.FromArgb(21, 26, 30),
+                ForeColor = Color.FromArgb(154, 156, 158),
+                FlatStyle = FlatStyle.Flat
             };
             _expirationComboBox.SelectedIndexChanged += ExpirationComboBox_SelectedIndexChanged;
             filterPanel.Controls.Add(_expirationComboBox);
             filterPanel.Controls.Add(new Label()
             {
-                Text = "Strikes:", Margin = new Padding(15, 6, 0, 0), ForeColor = Color.FromArgb(154, 156, 158),
+                Text = "Strikes:",
+                Margin = new Padding(15, 6, 0, 0),
+                ForeColor = Color.FromArgb(154, 156, 158),
                 AutoSize = true
             });
             _strikesToShowNumericUpDown = new NumericUpDown()
             {
-                Minimum = 0, Maximum = 100, Value = 4, Margin = new Padding(0, 3, 0, 0),
-                BackColor = Color.FromArgb(21, 26, 30), ForeColor = Color.FromArgb(154, 156, 158),
+                Minimum = 0,
+                Maximum = 100,
+                Value = 4,
+                Margin = new Padding(0, 3, 0, 0),
+                BackColor = Color.FromArgb(21, 26, 30),
+                ForeColor = Color.FromArgb(154, 156, 158),
                 BorderStyle = BorderStyle.FixedSingle
             };
             _strikesToShowNumericUpDown.ValueChanged += (sender, args) =>
@@ -803,7 +824,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             var buildChartButton = new Button()
             {
-                Text = "Build PNL Chart", Margin = new Padding(25, 3, 0, 0), ForeColor = Color.FromArgb(154, 156, 158),
+                Text = "Build PNL Chart",
+                Margin = new Padding(25, 3, 0, 0),
+                ForeColor = Color.FromArgb(154, 156, 158),
             };
             buildChartButton.Click += BuildChartButton_Click;
             filterPanel.Controls.Add(buildChartButton);
@@ -812,31 +835,37 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             // Call side
             _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
-                { HeaderText = "Qty", Name = "CallQty", ReadOnly = false, Width = 40 });
+            { HeaderText = "Qty", Name = "CallQty", ReadOnly = false, Width = 40 });
             string[] callHeaders = { "Theta", "Vega", "Gamma", "Delta", "Last", "Ask", "Bid", "Name" };
             foreach (var header in callHeaders)
             {
                 _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
                 {
-                    HeaderText = header, Name = "Call" + header, ReadOnly = true,
+                    HeaderText = header,
+                    Name = "Call" + header,
+                    ReadOnly = true,
                     AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
                 });
             }
 
             _optionsGrid.Columns.Add(new DataGridViewButtonColumn
-                { HeaderText = "Chart", Name = "CallChart", UseColumnTextForButtonValue = true, Text = "Open" });
+            { HeaderText = "Chart", Name = "CallChart", UseColumnTextForButtonValue = true, Text = "Open" });
             _optionsGrid.Columns.Add(new DataGridViewButtonColumn
-                { HeaderText = "PNL", Name = "CallPnl", UseColumnTextForButtonValue = true, Text = "Profile" });
+            { HeaderText = "PNL", Name = "CallPnl", UseColumnTextForButtonValue = true, Text = "Profile" });
 
             // Center
             _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "Strike", Name = "Strike", ReadOnly = true,
+                HeaderText = "Strike",
+                Name = "Strike",
+                ReadOnly = true,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
             });
             _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "IV", Name = "IV", ReadOnly = true,
+                HeaderText = "IV",
+                Name = "IV",
+                ReadOnly = true,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
             });
 
@@ -846,26 +875,34 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
                 {
-                    HeaderText = header, Name = "Put" + header, ReadOnly = true,
+                    HeaderText = header,
+                    Name = "Put" + header,
+                    ReadOnly = true,
                     AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
                 });
             }
 
             _optionsGrid.Columns.Add(new DataGridViewButtonColumn
-                { HeaderText = "Chart", Name = "PutChart", UseColumnTextForButtonValue = true, Text = "Open" });
+            { HeaderText = "Chart", Name = "PutChart", UseColumnTextForButtonValue = true, Text = "Open" });
             _optionsGrid.Columns.Add(new DataGridViewButtonColumn
-                { HeaderText = "PNL", Name = "PutPnl", UseColumnTextForButtonValue = true, Text = "Profile" });
+            { HeaderText = "PNL", Name = "PutPnl", UseColumnTextForButtonValue = true, Text = "Profile" });
             _optionsGrid.Columns.Add(new DataGridViewTextBoxColumn
-                { HeaderText = "Qty", Name = "PutQty", ReadOnly = false, Width = 40 });
+            { HeaderText = "Qty", Name = "PutQty", ReadOnly = false, Width = 40 });
             _optionsGrid.Columns["CallName"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _optionsGrid.Columns["PutName"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _optionsGrid.Columns["Strike"].DefaultCellStyle.Font = new Font(_optionsGrid.Font, FontStyle.Bold);
             _optionsGrid.CellClick += _optionsGrid_CellClick;
             _optionsGrid.CellValueChanged += _optionsGrid_CellValueChanged;
+            _optionsGrid.DataError += _uaGrid_DataError;
 
             _mainControl.Controls.Add(_uaGrid, 0, 0);
             _mainControl.Controls.Add(filterPanel, 0, 1);
             _mainControl.Controls.Add(_optionsGrid, 0, 2);
+        }
+
+        private void _uaGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            LogMessageEvent?.Invoke(e.ToString(), LogMessageType.Error);
         }
 
         private void _optionsGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -1273,7 +1310,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.SecurityName = security.Name;
             tab.Connector.SecurityClass = security.NameClass;
 
-            if(server.GetType().BaseType.Name == "AServer")
+            if (server.GetType().BaseType.Name == "AServer")
             {
                 AServer serverA = (AServer)server;
                 tab.Connector.ServerFullName = serverA.ServerNameUnique;
@@ -1613,7 +1650,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.Delete();
             }
 
-            if(_positionViewer != null)
+            if (_positionViewer != null)
             {
                 _positionViewer.LogMessageEvent -= LogMessageEvent;
                 _positionViewer.Delete();
