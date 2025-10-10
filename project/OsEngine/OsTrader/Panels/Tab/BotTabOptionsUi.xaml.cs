@@ -1,21 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.Windows;
+/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Alerts;
 using OsEngine.Entity;
 using OsEngine.Market;
-using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Optimizer;
-using OsEngine.Market.Servers.Tester;
-using System.Windows.Forms;
-using OsEngine.Language;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
+using System.Windows.Forms;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
     public partial class BotTabOptionsUi : Window
-    { 
+    {
         private BotTabOptions _tab;
         private List<IServer> _servers;
         private DataGridView _gridSecurities;
@@ -45,7 +46,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             LoadSecurityOnBox();
 
             // Add event handlers
-            ComboBoxTypeServer.SelectionChanged += (sender, args) => 
+            ComboBoxTypeServer.SelectionChanged += (sender, args) =>
             {
                 LoadPortfolioOnBox();
                 LoadClassOnBox();
@@ -55,6 +56,33 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             ButtonAccept.Click += ButtonAccept_Click;
             this.Loaded += BotTabOptionsUi_Loaded;
+            this.Closed += BotTabOptionsUi_Closed;
+        }
+
+        private void BotTabOptionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                this.Closed -= BotTabOptionsUi_Closed;
+                ButtonAccept.Click -= ButtonAccept_Click;
+                this.Loaded -= BotTabOptionsUi_Loaded;
+
+                if (HostUnderlyingAssets != null)
+                {
+                    HostUnderlyingAssets.Child = null;
+                }
+
+                if (_gridSecurities != null)
+                {
+                    _gridSecurities.DataError -= _gridSecurities_DataError;
+                    DataGridFactory.ClearLinks(_gridSecurities);
+                    _gridSecurities = null;
+                }
+            }
+            catch
+            {
+
+            }
         }
 
         private void BotTabOptionsUi_Loaded(object sender, RoutedEventArgs e)
@@ -66,12 +94,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _gridSecurities = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _gridSecurities.MultiSelect = true;
+            _gridSecurities.DataError += _gridSecurities_DataError;
 
             _gridSecurities.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "On" });
             _gridSecurities.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Name", ReadOnly = true });
             _gridSecurities.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Class", ReadOnly = true });
 
             HostUnderlyingAssets.Child = _gridSecurities;
+        }
+
+        private void _gridSecurities_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
         private void LoadPortfolioOnBox()
@@ -135,7 +169,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             foreach (var security in securities)
             {
                 var row = new DataGridViewRow();
-                
+
                 bool isChecked = _tab.UnderlyingAssets != null && _tab.UnderlyingAssets.Contains(security.Name);
 
                 var checkCell = new DataGridViewCheckBoxCell { Value = isChecked };
@@ -169,7 +203,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            if(ComboBoxPortfolio.SelectedItem == null)
+            if (ComboBoxPortfolio.SelectedItem == null)
             {
                 AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi("Portfolio not selected");
                 uiMessage.Show();
