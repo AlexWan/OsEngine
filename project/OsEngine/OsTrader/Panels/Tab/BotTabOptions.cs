@@ -1,6 +1,6 @@
 /*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ *пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using OsEngine.Alerts;
@@ -65,6 +65,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public string PortfolioName { get; private set; }
         public ServerType ServerType { get; set; }
         public string ServerName { get; set; }
+        public IServer Server => _server;
         public string TabName { get; set; }
         public int TabNum { get; set; }
         public BotTabType TabType => BotTabType.Options;
@@ -127,6 +128,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         // Order Events
         public event Action<Order, BotTabSimple> OrderUpdateEvent;
+
+        public event Action SecuritiesUpdated;
         #endregion
 
         #region Settings
@@ -663,6 +666,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             SetJournalsInPosViewer(); // Add this call
 
             SaveSettings();
+            SecuritiesUpdated?.Invoke();
         }
 
         private void SelectFirstUnderlyingAsset()
@@ -753,6 +757,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             InitializeUaGrid();
                             UpdateExpirationFilter();
                             RefreshOptionsGrid();
+                            SecuritiesUpdated?.Invoke(); // Add this line
                         }));
                     }
                 }
@@ -1820,6 +1825,24 @@ namespace OsEngine.OsTrader.Panels.Tab
         #endregion
 
         #region Public Methods
+
+        public void AddUnderlyingAsset(string assetName)
+        {
+            if (UnderlyingAssets.Contains(assetName)) return;
+
+            LogMessageEvent?.Invoke($"Adding new underlying asset for subscription: {assetName}", LogMessageType.System);
+            UnderlyingAssets.Add(assetName);
+            SetUnderlyingAssetsAndStart(this.UnderlyingAssets, this.PortfolioName, this._server);
+        }
+
+        public void RemoveUnderlyingAsset(string assetName)
+        {
+            if (!UnderlyingAssets.Contains(assetName)) return;
+
+            LogMessageEvent?.Invoke($"Removing expired underlying asset from subscription: {assetName}", LogMessageType.System);
+            UnderlyingAssets.Remove(assetName);
+            SetUnderlyingAssetsAndStart(this.UnderlyingAssets, this.PortfolioName, this._server);
+        }
 
         public double GetAtmStrike(string underlyingAssetTicker, DateTime expiration)
         {
