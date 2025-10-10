@@ -681,6 +681,11 @@ namespace OsEngine.Entity
         /// <summary>
         /// Order will be throughout the day. If the exchange has such possibilities
         /// </summary>
-        Day
+        Day,
+
+        /// <summary>
+        /// Passive order. Order that is added to the order book only if it cannot be executed immediately
+        /// </summary>
+        BookOrCancel
     }
 }
