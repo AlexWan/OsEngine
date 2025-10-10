@@ -23,7 +23,8 @@ namespace OsEngine.Robots.AlgoStart
 
         // Basic settings
         private StrategyParameterString _regime;
-        private StrategyParameterInt _maxPoses;
+        private StrategyParameterInt _icebergCount;
+        private StrategyParameterInt _maxPositions;
         private StrategyParameterInt _clusterToTrade;
         private StrategyParameterInt _clustersLookBack;
 
@@ -51,9 +52,10 @@ namespace OsEngine.Robots.AlgoStart
 
             // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _icebergCount = CreateParameter("Iceberg orders count", 1, 1, 3, 1);
             _clusterToTrade = CreateParameter("Volatility cluster to trade", 1, 1, 3, 1);
-            _clustersLookBack = CreateParameter("Volatility cluster lookBack", 100, 10, 300, 1);
-            _maxPoses = CreateParameter("Max poses", 10, 1, 20, 1);
+            _clustersLookBack = CreateParameter("Volatility cluster lookBack", 50, 10, 300, 1);
+            _maxPositions = CreateParameter("Max poses", 10, 1, 20, 1);
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
@@ -83,7 +85,6 @@ namespace OsEngine.Robots.AlgoStart
             _screenerTab._indicators[0].Parameters = new List<string>() { _pcAdxLength.ValueInt.ToString(), _pcRatio.ValueInt.ToString() };
             _screenerTab.UpdateIndicatorsParameters();
         }
-
 
         // Logic
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
@@ -146,7 +147,7 @@ namespace OsEngine.Robots.AlgoStart
             {
                 int allPosesInAllTabs = this.PositionsCount;
 
-                if (allPosesInAllTabs >= _maxPoses.ValueInt)
+                if (allPosesInAllTabs >= _maxPositions.ValueInt)
                 {
                     return;
                 }
@@ -176,7 +177,7 @@ namespace OsEngine.Robots.AlgoStart
                         }
                     }
 
-                    tab.BuyAtMarket(GetVolume(tab));
+                    tab.BuyAtIcebergMarket(GetVolume(tab), _icebergCount.ValueInt, 1000);
                 }
             }
             else // Close logic
@@ -190,14 +191,19 @@ namespace OsEngine.Robots.AlgoStart
 
                 Aindicator priceChannel = (Aindicator)tab.Indicators[0];
 
-                decimal pcDown = priceChannel.DataSeries[1].Last;
+                decimal pcDown = priceChannel.DataSeries[1].Values[^2];
 
                 if (pcDown == 0)
                 {
                     return;
                 }
 
-                tab.CloseAtTrailingStopMarket(pos, pcDown);
+                decimal lastClose = candles[^1].Close;
+
+                if(lastClose <= pcDown)
+                {
+                    tab.CloseAtIcebergMarket(pos,pos.OpenVolume,_icebergCount.ValueInt,1000);
+                }
             }
         }
 

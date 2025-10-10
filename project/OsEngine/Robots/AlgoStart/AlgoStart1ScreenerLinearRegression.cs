@@ -23,12 +23,13 @@ namespace OsEngine.Robots.AlgoStart
 
         // Basic settings
         private StrategyParameterString _regime;
+        private StrategyParameterInt _icebergCount;
         private StrategyParameterInt _maxPositionsCount;
         private StrategyParameterInt _clusterToTrade;
+        private StrategyParameterInt _clustersLookBack;
         private StrategyParameterTimeOfDay _timeStart;
         private StrategyParameterTimeOfDay _timeEnd;
        
-
         // GetVolume settings
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
@@ -52,22 +53,24 @@ namespace OsEngine.Robots.AlgoStart
             _screenerTab.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
             // Basic settings
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On"});
+            _icebergCount = CreateParameter("Iceberg orders count", 1, 1, 3, 1);
             _clusterToTrade = CreateParameter("Volatility cluster to trade", 1, 1, 3, 1);
-            _maxPositionsCount = CreateParameter("Max positions ", 4, 1, 50, 4);
+            _clustersLookBack = CreateParameter("Volatility cluster lookBack", 30, 10, 300, 1);
+            _maxPositionsCount = CreateParameter("Max positions ", 20, 1, 50, 4);
             _timeStart = CreateParameterTimeOfDay("Start Trade Time", 10, 32, 0, 0);
             _timeEnd = CreateParameterTimeOfDay("End Trade Time", 18, 25, 0, 0);
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _volume = CreateParameter("Volume", 14, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator settings
             _smaFilterIsOn = CreateParameter("Sma filter is on", true);
-            _smaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
-            _lrLength = CreateParameter("Linear regression Length", 50, 20, 300, 10);
-            _lrDeviation = CreateParameter("Linear regression deviation", 2, 1, 4, 0.1m);
+            _smaFilterLen = CreateParameter("Sma filter Len", 170, 100, 300, 10);
+            _lrLength = CreateParameter("Linear regression Length", 180, 20, 300, 10);
+            _lrDeviation = CreateParameter("Linear regression deviation", 2.4m, 1, 4, 0.1m);
 
 
             // Create indicator LinearRegressionChannelFast_Indicator
@@ -123,9 +126,9 @@ namespace OsEngine.Robots.AlgoStart
             if (openPositions.Count == 0)
             {
                 if (_lastTimeSetClusters == DateTime.MinValue
-    || _lastTimeSetClusters != candles[^1].TimeStart)
+                 || _lastTimeSetClusters != candles[^1].TimeStart)
                 {
-                    _volatilityStageClusters.Calculate(_screenerTab.Tabs, 100);
+                    _volatilityStageClusters.Calculate(_screenerTab.Tabs, _clustersLookBack.ValueInt);
                     _lastTimeSetClusters = candles[^1].TimeStart;
                 }
 
@@ -179,8 +182,7 @@ namespace OsEngine.Robots.AlgoStart
                     return;
                 }
 
-                if (_regime.ValueString != "OnlyShort"
-                    && candleClose > lrUp)
+                if (candleClose > lrUp)
                 {
                     if (_smaFilterIsOn.ValueBool == true)
                     {// Sma filter
@@ -194,27 +196,8 @@ namespace OsEngine.Robots.AlgoStart
                         }
                     }
 
-                    tab.BuyAtMarket(GetVolume(tab));
+                    tab.BuyAtIcebergMarket(GetVolume(tab), _icebergCount.ValueInt, 1000);
                 }
-                else if(_regime.ValueString != "OnlyLong"
-                    && candleClose < lrDown)
-                {
-
-                    if (_smaFilterIsOn.ValueBool == true)
-                    {// Sma filter
-                        Aindicator sma = (Aindicator)tab.Indicators[1];
-
-                        decimal lastSma = sma.DataSeries[0].Last;
-
-                        if (candleClose > lastSma)
-                        {
-                            return;
-                        }
-                    }
-
-                    tab.SellAtMarket(GetVolume(tab));
-                }
-             
             }
             else // Logic close position
             {
@@ -225,31 +208,20 @@ namespace OsEngine.Robots.AlgoStart
                     return;
                 }
 
-                if(pos.Direction == Side.Buy)
+                Aindicator lrIndicator = (Aindicator)tab.Indicators[0];
+
+                decimal lrDown = lrIndicator.DataSeries[2].Last;
+
+                if (lrDown == 0)
                 {
-                    Aindicator lrIndicator = (Aindicator)tab.Indicators[0];
-
-                    decimal lrDown = lrIndicator.DataSeries[2].Last;
-
-                    if (lrDown == 0)
-                    {
-                        return;
-                    }
-
-                    tab.CloseAtTrailingStopMarket(pos, lrDown);
+                    return;
                 }
-                else if (pos.Direction == Side.Sell)
+
+                decimal lastClose = candles[^1].Close;
+
+                if (lastClose <= lrDown)
                 {
-                    Aindicator lrIndicator = (Aindicator)tab.Indicators[0];
-
-                    decimal lrUp = lrIndicator.DataSeries[0].Last;
-
-                    if (lrUp == 0)
-                    {
-                        return;
-                    }
-
-                    tab.CloseAtTrailingStopMarket(pos, lrUp);
+                    tab.CloseAtIcebergMarket(pos, pos.OpenVolume, _icebergCount.ValueInt, 1000);
                 }
             }
         }

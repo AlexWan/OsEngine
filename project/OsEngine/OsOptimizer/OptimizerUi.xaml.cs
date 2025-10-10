@@ -213,6 +213,7 @@ namespace OsEngine.OsOptimizer
                 if (ui.UserAcceptAction == false)
                 {
                     e.Cancel = true;
+                    return;
                 }
 
                 ComboBoxThreadsCount.SelectionChanged -= ComboBoxThreadsCount_SelectionChanged;

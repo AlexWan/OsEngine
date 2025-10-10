@@ -25,10 +25,11 @@ namespace OsEngine.Robots.AlgoStart
 
         // Basic settings
         private StrategyParameterString _regime;
+        private StrategyParameterInt _icebergCount;
         private StrategyParameterInt _maxPositions;
+        private StrategyParameterInt _clustersLookBack;
         private StrategyParameterDecimal _procHeightTake;
         private StrategyParameterDecimal _procHeightStop;
-        private StrategyParameterDecimal _slippage;
 
         // Basic settings
         private StrategyParameterString _volumeType;
@@ -38,7 +39,6 @@ namespace OsEngine.Robots.AlgoStart
         // Volatility settings
         private StrategyParameterInt _daysVolatilityAdaptive;
         private StrategyParameterDecimal _heightSoldiersVolaPercent;
-        private StrategyParameterDecimal _minHeightOneSoldiersVolaPercent;
 
         // SmaFilter settings
         private StrategyParameterBool _smaFilterIsOn;
@@ -53,26 +53,26 @@ namespace OsEngine.Robots.AlgoStart
             _tabScreener.CandleFinishedEvent += _tab_CandleFinishedEvent1;
 
             // Basic settings
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            _maxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On"});
+            _icebergCount = CreateParameter("Iceberg orders count", 1, 1, 3, 1);
+            _maxPositions = CreateParameter("Max positions", 20, 0, 20, 1);
+            _clustersLookBack = CreateParameter("Volatility cluster lookBack", 80, 10, 300, 1);
 
-            _slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
-            _procHeightTake = CreateParameter("Profit % from height of pattern", 50m, 0, 20, 1m);
-            _procHeightStop = CreateParameter("Stop % from height of pattern", 20m, 0, 20, 1m);
+            _procHeightTake = CreateParameter("Profit % from height of pattern", 290m, 0, 20, 1m);
+            _procHeightStop = CreateParameter("Stop % from height of pattern", 180m, 0, 20, 1m);
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 10, 1.0m, 50, 4);
+            _volume = CreateParameter("Volume", 4, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Volatility settings
             _daysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 7, 0, 20, 1);
-            _heightSoldiersVolaPercent = CreateParameter("Height soldiers volatility percent", 50, 0, 20, 1m);
-            _minHeightOneSoldiersVolaPercent = CreateParameter("Min height one soldier volatility percent", 10, 0, 20, 1m);
+            _heightSoldiersVolaPercent = CreateParameter("Height soldiers volatility percent", 65, 0, 20, 1m);
 
             // SmaFilter settings
             _smaFilterIsOn = CreateParameter("Sma filter is on", true);
-            _smaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
+            _smaFilterLen = CreateParameter("Sma filter Len", 65, 10, 300, 10);
 
             Description = OsLocalization.Description.DescriptionLabel95;
 
@@ -165,8 +165,7 @@ namespace OsEngine.Robots.AlgoStart
         private void AdaptSoldiersHeight(List<Candle> candles, SecuritiesTradeSettings settings)
         {
             if (_daysVolatilityAdaptive.ValueInt <= 0
-                || _heightSoldiersVolaPercent.ValueDecimal <= 0
-                || _minHeightOneSoldiersVolaPercent.ValueDecimal <= 0)
+                || _heightSoldiersVolaPercent.ValueDecimal <= 0)
             {
                 return;
             }
@@ -244,10 +243,8 @@ namespace OsEngine.Robots.AlgoStart
             // 3 we calculate the size of the candles taking this volatility into account
 
             decimal allSoldiersHeight = volaPercentSma * (_heightSoldiersVolaPercent.ValueDecimal / 100);
-            decimal oneSoldiersHeight = volaPercentSma * (_minHeightOneSoldiersVolaPercent.ValueDecimal / 100);
 
             settings.HeightSoldiers = allSoldiersHeight;
-            settings.MinHeightOneSoldier = oneSoldiersHeight;
             settings.LastUpdateTime = candles[candles.Count - 1].TimeStart;
         }
 
@@ -262,28 +259,29 @@ namespace OsEngine.Robots.AlgoStart
 
             List<Position> openPositions = tab.PositionsOpenAll;
 
-            if(openPositions.Count == 0)
+            if (openPositions.Count == 0)
             {
                 if (_lastTimeSetClusters == DateTime.MinValue
-                || _lastTimeSetClusters != candles[^1].TimeStart)
+               || _lastTimeSetClusters != candles[^1].TimeStart)
                 {
-                    _volatilityStageClusters.Calculate(_tabScreener.Tabs, 100);
+                    _volatilityStageClusters.Calculate(_tabScreener.Tabs, _clustersLookBack.ValueInt);
                     _lastTimeSetClusters = candles[^1].TimeStart;
                 }
 
-                bool isInFirstOrSecondStage = false;
+                bool isInArray = false;
 
-                if (_volatilityStageClusters.ClusterOne.Find(source => source.Connector.SecurityName == tab.Connector.SecurityName) != null)
+                if (_volatilityStageClusters.ClusterTwo.Find(source => source.Connector.SecurityName == tab.Connector.SecurityName) != null)
                 {
-                    isInFirstOrSecondStage = true;
+                    isInArray = true;
                 }
 
-                else if (_volatilityStageClusters.ClusterTwo.Find(source => source.Connector.SecurityName == tab.Connector.SecurityName) != null)
+                if (_volatilityStageClusters.ClusterThree.Find(source => source.Connector.SecurityName == tab.Connector.SecurityName) != null)
                 {
-                    isInFirstOrSecondStage = true;
+                    isInArray = true;
                 }
 
-                if (isInFirstOrSecondStage == false)
+
+                if (isInArray == false)
                 {
                     return;
                 }
@@ -319,8 +317,7 @@ namespace OsEngine.Robots.AlgoStart
                 }
             }
 
-            if (mySettings.HeightSoldiers == 0 ||
-                mySettings.MinHeightOneSoldier == 0)
+            if (mySettings.HeightSoldiers == 0)
             {
                 return;
             }
@@ -331,8 +328,6 @@ namespace OsEngine.Robots.AlgoStart
         // Logic
         private void Logic(List<Candle> candles, BotTabSimple tab, SecuritiesTradeSettings settings)
         {
-
-
             if (candles.Count < 5)
             {
                 return;
@@ -342,10 +337,6 @@ namespace OsEngine.Robots.AlgoStart
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (_regime.ValueString == "OnlyClosePosition")
-                {
-                    return;
-                }
                 LogicOpenPosition(candles, tab, settings);
             }
             else
@@ -370,66 +361,24 @@ namespace OsEngine.Robots.AlgoStart
                 return;
             }
 
-            if (Math.Abs(candles[candles.Count - 3].Open - candles[candles.Count - 3].Close)
-                / (candles[candles.Count - 3].Close / 100) < settings.MinHeightOneSoldier)
-            {
-                return;
-            }
-
-            if (Math.Abs(candles[candles.Count - 2].Open - candles[candles.Count - 2].Close)
-                / (candles[candles.Count - 2].Close / 100) < settings.MinHeightOneSoldier)
-            {
-                return;
-            }
-
-            if (Math.Abs(candles[candles.Count - 1].Open - candles[candles.Count - 1].Close)
-                / (candles[candles.Count - 1].Close / 100) < settings.MinHeightOneSoldier)
-            {
-                return;
-            }
-
             //  long
-            if (_regime.ValueString != "OnlyShort")
+
+            if (candles[candles.Count - 3].Open < candles[candles.Count - 3].Close
+                && candles[candles.Count - 2].Open < candles[candles.Count - 2].Close
+                && candles[candles.Count - 1].Open < candles[candles.Count - 1].Close)
             {
-                if (candles[candles.Count - 3].Open < candles[candles.Count - 3].Close
-                    && candles[candles.Count - 2].Open < candles[candles.Count - 2].Close
-                    && candles[candles.Count - 1].Open < candles[candles.Count - 1].Close)
+                if (_smaFilterIsOn.ValueBool == true)
                 {
-                    if (_smaFilterIsOn.ValueBool == true)
+                    decimal smaValue = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 1);
+                    decimal smaPrev = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 2);
+
+                    if (smaValue < smaPrev)
                     {
-                        decimal smaValue = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 1);
-                        decimal smaPrev = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 2);
-
-                        if (smaValue < smaPrev)
-                        {
-                            return;
-                        }
+                        return;
                     }
-
-                    tab.BuyAtLimit(GetVolume(tab), _lastPrice + _lastPrice * (_slippage.ValueDecimal / 100));
                 }
-            }
 
-            // Short
-            if (_regime.ValueString != "OnlyLong")
-            {
-                if (candles[candles.Count - 3].Open > candles[candles.Count - 3].Close
-                    && candles[candles.Count - 2].Open > candles[candles.Count - 2].Close
-                    && candles[candles.Count - 1].Open > candles[candles.Count - 1].Close)
-                {
-                    if (_smaFilterIsOn.ValueBool == true)
-                    {
-                        decimal smaValue = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 1);
-                        decimal smaPrev = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 2);
-
-                        if (smaValue > smaPrev)
-                        {
-                            return;
-                        }
-                    }
-
-                    tab.SellAtLimit(GetVolume(tab), _lastPrice - _lastPrice * (_slippage.ValueDecimal / 100));
-                }
+                tab.BuyAtIcebergMarket(GetVolume(tab), _icebergCount.ValueInt, 1000);
             }
 
             return;
@@ -444,33 +393,37 @@ namespace OsEngine.Robots.AlgoStart
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                if (openPositions[i].State != PositionStateType.Open)
+                Position pos = openPositions[i];
+
+                if (pos.State != PositionStateType.Open)
                 {
                     continue;
                 }
 
-                if (openPositions[i].StopOrderPrice != 0)
+                decimal heightPattern =
+                    Math.Abs(tab.CandlesAll[tab.CandlesAll.Count - 4].Open - tab.CandlesAll[tab.CandlesAll.Count - 2].Close);
+
+                decimal priceStop = _lastPrice - (heightPattern * _procHeightStop.ValueDecimal) / 100;
+                decimal priceTake = _lastPrice + (heightPattern * _procHeightTake.ValueDecimal) / 100;
+
+                if(pos.StopOrderPrice == 0)
                 {
-                    continue;
+                    pos.StopOrderPrice = priceStop;
+                }
+                if(pos.ProfitOrderPrice == 0)
+                {
+                    pos.ProfitOrderPrice = priceTake;
                 }
 
-                if (openPositions[i].Direction == Side.Buy)
-                {
-                    decimal heightPattern =
-                        Math.Abs(tab.CandlesAll[tab.CandlesAll.Count - 4].Open - tab.CandlesAll[tab.CandlesAll.Count - 2].Close);
+                decimal lastClose = candles[^1].Close;
 
-                    decimal priceStop = _lastPrice - (heightPattern * _procHeightStop.ValueDecimal) / 100;
-                    decimal priceTake = _lastPrice + (heightPattern * _procHeightTake.ValueDecimal) / 100;
-                    tab.CloseAtStop(openPositions[i], priceStop, priceStop - priceStop * (_slippage.ValueDecimal / 100));
-                    tab.CloseAtProfit(openPositions[i], priceTake, priceTake - priceStop * (_slippage.ValueDecimal / 100));
-                }
-                else
+                if (lastClose <= pos.StopOrderPrice)
                 {
-                    decimal heightPattern = Math.Abs(tab.CandlesAll[tab.CandlesAll.Count - 2].Close - tab.CandlesAll[tab.CandlesAll.Count - 4].Open);
-                    decimal priceStop = _lastPrice + (heightPattern * _procHeightStop.ValueDecimal) / 100;
-                    decimal priceTake = _lastPrice - (heightPattern * _procHeightTake.ValueDecimal) / 100;
-                    tab.CloseAtStop(openPositions[i], priceStop, priceStop + priceStop * (_slippage.ValueDecimal / 100));
-                    tab.CloseAtProfit(openPositions[i], priceTake, priceTake + priceStop * (_slippage.ValueDecimal / 100));
+                    tab.CloseAtIcebergMarket(pos, pos.OpenVolume, _icebergCount.ValueInt, 1000);
+                }
+                if (lastClose >= pos.ProfitOrderPrice)
+                {
+                    tab.CloseAtIcebergMarket(pos, pos.OpenVolume, _icebergCount.ValueInt, 1000);
                 }
             }
         }
@@ -604,8 +557,6 @@ namespace OsEngine.Robots.AlgoStart
 
         public decimal HeightSoldiers;
 
-        public decimal MinHeightOneSoldier;
-
         public DateTime LastUpdateTime;
 
         public string GetSaveString()
@@ -615,7 +566,6 @@ namespace OsEngine.Robots.AlgoStart
             result += SecName + "%";
             result += SecClass + "%";
             result += HeightSoldiers + "%";
-            result += MinHeightOneSoldier + "%";
             result += LastUpdateTime.ToString(CultureInfo.InvariantCulture) + "%";
 
             return result;
@@ -628,8 +578,7 @@ namespace OsEngine.Robots.AlgoStart
             SecName = array[0];
             SecClass = array[1];
             HeightSoldiers = array[2].ToDecimal();
-            MinHeightOneSoldier = array[3].ToDecimal();
-            LastUpdateTime = Convert.ToDateTime(array[4], CultureInfo.InvariantCulture);
+            LastUpdateTime = Convert.ToDateTime(array[3], CultureInfo.InvariantCulture);
         }
     }
 }

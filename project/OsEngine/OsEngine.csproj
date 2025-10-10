@@ -25,9 +25,9 @@
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationIcon>OsLogo.ico</ApplicationIcon>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <AssemblyVersion>2.0.0.5</AssemblyVersion>
+    <AssemblyVersion>2.0.0.6</AssemblyVersion>
     <PackageOutputPath>$(OutputPath)\</PackageOutputPath>
-    <FileVersion>2.0.0.5</FileVersion>
+    <FileVersion>2.0.0.6</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
    <OutputPath>bin\Debug\</OutputPath>
