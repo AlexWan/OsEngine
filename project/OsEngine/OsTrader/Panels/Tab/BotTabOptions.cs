@@ -264,6 +264,25 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                DateTime? selectedDate = null;
+                string selectedExpirationStr = null;
+                if (_expirationComboBox.IsHandleCreated)
+                {
+                    if (_expirationComboBox.InvokeRequired)
+                    {
+                        _expirationComboBox.Invoke((MethodInvoker)(() =>
+                            selectedExpirationStr = _expirationComboBox.SelectedItem?.ToString()));
+                    }
+                    else
+                    {
+                        selectedExpirationStr = _expirationComboBox.SelectedItem?.ToString();
+                    }
+                }
+                if (!string.IsNullOrEmpty(selectedExpirationStr) && selectedExpirationStr != "All")
+                {
+                    selectedDate = Convert.ToDateTime(selectedExpirationStr);
+                }
+
                 // Update options grid
                 foreach (DataGridViewRow row in _optionsGrid.Rows)
                 {
@@ -273,7 +292,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     double strike = (double)row.Cells["Strike"].Value;
-                    var strikeData = _allOptionsData.Where(o => o != null && o.Security != null && (double)o.Security.Strike == strike).ToList();
+
+                    var strikeDataQuery = _allOptionsData.Where(o => o != null && o.Security != null && (double)o.Security.Strike == strike);
+
+                    if (selectedDate.HasValue)
+                    {
+                        strikeDataQuery = strikeDataQuery.Where(o => o.Security.Expiration.Date == selectedDate.Value.Date);
+                    }
+
+                    var strikeData = strikeDataQuery.ToList();
+
                     var callData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
                     var putData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
 
@@ -1792,6 +1820,64 @@ namespace OsEngine.OsTrader.Panels.Tab
         #endregion
 
         #region Public Methods
+
+        public double GetAtmStrike(string underlyingAssetTicker, DateTime expiration)
+        {
+            lock (_locker)
+            {
+                var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == underlyingAssetTicker);
+                if (uaData == null)
+                {
+                    return 0;
+                }
+
+                var uaPrice = uaData.LastPrice;
+                if (uaPrice == 0 && uaData.Bid != 0 && uaData.Ask != 0)
+                {
+                    uaPrice = (uaData.Bid + uaData.Ask) / 2;
+                }
+
+                if (uaPrice == 0)
+                {
+                    return 0;
+                }
+
+                var strikes = _allOptionsData
+                    .Where(o => o.Security.UnderlyingAsset == underlyingAssetTicker && o.Security.Expiration.Date == expiration.Date)
+                    .Select(o => (double)o.Security.Strike)
+                    .Distinct()
+                    .ToList();
+
+                if (strikes.Count == 0)
+                {
+                    return 0;
+                }
+
+                return strikes.Aggregate((x, y) => Math.Abs(x - uaPrice) < Math.Abs(y - uaPrice) ? x : y);
+            }
+        }
+
+        public (OptionDataRow Call, OptionDataRow Put) GetAtmOptions(string underlyingAssetTicker, DateTime expiration)
+        {
+            lock (_locker)
+            {
+                var atmStrike = GetAtmStrike(underlyingAssetTicker, expiration);
+
+                if (atmStrike == 0)
+                {
+                    return (null, null);
+                }
+
+                var optionsOnStrike = _allOptionsData
+                    .Where(o => o.Security.UnderlyingAsset == underlyingAssetTicker && (double)o.Security.Strike == atmStrike && o.Security.Expiration.Date == expiration.Date)
+                    .ToList();
+
+                var call = optionsOnStrike.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
+                var put = optionsOnStrike.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
+
+                return (call, put);
+            }
+        }
 
         /// <summary>
         /// Gets the BotTabSimple corresponding to the underlying asset.
