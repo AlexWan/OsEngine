@@ -24,7 +24,6 @@ using OsEngine.Candles.Factory;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Drawing;
 using OsEngine.Market.Servers.Tester;
-using OsEngine.Journal;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -131,7 +130,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             }
                         }
 
-                        if(curScreener.ServerType != ServerType.Optimizer)
+                        if (curScreener.ServerType != ServerType.Optimizer)
                         {
                             _screeners[i].TryLoadTabs();
                             _screeners[i].TryReLoadTabs();
@@ -225,7 +224,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (row.Cells[6].Value == null
                         || row.Cells[6].Value.ToString() != curPoses)
                     {
-                        if(posCurr > 0)
+                        if (posCurr > 0)
                         {
                             row.Cells[6].Style.ForeColor = Color.Green;
                         }
@@ -287,7 +286,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ServerType = ServerType.Tester;
                     ServerName = ServerType.Tester.ToString();
                 }
-                else if(servers != null &&
+                else if (servers != null &&
                     servers.Count > 0
                     && servers[0].ServerType == ServerType.Optimizer)
                 {
@@ -744,7 +743,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BotTabScreener_TestingEndEvent()
         {
-            if(TestOverEvent != null)
+            if (TestOverEvent != null)
             {
                 try
                 {
@@ -759,15 +758,15 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BotTabScreener_TestingStartEvent()
         {
-            if(TestStartEvent != null)
+            if (TestStartEvent != null)
             {
                 try
                 {
                     TestStartEvent();
                 }
-                catch(Exception error)
+                catch (Exception error)
                 {
-                    SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -1172,7 +1171,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private bool TabIsAlive(List<ActivatedSecurity> securities, TimeFrame frame, BotTabSimple tab)
         {
-            if(StartProgram == StartProgram.IsOsTrader)
+            if (StartProgram == StartProgram.IsOsTrader)
             {
                 if (tab.Connector.ServerFullName != ServerName)
                 {
@@ -1181,17 +1180,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             ActivatedSecurity sec = null;
-            
-            for(int i = 0;i < securities.Count;i++)
+
+            for (int i = 0; i < securities.Count; i++)
             {
-                if (securities[i].SecurityName == tab.Connector.SecurityName 
+                if (securities[i].SecurityName == tab.Connector.SecurityName
                     && securities[i].SecurityClass == tab.Connector.SecurityClass)
                 {
                     sec = securities[i];
                     break;
                 }
             }
-            
+
             if (sec == null)
             {
                 return false;
@@ -1285,7 +1284,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if(securityDeleted == true)
+            if (securityDeleted == true)
             {
                 SaveSettings();
             }
@@ -1324,7 +1323,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if(_ui == null)
+                if (_ui == null)
                 {
                     _ui = new BotTabScreenerUi(this);
                     _ui.LogMessageEvent += SendNewLogMessage;
@@ -1360,7 +1359,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     DialogClosed();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -1386,7 +1385,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 string botName = Tabs[tabNum].TabName + "_Engine";
 
-                for(int i = 0;i < _chartEngines.Count;i++)
+                for (int i = 0; i < _chartEngines.Count; i++)
                 {
                     if (_chartEngines[i].NameStrategyUniq == botName)
                     {
@@ -1515,7 +1514,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if(journals.Count > 0)
+                if (journals.Count > 0)
                 {
                     _positionViewer.SetJournals(journals);
                 }
@@ -1608,10 +1607,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             colum8.Width = 70;
             newGrid.Columns.Add(colum8);
 
-
             SecuritiesDataGrid = newGrid;
 
             newGrid.Click += NewGrid_Click;
+            SecuritiesDataGrid.DataError += SecuritiesDataGrid_DataError;
+        }
+
+        private void SecuritiesDataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private int _previousActiveRow;
@@ -1632,7 +1636,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 if (mouse.Button == MouseButtons.Left)
                 {
-                    if(SecuritiesDataGrid.ContextMenuStrip != null)
+                    if (SecuritiesDataGrid.ContextMenuStrip != null)
                     {
                         SecuritiesDataGrid.ContextMenuStrip = null;
                     }
@@ -1652,7 +1656,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         SecuritiesDataGrid.Rows[tabRow].Cells[0].Selected = true;
                     }
 
-                    if(_previousActiveRow < SecuritiesDataGrid.Rows.Count)
+                    if (_previousActiveRow < SecuritiesDataGrid.Rows.Count)
                     {
                         SecuritiesDataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
                     }
@@ -2070,7 +2074,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             catch (Exception e)
             {
-                SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2586,7 +2590,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     BotTabSimple tab = Tabs[i];
 
-                    if(tab.GridsMaster.TradeGrids.Count != 0)
+                    if (tab.GridsMaster.TradeGrids.Count != 0)
                     {
                         result++;
                     }
