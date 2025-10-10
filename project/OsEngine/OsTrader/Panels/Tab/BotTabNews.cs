@@ -150,19 +150,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public int TabNum { get; set; }
 
-        public bool EventsIsOn 
-        { 
-            get 
+        public bool EventsIsOn
+        {
+            get
             {
                 if (_connector == null)
                 {
                     return true;
                 }
-                return _connector.EventsIsOn; 
+                return _connector.EventsIsOn;
             }
             set
             {
-                if(_connector == null)
+                if (_connector == null)
                 {
                     return;
                 }
@@ -214,7 +214,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void _connector_NewsEvent(News news)
         {
-            if(NewsEvent != null)
+            if (NewsEvent != null)
             {
                 NewsEvent(news);
             }
@@ -291,6 +291,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column);
 
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void ClearGrid()
@@ -321,16 +327,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                _grid.Rows.Clear();
-
-                DataGridFactory.ClearLinks(_grid);
-
-                _grid = null;
-
                 if (Host != null)
                 {
                     Host.Child = null;
                     Host = null;
+                }
+
+                if (_grid != null)
+                {
+                    _grid.Rows.Clear();
+                    _grid.DataError -= _grid_DataError;
+                    DataGridFactory.ClearLinks(_grid);
+                    _grid = null;
                 }
             }
             catch (Exception ex)
@@ -397,9 +405,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _grid.Rows.RemoveAt(_grid.Rows.Count - 1);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
