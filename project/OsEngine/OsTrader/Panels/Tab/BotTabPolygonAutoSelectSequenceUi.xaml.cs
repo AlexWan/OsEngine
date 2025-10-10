@@ -111,7 +111,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonCreateTableSecondStep.Click += ButtonCreateTableSecondStep_Click;
             ButtonCreateTableFinal.Click += ButtonCreateTableFinal_Click;
             ButtonCreateSelectedSequence.Click += ButtonCreateSelectedSequence_Click;
-            TextBoxSearchSecurity.KeyDown += TextBoxSearchSecurity_KeyDown;			
+            TextBoxSearchSecurity.KeyDown += TextBoxSearchSecurity_KeyDown;
 
             Closed += BotTabPolygonAutoSelectSequenceUi_Closed;
         }
@@ -120,57 +120,87 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BotTabPolygonAutoSelectSequenceUi_Closed(object sender, EventArgs e)
         {
-            IsClosed = true;
-
-            ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
-            TextBoxBaseCurrency.TextChanged -= TextBoxBaseCurrency_TextChanged;
-            CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
-            CheckBoxSelectAllInSecondStep.Click -= CheckBoxSelectAllInSecondStep_Click;
-            CheckBoxSelectAllInFinalStep.Click -= CheckBoxSelectAllInFinalStep_Click;
-            ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
-            ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
-            TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
-            TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
-            TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
-            TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
-            ButtonCreateTableSecondStep.Click -= ButtonCreateTableSecondStep_Click;
-            ButtonCreateTableFinal.Click -= ButtonCreateTableFinal_Click;
-            ButtonCreateSelectedSequence.Click -= ButtonCreateSelectedSequence_Click;
-            TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;		
-            Closed -= BotTabPolygonAutoSelectSequenceUi_Closed;
-
-            List<IServer> serversAll = ServerMaster.GetServers();
-
-            for (int i = 0; serversAll != null && i < serversAll.Count; i++)
+            try
             {
-                if (serversAll[i] == null)
+                IsClosed = true;
+
+                ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
+                TextBoxBaseCurrency.TextChanged -= TextBoxBaseCurrency_TextChanged;
+                CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
+                CheckBoxSelectAllInSecondStep.Click -= CheckBoxSelectAllInSecondStep_Click;
+                CheckBoxSelectAllInFinalStep.Click -= CheckBoxSelectAllInFinalStep_Click;
+                ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+                TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+                ButtonCreateTableSecondStep.Click -= ButtonCreateTableSecondStep_Click;
+                ButtonCreateTableFinal.Click -= ButtonCreateTableFinal_Click;
+                ButtonCreateSelectedSequence.Click -= ButtonCreateSelectedSequence_Click;
+                TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
+                Closed -= BotTabPolygonAutoSelectSequenceUi_Closed;
+
+                List<IServer> serversAll = ServerMaster.GetServers();
+
+                for (int i = 0; serversAll != null && i < serversAll.Count; i++)
                 {
-                    continue;
+                    if (serversAll[i] == null)
+                    {
+                        continue;
+                    }
+                    serversAll[i].SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
+                    serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
                 }
-                serversAll[i].SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
-                serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+
+                _tabPolygon = null;
+
+                if (HostFirdStep != null)
+                {
+                    HostFirdStep.Child = null;
+                }
+
+                if (SecuritiesHost != null)
+                {
+                    SecuritiesHost.Child = null;
+                }
+
+                if (SecuritiesSecondStep != null)
+                {
+                    SecuritiesSecondStep.Child = null;
+                }
+
+                if (_gridSecuritiesFirstStep != null)
+                {
+                    DataGridFactory.ClearLinks(_gridSecuritiesFirstStep);
+                    _gridSecuritiesFirstStep.DataError -= _gridSecuritiesFirstStep_DataError;
+                    _gridSecuritiesFirstStep.Rows.Clear();
+                    _gridSecuritiesFirstStep.Columns.Clear();
+                    _gridSecuritiesFirstStep = null;
+                }
+
+                if (_gridSecondStep != null)
+                {
+                    DataGridFactory.ClearLinks(_gridSecondStep);
+                    _gridSecondStep.DataError -= _gridSecuritiesFirstStep_DataError;
+                    _gridSecondStep.Rows.Clear();
+                    _gridSecondStep.Columns.Clear();
+                    _gridSecondStep = null;
+                }
+
+                if (_gridThirdStep != null)
+                {
+                    DataGridFactory.ClearLinks(_gridThirdStep);
+                    _gridThirdStep.DataError -= _gridSecuritiesFirstStep_DataError;
+                    _gridThirdStep.Rows.Clear();
+                    _gridThirdStep.Columns.Clear();
+                    _gridThirdStep = null;
+                }
             }
-
-            _tabPolygon = null;
-
-            HostFirdStep.Child = null;
-            SecuritiesHost.Child = null;
-            SecuritiesSecondStep.Child = null;
-
-            DataGridFactory.ClearLinks(_gridSecuritiesFirstStep);
-            _gridSecuritiesFirstStep.Rows.Clear();
-            _gridSecuritiesFirstStep.Columns.Clear();
-            _gridSecuritiesFirstStep = null;
-
-            DataGridFactory.ClearLinks(_gridSecondStep);
-            _gridSecondStep.Rows.Clear();
-            _gridSecondStep.Columns.Clear();
-            _gridSecondStep = null;
-
-            DataGridFactory.ClearLinks(_gridThirdStep);
-            _gridThirdStep.Rows.Clear();
-            _gridThirdStep.Columns.Clear();
-            _gridThirdStep = null;
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void TextBoxSeparatorToSecurities_TextChanged(object sender, TextChangedEventArgs e)
@@ -440,7 +470,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum0);
 
-
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
             colum1.HeaderText = OsLocalization.Trader.Label166; // 1 class
@@ -483,9 +512,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             colum6.Width = 50;
             newGrid.Columns.Add(colum6);
 
-
             _gridSecuritiesFirstStep = newGrid;
             SecuritiesHost.Child = _gridSecuritiesFirstStep;
+
+            _gridSecuritiesFirstStep.DataError += _gridSecuritiesFirstStep_DataError;
+        }
+
+        private void _gridSecuritiesFirstStep_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void UpdateGridFirstStep(List<Security> securities)
@@ -630,15 +665,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     _searchResults.Add(i);
-                }	
+                }
             }
-			
+
             if (_searchResults.Count > 1 && _searchResults.Contains(indexFirstSec) && _searchResults.IndexOf(indexFirstSec) != 0)
             {
                 int index = _searchResults.IndexOf(indexFirstSec);
                 _searchResults.RemoveAt(index);
                 _searchResults.Insert(0, indexFirstSec);
-            }		
+            }
         }
 
         private void UpdateSearchPanel()
@@ -758,7 +793,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }		
+            }
         }
 
         #endregion
@@ -811,6 +846,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _gridSecondStep = newGrid;
             SecuritiesSecondStep.Child = _gridSecondStep;
+
+            _gridSecondStep.DataError += _gridSecuritiesFirstStep_DataError;
         }
 
         private void ButtonCreateTableSecondStep_Click(object sender, RoutedEventArgs e)
@@ -1110,6 +1147,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _gridThirdStep = newGrid;
             HostFirdStep.Child = _gridThirdStep;
+
+            _gridThirdStep.DataError += _gridSecuritiesFirstStep_DataError;
         }
 
         private void UpdateGridSequence(List<PairsToSequence> securities)
