@@ -119,7 +119,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Label5.Content = OsLocalization.Market.Label5;
                 Label6.Content = OsLocalization.Market.Label6;
                 LabelTimeFrame.Content = OsLocalization.Market.Label10;
-               
+
                 LabelCommissionType.Content = OsLocalization.Market.LabelCommissionType;
                 LabelCommissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
@@ -141,7 +141,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
                 TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
                 TextBoxSearchSecurity.KeyDown += TextBoxSearchSecurity_KeyDown;
-				
+
                 Closed += BotTabScreenerUi_Closed;
             }
             catch (Exception error)
@@ -162,37 +162,52 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BotTabScreenerUi_Closed(object sender, EventArgs e)
         {
-            List<IServer> serversAll = ServerMaster.GetServers();
-
-            for (int i = 0; serversAll != null && i < serversAll.Count; i++)
+            try
             {
-                if (serversAll[i] == null)
+                List<IServer> serversAll = ServerMaster.GetServers();
+
+                for (int i = 0; serversAll != null && i < serversAll.Count; i++)
                 {
-                    continue;
+                    if (serversAll[i] == null)
+                    {
+                        continue;
+                    }
+                    serversAll[i].SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
+                    serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
                 }
-                serversAll[i].SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
-                serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+
+                TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+                ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
+                ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
+                CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
+                ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+                TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
+
+                Closed -= BotTabScreenerUi_Closed;
+
+                if (SecuritiesHost != null)
+                {
+                    SecuritiesHost.Child = null;
+                }
+
+                if (_gridSecurities != null)
+                {
+                    DataGridFactory.ClearLinks(_gridSecurities);
+                    _gridSecurities.DataError -= _gridSecurities_DataError;
+                    _gridSecurities = null;
+                }
+
+                _pairTrader.TabDeletedEvent -= _pairTrader_TabDeletedEvent;
+                _pairTrader = null;
             }
-
-            TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
-            TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
-            TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
-            TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
-            ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
-            ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
-            CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
-            ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
-            ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
-            TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;			
-
-            Closed -= BotTabScreenerUi_Closed;
-
-            DataGridFactory.ClearLinks(_gridSecurities);
-            _gridSecurities = null;
-            SecuritiesHost.Child = null;
-
-            _pairTrader.TabDeletedEvent -= _pairTrader_TabDeletedEvent;
-            _pairTrader = null;
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private BotTabPair _pairTrader;
@@ -464,7 +479,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         ComboBoxClass.Items.Add(clas);
                 }
 
-                if(_pairTrader.Pairs.Count > 0)
+                if (_pairTrader.Pairs.Count > 0)
                 {
                     string firstClass = _pairTrader.Pairs[0].Tab1.Connector.SecurityClass;
 
@@ -562,7 +577,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum0);
 
-
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
             colum1.HeaderText = OsLocalization.Trader.Label166;
@@ -605,9 +619,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             colum6.Width = 50;
             newGrid.Columns.Add(colum6);
 
-
             _gridSecurities = newGrid;
             SecuritiesHost.Child = _gridSecurities;
+
+            _gridSecurities.DataError += _gridSecurities_DataError;
+        }
+
+        private void _gridSecurities_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void UpdateGrid(List<Security> securities)
@@ -645,11 +665,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 bool activatedSecurity = false;
 
-                for (int i = 0; alreadyActiveatedSecurity != null && i < alreadyActiveatedSecurity.Count;i++)
+                for (int i = 0; alreadyActiveatedSecurity != null && i < alreadyActiveatedSecurity.Count; i++)
                 {
                     if (alreadyActiveatedSecurity[i].Equals(securities[indexSecuriti].Name))
                     {
-                        activatedSecurity = true; 
+                        activatedSecurity = true;
                         break;
                     }
                 }
@@ -876,6 +896,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             HostPairs.Child = _pairsGrid;
 
             _pairsGrid.CellClick += _pairsGrid_CellClick;
+            _pairsGrid.DataError += _gridSecurities_DataError;
         }
 
         private void _pairsGrid_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -883,9 +904,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             int row = e.RowIndex;
             int col = e.ColumnIndex;
 
-            if(col == 2)
+            if (col == 2)
             {
-                if(row >= _pairsGrid.Rows.Count)
+                if (row >= _pairsGrid.Rows.Count)
                 {
                     return;
                 }
@@ -914,7 +935,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     continue;
                 }
 
-                if(sec.IsOn == false)
+                if (sec.IsOn == false)
                 {
                     continue;
                 }
@@ -932,17 +953,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 // ignore
             }
-            
-            if(maxOneNamePairsCount == 0)
+
+            if (maxOneNamePairsCount == 0)
             {
                 return;
             }
 
-            for(int i = 0;i < securities.Count;i++)
+            for (int i = 0; i < securities.Count; i++)
             {
                 List<string> newPairs = GetPairsToSecurity(securities[i], securities, _pairNamesNew, maxOneNamePairsCount);
 
-                if(newPairs == null ||
+                if (newPairs == null ||
                     newPairs.Count == 0)
                 {
                     continue;
@@ -958,7 +979,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             int countNamesInExistPairs = 0;
 
-            for(int i = 0;i < pairs.Count;i++)
+            for (int i = 0; i < pairs.Count; i++)
             {
                 if (pairs[i].Contains(security))
                 {
@@ -966,12 +987,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if(countNamesInExistPairs >= maxCountPairsWithOneName)
+            if (countNamesInExistPairs >= maxCountPairsWithOneName)
             {
                 return result;
             }
 
-            for(int i = 0;i < securities.Count;i++)
+            for (int i = 0; i < securities.Count; i++)
             {
                 string curSec = securities[i];
 
@@ -987,7 +1008,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 int curSecInPairsCount = 0;
 
-                for(int i2 = 0;i2 < pairs.Count;i2++)
+                for (int i2 = 0; i2 < pairs.Count; i2++)
                 {
                     if (pairs[i2].Contains(curSec))
                     {
@@ -996,7 +1017,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 }
 
-                if(curSecInPairsCount >= maxCountPairsWithOneName)
+                if (curSecInPairsCount >= maxCountPairsWithOneName)
                 {
                     continue;
                 }
@@ -1006,9 +1027,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 bool isInArray = false;
 
-                for(int i2 = 0;i2 < pairs.Count; i2++)
+                for (int i2 = 0; i2 < pairs.Count; i2++)
                 {
-                    if (pairs[i2].Equals(newPair)) 
+                    if (pairs[i2].Equals(newPair))
                     {
                         isInArray = true;
                     }
@@ -1018,7 +1039,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if(isInArray == false)
+                if (isInArray == false)
                 {
                     result.Add(newPair);
                     countNamesInExistPairs++;
@@ -1079,7 +1100,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _pairsGrid.Rows.Add(GetPairRow(_pairNamesNew[i], _pairsGrid.Rows.Count + 1));
                 }
             }
-            catch(Exception e) 
+            catch (Exception e)
             {
                 MessageBox.Show(e.ToString());
             }
@@ -1107,7 +1128,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                
                 TimeFrame timeFrame;
                 Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
 
@@ -1129,10 +1149,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     // ignore
                 }
-                
+
                 string secClass = ComboBoxClass.Text;
 
-                if(string.IsNullOrEmpty(secClass))
+                if (string.IsNullOrEmpty(secClass))
                 {
                     MessageBox.Show("Creation pairs is Stop. Securities class is null");
                     return;
@@ -1146,18 +1166,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                for (int i = 0;i < _pairNamesNew.Count;i++)
+                for (int i = 0; i < _pairNamesNew.Count; i++)
                 {
                     string sec1 = _pairNamesNew[i].Replace("_|_", "*").Split('*')[0];
                     string sec2 = _pairNamesNew[i].Replace("_|_", "*").Split('*')[1];
 
-                    if(_pairTrader.HaveThisPairInTrade(sec1,sec2,secClass,timeFrame,server, serverName) == true)
+                    if (_pairTrader.HaveThisPairInTrade(sec1, sec2, secClass, timeFrame, server, serverName) == true)
                     {
                         continue;
                     }
 
-                    _pairTrader.CreateNewPair(sec1, sec2, secClass, timeFrame, 
-                        server, typeCommission,commissionValue,portfolio,serverName);
+                    _pairTrader.CreateNewPair(sec1, sec2, secClass, timeFrame,
+                        server, typeCommission, commissionValue, portfolio, serverName);
 
                 }
 
@@ -1255,13 +1275,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _searchResults.Add(i);
                 }
             }
-			
+
             if (_searchResults.Count > 1 && _searchResults.Contains(indexFirstSec) && _searchResults.IndexOf(indexFirstSec) != 0)
             {
                 int index = _searchResults.IndexOf(indexFirstSec);
                 _searchResults.RemoveAt(index);
                 _searchResults.Insert(0, indexFirstSec);
-            }		
+            }
         }
 
         private void UpdateSearchPanel()
@@ -1382,7 +1402,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }		
+            }
         }
 
         #endregion
