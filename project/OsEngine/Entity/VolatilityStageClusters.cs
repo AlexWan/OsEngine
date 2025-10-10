@@ -66,7 +66,7 @@ namespace OsEngine.Entity
 
             decimal fullPercents = clusterOnePercent + clusterTwoPercent + clusterThreePercent;
 
-            if (fullPercents != 0)
+            if (fullPercents != 100)
             {
                 throw new Exception("VolatilityStageClusters error. Percent is not 100");
             }

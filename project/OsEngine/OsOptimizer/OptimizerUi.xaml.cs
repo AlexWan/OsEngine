@@ -3578,7 +3578,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
