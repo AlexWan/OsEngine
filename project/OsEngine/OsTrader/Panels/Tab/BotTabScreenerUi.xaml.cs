@@ -477,7 +477,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 CommissionType typeCommission;
                 Enum.TryParse(ComboBoxCommissionType.SelectedValue.ToString(), true, out typeCommission);
 
-                if(typeCommission == CommissionType.None)
+                if (typeCommission == CommissionType.None)
                 {
                     TextBoxCommissionValue.IsEnabled = false;
                 }
@@ -486,7 +486,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     TextBoxCommissionValue.IsEnabled = true;
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 _screener.SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -549,7 +549,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ComboBoxPortfolio.Items.Clear();
 
-                if(_screener == null)
+                if (_screener == null)
                 {
                     return;
                 }
@@ -829,13 +829,34 @@ namespace OsEngine.OsTrader.Panels.Tab
             SecuritiesHost.Child = _gridSecurities;
 
             _gridSecurities.CellClick += _gridSecurities_CellClick;
+            _gridSecurities.DataError += _gridSecurities_DataError;
+        }
+
+        private void _gridSecurities_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void DeleteGridSecurities()
         {
-            DataGridFactory.ClearLinks(_gridSecurities);
-            _gridSecurities.CellClick -= _gridSecurities_CellClick;
-            SecuritiesHost.Child = null;
+            try
+            {
+                if (SecuritiesHost != null)
+                {
+                    SecuritiesHost.Child = null;
+                }
+
+                if (_gridSecurities != null)
+                {
+                    DataGridFactory.ClearLinks(_gridSecurities);
+                    _gridSecurities.CellClick -= _gridSecurities_CellClick;
+                    _gridSecurities.DataError -= _gridSecurities_DataError;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -931,7 +952,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {
-                    if(_gridSecurities.Rows[i].Cells[6].ReadOnly == false)
+                    if (_gridSecurities.Rows[i].Cells[6].ReadOnly == false)
                     {
                         _gridSecurities.Rows[i].Cells[6].Value = isCheck;
                     }
@@ -961,7 +982,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(_candlesRealizationGrid == null)
+                if (_candlesRealizationGrid == null)
                 {
                     return;
                 }
@@ -994,7 +1015,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     CheckCurrentTfInSecuritiesForTesterOrOptimizer(cell);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -1850,7 +1871,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         bool isInArray = false;
 
-                        for(int i2 = 0;i2 < timeFramesArray.Count;i2++)
+                        for (int i2 = 0; i2 < timeFramesArray.Count; i2++)
                         {
                             if (timeFramesArray[i2] == curTf.ToString())
                             {
@@ -1859,7 +1880,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             }
                         }
 
-                        if(isInArray == false)
+                        if (isInArray == false)
                         {
                             timeFramesArray.Add(curTf.ToString());
                         }
@@ -2027,11 +2048,25 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void DeleteCandleRealizationGrid()
         {
-            DataGridFactory.ClearLinks(_candlesRealizationGrid);
-            _candlesRealizationGrid.CellEndEdit -= _candlesRealizationGrid_CellEndEdit;
-            _candlesRealizationGrid.DataError -= _candlesRealizationGrid_DataError;
-            _candlesRealizationGrid = null;
-            HostCandleSeriesParameters.Child = null;
+            try
+            {
+                if (HostCandleSeriesParameters != null)
+                {
+                    HostCandleSeriesParameters.Child = null;
+                }
+
+                if (_candlesRealizationGrid != null)
+                {
+                    DataGridFactory.ClearLinks(_candlesRealizationGrid);
+                    _candlesRealizationGrid.CellEndEdit -= _candlesRealizationGrid_CellEndEdit;
+                    _candlesRealizationGrid.DataError -= _candlesRealizationGrid_DataError;
+                    _candlesRealizationGrid = null;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void _candlesRealizationGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
