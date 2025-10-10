@@ -14,7 +14,7 @@ using System.Windows.Forms.Integration;
 using System.Threading;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
-using System.Collections;
+
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -195,6 +195,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                  {
                     DataGridFactory.ClearLinks(_grid);
                     _grid.CellClick -= _grid_CellClick;
+                    _grid.DataError -= _grid_DataError;
                     _grid.Rows.Clear();
                     _grid.Columns.Clear();
                     _grid = null;
@@ -966,6 +967,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _grid = newGrid;
             _grid.CellClick += _grid_CellClick;
+            _grid.DataError += _grid_DataError;
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         /// <summary>

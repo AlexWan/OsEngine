@@ -603,6 +603,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             DataGridFactory.ClearLinks(_gridSecurities);
             _gridSecurities.CellClick -= _gridSecurities_CellClick;
+            _gridSecurities.DataError -= _gridSecurities_DataError;
             SecurityTable.Child = null;
         }
 
@@ -658,6 +659,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             SecurityTable.Child = _gridSecurities;
 
             _gridSecurities.CellClick += _gridSecurities_CellClick;
+            _gridSecurities.DataError += _gridSecurities_DataError;
+        }
+
+        private void _gridSecurities_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
