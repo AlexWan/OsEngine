@@ -198,6 +198,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

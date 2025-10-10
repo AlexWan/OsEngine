@@ -209,6 +209,11 @@ namespace OsEngine.Market.Servers.TInvest
             get { return true; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

@@ -198,6 +198,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

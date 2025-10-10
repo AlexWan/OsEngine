@@ -210,6 +210,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 TimeFrameDayIsOn = true
             };
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

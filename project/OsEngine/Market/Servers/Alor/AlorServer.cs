@@ -2488,10 +2488,14 @@ namespace OsEngine.Market.Servers.Alor
             requestObj.user = new User();
             requestObj.user.portfolio = order.PortfolioNumber.Split('_')[0];
 
-            if (order.OrderTypeTime == OrderTypeTime.BookOrCancel)
-                 requestObj.timeInForce = "bookorcancel";
-            else if (order.OrderTypeTime == OrderTypeTime.GTC)
+            if (order.LimitsMakerOnly == true)
+            {
+                requestObj.timeInForce = "bookorcancel";
+            }
+            else
+            {
                 requestObj.timeInForce = "goodtillcancelled";
+            }
 
             return requestObj;
         }

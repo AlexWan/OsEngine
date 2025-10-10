@@ -224,6 +224,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

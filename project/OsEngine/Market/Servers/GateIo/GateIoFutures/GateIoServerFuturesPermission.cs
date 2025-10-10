@@ -223,6 +223,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

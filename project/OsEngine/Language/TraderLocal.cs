@@ -2390,5 +2390,9 @@ namespace OsEngine.Language
         public string Label622 => OsLocalization.ConvertToLocString(
         "Eng:Synchronize_" +
         "Ru:Синхронизировать_");
+
+        public string Label623 => OsLocalization.ConvertToLocString(
+        "Eng:Limit order maker only_" +
+        "Ru:Лимит ордера только мейкер_");
     }
 }

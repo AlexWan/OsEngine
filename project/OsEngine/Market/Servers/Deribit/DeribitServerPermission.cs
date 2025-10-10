@@ -206,6 +206,11 @@ namespace OsEngine.Market.Servers.Deribit
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

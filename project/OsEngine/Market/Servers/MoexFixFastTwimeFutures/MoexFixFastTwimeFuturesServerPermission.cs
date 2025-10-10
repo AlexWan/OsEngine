@@ -186,6 +186,11 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

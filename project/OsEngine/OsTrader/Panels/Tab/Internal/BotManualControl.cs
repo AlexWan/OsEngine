@@ -6,6 +6,8 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -168,7 +170,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     Enum.TryParse(reader.ReadLine(), out TypeDoubleExitOrder);
                     Enum.TryParse(reader.ReadLine(), out ValuesType);
                     Enum.TryParse(reader.ReadLine(), out OrderTypeTime);
-                    
+
+                    try
+                    {
+                        LimitsMakerOnly = Convert.ToBoolean(reader.ReadLine());
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
                     reader.Close();
                 }
             }
@@ -216,6 +227,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     writer.WriteLine(TypeDoubleExitOrder);
                     writer.WriteLine(ValuesType);
                     writer.WriteLine(OrderTypeTime);
+                    writer.WriteLine(LimitsMakerOnly);
                     writer.Close();
                 }
             }
@@ -268,7 +280,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public void ShowDialog(StartProgram startProgram)
         {
-            BotManualControlUi ui = new BotManualControlUi(this, startProgram);
+            IServer server = _botTab.Connector.MyServer;
+
+            IServerPermission serverPermission = null;
+
+            if(server != null)
+            {
+                serverPermission = ServerMaster.GetServerPermission(server.ServerType);
+            }
+
+            BotManualControlUi ui = new BotManualControlUi(this, startProgram, serverPermission);
             ui.ShowDialog();
         }
 
@@ -459,6 +480,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// Order lifetime type
         /// </summary>
         public OrderTypeTime OrderTypeTime;
+
+        public bool LimitsMakerOnly = false;
 
         /// <summary>
         /// Journal

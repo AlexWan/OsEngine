@@ -1979,8 +1979,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 price = RoundPrice(price, Security, direction);
 
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+                Position newDeal = _dealCreator.CreatePosition(
+                    TabName, direction, price, volume, 
+                    OrderPriceType.Limit, ManualPositionSupport.SecondToOpen, 
+                    Security, Portfolio, StartProgram, 
+                    ManualPositionSupport.OrderTypeTime,
+                    ManualPositionSupport.LimitsMakerOnly);
 
                 _journal.SetNewDeal(newDeal);
 
@@ -2028,8 +2032,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 price = RoundPrice(price, Security, direction);
 
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+                Position newDeal = _dealCreator.CreatePosition(
+                    TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, 
+                    StartProgram, ManualPositionSupport.OrderTypeTime,
+                    ManualPositionSupport.LimitsMakerOnly);
 
                 newDeal.SignalTypeOpen = signalType;
 
@@ -3045,8 +3052,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Security, direction);
 
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+                Position newDeal = _dealCreator.CreatePosition(
+                    TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, 
+                    StartProgram, ManualPositionSupport.OrderTypeTime,
+                    ManualPositionSupport.LimitsMakerOnly);
 
                 _journal.SetNewDeal(newDeal);
 
@@ -3095,8 +3105,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Security, direction);
 
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+                Position newDeal = _dealCreator.CreatePosition(
+                    TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, 
+                    StartProgram, ManualPositionSupport.OrderTypeTime,
+                    ManualPositionSupport.LimitsMakerOnly);
 
                 newDeal.SignalTypeOpen = signalType;
 
@@ -3864,7 +3877,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Order closeOrder
                     = _dealCreator.CreateCloseOrderForDeal(Security, position, price,
                     OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1), 
-                    StartProgram, ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
+                    StartProgram, ManualPositionSupport.OrderTypeTime, 
+                    _connector.ServerFullName, ManualPositionSupport.LimitsMakerOnly);
 
                 closeOrder.SecurityNameCode = Security.Name;
                 closeOrder.SecurityClassCode = Security.NameClass;
@@ -4653,8 +4667,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Security, Side.Sell);
 
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, priceType,
-                    timeLife, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+                Position newDeal = _dealCreator.CreatePosition(
+                    TabName, direction, price, volume, priceType,
+                    timeLife, Security, Portfolio, StartProgram, 
+                    ManualPositionSupport.OrderTypeTime,
+                    ManualPositionSupport.LimitsMakerOnly);
+
                 newDeal.OpenOrders[0].IsStopOrProfit = isStopOrProfit;
                 _journal.SetNewDeal(newDeal);
 
@@ -4720,9 +4738,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 Order newOrder = 
-                    _dealCreator.CreateOrder(Security, Side.Sell, price, volume, 
-                    orderType, ManualPositionSupport.SecondToOpen, StartProgram, 
-                    OrderPositionConditionType.Open, ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
+                    _dealCreator.CreateOrder(
+                        Security, Side.Sell, price, volume, 
+                    orderType, ManualPositionSupport.SecondToOpen, 
+                    StartProgram, OrderPositionConditionType.Open, 
+                    ManualPositionSupport.OrderTypeTime, _connector.ServerFullName,
+                    ManualPositionSupport.LimitsMakerOnly);
 
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
@@ -4785,8 +4806,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Security, Side.Buy);
 
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, priceType,
-                    timeLife, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+                Position newDeal = _dealCreator.CreatePosition(
+                    TabName, direction, price, volume, priceType,
+                    timeLife, Security, Portfolio, StartProgram, 
+                    ManualPositionSupport.OrderTypeTime,
+                    ManualPositionSupport.LimitsMakerOnly);
+
                 newDeal.OpenOrders[0].IsStopOrProfit = isStopOrProfit;
                 _journal.SetNewDeal(newDeal);
 
@@ -4851,9 +4876,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                Order newOrder = _dealCreator.CreateOrder(Security, Side.Buy, price, volume, orderType,
-                    ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open,
-                    ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
+                Order newOrder = _dealCreator.CreateOrder(
+                    Security, Side.Buy, price, volume, orderType,
+                    ManualPositionSupport.SecondToOpen, StartProgram, 
+                    OrderPositionConditionType.Open,
+                    ManualPositionSupport.OrderTypeTime, 
+                    _connector.ServerFullName,
+                    ManualPositionSupport.LimitsMakerOnly);
+
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 newOrder.SecurityNameCode = Security.Name;
@@ -4950,7 +4980,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price,
                     priceType, lifeTime, StartProgram, 
-                    ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
+                    ManualPositionSupport.OrderTypeTime, 
+                    _connector.ServerFullName, ManualPositionSupport.LimitsMakerOnly);
 
                 closeOrder.SecurityNameCode = Security.Name;
                 closeOrder.SecurityClassCode = Security.NameClass;
@@ -5045,8 +5076,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 price = RoundPrice(price, Security, sideCloseOrder);
 
-                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price,
-                    priceType, lifeTime, StartProgram, ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
+                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(
+                    Security, position, price,
+                    priceType, lifeTime, StartProgram, 
+                    ManualPositionSupport.OrderTypeTime, 
+                    _connector.ServerFullName, ManualPositionSupport.LimitsMakerOnly);
 
                 if (closeOrder == null)
                 {

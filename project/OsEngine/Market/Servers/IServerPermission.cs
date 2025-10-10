@@ -74,6 +74,8 @@ namespace OsEngine.Market.Servers
 
         bool CanGetOrderLists { get; }
 
+        bool HaveOnlyMakerLimitsRealization { get; }
+
         #endregion
 
         #region Other Permissions

@@ -214,6 +214,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
             get { return true; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

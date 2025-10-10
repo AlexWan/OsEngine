@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.Internal.BotManualControlUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Position Tracking Settings" Height="390" Width="610" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Position Tracking Settings" Height="428" Width="610" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,129,0,5" HorizontalAlignment="Left" Width="285"/>
         <Rectangle  Margin="5,5,0,0" Height="119" VerticalAlignment="Top" HorizontalAlignment="Left" Width="285" />
@@ -40,6 +40,7 @@
         <ComboBox Name="ComboBoxValuesType" HorizontalAlignment="Left" Margin="449,241,0,0" VerticalAlignment="Top" Width="134"/>
         <Label Name="LabelOrdersTypeTime" Content="Orders type time" HorizontalAlignment="Left" Margin="310,268,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
         <ComboBox Name="ComboBoxOrdersTypeTime" HorizontalAlignment="Left" Margin="449,268,0,0" VerticalAlignment="Top" Width="134"/>
+        <CheckBox Name="CheckBoxLimitsMakerOnly" Content="Limits maker only" HorizontalAlignment="Left" Margin="310,294,0,0" VerticalAlignment="Top" />
 
     </Grid>
 </Window>

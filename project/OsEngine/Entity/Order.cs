@@ -283,6 +283,11 @@ namespace OsEngine.Entity
         public int CancellingTryCount;
 
         /// <summary>
+        /// Put it on the queue for execution or withdraw it. True - only Maker can be used
+        /// </summary>
+        public bool LimitsMakerOnly;
+
+        /// <summary>
         /// The last time an attempt was made to withdraw an order
         /// </summary>
         public DateTime LastCancelTryLocalTime;

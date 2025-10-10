@@ -189,6 +189,11 @@ namespace OsEngine.Market.Servers.Pionex
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

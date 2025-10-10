@@ -185,6 +185,11 @@ namespace OsEngine.Market.Servers.MOEX
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

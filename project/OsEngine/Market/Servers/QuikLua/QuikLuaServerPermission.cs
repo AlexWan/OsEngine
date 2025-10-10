@@ -195,6 +195,11 @@ namespace OsEngine.Market.Servers.QuikLua
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

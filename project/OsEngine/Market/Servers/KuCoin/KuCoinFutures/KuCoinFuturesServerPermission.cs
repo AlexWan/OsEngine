@@ -220,6 +220,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

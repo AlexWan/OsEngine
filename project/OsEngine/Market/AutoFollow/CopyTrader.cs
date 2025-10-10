@@ -1324,15 +1324,22 @@ namespace OsEngine.Market.AutoFollow
 
                 if (deal == null)
                 {
-                    deal = _dealCreator.CreatePosition(this.NameUnique, direction, price, volume, priceType,
-                      timeLife, security, portfolio, StartProgram.IsOsTrader, orderTypeTime);
+                    deal = _dealCreator.CreatePosition(
+                        this.NameUnique, direction, price, volume, 
+                        priceType, timeLife, security, portfolio, 
+                        StartProgram.IsOsTrader, orderTypeTime,
+                        false);
 
                     MyJournal.SetNewDeal(deal);
                 }
                 else
                 {
-                    Order newOrder = _dealCreator.CreateOrder(security, direction, price, volume, priceType, timeLife, StartProgram.IsOsTrader,
-                       OrderPositionConditionType.Open, orderTypeTime, MyCopyServer.ServerNameUnique);
+                    Order newOrder = _dealCreator.CreateOrder(
+                        security, direction, price, volume, priceType, 
+                        timeLife, StartProgram.IsOsTrader, OrderPositionConditionType.Open, 
+                        orderTypeTime, MyCopyServer.ServerNameUnique,
+                        false);
+
                     newOrder.PortfolioNumber = this.PortfolioName;
                     deal.AddNewOpenOrder(newOrder);
                 }
@@ -1405,14 +1412,20 @@ namespace OsEngine.Market.AutoFollow
 
                 if (deal == null)
                 {
-                    deal = _dealCreator.CreatePosition(this.NameUnique, direction, price, volume, priceType,
-                        timeLife, security, portfolio, StartProgram.IsOsTrader, orderTypeTime);
+                    deal = _dealCreator.CreatePosition(
+                        this.NameUnique, direction, price, volume, priceType,
+                        timeLife, security, portfolio, StartProgram.IsOsTrader, 
+                        orderTypeTime, false);
                     MyJournal.SetNewDeal(deal);
                 }
                 else
                 {
-                    Order newOrder = _dealCreator.CreateOrder(security, direction, price, volume, priceType, timeLife, StartProgram.IsOsTrader,
-                       OrderPositionConditionType.Open, orderTypeTime, deal.ServerName);
+                    Order newOrder = _dealCreator.CreateOrder(
+                        security, direction, price, volume, priceType, 
+                        timeLife, StartProgram.IsOsTrader,
+                        OrderPositionConditionType.Open, orderTypeTime, 
+                        deal.ServerName, false);
+
                     newOrder.PortfolioNumber = this.PortfolioName;
                     deal.AddNewOpenOrder(newOrder);
                 }
@@ -1493,9 +1506,11 @@ namespace OsEngine.Market.AutoFollow
 
                 OrderTypeTime orderTypeTime = OrderTypeTime.GTC;
 
-                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(security, position, 0,
+                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(
+                    security, position, 0,
                     priceType, lifeTime, StartProgram.IsOsTrader,
-                    orderTypeTime, MyCopyServer.ServerNameUnique);
+                    orderTypeTime, MyCopyServer.ServerNameUnique, 
+                    false);
                 closeOrder.Volume = volume;
 
                 if (closeOrder == null)

@@ -217,6 +217,11 @@ namespace OsEngine.Market.Servers.BybitData
             get { return true; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Market.Servers;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -25,7 +26,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// constructor /
         /// конструктор
         /// </summary>
-        public BotManualControlUi(BotManualControl strategySettings, StartProgram startProgram)
+        public BotManualControlUi(BotManualControl strategySettings, StartProgram startProgram, IServerPermission serverPermission)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -35,6 +36,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 _strategySettings = strategySettings;
 
+                CheckBoxLimitsMakerOnly.IsChecked = _strategySettings.LimitsMakerOnly;
+
+                if (serverPermission != null
+                    && serverPermission.HaveOnlyMakerLimitsRealization == false)
+                {
+                    CheckBoxLimitsMakerOnly.IsEnabled = false;
+                }
+
                 ComboBoxValuesType.Items.Add(ManualControlValuesType.MinPriceStep.ToString());
                 ComboBoxValuesType.Items.Add(ManualControlValuesType.Absolute.ToString());
                 ComboBoxValuesType.Items.Add(ManualControlValuesType.Percent.ToString());
@@ -43,10 +52,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Specified.ToString());
                 ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.GTC.ToString());
 
-                if(startProgram == StartProgram.IsTester
+                if (startProgram == StartProgram.IsTester
                     || startProgram == StartProgram.IsOsOptimizer)
                 {
                     ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Day.ToString());
+                    CheckBoxLimitsMakerOnly.IsEnabled = false;
                 }
 
                 ComboBoxOrdersTypeTime.SelectedItem = _strategySettings.OrderTypeTime.ToString();
@@ -54,7 +64,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 // stop
                 // стоп
 
-              CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
+                CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
                 TextBoxStopPercentLength.Text = _strategySettings.StopDistance.ToStringWithNoEndZero();
                 TextBoxSlippageStop.Text = _strategySettings.StopSlippage.ToStringWithNoEndZero();
 
@@ -110,6 +120,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 CheckBoxDoubleExitIsOnIsOn.Content = OsLocalization.Trader.Label99;
                 LabelValuesType.Content = OsLocalization.Trader.Label158;
                 LabelOrdersTypeTime.Content = OsLocalization.Trader.Label422;
+                CheckBoxLimitsMakerOnly.Content = OsLocalization.Trader.Label623;
 
                 ComboBoxOrdersTypeTime.SelectionChanged += ComboBoxOrdersTypeTime_SelectionChanged;
                 ComboBoxOrdersTypeTime_SelectionChanged(null, null);
@@ -235,6 +246,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 Enum.TryParse(ComboBoxValuesType.SelectedItem.ToString(), out _strategySettings.ValuesType);
 
                 Enum.TryParse(ComboBoxOrdersTypeTime.SelectedItem.ToString(), out _strategySettings.OrderTypeTime);
+
+                _strategySettings.LimitsMakerOnly = CheckBoxLimitsMakerOnly.IsChecked.Value;
 
                 _strategySettings.Save();
             }

@@ -209,6 +209,11 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

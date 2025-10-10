@@ -203,6 +203,11 @@ namespace OsEngine.Market.Servers.Atp
             get { return false; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions

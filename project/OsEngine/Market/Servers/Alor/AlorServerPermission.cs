@@ -207,6 +207,11 @@ namespace OsEngine.Market.Servers.Alor
         TimeFrameDayIsOn = true
     };
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return true; }
+        }
+
         #endregion
 
         #region Other Permissions

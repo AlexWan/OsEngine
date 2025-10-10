@@ -204,6 +204,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
             get { return true; }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Other Permissions
