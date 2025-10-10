@@ -36,20 +36,20 @@ namespace OsEngine.OsTrader.Grids
 
         public void Clear()
         {
-            if(TradeGrids != null 
+            if (TradeGrids != null
                 && TradeGrids.Count > 0)
             {
                 TradeGrid[] grids = TradeGrids.ToArray();
 
-                for (int i = 0;i < grids.Length; i++)
+                for (int i = 0; i < grids.Length; i++)
                 {
                     DeleteAtNum(grids[i].Number, true);
                 }
 
                 TradeGrids.Clear();
-                PaintGridView(); 
+                PaintGridView();
             }
-          
+
             SaveGrids();
         }
 
@@ -90,9 +90,9 @@ namespace OsEngine.OsTrader.Grids
 
             int gridNum = 1;
 
-            for(int i = 0;i < TradeGrids.Count;i++)
+            for (int i = 0; i < TradeGrids.Count; i++)
             {
-                if(TradeGrids[i].Number >= gridNum)
+                if (TradeGrids[i].Number >= gridNum)
                 {
                     gridNum = TradeGrids[i].Number + 1;
                 }
@@ -115,7 +115,7 @@ namespace OsEngine.OsTrader.Grids
 
         public void DeleteAtNum(int num, bool isAuto = true)
         {
-            if(isAuto == false)
+            if (isAuto == false)
             {
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label443);
 
@@ -127,7 +127,7 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            for(int i = 0;i < TradeGrids.Count;i++)
+            for (int i = 0; i < TradeGrids.Count; i++)
             {
                 if (TradeGrids[i].Number == num)
                 {
@@ -139,7 +139,7 @@ namespace OsEngine.OsTrader.Grids
                         {
                             if (uiGrid.Dispatcher.CheckAccess() == false)
                             {
-                                uiGrid.Dispatcher.Invoke(new Action<int,bool>(DeleteAtNum), num,isAuto);
+                                uiGrid.Dispatcher.Invoke(new Action<int, bool>(DeleteAtNum), num, isAuto);
                                 return;
                             }
                             uiGrid.Close();
@@ -153,7 +153,7 @@ namespace OsEngine.OsTrader.Grids
                     TradeGrids[i].Delete();
                     TradeGrids[i].Regime = TradeGridRegime.Off;
                     TradeGrids.RemoveAt(i);
-                    
+
                     break;
                 }
             }
@@ -177,16 +177,16 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            if(myGrid == null)
+            if (myGrid == null)
             {
                 return;
             }
 
-            for(int i = 0; i < _tradeGridUis.Count; i++)
+            for (int i = 0; i < _tradeGridUis.Count; i++)
             {
                 TradeGridUi ui = _tradeGridUis[i];
 
-                if(ui.Number == myGrid.Number)
+                if (ui.Number == myGrid.Number)
                 {
                     if (ui.WindowState == System.Windows.WindowState.Minimized)
                     {
@@ -216,7 +216,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     TradeGridUi ui = _tradeGridUis[i];
 
-                    if(ui.TradeGrid == null)
+                    if (ui.TradeGrid == null)
                     {
                         _tradeGridUis.RemoveAt(i);
                         i++;
@@ -230,15 +230,15 @@ namespace OsEngine.OsTrader.Grids
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void SaveGrids()
         {
-            if(_startProgram == StartProgram.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -247,7 +247,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _nameBot + @"GridsSettings.txt", false))
                 {
-                    for(int i =0;i < TradeGrids.Count;i++)
+                    for (int i = 0; i < TradeGrids.Count; i++)
                     {
                         writer.WriteLine(TradeGrids[i].GetSaveString());
                     }
@@ -277,11 +277,11 @@ namespace OsEngine.OsTrader.Grids
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + _nameBot + @"GridsSettings.txt"))
                 {
-                    while(reader.EndOfStream == false)
+                    while (reader.EndOfStream == false)
                     {
                         string settings = reader.ReadLine();
 
-                        if(string.IsNullOrEmpty(settings) == true)
+                        if (string.IsNullOrEmpty(settings) == true)
                         {
                             continue;
                         }
@@ -315,7 +315,7 @@ namespace OsEngine.OsTrader.Grids
 
         public void StartPaint(WindowsFormsHost hostGrid)
         {
-            if(_gridViewInstances == null)
+            if (_gridViewInstances == null)
             {
                 CreateGridView();
             }
@@ -325,17 +325,22 @@ namespace OsEngine.OsTrader.Grids
             _hostGrid.Child = _gridViewInstances;
 
             PaintGridView();
-
         }
 
         public void StopPaint()
         {
-            if(_hostGrid != null)
+            try
             {
-                _hostGrid.Child = null;
-                _hostGrid = null;
+                if (_hostGrid != null)
+                {
+                    _hostGrid.Child = null;
+                    _hostGrid = null;
+                }
             }
-
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void CreateGridView()
@@ -383,13 +388,19 @@ namespace OsEngine.OsTrader.Grids
             column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _gridViewInstances.Columns.Add(column5);
             _gridViewInstances.CellClick += _gridViewInstances_CellClick;
+            _gridViewInstances.DataError += _gridViewInstances_DataError;
+        }
+
+        private void _gridViewInstances_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void PaintGridView()
         {
             try
             {
-                if(_gridViewInstances == null)
+                if (_gridViewInstances == null)
                 {
                     return;
                 }
@@ -402,14 +413,13 @@ namespace OsEngine.OsTrader.Grids
 
                 _gridViewInstances.Rows.Clear();
 
-                for(int i = 0;i < TradeGrids.Count;i++)
+                for (int i = 0; i < TradeGrids.Count; i++)
                 {
                     DataGridViewRow row = GetGridRow(TradeGrids[i]);
                     _gridViewInstances.Rows.Add(row);
                 }
 
                 _gridViewInstances.Rows.Add(GetLastRow());
-
             }
             catch (Exception ex)
             {
@@ -473,7 +483,7 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                if(row < _gridViewInstances.Rows.Count-1
+                if (row < _gridViewInstances.Rows.Count - 1
                     && column == 4)
                 { // Delete
 
