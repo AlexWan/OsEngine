@@ -27,6 +27,7 @@ namespace OsEngine.Robots.AlgoStart
         private StrategyParameterString _regime;
         private StrategyParameterInt _icebergCount;
         private StrategyParameterInt _maxPositions;
+        private StrategyParameterInt _clusterToTrade;
         private StrategyParameterInt _clustersLookBack;
         private StrategyParameterDecimal _procHeightTake;
         private StrategyParameterDecimal _procHeightStop;
@@ -44,8 +45,35 @@ namespace OsEngine.Robots.AlgoStart
         private StrategyParameterBool _smaFilterIsOn;
         private StrategyParameterInt _smaFilterLen;
 
+        // Trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public AlgoStart2ScreenerSoldiers(string name, StartProgram startProgram) : base(name, startProgram)
         {
+
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriod1Start = new TimeOfDay() { Hour = 5, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriod1End = new TimeOfDay() { Hour = 9, Minute = 55 };
+            _tradePeriodsSettings.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
+            // Source creation
+
             TabCreate(BotTabType.Screener);
             _tabScreener = TabsScreener[0];
 
@@ -56,14 +84,17 @@ namespace OsEngine.Robots.AlgoStart
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On"});
             _icebergCount = CreateParameter("Iceberg orders count", 1, 1, 3, 1);
             _maxPositions = CreateParameter("Max positions", 20, 0, 20, 1);
+            _clusterToTrade = CreateParameter("Volatility cluster to trade", 3, 1, 3, 1);
             _clustersLookBack = CreateParameter("Volatility cluster lookBack", 80, 10, 300, 1);
 
-            _procHeightTake = CreateParameter("Profit % from height of pattern", 290m, 0, 20, 1m);
-            _procHeightStop = CreateParameter("Stop % from height of pattern", 180m, 0, 20, 1m);
+            _procHeightTake = CreateParameter("Profit % from height of pattern", 185m, 0, 20, 1m);
+            _procHeightStop = CreateParameter("Stop % from height of pattern", 106m, 0, 20, 1m);
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 4, 1.0m, 50, 4);
+            _volume = CreateParameter("Volume", 18, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Volatility settings
@@ -72,7 +103,7 @@ namespace OsEngine.Robots.AlgoStart
 
             // SmaFilter settings
             _smaFilterIsOn = CreateParameter("Sma filter is on", true);
-            _smaFilterLen = CreateParameter("Sma filter Len", 65, 10, 300, 10);
+            _smaFilterLen = CreateParameter("Sma filter Len", 150, 10, 300, 10);
 
             Description = OsLocalization.Description.DescriptionLabel95;
 
@@ -81,7 +112,12 @@ namespace OsEngine.Robots.AlgoStart
                 LoadTradeSettings();
             }
 
-            this.DeleteEvent += ThreeSoldierAdaptiveScreener_DeleteEvent;
+            this.DeleteEvent += AlgoStart2ScreenerSoldiers_DeleteEvent;
+        }
+
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         // Volatility adaptation
@@ -147,10 +183,12 @@ namespace OsEngine.Robots.AlgoStart
         }
 
         // Delete save file
-        private void ThreeSoldierAdaptiveScreener_DeleteEvent()
+        private void AlgoStart2ScreenerSoldiers_DeleteEvent()
         {
             try
             {
+                _tradePeriodsSettings.Delete();
+
                 if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
@@ -257,31 +295,49 @@ namespace OsEngine.Robots.AlgoStart
                 return;
             }
 
+            if (candles.Count < 50)
+            {
+                return;
+            }
+
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
+            {
+                return;
+            }
+
             List<Position> openPositions = tab.PositionsOpenAll;
 
             if (openPositions.Count == 0)
             {
                 if (_lastTimeSetClusters == DateTime.MinValue
-               || _lastTimeSetClusters != candles[^1].TimeStart)
+                 || _lastTimeSetClusters != candles[^1].TimeStart)
                 {
                     _volatilityStageClusters.Calculate(_tabScreener.Tabs, _clustersLookBack.ValueInt);
                     _lastTimeSetClusters = candles[^1].TimeStart;
                 }
 
-                bool isInArray = false;
-
-                if (_volatilityStageClusters.ClusterTwo.Find(source => source.Connector.SecurityName == tab.Connector.SecurityName) != null)
+                if (_clusterToTrade.ValueInt == 1)
                 {
-                    isInArray = true;
+                    if (_volatilityStageClusters.ClusterOne.Find(source => source.Connector.SecurityName == tab.Connector.SecurityName) == null)
+                    {
+                        return;
+                    }
                 }
-
-                if (_volatilityStageClusters.ClusterThree.Find(source => source.Connector.SecurityName == tab.Connector.SecurityName) != null)
+                else if (_clusterToTrade.ValueInt == 2)
                 {
-                    isInArray = true;
+                    if (_volatilityStageClusters.ClusterTwo.Find(source => source.Connector.SecurityName == tab.Connector.SecurityName) == null)
+                    {
+                        return;
+                    }
                 }
-
-
-                if (isInArray == false)
+                else if (_clusterToTrade.ValueInt == 3)
+                {
+                    if (_volatilityStageClusters.ClusterThree.Find(source => source.Connector.SecurityName == tab.Connector.SecurityName) == null)
+                    {
+                        return;
+                    }
+                }
+                else
                 {
                     return;
                 }

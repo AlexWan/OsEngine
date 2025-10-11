@@ -39,11 +39,37 @@ namespace OsEngine.Robots.AlgoStart
         private StrategyParameterBool _smaFilterIsOn;
         private StrategyParameterInt _smaFilterLen;
 
+        // Trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
+        // Volatility clusters
         private VolatilityStageClusters _volatilityStageClusters = new VolatilityStageClusters();
         private DateTime _lastTimeSetClusters;
 
         public AlgoStart3ScreenerPriceChannel(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriod1Start = new TimeOfDay() { Hour = 5, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriod1End = new TimeOfDay() { Hour = 9, Minute = 55 };
+            _tradePeriodsSettings.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
+            // Source creation
             TabCreate(BotTabType.Screener);
             _screenerTab = TabsScreener[0];
 
@@ -53,20 +79,22 @@ namespace OsEngine.Robots.AlgoStart
             // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             _icebergCount = CreateParameter("Iceberg orders count", 1, 1, 3, 1);
-            _clusterToTrade = CreateParameter("Volatility cluster to trade", 1, 1, 3, 1);
-            _clustersLookBack = CreateParameter("Volatility cluster lookBack", 50, 10, 300, 1);
-            _maxPositions = CreateParameter("Max poses", 10, 1, 20, 1);
+            _clusterToTrade = CreateParameter("Volatility cluster to trade", 2, 1, 3, 1);
+            _clustersLookBack = CreateParameter("Volatility cluster lookBack", 100, 10, 300, 1);
+            _maxPositions = CreateParameter("Max poses", 20, 1, 20, 1);
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _volume = CreateParameter("Volume", 8, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator settings
             _pcAdxLength = CreateParameter("Pc adx length", 50, 5, 300, 1);
-            _pcRatio = CreateParameter("Pc ratio", 500, 5, 300, 1);
+            _pcRatio = CreateParameter("Pc ratio", 840, 5, 2000, 1);
             _smaFilterIsOn = CreateParameter("Sma filter is on", true);
-            _smaFilterLen = CreateParameter("Sma filter Len", 150, 100, 300, 10);
+            _smaFilterLen = CreateParameter("Sma filter Len", 70, 100, 300, 10);
 
             // Create indicator PriceChannelAdaptive
             _screenerTab.CreateCandleIndicator(2,
@@ -78,12 +106,24 @@ namespace OsEngine.Robots.AlgoStart
             ParametrsChangeByUser += SmaScreener_ParametrsChangeByUser;
 
             Description = OsLocalization.Description.DescriptionLabel92;
+
+            this.DeleteEvent += AlgoStart3ScreenerPriceChannel_DeleteEvent;
         }
 
         private void SmaScreener_ParametrsChangeByUser()
         {
             _screenerTab._indicators[0].Parameters = new List<string>() { _pcAdxLength.ValueInt.ToString(), _pcRatio.ValueInt.ToString() };
             _screenerTab.UpdateIndicatorsParameters();
+        }
+
+        private void AlgoStart3ScreenerPriceChannel_DeleteEvent()
+        {
+            _tradePeriodsSettings.Delete();
+        }
+
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         // Logic
@@ -98,7 +138,12 @@ namespace OsEngine.Robots.AlgoStart
                 return;
             }
 
-            if (candles.Count < 10)
+            if (candles.Count < 50)
+            {
+                return;
+            }
+
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }

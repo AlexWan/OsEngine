@@ -27,8 +27,6 @@ namespace OsEngine.Robots.AlgoStart
         private StrategyParameterInt _maxPositionsCount;
         private StrategyParameterInt _clusterToTrade;
         private StrategyParameterInt _clustersLookBack;
-        private StrategyParameterTimeOfDay _timeStart;
-        private StrategyParameterTimeOfDay _timeEnd;
        
         // GetVolume settings
         private StrategyParameterString _volumeType;
@@ -41,11 +39,39 @@ namespace OsEngine.Robots.AlgoStart
         private StrategyParameterBool _smaFilterIsOn;
         private StrategyParameterInt _smaFilterLen;
 
+        // Volatility clusters
         private VolatilityStageClusters _volatilityStageClusters = new VolatilityStageClusters();
         private DateTime _lastTimeSetClusters;
 
+        // Trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public AlgoStart1ScreenerLinearRegression(string name, StartProgram startProgram) : base(name, startProgram)
         {
+
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriod1Start = new TimeOfDay() { Hour = 5, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriod1End = new TimeOfDay() { Hour = 9, Minute = 55 };
+            _tradePeriodsSettings.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
+            // Source creation
+
             TabCreate(BotTabType.Screener);
             _screenerTab = TabsScreener[0];
 
@@ -58,10 +84,10 @@ namespace OsEngine.Robots.AlgoStart
             _clusterToTrade = CreateParameter("Volatility cluster to trade", 1, 1, 3, 1);
             _clustersLookBack = CreateParameter("Volatility cluster lookBack", 30, 10, 300, 1);
             _maxPositionsCount = CreateParameter("Max positions ", 20, 1, 50, 4);
-            _timeStart = CreateParameterTimeOfDay("Start Trade Time", 10, 32, 0, 0);
-            _timeEnd = CreateParameterTimeOfDay("End Trade Time", 18, 25, 0, 0);
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            // GetVolume settings
+             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 14, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
@@ -83,6 +109,25 @@ namespace OsEngine.Robots.AlgoStart
             ParametrsChangeByUser += SmaScreener_ParametrsChangeByUser;
 
             Description = OsLocalization.Description.DescriptionLabel88;
+
+            this.DeleteEvent += AlgoStart1ScreenerLinearRegression_DeleteEvent;
+        }
+
+        private void AlgoStart1ScreenerLinearRegression_DeleteEvent()
+        {
+            try
+            {
+                _tradePeriodsSettings.Delete();
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         private void SmaScreener_ParametrsChangeByUser()
@@ -115,8 +160,7 @@ namespace OsEngine.Robots.AlgoStart
                 return;
             }
 
-            if (_timeStart.Value > tab.TimeServerCurrent ||
-                _timeEnd.Value < tab.TimeServerCurrent)
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }

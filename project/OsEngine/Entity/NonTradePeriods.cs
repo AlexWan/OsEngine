@@ -19,7 +19,6 @@ namespace OsEngine.Entity
             NameUnique = name + "nonTradePeriod";
 
             NonTradePeriod1Start = new TimeOfDay();
-
             NonTradePeriod1End = new TimeOfDay() { Hour = 7, Minute = 0 };
 
             NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 0 };
@@ -29,7 +28,7 @@ namespace OsEngine.Entity
             NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 6 };
 
             NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 40 };
-            NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 5 };
+            NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 6 };
 
             NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 40 };
             NonTradePeriod5End = new TimeOfDay() { Hour = 23, Minute = 59 };
@@ -43,7 +42,7 @@ namespace OsEngine.Entity
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\CopyTrader\" + NameUnique + ".txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameUnique + ".txt", false))
                 {
                     writer.WriteLine(GetSaveStringDays());
                     writer.WriteLine(GetSaveString());
@@ -59,19 +58,33 @@ namespace OsEngine.Entity
 
         public void Load()
         {
-            if (!File.Exists(@"Engine\CopyTrader\" + NameUnique + ".txt"))
+            if (!File.Exists(@"Engine\" + NameUnique + ".txt"))
             {
                 return;
             }
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\CopyTrader\" + NameUnique + ".txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + NameUnique + ".txt"))
                 {
                     LoadFromStringDays(reader.ReadLine());
                     LoadFromString(reader.ReadLine());
 
-
                     reader.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        public void Delete()
+        {
+            try
+            {
+                if (File.Exists(@"Engine\" + NameUnique + ".txt"))
+                {
+                    File.Delete(@"Engine\" + NameUnique + ".txt");
                 }
             }
             catch
