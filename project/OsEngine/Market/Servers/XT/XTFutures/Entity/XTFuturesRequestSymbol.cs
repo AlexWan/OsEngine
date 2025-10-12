@@ -8,13 +8,14 @@ using Newtonsoft.Json;
 namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 {
 
-    public class XTFuturesResponseRest<T>  //XTBasicResponse
+    public class XTFuturesResponseRest<T>
     {
         public string returnCode { get; set; }
         public string msgInfo { get; set; }
         public XTFuturesApiError error { get; set; }   // может быть null
         public T result { get; set; }
     }
+
     public class XTFuturesResponseRestNew<T>
     {
         public string rc { get; set; }  // Return code ("0" = success)
@@ -22,17 +23,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public List<string> ma { get; set; }  // Message args / extra info (may be empty)
         public T result { get; set; }   // Payload
     }
+
     public class XTFuturesApiError
     {
         public string code { get; set; }
         public string msg { get; set; }
     }
-    public class MarkPriceResult
-    {
-        public decimal p { get; set; }   // Price
-        public string s { get; set; }    // Symbol
-        public long t { get; set; }      // Time (timestamp)
-    }
+
     public class XTFuturesSymbolListResult
     {
         public string time { get; set; }
@@ -112,7 +109,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string displaySwitch { get; set; }          // Display switch (true = enabled)
         public string curMaxLeverage { get; set; }         // Current max leverage
         public string riskNominalValueCoefficient { get; set; } // Risk nominal value coefficient
-        public string riskExpireTime { get; set; }         
+        public string riskExpireTime { get; set; }
     }
     public class XTFuturesBalance
     {
@@ -132,6 +129,33 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string notProfit { get; set; }       // Unrealized PnL
         public string bonus { get; set; }           // Bonus / trial funds
         public string coupon { get; set; }          // Coupon deduction
+    }
+
+    // Position item: every field is a string (numbers/bools are stringified)
+    public class XTFuturesPosition
+    {
+        public string autoMargin;            // Whether to automatically call margin (true/false as string)
+        public string availableCloseSize;    // Available quantity (Cont)
+        public string breakPrice;            // Blowout price
+        public string calMarkPrice;          // Calculated mark price
+        public string closeOrderSize;        // Quantity of open order (Cont)
+        public string contractType;          // Contract type: PERPETUAL / PREDICT
+        public string entryPrice;            // Average opening price
+        public string floatingPL;            // Unrealized profit or loss
+        public string isolatedMargin;        // Isolated margin
+        public string leverage;              // Leverage ratio
+        public string openOrderMarginFrozen; // Margin frozen by open orders
+        public string openOrderSize;         // Opening orders occupied (Cont)
+        public string positionSide;          // Position side (e.g., LONG/SHORT)
+        public string positionSize;          // Position quantity (Cont)
+        public string positionType;          // Position type: CROSSED / ISOLATED
+        public string profitId;              // Take profit / stop loss id
+        public string realizedProfit;        // Realized profit and loss
+        public string symbol;                // Trading pair (symbol)
+        public string triggerPriceType;      // Trigger price type: 1 Index, 2 Mark, 3 Last
+        public string triggerProfitPrice;    // Take profit trigger price
+        public string triggerStopPrice;      // Stop loss trigger price
+        public string welfareAccount;        // Welfare account flag (true/false as string)
     }
 
     public class XTFuturesOrderDetailById
@@ -156,7 +180,31 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string triggerProfitPrice { get; set; }// TP trigger price
         public string triggerStopPrice { get; set; }  // SL trigger price
     }
-    public class XTFuturesTradeHistoryItem
+
+    public class XTFuturesMyTrade
+    { 
+        public string symbol { get; set; } // symbol, e.g. "gmt_usdt"
+        public string orderSide { get; set; } // BUY / SELL
+        public string positionSide { get; set; } // LONG / SHORT (affects position sign, not buy/sell)
+        public string orderId { get; set; } // order identifier
+        public string price { get; set; }  // execution price
+        public string quantity { get; set; }   // execution quantity
+        public string isMaker { get; set; }  // maker flag ("true"/"false" as string)
+        public string marginUnfrozen { get; set; }// margin released
+        public string fee { get; set; } // fee paid
+        public string timestamp { get; set; }   // timestamp in milliseconds
+        public string clientOrderId { get; set; }  //client order id 
+    }
+
+    public class XTFuturesTradeHistoryResult
+    {
+        public List<XTFuturesTradeHistory> items { get; set; }
+        public string page { get; set; }
+        public string ps { get; set; }
+        public string total { get; set; }
+    }
+
+    public class XTFuturesTradeHistory
     {
         public string orderId { get; set; }
         public string execId { get; set; }
@@ -173,16 +221,4 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string orderSide { get; set; }
         public string positionSide { get; set; }
     }
-
-
-
-    public class XTFuturesTradeHistoryResult
-    {
-        public List<XTFuturesTradeHistoryItem> items { get; set; }
-        public string page { get; set; }
-        public string ps { get; set; }
-        public string total { get; set; }
-    }
-
 }
-

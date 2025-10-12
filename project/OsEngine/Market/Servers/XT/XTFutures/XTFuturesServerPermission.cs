@@ -170,17 +170,35 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_LONG",
+                    "_SHORT",
+                    "_BOTH"
+                };
+
+                return values;
+            }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "USDT" 
+                };
+
+                return values;
+            }
         }
 
         public bool ManuallyClosePositionOnBoard_IsOn
         {
-            get { return false; }
+            get { return true; }
         }
         
         public bool IsTradeServer
@@ -234,12 +252,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public bool IsSupports_ProxyFor_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsSupports_AsyncOrderSending
         {
-            get { return false; }
+            get { return true; }
         }
 
         public int AsyncOrderSending_RateGateLimitMls
@@ -249,12 +267,17 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public bool IsSupports_AsyncCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public int AsyncCandlesStarter_RateGateLimitMls
         {
             get { return 10; }
+        }
+
+        public string[] IpAddresServer
+        {
+            get { return null; }
         }
 
         #endregion

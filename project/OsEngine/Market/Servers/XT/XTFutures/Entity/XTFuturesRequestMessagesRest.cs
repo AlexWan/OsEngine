@@ -2,7 +2,6 @@
 {
     public class XTFuturesSendOrderRequestData
     {
-
         public string clientOrderId { get; set; }       //client order id
         public string symbol { get; set; }               //"btc_usdt", symbol
         public string orderSide { get; set; }                //BUY,SELL

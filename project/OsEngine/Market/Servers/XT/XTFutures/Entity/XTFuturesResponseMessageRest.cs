@@ -3,18 +3,6 @@
 
 namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 {
-    public class XTFuturesResponseMessageRest<T>
-    {
-        public string rc { get; set; } // Response code
-        public string mc { get; set; } // Message code
-                                       // public List<string> ma { get; set; }
-        public T result { get; set; }
-    }
-
-    public class XTFuturesResponseServerTime
-    {
-        public string serverTime { get; set; } //"1662444177871" server time in ms 
-    }
 
     public class XTFuturesResponseDepth
     {
@@ -116,29 +104,19 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string tickSize { get; set; }
     }
 
-   
-
-
-
-
-    //public class XTFuturesTradeHistoryItem
-    //{
-    //    public string fee { get; set; }          // Fee
-    //    public string feeCoin { get; set; }       // Currency of fee
-    //    public string orderId { get; set; }         // Order ID
-    //    public string execId { get; set; }          // Trade ID
-    //    public string price { get; set; }        // Price
-    //    public string quantity { get; set; }     // Volume
-    //    public string symbol { get; set; }        // Trading pair
-    //    public string timestamp { get; set; }       // Time
-    //    public string takerMaker { get; set; }    // TAKER or MAKER
-    //}
-
-   
-    public class XTFuturesCancaledOrderResponse
+    public class XTFuturesTradeHistoryItem
     {
-        public string cancelId { get; set; } //"6216559590087220004", Canceled Order Id
+        public string fee { get; set; }          // Fee
+        public string feeCoin { get; set; }       // Currency of fee
+        public string orderId { get; set; }         // Order ID
+        public string execId { get; set; }          // Trade ID
+        public string price { get; set; }        // Price
+        public string quantity { get; set; }     // Volume
+        public string symbol { get; set; }        // Trading pair
+        public string timestamp { get; set; }       // Time
+        public string takerMaker { get; set; }    // TAKER or MAKER
     }
+
 
     public class XTFuturesOrderResponse
     {
@@ -180,6 +158,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string ps { get; set; }                     // Page size
         public string total { get; set; }                  // Total count
     }
+
     public class XTFuturesOrderItem
     {
         public string orderId { get; set; }          // order id
@@ -245,7 +224,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string triggerProfitPrice { get; set; } // Take profit trigger price
         public string triggerStopPrice { get; set; }   // Stop loss trigger price
     }
-
 
     public class ListenKeyResponse
     {

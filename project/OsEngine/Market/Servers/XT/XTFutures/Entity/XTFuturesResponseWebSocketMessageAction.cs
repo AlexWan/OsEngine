@@ -16,30 +16,77 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public T data { get; set; }
     }
 
-    public class XTFuturesWsPublicTrade
+    public class XTFuturesWsPublicTradeItem
+    {
+        public string symbol { get; set; }
+        public string orderSide { get; set; }     // BUY / SELL
+        public string positionSide { get; set; }  // LONG / SHORT
+        public string orderId { get; set; }
+        public string price { get; set; }
+        public string quantity { get; set; }
+        public bool isMaker { get; set; }
+        public string marginUnfrozen { get; set; }
+        public string fee { get; set; }
+        public long timestamp { get; set; }       // ms
+        public string clientOrderId { get; set; }
+    }
+
+   
+    public class XTFuturesPublicTrade
     {
         public string s { get; set; }          //symbol
         public string t { get; set; }         //timestamp
         public string p { get; set; }          //price
         public string a { get; set; }          //Quantity
         public string m { get; set; }         // "ask"
+
+        //////////
+        ///{
+        //"topic": "trade",
+        //"event": "trade@btc_usdt",
+        //"data": {
+        //"s": "btc_usdt",
+        //"i": 6316559590087222000,
+        //"t": 1655992403617,
+        //"oi": 6616559590087222666,
+        //"p": "43000",
+        //"q": "0.21",
+        //"v": "9030",
+        //"b": true
     }
-        //public class XTFuturesWsTrade
-        //{
-        //    public string orderId { get; set; }        // Order ID
-        //    public string clientOrderId { get; set; }  // Client order ID
-        //    public string price { get; set; }          // Price
-        //    public string quantity { get; set; }       // Quantity
-        //    public string marginUnfrozen { get; set; } // Quantity of unfrozen margin
-        //    public string timestamp { get; set; }        // Timestamp (unix)
-        //    public string symbol { get; set; }         // Symbol
-        //    public string orderSide { get; set; }      // Order side (BUY/SELL)
-        //    public string positionSide { get; set; }   // Position side (LONG/SHORT)
-        //    public string isMaker { get; set; }          // Is maker (true:maker; false:taker)
-        //    public string fee { get; set; }           // Fee
-        //}
-    
-    
+
+
+
+//    {
+//  "topic": "balance",
+//  "event": "balance",
+//  "data": {
+//    "a": "123", // Account ID
+//    "t": 1656043204763, // Event time (ms)
+//    "c": "btc", // Currency
+//    "b": "123", // Total spot balance
+//    "f": "11", // Frozen amount
+//    "z": "SPOT", // BizType [SPOT, LEVER]
+//    "s": "btc_usdt" // Symbol
+//  }
+//}
+
+    public class XTFuturesWsTrade
+    {
+        public string orderId { get; set; }        // Order ID
+        public string clientOrderId { get; set; }  // Client order ID
+        public string price { get; set; }          // Price
+        public string quantity { get; set; }       // Quantity
+        public string marginUnfrozen { get; set; } // Quantity of unfrozen margin
+        public string timestamp { get; set; }        // Timestamp (unix)
+        public string symbol { get; set; }         // Symbol
+        public string orderSide { get; set; }      // Order side (BUY/SELL)
+        public string positionSide { get; set; }   // Position side (LONG/SHORT)
+        public string isMaker { get; set; }          // Is maker (true:maker; false:taker)
+        public string fee { get; set; }           // Fee
+    }
+
+
 
     public class XTFuturesResponseWebSocketUpdateDepth
     {
