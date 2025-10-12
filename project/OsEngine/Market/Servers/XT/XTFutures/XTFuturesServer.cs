@@ -222,8 +222,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private string _listenKey; // lifetime 8 hours
 
-            private string _leverage = "1";
-
             private readonly string _baseUrl = "https://fapi.xt.com";
 
             private string _portfolioName = "XTFuturesPortfolio";
@@ -231,8 +229,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             #endregion
 
             #region 3 Securities
-
-            private List<Security> _securities;
 
             public event Action<List<Security>> SecurityEvent;
 
@@ -258,7 +254,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        XTFuturesResponseRest<XTFuturesSymbolListResult> securityList = JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesSymbolListResult>>(response.Content);
+                        XTFuturesResponseRest<XTFuturesSymbolListResult> securityList =
+                            JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesSymbolListResult>>(response.Content);
 
                         if (securityList == null)
                         {
@@ -287,7 +284,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                     newSecurity.NameId = symbols.symbolGroupId;
                                     newSecurity.SecurityType = SecurityType.Futures;
                                     newSecurity.Lot = 1;
-
                                     newSecurity.PriceLimitLow = symbols.minPrice.ToDecimal();
                                     newSecurity.PriceLimitHigh = symbols.maxPrice.ToDecimal();
 
@@ -593,7 +589,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             return null;
                         }
 
-                        XTFuturesResponseRest<List<XTFuturesResponseCandle>> symbols = JsonConvert.DeserializeObject<XTFuturesResponseRest<List<XTFuturesResponseCandle>>>(responseMessage.Content);
+                        XTFuturesResponseRest<List<XTFuturesCandle>> symbols = JsonConvert.DeserializeObject<XTFuturesResponseRest<List<XTFuturesCandle>>>(responseMessage.Content);
 
                         if (symbols == null)
                         {
@@ -607,7 +603,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                             for (int i = 0; i < symbols.result.Count; i++)
                             {
-                                XTFuturesResponseCandle item = symbols.result[i];
+                                XTFuturesCandle item = symbols.result[i];
 
                                 Candle newCandle = new Candle();
 
@@ -628,13 +624,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                        + $"Message code: {symbols.msgInfo}", LogMessageType.Error);
                         return null;
                     }
-
-                    SendLogMessage($"CreateQueryCandles error, State Code: {responseMessage.StatusCode}", LogMessageType.Error);
                 }
                 catch (Exception exception)
                 {
                     SendLogMessage("CreateQueryCandles error: " + exception.ToString(), LogMessageType.Error);
                 }
+
                 return null;
             }
 
@@ -658,8 +653,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-
-
                     if (_webSocketPrivate != null)
                     {
                         return;
@@ -900,10 +893,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private void _webSocketPublicTrades_OnOpen(object sender, EventArgs e)
             {
-
                 CheckFullActivation();
                 SendLogMessage("WebSocketPublicTrades Connection to public trades is Open", LogMessageType.System);
-
             }
 
             private void _webSocketPublicMarketDepths_OnError(object sender, ErrorEventArgs e)
@@ -1234,7 +1225,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             continue;
                         }
 
-                        XTFuturesResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<object>>(message);
+                        XTFuturesResponseWebSocket<object> action = JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<object>>(message);
 
                         if (action != null && action.topic != null)
                         {
@@ -1251,7 +1242,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     catch (Exception exception)
                     {
                         Thread.Sleep(2000);
-
                     }
                 }
             }
@@ -1286,7 +1276,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             continue;
                         }
 
-                        XTFuturesResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<object>());
+                        XTFuturesResponseWebSocket<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<object>());
 
                         if (action != null && action.topic != null && action.@event != null)
                         {
@@ -1335,7 +1325,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             continue;
                         }
 
-                        XTFuturesResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<object>());
+                        XTFuturesResponseWebSocket<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<object>());
 
                         if (action == null || action.topic == null)
                         {
@@ -1371,7 +1361,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesPublicTrade> responseTrade = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocketMessageAction<XTFuturesPublicTrade>());
+                    XTFuturesResponseWebSocket<XTFuturesPublicTrade> responseTrade = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<XTFuturesPublicTrade>());
 
                     if (responseTrade?.data == null)
                     {
@@ -1417,9 +1407,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 MarketDepth md = new MarketDepth
                 {
                     SecurityNameCode = symbol,
-
                     Asks = new List<MarketDepthLevel>(level),
-
                     Bids = new List<MarketDepthLevel>(level)
                 };
 
@@ -1429,7 +1417,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             }
 
             private int CompareAsk(MarketDepthLevel x, MarketDepthLevel y) => x.Price.CompareTo(y.Price);
-
             private int CompareBid(MarketDepthLevel x, MarketDepthLevel y) => y.Price.CompareTo(x.Price);
 
             private void UpsertLevel(List<MarketDepthLevel> list, double price, double qty, bool isAsk)
@@ -1514,7 +1501,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
 
                     decimal p = (side[i][0]).ToDecimal();
-
                     decimal q = (side[i][1]).ToDecimal();
 
                     if (q <= 0m)
@@ -1531,7 +1517,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     dest.Sort(CompareAsk);
                 }
-
                 else
                 {
                     dest.Sort(CompareBid);
@@ -1545,12 +1530,16 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private void ApplyIncrementSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk)
             {
-                if (side == null) return;
+                if (side == null)
+                {
+                    return;
+                }
 
                 for (int i = 0; i < side.Count; i++)
                 {
                     decimal p = (side[i][0]).ToDecimal();
                     decimal q = (side[i][1]).ToDecimal();
+
                     UpsertLevel(dest, (double)p, (double)q, isAsk);
                 }
             }
@@ -1559,10 +1548,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketSnapshotDepth> responseDepth =
-                        JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketSnapshotDepth>>(message);
+                    XTFuturesResponseWebSocket<XTFuturesSnapshotDepth> responseDepth =
+                        JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesSnapshotDepth>>(message);
 
-                    XTFuturesResponseWebSocketSnapshotDepth d = responseDepth?.data;
+                    XTFuturesSnapshotDepth d = responseDepth?.data;
 
                     if (d == null)
                     {
@@ -1581,7 +1570,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     lock (_mdLock)
                     {
-
                         MarketDepth md = GetOrCreateDepth(symbol);
 
                         if (md.Asks == null)
@@ -1616,12 +1604,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         startDepth = false;
 
                         if (_bufferBySymbol != null &&
-                            _bufferBySymbol.TryGetValue(symbol, out List<XTFuturesResponseWebSocketUpdateDepth> list) &&
+                            _bufferBySymbol.TryGetValue(symbol, out List<XTFuturesUpdateDepth> list) &&
                             list != null && list.Count > 0)
                         {
                             for (int i = 0; i < list.Count; i++)
                             {
-                                XTFuturesResponseWebSocketUpdateDepth ev = list[i];
+                                XTFuturesUpdateDepth ev = list[i];
 
                                 ApplyIncrementSide(ev.a, md.Asks, isAsk: true);
                                 ApplyIncrementSide(ev.b, md.Bids, isAsk: false);
@@ -1643,8 +1631,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private readonly object _mdLock = new object();
 
-            private readonly Dictionary<string, List<XTFuturesResponseWebSocketUpdateDepth>> _bufferBySymbol =
-                new Dictionary<string, List<XTFuturesResponseWebSocketUpdateDepth>>();
+            private readonly Dictionary<string, List<XTFuturesUpdateDepth>> _bufferBySymbol =
+                new Dictionary<string, List<XTFuturesUpdateDepth>>();
 
             private readonly HashSet<string> _awaitingSnapshot = new HashSet<string>();
 
@@ -1652,11 +1640,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketUpdateDepth> resp = JsonConvert.DeserializeObject
-                       <XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketUpdateDepth>>(message);
+                    XTFuturesResponseWebSocket<XTFuturesUpdateDepth> resp = JsonConvert.DeserializeObject
+                       <XTFuturesResponseWebSocket<XTFuturesUpdateDepth>>(message);
 
-                    XTFuturesResponseWebSocketUpdateDepth d = resp?.data;
-                    if (d == null) return;
+                    XTFuturesUpdateDepth d = resp?.data;
+                    if (d == null)
+                    {
+                        return; 
+                    }
 
                     string symbol = d.s;
 
@@ -1680,9 +1671,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         {
                             _awaitingSnapshot.Add(symbol);
 
-                            if (!_bufferBySymbol.TryGetValue(symbol, out List<XTFuturesResponseWebSocketUpdateDepth> list) || list == null)
+                            if (!_bufferBySymbol.TryGetValue(symbol, out List<XTFuturesUpdateDepth> list) || list == null)
                             {
-                                list = new List<XTFuturesResponseWebSocketUpdateDepth>();
+                                list = new List<XTFuturesUpdateDepth>();
                                 _bufferBySymbol[symbol] = list;
                             }
 
@@ -1726,7 +1717,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesMyTrade> response = JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesMyTrade>>(message);
+                    XTFuturesResponseWebSocket<XTFuturesMyTrade> response = JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesMyTrade>>(message);
 
                     if (response == null || response.data == null)
                     {
@@ -1844,8 +1835,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketPortfolio> portfolios =
-                        JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWebSocketPortfolio>>(message);
+                    XTFuturesResponseWebSocket<XTFuturesResponsePortfolio> portfolios =
+                        JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesResponsePortfolio>>(message);
 
                     if (portfolios == null || portfolios.data == null ||
                        _portfolios == null || _portfolios.Count == 0)
@@ -1887,8 +1878,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWsUpdateOrder> order =
-                        JsonConvert.DeserializeObject<XTFuturesResponseWebSocketMessageAction<XTFuturesResponseWsUpdateOrder>>(message);
+                    XTFuturesResponseWebSocket<XTFuturesUpdateOrder> order =
+                        JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesUpdateOrder>>(message);
 
                     if (order == null)
                     {
@@ -1897,7 +1888,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     Order newOrder = new Order();
 
-                    XTFuturesResponseWsUpdateOrder item = order.data;
+                    XTFuturesUpdateOrder item = order.data;
 
                     newOrder.SecurityNameCode = item.symbol;
                     newOrder.SecurityClassCode = GetNameClass(item.symbol);
@@ -1971,8 +1962,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 return stateType;
             }
 
-
-
             #endregion
 
             #region 11 Trade
@@ -1993,7 +1982,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
-
             //Открыть / увеличить лонг → orderSide = BUY, positionSide = LONG
 
             //Закрыть / уменьшить лонг → orderSide = SELL, positionSide = LONG
@@ -2001,7 +1989,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             //Открыть / увеличить шорт → orderSide = SELL, positionSide = SHORT
 
             //Закрыть / уменьшить шорт → orderSide = BUY, positionSide = SHORT
-
 
             public void SendOrder(Order order)
             {
@@ -2035,7 +2022,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     string orderSide = order.Side == Side.Buy ? "BUY" : "SELL";
 
-                    // --- Определяем positionSide из текущих позиций (UI задаёт только BUY/SELL)
+                    // --- Определяем positionSide из текущих позиций (user задаёт только BUY/SELL)
                     // SELL: если есть LONG>0 → уменьшаем LONG; иначе открываем SHORT
                     // BUY:  если есть SHORT>0 → уменьшаем SHORT; иначе открываем  LONG
                     decimal longAbs = GetSidePositionAbs(symbol, "LONG");
@@ -2078,7 +2065,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         tif = isReduceIntent ? "IOC" : "GTC";// IOC уменьшаем иначе увеличиваем
                     }
 
-                    var data = new XTFuturesSendOrderRequestData
+                    var data = new XTFuturesSendOrder
                     {
                         symbol = symbol,
                         clientOrderId = order.NumberUser.ToString(),
@@ -2178,6 +2165,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     /* ignore */
                 }
+
                 return 0m;
             }
 
@@ -2274,7 +2262,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     else
                     {
                         SendLogMessage($"CancelAllOrders>  error State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
                     }
                 }
                 catch (Exception exception)
@@ -2290,7 +2277,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 try
                 {
                     string jsonRequest = JsonConvert.SerializeObject(
-            new XTFuturesCancelAllOrdersRequestData { symbol = security.Name },
+            new XTFuturesCancelAllOrders { symbol = security.Name },
             new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                     IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel-all", Method.POST, null, body: jsonRequest);
@@ -2445,6 +2432,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         {
                             continue;
                         }
+
                         bool isSidePos =
                             p.SecurityNameCode.EndsWith("_LONG", StringComparison.OrdinalIgnoreCase) ||
                             p.SecurityNameCode.EndsWith("_SHORT", StringComparison.OrdinalIgnoreCase);
@@ -2486,9 +2474,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     decimal isoMargin = coin.isolatedMargin.ToDecimal();
                     decimal crossMargin = coin.crossedMargin.ToDecimal();
                     decimal orderFrozen = coin.openOrderMarginFrozen.ToDecimal();
-
                     decimal locked = isoMargin + crossMargin + orderFrozen;
-
                     decimal available = wallet - locked;
 
                     if (isUpdateValueBegin)
@@ -2556,7 +2542,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         return new List<Order>();
                     }
 
-                    XTFuturesResponseRest<List<XTFuturesOrderItem>> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<List<XTFuturesOrderItem>>>(responseMessage.Content);
+                    XTFuturesResponseRest<List<XTFuturesOrderItem>> stateResponse =
+                        JsonConvert.DeserializeObject<XTFuturesResponseRest<List<XTFuturesOrderItem>>>(responseMessage.Content);
 
                     if (stateResponse == null)
                     {
@@ -2807,6 +2794,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     else if (o.State == OrderStateType.Cancel)
                         o.TimeCancel = key;
                 }
+
                 result.Sort((a, b) =>
                 {
                     DateTime ka = a.TimeCallBack == DateTime.MinValue ? a.TimeCreate : a.TimeCallBack;
@@ -2935,7 +2923,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     IRestResponse responseMessage = CreatePrivateQuery("/future/user/v1/user/listen-key", Method.GET);
 
-                    ListenKeyResponse stateResponse = JsonConvert.DeserializeObject<ListenKeyResponse>(responseMessage.Content);
+                    XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
 
                     if (stateResponse == null)
                     {
@@ -2975,6 +2963,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             }
 
             private readonly RateGate _rateGateGetPortfolio = new RateGate(1, TimeSpan.FromMilliseconds(333));
+
             private void CreateQueryPortfolio(bool isUpdateValueBegin)
             {
                 _rateGateGetPortfolio.WaitToProceed();
@@ -3050,7 +3039,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
-
                             for (int i = 0; i < stateResponse.result.items.Count; i++)
                             {
                                 XTFuturesTradeHistory data = stateResponse.result.items[i];
@@ -3184,7 +3172,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             private void CreateOrderFail(Order order)
             {
                 order.State = OrderStateType.Fail;
-
                 MyOrderEvent?.Invoke(order);
             }
 
