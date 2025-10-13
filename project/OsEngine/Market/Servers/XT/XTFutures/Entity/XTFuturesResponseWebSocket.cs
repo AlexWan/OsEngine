@@ -13,28 +13,28 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
     public class XTFuturesPublicTrade
     {
         public string s { get; set; }          //symbol
-        public string t { get; set; }         //timestamp
+        public string t { get; set; }          //timestamp
         public string p { get; set; }          //price
         public string a { get; set; }          //Quantity
-        public string m { get; set; }         // "ask"
+        public string m { get; set; }          //"ask"
     }
 
     public class XTFuturesUpdateDepth
     {
         public string s { get; set; }              // symbol
         public string pu { get; set; }             // previousUpdateId
-        public string fu { get; set; }            // firstUpdateId
+        public string fu { get; set; }             // firstUpdateId
         public string u { get; set; }              // lastUpdateId
-        public List<List<string>> a { get; set; } // asks: list of [price, quantity]
+        public List<List<string>> a { get; set; }  // asks: list of [price, quantity]
         public List<List<string>> b { get; set; }  // bids: list of [price, quantity]
     }
 
     public class XTFuturesSnapshotDepth
     {
         public string id { get; set; }             // lastUpdateId
-        public string s { get; set; }             // trading pair (symbol)
+        public string s { get; set; }              // trading pair (symbol)
         public List<List<string>> a { get; set; }  // asks: list of [price, quantity]
-        public List<List<string>> b { get; set; } // bids: list of [price, quantity]
+        public List<List<string>> b { get; set; }  // bids: list of [price, quantity]
         public string t { get; set; }              // timestamp
     }
 
@@ -52,11 +52,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 
     public class XTFuturesResponsePortfolio
     {
-        public string coin { get; set; }                  // Currency (e.g., usdt)
-        public string underlyingType { get; set; }        // Underlying type (1 = Coin-M, 2 = USDT-M)
+        public string coin { get; set; }                   // Currency (e.g., usdt)
+        public string underlyingType { get; set; }         // Underlying type (1 = Coin-M, 2 = USDT-M)
         public string walletBalance { get; set; }          // Wallet balance
         public string openOrderMarginFrozen { get; set; }  // Margin frozen by open orders
-        public string isolatedMargin { get; set; }          // Isolated margin
+        public string isolatedMargin { get; set; }         // Isolated margin
         public string crossedMargin { get; set; }          // Crossed margin  
     }
 

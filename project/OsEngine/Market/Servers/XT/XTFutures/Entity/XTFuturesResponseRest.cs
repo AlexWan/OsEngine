@@ -159,17 +159,17 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 
     public class XTFuturesMyTrade
     {
-        public string symbol { get; set; } // symbol, e.g. "gmt_usdt"
-        public string orderSide { get; set; } // BUY / SELL
-        public string positionSide { get; set; } // LONG / SHORT (affects position sign, not buy/sell)
-        public string orderId { get; set; } // order identifier
-        public string price { get; set; }  // execution price
-        public string quantity { get; set; }   // execution quantity
-        public string isMaker { get; set; }  // maker flag ("true"/"false" as string)
+        public string symbol { get; set; }        // symbol, e.g. "gmt_usdt"
+        public string orderSide { get; set; }     // BUY / SELL
+        public string positionSide { get; set; }  // LONG / SHORT (affects position sign, not buy/sell)
+        public string orderId { get; set; }       // order identifier
+        public string price { get; set; }         // execution price
+        public string quantity { get; set; }      // execution quantity
+        public string isMaker { get; set; }       // maker flag ("true"/"false" as string)
         public string marginUnfrozen { get; set; }// margin released
-        public string fee { get; set; } // fee paid
-        public string timestamp { get; set; }   // timestamp in milliseconds
-        public string clientOrderId { get; set; }  //client order id 
+        public string fee { get; set; }           // fee paid
+        public string timestamp { get; set; }     // timestamp in milliseconds
+        public string clientOrderId { get; set; } //client order id 
     }
 
     public class XTFuturesTradeHistoryResult
@@ -208,64 +208,64 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 
     public class XTFuturesOrderItem
     {
-        public string orderId { get; set; }          // order id
-        public string clientOrderId { get; set; }    // client order id
-        public string symbol { get; set; }           // trading pair
-        public string contractSize { get; set; }     // contract size
-        public string orderType { get; set; }        // order type (LIMIT, MARKET)
-        public string orderSide { get; set; }        // order side (BUY, SELL)
-        public string positionSide { get; set; }     // position side (LONG, SHORT)
-        public string positionType { get; set; }     // position type (CROSSED, ISOLATED)
-        public string timeInForce { get; set; }      // time in force (GTC, IOC, etc.)
-        public string closePosition { get; set; }    // whether close all (true/false)
-        public string price { get; set; }            // order price
-        public string origQty { get; set; }          // original quantity
-        public string avgPrice { get; set; }         // average deal price
-        public string executedQty { get; set; }      // executed quantity
-        public string marginFrozen { get; set; }     // frozen margin
-        public string remark { get; set; }           // remark (nullable)
-        public string sourceId { get; set; }         // source id (nullable)
-        public string sourceType { get; set; }       // source type
-        public string forceClose { get; set; }       // is forced close (true/false)
-        public string leverage { get; set; }         // leverage
-        public string openPrice { get; set; }        // open price (nullable)
-        public string closeProfit { get; set; }      // close profit (nullable)
-        public string state { get; set; }            // order state (NEW, CANCELED, FILLED, etc.)
-        public string createdTime { get; set; }      // creation timestamp (ms)
-        public string updatedTime { get; set; }      // last update timestamp (ms)
-        public string welfareAccount { get; set; }   // welfare account flag
-        public string triggerPriceType { get; set; } // trigger price type (nullable)
-        public string triggerProfitPrice { get; set; } // stop profit price (nullable)
-        public string profitDelegateOrderType { get; set; } // profit delegate order type (nullable)
+        public string orderId { get; set; }                   // order id
+        public string clientOrderId { get; set; }             // client order id
+        public string symbol { get; set; }                    // trading pair
+        public string contractSize { get; set; }              // contract size
+        public string orderType { get; set; }                 // order type (LIMIT, MARKET)
+        public string orderSide { get; set; }                 // order side (BUY, SELL)
+        public string positionSide { get; set; }              // position side (LONG, SHORT)
+        public string positionType { get; set; }              // position type (CROSSED, ISOLATED)
+        public string timeInForce { get; set; }               // time in force (GTC, IOC, etc.)
+        public string closePosition { get; set; }             // whether close all (true/false)
+        public string price { get; set; }                     // order price
+        public string origQty { get; set; }                   // original quantity
+        public string avgPrice { get; set; }                  // average deal price
+        public string executedQty { get; set; }               // executed quantity
+        public string marginFrozen { get; set; }              // frozen margin
+        public string remark { get; set; }                    // remark (nullable)
+        public string sourceId { get; set; }                  // source id (nullable)
+        public string sourceType { get; set; }                // source type
+        public string forceClose { get; set; }                // is forced close (true/false)
+        public string leverage { get; set; }                  // leverage
+        public string openPrice { get; set; }                 // open price (nullable)
+        public string closeProfit { get; set; }               // close profit (nullable)
+        public string state { get; set; }                     // order state (NEW, CANCELED, FILLED, etc.)
+        public string createdTime { get; set; }               // creation timestamp (ms)
+        public string updatedTime { get; set; }               // last update timestamp (ms)
+        public string welfareAccount { get; set; }            // welfare account flag
+        public string triggerPriceType { get; set; }          // trigger price type (nullable)
+        public string triggerProfitPrice { get; set; }        // stop profit price (nullable)
+        public string profitDelegateOrderType { get; set; }   // profit delegate order type (nullable)
         public string profitDelegateTimeInForce { get; set; } // profit delegate time in force (nullable)
-        public string profitDelegatePrice { get; set; } // profit delegate price (nullable)
-        public string triggerStopPrice { get; set; } // stop loss price (nullable)
-        public string stopDelegateOrderType { get; set; } // stop delegate order type (nullable)
-        public string stopDelegateTimeInForce { get; set; } // stop delegate time in force (nullable)
-        public string stopDelegatePrice { get; set; } // stop delegate price (nullable)
-        public string markPrice { get; set; }        // mark price
-        public string desc { get; set; }             // description
-        public string systemCancel { get; set; }     // system cancel flag (true/false)
-        public string profit { get; set; }           // profit flag (true/false)
+        public string profitDelegatePrice { get; set; }       // profit delegate price (nullable)
+        public string triggerStopPrice { get; set; }          // stop loss price (nullable)
+        public string stopDelegateOrderType { get; set; }     // stop delegate order type (nullable)
+        public string stopDelegateTimeInForce { get; set; }   // stop delegate time in force (nullable)
+        public string stopDelegatePrice { get; set; }         // stop delegate price (nullable)
+        public string markPrice { get; set; }                 // mark price
+        public string desc { get; set; }                      // description
+        public string systemCancel { get; set; }              // system cancel flag (true/false)
+        public string profit { get; set; }                    // profit flag (true/false)
     }
 
     public class XTFuturesSendOrder
     {
-        public string clientOrderId { get; set; }       //client order id
-        public string symbol { get; set; }               //"btc_usdt", symbol
+        public string clientOrderId { get; set; }            //client order id
+        public string symbol { get; set; }                   //"btc_usdt", symbol
         public string orderSide { get; set; }                //BUY,SELL
         public string orderType { get; set; }                //order type:LIMIT,MARKET
-        public string origQty { get; set; }            //Quantity (Cont)
-        public string price { get; set; }               //price.
-        public string timeInForce { get; set; }         //Valid way:GTC;IOC;FOK;GTX
-        public string positionSide { get; set; }          //Position side:LONG;SHORT   
-        public string triggerProfitPrice { get; set; }  //Stop profit price
-        public string triggerStopPrice { get; set; }    //Stop loss price
+        public string origQty { get; set; }                  //Quantity (Cont)
+        public string price { get; set; }                    //price.
+        public string timeInForce { get; set; }              //Valid way:GTC;IOC;FOK;GTX
+        public string positionSide { get; set; }             //Position side:LONG;SHORT   
+        public string triggerProfitPrice { get; set; }       //Stop profit price
+        public string triggerStopPrice { get; set; }         //Stop loss price
     }
 
     public class XTFuturesCancelAllOrders
     {
-        public string symbol { get; set; }              //"btc_usdt", symbol
-        public string bizType { get; set; }             //SPOT, LEVER                                                 
+        public string symbol { get; set; }                   //"btc_usdt", symbol
+        public string bizType { get; set; }                  //SPOT, LEVER                                                 
     }
 }

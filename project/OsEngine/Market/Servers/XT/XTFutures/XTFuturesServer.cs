@@ -20,6 +20,9 @@ using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
 using System.Globalization;
 using Security = OsEngine.Entity.Security;
+using OsEngine.Candles.Series;
+using System.IO;
+using ErrorEventArgs = OsEngine.Entity.WebSocketOsEngine.ErrorEventArgs;
 
 
 
@@ -1551,14 +1554,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     XTFuturesResponseWebSocket<XTFuturesSnapshotDepth> responseDepth =
                         JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesSnapshotDepth>>(message);
 
-                    XTFuturesSnapshotDepth d = responseDepth?.data;
+                    XTFuturesSnapshotDepth depth = responseDepth?.data;
 
-                    if (d == null)
+                    if (depth == null)
                     {
                         return;
                     }
 
-                    string symbol = d.s;
+                    string symbol = depth.s;
 
                     if (string.IsNullOrWhiteSpace(symbol))
                     {
@@ -1582,8 +1585,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             md.Bids = new List<MarketDepthLevel>(level);
                         }
 
-                        ApplySnapshotSide(d.a, md.Asks, isAsk: true, maxLevels: level);
-                        ApplySnapshotSide(d.b, md.Bids, isAsk: false, maxLevels: level);
+                        ApplySnapshotSide(depth.a, md.Asks, isAsk: true, maxLevels: level);
+                        ApplySnapshotSide(depth.b, md.Bids, isAsk: false, maxLevels: level);
 
                         md.Time = ServerTime;
 
@@ -1643,13 +1646,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     XTFuturesResponseWebSocket<XTFuturesUpdateDepth> resp = JsonConvert.DeserializeObject
                        <XTFuturesResponseWebSocket<XTFuturesUpdateDepth>>(message);
 
-                    XTFuturesUpdateDepth d = resp?.data;
-                    if (d == null)
+                    XTFuturesUpdateDepth depth = resp?.data;
+                    if (depth == null)
                     {
-                        return; 
+                        return;
                     }
 
-                    string symbol = d.s;
+                    string symbol = depth.s;
 
                     if (string.IsNullOrWhiteSpace(symbol))
                     {
@@ -1677,12 +1680,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                 _bufferBySymbol[symbol] = list;
                             }
 
-                            list.Add(d);
+                            list.Add(depth);
                         }
                         else
                         {
-                            ApplyIncrementSide(d.a, md.Asks, isAsk: true);
-                            ApplyIncrementSide(d.b, md.Bids, isAsk: false);
+                            ApplyIncrementSide(depth.a, md.Asks, isAsk: true);
+                            ApplyIncrementSide(depth.b, md.Bids, isAsk: false);
 
                             md.Time = ServerTime;
 
@@ -1763,7 +1766,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         SendLogMessage("Update positions by WS trade failed: " + exception, LogMessageType.Error);
                     }
 
-                    SendLogMessage($"PRIvate  tradeId={myTrade.NumberTrade} ordPar={myTrade.NumberOrderParent} sym={myTrade.SecurityNameCode} side={myTrade.Side} price={myTrade.Price} qty={myTrade.Volume}", LogMessageType.Error);
+                    SendLogMessage($"Private  tradeId={myTrade.NumberTrade} ordPar={myTrade.NumberOrderParent} sym={myTrade.SecurityNameCode} side={myTrade.Side} price={myTrade.Price} qty={myTrade.Volume}", LogMessageType.Error);
 
                     MyTradeEvent?.Invoke(myTrade);
                 }
@@ -1804,11 +1807,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     for (int i = 0; i < list.Count; i++)
                     {
-                        var p = list[i];
-                        if (p != null && !string.IsNullOrWhiteSpace(p.SecurityNameCode) &&
-                            p.SecurityNameCode.Equals(code, StringComparison.OrdinalIgnoreCase))
+                        var positions = list[i];
+                        if (positions != null && !string.IsNullOrWhiteSpace(positions.SecurityNameCode) &&
+                            positions.SecurityNameCode.Equals(code, StringComparison.OrdinalIgnoreCase))
                         {
-                            pos = p;
+                            pos = positions;
                             break;
                         }
                     }
@@ -1912,6 +1915,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     newOrder.PortfolioNumber = _portfolioName;
                     newOrder.Volume = item.origQty.ToDecimal();
                     newOrder.Price = item.price.ToDecimal();
+
+                    if (newOrder.State == OrderStateType.Done)
+                    {
+                        newOrder.TimeDone = newOrder.TimeCallBack;
+                    }
+                    else if (newOrder.State == OrderStateType.Cancel)
+                    {
+                        newOrder.TimeCancel = newOrder.TimeCallBack;
+                    }
 
                     MyOrderEvent?.Invoke(newOrder);
 
@@ -2653,11 +2665,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                             if (historyOrder.State == OrderStateType.Done)
                             {
-                                historyOrder.TimeDone = historyOrder.TimeDone;
+                                historyOrder.TimeDone = historyOrder.TimeCallBack;
                             }
                             else if (historyOrder.State == OrderStateType.Cancel)
                             {
-                                historyOrder.TimeCancel = historyOrder.TimeCancel;
+                                historyOrder.TimeCancel = historyOrder.TimeCallBack;
                             }
 
                             orders.Add(historyOrder);
@@ -2733,7 +2745,41 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 return new List<Order>();
             }
+            public void SaveOrdersToFile(List<Order> orders, string filePath)
+            {
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(filePath, false))
+                    {
+                        for (int i = 0; i < orders.Count; i++)
+                        {
+                            Order order = orders[i];
 
+                            if (order == null)
+                            {
+                                continue;
+                            }
+
+                            string line =
+                                "№: " + i +
+                                " | Market: " + order.NumberMarket +
+                                " | User: " + order.NumberUser +
+                                " | Security: " + order.SecurityNameCode +
+                                " | State: " + order.State +
+                                " | Create: " + order.TimeCreate.ToString("yyyy-MM-dd HH:mm:ss") +
+                                " | Callback: " + order.TimeCallBack.ToString("yyyy-MM-dd HH:mm:ss");
+
+                            writer.WriteLine(line);
+                        }
+                    }
+
+                    SendLogMessage("Orders list saved to: " + filePath, LogMessageType.System);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("Error saving orders to file: " + exception.ToString(), LogMessageType.Error);
+                }
+            }
             public List<Order> GetActiveOrders(int startIndex, int count)
             {
                 if (startIndex < 0)
@@ -2746,62 +2792,37 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     count = 100;
                 }
 
-                List<Order> result = GetAllOpenOrders();
+                List<Order> orders = GetAllOpenOrders();
 
-                if (result == null)
+                if (orders == null)
                 {
-                    result = new List<Order>();
+                    orders = new List<Order>();
                 }
 
-                result.RemoveAll(o => o == null);
-
-                result.Sort((a, b) =>
-                {
-                    DateTime ka = a.TimeCallBack == DateTime.MinValue ? a.TimeCreate : a.TimeCallBack;
-                    DateTime kb = b.TimeCallBack == DateTime.MinValue ? b.TimeCreate : b.TimeCallBack;
-                    return kb.CompareTo(ka);
-                });
-
-                if (startIndex >= result.Count)
+                if (startIndex >= orders.Count)
                 {
                     return new List<Order>();
                 }
 
-                int take = Math.Min(count, result.Count - startIndex);
+                int take = Math.Min(count, orders.Count - startIndex);
 
-                return result.GetRange(startIndex, take);
+                return orders.GetRange(startIndex, take);
             }
 
             public List<Order> GetHistoricalOrders(int startIndex, int count)
             {
-                if (startIndex < 0) startIndex = 0;
-                if (count <= 0) count = 100;
-
-                long need = (long)startIndex + count;
-                int countToMethod = need > int.MaxValue ? int.MaxValue : (int)need;
-
-                List<Order> result = GetOrderHistory();
-
-                result.RemoveAll(o => o == null);
-
-                for (int i = 0; i < result.Count; i++)
+                if (startIndex < 0)
                 {
-                    Order o = result[i];
-                    DateTime key = o.TimeCallBack == DateTime.MinValue ? o.TimeCreate : o.TimeCallBack;
-
-                    if (o.State == OrderStateType.Done)
-                        o.TimeDone = key;
-                    else if (o.State == OrderStateType.Cancel)
-                        o.TimeCancel = key;
+                    startIndex = 0;
                 }
 
-                result.Sort((a, b) =>
+                if (count <= 0)
                 {
-                    DateTime ka = a.TimeCallBack == DateTime.MinValue ? a.TimeCreate : a.TimeCallBack;
-                    DateTime kb = b.TimeCallBack == DateTime.MinValue ? b.TimeCreate : b.TimeCallBack;
-                    return kb.CompareTo(ka);
-                });
+                    count = 100;
+                }
 
+                List<Order> result = GetOrderHistory();
+               
                 if (startIndex >= result.Count)
                 {
                     return new List<Order>();
@@ -3182,6 +3203,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
             public event Action<Order> MyOrderEvent;
+
             public bool SubscribeNews()
             {
                 return false;
