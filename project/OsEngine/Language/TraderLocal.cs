@@ -237,7 +237,7 @@ namespace OsEngine.Language
 
         public string Label58 => OsLocalization.ConvertToLocString(
             "Eng:Wrong name. It is not possible to continue the process of creating a bot._" +
-            "Ru:Не верное имя. Не возможно продолжить процесс создания бота._");
+            "Ru:Неверное имя. Невозможно продолжить процесс создания бота._");
 
         public string Label59 => OsLocalization.ConvertToLocString(
             "Eng:Robot create_" +
@@ -253,15 +253,15 @@ namespace OsEngine.Language
 
         public string Label62 => OsLocalization.ConvertToLocString(
             "Eng:It is not possible to open a deal! Connector is not active!_" +
-            "Ru:Не возможно открыть сделку! Коннектор не активен!_");
+            "Ru:Невозможно открыть сделку! Коннектор не активен!_");
 
         public string Label63 => OsLocalization.ConvertToLocString(
             "Eng:It is not possible to open a deal! The volume can not be equal to zero!_" +
-            "Ru:Не возможно открыть сделку! Объём не может быть равен нулю!_");
+            "Ru:Невозможно открыть сделку! Объём не может быть равен нулю!_");
 
         public string Label64 => OsLocalization.ConvertToLocString(
             "Eng:It is not possible to open a deal! No portfolio or security!_" +
-            "Ru:Не возможно открыть сделку! Нет портфеля или бумаги!_");
+            "Ru:Невозможно открыть сделку! Нет портфеля или бумаги!_");
 
         public string Label65 => OsLocalization.ConvertToLocString(
             "Eng: attempt to add a short order to the long. Blocked_" +
@@ -1065,11 +1065,11 @@ namespace OsEngine.Language
 
         public string Label290 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Market depth data is missing!_" +
-          "Ru:Не возможно открыть сделку! Нет данных по стакану!_");
+          "Ru:Невозможно открыть сделку! Нет данных по стакану!_");
 
         public string Label291 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Price can`t be zero!_" +
-          "Ru:Не возможно открыть сделку! Цена не может быть ноль!_");
+          "Ru:Невозможно открыть сделку! Цена не может быть ноль!_");
 
         public string Label292 => OsLocalization.ConvertToLocString(
           "Eng:Script_" +
