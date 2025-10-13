@@ -296,14 +296,18 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     double strike = (double)row.Cells["Strike"].Value;
 
-                    var strikeDataQuery = _allOptionsData.Where(o => o != null && o.Security != null && (double)o.Security.Strike == strike);
-
-                    if (selectedDate.HasValue)
+                    List<OptionDataRow> strikeData;
+                    lock (_locker)
                     {
-                        strikeDataQuery = strikeDataQuery.Where(o => o.Security.Expiration.Date == selectedDate.Value.Date);
-                    }
+                        var strikeDataQuery = _allOptionsData.Where(o => o != null && o.Security != null && (double)o.Security.Strike == strike);
 
-                    var strikeData = strikeDataQuery.ToList();
+                        if (selectedDate.HasValue)
+                        {
+                            strikeDataQuery = strikeDataQuery.Where(o => o.Security.Expiration.Date == selectedDate.Value.Date);
+                        }
+
+                        strikeData = strikeDataQuery.ToList();
+                    }
 
                     var callData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Call);
                     var putData = strikeData.FirstOrDefault(o => o.Security.OptionType == OptionType.Put);
@@ -958,16 +962,19 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                OptionDataRow optionData = null;
-                if (colName == "CallQty")
+                OptionDataRow optionData;
+                lock (_locker)
                 {
-                    optionData = _allOptionsData.FirstOrDefault(o =>
-                        (double)o.Security.Strike == strike && o.Security.OptionType == OptionType.Call);
-                }
-                else // PutQty
-                {
-                    optionData = _allOptionsData.FirstOrDefault(o =>
-                        (double)o.Security.Strike == strike && o.Security.OptionType == OptionType.Put);
+                    if (colName == "CallQty")
+                    {
+                        optionData = _allOptionsData.FirstOrDefault(o =>
+                            (double)o.Security.Strike == strike && o.Security.OptionType == OptionType.Call);
+                    }
+                    else // PutQty
+                    {
+                        optionData = _allOptionsData.FirstOrDefault(o =>
+                            (double)o.Security.Strike == strike && o.Security.OptionType == OptionType.Put);
+                    }
                 }
 
                 if (optionData != null)
@@ -989,7 +996,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            var strategyLegs = _allOptionsData.Where(o => o.Quantity != 0).ToList();
+            List<OptionDataRow> strategyLegs;
+            lock (_locker)
+            {
+                strategyLegs = _allOptionsData.Where(o => o.Quantity != 0).ToList();
+            }
             var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
             var uaData = _uaData.FirstOrDefault(ud => ud.Security.Name == selectedUaName);
 
@@ -1105,12 +1116,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 var selectedUaName = _uaGrid.SelectedRows[0].Cells["Name"].Value.ToString();
 
-                var expirationsForUa = _allOptionsData
-                    .Where(o => o.Security.UnderlyingAsset == selectedUaName)
-                    .Select(o => o.Security.Expiration.Date)
-                    .Distinct()
-                    .OrderBy(d => d)
-                    .ToList();
+                List<DateTime> expirationsForUa;
+                lock (_locker)
+                {
+                    expirationsForUa = _allOptionsData
+                        .Where(o => o.Security.UnderlyingAsset == selectedUaName)
+                        .Select(o => o.Security.Expiration.Date)
+                        .Distinct()
+                        .OrderBy(d => d)
+                        .ToList();
+                }
 
                 foreach (var date in expirationsForUa)
                 {
@@ -1162,9 +1177,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             // Step 1: Filter master list
-            var optionsForDisplay = _allOptionsData.Where(o => o.Security.UnderlyingAsset == selectedUaName &&
-                                                               (!selectedDate.HasValue || o.Security.Expiration.Date ==
-                                                                   selectedDate.Value.Date)).ToList();
+            List<OptionDataRow> optionsForDisplay;
+            lock (_locker)
+            {
+                optionsForDisplay = _allOptionsData.Where(o => o.Security.UnderlyingAsset == selectedUaName &&
+                                                                   (!selectedDate.HasValue || o.Security.Expiration.Date ==
+                                                                       selectedDate.Value.Date)).ToList();
+            }
 
             // Step 2: Group by Strike and create wide rows
             var strikesToDisplay = optionsForDisplay.GroupBy(o => o.Security.Strike)
@@ -1337,7 +1356,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private BotTabSimple CreateSimpleTab(Security security, IServer server)
         {
-            var tab = new BotTabSimple(TabName + security.Name, StartProgram);
+            string tabName = TabName + security.Name;
+            tabName = new string(tabName.Where(ch => !Path.GetInvalidFileNameChars().Contains(ch)).ToArray());
+
+            var tab = new BotTabSimple(tabName, StartProgram);
             tab.Connector.ServerType = server.ServerType;
             tab.Connector.PortfolioName = this.PortfolioName;
             tab.Connector.SecurityName = security.Name;
@@ -1929,13 +1951,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <returns>The BotTabSimple for the specified option, or null if not found.</returns>
         public BotTabSimple GetOptionTab(string underlyingAssetTicker, OptionType optionType, double strike, DateTime expiration)
         {
-            var optionData = _allOptionsData.FirstOrDefault(o =>
-                o.Security.UnderlyingAsset == underlyingAssetTicker &&
-                o.Security.OptionType == optionType &&
-                (double)o.Security.Strike == strike &&
-                o.Security.Expiration.Date == expiration.Date);
+            lock (_locker)
+            {
+                var optionData = _allOptionsData.FirstOrDefault(o =>
+                    o.Security.UnderlyingAsset == underlyingAssetTicker &&
+                    o.Security.OptionType == optionType &&
+                    (double)o.Security.Strike == strike &&
+                    o.Security.Expiration.Date == expiration.Date);
 
-            return optionData?.SimpleTab;
+                return optionData?.SimpleTab;
+            }
         }
 
         /// <summary>
@@ -1948,14 +1973,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <returns>A list of BotTabSimple for the options in the specified strike range.</returns>
         public List<BotTabSimple> GetOptionTabs(string underlyingAssetTicker, double minStrike, double maxStrike, DateTime expiration)
         {
-            return _allOptionsData
-                .Where(o =>
-                    o.Security.UnderlyingAsset == underlyingAssetTicker &&
-                    o.Security.Expiration.Date == expiration.Date &&
-                    (double)o.Security.Strike >= minStrike &&
-                    (double)o.Security.Strike <= maxStrike)
-                .Select(o => o.SimpleTab)
-                .ToList();
+            lock (_locker)
+            {
+                return _allOptionsData
+                    .Where(o =>
+                        o.Security.UnderlyingAsset == underlyingAssetTicker &&
+                        o.Security.Expiration.Date == expiration.Date &&
+                        (double)o.Security.Strike >= minStrike &&
+                        (double)o.Security.Strike <= maxStrike)
+                    .Select(o => o.SimpleTab)
+                    .ToList();
+            }
         }
 
         /// <summary>

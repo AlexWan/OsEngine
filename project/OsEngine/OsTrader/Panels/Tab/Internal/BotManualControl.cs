@@ -180,12 +180,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         // ignore
                     }
 
-                    reader.Close();
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
             return true;
         }
@@ -202,7 +201,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"StrategSettings.txt", false))
+                string path = @"Engine\" + _name + @"StrategSettings.txt";
+
+                string dir = Path.GetDirectoryName(path);
+
+                if(Directory.Exists(dir) == false)
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                using (StreamWriter writer = new StreamWriter(path, false))
                 {
                     CultureInfo myCultureInfo = new CultureInfo("ru-RU");
                     writer.WriteLine(StopIsOn);
@@ -228,12 +236,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     writer.WriteLine(ValuesType);
                     writer.WriteLine(OrderTypeTime);
                     writer.WriteLine(LimitsMakerOnly);
-                    writer.Close();
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -246,7 +253,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 if (File.Exists(@"Engine\" + _name + @"StrategSettings.txt"))
                 {
-                    File.Delete(@"Engine\" + _name + @"StrategSettings.txt");
+                    string path = @"Engine\" + _name + @"StrategSettings.txt";
+
+                    FileInfo file = new FileInfo(path);
+                    if(file.IsReadOnly)
+                    {
+                        file.IsReadOnly = false;
+                    }
+
+                    File.Delete(path);
                 }
 
                 if(TabsToCheck != null)
