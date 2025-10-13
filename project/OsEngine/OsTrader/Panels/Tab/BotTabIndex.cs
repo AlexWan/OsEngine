@@ -17,6 +17,7 @@ using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
+using OsEngine.Charts.CandleChart.Elements;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
