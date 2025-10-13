@@ -1496,7 +1496,17 @@ namespace OsEngine.Market.Servers.TInvest
                 _channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
                 {
                     Credentials = ChannelCredentials.SecureSsl,
-                    HttpClient = new HttpClient(new HttpClientHandler { Proxy = _proxy, UseProxy = _proxy != null })
+                    HttpClient = new HttpClient(new HttpClientHandler { Proxy = _proxy, UseProxy = _proxy != null }),
+                    HttpHandler = new SocketsHttpHandler()
+                    {
+                        KeepAlivePingDelay = TimeSpan.FromSeconds(5),
+                        KeepAlivePingTimeout = TimeSpan.FromSeconds(5),
+                        KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,
+                        
+                        // additional stability settings
+                        EnableMultipleHttp2Connections = true,
+                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5)
+                    }
                 });
 
                 _usersClient = new UsersService.UsersServiceClient(_channel);
