@@ -239,13 +239,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 3 ждём когда состояние портфеля изменится
 
-            DateTime endWaitTime = DateTime.Now.AddSeconds(25);
+            DateTime endWaitTime = DateTime.Now.AddSeconds(15);
 
             while (true)
             {
                 if (endWaitTime < DateTime.Now)
                 {
-                   // SetNewError($" {endWaitTime}, {DateTime.Now}");
                     SetNewError("Error 11. Portfolio not change");
                     return false;
                 }
@@ -254,7 +253,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (value != currentValue)
                 {
-                   // SetNewError($" Value in portfolio = {currentValue}");
                     currentValue = value;
                     break;
                 }
@@ -262,8 +260,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (currentValue >= 0)
             {
-
                 SetNewError($"Error 12. Value in portfolio >= 0");
+
                 return false;
             }
 
@@ -281,7 +279,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 5 ждём когда состояние портфеля изменится
 
-            endWaitTime = DateTime.Now.AddSeconds(55);
+            endWaitTime = DateTime.Now.AddSeconds(15);
 
             while (true)
             {
@@ -368,7 +366,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWait = DateTime.Now.AddMinutes(3);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет Active order
             while (true)
@@ -401,7 +399,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            timeEndWait = DateTime.Now.AddMinutes(3);
+            timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет Done order
             while (true)
@@ -429,7 +427,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            timeEndWait = DateTime.Now.AddMinutes(3);
+            timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет придёт MyTrade
             while (true)
@@ -465,7 +463,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWait = DateTime.Now.AddMinutes(3);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет Active order
             while (true)
@@ -498,7 +496,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            timeEndWait = DateTime.Now.AddMinutes(3);
+            timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет Done order
             while (true)
@@ -528,7 +526,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // нужно дождаться когда будет придёт MyTrade
 
-            timeEndWait = DateTime.Now.AddMinutes(3);
+            timeEndWait = DateTime.Now.AddMinutes(2);
 
             while (true)
             {

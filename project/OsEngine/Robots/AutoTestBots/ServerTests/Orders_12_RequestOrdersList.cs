@@ -635,10 +635,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (order.State == OrderStateType.None)
             {
-               //this.SetNewError((order.State).ToString());
-               // this.SetNewError(order.NumberUser.ToString());
-               //this.SetNewError(order.NumberMarket);
-                this.SetNewError("Error 10. Order with state NONE" );
+                this.SetNewError("Error 10. Order with state NONE");
                 return;
             }
 
@@ -829,15 +826,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.TypeOrder != OrderPriceType.Limit)
             {
-
-                //this.SetNewError( (order.State).ToString());
-                //this.SetNewError(order.NumberUser.ToString());
-                //this.SetNewError(order.NumberMarket);
-                //this.SetNewError(order.Side.ToString());
                 this.SetNewError("Error 39. Order Type is note Limit. Real type: " + order.TypeOrder);
                 return false;
             }
-
 
             if (order.TimeCallBack == DateTime.MinValue)
             {
