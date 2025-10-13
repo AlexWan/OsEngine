@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -131,21 +131,25 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (_marketDataStream != null && _lastMarketDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
+                        SendLogMessage("Market data stream timed out", LogMessageType.Error);
                         shitHappenedWithStreams = true;
                     }
 
                     if (_portfolioDataStream != null && _lastPortfolioDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
+                        SendLogMessage("Portfolio data stream timed out", LogMessageType.Error);
                         shitHappenedWithStreams = true;
                     }
 
                     //if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.UtcNow)
                     //{
+                    //    SendLogMessage("My trades data stream timed out", LogMessageType.Error);
                     //    shitHappenedWithStreams = true;
                     //}
 
                     if (_myOrderStateDataStream != null && _lastMyOrderStateDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
+                        SendLogMessage("Order state data stream timed out", LogMessageType.Error);
                         shitHappenedWithStreams = true;
                     }
 
@@ -1197,10 +1201,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                 List<Candle> range = GetCandleHistoryFromDays(startTime, endDateTime, security, tf);
 
-                if (range == null)
-                { // Если запрошен некорректный таймфрейм, то возвращает null
+                if (range == null) // Если запрошен некорректный таймфрейм, то возвращает null
                     return null;
-                }
 
                 candles.AddRange(range);
 
@@ -1496,16 +1498,21 @@ namespace OsEngine.Market.Servers.TInvest
                 _channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
                 {
                     Credentials = ChannelCredentials.SecureSsl,
-                    HttpClient = new HttpClient(new HttpClientHandler { Proxy = _proxy, UseProxy = _proxy != null }),
                     HttpHandler = new SocketsHttpHandler()
                     {
-                        KeepAlivePingDelay = TimeSpan.FromSeconds(5),
+                        // KeepAlive настройки
+                        KeepAlivePingDelay = TimeSpan.FromSeconds(30),
                         KeepAlivePingTimeout = TimeSpan.FromSeconds(5),
                         KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,
-                        
-                        // additional stability settings
-                        EnableMultipleHttp2Connections = true,
-                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5)
+
+                        // Прокси настройки
+                        Proxy = _proxy,
+                        UseProxy = _proxy != null,
+
+                        // Оптимизации
+                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),
+                        PooledConnectionLifetime = TimeSpan.FromHours(1),
+                        EnableMultipleHttp2Connections = true
                     }
                 });
 
@@ -1610,6 +1617,7 @@ namespace OsEngine.Market.Servers.TInvest
                 if (_subscribedSecurities.Count == 150) // 300 - max marketdata subscriptions (300 = 150 trades + 150 orderbooks )
                 {
                     _useStreamForMarketData = false;
+                    SendLogMessage("Switching to polling for market data, subscribed securities count: " + _subscribedSecurities.Count, LogMessageType.System);
                 }
 
                 _subscribedSecurities.Add(security);
@@ -1745,6 +1753,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (marketDataResponse.Ping != null)
                     {
+                        SendLogMessage("Received Ping on MarketDataStream", LogMessageType.System);
                         Thread.Sleep(1);
                         continue;
                     }
@@ -1873,13 +1882,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // Handle the cancellation gracefully
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Market data stream was cancelled: {message}", LogMessageType.System);
+                    SendLogMessage($"Market data stream was cancelled. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Market data stream was disconnected: {message}", LogMessageType.Error);
+                    SendLogMessage($"Market data stream was disconnected. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -1931,8 +1940,13 @@ namespace OsEngine.Market.Servers.TInvest
                             if (isTodayATradingDayForSecurity(_subscribedSecurities[0]) == false)
                                 continue;
                         }
+                        var watch = System.Diagnostics.Stopwatch.StartNew();
+                        SendLogMessage($"Polling for {_subscribedSecurities.Count} securities.", LogMessageType.System);
 
                         UpdateLastPrices();
+
+                        watch.Stop();
+                        SendLogMessage($"Polling for {_subscribedSecurities.Count} securities completed in {watch.ElapsedMilliseconds} ms.", LogMessageType.System);
                     }
                 }
                 catch (Exception e)
@@ -1984,7 +1998,7 @@ namespace OsEngine.Market.Servers.TInvest
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting last prices. Info: {message}", LogMessageType.Error);
+                SendLogMessage($"Error getting last prices. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.Error);
             }
             catch (Exception ex)
             {
@@ -2112,6 +2126,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (portfolioResponse.Ping != null)
                     {
+                        SendLogMessage("Received Ping on PortfolioStream", LogMessageType.System);
                         Thread.Sleep(1);
                         continue;
                     }
@@ -2186,13 +2201,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // Handle the cancellation gracefully
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Portfolio data stream was cancelled: {message}", LogMessageType.System);
+                    SendLogMessage($"Portfolio data stream was cancelled. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
                 {
                     string message = GetGRPCErrorMessage(exception);
-                    SendLogMessage($"Portfolio data stream was disconnected: {message}", LogMessageType.Error);
+                    SendLogMessage($"Portfolio data stream was disconnected. Status: {exception.StatusCode}, Message: {message}, Details: {exception.ToString()}", LogMessageType.Error);
                     if (message.Contains("limit"))
                     {
                         GetUserLimits();
@@ -2257,6 +2272,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (positionsResponse.Ping != null)
                     {
+                        SendLogMessage("Received Ping on PositionsStream", LogMessageType.System);
                         Thread.Sleep(1);
                         continue;
                     }
@@ -2405,13 +2421,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // Handle the cancellation gracefully
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Positions data stream was cancelled: {message}", LogMessageType.System);
+                    SendLogMessage($"Positions data stream was cancelled. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
                 {
                     string message = GetGRPCErrorMessage(exception);
-                    SendLogMessage($"Positions data stream was disconnected: {message}", LogMessageType.Error);
+                    SendLogMessage($"Positions data stream was disconnected. Status: {exception.StatusCode}, Message: {message}, Details: {exception.ToString()}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2594,6 +2610,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (orderStateResponse.Ping != null)
                     {
+                        SendLogMessage("Received Ping on OrderStateStream", LogMessageType.System);
                         Thread.Sleep(1);
                         continue;
                     }
@@ -2705,13 +2722,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // Handle the cancellation gracefully
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Order state data stream was cancelled: {ex}", LogMessageType.System);
+                    SendLogMessage($"Order state data stream was cancelled. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Order state data stream was disconnected: {message}", LogMessageType.Error);
+                    SendLogMessage($"Order state data stream was disconnected. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
