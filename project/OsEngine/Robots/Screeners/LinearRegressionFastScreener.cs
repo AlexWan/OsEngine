@@ -12,20 +12,19 @@ using System;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Attributes;
-using System.Windows.Forms.DataVisualization.Charting;
 using OsEngine.Language;
 
 /* Description
-trading robot for osengine
+Trading robot for osengine
 
-The trend robot on LinearRegressionFast Screener.
+The trend robot on LinearRegressionFast indicator.
 
 Buy:
 1. If the ADX filter is active, and the value is zero — no entry occurs.
 2. If the SMA filter is active, and the current candle close price (candleClose) is below the SMA — no entry occurs.
 3. If the last candle's close price (candleClose) is above this line (lrUp) — a buy is initiated.
 
-Exit: via iceberg order.
+Exit: In case of breakdown of the reverse side of the channel
  */
 
 namespace OsEngine.Robots.Screeners

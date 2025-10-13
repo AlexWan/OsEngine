@@ -45,7 +45,7 @@ namespace OsEngine.Robots.CounterTrend
         public string _tradeAssetInPortfolio;
         
         // Indicators
-        private Aindicator _bollinger0;
+        private Aindicator _bollinger;
         private Aindicator _sma;
 
         public StrategyBollinger(string name, StartProgram startProgram) : base(name, startProgram)
@@ -54,9 +54,9 @@ namespace OsEngine.Robots.CounterTrend
             _tab = TabsSimple[0];
 
             // Create indicator Bollinger
-            _bollinger0 = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "bollinger", false);
-            _bollinger0 = (Aindicator)_tab.CreateCandleIndicator(_bollinger0, "Prime");
-            _bollinger0.Save();
+            _bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "bollinger", false);
+            _bollinger = (Aindicator)_tab.CreateCandleIndicator(_bollinger, "Prime");
+            _bollinger.Save();
 
             // Create indicator Sma
             _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma", false);
@@ -156,9 +156,9 @@ namespace OsEngine.Robots.CounterTrend
                 return;
             }
 
-            if (_bollinger0.DataSeries[0].Values == null ||
-                _bollinger0.DataSeries[0].Values.Count == 0 ||
-                _bollinger0.DataSeries[0].Values.Count < candles.Count ||
+            if (_bollinger.DataSeries[0].Values == null ||
+                _bollinger.DataSeries[0].Values.Count == 0 ||
+                _bollinger.DataSeries[0].Values.Count < candles.Count ||
                 _sma.DataSeries[0].Values.Count < candles.Count)
             {
                 return;
@@ -189,9 +189,9 @@ namespace OsEngine.Robots.CounterTrend
         // position opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
-            decimal _bollingerUpLast = _bollinger0.DataSeries[0].Last;
+            decimal _bollingerUpLast = _bollinger.DataSeries[0].Last;
 
-            decimal _bollingerDownLast = _bollinger0.DataSeries[1].Last;
+            decimal _bollingerDownLast = _bollinger.DataSeries[1].Last;
 
             if (_bollingerUpLast == 0 ||
                 _bollingerDownLast == 0)
