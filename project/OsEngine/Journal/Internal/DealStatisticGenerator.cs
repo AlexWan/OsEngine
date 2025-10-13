@@ -261,37 +261,6 @@ namespace OsEngine.Journal.Internal
             return Math.Round(profit / deals.Length, 6);
         }
 
-        // helper method to calculate the average return from individual trades
-        private static decimal GetAverageReturn(Position[] deals)
-        {
-            if (deals == null || deals.Length == 0)
-                return 0;
-
-            decimal totalReturn = 0;
-
-            foreach (Position deal in deals)
-            {
-                // 1. Get the portfolio return percentage for the trade
-                decimal tradeReturnPercent = deal.ProfitOperationPercent;
-
-                // 2. Apply scaling from MultToJournal (e.g., 50% → 0.5)
-                decimal scaledReturn = tradeReturnPercent * (deal.MultToJournal / 100m);
-                decimal days = (decimal)(deal.TimeClose - deal.TimeOpen).TotalDays;
-
-                if (days == 0)
-                {
-                    days = 1;
-                }
-
-                decimal annualizedReturn = scaledReturn * (365.0m / days);
-
-                totalReturn += annualizedReturn;
-            }
-
-            // 4. Calculate arithmetic mean  and scaling from percent to decimal
-            return totalReturn/ deals.Length;
-        }
-
         public static decimal GetSharpRatio(Position[] deals, decimal riskFreeProfitInYear)
         {
             /*
@@ -310,16 +279,16 @@ namespace OsEngine.Journal.Internal
                 return 0;
             }
 
-            // 1 берём AHRP - усредненная прибыль одной сделки в % к портфелю со всех сделок за всё время 
+            List<decimal> tradeReturns = new List<decimal>();
 
-            decimal ahpr = GetAverageReturn(deals);
-
-            if (ahpr == 0)
+            for (int i = 0; i < deals.Length; i++)
             {
-                return 0;
+                decimal returnDecimal = deals[i].ProfitPortfolioAbs;
+                decimal scaledReturn = returnDecimal * (deals[i].MultToJournal / 100m);
+                tradeReturns.Add(returnDecimal);
             }
 
-            // RFR - no-risk rate 
+            decimal ahpr = GetAllProfitPercent(deals);
 
             DateTime timeFirstDeal = DateTime.MaxValue;
             DateTime timeEndDeal = DateTime.MinValue;
@@ -342,53 +311,47 @@ namespace OsEngine.Journal.Internal
             {
                 int daysCountInPoses = (int)(timeEndDeal - timeFirstDeal).TotalDays;
                 decimal riskFreeProfitInYearDecimal = riskFreeProfitInYear; // Convert to decimal
-                rfr = ((decimal)daysCountInPoses/365) * riskFreeProfitInYearDecimal; // average risk-free return from holding time 
+                rfr = ((decimal)daysCountInPoses / 365) * riskFreeProfitInYearDecimal; // average risk-free return from holding time 
             }
 
-            // 3. Calculate standard deviation
-            List<decimal> portfolioReturns = new List<decimal>();
-            foreach (Position deal in deals)
-            {
-                decimal scaledReturn = (deal.ProfitOperationPercent * (deal.MultToJournal / 100m));
-                decimal days = (decimal)(deal.TimeClose - deal.TimeOpen).TotalDays;
+            decimal sd = GetValueStandardDeviation(tradeReturns);
 
-                if (days == 0)
-                {
-                    days = 1;
-                }            
-
-                decimal annualizedReturn = scaledReturn * (365.0m / days);
-
-                portfolioReturns.Add(annualizedReturn);
-            }
-
-            decimal sd = GetValueStandardDeviation(portfolioReturns);
-
-            // 4. Compute Sharpe Ratio
             if (sd == 0)
+            {
                 return 0;
-
+            }
+                
             decimal sharp = (ahpr - rfr) / sd;
             return Math.Round(sharp, 4);
         }
 
-        private static decimal GetValueStandardDeviation(List<decimal> candles)
+        private static decimal GetValueStandardDeviation(List<decimal> returns)
         {
-            int length = candles.Count;
-            if (length < 1) return 0;
+            int length = returns.Count;
 
-            decimal sum = candles.Sum();
-            decimal m = sum / length;  // Correct mean
-            decimal sd = 0;
-
-            foreach (decimal value in candles)
+            if (length < 2)
             {
-                decimal x = value - m;
-                sd += x * x;  // Avoid double conversion
+                return 0;
             }
 
-            decimal variance = sd / length;
-            sd = (decimal)Math.Sqrt((double)variance);  // Population SD
+            decimal mean = returns.Average();
+            decimal sumSquaredDifferences = 0;
+
+            foreach (decimal value in returns)
+            {
+                if (value == 0)
+                {
+                    continue;
+                }
+
+                decimal difference = value - mean;
+                sumSquaredDifferences += difference * difference;
+            }
+
+            // Sample standard deviation (divide by n-1)
+            decimal variance = sumSquaredDifferences / (length);
+            decimal sd = (decimal)Math.Sqrt((double)variance) / 100;
+
             return Math.Round(sd, 5);
         }
 
