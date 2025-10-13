@@ -59,22 +59,22 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 Thread threadForPublicMessages = new Thread(PublicMarketDepthsMessageReader);
                 threadForPublicMessages.IsBackground = true;
-                threadForPublicMessages.Name = "PublicMessageReaderXT";
+                threadForPublicMessages.Name = "PublicMessageReaderXTFutures";
                 threadForPublicMessages.Start();
 
                 Thread threadForTradesMessages = new Thread(PublicTradesMessageReader);
                 threadForTradesMessages.IsBackground = true;
-                threadForTradesMessages.Name = "PublicTradesMessageReaderXT";
+                threadForTradesMessages.Name = "PublicTradesMessageReaderXTFutures";
                 threadForTradesMessages.Start();
 
                 Thread threadForPrivateMessages = new Thread(PrivateMessageReader);
                 threadForPrivateMessages.IsBackground = true;
-                threadForPrivateMessages.Name = "PrivateMessageReaderXT";
+                threadForPrivateMessages.Name = "PrivateMessageReaderXTFutures";
                 threadForPrivateMessages.Start();
 
                 Thread threadForGetPortfolios = new Thread(UpdatePortfolios);
                 threadForGetPortfolios.IsBackground = true;
-                threadForGetPortfolios.Name = "UpdatePortfoliosXT";
+                threadForGetPortfolios.Name = "UpdatePortfoliosXTFutures";
                 threadForGetPortfolios.Start();
             }
 
@@ -104,9 +104,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         try
                         {
                             _listenKey = GetListenKey();
+
                             if (string.IsNullOrEmpty(_listenKey))
                             {
-                                SendLogMessage("Check the Public and Private Key!", LogMessageType.Error);
+                                SendLogMessage("XTFutures Check the Public and Private Key!", LogMessageType.Error);
                                 ServerStatus = ServerConnectStatus.Disconnect;
 
                                 DisconnectEvent?.Invoke();
@@ -122,21 +123,21 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
                         catch (Exception exception)
                         {
-                            SendLogMessage("Connection cannot be open. XTFutures.  Error", LogMessageType.Error);
+                            SendLogMessage("XTFutures Connection cannot be open. XTFutures.  Error", LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent?.Invoke();
                         }
                     }
                     else
                     {
-                        SendLogMessage("Connection cannot be open. XTFutures. Error request", LogMessageType.Error);
+                        SendLogMessage("XTFutures Connection cannot be open. XTFutures. Error request", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent?.Invoke();
                     }
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("Dispose error" + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures Dispose error" + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -151,7 +152,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("Dispose error" + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures Dispose error" + exception.ToString(), LogMessageType.Error);
                 }
 
                 FIFOListWebSocketPublicMarketDepthsMessage = new ConcurrentQueue<string>();
@@ -227,8 +228,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private readonly string _baseUrl = "https://fapi.xt.com";
 
-            private string _portfolioName = "XTFuturesPortfolio";
-
             #endregion
 
             #region 3 Securities
@@ -262,7 +261,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                         if (securityList == null)
                         {
-                            SendLogMessage("GetSecurities> Deserialization resulted in null", LogMessageType.Error);
+                            SendLogMessage("XTFutures GetSecurities> Deserialization resulted in null", LogMessageType.Error);
                             return;
                         }
 
@@ -312,17 +311,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             }
                             else
                             {
-                                SendLogMessage($"GetSecurities return code: {securityList.returnCode}\n"
+                                SendLogMessage($"XTFutures GetSecurities return code: {securityList.returnCode}\n"
                                                + $"Message Code: {securityList.msgInfo}", LogMessageType.Error);
                             }
                         }
                         else
                         {
-                            SendLogMessage($"GetSecurities> State Code: {securityList.returnCode}", LogMessageType.Error);
-
                             if (securityList != null && securityList.returnCode != null)
                             {
-                                SendLogMessage($"Return Code: {securityList.returnCode}\n"
+                                SendLogMessage($"XTFutures Return Code: {securityList.returnCode}\n"
                                                + $"Message Code: {securityList.msgInfo}", LogMessageType.Error);
                             }
                         }
@@ -338,9 +335,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             #region 4 Portfolios
 
+            private string _portfolioName = "XTFuturesPortfolio";
+
             private List<Portfolio> _portfolios;
 
             public event Action<List<Portfolio>> PortfolioEvent;
+
+            private readonly RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(333));
 
             public void GetPortfolios()
             {
@@ -397,6 +398,102 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
+            private void CreateQueryPortfolio(bool isUpdateValueBegin)
+            {
+                _rateGatePortfolio.WaitToProceed();
+
+                try
+                {
+                    IRestResponse response = CreatePrivateQuery("/future/user/v1/compat/balance/list", Method.GET);
+
+                    if (response == null)
+                    {
+                        return;
+                    }
+
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        return;
+                    }
+
+                    XTFuturesResponseRestNew<List<XTFuturesBalance>> stateResponse =
+                        JsonConvert.DeserializeObject<XTFuturesResponseRestNew<List<XTFuturesBalance>>>(response.Content);
+
+                    if (stateResponse == null)
+                    {
+                        return;
+                    }
+
+                    if (stateResponse.rc == "0" &&
+                        string.Equals(stateResponse.mc, "SUCCESS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (_portfolios == null || _portfolios.Count == 0)
+                        {
+                            GetNewPortfolio();
+                        }
+
+                        UpdatePortfolioRest(stateResponse.result, isUpdateValueBegin);
+                    }
+                    else
+                    {
+                        SendLogMessage(
+                            $"XTFutures CreateQueryPortfolio error, Code: {stateResponse.rc} Message code: {stateResponse.mc}",
+                            LogMessageType.Error);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("XTFutures CreateQueryPortfolio error: " + exception, LogMessageType.Error);
+                }
+            }
+
+            private void UpdatePortfolioRest(List<XTFuturesBalance> list, bool isUpdateValueBegin)
+            {
+                try
+                {
+                    if (_portfolios == null || _portfolios.Count == 0 || list == null || list.Count == 0)
+                    {
+                        return;
+                    }
+
+                    Portfolio portfolio = _portfolios[0];
+
+                    XTFuturesBalance coin = list[0];
+
+                    decimal wallet = coin.walletBalance.ToDecimal();
+                    decimal isoMargin = coin.isolatedMargin.ToDecimal();
+                    decimal crossMargin = coin.crossedMargin.ToDecimal();
+                    decimal orderFrozen = coin.openOrderMarginFrozen.ToDecimal();
+                    decimal locked = isoMargin + crossMargin + orderFrozen;
+                    decimal available = wallet - locked;
+
+                    if (isUpdateValueBegin)
+                    {
+                        portfolio.ValueBegin = 1;
+                    }
+
+                    portfolio.ValueCurrent = 1;
+
+                    string coinCode = (coin.coin.ToUpper() ?? "USDT");
+
+                    PositionOnBoard moneyPos = new PositionOnBoard();
+
+                    moneyPos.PortfolioName = portfolio.Number;
+                    moneyPos.SecurityNameCode = coinCode;
+                    moneyPos.ValueCurrent = Math.Round(available, 4);
+                    moneyPos.ValueBlocked = Math.Round(locked, 4);
+                    moneyPos.ValueBegin = isUpdateValueBegin ? Math.Round(available, 4) : 0m;
+
+                    portfolio.SetNewPosition(moneyPos);
+
+                    PortfolioEvent?.Invoke(_portfolios);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("XTFutures UpdatePortfolioRest error: " + exception.ToString(), LogMessageType.Error);
+                }
+            }
+
             #endregion
 
             #region 5 Data
@@ -434,6 +531,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
 
                     DateTime queryStartTime = currentEndTime - TimeSpan.FromMinutes(tf.TotalMinutes * limit);
+
                     if (queryStartTime < currentStartTime)
                     {
                         queryStartTime = currentStartTime;
@@ -596,7 +694,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                         if (symbols == null)
                         {
-                            SendLogMessage("CreateQueryCandles: Response is null", LogMessageType.Error);
+                            SendLogMessage("XTFutures CreateQueryCandles: Response is null", LogMessageType.Error);
                             return null;
                         }
 
@@ -617,20 +715,21 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                 newCandle.Volume = item.a.ToDecimal();
                                 newCandle.State = CandleState.Finished;
                                 newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.t));
+
                                 candles.Add(newCandle);
                             }
 
                             return candles;
                         }
 
-                        SendLogMessage($"CreateQueryCandles error, Code: {symbols.returnCode}\n"
+                        SendLogMessage($"XTFutures CreateQueryCandles error, Code: {symbols.returnCode}\n"
                                        + $"Message code: {symbols.msgInfo}", LogMessageType.Error);
                         return null;
                     }
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("CreateQueryCandles error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures CreateQueryCandles error: " + exception.ToString(), LogMessageType.Error);
                 }
 
                 return null;
@@ -651,6 +750,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             private readonly string _webSocketPublicUrl = "wss://fstream.xt.com/ws/market";
 
             private readonly string _socketLocker = "webSocketLockerXT";
+
+            private string _socketActivateLocker = "socketActivateLocker";
 
             private void CreateWebSocketConnection()
             {
@@ -766,8 +867,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private string _socketActivateLocker = "socketActivateLocker";
-
             private void CheckFullActivation()
             {
                 try
@@ -825,7 +924,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         string message = e.Exception.ToString();
 
-                        if (message.Contains("The remote party closed the WebSocket connection"))
+                        if (message.Contains("XTFutures The remote party closed the WebSocket connection"))
                         {
                             // ignore
                         }
@@ -837,7 +936,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("Data socket error" + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures Data socket error" + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -870,7 +969,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("WebSocketPublicTrades Message Received error: " + error.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures WebSocketPublicTrades Message Received error: " + error.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -897,7 +996,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             private void _webSocketPublicTrades_OnOpen(object sender, EventArgs e)
             {
                 CheckFullActivation();
-                SendLogMessage("WebSocketPublicTrades Connection to public trades is Open", LogMessageType.System);
+                SendLogMessage("XTFutures WebSocketPublicTrades Connection to public trades is Open", LogMessageType.System);
             }
 
             private void _webSocketPublicMarketDepths_OnError(object sender, ErrorEventArgs e)
@@ -913,7 +1012,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         string message = e.Exception.ToString();
 
-                        if (message.Contains("The remote party closed the WebSocket connection"))
+                        if (message.Contains("XTFutures The remote party closed the WebSocket connection"))
                         {
                             // ignore
                         }
@@ -925,7 +1024,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("Data socket error" + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures Data socket error" + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -958,7 +1057,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("WebSocketPublic Message Received error: " + error.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures WebSocketPublicMessage Received error: " + error.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -985,7 +1084,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             private void _webSocketPublicMarketDepths_OnOpen(object sender, EventArgs e)
             {
                 CheckFullActivation();
-                SendLogMessage("WebSocketPublic Connection to public data is Open", LogMessageType.System);
+                SendLogMessage("XTFutures WebSocketPublicConnection to public data is Open", LogMessageType.System);
             }
 
             private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
@@ -1001,7 +1100,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         string message = e.Exception.ToString();
 
-                        if (message.Contains("The remote party closed the WebSocket connection"))
+                        if (message.Contains("XTFutures The remote party closed the WebSocket connection"))
                         {
                             // ignore
                         }
@@ -1013,7 +1112,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("Data socket error" + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures Data socket error" + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -1051,7 +1150,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("WebSocketPrivate Message Received error: " + error.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures WebSocket Private Message Received error: " + error.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -1080,7 +1179,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 try
                 {
                     CheckFullActivation();
-                    SendLogMessage("WebSocketPrivate Connection to private data is Open", LogMessageType.System);
+                    SendLogMessage("XTFutures WebSocketPrivateConnection to private data is Open", LogMessageType.System);
                     _webSocketPrivate.SendAsync($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"order@{_listenKey}\",\"trade@{_listenKey}\",\"balance@{_listenKey}\"],\"id\":\"sub-1\"}}");
                 }
                 catch (Exception exception)
@@ -1146,13 +1245,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             #region 9 Security Subscribed
 
-            private readonly RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(200));
+            private readonly RateGate _rateGateSecuritySubscribed = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+            private List<string> _subscribedSecurities = new List<string>();
 
             public void Subscribe(Security security)
             {
                 try
                 {
-                    _rateGateSubscribed.WaitToProceed();
+                    _rateGateSecuritySubscribed.WaitToProceed();
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
@@ -1183,8 +1284,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     _webSocketPublicTrades.SendAsync($"{{\"method\":\"subscribe\",\"params\":[\"trade@{security.Name}\"],\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                 }
             }
-
-            public event Action<News> NewsEvent;
 
             #endregion
 
@@ -1279,7 +1378,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             continue;
                         }
 
-                        XTFuturesResponseWebSocket<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<object>());
+                        XTFuturesResponseWebSocket<string> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<string>());
 
                         if (action != null && action.topic != null && action.@event != null)
                         {
@@ -1328,7 +1427,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             continue;
                         }
 
-                        XTFuturesResponseWebSocket<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<object>());
+                        XTFuturesResponseWebSocket<string> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<string>());
 
                         if (action == null || action.topic == null)
                         {
@@ -1360,33 +1459,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private void UpdateTrade(string message)
-            {
-                try
-                {
-                    XTFuturesResponseWebSocket<XTFuturesPublicTrade> responseTrade = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<XTFuturesPublicTrade>());
-
-                    if (responseTrade?.data == null)
-                    {
-                        return;
-                    }
-
-                    Trade trade = new Trade();
-                    trade.SecurityNameCode = responseTrade.data?.s ?? string.Empty;
-                    trade.Price = (responseTrade.data?.p).ToDecimal();
-                    trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data?.t));
-                    trade.Volume = (responseTrade.data?.a).ToDecimal();
-                    trade.Side = responseTrade.data?.m?.Equals("BID", StringComparison.OrdinalIgnoreCase) == true ? Side.Buy : Side.Sell;
-                    trade.Id = Convert.ToInt64(responseTrade.data?.t).ToString();
-
-                    NewTradesEvent?.Invoke(trade);
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("UpdateTrade error: " + exception.ToString(), LogMessageType.Error);
-                }
-            }
-
             private List<MarketDepth> _marketDepths = new List<MarketDepth>();
 
             public event Action<MarketDepth> MarketDepthEvent;
@@ -1394,6 +1466,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             private DateTime _lastTimeMd = DateTime.MinValue;
 
             private bool startDepth = true;
+
+            private readonly object _mdLock = new object();
+
+            private readonly object _posLock = new object();
 
             int level = 20;
 
@@ -1419,134 +1495,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 return md;
             }
 
-            private int CompareAsk(MarketDepthLevel x, MarketDepthLevel y) => x.Price.CompareTo(y.Price);
-            private int CompareBid(MarketDepthLevel x, MarketDepthLevel y) => y.Price.CompareTo(x.Price);
-
-            private void UpsertLevel(List<MarketDepthLevel> list, double price, double qty, bool isAsk)
-            {
-                int idx = -1;
-
-                for (int i = 0; i < list.Count; i++)
-                {
-                    if (list[i].Price == price)
-                    {
-                        idx = i;
-                        break;
-                    }
-                }
-
-                if (idx >= 0)
-                {
-                    if (qty == 0)
-                    {
-                        list.RemoveAt(idx);
-                    }
-                    else
-                    {
-                        MarketDepthLevel lvl = list[idx];
-
-                        if (isAsk)
-                        {
-                            lvl.Ask = qty;
-                        }
-                        else
-                        {
-                            lvl.Bid = qty;
-                        }
-
-                        list[idx] = lvl;
-                    }
-
-                    return;
-                }
-
-                if (qty == 0)
-                {
-                    return;
-                }
-
-                MarketDepthLevel lvlNew = isAsk
-                    ? new MarketDepthLevel { Price = price, Ask = qty }
-                    : new MarketDepthLevel { Price = price, Bid = qty };
-
-                int pos = 0;
-                while (pos < list.Count &&
-                       (isAsk ? list[pos].Price < price
-                              : list[pos].Price > price))
-                {
-                    pos++;
-                }
-
-                list.Insert(pos, lvlNew);
-
-                if (list.Count > level)
-                {
-                    list.RemoveAt(20);
-                }
-            }
-
-            private void ApplySnapshotSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk, int maxLevels = 20)
-            {
-                dest.Clear();
-
-                if (side == null || side.Count == 0)
-                {
-                    return;
-                }
-
-                int take = Math.Min(maxLevels, side.Count);
-
-                for (int i = 0; i < take; i++)
-                {
-                    if (side[i] == null || side[i].Count < 2)
-                    {
-                        continue;
-                    }
-
-                    decimal p = (side[i][0]).ToDecimal();
-                    decimal q = (side[i][1]).ToDecimal();
-
-                    if (q <= 0m)
-                    {
-                        continue;
-                    }
-
-                    dest.Add(isAsk
-                        ? new MarketDepthLevel { Price = (double)p, Ask = (double)q }
-                        : new MarketDepthLevel { Price = (double)p, Bid = (double)q });
-                }
-
-                if (isAsk)
-                {
-                    dest.Sort(CompareAsk);
-                }
-                else
-                {
-                    dest.Sort(CompareBid);
-                }
-
-                if (dest.Count > maxLevels)
-                {
-                    dest.RemoveRange(maxLevels, dest.Count - maxLevels);
-                }
-            }
-
-            private void ApplyIncrementSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk)
-            {
-                if (side == null)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < side.Count; i++)
-                {
-                    decimal p = (side[i][0]).ToDecimal();
-                    decimal q = (side[i][1]).ToDecimal();
-
-                    UpsertLevel(dest, (double)p, (double)q, isAsk);
-                }
-            }
-
             private void SnapshotDepth(string message)
             {
                 try
@@ -1565,7 +1513,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (string.IsNullOrWhiteSpace(symbol))
                     {
-                        SendLogMessage("SnapshotDepth: empty symbol in payload", LogMessageType.Error);
+                        SendLogMessage("XTFutures SnapshotDepth: empty symbol in payload", LogMessageType.Error);
                         return;
                     }
 
@@ -1628,11 +1576,139 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("SnapshotDepth error: " + exception, LogMessageType.Error);
+                    SendLogMessage("XTFutures SnapshotDepth error: " + exception, LogMessageType.Error);
                 }
             }
 
-            private readonly object _mdLock = new object();
+            private void UpsertLevel(List<MarketDepthLevel> list, double price, double qty, bool isAsk)
+            {
+                int idx = -1;
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (list[i].Price == price)
+                    {
+                        idx = i;
+                        break;
+                    }
+                }
+
+                if (idx >= 0)
+                {
+                    if (qty == 0)
+                    {
+                        list.RemoveAt(idx);
+                    }
+                    else
+                    {
+                        MarketDepthLevel lvl = list[idx];
+
+                        if (isAsk)
+                        {
+                            lvl.Ask = qty;
+                        }
+                        else
+                        {
+                            lvl.Bid = qty;
+                        }
+
+                        list[idx] = lvl;
+                    }
+
+                    return;
+                }
+
+                if (qty == 0)
+                {
+                    return;
+                }
+
+                MarketDepthLevel lvlNew = isAsk
+                    ? new MarketDepthLevel { Price = price, Ask = qty }
+                    : new MarketDepthLevel { Price = price, Bid = qty };
+
+                int pos = 0;
+
+                while (pos < list.Count &&
+                       (isAsk ? list[pos].Price < price
+                              : list[pos].Price > price))
+                {
+                    pos++;
+                }
+
+                list.Insert(pos, lvlNew);
+
+                if (list.Count > level)
+                {
+                    list.RemoveAt(20);
+                }
+            }
+
+            private void ApplySnapshotSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk, int maxLevels = 20)
+            {
+                dest.Clear();
+
+                if (side == null || side.Count == 0)
+                {
+                    return;
+                }
+
+                int take = Math.Min(maxLevels, side.Count);
+
+                for (int i = 0; i < take; i++)
+                {
+                    if (side[i] == null || side[i].Count < 2)
+                    {
+                        continue;
+                    }
+
+                    decimal price = (side[i][0]).ToDecimal();
+                    decimal qty = (side[i][1]).ToDecimal();
+
+                    if (qty <= 0m)
+                    {
+                        continue;
+                    }
+
+                    dest.Add(isAsk
+                        ? new MarketDepthLevel { Price = (double)price, Ask = (double)qty }
+                        : new MarketDepthLevel { Price = (double)price, Bid = (double)qty });
+                }
+
+                if (isAsk)
+                {
+                    dest.Sort(CompareAsk);
+                }
+                else
+                {
+                    dest.Sort(CompareBid);
+                }
+
+                if (dest.Count > maxLevels)
+                {
+                    dest.RemoveRange(maxLevels, dest.Count - maxLevels);
+                }
+            }
+
+            private int CompareAsk(MarketDepthLevel x, MarketDepthLevel y) => x.Price.CompareTo(y.Price);
+
+            private int CompareBid(MarketDepthLevel x, MarketDepthLevel y) => y.Price.CompareTo(x.Price);
+
+            private void ApplyIncrementSide(List<List<string>> side, List<MarketDepthLevel> dest, bool isAsk)
+            {
+                if (side == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < side.Count; i++)
+                {
+                    decimal p = (side[i][0]).ToDecimal();
+                    decimal q = (side[i][1]).ToDecimal();
+
+                    UpsertLevel(dest, (double)p, (double)q, isAsk);
+                }
+            }
 
             private readonly Dictionary<string, List<XTFuturesUpdateDepth>> _bufferBySymbol =
                 new Dictionary<string, List<XTFuturesUpdateDepth>>();
@@ -1647,6 +1723,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                        <XTFuturesResponseWebSocket<XTFuturesUpdateDepth>>(message);
 
                     XTFuturesUpdateDepth depth = resp?.data;
+
                     if (depth == null)
                     {
                         return;
@@ -1656,7 +1733,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (string.IsNullOrWhiteSpace(symbol))
                     {
-                        SendLogMessage("UpdateDepth: empty symbol in payload", LogMessageType.Error);
+                        SendLogMessage("XTFutures UpdateDepth: empty symbol in payload", LogMessageType.Error);
                         return;
                     }
 
@@ -1712,7 +1789,39 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("UpdateDepth error: " + exception, LogMessageType.Error);
+                    SendLogMessage("XTFutures UpdateDepth error: " + exception, LogMessageType.Error);
+                }
+            }
+
+            public event Action<MyTrade> MyTradeEvent;
+
+            public event Action<Trade> NewTradesEvent;
+
+            private void UpdateTrade(string message)
+            {
+                try
+                {
+                    XTFuturesResponseWebSocket<XTFuturesPublicTrade> responseTrade = JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesPublicTrade>>(message);
+
+                    if (responseTrade?.data == null)
+                    {
+                        return;
+                    }
+
+                    Trade trade = new Trade();
+
+                    trade.SecurityNameCode = responseTrade.data?.s ?? string.Empty;
+                    trade.Price = (responseTrade.data?.p).ToDecimal();
+                    trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data?.t));
+                    trade.Volume = (responseTrade.data?.a).ToDecimal();
+                    trade.Side = responseTrade.data?.m?.Equals("BID", StringComparison.OrdinalIgnoreCase) == true ? Side.Buy : Side.Sell;
+                    trade.Id = Convert.ToInt64(responseTrade.data?.t).ToString();
+
+                    NewTradesEvent?.Invoke(trade);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("XTFutures UpdateTrade error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -1750,7 +1859,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             decimal qtyAbs;
                             string qtyStr = response.data.quantity;
                             if (!decimal.TryParse(qtyStr, NumberStyles.Any, CultureInfo.InvariantCulture, out qtyAbs))
-                                qtyAbs = 0m;
+                            {
+                                qtyAbs = 0m; 
+                            }
 
                             if (qtyAbs > 0m)
                             {
@@ -1763,20 +1874,16 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
                     catch (Exception exception)
                     {
-                        SendLogMessage("Update positions by WS trade failed: " + exception, LogMessageType.Error);
+                        SendLogMessage("XTFutures Update positions by WS trade failed: " + exception, LogMessageType.Error);
                     }
-
-                    SendLogMessage($"Private  tradeId={myTrade.NumberTrade} ordPar={myTrade.NumberOrderParent} sym={myTrade.SecurityNameCode} side={myTrade.Side} price={myTrade.Price} qty={myTrade.Volume}", LogMessageType.Error);
 
                     MyTradeEvent?.Invoke(myTrade);
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("UpdateMyTrade error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures UpdateMyTrade error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
-
-            private readonly object _posLock = new object();
 
             private void ApplyTradeToPositions(string symbol, string orderSide, string positionSide, decimal qtyAbs)
             {
@@ -1790,11 +1897,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 string code = symbol + "_" + positionSide;
 
                 decimal delta;
+
                 if (positionSide == "LONG")
                 {
                     delta = (orderSide == "BUY") ? +qtyAbs : -qtyAbs;
                 }
-                else // SHORT
+                else 
                 {
                     delta = (orderSide == "SELL") ? -qtyAbs : +qtyAbs;
                 }
@@ -1828,6 +1936,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
 
                     pos.ValueCurrent += delta;
+
                     portfolio.SetNewPosition(pos);
                 }
 
@@ -1873,7 +1982,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("UpdatePortfolio error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures UpdatePortfolio error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -1934,7 +2043,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("UpdateOrder error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures UpdateOrder error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -1984,13 +2093,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private readonly RateGate _rateGatePosition = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
-            private readonly RateGate _rateGateChangeOrderPrice = new RateGate(1, TimeSpan.FromMilliseconds(300));
-
-            private readonly RateGate _rateGateOpenOrder = new RateGate(1, TimeSpan.FromMilliseconds(300));
-
-            public event Action<MyTrade> MyTradeEvent;
-
-            public event Action<Trade> NewTradesEvent;
 
             public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
@@ -2010,14 +2112,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     if (order == null || string.IsNullOrWhiteSpace(order.SecurityNameCode))
                     {
-                        SendLogMessage("SendOrder> bad order or symbol", LogMessageType.Error);
+                        SendLogMessage("XTFutures SendOrder> bad order or symbol", LogMessageType.Error);
                         CreateOrderFail(order);
                         return;
                     }
 
                     if (order.Volume <= 0)
                     {
-                        SendLogMessage($"SendOrder> bad volume {order.Volume}", LogMessageType.Error);
+                        SendLogMessage($"XTFutures SendOrder> bad volume {order.Volume}", LogMessageType.Error);
                         CreateOrderFail(order);
                         return;
                     }
@@ -2025,7 +2127,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     bool isMarket = order.TypeOrder == OrderPriceType.Market;
                     if (!isMarket && order.Price <= 0)
                     {
-                        SendLogMessage($"SendOrder> bad price {order.Price}", LogMessageType.Error);
+                        SendLogMessage($"XTFutures SendOrder> bad price {order.Price}", LogMessageType.Error);
                         CreateOrderFail(order);
                         return;
                     }
@@ -2037,6 +2139,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     // --- Определяем positionSide из текущих позиций (user задаёт только BUY/SELL)
                     // SELL: если есть LONG>0 → уменьшаем LONG; иначе открываем SHORT
                     // BUY:  если есть SHORT>0 → уменьшаем SHORT; иначе открываем  LONG
+
                     decimal longAbs = GetSidePositionAbs(symbol, "LONG");
                     decimal shortAbs = GetSidePositionAbs(symbol, "SHORT");
 
@@ -2071,10 +2174,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     // MARKET — без price/timeInForce; LIMIT — GTC.
                     // Если уменьшаем (reduce), чтобы не открыть противоположную сторону остатком — ставим IOC.
+
                     string tif = null;
+
                     if (!isMarket)
                     {
-                        tif = isReduceIntent ? "IOC" : "GTC";// IOC уменьшаем иначе увеличиваем
+                        tif = isReduceIntent ? "IOC" : "GTC";// IOC уменьшаем , иначе увеличиваем
                     }
 
                     var data = new XTFuturesSendOrder
@@ -2095,7 +2200,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (responseMessage == null)
                     {
-                        SendLogMessage("SendOrder: response is null", LogMessageType.Error);
+                        SendLogMessage("XTFutures SendOrder: response is null", LogMessageType.Error);
                         CreateOrderFail(order);
                         return;
                     }
@@ -2112,7 +2217,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         order.NumberMarket = stateResponse.result;
 
-                        SendLogMessage($"Order sent success. NumUser: {order.NumberUser}, OrderId: {order.NumberMarket}", LogMessageType.Trade);
+                        SendLogMessage($"XTFutures Order sent success. NumUser: {order.NumberUser}, OrderId: {order.NumberMarket}", LogMessageType.Trade);
 
                         if (isMarket)
                         {
@@ -2128,13 +2233,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
                     else
                     {
-                        SendLogMessage($"SendOrder Fail: {stateResponse.error.code}, {stateResponse.error.msg}", LogMessageType.Error);
+                        SendLogMessage($"XTFutures SendOrder Fail: {stateResponse.error.code}, {stateResponse.error.msg}", LogMessageType.Error);
                         CreateOrderFail(order);
                     }
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("SendOrder error: " + exception, LogMessageType.Error);
+                    SendLogMessage("XTFutures SendOrder error: " + exception, LogMessageType.Error);
                 }
             }
 
@@ -2158,18 +2263,18 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     for (int i = 0; i < list.Count; i++)
                     {
-                        var p = list[i];
+                        var pos = list[i];
 
-                        if (p == null || string.IsNullOrWhiteSpace(p.SecurityNameCode))
+                        if (pos == null || string.IsNullOrWhiteSpace(pos.SecurityNameCode))
                         {
                             continue;
                         }
 
-                        string name = p.SecurityNameCode;
+                        string name = pos.SecurityNameCode;
 
                         if (name.Equals(keyUnd, StringComparison.OrdinalIgnoreCase))
                         {
-                            return Math.Abs(p.ValueCurrent);
+                            return Math.Abs(pos.ValueCurrent);
                         }
                     }
                 }
@@ -2183,32 +2288,32 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public void ChangeOrderPrice(Order order, decimal newPrice)
             {
-                _rateGateChangeOrderPrice.WaitToProceed();
+                _rateGateSendOrder.WaitToProceed();
 
                 try
                 {
                     if (order.TypeOrder == OrderPriceType.Market || order.State == OrderStateType.Done)
                     {
-                        SendLogMessage("ChangeOrderPrice> Can't change price for  Order Market", LogMessageType.Error);
+                        SendLogMessage("XTFutures ChangeOrderPrice> Can't change price for  Order Market", LogMessageType.Error);
                         return;
                     }
 
                     var body = new
                     {
                         orderId = long.Parse(order.NumberMarket, CultureInfo.InvariantCulture),
-                        price = newPrice.ToString("0.#######", CultureInfo.InvariantCulture),
-                        origQty = order.Volume.ToString("0.#######", CultureInfo.InvariantCulture)
+                        price = newPrice.ToString("0.#####", CultureInfo.InvariantCulture),
+                        origQty = order.Volume.ToString("0.#####", CultureInfo.InvariantCulture)
                     };
 
                     if (newPrice <= 0)
                     {
-                        SendLogMessage($"ChangeOrderPrice> bad price: {newPrice}", LogMessageType.Error);
+                        SendLogMessage($"XTFutures ChangeOrderPrice> bad price: {newPrice}", LogMessageType.Error);
                         return;
                     }
 
                     if (string.IsNullOrWhiteSpace(order.NumberMarket))
                     {
-                        SendLogMessage("ChangeOrderPrice> empty exchange order id (NumberMarket)", LogMessageType.Error);
+                        SendLogMessage("XTFutures ChangeOrderPrice> empty exchange order id (NumberMarket)", LogMessageType.Error);
                         return;
                     }
 
@@ -2230,19 +2335,19 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             order.Price = newPrice;
                             order.Volume = order.Volume;
 
-                            SendLogMessage($"Success! Order {order.NumberMarket} updated." +
+                            SendLogMessage($"XTFutures Success! Order {order.NumberMarket} updated." +
                                 $" New orderId={stateResponse.result}, price={newPrice}, qty={order.Volume}", LogMessageType.Error);
                         }
                         else
                         {
-                            SendLogMessage($"Update returned an empty result {response.Content}", LogMessageType.Error);
+                            SendLogMessage($"XTFutures Update returned an empty result {response.Content}", LogMessageType.Error);
                         }
                     }
                     else
                     {
                         string code = stateResponse.error.code;
                         string msg = stateResponse.error.msg;
-                        SendLogMessage($"Error: returnCode={stateResponse?.returnCode}, code={code}," +
+                        SendLogMessage($"XTFutures Error: returnCode={stateResponse?.returnCode}, code={code}," +
                             $" msg={msg}, raw={response.Content}", LogMessageType.Error);
                     }
                 }
@@ -2273,12 +2378,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
                     else
                     {
-                        SendLogMessage($"CancelAllOrders>  error State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                        SendLogMessage($"XTFutures CancelAllOrders>  error State Code: {responseMessage.StatusCode}", LogMessageType.Error);
                     }
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("CancelAllOrders error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures CancelAllOrders error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -2304,18 +2409,18 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
                         else
                         {
-                            SendLogMessage($"CancelAllOrdersToSecurity error, Code: {stateResponse.returnCode}\n"
+                            SendLogMessage($"XTFutures CancelAllOrdersToSecurity error, Code: {stateResponse.returnCode}\n"
                                 + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
                         }
                     }
                     else
                     {
-                        SendLogMessage($"CancelAllOrdersToSecurity>  State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                        SendLogMessage($"XTFutures CancelAllOrdersToSecurity>  State Code: {responseMessage.StatusCode}", LogMessageType.Error);
                     }
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("CancelAllOrdersToSecurity error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures CancelAllOrdersToSecurity error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -2343,13 +2448,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
-                            SendLogMessage($"Successfully canceled the order, order Id: {stateResponse.result}", LogMessageType.Trade);
+                            SendLogMessage($"XTFutures Successfully canceled the order, order Id: {stateResponse.result}", LogMessageType.Trade);
                             return true;
                         }
                         else
                         {
                             GetOrderStatus(order);
-                            SendLogMessage($"CancelOrder error, Code: {stateResponse.returnCode}\n"
+                            SendLogMessage($"XTFutures CancelOrder error, Code: {stateResponse.returnCode}\n"
                                 + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
                         }
                     }
@@ -2367,7 +2472,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("CancelOrder error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures CancelOrder error: " + exception.ToString(), LogMessageType.Error);
                 }
 
                 return false;
@@ -2465,54 +2570,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("CreateQueryPositions error: " + exception, LogMessageType.Error);
-                }
-            }
-
-            private void UpdatePortfolioRest(List<XTFuturesBalance> list, bool isUpdateValueBegin)
-            {
-                try
-                {
-                    if (_portfolios == null || _portfolios.Count == 0 || list == null || list.Count == 0)
-                    {
-                        return;
-                    }
-
-                    Portfolio portfolio = _portfolios[0];
-
-                    XTFuturesBalance coin = list[0];
-
-                    decimal wallet = coin.walletBalance.ToDecimal();
-                    decimal isoMargin = coin.isolatedMargin.ToDecimal();
-                    decimal crossMargin = coin.crossedMargin.ToDecimal();
-                    decimal orderFrozen = coin.openOrderMarginFrozen.ToDecimal();
-                    decimal locked = isoMargin + crossMargin + orderFrozen;
-                    decimal available = wallet - locked;
-
-                    if (isUpdateValueBegin)
-                    {
-                        portfolio.ValueBegin = 1;
-                    }
-
-                    portfolio.ValueCurrent = 1;
-
-                    string coinCode = (coin.coin.ToUpper() ?? "USDT");
-
-                    PositionOnBoard moneyPos = new PositionOnBoard();
-
-                    moneyPos.PortfolioName = portfolio.Number;
-                    moneyPos.SecurityNameCode = coinCode;
-                    moneyPos.ValueCurrent = Math.Round(available, 4);
-                    moneyPos.ValueBlocked = Math.Round(locked, 4);
-                    moneyPos.ValueBegin = isUpdateValueBegin ? Math.Round(available, 4) : 0m;
-
-                    portfolio.SetNewPosition(moneyPos);
-
-                    PortfolioEvent?.Invoke(_portfolios);
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("UpdatePortfolioRest error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("XTFutures CreateQueryPositions error: " + exception, LogMessageType.Error);
                 }
             }
 
@@ -2524,7 +2582,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (orders == null || orders.Count == 0)
                     {
-                        SendLogMessage("GetActiveOrders> no active orders", LogMessageType.System);
+                        SendLogMessage("XTFutures GetActiveOrders> no active orders", LogMessageType.System);
                         return;
                     }
 
@@ -2536,13 +2594,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("GetActiveOrders error: " + exception, LogMessageType.Error);
+                    SendLogMessage("XTFutures GetActiveOrders error: " + exception, LogMessageType.Error);
                 }
             }
 
             private List<Order> FetchAllActiveOrders()
             {
-                _rateGateOpenOrder.WaitToProceed();
+                _rateGateSendOrder.WaitToProceed();
 
                 try
                 {
@@ -2550,7 +2608,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (responseMessage == null || responseMessage.StatusCode != HttpStatusCode.OK)
                     {
-                        SendLogMessage($"FetchAllActiveOrders> bad HTTP status: {responseMessage?.StatusCode}", LogMessageType.Error);
+                        SendLogMessage($"XTFutures FetchAllActiveOrders> bad HTTP status: {responseMessage?.StatusCode}", LogMessageType.Error);
                         return new List<Order>();
                     }
 
@@ -2608,14 +2666,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("FetchAllActiveOrders error: " + exception, LogMessageType.Error);
+                    SendLogMessage("XTFutures FetchAllActiveOrders error: " + exception, LogMessageType.Error);
                     return new List<Order>();
                 }
             }
 
             private List<Order> GetOrderHistory()
             {
-                _rateGateOpenOrder.WaitToProceed();
+                _rateGateSendOrder.WaitToProceed();
 
                 try
                 {
@@ -2699,7 +2757,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (stateResponse == null)
                     {
-                        SendLogMessage("GetAllActiveOrders: deserialization returned null", LogMessageType.Error);
+                        SendLogMessage("XTFutures GetAllActiveOrders: deserialization returned null", LogMessageType.Error);
                         return null;
                     }
 
@@ -2739,47 +2797,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("GetAllActiveOrders error: " + exception, LogMessageType.Error);
+                    SendLogMessage("XTFutures GetAllActiveOrders error: " + exception, LogMessageType.Error);
                     return null;
                 }
 
                 return new List<Order>();
             }
-            public void SaveOrdersToFile(List<Order> orders, string filePath)
-            {
-                try
-                {
-                    using (StreamWriter writer = new StreamWriter(filePath, false))
-                    {
-                        for (int i = 0; i < orders.Count; i++)
-                        {
-                            Order order = orders[i];
-
-                            if (order == null)
-                            {
-                                continue;
-                            }
-
-                            string line =
-                                "№: " + i +
-                                " | Market: " + order.NumberMarket +
-                                " | User: " + order.NumberUser +
-                                " | Security: " + order.SecurityNameCode +
-                                " | State: " + order.State +
-                                " | Create: " + order.TimeCreate.ToString("yyyy-MM-dd HH:mm:ss") +
-                                " | Callback: " + order.TimeCallBack.ToString("yyyy-MM-dd HH:mm:ss");
-
-                            writer.WriteLine(line);
-                        }
-                    }
-
-                    SendLogMessage("Orders list saved to: " + filePath, LogMessageType.System);
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("Error saving orders to file: " + exception.ToString(), LogMessageType.Error);
-                }
-            }
+            
             public List<Order> GetActiveOrders(int startIndex, int count)
             {
                 if (startIndex < 0)
@@ -2835,7 +2859,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public OrderStateType GetOrderStatus(Order order)
             {
-                _rateGateOpenOrder.WaitToProceed();
+                _rateGateSendOrder.WaitToProceed();
 
                 try
                 {
@@ -2848,6 +2872,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     Order orderOnMarket = null;
 
                     List<Order> ordersActive = GetActiveOrders(0, 100);
+
                     List<Order> ordersHistory = GetHistoricalOrders(0, 100);
 
                     if (!string.IsNullOrEmpty(order.NumberMarket))
@@ -2921,119 +2946,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage($"GetOrderStatus> exception: {exception.Message}", LogMessageType.Error);
+                    SendLogMessage($"XTFutures GetOrderStatus> exception: {exception.Message}", LogMessageType.Error);
                     return OrderStateType.None;
                 }
             }
-
-            #endregion
-
-            #region 12 Queries
-
-            private List<string> _subscribedSecurities = new List<string>();
-
-            private readonly RateGate _rateGateGetToken = new RateGate(1, TimeSpan.FromMilliseconds(10000));
-
-            private string GetListenKey()
-            {
-                _rateGateGetToken.WaitToProceed();
-
-                string listenKey = "";
-
-                try
-                {
-                    IRestResponse responseMessage = CreatePrivateQuery("/future/user/v1/user/listen-key", Method.GET);
-
-                    XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
-
-                    if (stateResponse == null)
-                    {
-                        return null;
-                    }
-
-                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
-                    {
-                        if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
-                        {
-                            SendLogMessage($"ListenKey successfully received.", LogMessageType.Connect);
-                            listenKey = stateResponse?.result;
-                        }
-                        else
-                        {
-                            SendLogMessage($"GetListenKey error, Code: {stateResponse.returnCode}\n"
-                                           + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
-                        }
-                    }
-                    else
-                    {
-                        SendLogMessage($"Receiving Token>  State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                        if (stateResponse != null && stateResponse.returnCode != null)
-                        {
-                            SendLogMessage($"GetListenKey error, Code: {stateResponse.returnCode}\n"
-                                           + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
-                        }
-                    }
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
-                }
-
-                return listenKey;
-            }
-
-            private readonly RateGate _rateGateGetPortfolio = new RateGate(1, TimeSpan.FromMilliseconds(333));
-
-            private void CreateQueryPortfolio(bool isUpdateValueBegin)
-            {
-                _rateGateGetPortfolio.WaitToProceed();
-
-                try
-                {
-                    IRestResponse response = CreatePrivateQuery("/future/user/v1/compat/balance/list", Method.GET);
-
-                    if (response == null)
-                    {
-                        return;
-                    }
-
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        return;
-                    }
-
-                    XTFuturesResponseRestNew<List<XTFuturesBalance>> stateResponse =
-                        JsonConvert.DeserializeObject<XTFuturesResponseRestNew<List<XTFuturesBalance>>>(response.Content);
-
-                    if (stateResponse == null)
-                    {
-                        return;
-                    }
-
-                    if (stateResponse.rc == "0" &&
-                        string.Equals(stateResponse.mc, "SUCCESS", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (_portfolios == null || _portfolios.Count == 0)
-                        {
-                            GetNewPortfolio();
-                        }
-
-                        UpdatePortfolioRest(stateResponse.result, isUpdateValueBegin);
-                    }
-                    else
-                    {
-                        SendLogMessage(
-                            $"CreateQueryPortfolio error, Code: {stateResponse.rc} Message code: {stateResponse.mc}",
-                            LogMessageType.Error);
-                    }
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("CreateQueryPortfolio error: " + exception, LogMessageType.Error);
-                }
-            }
-
             private readonly RateGate _rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
             private void CreateQueryMyTrade(string orderId)
@@ -3097,6 +3013,61 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     SendLogMessage("CreateQueryMyTrade error: " + exception.ToString(), LogMessageType.Error);
                 }
+            }
+
+            #endregion
+
+            #region 12 Queries
+
+            private readonly RateGate _rateGateListenKey = new RateGate(1, TimeSpan.FromMilliseconds(10000));
+
+            private string GetListenKey()
+            {
+                _rateGateListenKey.WaitToProceed();
+
+                string listenKey = "";
+
+                try
+                {
+                    IRestResponse responseMessage = CreatePrivateQuery("/future/user/v1/user/listen-key", Method.GET);
+
+                    XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
+
+                    if (stateResponse == null)
+                    {
+                        return null;
+                    }
+
+                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                    {
+                        if (stateResponse.returnCode.Equals("0") && stateResponse.msgInfo.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
+                        {
+                            SendLogMessage($"XTFutures ListenKey successfully received.", LogMessageType.Connect);
+                            listenKey = stateResponse?.result;
+                        }
+                        else
+                        {
+                            SendLogMessage($"XTFutures GetListenKey error, Code: {stateResponse.returnCode}\n"
+                                           + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"XTFutures GetListenKey>  State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                        if (stateResponse != null && stateResponse.returnCode != null)
+                        {
+                            SendLogMessage($"GetListenKey error, Code: {stateResponse.returnCode}\n"
+                                           + $"Message code: {stateResponse.msgInfo}", LogMessageType.Error);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
+
+                return listenKey;
             }
 
             IRestResponse CreatePublicQuery(string path, Method method, string parameters = "")
@@ -3185,7 +3156,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("SendPrivate error: " + exception, LogMessageType.Error);
+                    SendLogMessage("XTFutures SendPrivate error: " + exception, LogMessageType.Error);
                     return null;
                 }
             }
@@ -3208,6 +3179,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 return false;
             }
+
+            public event Action<News> NewsEvent;
 
             #endregion
 
