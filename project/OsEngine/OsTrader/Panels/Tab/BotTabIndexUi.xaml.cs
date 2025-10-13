@@ -503,7 +503,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             List<Security> secInIndex = _spread.SecuritiesInIndex;
 
-            for (int i = 0; i < _spread.Tabs.Count; i++)
+            for (int i = 0; _spread.Tabs != null && i < _spread.Tabs.Count; i++)
             {
                 DataGridViewRow row = new DataGridViewRow();
 
