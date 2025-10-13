@@ -457,6 +457,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             return _chartMaster.GetChartLabel();
         }
 
+        /// <summary>
+        /// Add custom element to the chart
+        /// </summary>
+        public void SetChartElement(IChartElement element)
+        {
+            _chartMaster.SetChartElement(element);
+        }
+
         #endregion
 
         #region Storage, creation and deletion of securities in index
