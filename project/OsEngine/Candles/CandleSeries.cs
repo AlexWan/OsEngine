@@ -327,7 +327,8 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (CandlesAll == null || CandlesAll.Count == 0)
+            if (CandlesAll == null 
+                || CandlesAll.Count == 0)
             {
                 return;
             }
@@ -342,9 +343,20 @@ namespace OsEngine.Entity
                 return;
             }
 
-            Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
+            Candle lastCandle = null;
+            
+            try
+            {
+                lastCandle = CandlesAll[CandlesAll.Count - 1];
+            }
+            catch
+            {
+                return;
+            }
+            
 
-            if (lastCandle.State == CandleState.Finished)
+            if (lastCandle == null
+                || lastCandle.State == CandleState.Finished)
             {
                 return;
             }
@@ -480,7 +492,6 @@ namespace OsEngine.Entity
             {
                 return;
             }
-
 
             if (marketDepth.Bids == null ||
                 marketDepth.Bids.Count == 0 ||
