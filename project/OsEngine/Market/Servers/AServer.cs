@@ -2312,7 +2312,7 @@ namespace OsEngine.Market.Servers
 
                     _candleManager.StartSeries(series);
 
-                    SendLogMessage(OsLocalization.Market.Message14 + series.Security.Name +
+                    SendLogMessage(OsLocalization.Market.Message14 + series.Security.Name + " " +
                                    OsLocalization.Market.Message15 + series.TimeFrame +
                                    OsLocalization.Market.Message16, LogMessageType.System);
 
