@@ -277,7 +277,17 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public string[] IpAddresServer
         {
-            get { return null; }
+            get
+            {
+                string[] pingIpDomens = new string[]
+                {
+                    "fapi.xt.com",
+                    "fstream.xt.com/ws/user",
+                    "fstream.xt.com/ws/market"
+                };
+
+                return pingIpDomens;
+            }
         }
 
         #endregion

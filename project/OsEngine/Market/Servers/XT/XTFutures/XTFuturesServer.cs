@@ -2005,7 +2005,16 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     newOrder.SecurityNameCode = item.symbol;
                     newOrder.SecurityClassCode = GetNameClass(item.symbol);
                     newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                   
+                    if (!string.IsNullOrEmpty(item.updatedTime))
+                    {
+                        newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                    }
+                    else
+                    {
+                        newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
+                    }
+                      
                     newOrder.NumberMarket = item.orderId;
                     newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
                     newOrder.Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
@@ -2644,7 +2653,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             activeOrder.SecurityNameCode = item.symbol;
                             activeOrder.ServerType = ServerType.XTFutures;
                             activeOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-                            activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                            if (!string.IsNullOrEmpty(item.updatedTime))
+                            {
+                                activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                            }
+                            else
+                            {
+                                activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
+                            }
+
                             activeOrder.Volume = item.origQty.ToDecimal();
                             activeOrder.Price = item.price.ToDecimal();
                             activeOrder.Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
@@ -2718,7 +2735,16 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             historyOrder.Price = item.price.ToDecimal();
                             historyOrder.PortfolioNumber = _portfolioName;
                             historyOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-                            historyOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                            
+                            if (!string.IsNullOrEmpty(item.updatedTime))
+                            {
+                                historyOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                            }
+                            else
+                            {
+                                historyOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
+                            }
+
                             historyOrder.ServerType = ServerType.XTFutures;
 
                             if (historyOrder.State == OrderStateType.Done)
@@ -2778,7 +2804,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             activeOrder.SecurityNameCode = item.symbol;
                             activeOrder.ServerType = ServerType.XTFutures;
                             activeOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-                            activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                            if (!string.IsNullOrEmpty(item.updatedTime))
+                            {
+                                activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                            }
+                            else
+                            {
+                                activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
+                            }
+
                             activeOrder.Volume = item.origQty.ToDecimal();
                             activeOrder.Price = item.price.ToDecimal();
                             activeOrder.Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
@@ -2950,6 +2984,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     return OrderStateType.None;
                 }
             }
+
             private readonly RateGate _rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
             private void CreateQueryMyTrade(string orderId)
