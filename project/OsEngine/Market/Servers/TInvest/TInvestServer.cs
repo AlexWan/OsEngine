@@ -1502,7 +1502,7 @@ namespace OsEngine.Market.Servers.TInvest
                     HttpHandler = new SocketsHttpHandler()
                     {
                         // KeepAlive настройки
-                        KeepAlivePingDelay = TimeSpan.FromSeconds(30),
+                        KeepAlivePingDelay = TimeSpan.FromSeconds(10),
                         KeepAlivePingTimeout = TimeSpan.FromSeconds(5),
                         KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,
 
