@@ -533,6 +533,7 @@ namespace OsEngine.Market.Servers.OKX
                     //security.Lot = item.ctVal.ToDecimal();
                     security.Expiration = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.expTime));
                     security.OptionType = item.optType == "P" ? OptionType.Put : OptionType.Call;
+                    security.Strike = item.stk.ToDecimal();
 
                     string baseName = item.uly + "T"; // example: BTC-USD -> BTC-USDT
 
