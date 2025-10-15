@@ -473,6 +473,7 @@ namespace OsEngine.Market.Servers.OKX
                     security.MinTradeAmount = item.minSz.ToDecimal() * item.ctVal.ToDecimal();
                     security.VolumeStep = item.lotSz.ToDecimal() * item.ctVal.ToDecimal();
                     security.UnderlyingAsset = item.uly;
+                    security.Expiration = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.expTime));
                 }
 
                 if (securityType == SecurityType.Option)
@@ -488,6 +489,7 @@ namespace OsEngine.Market.Servers.OKX
 
                     //security.Lot = item.ctVal.ToDecimal();
                     security.UnderlyingAsset = item.uly;
+                    security.Expiration = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.expTime));
                 }
 
                 security.Exchange = ServerType.OKX.ToString();
