@@ -472,6 +472,7 @@ namespace OsEngine.Market.Servers.OKX
                     security.NameId = item.instId + "_" + item.ctVal.ToDecimal();
                     security.MinTradeAmount = item.minSz.ToDecimal() * item.ctVal.ToDecimal();
                     security.VolumeStep = item.lotSz.ToDecimal() * item.ctVal.ToDecimal();
+                    security.UnderlyingAsset = item.uly;
                 }
 
                 if (securityType == SecurityType.Option)
@@ -486,6 +487,7 @@ namespace OsEngine.Market.Servers.OKX
                     }
 
                     //security.Lot = item.ctVal.ToDecimal();
+                    security.UnderlyingAsset = item.uly;
                 }
 
                 security.Exchange = ServerType.OKX.ToString();
