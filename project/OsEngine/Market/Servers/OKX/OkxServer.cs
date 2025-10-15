@@ -551,7 +551,7 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         // 2. Find the first quarterly future that expires AFTER the option expires.
                         var nextFuture = quarterlyFutures
-                            .Where(f => f.Expiration > security.Expiration)
+                            .Where(f => f.Expiration >= security.Expiration)
                             .OrderBy(f => f.Expiration)
                             .FirstOrDefault();
 
@@ -1854,7 +1854,7 @@ namespace OsEngine.Market.Servers.OKX
                     if (action.@event != null && action.@event.Contains("subscribe"))
                     {
                         //ignore
-                        SendLogMessage("[WS Public] Got subscribe msg: " + action.msg, LogMessageType.System);
+                        //SendLogMessage("[WS Public] Got subscribe msg: " + action.msg, LogMessageType.System);
                     }
                     else if (action.arg != null)
                     {
