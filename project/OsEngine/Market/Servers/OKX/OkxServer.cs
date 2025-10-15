@@ -1298,6 +1298,7 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
                     message += OsLocalization.Market.Message102;
+                    message += $"Server: {e.Code} {e.Reason}";
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
@@ -1330,6 +1331,11 @@ namespace OsEngine.Market.Servers.OKX
                 if (e.Data.Contains("login"))
                 {
                     SubscribePrivate();
+                }
+
+                if (e.Data.Contains("error"))
+                {
+                    SendLogMessage("Error received from server: "+ e.Data.ToString(), LogMessageType.Error);
                 }
 
                 if (FIFOListWebSocketPrivateMessage == null)
