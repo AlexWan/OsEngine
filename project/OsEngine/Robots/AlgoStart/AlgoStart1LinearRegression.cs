@@ -67,7 +67,7 @@ namespace OsEngine.Robots.AlgoStart
             _tradePeriodsSettings = new NonTradePeriods(name);
 
             _tradePeriodsSettings.NonTradePeriod1Start = new TimeOfDay() { Hour = 5, Minute = 0 };
-            _tradePeriodsSettings.NonTradePeriod1End = new TimeOfDay() { Hour = 9, Minute = 55 };
+            _tradePeriodsSettings.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
             _tradePeriodsSettings.NonTradePeriod1OnOff = true;
 
             _tradePeriodsSettings.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
@@ -96,13 +96,13 @@ namespace OsEngine.Robots.AlgoStart
             _icebergCount = CreateParameter("Iceberg orders count", 1, 1, 3, 1);
             _clusterToTrade = CreateParameter("Volatility cluster to trade", 1, 1, 3, 1);
             _clustersLookBack = CreateParameter("Volatility cluster lookBack", 30, 10, 300, 1);
-            _maxPositionsCount = CreateParameter("Max positions ", 20, 1, 50, 4);
+            _maxPositionsCount = CreateParameter("Max positions ", 10, 1, 50, 4);
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
              // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 14, 1.0m, 50, 4);
+            _volume = CreateParameter("Volume", 10, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator settings
