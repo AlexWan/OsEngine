@@ -15,6 +15,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -241,6 +242,12 @@ namespace OsEngine.Market.Servers.OKX
                 SecurityResponse securityResponseSpot = GetSpotSecurities();
                 securityResponseFutures.data.AddRange(securityResponseSpot.data);
 
+                SecurityResponse securityResponseFuturesContracts = GetFuturesContractsSecurities();
+                if (securityResponseFuturesContracts != null && securityResponseFuturesContracts.data != null)
+                {
+                    securityResponseFutures.data.AddRange(securityResponseFuturesContracts.data);
+                }
+
                 if (_useOptions)
                 {
                     _baseOptionSerurities = GetOptionBaseSecurities();
@@ -280,6 +287,36 @@ namespace OsEngine.Market.Servers.OKX
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
                     SendLogMessage($"GetFuturesSecurities - {response.Content}", LogMessageType.Error);
+                }
+
+                SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(response.Content, new SecurityResponse());
+
+                return securityResponse;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private SecurityResponse GetFuturesContractsSecurities()
+        {
+            try
+            {
+                RestRequest requestRest = new RestRequest("/api/v5/public/instruments?instType=FUTURES", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage($"GetFuturesContractsSecurities - {response.Content}", LogMessageType.Error);
                 }
 
                 SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(response.Content, new SecurityResponse());
@@ -421,7 +458,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 SecurityType securityType = SecurityType.CurrencyPair;
 
-                if (item.instType.Equals("SWAP"))
+                if (item.instType.Equals("SWAP") || item.instType.Equals("FUTURES"))
                 {
                     securityType = SecurityType.Futures;
                 }
@@ -464,6 +501,10 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         security.NameClass = "SWAP_USD";
                     }
+                    else if (item.instId.Contains("-USDT-"))
+                    {
+                        security.NameClass = "Futures_USDT";
+                    }
                     else
                     {
                         security.NameClass = "SWAP_" + item.settleCcy;
@@ -472,6 +513,10 @@ namespace OsEngine.Market.Servers.OKX
                     security.NameId = item.instId + "_" + item.ctVal.ToDecimal();
                     security.MinTradeAmount = item.minSz.ToDecimal() * item.ctVal.ToDecimal();
                     security.VolumeStep = item.lotSz.ToDecimal() * item.ctVal.ToDecimal();
+                    security.UnderlyingAsset = item.uly;
+
+                    if (item.expTime != "")
+                        security.Expiration = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.expTime));
                 }
 
                 if (securityType == SecurityType.Option)
@@ -486,6 +531,56 @@ namespace OsEngine.Market.Servers.OKX
                     }
 
                     //security.Lot = item.ctVal.ToDecimal();
+                    security.Expiration = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.expTime));
+                    security.OptionType = item.optType == "P" ? OptionType.Put : OptionType.Call;
+                    security.Strike = item.stk.ToDecimal();
+
+                    string baseName = item.uly + "T"; // example: BTC-USD -> BTC-USDT
+
+                    // 1. Find all futures that are true quarterly futures (expire on last Friday of Mar, Jun, Sep, Dec)
+                    var quarterlyFutures = _securities
+                        .Where(s => s.SecurityType == SecurityType.Futures &&
+                                    s.Name.StartsWith(baseName) &&
+                                    s.Expiration != DateTime.MinValue &&
+                                    (s.Expiration.Month == 3 || s.Expiration.Month == 6 || s.Expiration.Month == 9 || s.Expiration.Month == 12) &&
+                                    s.Expiration.DayOfWeek == DayOfWeek.Friday &&
+                       s.Expiration.AddDays(7).Month != s.Expiration.Month)
+                        .ToList();
+
+                    if (quarterlyFutures.Any())
+                    {
+                        // 2. Find the first quarterly future that expires AFTER the option expires.
+                        var nextFuture = quarterlyFutures
+                            .Where(f => f.Expiration >= security.Expiration)
+                            .OrderBy(f => f.Expiration)
+                            .FirstOrDefault();
+
+                        if (nextFuture != null)
+                        {
+                            security.UnderlyingAsset = nextFuture.Name;
+                        }
+                        else
+                        {
+                            // 3. Fallback: If no future expires after the option, take the one with the latest expiration date available.
+                            var latestFuture = quarterlyFutures
+                                .OrderByDescending(f => f.Expiration)
+                                .FirstOrDefault();
+
+                            if (latestFuture != null)
+                            {
+                                security.UnderlyingAsset = latestFuture.Name;
+                            }
+                            else
+                            {
+                                security.UnderlyingAsset = item.uly;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // 4. Fallback: No quarterly futures found at all for this underlying.
+                        security.UnderlyingAsset = item.uly;
+                    }
                 }
 
                 security.Exchange = ServerType.OKX.ToString();
@@ -1294,6 +1389,7 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
                     message += OsLocalization.Market.Message102;
+                    message += $"Server: {e.Code} {e.Reason}";
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
@@ -1326,6 +1422,11 @@ namespace OsEngine.Market.Servers.OKX
                 if (e.Data.Contains("login"))
                 {
                     SubscribePrivate();
+                }
+
+                if (e.Data.Contains("error"))
+                {
+                    SendLogMessage("Error received from server: "+ e.Data.ToString(), LogMessageType.Error);
                 }
 
                 if (FIFOListWebSocketPrivateMessage == null)
@@ -1753,7 +1854,7 @@ namespace OsEngine.Market.Servers.OKX
                     if (action.@event != null && action.@event.Contains("subscribe"))
                     {
                         //ignore
-                        SendLogMessage("[WS Public] Got subscribe msg: " + action.msg, LogMessageType.System);
+                        //SendLogMessage("[WS Public] Got subscribe msg: " + action.msg, LogMessageType.System);
                     }
                     else if (action.arg != null)
                     {

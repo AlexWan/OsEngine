@@ -10,6 +10,7 @@ namespace OsEngine.Market.Servers.OKX.Entity
     }
 
 
+    // https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
     public class SecurityResponseItem
     {
         public string alias;
@@ -38,7 +39,7 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string state;
         public string stk;
         public string tickSz;
-        public string uly;
+        public string uly; // underlying security
     }
 
     public class SecurityUnderlyingResponse
