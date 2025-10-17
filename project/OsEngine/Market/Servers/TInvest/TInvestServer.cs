@@ -10,6 +10,7 @@ using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Concurrent;
 using System.Threading;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
@@ -322,6 +323,8 @@ namespace OsEngine.Market.Servers.TInvest
         private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
 
         private string _orderNumbersLocker = "_orderNumbersLocker";
+
+        private ConcurrentDictionary<string, decimal> _orderPrices = new ConcurrentDictionary<string, decimal>();
 
         #endregion
 
@@ -2641,7 +2644,24 @@ namespace OsEngine.Market.Servers.TInvest
 
                         order.Volume = state.LotsRequested;
                         order.VolumeExecute = state.LotsExecuted;
-                        order.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.OrderPrice) : 0;
+
+                        if (order.TypeOrder == OrderPriceType.Limit)
+                        {
+                            if (_orderPrices.TryGetValue(state.OrderRequestId, out decimal originalPrice))
+                            {
+                                order.Price = originalPrice;
+                            }
+                            else
+                            {
+                                // Fallback to potentially incorrect price and log an error
+                                order.Price = GetValue(state.OrderPrice);
+                                SendLogMessage($"Could not find original price for order request ID {state.OrderRequestId}. Using price from broker.", LogMessageType.Error);
+                            }
+                        }
+                        else
+                        {
+                            order.Price = 0;
+                        }
                         order.TimeCallBack = state.CreatedAt?.ToDateTime().AddHours(3) ?? DateTime.UtcNow.AddHours(3);// convert to MSK
                         order.SecurityClassCode = security.NameClass;
 
@@ -2678,6 +2698,13 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 order.State = OrderStateType.Cancel; // partially filled orders never go to cancelled state 
                             }
+                        }
+
+                        if (order.State == OrderStateType.Done ||
+                            order.State == OrderStateType.Fail ||
+                            order.State == OrderStateType.Cancel)
+                        {
+                            _orderPrices.TryRemove(state.OrderRequestId, out _);
                         }
 
                         if (orderStateResponse.OrderState.Trades != null)
@@ -2802,6 +2829,8 @@ namespace OsEngine.Market.Servers.TInvest
                     _orderNumbers.Add(orderId, order.NumberUser);
                 }
 
+                _orderPrices[orderId] = order.Price;
+
                 request.OrderId = orderId;
 
                 PostOrderResponse response = null;
@@ -2886,6 +2915,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                     _orderNumbers.Add(orderId, order.NumberUser);
                     request.IdempotencyKey = orderId;
+
+                    _orderPrices[orderId] = newPrice;
                 }
 
                 request.Quantity = Convert.ToInt32(order.Volume - order.VolumeExecute);
