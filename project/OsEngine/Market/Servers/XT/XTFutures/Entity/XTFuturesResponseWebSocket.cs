@@ -62,23 +62,40 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 
     public class XTFuturesUpdateOrder
     {
-        public string symbol { get; set; }
-        public string orderId { get; set; }
-        public string clientOrderId { get; set; }
-        public string origQty { get; set; }
-        public string price { get; set; }
-        public string orderSide { get; set; }
-        public string timeInForce { get; set; }
-        public string positionSide { get; set; }
-        public string marginFrozen { get; set; }
-        public string sourceType { get; set; }
-        public string type { get; set; }
-        public string seqId { get; set; }
-        public string state { get; set; }
-        public string createdTime { get; set; }
-        public string updatedTime { get; set; }
-        public string leverage { get; set; }
-        public string positionType { get; set; }
-        public string orderType { get; set; }
+            public string symbol;          // Trading pair
+            public string orderId;         // Order ID
+            public string origQty;         // Original quantity
+            public string avgPrice;        // Average price
+            public string price;           // Order price
+            public string executedQty;     // Executed quantity 
+            public string orderSide;       // BUY or SELL
+            public string timeInForce;     // Valid way
+            public string positionSide;    // LONG or SHORT
+            public string marginFrozen;    // Occupied margin
+            public string sourceType;      // DEFAULT, ENTRUST, PROFIT (type of order source)
+            public string type;            // Type (ORDER, etc.)
+            public string state;           // Order state: NEW, PARTIALLY_FILLED, FILLED, etc.
+            public string createdTime;     // Create time(ms)
+            public string leverage;        // Leverage
+            public string positionType;    // Position type: CROSSED or ISOLATED
+            public string orderType;       // Order type: LIMIT or MARKET
     }
+
+    public class XTFuturesPositionData
+    {
+        public string symbol { get; set; }
+        public string contractType { get; set; }      // PERPETUAL / DELIVERY
+        public string positionType { get; set; }      // ISOLATED / CROSSED
+        public string positionSide { get; set; }      // LONG / SHORT
+        public string positionSize { get; set; }      // количество
+        public string closeOrderSize { get; set; }
+        public string availableCloseSize { get; set; }
+        public string realizedProfit { get; set; }
+        public string entryPrice { get; set; }
+        public string isolatedMargin { get; set; }
+        public string openOrderMarginFrozen { get; set; }
+        public string underlyingType { get; set; }
+        public int leverage { get; set; }
+    }
+
 }

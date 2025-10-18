@@ -2297,7 +2297,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         CreateQueryMyTrade(myOrder.SecurityNameCode, myOrder.NumberMarket, 1);
                     }
-
+                    
                     return myOrder.State;
                 }
                 catch (Exception exception)
