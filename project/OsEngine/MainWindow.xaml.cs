@@ -849,7 +849,7 @@ namespace OsEngine
                 }
 
                 TcpClient newClient = new TcpClient();
-                newClient.Connect("195.133.196.183", 11000);
+                newClient.Connect("45.173.152.144", 11000);
                 NetworkStream tcpStream = newClient.GetStream();
                 byte[] sendBytes = Encoding.UTF8.GetBytes(_messageToCrashServer);
                 tcpStream.Write(sendBytes, 0, sendBytes.Length);
