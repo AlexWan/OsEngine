@@ -1043,7 +1043,7 @@ namespace OsEngine.Language
 
         public string Label252 => OsLocalization.ConvertToLocString(
         "Eng:If True, we request information on open interest, funding, and volume24. It should also be true if you're using options. If you're not using this data, it's recommended to set it to False_" +
-        "Ru:Если True - то запрашиваем информацию по открытому интересу, фандингу, объему24. А так же должно быть true, если вы задействуйте опционы. Если вы не используйте эти данные, то рекомендуется установить False_");
+        "Ru:Если True - то запрашиваем информацию по открытому интересу, фандингу, объему24. А так же должно быть true, если вы задействуете опционы. Если вы не используйте эти данные, то рекомендуется установить False_");
 
         public string Label253 => OsLocalization.ConvertToLocString(
          "Eng:If True, we request options. If you don't use them, we recommend setting it to False_" +
