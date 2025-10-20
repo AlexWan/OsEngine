@@ -701,13 +701,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             11.TimeDone – время сервера когда ордер получил статус Done
             12.TimeCancel – время сервера когда ордер получил статус Cancel
             */
-            string msg = $"[Portfolio_1_Validation] OrderIsNormal: " +
-                   $"Num={order.NumberMarket}, State={order.State}, " +
-                   $"TimeCreate={order.TimeCreate}, " +
-                   $"TimeCallBack={order.TimeCallBack}, " +
-                   $"TimeDone={order.TimeDone}, " +
-                   $"TimeCancel={order.TimeCancel}";
-            this.SetNewError(msg);
+            //string msg = $"[Portfolio_1_Validation] OrderIsNormal: " +
+            //       $"Num={order.NumberMarket}, State={order.State}, " +
+            //       $"TimeCreate={order.TimeCreate}, " +
+            //       $"TimeCallBack={order.TimeCallBack}, " +
+            //       $"TimeDone={order.TimeDone}, " +
+            //       $"TimeCancel={order.TimeCancel}";
+            //this.SetNewError(msg);
 
             if (order.Side != _waitSide)
             {

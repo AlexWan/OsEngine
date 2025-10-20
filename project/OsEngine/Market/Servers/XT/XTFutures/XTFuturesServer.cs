@@ -20,15 +20,10 @@ using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
 using System.Globalization;
 using Security = OsEngine.Entity.Security;
-using OsEngine.Candles.Series;
 using System.IO;
 using ErrorEventArgs = OsEngine.Entity.WebSocketOsEngine.ErrorEventArgs;
-using RestSharp.Extensions;
-using static Google.Api.ResourceDescriptor.Types;
-using System.Windows.Documents;
-using OsEngine.Market.Servers.Transaq.TransaqEntity;
-using System.Security.Policy;
-using static Google.Rpc.Context.AttributeContext.Types;
+
+using System.Linq;
 
 
 
@@ -152,7 +147,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                    UnsubscribeFromAllWebSockets();
+                  //  UnsubscribeFromAllWebSockets();
                     _subscribedSecurities.Clear();
                     DeleteWebsocketConnection();
                     _marketDepths.Clear();
@@ -191,7 +186,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     return;
                 }
-
+               
                 try
                 {
                     for (int i = 0; i < _subscribedSecurities.Count; i++)
@@ -200,12 +195,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                         //_webSocketPublicMarketDepths.SendAsync($"{{\"method\": \"unsubscribe\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
                         //_webSocketPublicTrades.SendAsync($"{{\"method\": \"unsubscribe\", \"params\": [\"trades@{securityName}\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");
-                        _webSocketPublicMarketDepths.SendAsync($"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"sub-1\"}}");
-                        _webSocketPublicTrades.SendAsync($"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"trades@{securityName}\"], \"id\": \"sub-1\"}}");
+                        _webSocketPublicMarketDepths.SendAsync($"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"1252\"}}");
+                        _webSocketPublicTrades.SendAsync($"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"trades@{securityName}\"], \"id\": \"1253\"}}");
                     }
 
                     // _webSocketPrivate.SendAsync($"{{\"method\": \"unsubscribe\", \"params\": [\"balance\",\"order\",\"position\",\"trade\"], \"id\": \"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}");\"id\":\"sub-1\"
-                    _webSocketPrivate.SendAsync($"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"balance\",\"order\",\"position\",\"trade\"], \"id\": \"sub-1\"}}");
+                    // _webSocketPrivate.SendAsync($"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"balance\",\"order\",\"position\",\"trade\"], \"id\": \"1254\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"method\":\"UNSUBSCRIBE\",\"params\":[\"order@{_listenKey}\",\"trade@{_listenKey}\",\"position@{_listenKey}\",\"balance@{_listenKey}\",\"notify@{_listenKey}\"],\"id\":\"{1254}\"}}");
                 }
                 catch
                 {
@@ -762,7 +758,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             private readonly string _socketLocker = "webSocketLockerXT";
 
             private string _socketActivateLocker = "socketActivateLocker";
-
+          
             private void CreateWebSocketConnection()
             {
                 try
@@ -772,12 +768,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         return;
                     }
 
-                    if (_myProxy != null)
-                    {
-                        _webSocketPrivate.SetProxy(_myProxy);
-                    }
+                    //if (_myProxy != null)
+                    //{
+                    //    _webSocketPrivate.SetProxy(_myProxy);
+                    //}
 
                     _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
+
+                   
 
                     _webSocketPrivate.EmitOnPing = true;
                     _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
@@ -1188,9 +1186,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
+                    SendLogMessage($"ListenKey successfully received: {_listenKey}", LogMessageType.Error);
                     CheckFullActivation();
                     SendLogMessage(" WebSocketPrivateConnection to private data is Open", LogMessageType.System);
-                    _webSocketPrivate.SendAsync($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"order@{_listenKey}\",\"trade@{_listenKey}\",\"position@{_listenKey}\",\"balance@{_listenKey}\"],\"id\":\"sub-1\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"order@{_listenKey}\",\"trade@{_listenKey}\",\"position@{_listenKey}\",\"balance@{_listenKey}\",\"notify@{_listenKey}\"],\"id\":\"3214\"}}");
+                    SendLogMessage($"DEBUG PRIVATE SUBSCRIBE: {($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"order@{_listenKey}\",\"trade@{_listenKey}\",\"position@{_listenKey}\",\"balance@{_listenKey}\",\"notify@{_listenKey}\"],\"id\":\"3214\"}}")}", LogMessageType.Error);
                 }
                 catch (Exception exception)
                 {
@@ -1290,8 +1290,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 lock (_socketLocker)
                 {
-                    _webSocketPublicMarketDepths.SendAsync($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},{20}\"],\"id\":\"sub-1\"}}");
-                    _webSocketPublicTrades.SendAsync($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"trade@{security.Name}\"],\"id\":\"sub-1\"}}");
+                    _webSocketPublicMarketDepths.SendAsync($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},{20}\"],\"id\":\"1126\"}}");
+                    _webSocketPublicTrades.SendAsync($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"trade@{security.Name}\"],\"id\":\"1127\"}}");
                 }
             }
 
@@ -1445,6 +1445,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
 
                         XTFuturesResponseWebSocket<string> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<string>());
+                        SendLogMessage($"{message}", LogMessageType.Error);
 
                         if (action == null || action.topic == null)
                         {
@@ -1453,24 +1454,32 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                         if (action.topic.Equals("order"))
                         {
+                            SendLogMessage("WS PRIVATE: first 'order' event received — subscription alive", LogMessageType.Error);
                             UpdateOrder(message);
                             continue;
                         }
 
                         if (action.topic.Equals("balance"))
                         {
-                            UpdatePortfolio(message);
+                            SendLogMessage("WS PRIVATE: first 'balance' event received — subscription alive", LogMessageType.Error);
+                        
+                        UpdatePortfolio(message);
                             continue;
                         }
 
                         if (action.topic.Equals("trade"))
                         {
-                            UpdateMyTrade(message);
+                            SendLogMessage("WS PRIVATE: first 'MyTrade' event received — subscription alive", LogMessageType.Error);
+                        
+                        UpdateMyTrade(message);
                             continue;
                         }
+
                         if (action.topic.Equals("position"))
                         {
-                            UpdatePosition(message);
+                            SendLogMessage("WS PRIVATE: first 'position' event received — subscription alive", LogMessageType.Error);
+                        
+                        UpdatePosition(message);
                         }
                     }
                     catch (Exception exception)
@@ -1856,6 +1865,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         return;
                     }
 
+                    var raw = message;
+                    SendLogMessage("DEBUG Update positions by WS : " + raw, LogMessageType.System);
                     XTFuturesResponseWebSocket<XTFuturesPositionData> response =
                         JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesPositionData>>(message);
 
@@ -1866,6 +1877,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
 
                     Portfolio portfolio = _portfolios[0];
+                    
 
                     if (portfolio == null)
                     {
@@ -1882,7 +1894,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     PositionOnBoard pos = new PositionOnBoard();
 
-                    pos.PortfolioName = portfolio.Number;
+                    pos.PortfolioName = _portfolioName;/////portfolio.number
                     pos.SecurityNameCode = symbol;
                     pos.ValueCurrent = Math.Round(qty, 6);
                     pos.UnrealizedPnl = Math.Round(unreal, 6);
@@ -1905,6 +1917,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
+
                     XTFuturesResponseWebSocket<XTFuturesMyTrade> response = JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesMyTrade>>(message);
 
                     if (response == null || response.data == null)
@@ -1937,35 +1950,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     myTrade.Side = response.data.orderSide == "BUY" ? Side.Buy : Side.Sell;
 
-                    try
-                    {
-                        string oSide = response.data.orderSide;
-                        string pSide = response.data.positionSide;
 
-                        if (!string.IsNullOrWhiteSpace(response.data.symbol) &&
-                            (oSide == "BUY" || oSide == "SELL") &&
-                            (pSide == "LONG" || pSide == "SHORT"))
-                        {
-                            decimal qtyAbs;
-                            string qtyStr = response.data.quantity;
-                            if (!decimal.TryParse(qtyStr, NumberStyles.Any, CultureInfo.InvariantCulture, out qtyAbs))
-                            {
-                                qtyAbs = 0m;
-                            }
 
-                            if (qtyAbs > 0m)
-                            {
-                                ApplyTradeToPositions(response.data.symbol,
-                                                      response.data.orderSide,
-                                                      response.data.positionSide,
-                                                      qtyAbs);
-                            }
-                        }
-                    }
-                    catch (Exception exception)
-                    {
-                        SendLogMessage(" Update positions by WS trade failed: " + exception, LogMessageType.Error);
-                    }
                     SendLogMessage($"myTrade created={myTrade.Time} OrderId={response.data.orderId} orderSide={response.data.orderSide} posSide = {response.data.positionSide} clientorderid = {response.data.clientOrderId}"
 
               , LogMessageType.Error);
@@ -1978,63 +1964,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private void ApplyTradeToPositions(string symbol, string orderSide, string positionSide, decimal qtyAbs)
-            {
-                if (_portfolios == null || _portfolios.Count == 0)
-                {
-                    return;
-                }
-
-                Portfolio portfolio = _portfolios[0];
-
-                string code = symbol + "_" + positionSide;
-
-                decimal delta;
-
-                if (positionSide == "LONG")
-                {
-                    delta = (orderSide == "BUY") ? +qtyAbs : -qtyAbs;
-                }
-                else
-                {
-                    delta = (orderSide == "SELL") ? -qtyAbs : +qtyAbs;
-                }
-
-                lock (_posLock)
-                {
-                    List<PositionOnBoard> list = portfolio.GetPositionOnBoard();
-
-                    PositionOnBoard pos = null;
-
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        var positions = list[i];
-                        if (positions != null && !string.IsNullOrWhiteSpace(positions.SecurityNameCode) &&
-                            positions.SecurityNameCode.Equals(code, StringComparison.OrdinalIgnoreCase))
-                        {
-                            pos = positions;
-                            break;
-                        }
-                    }
-
-                    if (pos == null)
-                    {
-                        pos = new PositionOnBoard
-                        {
-                            PortfolioName = portfolio.Number,
-                            SecurityNameCode = code,
-                            ValueCurrent = 0m,
-                            UnrealizedPnl = 0m
-                        };
-                    }
-
-                    pos.ValueCurrent += delta;
-
-                    portfolio.SetNewPosition(pos);
-                }
-
-                PortfolioEvent?.Invoke(_portfolios);
-            }
 
             private void UpdatePortfolio(string message)
             {
@@ -2078,6 +2007,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     SendLogMessage(" UpdatePortfolio error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
+
             private readonly Dictionary<string, int> _marketOrderIdToClientId =
              new Dictionary<string, int>(StringComparer.Ordinal);
 
@@ -2086,7 +2016,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 try
                 {
                     var mes = message;
-                    SendLogMessage($"UpdateOrder{mes}", LogMessageType.Error);
+                    SendLogMessage($"UpdateOrder{mes}", LogMessageType.System);
                     XTFuturesResponseWebSocket<XTFuturesUpdateOrder> order =
                         JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesUpdateOrder>>(message);
 
@@ -2094,7 +2024,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         return;
                     }
-                 
+
                     SendLogMessage($"[DEBUG UpdateOrder] Order from exchange - " +
                     $"ID: {order.data.orderId}, " +
                     $"Type: {order.data.orderType}, " +
@@ -2108,15 +2038,16 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     updateOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.createdTime));
                     updateOrder.NumberMarket = order.data.orderId;
+
                     updateOrder.NumberUser = GetUserOrderNumber(order.data.orderId);
-                   
+
                     updateOrder.Side = order.data.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
 
                     updateOrder.State = GetOrderState(order.data.state);
 
                     updateOrder.TypeOrder = MapOrderType(order.data.orderType);
 
-                   
+
                     SendLogMessage($"[DEBUG UpdateOrder] After mapping - OsEngine type: {updateOrder.TypeOrder}", LogMessageType.System);
 
                     updateOrder.ServerType = ServerType.XTFutures;
@@ -2137,8 +2068,22 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     if (updateOrder.State == OrderStateType.Done || updateOrder.State == OrderStateType.Partial)
                     {
                         CreateQueryMyTrade(updateOrder.NumberMarket);
+                        CreateQueryPositions(false);////////////
                     }
-
+                    if (updateOrder.State == OrderStateType.Done ||
+           updateOrder.State == OrderStateType.Cancel ||
+           updateOrder.State == OrderStateType.Partial)///////////////////////
+                    {
+                        try
+                        {
+                            CreateQueryPositions(false);
+                            SendLogMessage("Positions refreshed after order state = " + updateOrder.State, LogMessageType.System);
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage(" Error refreshing positions after order update: " + ex.Message, LogMessageType.Error);
+                        }
+                    }
 
                     SendLogMessage($"[DEBUG UpdateOrder] Final order - " +
                                   $"NumberUser: {updateOrder.NumberUser}, " +
@@ -2184,7 +2129,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         break;
 
                     case ("rejected"):
-                    case ("Expired"):
                         stateType = OrderStateType.Fail;
                         break;
 
@@ -2209,49 +2153,88 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
 
             //BUY + LONG = открыть/увеличить лонг
-
-            //BUY + SHORT = закрыть/уменьшить шорт
-
             //SELL + LONG = закрыть/уменьшить лонг
 
+            //BUY + SHORT = закрыть/уменьшить шорт
             //SELL + SHORT = открыть/увеличить шорт
-
             public void SendOrder(Order order)
             {
                 _rateGateSendOrder.WaitToProceed();
 
                 try
                 {
-                    CreateQueryPositions(false);
-
-                    decimal longPos, shortAbs;
-                    GetCurrentPositionsForSymbol(order.SecurityNameCode, out longPos, out shortAbs);
-
-                    string orderSide = order.Side == Side.Buy ? "BUY" : "SELL";
-                    string positionSide;
-                    bool isReduceIntent;
-
-                    DecideHedgePositionSide(orderSide, longPos, shortAbs, out positionSide, out isReduceIntent);
-                    if (order.TypeOrder == OrderPriceType.Limit && order.Price <= 0)
+                    // --- БАЗОВЫЕ ПРОВЕРКИ
+                    if (order == null || string.IsNullOrWhiteSpace(order.SecurityNameCode))
                     {
-                        SendLogMessage($"Error: Limit order price must be greater than 0. Price: {order.Price}", LogMessageType.Error);
+                        SendLogMessage(" SendOrder> bad order or symbol", LogMessageType.Error);
                         CreateOrderFail(order);
                         return;
+                    }
+
+                    if (order.Volume <= 0)
+                    {
+                        SendLogMessage(" SendOrder> bad volume " + order.Volume.ToString(System.Globalization.CultureInfo.InvariantCulture), LogMessageType.Error);
+                        CreateOrderFail(order);
+                        return;
+                    }
+
+                    if (order.TypeOrder == OrderPriceType.Limit && order.Price <= 0)
+                    {
+                        SendLogMessage(" SendOrder> bad limit price " + order.Price.ToString(System.Globalization.CultureInfo.InvariantCulture), LogMessageType.Error);
+                        CreateOrderFail(order);
+                        return;
+                    }
+
+                    // BUY => LONG; SELL => SHORT. Никакой reduce-логики не используем.
+                    // = order.Side == Side.Buy ? "BUY" : "SELL";
+                    //string positionSide = order.Side == Side.Buy ? "LONG" : "SHORT";
+
+                    string positionSide = "";
+
+                    if (order.PositionConditionType == OrderPositionConditionType.Open || order.PositionConditionType == OrderPositionConditionType.None)
+                    {
+                        positionSide = order.Side == Side.Buy ? "LONG" : "SHORT";
+                    }
+
+                    if (order.PositionConditionType == OrderPositionConditionType.Close)
+                    {
+                        // BUY + LONG = open / increase a long position
+                        // SELL + LONG = close / decrease a long position
+
+                        // BUY + SHORT = close / decrease a short position
+                        // SELL + SHORT = open / increase a short position
+
+                        if (order.Side == Side.Sell)
+                        {
+                            positionSide = "LONG";
+                        }
+                        else if (order.Side == Side.Buy)
+                        {
+                            positionSide = "SHORT";
+                        }
                     }
 
                     XTFuturesSendOrder data = new XTFuturesSendOrder();
                     data.symbol = order.SecurityNameCode;
                     data.clientOrderId = order.NumberUser.ToString();
-                    data.orderSide = orderSide;
+                    data.orderSide = order.Side.ToString().ToUpper(); // "BUY" : "SELL"
                     data.origQty = order.Volume.ToString(CultureInfo.InvariantCulture);
-                    data.orderType = order.TypeOrder.ToString().ToUpper();
-                    data.positionSide = positionSide;//
+                    data.orderType = order.TypeOrder.ToString().ToUpper(); // LIMIT : MARKET
+                    data.positionSide = positionSide;                      // LONG : SHORT
                     data.timeInForce = order.TypeOrder == OrderPriceType.Limit ? "GTC" : "IOC";
                     data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString(CultureInfo.InvariantCulture);
-                    
-                    SendLogMessage($"SendOrder:Symbol={data.symbol} ,Side={data.orderSide} , PosSide={data.positionSide} " +
-                                   $"Price={data.price} Qty={data.origQty}, Type= {data.orderType}", LogMessageType.Error);
 
+                    SendLogMessage("SendOrder:Symbol=" + data.symbol
+                        + " ,Side=" + data.orderSide
+                        + " , PosSide=" + data.positionSide
+                        + " , Price=" + (data.price == null ? "null" : data.price)
+                        + " , Qty=" + data.origQty
+                        + " , Type=" + data.orderType, LogMessageType.Error);
+
+                    // Портфель OsEngine
+                    order.PortfolioNumber = _portfolioName;
+
+                    // --- ВЫЗОВ XT API
                     IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/create", Method.POST, null, data);
 
                     if (responseMessage == null)
@@ -2270,13 +2253,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         CreateOrderFail(order);
                         return;
                     }
-                    
+
                     if (stateResponse.returnCode == "0"
                         && string.Equals(stateResponse.msgInfo, "SUCCESS", StringComparison.OrdinalIgnoreCase))
                     {
                         order.NumberMarket = stateResponse.result;
 
-                        if (string.Equals(data.orderType, "MARKET", StringComparison.OrdinalIgnoreCase))
+
+                        if (order.NumberUser != 0 && order.NumberMarket != "0")
                         {
                             if (!_numberUser.ContainsKey(order.NumberMarket))
                             {
@@ -2284,15 +2268,18 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             }
                         }
 
+
                         SaveOrderTrackers();
 
                         SendLogMessage(" Order sent successfully. NumUser: " + order.NumberUser.ToString(CultureInfo.InvariantCulture)
                             + ", OrderId: " + order.NumberMarket
-                            + ", OrderSide: " + orderSide
+                            + ", OrderSide: " + data.orderSide
                             + ", PositionSide: " + positionSide
-                             + ", OrderType: " + data.orderType
-                             +", Volume:" + data.origQty,
+                            + ", OrderType: " + data.orderType
+                            + ", Volume: " + data.origQty,
                             LogMessageType.Error);
+
+
 
                         if (string.Equals(data.orderType, "MARKET", StringComparison.OrdinalIgnoreCase))
                         {
@@ -2302,7 +2289,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
                         else
                         {
+                            // LIMIT — уходим в Active
                             order.State = OrderStateType.Active;
+                            order.TimeCallBack = DateTime.Now;
                             MyOrderEvent?.Invoke(order);
                         }
                     }
@@ -2323,6 +2312,132 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     SendLogMessage(" SendOrder error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
+
+
+            //public void SendOrder(Order order)
+            //{
+            //    _rateGateSendOrder.WaitToProceed();
+
+            //    try
+            //    {
+            //        order.PortfolioNumber=_portfolioName;
+
+            //        CreateQueryPositions(false);
+            //        Thread.Sleep(1500);
+
+            //        decimal longPos, shortAbs;
+            //        GetCurrentPositionsForSymbol(order.SecurityNameCode, out longPos, out shortAbs);
+
+            //        string orderSide = order.Side == Side.Buy ? "BUY" : "SELL";
+            //        string positionSide;
+            //        bool isReduceIntent;
+
+            //        DecideHedgePositionSide(orderSide, longPos, shortAbs, out positionSide, out isReduceIntent);
+            //        if (order.TypeOrder == OrderPriceType.Limit && order.Price <= 0)
+            //        {
+            //            SendLogMessage($"Error: Limit order price must be greater than 0. Price: {order.Price}", LogMessageType.Error);
+            //            CreateOrderFail(order);
+            //            return;
+            //        }
+            //        // --- EPSILON GUARD против ложного "уменьшения" несуществующей позиции
+            //        decimal eps = 0.00000001m;
+            //        // Если хотим SELL и "уменьшать" LONG, но фактического лонга нет — переключаемся на SHORT (открытие шорта)
+            //        if (orderSide == "SELL" && isReduceIntent && longPos <= eps)
+            //        {
+            //            positionSide = "SHORT";
+            //            isReduceIntent = false;
+            //        }
+            //        // Если хотим BUY и "уменьшать" SHORT, но фактического шорта нет — переключаемся на LONG (открытие лонга)
+            //        if (orderSide == "BUY" && isReduceIntent && shortAbs <= eps)
+            //        {
+            //            positionSide = "LONG";
+            //            isReduceIntent = false;
+            //        }
+            //        XTFuturesSendOrder data = new XTFuturesSendOrder();
+            //        data.symbol = order.SecurityNameCode;
+            //        data.clientOrderId = order.NumberUser.ToString();
+            //        data.orderSide = orderSide;
+            //        data.origQty = order.Volume.ToString(CultureInfo.InvariantCulture);
+            //        data.orderType = order.TypeOrder.ToString().ToUpper();
+            //        data.positionSide = positionSide;//
+            //        data.timeInForce = order.TypeOrder == OrderPriceType.Limit ? "GTC" : "IOC";
+            //        data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString(CultureInfo.InvariantCulture);
+
+            //        SendLogMessage($"SendOrder:Symbol={data.symbol} ,Side={data.orderSide} , PosSide={data.positionSide} " +
+            //                       $"Price={data.price} Qty={data.origQty}, Type= {data.orderType}", LogMessageType.Error);
+
+            //        IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/create", Method.POST, null, data);
+
+            //        if (responseMessage == null)
+            //        {
+            //            SendLogMessage(" SendOrder: response is null", LogMessageType.Error);
+            //            CreateOrderFail(order);
+            //            return;
+            //        }
+
+            //        XTFuturesResponseRest<string> stateResponse =
+            //            JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
+
+            //        if (responseMessage.StatusCode != HttpStatusCode.OK || stateResponse == null)
+            //        {
+            //            SendLogMessage(" SendOrder: HTTP error - " + responseMessage.StatusCode.ToString(), LogMessageType.Error);
+            //            CreateOrderFail(order);
+            //            return;
+            //        }
+
+            //        if (stateResponse.returnCode == "0"
+            //            && string.Equals(stateResponse.msgInfo, "SUCCESS", StringComparison.OrdinalIgnoreCase))
+            //        {
+            //            order.NumberMarket = stateResponse.result;
+
+            //            if (order.NumberUser != 0 && order.NumberMarket != "0")
+            //                {
+            //                if (!_numberUser.ContainsKey(order.NumberMarket))
+            //                {
+            //                    _numberUser.Add(order.NumberMarket, order.NumberUser);
+            //                }
+            //            }
+
+            //            SaveOrderTrackers();
+
+            //            SendLogMessage(" Order sent successfully. NumUser: " + order.NumberUser.ToString(CultureInfo.InvariantCulture)
+            //                + ", OrderId: " + order.NumberMarket
+            //                + ", OrderSide: " + orderSide
+            //                + ", PositionSide: " + positionSide
+            //                 + ", OrderType: " + data.orderType
+            //                 + ", Volume:" + data.origQty,
+            //                LogMessageType.Error);
+
+            //            if (string.Equals(data.orderType, "MARKET", StringComparison.OrdinalIgnoreCase))
+            //            {
+            //                order.State = OrderStateType.Done;
+            //                MyOrderEvent?.Invoke(order);
+            //                CreateQueryMyTrade(order.NumberMarket);
+            //            }
+            //            else
+            //            {
+            //                order.State = OrderStateType.Active;
+            //                order.TimeCallBack = DateTime.Now;
+            //                MyOrderEvent?.Invoke(order);
+            //            }
+            //        }
+            //        else
+            //        {
+            //            string errCode = stateResponse.error != null ? stateResponse.error.code : "";
+            //            string errMsg = stateResponse.error != null ? stateResponse.error.msg : "";
+
+            //            SendLogMessage(" SendOrder Fail: Code=" + stateResponse.returnCode
+            //                + ", Msg=" + stateResponse.msgInfo
+            //                + ", Error=" + errCode + " - " + errMsg, LogMessageType.Error);
+
+            //            CreateOrderFail(order);
+            //        }
+            //    }
+            //    catch (Exception exception)
+            //    {
+            //        SendLogMessage(" SendOrder error: " + exception.ToString(), LogMessageType.Error);
+            //    }
+            //}
 
             private void GetCurrentPositionsForSymbol(
     string symbol,
@@ -2776,9 +2891,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         {
                             SendLogMessage($" Successfully canceled the order, order Id: {stateResponse.result}", LogMessageType.Trade);
                             order.State = OrderStateType.Cancel;
- MyOrderEvent?.Invoke(order);
+                            MyOrderEvent?.Invoke(order);
                             return true;
-                           
+
                         }
                         else
                         {
@@ -2819,9 +2934,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         return;
                     }
 
-                    // Запрос позиций у XT
-                    IRestResponse response = CreatePrivateQuery("/future/user/v1/position", Method.GET, null, null);
-
+                    IRestResponse response = CreatePrivateQuery("/future/user/v1/position", Method.GET);
+                  
                     if (response == null || response.StatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(response.Content))
                     {
                         SendLogMessage("CreateQueryPositions: bad HTTP response", LogMessageType.Error);
@@ -3098,15 +3212,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             historyOrder.Price = item.price.ToDecimal();
                             historyOrder.PortfolioNumber = _portfolioName;
                             historyOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-
-                            if (!string.IsNullOrEmpty(item.updatedTime))
-                            {
-                                historyOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
-                            }
-                            else
-                            {
-                                historyOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-                            }
+                            historyOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
 
                             historyOrder.ServerType = ServerType.XTFutures;
 
@@ -3145,8 +3251,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/list-open-order", Method.POST);
                     var res = responseMessage.Content;
 
-                   SendLogMessage($"[DEBUG list-open-order]{res}", LogMessageType.Error);
-       
+                    SendLogMessage($"[DEBUG list-open-order]{res}", LogMessageType.Error);
+
                     XTFuturesResponseRest<List<XTFuturesOrderItem>> stateResponse =
                         JsonConvert.DeserializeObject<XTFuturesResponseRest<List<XTFuturesOrderItem>>>(responseMessage.Content);
 
@@ -3181,15 +3287,16 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             activeOrder.SecurityNameCode = item.symbol;
                             activeOrder.ServerType = ServerType.XTFutures;
                             activeOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
+                            activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
 
-                            if (!string.IsNullOrEmpty(item.updatedTime))
-                            {
-                                activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
-                            }
-                            else
-                            {
-                                activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-                            }
+                            //if (!string.IsNullOrEmpty(item.updatedTime))
+                            //{
+                            //    activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+                            //}
+                            //else
+                            //{
+                            //    activeOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
+                            //}
 
                             activeOrder.Volume = item.origQty.ToDecimal();
                             activeOrder.Price = item.price.ToDecimal();
@@ -3199,7 +3306,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             activeOrder.TypeOrder = MapOrderType(item.orderType);
                             SendLogMessage($" [ activeOrder.TypeOrder] {activeOrder.TypeOrder}, numberUser={activeOrder.NumberUser}, numberOrder={activeOrder.NumberMarket}", LogMessageType.Error);
                             activeOrder.PortfolioNumber = _portfolioName;
-                         
+
                             listOrders.Add(activeOrder);
                             SaveOrdersToFile(listOrders, "I:\\XT_Debug\\active_orders.txt");
                         }
@@ -3368,9 +3475,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         return OrderStateType.None;
                     }
 
-                    if (order.NumberUser == null || order.NumberUser == 0)
+                    //if (order.NumberUser == 0)
+                    //{
+                    //    order.NumberUser = GetMarketOrderId(order.NumberMarket);
+                    //}
+
+
+                    if (string.IsNullOrEmpty(order.NumberMarket))
                     {
-                        order.NumberUser = GetMarketOrderId(order.NumberMarket);
+                        order.NumberMarket = GetMarketOrderId(order.NumberUser);
                     }
 
                     Order orderOnMarket = null;
@@ -3405,8 +3518,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             }
                         }
                     }
-
-                    if (orderOnMarket == null && order.NumberUser != 0)
+                    if (order.NumberUser != 0)
                     {
                         if (ordersActive != null)
                         {
@@ -3432,7 +3544,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             }
                         }
                     }
-
                     if (orderOnMarket == null)
                     {
                         return OrderStateType.None;
@@ -3765,6 +3876,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
 
                 return 0;
+            }
+            private string GetMarketOrderId(int numberUser)
+            {
+                return _numberUser.FirstOrDefault(x => x.Value == numberUser).Key;
             }
 
             private string GetEngineDirectory()
