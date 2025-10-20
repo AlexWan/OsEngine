@@ -147,7 +147,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-                  //  UnsubscribeFromAllWebSockets();
+                    //  UnsubscribeFromAllWebSockets();
                     _subscribedSecurities.Clear();
                     DeleteWebsocketConnection();
                     _marketDepths.Clear();
@@ -186,7 +186,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     return;
                 }
-               
+
                 try
                 {
                     for (int i = 0; i < _subscribedSecurities.Count; i++)
@@ -758,7 +758,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             private readonly string _socketLocker = "webSocketLockerXT";
 
             private string _socketActivateLocker = "socketActivateLocker";
-          
+
             private void CreateWebSocketConnection()
             {
                 try
@@ -775,7 +775,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
 
-                   
+
 
                     _webSocketPrivate.EmitOnPing = true;
                     _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
@@ -1444,7 +1444,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             continue;
                         }
 
-                        XTFuturesResponseWebSocket<string> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<string>());
+                        XTFuturesResponseWebSocket<object> action = JsonConvert.DeserializeAnonymousType(message, new XTFuturesResponseWebSocket<object>());
                         SendLogMessage($"{message}", LogMessageType.Error);
 
                         if (action == null || action.topic == null)
@@ -1462,24 +1462,24 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         if (action.topic.Equals("balance"))
                         {
                             SendLogMessage("WS PRIVATE: first 'balance' event received — subscription alive", LogMessageType.Error);
-                        
-                        UpdatePortfolio(message);
+
+                            UpdatePortfolio(message);
                             continue;
                         }
 
                         if (action.topic.Equals("trade"))
                         {
                             SendLogMessage("WS PRIVATE: first 'MyTrade' event received — subscription alive", LogMessageType.Error);
-                        
-                        UpdateMyTrade(message);
+
+                            UpdateMyTrade(message);
                             continue;
                         }
 
                         if (action.topic.Equals("position"))
                         {
                             SendLogMessage("WS PRIVATE: first 'position' event received — subscription alive", LogMessageType.Error);
-                        
-                        UpdatePosition(message);
+
+                            UpdatePosition(message);
                         }
                     }
                     catch (Exception exception)
@@ -1877,7 +1877,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
 
                     Portfolio portfolio = _portfolios[0];
-                    
+
 
                     if (portfolio == null)
                     {
@@ -2935,7 +2935,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     }
 
                     IRestResponse response = CreatePrivateQuery("/future/user/v1/position", Method.GET);
-                  
+
                     if (response == null || response.StatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(response.Content))
                     {
                         SendLogMessage("CreateQueryPositions: bad HTTP response", LogMessageType.Error);

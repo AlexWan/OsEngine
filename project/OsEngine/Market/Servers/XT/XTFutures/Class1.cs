@@ -1335,21 +1335,24 @@
 //                        {
 //                            continue;
 //                        }
-
+//                        SendLogMessage($"{action}",LogMessageType.Error);
 //                        if (action.topic.Equals("order"))
 //                        {
+//                            SendLogMessage("WS PRIVATE: first 'order' event received — subscription alive", LogMessageType.Error);
 //                            UpdateOrder(message);
 //                            continue;
 //                        }
 
 //                        if (action.topic.Equals("balance"))
 //                        {
+//                            SendLogMessage("WS PRIVATE: first 'balance' event received — subscription alive", LogMessageType.Error);
 //                            UpdatePortfolio(message);
 //                            continue;
 //                        }
 
 //                        if (action.topic.Equals("trade"))
 //                        {
+//                            SendLogMessage("WS PRIVATE: first 'MyTrade' event received — subscription alive", LogMessageType.Error);
 //                            UpdateMyTrade(message);
 //                            continue;
 //                        }
@@ -1897,9 +1900,9 @@
 //                    newOrder.SecurityNameCode = item.symbol;
 //                    newOrder.SecurityClassCode = GetNameClass(item.symbol);
 //                    newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createdTime));
-//                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
+//                    //newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updatedTime));
 //                    newOrder.NumberMarket = item.orderId;
-//                    newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+//                  //  newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
 //                    newOrder.Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
 //                    newOrder.State = GetOrderState(item.state);
 
