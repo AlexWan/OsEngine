@@ -2074,11 +2074,13 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    if (_securities.Find(s =>
+                    Security sec = _securities.Find(s =>
                             s != null &&
                             s.NameId == securities[i].NameId &&
                             s.Name == securities[i].Name &&
-                            s.NameClass == securities[i].NameClass) == null)
+                            s.NameClass == securities[i].NameClass);
+
+                    if (sec == null)
                     {
                         bool isInArray = false;
 
@@ -2096,6 +2098,22 @@ namespace OsEngine.Market.Servers
                         {
                             _securities.Add(securities[i]);
                         }
+                    }
+                    else
+                    {
+                        sec.Lot = securities[i].Lot;
+                        sec.PriceStepCost = securities[i].PriceStepCost;
+                        sec.PriceStep = securities[i].PriceStep;
+                        sec.VolumeStep = securities[i].VolumeStep;
+                        sec.DecimalsVolume = securities[i].DecimalsVolume;
+                        sec.Decimals = securities[i].Decimals;
+                        sec.Strike = securities[i].Strike;
+                        sec.State = securities[i].State;
+                        sec.Expiration = securities[i].Expiration;
+                        sec.Go = securities[i].Go;
+                        sec.MinTradeAmount = securities[i].MinTradeAmount;
+                        sec.PriceLimitHigh = securities[i].PriceLimitHigh;
+                        sec.PriceLimitLow = securities[i].PriceLimitLow;
                     }
                 }
 
