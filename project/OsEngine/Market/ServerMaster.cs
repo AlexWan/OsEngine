@@ -83,6 +83,7 @@ using OsEngine.Market.Servers.ExMo.ExmoSpot;
 using OsEngine.Market.Servers.BybitData;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.GateIoData;
+using OsEngine.Market.Servers.BitGetData;
 
 namespace OsEngine.Market
 {
@@ -473,6 +474,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.OKXData);
                 serverTypes.Add(ServerType.BybitData);
                 serverTypes.Add(ServerType.GateIoData);
+                serverTypes.Add(ServerType.BitGetData);
 
                 return serverTypes;
             }
@@ -609,6 +611,10 @@ namespace OsEngine.Market
 
                     SaveMostPopularServers(type);
 
+                    if (type == ServerType.BitGetData)
+                    {
+                        newServer = new BitGetDataServer();
+                    }
                     if (type == ServerType.GateIoData)
                     {
                         newServer = new GateIoDataServer();
@@ -1643,6 +1649,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new GateIoDataServerPermission();
                 }
+                else if (type == ServerType.BitGetData)
+                {
+                    serverPermission = new BitGetDataServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -2434,6 +2444,12 @@ namespace OsEngine.Market
         /// downloading historical data from exchange GateIo
         /// скачивание исторических данных с биржи GateIo
         /// </summary>
-        GateIoData
+        GateIoData,
+
+        /// <summary>
+        /// downloading historical data from exchange BitGet
+        /// скачивание исторических данных с биржи BitGet
+        /// </summary>
+        BitGetData
     }
 }
