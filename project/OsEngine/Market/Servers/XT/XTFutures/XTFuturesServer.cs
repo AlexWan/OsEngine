@@ -1905,7 +1905,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 try
                 {
-
+                    SendLogMessage($"MyTrade{message} ", LogMessageType.Error);
                     XTFuturesResponseWebSocket<XTFuturesMyTrade> response = JsonConvert.DeserializeObject<XTFuturesResponseWebSocket<XTFuturesMyTrade>>(message);
 
                     if (response == null || response.data == null)
@@ -1917,21 +1917,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.timestamp));
                     myTrade.NumberOrderParent = response.data.orderId;
-
-                    if (response.data.clientOrderId == "0" && !string.IsNullOrEmpty(response.data.orderId))
-                    {
-                        int mapped;
-
-                        if (_marketOrderIdToClientId.TryGetValue(myTrade.NumberOrderParent, out mapped))
-                        {
-                            myTrade.NumberOrderParent = mapped.ToString();
-                        }
-                    }
-                    else
-                    {
-                        myTrade.NumberTrade = Convert.ToInt64(response.data.clientOrderId).ToString();
-                    }
-
+                    myTrade.NumberTrade = Convert.ToInt64(response.data.clientOrderId).ToString();
                     myTrade.Price = response.data.price.ToDecimal();
                     myTrade.SecurityNameCode = response.data.symbol;
                     myTrade.Volume = response.data.quantity.ToDecimal();
@@ -2030,6 +2016,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (updateOrder.State == OrderStateType.Done || updateOrder.State == OrderStateType.Partial)
                     {
+                       
                         CreateQueryMyTrade(updateOrder.NumberMarket);
                         CreateQueryPositions(false);////////////
                     }
