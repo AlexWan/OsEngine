@@ -247,7 +247,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string desc { get; set; }                      // description
         public string systemCancel { get; set; }              // system cancel flag (true/false)
         public string profit { get; set; }                    // profit flag (true/false)
-
     }
 
     public class XTFuturesSendOrder

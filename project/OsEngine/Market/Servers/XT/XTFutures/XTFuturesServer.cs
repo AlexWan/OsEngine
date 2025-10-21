@@ -1927,7 +1927,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(" UpdateMyTrade error: " + exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("UpdateMyTrade error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -2172,7 +2172,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         order.NumberMarket = stateResponse.result;
 
-                        if (string.IsNullOrEmpty(order.NumberMarket)) 
+                        if (!string.IsNullOrEmpty(order.NumberMarket))
                         {
                             if (!_numberUser.ContainsKey(order.NumberMarket))
                             {
@@ -3033,30 +3033,43 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 MyOrderEvent?.Invoke(order);
             }
 
-            // private Dictionary< int, string> _numberUser = new Dictionary<int, string>();
             private Dictionary<string, int> _numberUser = new Dictionary<string, int>();
-            private Dictionary<int, string> _orderTrackerDict = new Dictionary<int, string>();
+          
             private void LoadOrderTrackers()
             {
                 try
                 {
                     string engineDir = GetEngineDirectory();
-
                     string marketToUserPath = Path.Combine(engineDir, "numberUser.json");
-                    string orderTrackerPath = Path.Combine(engineDir, "orderId.json");
 
                     if (File.Exists(marketToUserPath))
                     {
                         string marketToUserJson = File.ReadAllText(marketToUserPath);
                         _numberUser = JsonConvert.DeserializeObject<Dictionary<string, int>>(marketToUserJson);
+
+                    }
+                    else
+                    {
+                        SendLogMessage("numberUser.json not found — new dictionary will be created",
+                            LogMessageType.System);
+                    }
+
+                    if (_numberUser == null)
+                    {
+                        _numberUser = new Dictionary<string, int>();
                     }
                 }
                 catch (Exception exception)
                 {
                     SendLogMessage($"Exception in LoadOrderTrackers: {exception}", LogMessageType.Error);
+
+                    if (_numberUser == null)
+                    {
+                        _numberUser = new Dictionary<string, int>();
+                    }
                 }
             }
-        
+
             private void SaveOrderTrackers()
             {
                 try
