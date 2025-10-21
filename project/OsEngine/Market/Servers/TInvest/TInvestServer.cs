@@ -1759,7 +1759,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (marketDataResponse.Ping != null)
                     {
-                        SendLogMessage("Received Ping on MarketDataStream", LogMessageType.System);
                         Thread.Sleep(1);
                         continue;
                     }
@@ -2122,7 +2121,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (portfolioResponse.Ping != null)
                     {
-                        SendLogMessage("Received Ping on PortfolioStream", LogMessageType.System);
                         Thread.Sleep(1);
                         continue;
                     }
@@ -2268,7 +2266,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (positionsResponse.Ping != null)
                     {
-                        SendLogMessage("Received Ping on PositionsStream", LogMessageType.System);
                         Thread.Sleep(1);
                         continue;
                     }
@@ -2606,7 +2603,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (orderStateResponse.Ping != null)
                     {
-                        SendLogMessage("Received Ping on OrderStateStream", LogMessageType.System);
                         Thread.Sleep(1);
                         continue;
                     }
