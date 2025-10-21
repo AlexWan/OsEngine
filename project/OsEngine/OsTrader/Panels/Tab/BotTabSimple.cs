@@ -4168,6 +4168,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceOrder">order price</param>
         public void CloseAtStop(Position position, decimal priceActivation, decimal priceOrder)
         {
+            position.SignalTypeStop = " TSto";
             TryReloadStop(position, priceActivation, priceOrder);
         }
 
@@ -4180,7 +4181,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtStop(Position position, decimal priceActivation, decimal priceOrder, string signalType)
         {
-            position.SignalTypeStop = signalType;
+            position.SignalTypeStop = signalType + " TSto";
             CloseAtStop(position, priceActivation, priceOrder);
         }
 
@@ -4225,6 +4226,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 position.StopOrderPrice = priceActivation;
                 position.StopOrderRedLine = priceActivation;
                 position.StopOrderIsActive = true;
+                position.SignalTypeStop = "TSto";
 
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _journal.PaintPosition(position);
@@ -4244,7 +4246,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtStopMarket(Position position, decimal priceActivation, string signalType)
         {
-            position.SignalTypeStop = signalType;
+            position.SignalTypeStop = signalType + " TSto";
             CloseAtStopMarket(position, priceActivation);
         }
 
@@ -4256,6 +4258,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceOrder">order price</param>
         public void CloseAtTrailingStop(Position position, decimal priceActivation, decimal priceOrder)
         {
+            position.SignalTypeStop = " TSto";
             if (position.Direction == Side.Buy &&
                 position.StopOrderRedLine > priceActivation)
             {
@@ -4283,7 +4286,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtTrailingStop(Position position, decimal priceActivation, decimal priceOrder, string signalType)
         {
-            position.SignalTypeStop = signalType;
+            position.SignalTypeStop = signalType + " TSto";
             CloseAtTrailingStop(position, priceActivation, priceOrder);
         }
 
@@ -4322,6 +4325,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             position.StopOrderPrice = priceActivation;
             position.StopOrderRedLine = priceActivation;
             position.StopOrderIsActive = true;
+            position.SignalTypeStop = "TSto";
 
             _chartMaster.SetPosition(_journal.AllPosition);
             _journal.PaintPosition(position);
@@ -4336,7 +4340,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtTrailingStopMarket(Position position, decimal priceActivation, string signalType)
         {
-            position.SignalTypeStop = signalType;
+            position.SignalTypeStop = signalType + " TSto";
             CloseAtTrailingStopMarket(position, priceActivation);
         }
 
@@ -4348,6 +4352,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceOrder">order price</param>
         public void CloseAtProfit(Position position, decimal priceActivation, decimal priceOrder)
         {
+            position.SignalTypeProfit = "TPro";
             TryReloadProfit(position, priceActivation, priceOrder);
         }
 
@@ -4360,7 +4365,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtProfit(Position position, decimal priceActivation, decimal priceOrder, string signalType)
         {
-            position.SignalTypeProfit = signalType;
+            position.SignalTypeProfit = signalType + " TPro";
             CloseAtProfit(position, priceActivation, priceOrder);
         }
 
@@ -4407,7 +4412,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 position.ProfitIsMarket = true;
 
                 position.ProfitOrderIsActive = true;
-
+                position.SignalTypeProfit = "TPro";
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _journal.PaintPosition(position);
                 _journal.Save();
@@ -4427,7 +4432,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtProfitMarket(Position position, decimal priceActivation, string signalType)
         {
-            position.SignalTypeProfit = signalType;
+            position.SignalTypeProfit = signalType + " TPro";
             CloseAtProfitMarket(position, priceActivation);
         }
 

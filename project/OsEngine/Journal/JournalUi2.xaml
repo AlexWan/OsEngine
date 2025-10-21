@@ -58,6 +58,7 @@
                 </TabItem>
             </TabControl>
             <Button Name="ButtonShowLeftPanel" Content=">>>>" HorizontalAlignment="Left" Margin="0,0,0,2" Width="92" Height="25" VerticalAlignment="Bottom" Click="ButtonShowLeftPanel_Click"/>
+            <Button Name="ButtonTakeScreenshot" Content="Screenshot" HorizontalAlignment="Right" Margin="32,0,0,2" VerticalAlignment="Bottom" Width="60" Click="ButtonSaveScreenshot_Click"/>
         </Grid>
         <Grid Name="GridActivBots" Margin="0,0" HorizontalAlignment="Left" Width="510">
             <Rectangle RadiusX="0" Margin="0,0,0,36" Stroke="Black"/>

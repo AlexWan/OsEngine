@@ -25,6 +25,12 @@ using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using System.Threading;
 using OsEngine.Layout;
 using OsEngine.Market;
+using System.ComponentModel;
+using System.Drawing.Imaging;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using MenuItem = System.Windows.Forms.ToolStripMenuItem;
+using System.Xml.Serialization;
 
 namespace OsEngine.Journal
 {
@@ -36,7 +42,7 @@ namespace OsEngine.Journal
         #region Constructor
 
         public bool IsErase;
-
+        
         public JournalUi2(List<BotPanelJournal> botsJournals, StartProgram startProgram)
         {
             InitializeComponent();
@@ -532,11 +538,16 @@ namespace OsEngine.Journal
 
         private DataGridView _gridStatistics;
 
+
+        
+        public List<OsEngine.Journal.Internal.PositionStatisticGenerator.StatisticRowForJournal> StatForSave = new List<OsEngine.Journal.Internal.PositionStatisticGenerator.StatisticRowForJournal>();
+
+
         public void CreateTableToStatistic()
         {
             try
             {
-                _gridStatistics = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+                _gridStatistics = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
 
                 _gridStatistics.AllowUserToResizeRows = false;
 
@@ -553,6 +564,10 @@ namespace OsEngine.Journal
                 HostStatistics.Child = _gridStatistics;
                 HostStatistics.Child.Show();
                 _gridStatistics.DataError += _gridStatistics_DataError;
+                _gridStatistics.MouseClick += _statisticTable_MouseClick;
+                _gridStatistics.MouseDoubleClick += _statisticTable_MouseDoubleClick;
+                _gridStatistics.CellMouseUp += _statisticTable_CellMouseUp;
+                _gridStatistics.CellMouseDown += _statisticTable_CellMouseDown;
 
                 DataGridViewColumn column0 = new DataGridViewColumn();
                 column0.CellTemplate = cell0;
@@ -584,48 +599,342 @@ namespace OsEngine.Journal
                 column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 _gridStatistics.Columns.Add(column3);
 
-                for (int i = 0; i < 31; i++)
-                {
-                    _gridStatistics.Rows.Add(); //string addition/ добавление строки
-                }
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow1);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow2);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow3);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow17);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow18);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow4);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow5);
+                _gridStatistics.Rows.Add("");
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow6);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow7);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow8);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow9);
+                _gridStatistics.Rows.Add("");
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow10);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow11);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow6);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow7);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow8);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow9);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow12);
+                _gridStatistics.Rows.Add("");
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow13);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow14);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow6);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow7);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow8);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow9);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow12);
+                _gridStatistics.Rows.Add("");
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow15);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.GridRow16);
+                _gridStatistics.Rows.Add("");
+                _gridStatistics.Rows.Add(OsLocalization.Journal.StatClosedByStop);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.StatClosedByProfit);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.StatClosedBySignals);
+                _gridStatistics.Rows.Add("");
+                _gridStatistics.Rows.Add(OsLocalization.Journal.AvgDurationProfitable);
+                _gridStatistics.Rows.Add(OsLocalization.Journal.AvgDurationNonProfitable);
 
-                _gridStatistics.Rows[0].Cells[0].Value = OsLocalization.Journal.GridRow1;
-                _gridStatistics.Rows[1].Cells[0].Value = OsLocalization.Journal.GridRow2;
-                _gridStatistics.Rows[2].Cells[0].Value = OsLocalization.Journal.GridRow3;
-                _gridStatistics.Rows[3].Cells[0].Value = OsLocalization.Journal.GridRow17;
-                _gridStatistics.Rows[4].Cells[0].Value = OsLocalization.Journal.GridRow18;
-
-                _gridStatistics.Rows[5].Cells[0].Value = OsLocalization.Journal.GridRow4;
-                _gridStatistics.Rows[6].Cells[0].Value = OsLocalization.Journal.GridRow5;
-
-                _gridStatistics.Rows[8].Cells[0].Value = OsLocalization.Journal.GridRow6;
-                _gridStatistics.Rows[9].Cells[0].Value = OsLocalization.Journal.GridRow7;
-                _gridStatistics.Rows[10].Cells[0].Value = OsLocalization.Journal.GridRow8;
-                _gridStatistics.Rows[11].Cells[0].Value = OsLocalization.Journal.GridRow9;
-
-
-                _gridStatistics.Rows[13].Cells[0].Value = OsLocalization.Journal.GridRow10;
-                _gridStatistics.Rows[14].Cells[0].Value = OsLocalization.Journal.GridRow11;
-                _gridStatistics.Rows[15].Cells[0].Value = OsLocalization.Journal.GridRow6;
-                _gridStatistics.Rows[16].Cells[0].Value = OsLocalization.Journal.GridRow7;
-                _gridStatistics.Rows[17].Cells[0].Value = OsLocalization.Journal.GridRow8;
-                _gridStatistics.Rows[18].Cells[0].Value = OsLocalization.Journal.GridRow9;
-                _gridStatistics.Rows[19].Cells[0].Value = OsLocalization.Journal.GridRow12;
-
-                _gridStatistics.Rows[21].Cells[0].Value = OsLocalization.Journal.GridRow13;
-                _gridStatistics.Rows[22].Cells[0].Value = OsLocalization.Journal.GridRow14;
-                _gridStatistics.Rows[23].Cells[0].Value = OsLocalization.Journal.GridRow6;
-                _gridStatistics.Rows[24].Cells[0].Value = OsLocalization.Journal.GridRow7;
-                _gridStatistics.Rows[25].Cells[0].Value = OsLocalization.Journal.GridRow8;
-                _gridStatistics.Rows[26].Cells[0].Value = OsLocalization.Journal.GridRow9;
-                _gridStatistics.Rows[27].Cells[0].Value = OsLocalization.Journal.GridRow12;
-                _gridStatistics.Rows[28].Cells[0].Value = "";
-                _gridStatistics.Rows[29].Cells[0].Value = OsLocalization.Journal.GridRow15;
-                _gridStatistics.Rows[30].Cells[0].Value = OsLocalization.Journal.GridRow16;
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+        }
+        
+        private void _statisticTable_MouseClick(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                MouseEventArgs mouse = (MouseEventArgs)e;
+                if (e.Button == MouseButtons.Right)
+                {
+                    if (_gridStatistics != null)
+                    {
+                        if (_gridStatistics.HitTest(e.X, e.Y).ColumnIndex != -1 && _gridStatistics.HitTest(e.X, e.Y).RowIndex != -1)
+                        {
+                            _gridStatistics.ContextMenuStrip = ContextMenuStripPreparation();
+                            if (_gridStatistics.ContextMenuStrip != null)
+                            {
+                                _gridStatistics.ContextMenuStrip.Show(_gridStatistics, new System.Drawing.Point(mouse.X, mouse.Y));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+        }
+        public ContextMenuStrip ContextMenuStripPreparation()
+        {
+            ContextMenuStrip m = new ContextMenuStrip();
+
+            MenuItem CopyValue = new MenuItem("CopyValue");
+            CopyValue.Click += StatisticMenuItem_ClickCopyValue;
+            m.Items.Add(CopyValue);
+
+            MenuItem SaveAllMenuItem = new MenuItem("SaveToFile");
+            SaveAllMenuItem.Click += StatisticMenuItem_ClickSaveAll;
+            m.Items.Add(SaveAllMenuItem);
+
+            MenuItem TakeScreenShot = new MenuItem("TakeScreenshot");
+            TakeScreenShot.Click += ButtonSaveScreenshot_Click;
+            m.Items.Add(TakeScreenShot);
+
+            return m;
+        }
+        private void _statisticTable_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                if (e.Button == MouseButtons.Right)
+                {
+
+                }
+                else if (e.Button == MouseButtons.Left)
+                {
+                    StatisticMenuItem_ClickCopyValue(sender, e);
+                }
+
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+        }
+        void _statisticTable_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+        {
+        }
+        void _statisticTable_CellMouseUp(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && e.ColumnIndex != -1 && e.RowIndex != -1)
+            {
+                   // _statisticTable_MouseClick(sender, e);
+            }
+        }
+        private void StatisticMenuItem_ClickCopyValue(object sender, System.EventArgs e)
+        {
+            if (e.GetType() == typeof(MouseEventArgs))
+            {
+                MouseEventArgs me = e as MouseEventArgs;
+
+                int currentMouseOverRow = _gridStatistics.HitTest(me.X, me.Y).RowIndex;
+                if (currentMouseOverRow >= 0)
+                {
+                    string StatisticValuToCopy = "0";
+                    try
+                    {
+                        StatisticValuToCopy = Convert.ToString(_gridStatistics[_gridStatistics.HitTest(me.X, me.Y).ColumnIndex, _gridStatistics.HitTest(me.X, me.Y).RowIndex].Value ?? "0");
+                    }
+                    catch
+                    {
+                        StatisticValuToCopy = "0";
+                    }
+                    finally
+                    {
+                        if (StatisticValuToCopy != "")
+                        {
+
+                            System.Windows.Clipboard.SetDataObject(this._gridStatistics.GetClipboardContent());
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (this._gridStatistics
+                            .GetCellCount(DataGridViewElementStates.Selected) > 0)
+                {
+                    try
+                    {
+                        // Add the selection to the clipboard.
+                        System.Windows.Clipboard.SetDataObject(
+                            this._gridStatistics.GetClipboardContent());
+
+                    }
+                    catch (System.Runtime.InteropServices.ExternalException)
+                    {
+                        SendNewLogMessage("The Clipboard could not be accessed.Please try again", LogMessageType.Error);
+                    }
+                }
+            }
+        
+        }
+
+        private void StatisticMenuItem_ClickSaveAll(Object sender, System.EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Comma separated file|*.csv|XML file|*.xml|Any file|*.*";
+            saveFileDialog.Title = "Save an text File";
+            saveFileDialog.FileName = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+            saveFileDialog.ShowDialog();
+
+            if (saveFileDialog.FileName != "")
+            {
+                switch (saveFileDialog.FilterIndex)
+                {
+                    case 2:
+                        {
+                            XmlSerializer serializer =
+                            new XmlSerializer(typeof(List<OsEngine.Journal.Internal.PositionStatisticGenerator.StatisticRowForJournal>));
+                            try
+                            {
+                                using (StreamWriter outputFile = new StreamWriter(saveFileDialog.FileName, true, Encoding.UTF8))
+                                {
+                                    serializer.Serialize(outputFile, StatForSave);
+                                    outputFile.Close();
+                                }
+                            }
+                            catch (Exception error)
+                            {
+                                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            try
+                            {
+                                using (StreamWriter outputFile = new StreamWriter(saveFileDialog.FileName, true, Encoding.UTF8))
+                                {
+                                    outputFile.WriteLine(SaveToCsv(StatForSave));
+                                }
+                            }
+                            catch (Exception error)
+                            {
+                                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                            }
+                            break;
+                        }
+                }
+            }
+        }
+
+        private void ButtonSaveScreenshot_Click(Object sender, System.EventArgs e)
+        {
+            var image = ScreenCapture.CaptureActiveWindow();
+
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "PNG file|*.png";
+            saveFileDialog1.Title = "Save an Image File";
+            saveFileDialog1.FileName = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+            saveFileDialog1.ShowDialog();
+
+            if (saveFileDialog1.FileName != "")
+            {
+                switch (saveFileDialog1.FilterIndex)
+                {
+                    default:
+                        {
+                            image.Save(saveFileDialog1.FileName, ImageFormat.Png);
+                            break;
+                        }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Saves a list of data objects to a CSV file.
+        /// </summary>
+        /// <typeparam name="T">The type of the data objects.</typeparam>
+        /// <param name="reportData">The list of data objects.</param>
+        /// <returns>A string representation of the CSV file.</returns>
+        private string SaveToCsv<T>(List<T> reportData)
+        {
+            var lines = new List<string>();
+
+            // Get the properties of the data type
+            IEnumerable<PropertyDescriptor> props = TypeDescriptor.GetProperties(typeof(T)).OfType<PropertyDescriptor>();
+
+            //var props = TypeDescriptor.GetProperties(typeof(T)).OfType<PropertyDescriptor>();
+
+            // Create the header line by joining the property names
+            var header = string.Join(";", props.Select(property => property.Name));
+            lines.Add(header);
+                //var valueLines = reportData.Select(row => string.Join(";", header.Split(';')
+                //.Select(a => row.GetType().GetProperty(a).GetValue(row, null))));
+
+            // Create value lines for each data object
+            var valueLines = reportData.Select(row =>
+            {
+                // get the property values and enclose them in quotes -if they contain a comma
+                var values = header.Split(';').Select(propertyname =>
+                {
+                    var propertyvalue = row.GetType().GetProperty(propertyname)?.GetValue(row, null);
+                    var valuestring = propertyvalue?.ToString();
+
+                    // add quotes if the value contains a comma
+                    if (valuestring?.Contains(',') == true)
+                        valuestring = $"\"{valuestring}\"";
+
+                    return valuestring;
+                });
+
+                // join the values with commas
+                var line = string.Join(";", values);
+                return line;
+            });
+
+            // Add the value lines to the result
+            lines.AddRange(valueLines);
+
+            // Join all lines with newline characters
+            return string.Join("\n", lines);
+        }
+
+        public class ScreenCapture
+        {
+            [DllImport("user32.dll")]
+            private static extern IntPtr GetForegroundWindow();
+
+            [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+            public static extern IntPtr GetDesktopWindow();
+
+            [StructLayout(LayoutKind.Sequential)]
+            private struct Rect
+            {
+                public int Left;
+                public int Top;
+                public int Right;
+                public int Bottom;
+            }
+
+            [DllImport("user32.dll")]
+            private static extern IntPtr GetWindowRect(IntPtr hWnd, ref Rect rect);
+
+            public static System.Drawing.Image CaptureDesktop()
+            {
+                return CaptureWindow(GetDesktopWindow());
+            }
+
+            public static Bitmap CaptureActiveWindow()
+            {
+                return CaptureWindow(GetForegroundWindow());
+            }
+
+            public static Bitmap CaptureWindow(IntPtr handle)
+            {
+                var rect = new Rect();
+                GetWindowRect(handle, ref rect);
+                var bounds = new Rectangle(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+                var result = new Bitmap(bounds.Width, bounds.Height);
+
+                using (var graphics = Graphics.FromImage(result))
+                {
+                    graphics.CopyFromScreen(new System.Drawing.Point(bounds.Left, bounds.Top), System.Drawing.Point.Empty, bounds.Size);
+                }
+
+                return result;
             }
         }
 
@@ -642,51 +951,93 @@ namespace OsEngine.Journal
                 {
                     CreateTableToStatistic();
                 }
-
+                if (_gridStatistics == null) {
+                    return;
+                }
                 List<string> positionsAllState = PositionStatisticGenerator.GetStatisticNew(positionsAll);
                 List<string> positionsLongState = PositionStatisticGenerator.GetStatisticNew(positionsLong);
                 List<string> positionsShortState = PositionStatisticGenerator.GetStatisticNew(positionsShort);
 
-                if (positionsAllState == null)
+                Dictionary<int, List<string>> switchcase = new Dictionary<int, List<string>>();
+
+                if (positionsAllState != null && positionsAllState.Count > 0)
                 {
-                    for (int i = 0; i < 31; i++)
-                    {
-                        _gridStatistics.Rows[i].Cells[1].Value = "";
-                    }
+                    switchcase.Add(0, positionsAllState);
                 }
-                if (positionsLongState == null)
+                if (positionsLongState != null && positionsLongState.Count > 0)
                 {
-                    for (int i = 0; i < 31; i++)
-                    {
-                        _gridStatistics.Rows[i].Cells[2].Value = "";
-                    }
+                    switchcase.Add(1, positionsLongState);
                 }
-                if (positionsShortState == null)
+                if (positionsShortState != null && positionsShortState.Count > 0)
                 {
-                    for (int i = 0; i < 31; i++)
-                    {
-                        _gridStatistics.Rows[i].Cells[3].Value = "";
-                    }
+                    switchcase.Add(2, positionsShortState);
                 }
-                if (positionsLongState != null)
+
+                int RowsIterator = 0;
+                foreach (DataGridViewRow item in _gridStatistics.Rows)
                 {
-                    for (int i = 0; i < 31; i++)
+                    if (Convert.ToString(item.Cells[0].Value) == "")
                     {
-                        _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[i].ToString();
+                        continue;
                     }
-                }
-                if (positionsShortState != null)
-                {
-                    for (int i = 0; i < 31; i++)
+                    else
                     {
-                        _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[i].ToString();
-                    }
-                }
-                if (positionsAllState != null)
-                {
-                    for (int i = 0; i < 31; i++)
-                    {
-                        _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[i].ToString();
+                        OsEngine.Journal.Internal.PositionStatisticGenerator.StatisticRowForJournal ReportRowForSave = new OsEngine.Journal.Internal.PositionStatisticGenerator.StatisticRowForJournal();
+                        ReportRowForSave.Id = RowsIterator;
+                        ReportRowForSave.Name = item.Cells[0].Value.ToString();
+                        if (switchcase.Count != 0)
+                        {
+                            int listiterator = 0;
+
+                            foreach (var ListInSwitchCase in switchcase)
+                            {
+                                switch (ListInSwitchCase.Key)
+                                {
+                                    case 0:
+                                        {
+                                            try
+                                            {
+                                                ReportRowForSave.ValueAll = ListInSwitchCase.Value[RowsIterator].ToString();
+                                                item.Cells[1].Value = ListInSwitchCase.Value[RowsIterator].ToString();
+                                            }
+                                            catch (Exception error)
+                                            {
+                                                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                            }
+                                            break;
+                                        }
+                                    case 1:
+                                        {
+                                            try
+                                            {
+                                                ReportRowForSave.ValueLong = ListInSwitchCase.Value[RowsIterator].ToString();
+                                                item.Cells[2].Value = ListInSwitchCase.Value[RowsIterator].ToString();
+                                            }
+                                            catch (Exception error)
+                                            {
+                                                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                            }
+                                            break;
+                                        }
+                                    case 2:
+                                        {
+                                            try
+                                            {
+                                                ReportRowForSave.ValueShort = ListInSwitchCase.Value[RowsIterator].ToString();
+                                                item.Cells[3].Value = ListInSwitchCase.Value[RowsIterator].ToString();
+                                            }
+                                            catch (Exception error)
+                                            {
+                                                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                                            }
+                                            break;
+                                        }
+                                }
+                                listiterator++;
+                            }
+                            StatForSave.Add(ReportRowForSave);
+                        }
+                        RowsIterator++;
                     }
                 }
             }
@@ -695,6 +1046,9 @@ namespace OsEngine.Journal
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+
+       
 
         #endregion
 

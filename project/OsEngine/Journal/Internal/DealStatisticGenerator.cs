@@ -8,11 +8,37 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using OsEngine.Entity;
+using System.Xml.Serialization;
 
 namespace OsEngine.Journal.Internal
 {
     public class PositionStatisticGenerator
     {
+        [XmlRootAttribute("StatisticRow",
+IsNullable = false)]
+        public class StatisticRowForJournal
+        {
+            [XmlAttribute("Id")]
+            public int Id { get; set; }
+
+            [XmlAttribute("Name")]
+            public string Name { get; set; }
+            [XmlElementAttribute(IsNullable = true)]
+            public string ValueAll { get; set; }
+            [XmlElementAttribute(IsNullable = true)]
+            public string ValueLong { get; set; }
+            [XmlElementAttribute(IsNullable = true)]
+            public string ValueShort { get; set; }
+
+            public StatisticRowForJournal() { }
+            public StatisticRowForJournal(string name, string valueAll, string valueLong, string valueShort)
+            {
+                Name = name;
+                ValueAll = valueAll;
+                ValueLong = valueLong;
+                ValueShort = valueShort;
+            }
+        }
         public static List<string> GetStatisticNew(List<Position> positions)
         {
             if (positions == null)
@@ -61,6 +87,13 @@ namespace OsEngine.Journal.Internal
 
                  Макс просадка %
                  Размер комиссии
+
+            	 Закрыто по стопу
+                 Закрыто по профиту
+                 Закрыто по торговым сигналам
+
+                 Ср Длительность прибыльных сделок
+                 Ср Длительность убыточных сделок
             */
 
 
@@ -72,14 +105,14 @@ namespace OsEngine.Journal.Internal
 
             report.Add(Math.Round(GetProfitFactor(deals), 6).ToString(new CultureInfo("ru-RU")));   //Profit Factor
             report.Add(Math.Round(GetRecovery(deals), 6).ToString(new CultureInfo("ru-RU")));   // Recovery
-            report.Add("");
+            //report.Add("");
 
             report.Add(Convert.ToDouble(GetMiddleProfitInAbsolute(deals)).ToString(new CultureInfo("ru-RU"))); //average profit in 1 contract
             report.Add(Math.Round(GetMiddleProfitInPercentOneContract(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in % 1 contract
             report.Add(Convert.ToDouble(GetMiddleProfitInAbsoluteToDeposit(deals)).ToString(new CultureInfo("ru-RU"))); //average profit
             report.Add(Math.Round(GetMiddleProfitInPercentToDeposit(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in %
 
-            report.Add(""); // 11
+            //report.Add(""); // 11
             report.Add(GetProfitDial(deals).ToString(new CultureInfo("ru-RU"))); //wining trades/выигрышных сделок
             report.Add(Math.Round(GetProfitDialPercent(deals), 6).ToString(new CultureInfo("ru-RU")));//wining trade in %/выигрышных сделок в %
             //report += Convert.ToDouble(GetAllProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //total profit margins/общий профит выигрышных сделок
@@ -89,7 +122,7 @@ namespace OsEngine.Journal.Internal
             report.Add(Math.Round(GetAllMiddleProfitInProfitInPercentOnDeposit(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
             report.Add(GetMaxProfitSeries(deals).ToString(new CultureInfo("ru-RU"))); //maximum series of winning trades/максимальная серия выигрышных сделок
 
-            report.Add("");
+            //report.Add("");
             report.Add(GetLossDial(deals).ToString(new CultureInfo("ru-RU"))); //losing trades/проигрышных сделок
             report.Add(Math.Round(GetLossDialPercent(deals), 6).ToString(new CultureInfo("ru-RU"))); //losing deals in/проигрышных сделок в %
             //report += Convert.ToDouble(GetAllLossInLossInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //loss-making total profit/общий профит проигрышных сделок
@@ -98,11 +131,18 @@ namespace OsEngine.Journal.Internal
             report.Add(Convert.ToDouble(GetAllMiddleLossInLossInAbsoluteOnDeposit(deals)).ToString(new CultureInfo("ru-RU"))); //Average profit in winning trades/средний профит в выигрышных сделках
             report.Add(Math.Round(GetAllMiddleLossInLossInPercentOnDeposit(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
             report.Add(GetMaxLossSeries(deals).ToString(new CultureInfo("ru-RU")));//maximum series of winning trades/максимальная серия выигрышных сделок
-            report.Add("");
+            //report.Add("");
             report.Add(Math.Round(GetMaxDownPercent(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
             report.Add(Math.Round(GetCommissionAmount(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
+            
+            report.Add(GetClosedCountForType(deals, "TSto").ToString(new CultureInfo("ru-RU"))); //trades closed by Trailing Stop
+            report.Add(GetClosedCountForType(deals, "TPro").ToString(new CultureInfo("ru-RU"))); //trades closed by Take Profit
+            report.Add(GetClosedCountForType(deals, null).ToString(new CultureInfo("ru-RU"))); //trades closed by Trade signals
 
+            report.Add(GetPosDuration(deals, "Profit").ToString(new CultureInfo("ru-RU"))); //Ср длительность прибыльных сделок
+            report.Add(GetPosDuration(deals, "Loss").ToString(new CultureInfo("ru-RU"))); //Ср длительность убыточных сделок
             /*report += Math.Round(GetSharp(), 2).ToString(new CultureInfo("ru-RU"));
+             * 
             */
             return report;
         }
@@ -927,6 +967,32 @@ namespace OsEngine.Journal.Internal
 
             return Round(recovery);
         }
+        public static decimal GetClosedCountForType(Position[] deals, string type = null)
+        {
+            decimal closeType = 0;
+            if (type != null)
+            {
+                for (int i = 0; i < deals.Length; i++)
+                {
+                    if (deals[i].SignalTypeClose != null && deals[i].SignalTypeClose.Contains(type.ToUpper(), StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        closeType++;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < deals.Length; i++)
+                {
+                    if (deals[i].SignalTypeClose == null || (deals[i].SignalTypeClose.Contains("tsto".ToUpper(), StringComparison.InvariantCultureIgnoreCase) == false && deals[i].SignalTypeClose.Contains("tpro".ToUpper(), StringComparison.InvariantCultureIgnoreCase) == false))
+                    {
+                        closeType++;
+                    }
+                }
+            }
+
+            return closeType;
+        }
 
         public static List<Position> SortByTime(List<Position> positionsAll)
         {
@@ -938,6 +1004,83 @@ namespace OsEngine.Journal.Internal
         private static decimal Round(decimal number)
         {
             return Decimal.Round(number, 6);
+        }
+
+        public static string GetPosDuration(Position[] deals, string Direction)
+        {
+            string result = "";
+            List<long> listPos = new List<long>();
+
+            TimeSpan allTime = new TimeSpan();
+            int dealsCount = 0;
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                DateTime openTime = deals[i].TimeOpen;
+                DateTime closeTime = deals[i].TimeClose;
+
+                if (closeTime == DateTime.MinValue)
+                {
+                    continue;
+                }
+
+                dealsCount++;
+
+                switch (Direction){
+                    case "Profit":
+                        {
+                            if (deals[i].ProfitOperationAbs > 0)
+                            {
+                                allTime += closeTime - openTime;
+                                listPos.Add(Convert.ToInt64((closeTime - openTime).Ticks));
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                            break;
+                        }
+                    case "Loss":
+                        {
+                            if (deals[i].ProfitOperationAbs < 0)
+                            {
+                                allTime += closeTime - openTime;
+                                listPos.Add(Convert.ToInt64((closeTime - openTime).Ticks));
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            //can be used to replace GetAverageTimeOnPoses
+                            allTime += closeTime - openTime;
+                            listPos.Add(Convert.ToInt64((closeTime - openTime).Ticks));
+                            break;
+                        }
+                }
+                
+            }
+
+            if (dealsCount == 0)
+            {
+                result = "0";
+            }
+            else
+            {
+
+                long seconds = Convert.ToInt64(listPos.Average());
+                allTime = new TimeSpan(seconds);
+
+                result =
+                    "H: " + Convert.ToInt32(allTime.TotalHours)
+                    + " M: " + Convert.ToInt32(allTime.Minutes)
+                    + " S: " + Convert.ToInt32(allTime.Seconds);
+            }
+
+            return result;
         }
 
         #endregion

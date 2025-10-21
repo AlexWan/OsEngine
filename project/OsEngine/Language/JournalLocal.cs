@@ -259,6 +259,26 @@ namespace OsEngine.Language
             "Eng:Sharpe ratio_" +
             "Ru:Sharpe ratio_");
 
+        public string StatClosedByStop => OsLocalization.ConvertToLocString(
+            "Eng:CLosed by stop_" +
+            "Ru:Закрыто по стопу_");
+
+        public string StatClosedByProfit => OsLocalization.ConvertToLocString(
+            "Eng:Closed by signals_" +
+            "Ru:Закрыто по профиту_");
+        public string StatClosedBySignals => OsLocalization.ConvertToLocString(
+            "Eng:Closed by signals_" +
+            "Ru:Закрыто по сигналам_");
+        public string AvgDurationProfitable => OsLocalization.ConvertToLocString(
+            "Eng:AvgDurationProfitable_" +
+            "Ru:Ср длительность прибыльной сделки_");
+        public string AvgDurationNonProfitable => OsLocalization.ConvertToLocString(
+            "Eng:AvgDurationNonProfitable_" +
+            "Ru:Ср длительность убыточной сделки_");
+
+
+
+
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:You must select a file to save!_" +
             "Ru:Необходимо выбрать файл для сохранения!_");
