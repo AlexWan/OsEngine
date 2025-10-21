@@ -319,11 +319,24 @@ namespace OsEngine.Robots
             List<string> baseClassFiles = GetBaseClassFiles();
 
             List<MetadataReference> currentCompilationReferences = new List<MetadataReference>(_baseReferences);
+            
+            List<string> customDlls = new List<string>();
             List<string> dllsFromScriptFolder = GetDllsPathFromScriptFolder(scriptPath);
-
-            if (dllsFromScriptFolder != null)
+            if(dllsFromScriptFolder != null)
             {
-                foreach (string dllPath in dllsFromScriptFolder)
+                customDlls.AddRange(dllsFromScriptFolder);
+            }
+
+            List<string> dllsFromBaseClasses = GetDllsFromBaseClassesFolder();
+            if(dllsFromBaseClasses != null)
+            {
+                customDlls.AddRange(dllsFromBaseClasses);
+            }
+
+
+            if (customDlls.Count > 0)
+            {
+                foreach (string dllPath in customDlls.Distinct())
                 {
                     if (!currentCompilationReferences.Any(r => r.Display.Equals(dllPath, StringComparison.OrdinalIgnoreCase)))
                     {
@@ -695,6 +708,17 @@ namespace OsEngine.Robots
             }
 
             return Directory.GetFiles(baseDir, "*.cs").ToList();
+        }
+
+        private static List<string> GetDllsFromBaseClassesFolder()
+        {
+            string dllsDir = Path.Combine("Custom", "Robots", "BaseClasses", "Dlls");
+            if (!Directory.Exists(dllsDir))
+            {
+                return new List<string>();
+            }
+
+            return Directory.GetFiles(dllsDir, "*.dll").ToList();
         }
     }
 }
