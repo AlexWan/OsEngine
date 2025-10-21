@@ -298,7 +298,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Transaq);
                 serverTypes.Add(ServerType.TInvest);
                 serverTypes.Add(ServerType.Finam);
-                serverTypes.Add(ServerType.FinamGrpc);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
                 serverTypes.Add(ServerType.MoexAlgopack);
@@ -445,7 +444,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.Finam);
-                serverTypes.Add(ServerType.FinamGrpc);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
                 serverTypes.Add(ServerType.MoexAlgopack);
@@ -782,10 +780,6 @@ namespace OsEngine.Market
                     else if (type == ServerType.Finam)
                     {
                         newServer = new FinamServer();
-                    }
-                    else if (type == ServerType.FinamGrpc)
-                    {
-                        newServer = new FinamGrpcServer(uniqueNum);
                     }
                     else if (type == ServerType.Deribit)
                     {
@@ -1504,10 +1498,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.Finam)
                 {
                     serverPermission = new FinamServerPermission();
-                }
-                else if (type == ServerType.FinamGrpc)
-                {
-                    serverPermission = new FinamGrpcServerPermission();
                 }
                 else if (type == ServerType.TInvest)
                 {
