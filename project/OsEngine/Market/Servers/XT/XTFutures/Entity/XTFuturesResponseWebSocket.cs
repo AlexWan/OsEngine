@@ -67,23 +67,26 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 
     public class XTFuturesUpdateOrder
     {
-        public string symbol;          // Trading pair
-        public string orderId;         // Order ID
-        public string origQty;         // Original quantity
-        public string avgPrice;        // Average price
-        public string price;           // Order price
-        public string executedQty;     // Executed quantity 
-        public string orderSide;       // BUY or SELL
-        public string timeInForce;     // Valid way
-        public string positionSide;    // LONG or SHORT
-        public string marginFrozen;    // Occupied margin
-        public string sourceType;      // DEFAULT, ENTRUST, PROFIT (type of order source)
-        public string type;            // Type (ORDER, etc.)
-        public string state;           // Order state: NEW, PARTIALLY_FILLED, FILLED, etc.
-        public string createdTime;     // Create time(ms)
-        public string leverage;        // Leverage
-        public string positionType;    // Position type: CROSSED or ISOLATED
-        public string orderType;       // Order type: LIMIT or MARKET
+        public string symbol;
+        public string orderId;
+        public string clientOrderId;
+        public string origQty;
+        public string avgPrice;
+        public string price;
+        public string executedQty;
+        public string orderSide;
+        public string timeInForce;
+        public string positionSide;
+        public string marginFrozen;
+        public string sourceType;
+        public string type;
+        public string seqId;
+        public string state;
+        public string createdTime;
+        public string updatedTime;
+        public string leverage;
+        public string positionType;
+        public string orderType;
     }
 
     public class XTFuturesPositionData

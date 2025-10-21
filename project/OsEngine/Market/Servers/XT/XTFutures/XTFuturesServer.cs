@@ -76,7 +76,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 Thread threadForGetPortfolios = new Thread(UpdatePortfolios);
                 threadForGetPortfolios.IsBackground = true;
                 threadForGetPortfolios.Name = "UpdatePortfoliosXTFutures";
-                threadForGetPortfolios.Start();
+                threadForGetPortfolios.Start(); 
+
             }
 
             public DateTime ServerTime { get; set; }
@@ -86,6 +87,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             public void Connect(WebProxy proxy)
             {
                 LoadOrderTrackers();
+               
                 _myProxy = proxy;
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
@@ -1451,6 +1453,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                         if (action.topic.Equals("order"))
                         {
+                            SendLogMessage($"UpdateOrder:{message}",LogMessageType.Error);
                             UpdateOrder(message);
                             continue;
                         }
@@ -2004,9 +2007,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     updateOrder.SecurityNameCode = order.data.symbol;
                     updateOrder.SecurityClassCode = GetNameClass(order.data.symbol);
-                    updateOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.createdTime));
+                    updateOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.createdTime));
+                    updateOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.updatedTime));
                     updateOrder.NumberMarket = order.data.orderId;
-                    updateOrder.NumberUser = GetUserOrderNumber(order.data.orderId);
+                    updateOrder.NumberUser = Convert.ToInt32(order.data.clientOrderId);
                     updateOrder.Side = order.data.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
                     updateOrder.State = GetOrderState(order.data.state);
                     updateOrder.TypeOrder = MapOrderType(order.data.orderType);
@@ -2181,7 +2185,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         order.NumberMarket = stateResponse.result;
 
-                        if (order.NumberUser != 0 && order.NumberMarket != "0")
+                        if (string.IsNullOrEmpty(order.NumberMarket)) 
                         {
                             if (!_numberUser.ContainsKey(order.NumberMarket))
                             {
@@ -2213,7 +2217,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         CreateOrderFail(order);
                     }
 
-                    MyOrderEvent.Invoke(order);////надо или нет
+                   // MyOrderEvent.Invoke(order);////надо или нет
                 }
                 catch (Exception exception)
                 {
@@ -2514,7 +2518,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     string query = "limit=100";
 
                     IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/list-history", Method.GET, query);
-                   
+                    SendLogMessage($"{responseMessage}", LogMessageType.Error);
                     XTFuturesResponseRest<XTFuturesOrderResult> stateResponse =
                         JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesOrderResult>>(responseMessage.Content);
 
@@ -2542,17 +2546,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             Order historyOrder = new Order();
 
                             historyOrder.NumberMarket = item.orderId;
-
-                            if (item.clientOrderId == null || item.clientOrderId == "0")
-                            {
-                                historyOrder.NumberUser = GetUserOrderNumber(item.orderId);
-
-                            }
-                            else
-                            {
-                                historyOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
-                            }
-
+                            historyOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
                             historyOrder.SecurityNameCode = item.symbol;
                             historyOrder.SecurityClassCode = GetNameClass(item.symbol);
                             historyOrder.Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
@@ -2621,7 +2615,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                             Order activeOrder = new Order();
 
-                            if (item.clientOrderId == null || item.clientOrderId == "0")
+                            if (item.clientOrderId == null)
                             {
                                 activeOrder.NumberUser = GetUserOrderNumber(item.orderId);
                             }
@@ -2720,7 +2714,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     if (order == null)
                     {
-                        SendLogMessage("GetOrderStatus > Order is null", LogMessageType.Error);
+                       // SendLogMessage("GetOrderStatus > Order is null", LogMessageType.Error);
                         return OrderStateType.None;
                     }
 
@@ -2767,32 +2761,32 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             }
                         }
                     }
-                    if (order.NumberUser != 0)
-                    {
-                        if (ordersActive != null)
-                        {
-                            for (int i = 0; i < ordersActive.Count; i++)
-                            {
-                                if (ordersActive[i].NumberUser == order.NumberUser)
-                                {
-                                    orderOnMarket = ordersActive[i];
-                                    break;
-                                }
-                            }
-                        }
+                    //if (order.NumberUser != 0)
+                    //{
+                    //    if (ordersActive != null)
+                    //    {
+                    //        for (int i = 0; i < ordersActive.Count; i++)
+                    //        {
+                    //            if (ordersActive[i].NumberUser == order.NumberUser)
+                    //            {
+                    //                orderOnMarket = ordersActive[i];
+                    //                break;
+                    //            }
+                    //        }
+                    //    }
 
-                        if (orderOnMarket == null && ordersHistory != null)
-                        {
-                            for (int i = 0; i < ordersHistory.Count; i++)
-                            {
-                                if (ordersHistory[i].NumberUser == order.NumberUser)
-                                {
-                                    orderOnMarket = ordersHistory[i];
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    //    if (orderOnMarket == null && ordersHistory != null)
+                    //    {
+                    //        for (int i = 0; i < ordersHistory.Count; i++)
+                    //        {
+                    //            if (ordersHistory[i].NumberUser == order.NumberUser)
+                    //            {
+                    //                orderOnMarket = ordersHistory[i];
+                    //                break;
+                    //            }
+                    //        }
+                    //    }
+                    //}
                     if (orderOnMarket == null)
                     {
                         return OrderStateType.None;
@@ -3052,8 +3046,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 MyOrderEvent?.Invoke(order);
             }
 
+            // private Dictionary< int, string> _numberUser = new Dictionary<int, string>();
             private Dictionary<string, int> _numberUser = new Dictionary<string, int>();
-
+            private Dictionary<int, string> _orderTrackerDict = new Dictionary<int, string>();
             private void LoadOrderTrackers()
             {
                 try
@@ -3075,7 +3070,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
         
-            private Dictionary<string, int> _orderTrackerDict = new Dictionary<string, int>();
             private void SaveOrderTrackers()
             {
                 try
@@ -3098,6 +3092,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private int GetUserOrderNumber(string marketOrderId)
             {
+
                 if (_numberUser == null || _numberUser.Count == 0)
                 {
                     LoadOrderTrackers();
