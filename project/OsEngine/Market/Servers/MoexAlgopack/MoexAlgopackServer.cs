@@ -213,7 +213,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                     newSecurity.DecimalsVolume = 0;
                     newSecurity.PriceStep = item[6].ToDecimal();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.GoBuy = item[14].ToDecimal();
+                    newSecurity.MarginBuy = item[14].ToDecimal();
                     newSecurity.Expiration = DateTime.Parse(item[7],CultureInfo.InvariantCulture); 
                     newSecurity.State = SecurityStateType.Activ;
                     securities.Add(newSecurity);

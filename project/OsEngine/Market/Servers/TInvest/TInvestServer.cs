@@ -793,8 +793,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Futures;
                     newSecurity.VolumeStep = 1;
-                    newSecurity.GoBuy = GetValue(item.InitialMarginOnBuy);
-                    newSecurity.GoSell = GetValue(item.InitialMarginOnSell);
+                    newSecurity.MarginBuy = GetValue(item.InitialMarginOnBuy);
+                    newSecurity.MarginSell = GetValue(item.InitialMarginOnSell);
 
                     if (item.MinPriceIncrementAmount != null)
                     {

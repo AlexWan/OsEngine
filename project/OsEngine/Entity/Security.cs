@@ -106,12 +106,12 @@ namespace OsEngine.Entity
         /// </summary>
         public decimal PriceStepCost;
 
-        [Obsolete("Obsolete, please use GoBuy or GoSell.")]
+        [Obsolete("Obsolete, please use MarginBuy or MarginSell.")]
         public decimal Go
         {
             get
             {
-                return GoBuy;
+                return MarginBuy;
             }
         }
 
@@ -119,13 +119,13 @@ namespace OsEngine.Entity
         /// warranty coverage
         /// гарантийное обеспечение для покупки
         /// </summary>
-        public decimal GoBuy;
+        public decimal MarginBuy;
 
         /// <summary>
         /// warranty coverage
         /// гарантийное обеспечение для продажи
         /// </summary>
-        public decimal GoSell;
+        public decimal MarginSell;
 
         /// <summary>
         /// security type
@@ -265,7 +265,7 @@ namespace OsEngine.Entity
             PriceStep = array[5].ToDecimal();
             Lot = array[6].ToDecimal();
             PriceStepCost = array[7].ToDecimal();
-            GoBuy = array[8].ToDecimal();
+            MarginBuy = array[8].ToDecimal();
             Enum.TryParse(array[9],out SecurityType);
             _decimals = Convert.ToInt32(array[10]);
             PriceLimitLow = array[11].ToDecimal();
@@ -286,7 +286,7 @@ namespace OsEngine.Entity
             }
             if (array.Length > 20)
             {
-                GoSell = array[20].ToDecimal();
+                MarginSell = array[20].ToDecimal();
             }
         }
 
@@ -304,7 +304,7 @@ namespace OsEngine.Entity
             result += PriceStep + "\n";
             result += Lot + "\n";
             result += PriceStepCost + "\n";
-            result += GoBuy + "\n";
+            result += MarginBuy + "\n";
             result += SecurityType + "\n";
             result += _decimals + "\n";
             result += PriceLimitLow + "\n";
@@ -316,7 +316,7 @@ namespace OsEngine.Entity
             result += MinTradeAmount + "\n";
             result += VolumeStep +"\n";
             result += MinTradeAmountType + "\n";
-            result += GoSell ;
+            result += MarginSell ;
 
             return result;
         }

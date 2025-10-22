@@ -648,11 +648,11 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (string.IsNullOrEmpty(secInfo.Buy_deposit) == false)
                         {
-                            secCur.GoBuy = secInfo.Buy_deposit.ToDecimal();
+                            secCur.MarginBuy = secInfo.Buy_deposit.ToDecimal();
                         }
                         if (string.IsNullOrEmpty(secInfo.Sell_deposit) == false)
                         {
-                            secCur.GoSell = secInfo.Sell_deposit.ToDecimal();
+                            secCur.MarginSell = secInfo.Sell_deposit.ToDecimal();
                         }
 
                         break;

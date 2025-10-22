@@ -25,8 +25,8 @@ namespace OsEngine.Entity
 
             CultureInfo culture = new CultureInfo("ru-RU");
 
-            TextBoxGoPrice.Text = (security.GoBuy).ToString(culture);
-            TextBoxGoSell.Text = (security.GoSell).ToString(culture);
+            TextBoxGoPrice.Text = (security.MarginBuy).ToString(culture);
+            TextBoxMarginSell.Text = (security.MarginSell).ToString(culture);
             TextBoxLot.Text = security.Lot.ToString(culture);
             TextBoxStep.Text = security.PriceStep.ToString(culture);
             TextBoxStepCost.Text = security.PriceStepCost.ToString(culture);
@@ -37,7 +37,7 @@ namespace OsEngine.Entity
             SecuritiesColumn4.Content = OsLocalization.Entity.SecuritiesColumn4;
             SecuritiesColumn5.Content = OsLocalization.Entity.SecuritiesColumn5;
             SecuritiesColumn6.Content = OsLocalization.Entity.SecuritiesColumn6;
-            LabelSecuritiesGoSell.Content = OsLocalization.Entity.SecuritiesColumn21;
+            LabelSecuritiesMarginSell.Content = OsLocalization.Entity.SecuritiesColumn21;
 
             SecuritiesVolumeDecimals.Content = OsLocalization.Entity.SecuritiesColumn7;
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
@@ -57,8 +57,8 @@ namespace OsEngine.Entity
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
-            decimal goBuy;
-            decimal goSell;
+            decimal marginBuy;
+            decimal marginSell;
             decimal lot;
             decimal step;
             decimal stepCost;
@@ -66,8 +66,8 @@ namespace OsEngine.Entity
 
             try
             {
-                goBuy = TextBoxGoPrice.Text.ToDecimal();
-                goSell = TextBoxGoSell.Text.ToDecimal();
+                marginBuy = TextBoxGoPrice.Text.ToDecimal();
+                marginSell = TextBoxMarginSell.Text.ToDecimal();
                 lot = TextBoxLot.Text.ToDecimal();
                 step = TextBoxStep.Text.ToDecimal();
                 stepCost = TextBoxStepCost.Text.ToDecimal();
@@ -89,8 +89,8 @@ namespace OsEngine.Entity
                     index++;
                 }
 
-                if (goBuy < 0
-                    || goSell < 0)
+                if (marginBuy < 0
+                    || marginSell < 0)
                 {
                     message += index + 1 + ") " + OsLocalization.Message.HintMessageError2 + "\n";
                     index++;
@@ -122,8 +122,8 @@ namespace OsEngine.Entity
                 return;
             }
 
-            _security.GoBuy = goBuy;
-            _security.GoSell = goSell;
+            _security.MarginBuy = marginBuy;
+            _security.MarginSell = marginSell;
             _security.Lot = lot;
             _security.PriceStep = step;
             _security.PriceStepCost = stepCost;
@@ -150,7 +150,7 @@ namespace OsEngine.Entity
             ui.ShowDialog();
         }
 
-        private void ButtonInfoGoSell_Click(object sender, RoutedEventArgs e)
+        private void ButtonInfoMarginSell_Click(object sender, RoutedEventArgs e)
         {
             CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel2);
             ui.ShowDialog();

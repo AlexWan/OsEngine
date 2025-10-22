@@ -294,7 +294,7 @@ namespace OsEngine.Market.Servers.Atp
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[6].ReadOnly = false;
-            nRow.Cells[6].Value = security.GoBuy;// 6 lot price
+            nRow.Cells[6].Value = security.MarginBuy;// 6 lot price
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[7].ReadOnly = false;
@@ -486,7 +486,7 @@ namespace OsEngine.Market.Servers.Atp
 
             try
             {
-                newSec.GoBuy = row.Cells[6].Value.ToString().ToDecimal();
+                newSec.MarginBuy = row.Cells[6].Value.ToString().ToDecimal();
             }
             catch
             {
