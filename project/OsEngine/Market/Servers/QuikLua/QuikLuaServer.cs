@@ -458,7 +458,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         , Convert.ToInt32(exp.Substring(4, 2))
                         , Convert.ToInt32(exp.Substring(6, 2)));
 
-                    newSec.Go = QuikLua.Trading
+                    newSec.GoBuy = QuikLua.Trading
                         .GetParamEx(classCode, secCode, "SELLDEPO")
                         .Result.ParamValue.Replace('.', Separator).ToDecimal();
                 }
@@ -476,7 +476,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         , Convert.ToInt32(exp.Substring(4, 2))
                         , Convert.ToInt32(exp.Substring(6, 2)));
 
-                    newSec.Go = QuikLua.Trading
+                    newSec.GoBuy = QuikLua.Trading
                         .GetParamEx(classCode, secCode, "SELLDEPO")
                         .Result.ParamValue.Replace('.', Separator).ToDecimal();
 

@@ -106,11 +106,26 @@ namespace OsEngine.Entity
         /// </summary>
         public decimal PriceStepCost;
 
+        [Obsolete("Obsolete, please use GoBuy or GoSell.")]
+        public decimal Go
+        {
+            get
+            {
+                return GoBuy;
+            }
+        }
+
         /// <summary>
         /// warranty coverage
-        /// гарантийное обеспечение
+        /// гарантийное обеспечение для покупки
         /// </summary>
-        public decimal Go;
+        public decimal GoBuy;
+
+        /// <summary>
+        /// warranty coverage
+        /// гарантийное обеспечение для продажи
+        /// </summary>
+        public decimal GoSell;
 
         /// <summary>
         /// security type
@@ -250,7 +265,7 @@ namespace OsEngine.Entity
             PriceStep = array[5].ToDecimal();
             Lot = array[6].ToDecimal();
             PriceStepCost = array[7].ToDecimal();
-            Go = array[8].ToDecimal();
+            GoBuy = array[8].ToDecimal();
             Enum.TryParse(array[9],out SecurityType);
             _decimals = Convert.ToInt32(array[10]);
             PriceLimitLow = array[11].ToDecimal();
@@ -269,6 +284,10 @@ namespace OsEngine.Entity
             {
                 Enum.TryParse(array[19], out MinTradeAmountType);
             }
+            if (array.Length > 20)
+            {
+                GoSell = array[20].ToDecimal();
+            }
         }
 
         /// <summary>
@@ -285,7 +304,7 @@ namespace OsEngine.Entity
             result += PriceStep + "\n";
             result += Lot + "\n";
             result += PriceStepCost + "\n";
-            result += Go + "\n";
+            result += GoBuy + "\n";
             result += SecurityType + "\n";
             result += _decimals + "\n";
             result += PriceLimitLow + "\n";
@@ -296,7 +315,8 @@ namespace OsEngine.Entity
             result += DecimalsVolume + "\n";
             result += MinTradeAmount + "\n";
             result += VolumeStep +"\n";
-            result += MinTradeAmountType;
+            result += MinTradeAmountType + "\n";
+            result += GoSell ;
 
             return result;
         }

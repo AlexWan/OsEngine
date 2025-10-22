@@ -124,7 +124,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             CreateWebSocketConnection();
                             CheckFullActivation();
                         }
-                        catch (Exception exception)
+                        catch
                         {
                             SendLogMessage("Connection cannot be open. Error", LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
@@ -779,7 +779,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                     _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                    _webSocketPrivate.Connect();
+                    _webSocketPrivate.ConnectAsync();
 
                     if (_webSocketPublicMarketDepths != null)
                     {
@@ -793,7 +793,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     _webSocketPublicMarketDepths.OnClose += _webSocketPublicMarketDepths_OnClose;
                     _webSocketPublicMarketDepths.OnMessage += _webSocketPublicMarketDepths_OnMessage;
                     _webSocketPublicMarketDepths.OnError += _webSocketPublicMarketDepths_OnError;
-                    _webSocketPublicMarketDepths.Connect();
+                    _webSocketPublicMarketDepths.ConnectAsync();
 
                     if (_webSocketPublicTrades != null)
                     {
@@ -807,7 +807,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     _webSocketPublicTrades.OnClose += _webSocketPublicTrades_OnClose;
                     _webSocketPublicTrades.OnMessage += _webSocketPublicTrades_OnMessage;
                     _webSocketPublicTrades.OnError += _webSocketPublicTrades_OnError;
-                    _webSocketPublicTrades.Connect();
+                    _webSocketPublicTrades.ConnectAsync();
                 }
                 catch
                 {
@@ -1346,7 +1346,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             }
                         }
                     }
-                    catch (Exception exception)
+                    catch
                     {
                         Thread.Sleep(2000);
                     }
@@ -1402,7 +1402,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             }
                         }
                     }
-                    catch (Exception exception)
+                    catch
                     {
                         Thread.Sleep(2000);
                     }
@@ -1470,7 +1470,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             continue;
                         }
                     }
-                    catch (Exception exception)
+                    catch
                     {
                         Thread.Sleep(2000);
                     }
@@ -2235,7 +2235,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         if (!string.IsNullOrEmpty(stateResponse.result))
                         {
                             order.Price = newPrice;
-                            order.Volume = order.Volume;
 
                             SendLogMessage($" Success! Order {order.NumberMarket} updated." +
                                 $" New orderId={stateResponse.result}, price={newPrice}, qty={order.Volume}", LogMessageType.System);
@@ -2540,7 +2539,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     return new List<Order>();
                 }
-                catch (Exception exception)
+                catch
                 {
                     return null;
                 }

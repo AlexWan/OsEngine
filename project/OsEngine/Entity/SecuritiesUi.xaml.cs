@@ -297,10 +297,17 @@ namespace OsEngine.Entity
 
             DataGridViewColumn column14 = new DataGridViewColumn();
             column14.CellTemplate = cell0;
-            column14.HeaderText = OsLocalization.Entity.SecuritiesColumn15; // Collateral / ру: ГО
+            column14.HeaderText = OsLocalization.Entity.SecuritiesColumn15; // Collateral / ру: ГО ЛОНГ
             column14.ReadOnly = false;
             column14.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridSecurities.Columns.Add(column14);
+
+            DataGridViewColumn column14_2 = new DataGridViewColumn();
+            column14_2.CellTemplate = cell0;
+            column14_2.HeaderText = OsLocalization.Entity.SecuritiesColumn22; // Collateral / ру: ГО ШОРТ
+            column14_2.ReadOnly = false;
+            column14_2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridSecurities.Columns.Add(column14_2);
 
             DataGridViewColumn column15 = new DataGridViewColumn();
             column15.CellTemplate = cell0;
@@ -378,10 +385,11 @@ namespace OsEngine.Entity
             // 13 Volume step
             // 14 Price limit High
             // 15 Price limit Low
-            // 16 Collateral
-            // 17 Option type
-            // 18 Strike
-            // 19 Expiration
+            // 16 Collateral buy
+            // 17 Collateral sell
+            // 18 Option type
+            // 19 Strike
+            // 20 Expiration
 
             try
             {
@@ -476,26 +484,29 @@ namespace OsEngine.Entity
                     nRow.Cells[15].Value = curSec.PriceLimitLow.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[16].Value = curSec.Go.ToStringWithNoEndZero();
+                    nRow.Cells[16].Value = curSec.GoBuy.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[17].Value = curSec.OptionType;
+                    nRow.Cells[17].Value = curSec.GoSell.ToStringWithNoEndZero();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[18].Value = curSec.OptionType;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     if (curSec.OptionType != OptionType.None)
                     {
-                        nRow.Cells[18].Value = curSec.Strike.ToStringWithNoEndZero();
+                        nRow.Cells[19].Value = curSec.Strike.ToStringWithNoEndZero();
                     }
                     else
                     {
-                        nRow.Cells[18].ReadOnly = true;
+                        nRow.Cells[19].ReadOnly = true;
                     }
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
 
                     if (curSec.Expiration != DateTime.MinValue)
                     {
-                        nRow.Cells[19].Value = curSec.Expiration.ToString(OsLocalization.CurCulture);
+                        nRow.Cells[20].Value = curSec.Expiration.ToString(OsLocalization.CurCulture);
                     }
 
                     rows.Add(nRow);
@@ -540,10 +551,11 @@ namespace OsEngine.Entity
             // 13 Volume step
             // 14 Price limit High
             // 15 Price limit Low
-            // 16 Collateral
-            // 17 Option type
-            // 18 Strike
-            // 19 Expiration
+            // 16 Collateral buy
+            // 17 Collateral sell
+            // 18 Option type
+            // 19 Strike
+            // 20 Expiration
 
             List<Security> securities = _server.Securities;
 
@@ -570,15 +582,16 @@ namespace OsEngine.Entity
             decimal volumeStep = row.Cells[13].Value.ToString().ToDecimal();
             decimal priceLimitHigh = row.Cells[14].Value.ToString().ToDecimal();
             decimal priceLimitLow = row.Cells[15].Value.ToString().ToDecimal();
-            decimal collateral = row.Cells[16].Value.ToString().ToDecimal();
+            decimal collateralBuy = row.Cells[16].Value.ToString().ToDecimal();
+            decimal collateralSell = row.Cells[17].Value.ToString().ToDecimal();
 
             // 15 Option type
 
             decimal strike = 0;
 
-            if (row.Cells[18].Value != null)
+            if (row.Cells[19].Value != null)
             {
-                strike = row.Cells[18].Value.ToString().ToDecimal();
+                strike = row.Cells[19].Value.ToString().ToDecimal();
             }
             // 17 Expiration
 
@@ -611,7 +624,8 @@ namespace OsEngine.Entity
             mySecurity.MinTradeAmount = minVolume;
             mySecurity.PriceLimitHigh = priceLimitHigh;
             mySecurity.PriceLimitLow = priceLimitLow;
-            mySecurity.Go = collateral;
+            mySecurity.GoBuy = collateralBuy;
+            mySecurity.GoSell = collateralSell;
             mySecurity.Strike = strike;
             mySecurity.VolumeStep = volumeStep;
 

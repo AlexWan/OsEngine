@@ -290,6 +290,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             }
         }
 
+        public bool HaveOnlyMakerLimitsRealization
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

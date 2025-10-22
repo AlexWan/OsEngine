@@ -25,7 +25,8 @@ namespace OsEngine.Entity
 
             CultureInfo culture = new CultureInfo("ru-RU");
 
-            TextBoxGoPersent.Text = (security.Go).ToString(culture);
+            TextBoxGoPrice.Text = (security.GoBuy).ToString(culture);
+            TextBoxGoSell.Text = (security.GoSell).ToString(culture);
             TextBoxLot.Text = security.Lot.ToString(culture);
             TextBoxStep.Text = security.PriceStep.ToString(culture);
             TextBoxStepCost.Text = security.PriceStepCost.ToString(culture);
@@ -36,6 +37,8 @@ namespace OsEngine.Entity
             SecuritiesColumn4.Content = OsLocalization.Entity.SecuritiesColumn4;
             SecuritiesColumn5.Content = OsLocalization.Entity.SecuritiesColumn5;
             SecuritiesColumn6.Content = OsLocalization.Entity.SecuritiesColumn6;
+            LabelSecuritiesGoSell.Content = OsLocalization.Entity.SecuritiesColumn21;
+
             SecuritiesVolumeDecimals.Content = OsLocalization.Entity.SecuritiesColumn7;
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
 
@@ -54,7 +57,8 @@ namespace OsEngine.Entity
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
-            decimal go;
+            decimal goBuy;
+            decimal goSell;
             decimal lot;
             decimal step;
             decimal stepCost;
@@ -62,7 +66,8 @@ namespace OsEngine.Entity
 
             try
             {
-                go = TextBoxGoPersent.Text.ToDecimal();
+                goBuy = TextBoxGoPrice.Text.ToDecimal();
+                goSell = TextBoxGoSell.Text.ToDecimal();
                 lot = TextBoxLot.Text.ToDecimal();
                 step = TextBoxStep.Text.ToDecimal();
                 stepCost = TextBoxStepCost.Text.ToDecimal();
@@ -84,7 +89,8 @@ namespace OsEngine.Entity
                     index++;
                 }
 
-                if (go < 0)
+                if (goBuy < 0
+                    || goSell < 0)
                 {
                     message += index + 1 + ") " + OsLocalization.Message.HintMessageError2 + "\n";
                     index++;
@@ -116,9 +122,8 @@ namespace OsEngine.Entity
                 return;
             }
 
-            
-
-            _security.Go = go;
+            _security.GoBuy = goBuy;
+            _security.GoSell = goSell;
             _security.Lot = lot;
             _security.PriceStep = step;
             _security.PriceStepCost = stepCost;
@@ -140,6 +145,12 @@ namespace OsEngine.Entity
         }
 
         private void ButtonInfoLotPrice_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel2);
+            ui.ShowDialog();
+        }
+
+        private void ButtonInfoGoSell_Click(object sender, RoutedEventArgs e)
         {
             CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel2);
             ui.ShowDialog();

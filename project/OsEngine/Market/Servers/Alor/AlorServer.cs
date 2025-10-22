@@ -368,7 +368,8 @@ namespace OsEngine.Market.Servers.Alor
                     if (newSecurity.SecurityType == SecurityType.Option)
                     {
                         
-                        newSecurity.Go = item.marginbuy.ToDecimal();
+                        newSecurity.GoBuy = item.marginbuy.ToDecimal();
+                        newSecurity.GoSell = item.marginsell.ToDecimal();
 
                         if(item.type != null &&
                             item.type.Contains("Прем. европ. Call "))
@@ -468,7 +469,8 @@ namespace OsEngine.Market.Servers.Alor
                     else if (newSecurity.SecurityType == SecurityType.Futures)
                     {
                         newSecurity.NameClass = "Futures";
-                        newSecurity.Go = item.marginbuy.ToDecimal();
+                        newSecurity.GoBuy = item.marginbuy.ToDecimal();
+                        newSecurity.GoSell = item.marginsell.ToDecimal();
                     }
                     else if (newSecurity.SecurityType == SecurityType.CurrencyPair)
                     {

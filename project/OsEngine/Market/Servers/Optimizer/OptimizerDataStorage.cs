@@ -487,7 +487,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     security[security.Count - 1].Security.Name = name;
                     security[security.Count - 1].Security.Lot = 1;
                     security[security.Count - 1].Security.NameClass = "TestClass";
-                    security[security.Count - 1].Security.Go = 1;
+                    security[security.Count - 1].Security.GoBuy = 1;
+                    security[security.Count - 1].Security.GoSell = 1;
                     security[security.Count - 1].Security.PriceStepCost = 1;
                     security[security.Count - 1].Security.PriceStep = 1;
                     // timeframe / тф
@@ -795,7 +796,8 @@ namespace OsEngine.Market.Servers.Optimizer
                 security[security.Count - 1].Security.Name = name;
                 security[security.Count - 1].Security.Lot = 1;
                 security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.Go = 1;
+                security[security.Count - 1].Security.GoBuy = 1;
+                security[security.Count - 1].Security.GoSell = 1;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
                 // timeframe / тф
@@ -1021,7 +1023,8 @@ namespace OsEngine.Market.Servers.Optimizer
                 security[security.Count - 1].Security.Name = name;
                 security[security.Count - 1].Security.Lot = 1;
                 security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.Go = 1;
+                security[security.Count - 1].Security.GoBuy = 1;
+                security[security.Count - 1].Security.GoSell = 1;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
                 // timeframe / тф
@@ -1501,21 +1504,39 @@ namespace OsEngine.Market.Servers.Optimizer
                         decimal priceStep = array[i][4].ToDecimal();
 
                         int volDecimals = 0;
+                        decimal goSell = 0;
 
                         if (array[i].Length > 5)
                         {
                             volDecimals = Convert.ToInt32(array[i][5]);
                         }
+                        if (array[i].Length > 6)
+                        {
+                            goSell = Convert.ToInt32(array[i][6]);
+                        }
 
                         if (lot != 0)
+                        {
                             secu.Lot = lot;
+                        }
+                            
                         if (go != 0)
-                            secu.Go = go;
+                        {
+                            secu.GoBuy = go;
+                        }
+                           
                         if (priceStepCost != 0)
+                        {
                             secu.PriceStepCost = priceStepCost;
+                        }
+                           
                         if (priceStep != 0)
+                        {
                             secu.PriceStep = priceStep;
+                        }
+                        
                         secu.DecimalsVolume = volDecimals;
+                        secu.GoSell = goSell;
                     }
                 }
             }
@@ -1638,10 +1659,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     securityToSave.Name,
                     securityToSave.Lot.ToString(culture),
-                    securityToSave.Go.ToString(culture),
+                    securityToSave.GoBuy.ToString(culture),
                     securityToSave.PriceStepCost.ToString(culture),
                     securityToSave.PriceStep.ToString(culture),
-                    securityToSave.DecimalsVolume.ToString(culture)
+                    securityToSave.DecimalsVolume.ToString(culture),
+                    securityToSave.GoSell.ToString(culture)
                 });
             }
 
@@ -1661,10 +1683,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     securityToSave.Name,
                     securityToSave.Lot.ToString(culture),
-                    securityToSave.Go.ToString(culture),
+                    securityToSave.GoBuy.ToString(culture),
                     securityToSave.PriceStepCost.ToString(culture),
                     securityToSave.PriceStep.ToString(culture),
-                    securityToSave.DecimalsVolume.ToString(culture)
+                    securityToSave.DecimalsVolume.ToString(culture),
+                    securityToSave.GoSell.ToString(culture)
                 });
             }
 
@@ -1681,7 +1704,8 @@ namespace OsEngine.Market.Servers.Optimizer
                             saves[i][2] + "$" +
                             saves[i][3] + "$" +
                             saves[i][4] + "$" +
-                            saves[i][5]
+                            saves[i][5] + "$" +
+                            saves[i][6]
                             );
                     }
 

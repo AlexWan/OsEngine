@@ -1459,7 +1459,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 newSecurity.DecimalsVolume = 1;
                                 newSecurity.Decimals = int.Parse(secDecimals);
                                 newSecurity.Decimals = GetDecimals(newSecurity.PriceStep);
-                                newSecurity.Go = msg.GetString("InitialMarginOnBuy").ToDecimal();
+                                newSecurity.GoBuy = msg.GetString("InitialMarginOnBuy").ToDecimal();
                                 newSecurity.PriceLimitLow = msg.GetString("LowLimitPx").ToDecimal();
                                 newSecurity.PriceLimitHigh = msg.GetString("HighLimitPx").ToDecimal();
 

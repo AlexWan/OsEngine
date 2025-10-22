@@ -268,8 +268,8 @@ namespace OsEngine.Language
             "Ru:Цена шага цены_");
 
         public string SecuritiesColumn6 => OsLocalization.ConvertToLocString(
-            "Eng:Collateral_" +
-            "Ru:ГО_");
+            "Eng:Collateral buy_" +
+            "Ru:ГО покупка_");
 
         public string SecuritiesColumn7 => OsLocalization.ConvertToLocString(
             "Eng:Volume decimals_" +
@@ -304,8 +304,8 @@ namespace OsEngine.Language
           "Ru:Лимит цены снизу_");
 
         public string SecuritiesColumn15 => OsLocalization.ConvertToLocString(
-          "Eng:Collateral_" +
-          "Ru:Обеспечение(ГО)_");
+          "Eng:Collateral buy_" +
+          "Ru:ГО покупка_");
 
         public string SecuritiesColumn16 => OsLocalization.ConvertToLocString(
           "Eng:Option type_" +
@@ -326,6 +326,14 @@ namespace OsEngine.Language
         public string SecuritiesColumn20 => OsLocalization.ConvertToLocString(
          "Eng:Min volume Type_" +
          "Ru:Тип мин объёма_");
+
+        public string SecuritiesColumn21 => OsLocalization.ConvertToLocString(
+         "Eng:Collateral sell_" +
+         "Ru:ГО продажа_");
+
+        public string SecuritiesColumn22 => OsLocalization.ConvertToLocString(
+         "Eng:Collateral sell_" +
+         "Ru:ГО продажа_");
 
         public string TitleSecurityUi => OsLocalization.ConvertToLocString(
             "Eng:Security settings_" +

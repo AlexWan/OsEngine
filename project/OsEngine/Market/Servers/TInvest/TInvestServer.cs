@@ -793,7 +793,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Futures;
                     newSecurity.VolumeStep = 1;
-                    newSecurity.Go = GetValue(item.InitialMarginOnBuy); // есть еще при продаже (одинаковые?)
+                    newSecurity.GoBuy = GetValue(item.InitialMarginOnBuy);
+                    newSecurity.GoSell = GetValue(item.InitialMarginOnSell);
 
                     if (item.MinPriceIncrementAmount != null)
                     {
