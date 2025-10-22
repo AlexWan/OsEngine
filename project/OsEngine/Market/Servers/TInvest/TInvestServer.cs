@@ -1888,13 +1888,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // Handle the cancellation gracefully
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Market data stream was cancelled. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.System);
+                    SendLogMessage($"Market data stream was cancelled. ", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Market data stream was disconnected. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.Error);
+                    SendLogMessage($"Market data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2196,13 +2196,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // Handle the cancellation gracefully
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Portfolio data stream was cancelled. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.System);
+                    SendLogMessage($"Portfolio data stream was cancelled. ", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
                 {
                     string message = GetGRPCErrorMessage(exception);
-                    SendLogMessage($"Portfolio data stream was disconnected. Status: {exception.StatusCode}, Message: {message}, Details: {exception.ToString()}", LogMessageType.Error);
+                    SendLogMessage($"Portfolio data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
                     if (message.Contains("limit"))
                     {
                         GetUserLimits();
@@ -2415,13 +2415,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // Handle the cancellation gracefully
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Positions data stream was cancelled. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.System);
+                    SendLogMessage($"Positions data stream was cancelled.", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
                 {
                     string message = GetGRPCErrorMessage(exception);
-                    SendLogMessage($"Positions data stream was disconnected. Status: {exception.StatusCode}, Message: {message}, Details: {exception.ToString()}", LogMessageType.Error);
+                    SendLogMessage($"Positions data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2739,13 +2739,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // Handle the cancellation gracefully
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Order state data stream was cancelled. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.System);
+                    SendLogMessage($"Order state data stream was cancelled.", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Order state data stream was disconnected. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.Error);
+                    SendLogMessage($"Order state data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
