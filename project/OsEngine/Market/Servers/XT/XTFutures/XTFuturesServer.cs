@@ -2062,22 +2062,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             #region 11 Trade
 
-            private readonly RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(300));
+            private readonly RateGate _rateGateForAll = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
-            private readonly RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(300));
-
-            private readonly RateGate _rateGatePosition = new RateGate(1, TimeSpan.FromMilliseconds(300));
-
-
-
-            //BUY + LONG = открыть/увеличить лонг
-            //SELL + LONG = закрыть/уменьшить лонг
-
-            //BUY + SHORT = закрыть/уменьшить шорт
-            //SELL + SHORT = открыть/увеличить шорт
             public void SendOrder(Order order)
             {
-                _rateGateSendOrder.WaitToProceed();
+                _rateGateForAll.WaitToProceed();
 
                 try
                 {
@@ -2111,11 +2100,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (order.PositionConditionType == OrderPositionConditionType.Close)
                     {
-                        // BUY + LONG = open / increase a long position
-                        // SELL + LONG = close / decrease a long position
+                        // BUY + LONG = open / increase a long position//открыть/увеличить лонг
+                        // SELL + LONG = close / decrease a long position//закрыть/уменьшить лонг
 
-                        // BUY + SHORT = close / decrease a short position
-                        // SELL + SHORT = open / increase a short position
+                        // BUY + SHORT = close / decrease a short position//закрыть/уменьшить шорт
+                        // SELL + SHORT = open / increase a short position//открыть/увеличить шорт
 
                         if (order.Side == Side.Sell)
                         {
@@ -2201,7 +2190,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public void ChangeOrderPrice(Order order, decimal newPrice)
             {
-                _rateGateSendOrder.WaitToProceed();
+                _rateGateForAll.WaitToProceed();
 
                 try
                 {
@@ -2270,7 +2259,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public void CancelAllOrders()
             {
-                _rateGateCancelOrder.WaitToProceed();
+                _rateGateForAll.WaitToProceed();
 
                 try
                 {
@@ -2300,7 +2289,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public void CancelAllOrdersToSecurity(Security security)
             {
-                _rateGateCancelOrder.WaitToProceed();
+                _rateGateForAll.WaitToProceed();
 
                 try
                 {
@@ -2337,7 +2326,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public bool CancelOrder(Order order)
             {
-                _rateGateCancelOrder.WaitToProceed();
+                _rateGateForAll.WaitToProceed();
 
                 try
                 {
@@ -2393,7 +2382,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public void CreateQueryPositions(bool updateValueBegin)
             {
-                _rateGatePosition.WaitToProceed();
+                _rateGateForAll.WaitToProceed();
 
                 try
                 {
@@ -2483,7 +2472,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private List<Order> GetOrderHistory()
             {
-                _rateGateSendOrder.WaitToProceed();
+                _rateGateForAll.WaitToProceed();
 
                 try
                 {
@@ -2678,7 +2667,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             public OrderStateType GetOrderStatus(Order order)
             {
-                _rateGateSendOrder.WaitToProceed();
+                _rateGateForAll.WaitToProceed();
 
                 try
                 {
@@ -2747,11 +2736,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private readonly RateGate _rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(100));
-
             private void CreateQueryMyTrade(string orderId)
             {
-                _rateGateGetMyTradeState.WaitToProceed();
+                _rateGateForAll.WaitToProceed();
 
                 List<MyTrade> list = new List<MyTrade>();
 
