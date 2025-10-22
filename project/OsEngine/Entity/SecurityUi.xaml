@@ -8,7 +8,7 @@
         <Label  Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="33,10,0,0" VerticalAlignment="Top" Width="217"/>
         <Label Name="SecuritiesColumn4" Content="Price step" HorizontalAlignment="Left" Margin="28,40,0,0" VerticalAlignment="Top"/>
         <Label Name="SecuritiesColumn5"  Content="Price step price" HorizontalAlignment="Left" Margin="28,68,0,0" VerticalAlignment="Top"/>
-        <Label Name="SecuritiesColumn6" Content="Go buy" HorizontalAlignment="Left" Margin="28,96,0,0" VerticalAlignment="Top"/>
+        <Label Name="SecuritiesColumn6" Content="Margin buy" HorizontalAlignment="Left" Margin="28,96,0,0" VerticalAlignment="Top"/>
         <Label Name="SecuritiesColumn3"  Content="Lot" HorizontalAlignment="Left" Margin="28,152,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxStep" Height="23" Margin="161,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="89"/>
         <TextBox Name="TextBoxStepCost" Height="23" Margin="161,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="89"/>
@@ -21,8 +21,8 @@
         <Button Name="ButtonInfoLotPrice" Content="?" Margin="255,98,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoLotPrice_Click" VerticalAlignment="Top"/>
         <Button Name="ButtonInfoLot" Content="?" Margin="255,154,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoLot_Click" VerticalAlignment="Top"/>
         <Button Name="ButtonInfoVolume" Content="?" Margin="255,182,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoVolume_Click" VerticalAlignment="Top"/>
-        <Label Name="LabelSecuritiesGoSell" Content="Go sell" HorizontalAlignment="Left" Margin="28,124,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxGoSell" Height="23" Margin="119,124,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="131"/>
-        <Button Name="ButtonInfoGoSell" Content="?" Margin="255,126,0,0" Height="20" HorizontalAlignment="Left" Width="20" VerticalAlignment="Top" Click="ButtonInfoGoSell_Click"/>
+        <Label Name="LabelSecuritiesMarginSell" Content="Margin sell" HorizontalAlignment="Left" Margin="28,124,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxMarginSell" Height="23" Margin="119,124,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="131"/>
+        <Button Name="ButtonInfoMarginSell" Content="?" Margin="255,126,0,0" Height="20" HorizontalAlignment="Left" Width="20" VerticalAlignment="Top" Click="ButtonInfoMarginSell_Click"/>
     </Grid>
 </Window>

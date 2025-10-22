@@ -2461,7 +2461,7 @@ namespace OsEngine.Market.Servers.Tester
                             
                         if (go != 0)
                         {
-                            secu.GoBuy = go;
+                            secu.MarginBuy = go;
                         }
                            
                         if (priceStepCost != 0)
@@ -2478,7 +2478,7 @@ namespace OsEngine.Market.Servers.Tester
 
                         if(goSell != 0)
                         {
-                            secu.GoSell = goSell;
+                            secu.MarginSell = goSell;
                         }
                     }
                 }
@@ -2584,11 +2584,11 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     securityToSave.Name,
                     securityToSave.Lot.ToString(culture),
-                    securityToSave.GoBuy.ToString(culture),
+                    securityToSave.MarginBuy.ToString(culture),
                     securityToSave.PriceStepCost.ToString(culture),
                     securityToSave.PriceStep.ToString(culture),
                     securityToSave.DecimalsVolume.ToString(culture),
-                    securityToSave.GoSell.ToString(culture)
+                    securityToSave.MarginSell.ToString(culture)
                 });
             }
 
@@ -2608,11 +2608,11 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     securityToSave.Name,
                     securityToSave.Lot.ToString(culture),
-                    securityToSave.GoBuy.ToString(culture),
+                    securityToSave.MarginBuy.ToString(culture),
                     securityToSave.PriceStepCost.ToString(culture),
                     securityToSave.PriceStep.ToString(culture),
                     securityToSave.DecimalsVolume.ToString(culture),
-                    securityToSave.GoSell.ToString(culture)
+                    securityToSave.MarginSell.ToString(culture)
                 });
             }
 
@@ -2901,8 +2901,8 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].Security.Name = name;
                 security[security.Count - 1].Security.Lot = 1;
                 security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.GoBuy = 1;
-                security[security.Count - 1].Security.GoSell = 1;
+                security[security.Count - 1].Security.MarginBuy = 1;
+                security[security.Count - 1].Security.MarginSell = 1;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
                 // timeframe / тф
@@ -3235,8 +3235,8 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].Security.Name = name;
                 security[security.Count - 1].Security.Lot = 1;
                 security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.GoBuy = 1;
-                security[security.Count - 1].Security.GoSell = 1;
+                security[security.Count - 1].Security.MarginBuy = 1;
+                security[security.Count - 1].Security.MarginSell = 1;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
                 // timeframe / тф
@@ -3480,8 +3480,8 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].Security.Name = name;
                 security[security.Count - 1].Security.Lot = 1;
                 security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.GoBuy = 1;
-                security[security.Count - 1].Security.GoSell = 1;
+                security[security.Count - 1].Security.MarginBuy = 1;
+                security[security.Count - 1].Security.MarginSell = 1;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
                 // timeframe / тф

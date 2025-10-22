@@ -484,10 +484,10 @@ namespace OsEngine.Entity
                     nRow.Cells[15].Value = curSec.PriceLimitLow.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[16].Value = curSec.GoBuy.ToStringWithNoEndZero();
+                    nRow.Cells[16].Value = curSec.MarginBuy.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[17].Value = curSec.GoSell.ToStringWithNoEndZero();
+                    nRow.Cells[17].Value = curSec.MarginSell.ToStringWithNoEndZero();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[18].Value = curSec.OptionType;
@@ -582,8 +582,8 @@ namespace OsEngine.Entity
             decimal volumeStep = row.Cells[13].Value.ToString().ToDecimal();
             decimal priceLimitHigh = row.Cells[14].Value.ToString().ToDecimal();
             decimal priceLimitLow = row.Cells[15].Value.ToString().ToDecimal();
-            decimal collateralBuy = row.Cells[16].Value.ToString().ToDecimal();
-            decimal collateralSell = row.Cells[17].Value.ToString().ToDecimal();
+            decimal collateralMarginBuy = row.Cells[16].Value.ToString().ToDecimal();
+            decimal collateralMarginSell = row.Cells[17].Value.ToString().ToDecimal();
 
             // 15 Option type
 
@@ -624,8 +624,8 @@ namespace OsEngine.Entity
             mySecurity.MinTradeAmount = minVolume;
             mySecurity.PriceLimitHigh = priceLimitHigh;
             mySecurity.PriceLimitLow = priceLimitLow;
-            mySecurity.GoBuy = collateralBuy;
-            mySecurity.GoSell = collateralSell;
+            mySecurity.MarginBuy = collateralMarginBuy;
+            mySecurity.MarginSell = collateralMarginSell;
             mySecurity.Strike = strike;
             mySecurity.VolumeStep = volumeStep;
 
