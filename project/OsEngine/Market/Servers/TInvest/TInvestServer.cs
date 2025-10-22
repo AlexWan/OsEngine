@@ -979,6 +979,8 @@ namespace OsEngine.Market.Servers.TInvest
         {
             Portfolio portf = _myPortfolios.Find(p => p.Number == portfolio.AccountId);
 
+            
+
             if (portf == null)
             {
                 return;
@@ -1129,6 +1131,24 @@ namespace OsEngine.Market.Servers.TInvest
                 sectionPoses.Add(newPos);
             }
 
+            PortfolioPosition rubPosition = null;
+            for (int i = 0; i < portfolio.Positions.Count; i++)
+            {
+                if (portfolio.Positions[i].Figi == "RUB000UTSTOM")
+                {
+                    rubPosition = portfolio.Positions[i];
+                    break;
+                }
+            }
+
+            for (int i = 0; i < portfolio.Positions.Count; i++)
+            {
+                if (portfolio.Positions[i].InstrumentType == "currency")
+                {
+                    portf.ValueBlocked += GetValue(portfolio.Positions[i].BlockedLots)*GetValue(portfolio.Positions[i].AveragePositionPrice);
+                }
+            }
+
             for (int i = 0; i < posData.Money.Count; i++) // posData.Blocked обработать отдельно?
             {
                 MoneyValue posMoney = posData.Money[i];
@@ -1138,6 +1158,7 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.PortfolioName = portf.Number;
                 newPos.ValueCurrent = GetValue(posMoney);
                 newPos.ValueBegin = newPos.ValueCurrent;
+                newPos.ValueBlocked = rubPosition == null ? 0 : GetValue(rubPosition.BlockedLots);
 
                 newPos.SecurityNameCode = posMoney.Currency;
 
