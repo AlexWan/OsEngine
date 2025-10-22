@@ -224,7 +224,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             // 1 берём текущее состояние портфеля
 
             decimal currentValue = GetCurValueBySecurity(mySecurity);
-
+      
             this.SetNewServiceInfo("SHORT POS. Start asset value: " + currentValue.ToString());
 
             // 2 ордер на покупку
@@ -258,9 +258,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            if(currentValue >= 0)
+            if (currentValue >= 0)
             {
-                SetNewError("Error 12. Value in portfolio >= 0");
+                SetNewError($"Error 12. Value in portfolio >= 0");
+
                 return false;
             }
 
@@ -700,6 +701,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             11.TimeDone – время сервера когда ордер получил статус Done
             12.TimeCancel – время сервера когда ордер получил статус Cancel
             */
+            //string msg = $"[Portfolio_1_Validation] OrderIsNormal: " +
+            //       $"Num={order.NumberMarket}, State={order.State}, " +
+            //       $"TimeCreate={order.TimeCreate}, " +
+            //       $"TimeCallBack={order.TimeCallBack}, " +
+            //       $"TimeDone={order.TimeDone}, " +
+            //       $"TimeCancel={order.TimeCancel}";
+            //this.SetNewError(msg);
 
             if (order.Side != _waitSide)
             {

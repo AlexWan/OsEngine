@@ -830,7 +830,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return false;
             }
 
-
             if (order.TimeCallBack == DateTime.MinValue)
             {
                 this.SetNewError("Error 40. TimeCallBack is MinValue");

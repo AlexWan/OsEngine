@@ -319,7 +319,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.TypeOrder != OrderPriceType.Limit)
             {
-                this.SetNewError("Error 11. Order Type is note Limit. Real type: " + order.TypeOrder);
+
+                this.SetNewError($" Error 11. Order Type is note Limit. Real type: " + order.TypeOrder);
                 return false;
             }
 
