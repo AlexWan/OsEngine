@@ -2173,6 +2173,7 @@ namespace OsEngine.Market.Servers.TInvest
                         }
 
                         portf.UnrealizedPnl = GetValue(portfolioResponse.Portfolio.DailyYield);
+                        UpdatePositionsInPortfolio(portfolioResponse.Portfolio);
 
                         //for (int i = 0; i < portfolioResponse.Portfolio.Positions.Count; i++)
                         //{
