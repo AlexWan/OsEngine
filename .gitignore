@@ -21,6 +21,35 @@ x86/
 bld/
 [Oo]bj/
 [Ll]og/
+bin/
+obj/
+*.dll
+*.exe
+# Visual Studio build folders
+
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.user
+*.suo
+*.log
+
+# VS config folders
+.vs/
+*.db
+*.db-wal
+*.db-shm
+
+
+# VS config folders
+.vs/
+*.db
+*.db-wal
+*.db-shm
+
 
 
 # Block Logs and Temp files in Debug directory
