@@ -116,13 +116,13 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// warranty coverage
+        /// initial margin on buy
         /// гарантийное обеспечение для покупки
         /// </summary>
         public decimal MarginBuy;
 
         /// <summary>
-        /// warranty coverage
+        /// initial margin on sell
         /// гарантийное обеспечение для продажи
         /// </summary>
         public decimal MarginSell;
