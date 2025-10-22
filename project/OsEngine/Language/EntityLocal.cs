@@ -304,7 +304,7 @@ namespace OsEngine.Language
           "Ru:Лимит цены снизу_");
 
         public string SecuritiesColumn15 => OsLocalization.ConvertToLocString(
-          "Eng:Collateral buy_" +
+          "Eng:Margin buy_" +
           "Ru:ГО покупка_");
 
         public string SecuritiesColumn16 => OsLocalization.ConvertToLocString(
@@ -328,11 +328,11 @@ namespace OsEngine.Language
          "Ru:Тип мин объёма_");
 
         public string SecuritiesColumn21 => OsLocalization.ConvertToLocString(
-         "Eng:Collateral sell_" +
+         "Eng:Margin sell_" +
          "Ru:ГО продажа_");
 
         public string SecuritiesColumn22 => OsLocalization.ConvertToLocString(
-         "Eng:Collateral sell_" +
+         "Eng:Margin sell_" +
          "Ru:ГО продажа_");
 
         public string TitleSecurityUi => OsLocalization.ConvertToLocString(
