@@ -2276,7 +2276,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
                 if (order == null)
                 {
                     SendLogMessage("GetOrderStatus > Order is null", LogMessageType.Error);
-                    return OrderStateType.None; ;
+                    return OrderStateType.None; 
                 }
 
                 if (string.IsNullOrWhiteSpace(order.NumberMarket))
@@ -2286,7 +2286,7 @@ namespace OsEngine.Market.Servers.AscendexSpot
                     if (string.IsNullOrWhiteSpace(order.NumberMarket))
                     {
                         SendLogMessage($"GetOrderStatus > Cannot resolve marketOrderId for userOrder: {order.NumberUser}", LogMessageType.Error);
-                        return OrderStateType.None; ;
+                        return OrderStateType.None; 
                     }
                 }
 
