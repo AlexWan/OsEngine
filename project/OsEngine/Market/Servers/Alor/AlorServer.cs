@@ -350,6 +350,8 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.symbol + "_" + item.board;
 
+                    newSecurity.Lot = item.lotsize.ToDecimal();
+
                     if (instrumentType == SecurityType.Futures
                         || instrumentType == SecurityType.Option)
                     {
