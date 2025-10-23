@@ -1338,7 +1338,7 @@ namespace OsEngine.Market.AutoFollow
                         security, direction, price, volume, priceType, 
                         timeLife, StartProgram.IsOsTrader, OrderPositionConditionType.Open, 
                         orderTypeTime, MyCopyServer.ServerNameUnique,
-                        false);
+                        false, deal.Number);
 
                     newOrder.PortfolioNumber = this.PortfolioName;
                     deal.AddNewOpenOrder(newOrder);
@@ -1424,7 +1424,7 @@ namespace OsEngine.Market.AutoFollow
                         security, direction, price, volume, priceType, 
                         timeLife, StartProgram.IsOsTrader,
                         OrderPositionConditionType.Open, orderTypeTime, 
-                        deal.ServerName, false);
+                        deal.ServerName, false, deal.Number);
 
                     newOrder.PortfolioNumber = this.PortfolioName;
                     deal.AddNewOpenOrder(newOrder);

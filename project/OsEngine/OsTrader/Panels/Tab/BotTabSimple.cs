@@ -4743,7 +4743,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     orderType, ManualPositionSupport.SecondToOpen, 
                     StartProgram, OrderPositionConditionType.Open, 
                     ManualPositionSupport.OrderTypeTime, _connector.ServerFullName,
-                    ManualPositionSupport.LimitsMakerOnly);
+                    ManualPositionSupport.LimitsMakerOnly, position.Number);
 
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
@@ -4882,7 +4882,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     OrderPositionConditionType.Open,
                     ManualPositionSupport.OrderTypeTime, 
                     _connector.ServerFullName,
-                    ManualPositionSupport.LimitsMakerOnly);
+                    ManualPositionSupport.LimitsMakerOnly, position.Number);
 
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;

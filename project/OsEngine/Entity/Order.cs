@@ -26,6 +26,7 @@ namespace OsEngine.Entity
             TimeDone =  DateTime.MinValue;
             NumberMarket = "";
             Side = Side.None;
+            NumberPosition = 0;
         }
 
         /// <summary>
@@ -37,6 +38,11 @@ namespace OsEngine.Entity
         /// Order number on the exchange
         /// </summary>
         public string NumberMarket;
+
+        /// <summary>
+        /// The number of the position where the order was opened
+        /// </summary>
+        public int NumberPosition;
 
         /// <summary>
         /// Instrument code for which the transaction took place
