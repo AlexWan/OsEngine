@@ -89,6 +89,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\LiteDB.dll</HintPath>
     </Reference>
+    <Reference Include="MtApi5">
+      <HintPath>bin\Debug\MtApi5.dll</HintPath>
+    </Reference>
+    <Reference Include="MtClient">
+      <HintPath>bin\Debug\MtClient.dll</HintPath>
+    </Reference>
     <Reference Include="OpenFAST">
       <HintPath>bin\Debug\OpenFAST.dll</HintPath>
     </Reference>
@@ -245,6 +251,7 @@
   <ItemGroup>
     <Folder Include="bin\Debug\" />
     <Folder Include="bin\Release\" />
+    <Folder Include="Market\Servers\MetaTrader5\Entity\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">
