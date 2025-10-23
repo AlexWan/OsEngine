@@ -31,7 +31,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 security, direction, priceOrder, volume,
                 priceType, timeLife, startProgram, 
                 OrderPositionConditionType.Open, orderTypeTime, 
-                portfolio.ServerUniqueName, makerOnly);
+                portfolio.ServerUniqueName, makerOnly, newDeal.Number);
 
             newDeal.AddNewOpenOrder(orderNew);
 
@@ -63,7 +63,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             decimal volume, OrderPriceType priceType, 
             TimeSpan timeLife, StartProgram startProgram,
             OrderPositionConditionType positionConditionType, OrderTypeTime orderTypeTime,
-            string serverName, bool makerOnly)
+            string serverName, bool makerOnly, int numberPosition)
         {
             Order newOrder = new Order();
 
@@ -80,6 +80,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.OrderTypeTime = orderTypeTime;
             newOrder.ServerName = serverName;
             newOrder.LimitsMakerOnly = makerOnly;
+            newOrder.NumberPosition = numberPosition;
 
             return newOrder;
         }
@@ -122,6 +123,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.OrderTypeTime = orderTypeTime;
             newOrder.ServerName = serverName;
             newOrder.LimitsMakerOnly = makerOnly;
+            newOrder.NumberPosition = deal.Number;
 
             return newOrder;
         }
