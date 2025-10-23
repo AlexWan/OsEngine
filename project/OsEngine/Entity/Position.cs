@@ -893,15 +893,16 @@ namespace OsEngine.Entity
                 }
 
                 if (Direction == Side.Buy &&
-                    ask != 0)
+                    bid != 0)
                 {
-                    ProfitOperationPercent = ask / entryPrice * 100 - 100;
-                    ProfitOperationAbs = ask - entryPrice;
+                    ProfitOperationPercent = bid / entryPrice * 100 - 100;
+                    ProfitOperationAbs = bid - entryPrice;
                 }
-                else if(bid != 0)
+                else if(Direction == Side.Sell
+                    && ask != 0)
                 {
-                    ProfitOperationPercent = -(bid / entryPrice * 100 - 100);
-                    ProfitOperationAbs = entryPrice - bid;
+                    ProfitOperationPercent = -(ask / entryPrice * 100 - 100);
+                    ProfitOperationAbs = entryPrice - ask;
                 }
             }
         }
