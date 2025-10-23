@@ -134,6 +134,11 @@ namespace OsEngine.Entity
         public SecurityType SecurityType;
 
         /// <summary>
+        /// нужно ли использовать в расчёте объёмов стоимость шага цены
+        /// </summary>
+        public bool UsePriceStepCostToCalculateVolume;
+
+        /// <summary>
         /// open the Paper Settings window
         /// вызвать окно настроек бумаги
         /// </summary>

@@ -3183,6 +3183,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 if (mySecurity == null)
                 {
                     mySecurity = new Security();
+                    mySecurity.Exchange = "MOEX";
                     mySecurity.Name = name;
                     mySecurity.NameClass = marketCode;
                     MySecurities.Add(mySecurity);

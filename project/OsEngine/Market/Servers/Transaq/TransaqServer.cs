@@ -715,6 +715,7 @@ namespace OsEngine.Market.Servers.Transaq
                         if (securityData.Sectype == "FUT")
                         {
                             security.SecurityType = SecurityType.Futures;
+                            security.UsePriceStepCostToCalculateVolume = true;
                         }
                         else if (securityData.Sectype == "SHARE")
                         {
@@ -723,6 +724,7 @@ namespace OsEngine.Market.Servers.Transaq
                         else if (securityData.Sectype == "OPT")
                         {
                             security.SecurityType = SecurityType.Option;
+                            security.UsePriceStepCostToCalculateVolume = true;
                         }
                         else if (securityData.Sectype == "BOND")
                         {
@@ -743,10 +745,12 @@ namespace OsEngine.Market.Servers.Transaq
                         {
                             security.NameClass = "MCT_put_call";
                             security.SecurityType = SecurityType.Option;
+                            security.UsePriceStepCostToCalculateVolume = true;
                         }
                         else if (security.NameClass == "MCT")
                         {
                             security.SecurityType = SecurityType.Futures;
+                            security.UsePriceStepCostToCalculateVolume = true;
                         }
                         else if (security.NameClass == "QUOTES")
                         {
@@ -773,12 +777,6 @@ namespace OsEngine.Market.Servers.Transaq
                         if (security.Lot == 0)
                         {
                             security.Lot = 1;
-                        }
-
-                        if (security.Name == "SBERF"
-                         || security.Name == "GAZPF")
-                        {
-                            security.Lot = 100;
                         }
 
                         security.PriceStep = securityData.Minstep.ToDecimal();

@@ -330,11 +330,6 @@ namespace OsEngine.Market.Servers.Alor
                 {
                     AlorSecurity item = stocks[i];
 
-                    if(item.symbol == "IMOEX2")
-                    {
-
-                    }
-
                     SecurityType instrumentType = GetSecurityType(item);
 
                     if (!CheckNeedSecurity(instrumentType))
@@ -355,14 +350,10 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.symbol + "_" + item.board;
 
-                    if (newSecurity.Name == "SBERF"
-                      || newSecurity.Name == "GAZPF")
+                    if (instrumentType == SecurityType.Futures
+                        || instrumentType == SecurityType.Option)
                     {
-                        newSecurity.Lot = 100;
-                    }
-                    else
-                    {
-                        newSecurity.Lot = item.lotsize.ToDecimal();
+                        newSecurity.UsePriceStepCostToCalculateVolume = true;
                     }
 
                     if (newSecurity.SecurityType == SecurityType.Option)

@@ -769,6 +769,7 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.NameId = item.Uid;
                     newSecurity.NameFull = item.Name;
                     newSecurity.Exchange = item.Exchange;
+                    newSecurity.UsePriceStepCostToCalculateVolume = true;
 
                     if (item.MinPriceIncrement != null)
                     {
@@ -831,6 +832,7 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.NameId = item.Uid;
                     newSecurity.NameFull = item.Name;
                     newSecurity.Exchange = item.Exchange;
+                    newSecurity.UsePriceStepCostToCalculateVolume = true;
 
                     if (item.MinPriceIncrement != null)
                     {

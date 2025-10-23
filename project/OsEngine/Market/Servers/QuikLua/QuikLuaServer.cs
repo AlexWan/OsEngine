@@ -453,6 +453,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (oneSec.ClassCode == "SPBFUT")
                 {
                     newSec.SecurityType = SecurityType.Futures;
+                    newSec.UsePriceStepCostToCalculateVolume = true;
                     string exp = oneSec.MatDate;
                     newSec.Expiration = new DateTime(Convert.ToInt32(exp.Substring(0, 4))
                         , Convert.ToInt32(exp.Substring(4, 2))
@@ -465,6 +466,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 else if (oneSec.ClassCode == "SPBOPT")
                 {
                     newSec.SecurityType = SecurityType.Option;
+                    newSec.UsePriceStepCostToCalculateVolume = true;
 
                     newSec.OptionType = QuikLua.Trading.GetParamEx(classCode, secCode, "OPTIONTYPE")
                         .Result.ParamImage == "Put"
