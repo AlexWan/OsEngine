@@ -1957,6 +1957,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (_filterOutNonMarketData)
                     {
+                        if (_pollSubscribedSecurities.Count == 0)
+                        {
+                            continue;
+                        }
                         if (isTodayATradingDayForSecurity(_pollSubscribedSecurities[0]) == false)
                             continue;
                     }
