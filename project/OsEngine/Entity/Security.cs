@@ -401,6 +401,12 @@ namespace OsEngine.Entity
         Bond,
 
         /// <summary>
+        /// Товары широкого потребления
+        /// Commodities
+        /// </summary>
+        Commodities,
+
+        /// <summary>
         /// futures
         /// фьючерс
         /// </summary>
