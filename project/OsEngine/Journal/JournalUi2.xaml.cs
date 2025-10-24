@@ -727,7 +727,7 @@ namespace OsEngine.Journal
                 areaLineProfitBar.AlignWithChartArea = "ChartAreaProfit";
                 areaLineProfitBar.Position.Height = 20;
                 areaLineProfitBar.Position.Width = 100;
-                areaLineProfitBar.Position.Y = 70;
+                areaLineProfitBar.Position.Y = 80;
                 areaLineProfitBar.AxisX.Enabled = AxisEnabled.False;
                 areaLineProfitBar.CursorX.IsUserEnabled = true; //trait/чертa
 
