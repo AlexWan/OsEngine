@@ -16,8 +16,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
-using Microsoft.Extensions.Logging.Abstractions;
-using TL.Methods;
 
 namespace OsEngine.Market.Servers.Alor
 {

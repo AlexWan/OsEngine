@@ -32,6 +32,8 @@
           "FinamApi": "1.0.0.0",
           "Jayrock.Json": "0.9.16530.0",
           "LiteDB": "5.0.19.0",
+          "MtApi5": "2.0.1.0",
+          "MtClient": "1.0.0.0",
           "OpenFAST": "1.1.3.0",
           "QuikSharp": "2.0.0.0",
           "RestSharp": "105.2.3.0",
@@ -437,7 +439,22 @@
           "System.Runtime": "4.3.1"
         }
       },
-      "System.Text.Encoding.CodePages/9.0.5": {},
+      "System.Text.Encoding.CodePages/9.0.5": {
+        "runtime": {
+          "lib/net9.0/System.Text.Encoding.CodePages.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.525.21509"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net9.0/System.Text.Encoding.CodePages.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.525.21509"
+          }
+        }
+      },
       "System.Text.Encoding.Extensions/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.1",
@@ -457,7 +474,14 @@
           "System.Threading.Tasks": "4.3.0"
         }
       },
-      "System.Threading.Channels/9.0.5": {},
+      "System.Threading.Channels/9.0.5": {
+        "runtime": {
+          "lib/net9.0/System.Threading.Channels.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.525.21509"
+          }
+        }
+      },
       "System.Threading.Tasks/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.1",
@@ -570,6 +594,22 @@
           "LiteDB.dll": {
             "assemblyVersion": "5.0.19.0",
             "fileVersion": "5.0.19.0"
+          }
+        }
+      },
+      "MtApi5/2.0.1.0": {
+        "runtime": {
+          "MtApi5.dll": {
+            "assemblyVersion": "2.0.1.0",
+            "fileVersion": "2.0.1.0"
+          }
+        }
+      },
+      "MtClient/1.0.0.0": {
+        "runtime": {
+          "MtClient.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
           }
         }
       },
@@ -1068,6 +1108,16 @@
       "sha512": ""
     },
     "LiteDB/5.0.19.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "MtApi5/2.0.1.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "MtClient/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
