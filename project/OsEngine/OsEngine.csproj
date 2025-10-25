@@ -91,9 +91,11 @@
     </Reference>
     <Reference Include="MtApi5">
       <HintPath>bin\Debug\MtApi5.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MtClient">
       <HintPath>bin\Debug\MtClient.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="OpenFAST">
       <HintPath>bin\Debug\OpenFAST.dll</HintPath>
