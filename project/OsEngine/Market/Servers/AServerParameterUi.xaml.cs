@@ -298,7 +298,7 @@ namespace OsEngine.Market.Servers
                     UpdateServersCount();
                     PaintGridConnectionsInstance();
                     ChangeActiveServer(row);
-                    ServerMaster.TrySaveServerInstance(_serversArray);
+                    ServerMaster.SaveServerInstanceByType(_server.ServerType);
                 }
                 else if (column == 6
                     && row != 0)
@@ -311,7 +311,6 @@ namespace OsEngine.Market.Servers
                     UpdateServersCount();
                     PaintGridConnectionsInstance();
                     ChangeActiveServer(0);
-                    ServerMaster.TrySaveServerInstance(_serversArray);
                 }
                 else if (column == 5
                     && row < _gridConnections.Rows.Count - 1)

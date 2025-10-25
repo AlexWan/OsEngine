@@ -938,10 +938,12 @@ namespace OsEngine.Market
 
                                 SendNewLogMessage(OsLocalization.Market.Label245 + ": " + serverCurrent.ServerNameAndPrefix, LogMessageType.System);
 
-                                return;
+                                break;
                             }
                         }
                     }
+
+                    SaveServerInstanceByType(type);
                 }
             }
             catch (Exception ex)
