@@ -260,6 +260,9 @@ namespace OsEngine.Market.Servers.MetaTrader5
                     else
                         symbol = _mtApiClient.SymbolName(i, false);
 
+                    if (symbol == "")
+                        continue;
+
                     long isSelected = _mtApiClient.SymbolInfoInteger(symbol, ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SELECT);
                     if (isSelected != 1)
                     {
