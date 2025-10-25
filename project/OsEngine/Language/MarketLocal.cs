@@ -1081,7 +1081,18 @@ namespace OsEngine.Language
          "Eng:Count the cost of the price step in points. If the parameter is enabled, the cost will be calculated in points. If disabled, the profit will be calculated in the current deposit currency via the USD cross-rate. This parameter is important, so you need to make sure that the cost of the price step is calculated correctly!_" +
          "Ru:Считать стоимость шага цены в пунктах. Если параметр включен, то стоимость будет считаться в пунктах. Если выключен, профит будет считаться в текущей валюте депозита через кросс-курс USD. Данный параметр важен, поэтому необходимо самостоятельно убедиться, что стоимость шага цены рассчитана правильно!_");
 
-
+        public string Label262 => OsLocalization.ConvertToLocString(
+         "Eng:Includes a currency trading platform_" +
+         "Ru:Включает площадку для торговли валютой_");
+        public string Label263 => OsLocalization.ConvertToLocString(
+         "Eng:Includes a platform for trading commodities_" +
+         "Ru:Включает площадку для торговли сырьевыми товарами_");
+        public string Label264 => OsLocalization.ConvertToLocString(
+         "Eng:Includes a platform for trading funds_" +
+         "Ru:Включает площадку для торговли фондами_");
+        public string Label265 => OsLocalization.ConvertToLocString(
+         "Eng:It includes a platform for trading other instruments, such as stocks._" +
+         "Ru:Включает площадку для торговли другими инструментами, например акциями_");
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +

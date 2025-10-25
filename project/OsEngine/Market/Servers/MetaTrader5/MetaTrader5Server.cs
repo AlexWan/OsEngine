@@ -25,13 +25,13 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
             CreateParameterString("Host", "localhost"); // 0
             CreateParameterInt("Port", 8228); // 1
-            CreateParameterBoolean("Use netting", false); // 2
+            CreateParameterBoolean("Use netting", true); // 2
             CreateParameterBoolean("Currency", true); // 3
             CreateParameterBoolean("Commodities", true); // 4
-            CreateParameterBoolean("Funds", true); // 5
-            CreateParameterBoolean("Other", true); // 6
+            CreateParameterBoolean("Funds", false); // 5
+            CreateParameterBoolean("Other", false); // 6
             CreateParameterBoolean("Only market watch", true); // 7
-            CreateParameterBoolean("Market depth of ticks", false); // 8
+            CreateParameterBoolean("Market depth of ticks", true); // 8
             CreateParameterEnum("Deposit currency", "RUB", new List<string> { "RUB", "USD", "EUR" }); // 9
             CreateParameterBoolean("Count the profit in points", true); // 10
 
@@ -45,6 +45,10 @@ namespace OsEngine.Market.Servers.MetaTrader5
             ((ServerParameterBool)ServerParameters[10]).ValueChange += MetaTrader5Server_ParametrValueChange;
 
             ((ServerParameterBool)ServerParameters[2]).Comment = OsLocalization.Market.Label257;
+            ((ServerParameterBool)ServerParameters[3]).Comment = OsLocalization.Market.Label262;
+            ((ServerParameterBool)ServerParameters[4]).Comment = OsLocalization.Market.Label263;
+            ((ServerParameterBool)ServerParameters[5]).Comment = OsLocalization.Market.Label264;
+            ((ServerParameterBool)ServerParameters[6]).Comment = OsLocalization.Market.Label265;
             ((ServerParameterBool)ServerParameters[7]).Comment = OsLocalization.Market.Label258;
             ((ServerParameterBool)ServerParameters[8]).Comment = OsLocalization.Market.Label259;
             ((ServerParameterEnum)ServerParameters[9]).Comment = OsLocalization.Market.Label260;
@@ -56,6 +60,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
             ((MetaTrader5ServerRealization)ServerRealization)._useCurrency = ((ServerParameterBool)ServerParameters[3]).Value;
             ((MetaTrader5ServerRealization)ServerRealization)._useMetals = ((ServerParameterBool)ServerParameters[4]).Value;
             ((MetaTrader5ServerRealization)ServerRealization)._useFunds = ((ServerParameterBool)ServerParameters[5]).Value;
+            ((MetaTrader5ServerRealization)ServerRealization)._useAnotherOne = ((ServerParameterBool)ServerParameters[6]).Value;
             ((MetaTrader5ServerRealization)ServerRealization)._onlyMarketWatch = ((ServerParameterBool)ServerParameters[7]).Value;
             ((MetaTrader5ServerRealization)ServerRealization)._marketDepthOfTicks = ((ServerParameterBool)ServerParameters[8]).Value;
             ((MetaTrader5ServerRealization)ServerRealization)._depositCurrency = ((ServerParameterEnum)ServerParameters[9]).Value;
@@ -260,11 +265,10 @@ namespace OsEngine.Market.Servers.MetaTrader5
                     else
                         symbol = _mtApiClient.SymbolName(i, false);
 
-                    long isSelected = _mtApiClient.SymbolInfoInteger(symbol, ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SELECT);
-                    if (isSelected != 1)
-                    {
-                        _mtApiClient.SymbolSelect(symbol, true);
-                    }
+                    if (symbol == "")
+                        continue;
+
+                    SelectSymbolInMT5(symbol);
 
                     SecurityType secType = SecurityType.None;
 
@@ -337,6 +341,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                 if (_depositCurrency == security.NameClass)
                 {
                     security.PriceStepCost = (security.Lot * point) / 1;
+                    return;
                 }
                 else
                 {
@@ -349,18 +354,23 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                         if (currencyPrice != 0)
                             security.PriceStepCost = (security.Lot * point) / currencyPrice * security.PriceStep / 10;
+                        return;
                     }
                     // Если валюта депозита ни базовая, ни котировочная, считаем кросс-курс \\
                     else
                     {
                         if (security.NameClass == "USD")
                         {
+                            SelectSymbolInMT5("USD" + _depositCurrency);
+
                             decimal priceDepositCurrency = _mtApiClient.SymbolInfoDouble("USD" + _depositCurrency, ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID).ToDecimal();
 
                             security.PriceStepCost = (security.Lot * point) * priceDepositCurrency * security.PriceStep / 10;
+                            return;
                         }
 
                         string specifiedCurrency = security.NameClass + "USD";
+                        SelectSymbolInMT5(specifiedCurrency);
 
                         decimal specifiedCurrencyPrice = _mtApiClient.SymbolInfoDouble(specifiedCurrency, ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID).ToDecimal();
 
@@ -370,16 +380,22 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                             if (_depositCurrency != "USD")
                             {
+                                SelectSymbolInMT5("USD" + _depositCurrency);
                                 decimal priceDepositCurrency = _mtApiClient.SymbolInfoDouble("USD" + _depositCurrency, ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID).ToDecimal();
 
                                 security.PriceStepCost = (security.Lot * point) / reverseSpecifiedCurrencyPrice * priceDepositCurrency * security.PriceStep / 10;
+                                return;
                             }
                             else
+                            {
                                 security.PriceStepCost = (security.Lot * point) / reverseSpecifiedCurrencyPrice * security.PriceStep / 10;
+                                return;
+                            }
                         }
                         else
                         {
                             specifiedCurrency = "USD" + security.NameClass;
+                            SelectSymbolInMT5(specifiedCurrency);
 
                             specifiedCurrencyPrice = _mtApiClient.SymbolInfoDouble(specifiedCurrency, ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID).ToDecimal();
 
@@ -390,8 +406,13 @@ namespace OsEngine.Market.Servers.MetaTrader5
                                     decimal priceDepositCurrency = _mtApiClient.SymbolInfoDouble("USD" + _depositCurrency, ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID).ToDecimal();
 
                                     security.PriceStepCost = (security.Lot * point) / specifiedCurrencyPrice * priceDepositCurrency * security.PriceStep / 10;
+                                    return;
                                 }
-                                else security.PriceStepCost = (security.Lot * point) / specifiedCurrencyPrice * security.PriceStep / 10;
+                                else
+                                {
+                                    security.PriceStepCost = (security.Lot * point) / specifiedCurrencyPrice * security.PriceStep / 10;
+                                    return;
+                                }
                             }
                         }
                     }
@@ -400,6 +421,22 @@ namespace OsEngine.Market.Servers.MetaTrader5
             catch (Exception ex)
             {
                 SendLogMessage($"Error CalculatePriceStep: {ex.ToString()}", LogMessageType.Error);
+            }
+        }
+
+        private void SelectSymbolInMT5(string symbol)
+        {
+            try
+            {
+                long isSelected = _mtApiClient.SymbolInfoInteger(symbol, ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SELECT);
+                if (isSelected != 1)
+                {
+                    _mtApiClient.SymbolSelect(symbol, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error SelectSymbolInMT5: {ex.ToString()}", LogMessageType.Error);
             }
         }
 
