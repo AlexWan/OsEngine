@@ -405,7 +405,7 @@ public class StrategyLevermor : BotPanel
 
             if (portfolioPrimeAsset == 0)
             {
-                SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, OsEngine.Logging.LogMessageType.Error);
+                SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                 return 0;
             }
 
@@ -415,6 +415,14 @@ public class StrategyLevermor : BotPanel
 
             if (tab.StartProgram == StartProgram.IsOsTrader)
             {
+                if (tab.Security.UsePriceStepCostToCalculateVolume == true
+                   && tab.Security.PriceStep != tab.Security.PriceStepCost
+                   && tab.PriceBestAsk != 0
+                   && tab.Security.PriceStep != 0
+                   && tab.Security.PriceStepCost != 0)
+                {// расчёт количества контрактов для фьючерсов и опционов на Мосбирже
+                    qty = moneyOnPosition / (tab.PriceBestAsk / tab.Security.PriceStep * tab.Security.PriceStepCost);
+                }
                 qty = Math.Round(qty, tab.Security.DecimalsVolume);
             }
             else
