@@ -3270,6 +3270,11 @@ namespace OsEngine.Journal
                         ComboBoxChartType.SelectedItem = profitType;
                     }
 
+                    if(reader.EndOfStream == true)
+                    {
+                        return;
+                    }
+
                     _visibleEquityLine = Convert.ToBoolean(reader.ReadLine());
                     _visibleLongLine = Convert.ToBoolean(reader.ReadLine());
                     _visibleShortLine = Convert.ToBoolean(reader.ReadLine());
