@@ -25,6 +25,7 @@ using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using System.Threading;
 using OsEngine.Layout;
 using OsEngine.Market;
+using System.Windows.Media;
 
 namespace OsEngine.Journal
 {
@@ -52,6 +53,12 @@ namespace OsEngine.Journal
             ComboBoxChartType.Items.Add("Absolute");
             ComboBoxChartType.Items.Add("Percent 1 contract");
             ComboBoxChartType.SelectedItem = "Absolute";
+
+            ComboBoxBenchmark.Items.Add("Off");
+            ComboBoxBenchmark.Items.Add("SnP");
+            ComboBoxBenchmark.Items.Add("MCRTR");
+            ComboBoxBenchmark.Items.Add("BTC");
+            ComboBoxBenchmark.SelectedItem = "Off";
 
             _currentCulture = OsLocalization.CurCulture;
 
@@ -97,6 +104,7 @@ namespace OsEngine.Journal
             ButtonAutoReload.IsChecked = false;
 
             LabelEqutyCharteType.Content = OsLocalization.Journal.Label8;
+            LabelBenchmark.Content = OsLocalization.Journal.Label23;
 
             CreatePositionsLists();
 
@@ -142,6 +150,7 @@ namespace OsEngine.Journal
 
             ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
+            ComboBoxBenchmark.SelectionChanged += ComboBoxBenchmark_SelectionChanged;
 
             CheckBoxShowDontOpenPoses.Click += CheckBoxShowDontOpenPoses_Click;
             CheckBoxShowDontOpenPoses.Content = OsLocalization.Journal.Label17;
@@ -160,6 +169,7 @@ namespace OsEngine.Journal
                 TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
                 ComboBoxChartType.SelectionChanged -= ComboBoxChartType_SelectionChanged;
                 VolumeShowNumbers.SelectionChanged -= VolumeShowNumbers_SelectionChanged;
+                ComboBoxBenchmark.SelectionChanged -= ComboBoxBenchmark_SelectionChanged;
                 TabControlPrime.Items.Clear();
 
                 Closing -= JournalUi_Closing;
@@ -183,6 +193,12 @@ namespace OsEngine.Journal
 
                 if (_chartEquity != null)
                 {
+                    _chartEquity.MouseMove -= _chartEquity_MouseMove;
+                    _chartEquity.MouseWheel -= _chartEquity_MouseWheel;
+                    RectangleEquity.MouseDown -= RectangleEquity_MouseDown;
+                    RectangleLong.MouseDown -= RectangleLong_MouseDown;
+                    RectangleShort.MouseDown -= RectangleShort_MouseDown;
+
                     _chartEquity.Series.Clear();
                     _chartEquity.ChartAreas.Clear();
                     _chartEquity = null;
@@ -526,6 +542,19 @@ namespace OsEngine.Journal
             }
         }
 
+        private void ComboBoxBenchmark_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                RePaint();
+                SaveSettings();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         #endregion
 
         #region Statistics table
@@ -750,7 +779,80 @@ namespace OsEngine.Journal
 
                 _chartEquity.MouseMove += _chartEquity_MouseMove;
                 _chartEquity.MouseWheel += _chartEquity_MouseWheel;
+                RectangleEquity.MouseDown += RectangleEquity_MouseDown;
+                RectangleLong.MouseDown += RectangleLong_MouseDown;
+                RectangleShort.MouseDown += RectangleShort_MouseDown;
 
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private bool _visibleEquityLine = true;
+        private bool _visibleLongLine = true;
+        private bool _visibleShortLine = true;
+
+        private void RectangleEquity_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (_visibleEquityLine)
+                {
+                    _visibleEquityLine = false;
+                }
+                else
+                {
+                    _visibleEquityLine = true;
+                }
+
+                RePaint();
+                SaveSettings();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void RectangleLong_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (_visibleLongLine)
+                {
+                    _visibleLongLine = false;
+                }
+                else
+                {
+                    _visibleLongLine = true;
+                }
+
+                RePaint();
+                SaveSettings();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void RectangleShort_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (_visibleShortLine)
+                {
+                    _visibleShortLine = false;
+                }
+                else
+                {
+                    _visibleShortLine = true;
+                }
+
+                RePaint();
+                SaveSettings();
             }
             catch (Exception error)
             {
@@ -780,7 +882,7 @@ namespace OsEngine.Journal
             try
             {
                 if (_chartEquity.Series == null
-     || _chartEquity.Series.Count == 0)
+                    || _chartEquity.Series.Count == 0)
                 {
                     return;
                 }
@@ -854,56 +956,18 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                if (_chartEquity.Series[0].Points.Count > _lastSeriesEquityChartPointWithLabel)
+                for (int i = 0; i < _chartEquity.Series.Count; i++)
                 {
-                    _chartEquity.Series[0].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
+                    if (_chartEquity.Series[i].Points.Count > _lastSeriesEquityChartPointWithLabel)
+                    {
+                        _chartEquity.Series[i].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
+                    }
+                    if (_chartEquity.Series[i].Points.Count > numPointInt)
+                    {
+                        _chartEquity.Series[i].Points[numPointInt].Label
+                        = _chartEquity.Series[i].Points[numPointInt].AxisLabel;
+                    }
                 }
-                if (_chartEquity.Series[0].Points.Count > numPointInt)
-                {
-                    _chartEquity.Series[0].Points[numPointInt].Label
-                    = _chartEquity.Series[0].Points[numPointInt].AxisLabel;
-                }
-
-                if (_chartEquity.Series[1].Points.Count > _lastSeriesEquityChartPointWithLabel)
-                {
-                    _chartEquity.Series[1].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
-                }
-                if (_chartEquity.Series[1].Points.Count > numPointInt)
-                {
-                    _chartEquity.Series[1].Points[numPointInt].Label
-                    = _chartEquity.Series[1].Points[numPointInt].AxisLabel;
-                }
-
-                if (_chartEquity.Series[2].Points.Count > _lastSeriesEquityChartPointWithLabel)
-                {
-                    _chartEquity.Series[2].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
-                }
-                if (_chartEquity.Series[2].Points.Count > numPointInt)
-                {
-                    _chartEquity.Series[2].Points[numPointInt].Label
-                    = _chartEquity.Series[2].Points[numPointInt].AxisLabel;
-                }
-
-                if (_chartEquity.Series[3].Points.Count > _lastSeriesEquityChartPointWithLabel)
-                {
-                    _chartEquity.Series[3].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
-                }
-                if (_chartEquity.Series[3].Points.Count > numPointInt)
-                {
-                    _chartEquity.Series[3].Points[numPointInt].Label
-                    = _chartEquity.Series[3].Points[numPointInt].AxisLabel;
-                }
-
-                if (_chartEquity.Series[4].Points.Count > _lastSeriesEquityChartPointWithLabel)
-                {
-                    _chartEquity.Series[4].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
-                }
-                if (_chartEquity.Series[4].Points.Count > numPointInt)
-                {
-                    _chartEquity.Series[4].Points[numPointInt].Label
-                    = _chartEquity.Series[4].Points[numPointInt].AxisLabel;
-                }
-
 
                 _lastSeriesEquityChartPointWithLabel = numPointInt;
             }
@@ -978,7 +1042,6 @@ namespace OsEngine.Journal
                 nullLine.LabelForeColor = Color.White;
                 nullLine.ChartArea = "ChartAreaProfit";
                 nullLine.ShadowOffset = 0;
-
 
                 decimal profitSum = 0;
                 decimal profitSumLong = 0;
@@ -1088,12 +1151,23 @@ namespace OsEngine.Journal
                     {
                         profitBar.Points[profitBar.Points.Count - 1].Color = Color.DarkRed;
                     }
-
                 }
 
-                _chartEquity.Series.Add(profit);
-                _chartEquity.Series.Add(profitLong);
-                _chartEquity.Series.Add(profitShort);
+                if (_visibleEquityLine)
+                {
+                    _chartEquity.Series.Add(profit);
+                }
+
+                if (_visibleLongLine)
+                {
+                    _chartEquity.Series.Add(profitLong);
+                }
+
+                if (_visibleShortLine)
+                {
+                    _chartEquity.Series.Add(profitShort);
+                }
+
                 _chartEquity.Series.Add(profitBar);
                 _chartEquity.Series.Add(nullLine);
 
@@ -1129,10 +1203,42 @@ namespace OsEngine.Journal
                 }
 
                 PaintXLabelsOnEquityChart(positionsAll);
+
+                PaintRectangleEqutyLines();
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void PaintRectangleEqutyLines()
+        {
+            if (_visibleEquityLine)
+            {
+                RectangleEquity.Fill = Brushes.White;
+            }
+            else
+            {
+                RectangleEquity.Fill = Brushes.Gray;                
+            }
+
+            if (_visibleLongLine)
+            {
+                RectangleLong.Fill = Brushes.DeepSkyBlue;
+            }
+            else
+            {
+                RectangleLong.Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0, 112, 149));                
+            }
+
+            if (_visibleShortLine)
+            {
+                RectangleShort.Fill = Brushes.DarkOrange;
+            }
+            else
+            {                
+                RectangleShort.Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 145, 80, 0));
             }
         }
 
@@ -1173,7 +1279,6 @@ namespace OsEngine.Journal
                 {
                     value = 0;
                 }
-
 
                 for (int i = 0; i < labelCount; i++)
                 {
@@ -3165,6 +3270,17 @@ namespace OsEngine.Journal
                         ComboBoxChartType.SelectedItem = profitType;
                     }
 
+                    _visibleEquityLine = Convert.ToBoolean(reader.ReadLine());
+                    _visibleLongLine = Convert.ToBoolean(reader.ReadLine());
+                    _visibleShortLine = Convert.ToBoolean(reader.ReadLine());
+
+                    string benchmark = reader.ReadLine();
+
+                    if (string.IsNullOrEmpty(benchmark) == false)
+                    {
+                        ComboBoxBenchmark.SelectedItem = benchmark;
+                    }
+
                     reader.Close();
                 }
             }
@@ -3191,6 +3307,10 @@ namespace OsEngine.Journal
                 {
                     writer.WriteLine(_leftPanelIsHide);
                     writer.WriteLine(ComboBoxChartType.SelectedItem.ToString());
+                    writer.WriteLine(_visibleEquityLine.ToString());
+                    writer.WriteLine(_visibleLongLine.ToString());
+                    writer.WriteLine(_visibleShortLine.ToString());
+                    writer.WriteLine(ComboBoxBenchmark.SelectedItem.ToString());
 
                     writer.Close();
                 }

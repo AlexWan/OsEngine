@@ -13,14 +13,16 @@
                 <TabItem Name="TabItem1" Header="Equity" Width="140" Margin="41,0,-140,0">
                     <Grid>
                         <WindowsFormsHost Name="HostEquity" Foreground="Black" Margin="0,0,0,47" />
-                        <Rectangle Fill="White"  HorizontalAlignment="Left" Height="25" Margin="152,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
-                        <Label Name="Label1" Content="Total profit" HorizontalAlignment="Left" Margin="40,0,0,10" VerticalAlignment="Bottom"/>
-                        <Rectangle Fill="DeepSkyBlue"  HorizontalAlignment="Left" Height="25" Margin="320,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
-                        <Label Name="Label2" Content="Long" HorizontalAlignment="Left" Margin="268,0,0,10" VerticalAlignment="Bottom"/>
-                        <Rectangle Fill="DarkOrange"  HorizontalAlignment="Left" Height="25" Margin="476,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
-                        <Label Name="Label3" Content="Short" HorizontalAlignment="Left" Margin="423,0,0,10" VerticalAlignment="Bottom"/>
-                        <Label Name="LabelEqutyCharteType" Content="Chart Type" HorizontalAlignment="Left" Margin="588,0,0,10" VerticalAlignment="Bottom"/>
-                        <ComboBox Name="ComboBoxChartType" HorizontalAlignment="Left" Margin="670,0,0,10" VerticalAlignment="Bottom" Width="140"/>
+                        <Rectangle Fill="White"  HorizontalAlignment="Left" Height="25" Margin="126,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38" Name="RectangleEquity"/>
+                        <Label Name="Label1" Content="Total profit" HorizontalAlignment="Left" Margin="15,0,0,10" VerticalAlignment="Bottom"/>
+                        <Rectangle Fill="DeepSkyBlue"  HorizontalAlignment="Left" Height="25" Margin="240,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38" Name="RectangleLong"/>
+                        <Label Name="Label2" Content="Long" HorizontalAlignment="Left" Margin="189,0,0,10" VerticalAlignment="Bottom"/>
+                        <Rectangle Fill="DarkOrange"  HorizontalAlignment="Left" Height="25" Margin="355,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38" Name="RectangleShort"/>
+                        <Label Name="Label3" Content="Short" HorizontalAlignment="Left" Margin="303,0,0,10" VerticalAlignment="Bottom"/>
+                        <Label Name="LabelEqutyCharteType" Content="Chart Type" HorizontalAlignment="Left" Margin="421,0,0,10" VerticalAlignment="Bottom"/>
+                        <ComboBox Name="ComboBoxChartType" HorizontalAlignment="Left" Margin="506,0,0,10" VerticalAlignment="Bottom" Width="140"/>
+                        <Label Name="LabelBenchmark" Content="Benchmark" HorizontalAlignment="Left" Margin="665,0,0,10" VerticalAlignment="Bottom"/>
+                        <ComboBox Name="ComboBoxBenchmark" HorizontalAlignment="Left" Margin="752,0,0,10" VerticalAlignment="Bottom" Width="140"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItem2" Header="Statistics" Width="140" Margin="41,0,-140,0">
