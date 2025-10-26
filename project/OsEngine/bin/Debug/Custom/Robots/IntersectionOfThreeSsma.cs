@@ -27,6 +27,8 @@ Sell: Fast Ssma is lower than slow Ssma.
 Exit: on the opposite signal.
 */
 
+namespace OsEngine.Robots
+{
 [Bot("IntersectionOfThreeSsma")] // We create an attribute so that we don't write anything in the Boot factory
  public class IntersectionOfThreeSsma : BotPanel
  {
@@ -354,3 +356,4 @@ Exit: on the opposite signal.
         return volume;
     }
  }
+}
