@@ -151,6 +151,10 @@ namespace OsEngine.Language
          "Eng:Securities filter_" +
          "Ru:Фильтр по бумагам_");
 
+        public string Label23 => OsLocalization.ConvertToLocString(
+            "Eng:Benchmark_" +
+            "Ru:Бэнчмарк_");
+
         public string TabItem1 => OsLocalization.ConvertToLocString(
             "Eng:Equity_" +
             "Ru:Эквити_");
