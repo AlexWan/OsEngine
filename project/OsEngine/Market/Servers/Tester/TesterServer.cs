@@ -4449,7 +4449,7 @@ namespace OsEngine.Market.Servers.Tester
                     if (curTrades != null &&
                         curTrades.Count > 100)
                     {
-                        curTrades = curTrades.GetRange(curTrades.Count - 101, 100);
+                        curTrades = curTrades.GetRange(curTrades.Count - 100, 100);
                         _allTrades[i] = curTrades;
                     }
                 }
