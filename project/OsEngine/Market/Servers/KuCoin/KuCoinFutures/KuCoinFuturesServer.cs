@@ -1873,7 +1873,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     return;
                 }
 
-
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = item.symbol;
 
@@ -1938,29 +1937,21 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private OrderStateType GetOrderState(string status, string type)
         {
-
-            if (status == "open")
+            if (type == "open")
             {
                 return OrderStateType.Active;
             }
-            else if (status == "match")
+            else if (type == "match")
             {
                 return OrderStateType.Partial;
             }
-            else if (status == "done")
+            else if (type == "filled")
             {
-                if (type == "canceled")
-                {
-                    return OrderStateType.Cancel;
-                }
-                else if (type == "filled")
-                {
-                    return OrderStateType.Done;
-                }
-                else if (type == "match")
-                {
-                    return OrderStateType.Partial;
-                }
+                return OrderStateType.Done;
+            }
+            else if (type == "canceled")
+            {
+                return OrderStateType.Cancel;
             }
 
             return OrderStateType.None;
