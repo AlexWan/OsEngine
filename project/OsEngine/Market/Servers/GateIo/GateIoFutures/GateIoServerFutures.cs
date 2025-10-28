@@ -154,7 +154,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 CreatePublicWebSocketConnect();
                 CreatePrivateWebSocketConnect();
-                //SetDualMode();
             }
             else
             {
@@ -2067,24 +2066,29 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                     OrderStateType orderState = OrderStateType.None;
 
-                    if (responseOrders.result[i].status.Equals("open"))
+                    if (responseOrders.result[i].finish_as.Equals("_new"))
                     {
                         orderState = OrderStateType.Active;
                     }
+                    else if (responseOrders.result[i].finish_as.Equals("cancelled"))
+                    {
+                        orderState = OrderStateType.Cancel;
+                    }
+                    else if (responseOrders.result[i].finish_as.Equals("liquidated"))
+                    {
+                        orderState = OrderStateType.Fail;
+                    }
+                    else if (responseOrders.result[i].finish_as.Equals("filled"))
+                    {
+                        orderState = OrderStateType.Done;
+                    }
+                    else if (responseOrders.result[i].finish_as.Equals("_update"))
+                    {
+                        orderState = OrderStateType.Partial;
+                    }
                     else
                     {
-                        if (responseOrders.result[i].finish_as.Equals("cancelled"))
-                        {
-                            orderState = OrderStateType.Cancel;
-                        }
-                        else if (responseOrders.result[i].finish_as.Equals("liquidated"))
-                        {
-                            orderState = OrderStateType.Fail;
-                        }
-                        else if (responseOrders.result[i].finish_as.Equals("filled"))
-                        {
-                            orderState = OrderStateType.Done;
-                        }
+                        orderState = OrderStateType.None;
                     }
 
                     try
