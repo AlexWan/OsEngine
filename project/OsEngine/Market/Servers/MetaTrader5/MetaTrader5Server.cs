@@ -44,6 +44,8 @@ namespace OsEngine.Market.Servers.MetaTrader5
             ((ServerParameterEnum)ServerParameters[9]).ValueChange += MetaTrader5Server_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[10]).ValueChange += MetaTrader5Server_ParametrValueChange;
 
+            ((ServerParameterString)ServerParameters[0]).Comment = OsLocalization.Market.Label266;
+            ((ServerParameterInt)ServerParameters[1]).Comment = OsLocalization.Market.Label267;
             ((ServerParameterBool)ServerParameters[2]).Comment = OsLocalization.Market.Label257;
             ((ServerParameterBool)ServerParameters[3]).Comment = OsLocalization.Market.Label262;
             ((ServerParameterBool)ServerParameters[4]).Comment = OsLocalization.Market.Label263;
