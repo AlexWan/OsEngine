@@ -2054,10 +2054,16 @@ namespace OsEngine.Market.Servers.TInvest
             newTrade.SecurityNameCode = mySec.Name;
             newTrade.Time = price.Time.ToDateTime().AddHours(3);// convert to MSK
             newTrade.Price = GetValue(price.Price);
+            newTrade.Side = Side.Buy;
             newTrade.Volume = 1;
             newTrade.Id = newTrade.Time.Ticks.ToString();
+      
+            if (_openInterestData.ContainsKey(mySec.Name))
+            {
+                newTrade.OpenInterest = _openInterestData[mySec.Name].OpenInterest_;
+            }
 
-            NewTradesEvent!(newTrade);
+            NewTradesEvent?.Invoke(newTrade);
 
             CreateFakeMdByTrade(newTrade);
         }
@@ -2543,10 +2549,7 @@ namespace OsEngine.Market.Servers.TInvest
                                 ? Side.Buy
                                 : Side.Sell;
 
-                            if (MyTradeEvent != null)
-                            {
-                                MyTradeEvent(trade);
-                            }
+                            MyTradeEvent?.Invoke(trade);
                         }
 
                         // sometimes order status gets lost so lets query it implicitly
@@ -2756,11 +2759,11 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 trade.Side = order.Side;
 
-                                MyTradeEvent!(trade);
+                                MyTradeEvent?.Invoke(trade);
                             }
                         }
 
-                        MyOrderEvent!(order);
+                        MyOrderEvent?.Invoke(order);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
@@ -3275,10 +3278,7 @@ namespace OsEngine.Market.Servers.TInvest
                             ? Side.Buy
                             : Side.Sell;
 
-                        if (MyTradeEvent != null)
-                        {
-                            MyTradeEvent(trade);
-                        }
+                        MyTradeEvent?.Invoke(trade);
                     }
                 }
 
