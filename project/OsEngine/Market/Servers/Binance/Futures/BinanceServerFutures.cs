@@ -2239,7 +2239,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     MyTradeEvent(trade);
                 }
 
-                if (order.X == "FILLED")
+                if (order.X == "FILLED" 
+                    || order.X == "PARTIALLY_FILLED")
                 {
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = order.s;
