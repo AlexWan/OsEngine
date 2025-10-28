@@ -1084,15 +1084,26 @@ namespace OsEngine.Language
         public string Label262 => OsLocalization.ConvertToLocString(
          "Eng:Includes a currency trading platform_" +
          "Ru:Включает площадку для торговли валютой_");
+
         public string Label263 => OsLocalization.ConvertToLocString(
          "Eng:Includes a platform for trading commodities_" +
          "Ru:Включает площадку для торговли сырьевыми товарами_");
+
         public string Label264 => OsLocalization.ConvertToLocString(
          "Eng:Includes a platform for trading funds_" +
          "Ru:Включает площадку для торговли фондами_");
+
         public string Label265 => OsLocalization.ConvertToLocString(
          "Eng:It includes a platform for trading other instruments, such as stocks._" +
          "Ru:Включает площадку для торговли другими инструментами, например акциями_");
+
+        public string Label266 => OsLocalization.ConvertToLocString(
+         "Eng:IP address of the Expert advisor. It is recommended to run the MT5 terminal and OsEngine on the same local machine_" +
+         "Ru:IP адрес советника. Рекомендуется запускать терминал МТ5 и OsEngine на одной локальной машине_");
+
+        public string Label267 => OsLocalization.ConvertToLocString(
+         "Eng:Expert advisor port. It is recommended to run the MT5 terminal and OsEngine on the same local machine_" +
+         "Ru:Порт советника. Рекомендуется запускать терминал МТ5 и OsEngine на одной локальной машине_");
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
