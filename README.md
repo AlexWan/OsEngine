@@ -14,7 +14,7 @@
 
 [Группа поддержки в MAX](https://max.ru/join/Yar1c0k41XMwbnBXWutnmj4rWMk3RrhXIUqpGl8wOog)
 
-[Софт внесён в перечень отечественного ПО Российской Федерации](https://reestr.digital.gov.ru/reestr/4075388)
+[Софт внесён в перечень отечественного ПО Российской Федерации](https://reestr.digital.gov.ru/reestr/4075388/)
 
 [Разрешено для создания выпускных квалификационных работ по направлениям Экономики и Программирования](https://o-s-a.net/os-engine-license-about)
 
