@@ -340,7 +340,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                 // Если валюта депозита и валюта прибыли одинаковая \\
                 if (_depositCurrency == security.NameClass)
                 {
-                    security.PriceStepCost = (security.Lot * point) / 1;
+                    security.PriceStepCost = (security.Lot * point) * security.PriceStep / 10;
                     return;
                 }
                 else
