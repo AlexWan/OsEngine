@@ -8,8 +8,6 @@
 
 Это полный комплекс программ необходимых для автоматизации торговли на бирже. 
 
-[Сайт разработчиков](http://o-s-a.net)
-
 [FAQ. Огромный гайд по работе с проектом из более чем 500 постов](https://o-s-a.net/os-engine-faq)
 
 [Группа поддержки в MAX](https://max.ru/join/Yar1c0k41XMwbnBXWutnmj4rWMk3RrhXIUqpGl8wOog)
