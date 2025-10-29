@@ -117,10 +117,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                 return;
                             }
 
-                            FIFOListWebSocketPublicMarketDepthsMessage = new ConcurrentQueue<string>();
-                            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                            FIFOListWebSocketPublicTradesMessage = new ConcurrentQueue<string>();
-
                             CreateWebSocketConnection();
                             CheckFullActivation();
                         }
@@ -235,19 +231,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             #region 3 Securities
 
-            public event Action<List<Security>> SecurityEvent;
-
             private readonly RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(200));
-
-            private string GetNameClass(string security)
-            {
-                if (security.EndsWith("USDT", StringComparison.OrdinalIgnoreCase))
-                {
-                    return "USDT";
-                }
-
-                return "Futures";
-            }
 
             public void GetSecurities()
             {
@@ -285,8 +269,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                     newSecurity.Exchange = ServerType.XTFutures.ToString();
                                     newSecurity.Name = symbols.symbol;
                                     newSecurity.NameFull = symbols.symbol;
-                                    newSecurity.NameClass = GetNameClass(symbols.symbol);
-                                    newSecurity.NameId = symbols.symbolGroupId;
+                                    newSecurity.NameClass = symbols.quoteCoin;
+                                    newSecurity.NameId = symbols.id;
                                     newSecurity.SecurityType = SecurityType.Futures;
                                     newSecurity.Lot = 1;
                                     newSecurity.PriceLimitLow = symbols.minPrice.ToDecimal();
@@ -299,13 +283,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                     }
 
                                     newSecurity.State = SecurityStateType.Activ;
-                                    newSecurity.PriceStep = (symbols.minStepPrice).ToDecimal();
+                                    newSecurity.PriceStep = symbols.minStepPrice.ToDecimal();
                                     newSecurity.Decimals = Convert.ToInt32(symbols.pricePrecision);
                                     newSecurity.PriceStepCost = newSecurity.PriceStep;
-                                    newSecurity.DecimalsVolume = Convert.ToInt32(symbols.quoteCoinDisplayPrecision);
+                                    newSecurity.DecimalsVolume = symbols.contractSize.DecimalsCount();
                                     newSecurity.MinTradeAmount = symbols.minNotional.ToDecimal();
                                     newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
-                                    newSecurity.VolumeStep = newSecurity.DecimalsVolume.GetValueByDecimals();
+                                    newSecurity.VolumeStep = symbols.contractSize.ToDecimal();
 
                                     securities.Add(newSecurity);
                                 }
@@ -333,6 +317,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     SendLogMessage("GetSecurities error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
+
+            public event Action<List<Security>> SecurityEvent;
 
             #endregion
 
@@ -494,6 +480,72 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 catch (Exception exception)
                 {
                     SendLogMessage("UpdatePortfolioRest error: " + exception.ToString(), LogMessageType.Error);
+                }
+            }
+
+            public void CreateQueryPositions(bool updateValueBegin)
+            {
+                _rateGateForAll.WaitToProceed();
+
+                try
+                {
+                    if (_portfolios == null || _portfolios.Count == 0)
+                    {
+                        SendLogMessage("CreateQueryPositions: portfolios is empty", LogMessageType.Error);
+                        return;
+                    }
+
+                    IRestResponse response = CreatePrivateQuery("/future/user/v1/position", Method.GET);
+
+                    if (response == null || response.StatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(response.Content))
+                    {
+                        SendLogMessage("CreateQueryPositions: bad HTTP response", LogMessageType.Error);
+                        return;
+                    }
+
+                    XTFuturesResponseRest<List<XTFuturesPosition>> state =
+                        JsonConvert.DeserializeObject<XTFuturesResponseRest<List<XTFuturesPosition>>>(response.Content);
+
+                    if (state == null || state.result == null)
+                    {
+                        SendLogMessage("CreateQueryPositions: result is null", LogMessageType.Error);
+                        return;
+                    }
+
+                    Portfolio portfolio = _portfolios[0];
+
+                    // Просто обновляем позиции
+                    for (int i = 0; i < state.result.Count; i++)
+                    {
+                        XTFuturesPosition pos = state.result[i];
+                        if (pos == null || string.IsNullOrWhiteSpace(pos.symbol) || string.IsNullOrWhiteSpace(pos.positionSide))
+                        {
+                            continue;
+                        }
+
+                        string side = pos.positionSide;
+                        string code = pos.symbol + "_" + side;
+                        decimal size = pos.positionSize.ToDecimal();
+                        size = side == "SHORT" ? -Math.Abs(size) : size;
+                        decimal unreal = pos.floatingPL.ToDecimal();
+                        decimal margin = pos.isolatedMargin.ToDecimal();
+
+                        PositionOnBoard position = new PositionOnBoard();
+                        position.PortfolioName = portfolio.Number;
+                        position.SecurityNameCode = code;
+                        position.ValueCurrent = Math.Round(size, 6);
+                        position.UnrealizedPnl = Math.Round(unreal, 6);
+                        position.ValueBlocked = Math.Round(margin, 6);
+                        position.ValueBegin = updateValueBegin ? position.ValueCurrent : 0m;
+
+                        portfolio.SetNewPosition(position);
+                    }
+
+                    PortfolioEvent?.Invoke(_portfolios);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("CreateQueryPositions error: " + ex, LogMessageType.Error);
                 }
             }
 
@@ -1982,7 +2034,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     Order updateOrder = new Order();
 
                     updateOrder.SecurityNameCode = order.data.symbol;
-                    updateOrder.SecurityClassCode = GetNameClass(order.data.symbol);
                     updateOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.createdTime));
                     updateOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.updatedTime));
                     updateOrder.NumberMarket = order.data.orderId;
@@ -2379,71 +2430,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 return false;
             }
 
-            public void CreateQueryPositions(bool updateValueBegin)
-            {
-                _rateGateForAll.WaitToProceed();
-
-                try
-                {
-                    if (_portfolios == null || _portfolios.Count == 0)
-                    {
-                        SendLogMessage("CreateQueryPositions: portfolios is empty", LogMessageType.Error);
-                        return;
-                    }
-
-                    IRestResponse response = CreatePrivateQuery("/future/user/v1/position", Method.GET);
-
-                    if (response == null || response.StatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(response.Content))
-                    {
-                        SendLogMessage("CreateQueryPositions: bad HTTP response", LogMessageType.Error);
-                        return;
-                    }
-
-                    XTFuturesResponseRest<List<XTFuturesPosition>> state =
-                        JsonConvert.DeserializeObject<XTFuturesResponseRest<List<XTFuturesPosition>>>(response.Content);
-
-                    if (state == null || state.result == null)
-                    {
-                        SendLogMessage("CreateQueryPositions: result is null", LogMessageType.Error);
-                        return;
-                    }
-
-                    Portfolio portfolio = _portfolios[0];
-
-                    // Просто обновляем позиции
-                    for (int i = 0; i < state.result.Count; i++)
-                    {
-                        XTFuturesPosition pos = state.result[i];
-                        if (pos == null || string.IsNullOrWhiteSpace(pos.symbol) || string.IsNullOrWhiteSpace(pos.positionSide))
-                        {
-                            continue;
-                        }
-
-                        string side = pos.positionSide;
-                        string code = pos.symbol + "_" + side;
-                        decimal size = pos.positionSize.ToDecimal();
-                        size = side == "SHORT" ? -Math.Abs(size) : size;
-                        decimal unreal = pos.floatingPL.ToDecimal();
-                        decimal margin = pos.isolatedMargin.ToDecimal();
-
-                        PositionOnBoard position = new PositionOnBoard();
-                        position.PortfolioName = portfolio.Number;
-                        position.SecurityNameCode = code;
-                        position.ValueCurrent = Math.Round(size, 6);
-                        position.UnrealizedPnl = Math.Round(unreal, 6);
-                        position.ValueBlocked = Math.Round(margin, 6);
-                        position.ValueBegin = updateValueBegin ? position.ValueCurrent : 0m;
-
-                        portfolio.SetNewPosition(position);
-                    }
-
-                    PortfolioEvent?.Invoke(_portfolios);
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage("CreateQueryPositions error: " + ex, LogMessageType.Error);
-                }
-            }
+          
 
             public void GetAllActivOrders()
             {
@@ -2508,7 +2495,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             historyOrder.NumberMarket = item.orderId;
                             historyOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
                             historyOrder.SecurityNameCode = item.symbol;
-                            historyOrder.SecurityClassCode = GetNameClass(item.symbol);
                             historyOrder.Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
                             historyOrder.State = GetOrderState(item.state);
                             historyOrder.TypeOrder = MapOrderType(item.orderType);
@@ -2592,7 +2578,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             activeOrder.Price = item.price.ToDecimal();
                             activeOrder.Side = item.orderSide.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
                             activeOrder.State = GetOrderState(item.state);
-                            activeOrder.SecurityClassCode = GetNameClass(item.symbol);
+
                             activeOrder.TypeOrder = MapOrderType(item.orderType);
                             activeOrder.PortfolioNumber = _portfolioName;
 

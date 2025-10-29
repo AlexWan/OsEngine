@@ -18,7 +18,7 @@ using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using RestSharp;
-using OsEngine.Market.Servers.XT.XTFutures.Entity;
+
 
 namespace OsEngine.Market.Servers.XT.XTSpot
 {
