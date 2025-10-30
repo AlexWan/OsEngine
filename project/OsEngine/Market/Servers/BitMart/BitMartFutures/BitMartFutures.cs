@@ -38,6 +38,12 @@ namespace OsEngine.Market.Servers.BitMartFutures
             CreateParameterBoolean("Hedge Mode", true);
             CreateParameterBoolean("Extended Data", false);
             ServerParameters[3].ValueChange += BitMartFuturesServer_ValueChange;
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label271;
+            ServerParameters[3].Comment = OsLocalization.Market.Label250;
+            ServerParameters[4].Comment = OsLocalization.Market.Label270;
         }
 
         private void BitMartFuturesServer_ValueChange()
