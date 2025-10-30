@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -25,8 +30,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
             HTXFuturesServerRealization realization = new HTXFuturesServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString("Access Key", "");
-            CreateParameterString("Secret Key", "");
+            CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
         }
     }
 

@@ -46,7 +46,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             ServerParameters[3].Comment = OsLocalization.Market.Label255;
             ServerParameters[4].Comment = OsLocalization.Market.Label249;
             ServerParameters[5].Comment = OsLocalization.Market.Label256;
-            ServerParameters[6].Comment = OsLocalization.Market.Label252;
+            ServerParameters[6].Comment = OsLocalization.Market.Label270;
         }
 
         private void HTXSwapServer_ValueChange()
