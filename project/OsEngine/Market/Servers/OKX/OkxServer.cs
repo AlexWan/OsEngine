@@ -38,8 +38,17 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
             CreateParameterBoolean("Use Options", false);
-            CreateParameterEnum("Demo Mode", "Off", new List<string> { "Off", "On" });
+            CreateParameterBoolean("Demo Mode", false);
             CreateParameterBoolean("Extended Data", false);
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label271;
+            ServerParameters[3].Comment = OsLocalization.Market.Label250;
+            ServerParameters[4].Comment = OsLocalization.Market.Label249;
+            ServerParameters[5].Comment = OsLocalization.Market.Label253;
+            ServerParameters[6].Comment = OsLocalization.Market.Label268;
+            ServerParameters[7].Comment = OsLocalization.Market.Label252;
         }
     }
 
@@ -96,7 +105,7 @@ namespace OsEngine.Market.Servers.OKX
 
             _useOptions = ((ServerParameterBool)ServerParameters[5]).Value;
 
-            if (((ServerParameterEnum)ServerParameters[6]).Value == "Off")
+            if (((ServerParameterBool)ServerParameters[6]).Value == false)
             {
                 _demoMode = false;
             }

@@ -31,10 +31,14 @@ namespace OsEngine.Market.Servers.Woo
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
-            CreateParameterString("Application ID", "");
             CreateParameterBoolean("Hedge Mode", true);
             CreateParameterBoolean("Extended Data", false);
-            ServerParameters[3].ValueChange += WooServer_ValueChange;
+            ServerParameters[2].ValueChange += WooServer_ValueChange;
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label250;
+            ServerParameters[3].Comment = OsLocalization.Market.Label270;
         }
 
         private void WooServer_ValueChange()
@@ -71,18 +75,16 @@ namespace OsEngine.Market.Servers.Woo
         {
             _apiKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-            _appID = ((ServerParameterString)ServerParameters[2]).Value;
-            HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
+            HedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
 
             if (string.IsNullOrEmpty(_apiKey)
-                || string.IsNullOrEmpty(_secretKey)
-                || string.IsNullOrEmpty(_appID))
+                || string.IsNullOrEmpty(_secretKey))
             {
                 SendLogMessage("Can`t run WooX connector. No keys or appID", LogMessageType.Error);
                 return;
             }
 
-            if (((ServerParameterBool)ServerParameters[4]).Value == true)
+            if (((ServerParameterBool)ServerParameters[3]).Value == true)
             {
                 _extendedMarketData = true;
             }
@@ -185,8 +187,6 @@ namespace OsEngine.Market.Servers.Woo
         private string _apiKey;
 
         private string _secretKey;
-
-        private string _appID;
 
         private string _baseUrl = "https://api.woox.io";
 
