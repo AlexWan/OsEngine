@@ -53,7 +53,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             ServerParameters[2].Comment = OsLocalization.Market.Label254;
             ServerParameters[3].Comment = OsLocalization.Market.Label250;
             ServerParameters[4].Comment = OsLocalization.Market.Label268;
-            ServerParameters[5].Comment = OsLocalization.Market.Label252;
+            ServerParameters[5].Comment = OsLocalization.Market.Label270;
 
         }
 

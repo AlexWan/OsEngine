@@ -1133,6 +1133,12 @@ namespace OsEngine.Language
         "Eng:If True, we request information on volume24. If you do not use this data, it is recommended to set it to False_" +
         "Ru:Если True - то запрашиваем информацию по объему24. Если вы не используйте эти данные, то рекомендуется установить False_");
 
+        public string Label270 => OsLocalization.ConvertToLocString(
+        "Eng:If True, we request information on open interest, funding, and volume24. If you're not using this data, it's recommended to set it to False_" +
+        "Ru:Если True - то запрашиваем информацию по открытому интересу, фандингу, объему24. Если вы не используйте эти данные, то рекомендуется установить False_");
+
+
+
         // Servers
 
         public string Message6 => OsLocalization.ConvertToLocString(
