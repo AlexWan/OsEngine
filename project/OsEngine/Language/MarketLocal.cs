@@ -1137,6 +1137,9 @@ namespace OsEngine.Language
         "Eng:If True, we request information on open interest, funding, and volume24. If you're not using this data, it's recommended to set it to False_" +
         "Ru:Если True - то запрашиваем информацию по открытому интересу, фандингу, объему24. Если вы не используйте эти данные, то рекомендуется установить False_");
 
+        public string Label271 => OsLocalization.ConvertToLocString(
+         "Eng:Passphrase. This is written down on the exchange's website in the API section when you generate keys_" +
+         "Ru:Кодовая фраза. Выписывается на сайте биржи в разделе API, когда создаете ключи_");
 
 
         // Servers
