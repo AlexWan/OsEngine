@@ -1145,6 +1145,9 @@ namespace OsEngine.Language
          "Eng:Id. This can be found on the exchange's website in the API section_" +
          "Ru:Id. Выписывается на сайте биржи в разделе API_");
 
+        public string Label273 => OsLocalization.ConvertToLocString(
+         "Eng:Choosing a trading mode. Spot or margin_" +
+         "Ru:Выбор режима торговли. Спот или маржин_");
 
 
 

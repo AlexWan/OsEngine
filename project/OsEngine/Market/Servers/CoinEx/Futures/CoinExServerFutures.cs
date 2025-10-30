@@ -34,7 +34,12 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Market depth", "20", new List<string> { "5", "10", "20", "50" });
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.ServerParam13;
         }
+        
     }
 
     public class CoinExServerRealization : IServerRealization

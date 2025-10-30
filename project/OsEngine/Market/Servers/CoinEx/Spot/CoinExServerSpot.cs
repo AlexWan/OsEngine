@@ -34,6 +34,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Market depth", "20", new List<string> { "5", "10", "20", "50" });
             CreateParameterEnum("Market Mode", CexMarketType.SPOT.ToString(), new List<string> { CexMarketType.SPOT.ToString(), CexMarketType.MARGIN.ToString() });
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.ServerParam13;
+            ServerParameters[3].Comment = OsLocalization.Market.Label273;
         }
     }
 
