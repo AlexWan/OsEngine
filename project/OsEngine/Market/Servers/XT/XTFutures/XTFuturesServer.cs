@@ -1,4 +1,8 @@
-﻿
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -14,21 +18,9 @@ using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using RestSharp;
-using JsonConvert = Newtonsoft.Json.JsonConvert;
-using Trade = OsEngine.Entity.Trade;
-using Candle = OsEngine.Entity.Candle;
-using Order = OsEngine.Entity.Order;
 using System.Globalization;
-using Security = OsEngine.Entity.Security;
 using System.IO;
-using ErrorEventArgs = OsEngine.Entity.WebSocketOsEngine.ErrorEventArgs;
-
 using System.Linq;
-
-
-
-
-
 
 
 namespace OsEngine.Market.Servers.XT.XTFutures
@@ -328,7 +320,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private List<Portfolio> _portfolios;
 
-            public event Action<List<Portfolio>> PortfolioEvent;
 
             private readonly RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(333));
 
@@ -449,31 +440,30 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     XTFuturesBalance coin = list[0];
 
-                    decimal wallet = coin.walletBalance.ToDecimal();
-                    decimal isoMargin = coin.isolatedMargin.ToDecimal();
-                    decimal crossMargin = coin.crossedMargin.ToDecimal();
-                    decimal orderFrozen = coin.openOrderMarginFrozen.ToDecimal();
-                    decimal locked = isoMargin + crossMargin + orderFrozen;
-                    decimal available = wallet - locked;
-
                     if (isUpdateValueBegin)
                     {
-                        portfolio.ValueBegin = 1;
+                        portfolio.ValueBegin = Math.Round(coin.totalAmount.ToDecimal(), 5);
                     }
 
-                    portfolio.ValueCurrent = 1;
-
-                    string coinCode = (coin.coin.ToUpper() ?? "USDT");
+                    portfolio.ValueCurrent = Math.Round(coin.marginBalance.ToDecimal(), 5);
+                    portfolio.UnrealizedPnl = Math.Round(coin.notProfit.ToDecimal(), 5);
+                    portfolio.ValueBlocked = Math.Round(coin.openOrderMarginFrozen.ToDecimal(), 5);
 
                     PositionOnBoard moneyPos = new PositionOnBoard();
 
                     moneyPos.PortfolioName = portfolio.Number;
-                    moneyPos.SecurityNameCode = coinCode;
-                    moneyPos.ValueCurrent = Math.Round(available, 4);
-                    moneyPos.ValueBlocked = Math.Round(locked, 4);
-                    moneyPos.ValueBegin = isUpdateValueBegin ? Math.Round(available, 4) : 0m;
+                    moneyPos.SecurityNameCode = coin.coin;
+                    moneyPos.ValueCurrent = Math.Round(coin.marginBalance.ToDecimal(), 5);
+                    moneyPos.ValueBlocked = Math.Round(coin.openOrderMarginFrozen.ToDecimal(), 5);
+                    moneyPos.ValueBegin = Math.Round(coin.walletBalance.ToDecimal(), 5);
+                    moneyPos.UnrealizedPnl = Math.Round(coin.notProfit.ToDecimal(), 5);
 
                     portfolio.SetNewPosition(moneyPos);
+
+                    if (portfolio.ValueCurrent == 0)
+                    {
+                        portfolio.ValueCurrent = 1;
+                    }
 
                     PortfolioEvent?.Invoke(_portfolios);
                 }
@@ -524,18 +514,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         }
 
                         string side = pos.positionSide;
-                        string code = pos.symbol + "_" + side;
                         decimal size = pos.positionSize.ToDecimal();
                         size = side == "SHORT" ? -Math.Abs(size) : size;
-                        decimal unreal = pos.floatingPL.ToDecimal();
-                        decimal margin = pos.isolatedMargin.ToDecimal();
 
                         PositionOnBoard position = new PositionOnBoard();
                         position.PortfolioName = portfolio.Number;
-                        position.SecurityNameCode = code;
+                        position.SecurityNameCode = pos.symbol + "_" + side;
                         position.ValueCurrent = Math.Round(size, 6);
-                        position.UnrealizedPnl = Math.Round(unreal, 6);
-                        position.ValueBlocked = Math.Round(margin, 6);
+                        position.UnrealizedPnl = Math.Round(pos.floatingPL.ToDecimal(), 6);
                         position.ValueBegin = updateValueBegin ? position.ValueCurrent : 0m;
 
                         portfolio.SetNewPosition(position);
@@ -548,6 +534,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     SendLogMessage("CreateQueryPositions error: " + ex, LogMessageType.Error);
                 }
             }
+
+            public event Action<List<Portfolio>> PortfolioEvent;
 
             #endregion
 
@@ -968,7 +956,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             #region 7 WebSocket events
 
-            private void _webSocketPublicTrades_OnError(object sender, ErrorEventArgs e)
+            private void _webSocketPublicTrades_OnError(object sender, OsEngine.Entity.WebSocketOsEngine.ErrorEventArgs e)
             {
                 try
                 {
@@ -1056,7 +1044,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 SendLogMessage("WebSocketPublicTrades Connection to public trades is Open", LogMessageType.System);
             }
 
-            private void _webSocketPublicMarketDepths_OnError(object sender, ErrorEventArgs e)
+            private void _webSocketPublicMarketDepths_OnError(object sender, OsEngine.Entity.WebSocketOsEngine.ErrorEventArgs e)
             {
                 try
                 {
@@ -1144,7 +1132,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 SendLogMessage("WebSocketPublicConnection to public data is Open", LogMessageType.System);
             }
 
-            private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
+            private void _webSocketPrivate_OnError(object sender, OsEngine.Entity.WebSocketOsEngine.ErrorEventArgs e)
             {
                 try
                 {
@@ -1922,20 +1910,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     string side = string.IsNullOrWhiteSpace(response.data.positionSide) ? "LONG" : response.data.positionSide.ToUpper();
 
-                    string symbol = response.data.symbol + "_" + side;
                     decimal qty = response.data.positionSize.ToDecimal();
-                    decimal unreal = response.data.realizedProfit.ToDecimal();
-                    decimal margin = response.data.openOrderMarginFrozen.ToDecimal();
                     qty = side == "SHORT" ? -Math.Abs(qty) : qty;
 
                     PositionOnBoard pos = new PositionOnBoard();
 
                     pos.PortfolioName = _portfolioName;
-                    pos.SecurityNameCode = symbol;
+                    pos.SecurityNameCode = response.data.symbol + "_" + side;
                     pos.ValueCurrent = Math.Round(qty, 6);
-                    pos.UnrealizedPnl = Math.Round(unreal, 6);
-                    pos.ValueBlocked = Math.Round(margin, 6);
-                    pos.ValueBegin = 0m;
+                    pos.UnrealizedPnl = Math.Round(response.data.realizedProfit.ToDecimal(), 6);
 
                     portfolio.SetNewPosition(pos);
 
@@ -1991,23 +1974,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     Portfolio portfolio = _portfolios[0];
 
-                    decimal wallet = portfolios.data.walletBalance.ToDecimal();
-                    decimal orderFrozen = portfolios.data.openOrderMarginFrozen.ToDecimal();
-                    decimal locked = orderFrozen;
-                    decimal available = wallet - locked;
-
-                    if (available < 0m)
-                    {
-                        available = 0m;
-                    }
-
-                    portfolio.ValueCurrent = 1;
-
                     PositionOnBoard pos = new PositionOnBoard();
                     pos.PortfolioName = _portfolioName;
-                    pos.SecurityNameCode = (portfolios.data.coin.ToUpper() ?? "USDT");
-                    pos.ValueBlocked = Math.Round(locked, 5);
-                    pos.ValueCurrent = Math.Round(available, 5);
+                    pos.SecurityNameCode = portfolios.data.coin;
+                    pos.ValueBlocked = Math.Round(portfolios.data.openOrderMarginFrozen.ToDecimal(), 5);
+                    pos.ValueCurrent = Math.Round(portfolios.data.availableBalance.ToDecimal(), 5);
 
                     portfolio.SetNewPosition(pos);
 
@@ -2429,8 +2400,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                 return false;
             }
-
-          
 
             public void GetAllActivOrders()
             {

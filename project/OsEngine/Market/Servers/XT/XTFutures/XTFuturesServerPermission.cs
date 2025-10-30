@@ -49,16 +49,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             get { return false; }
         }
 
-        public bool DataFeedTfTickCanLoad
-        {
-            get { return false; }
-        }
-
-        public bool DataFeedTfMarketDepthCanLoad
-        {
-            get { return false; }
-        }
-
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return true; }
@@ -107,6 +97,16 @@ namespace OsEngine.Market.Servers.XT.XTFutures
         public bool DataFeedTfDayCanLoad
         {
             get { return true; }
+        }
+
+        public bool DataFeedTfTickCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfMarketDepthCanLoad
+        {
+            get { return false; }
         }
 
         #endregion
@@ -175,8 +175,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 string[] values = new string[]
                 {
                     "_LONG",
-                    "_SHORT",
-                    "_BOTH"
+                    "_SHORT"
                 };
 
                 return values;
@@ -189,7 +188,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 string[] values = new string[]
                 {
-                    "USDT" 
+                    "usdt" 
                 };
 
                 return values;
@@ -197,11 +196,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures
         }
 
         public bool ManuallyClosePositionOnBoard_IsOn
-        {
-            get { return true; }
-        }
-        
-        public bool IsTradeServer
         {
             get { return true; }
         }

@@ -129,6 +129,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string notProfit { get; set; }       // Unrealized PnL
         public string bonus { get; set; }           // Bonus / trial funds
         public string coupon { get; set; }          // Coupon deduction
+        public string marginBalance { get; set; }
     }
 
     public class XTFuturesPosition
