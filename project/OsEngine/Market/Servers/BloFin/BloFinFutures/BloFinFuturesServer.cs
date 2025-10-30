@@ -35,6 +35,12 @@ namespace OsEngine.Market.Servers.BloFin
             CreateParameterPassword(OsLocalization.Market.ServerParamPassword, "");
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label271;
+            ServerParameters[3].Comment = OsLocalization.Market.Label250;
+            ServerParameters[4].Comment = OsLocalization.Market.Label249;
         }
     }
 
