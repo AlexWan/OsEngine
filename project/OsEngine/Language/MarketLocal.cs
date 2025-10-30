@@ -1034,8 +1034,8 @@ namespace OsEngine.Language
          "Ru:Выбор режима маржи. Кросс-маржа или изолированная_");
 
         public string Label250 => OsLocalization.ConvertToLocString(
-         "Eng:Selecting a hedging mode. If on - the hedging mode is enabled; if off - the one-way mode is enabled_" +
-         "Ru:Выбор режима хеджирования. Если on - то включен режим хеджирования, если off - включен односторонний режим_");
+         "Eng:Selecting a hedging mode. If True - the hedging mode is enabled; if False - the one-way mode is enabled_" +
+         "Ru:Выбор режима хеджирования. Если True - то включен режим хеджирования, если False - включен односторонний режим_");
 
         public string Label251 => OsLocalization.ConvertToLocString(
          "Eng:Set leverage from 1 to the maximum allowed by the exchange. Works only for linear futures. If left blank, the leverage you set on the exchange is used_" +
@@ -1124,6 +1124,14 @@ namespace OsEngine.Language
         public string TabItem2 => OsLocalization.ConvertToLocString(
             "Eng: Logging_" +
             "Ru: Логирование _");
+
+        public string Label268 => OsLocalization.ConvertToLocString(
+        "Eng:A demo server where you can trade on a virtual account. If True, demo mode is enabled; if False, it's disabled. Separate public and private keys are required for demo mode_" +
+        "Ru:Демонстрационный сервер, где можно поторговать на виртуальном счете. Если True - то демо режим включен, если False - выключен. Для демо нужно выписывать отдельные публичный и приватный ключи_");
+
+        public string Label269 => OsLocalization.ConvertToLocString(
+        "Eng:If True, we request information on volume24. If you do not use this data, it is recommended to set it to False_" +
+        "Ru:Если True - то запрашиваем информацию по объему24. Если вы не используйте эти данные, то рекомендуется установить False_");
 
         // Servers
 
