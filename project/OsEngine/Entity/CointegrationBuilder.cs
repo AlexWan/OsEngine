@@ -98,23 +98,23 @@ namespace OsEngine.Entity
             List<double> movesTwo = new List<double>();
 
             for (int indFirstSec = candles1.Count - 1, indSecondSec = candles2.Count - 1;
-                indFirstSec >= 0 && indSecondSec >= 0
-                && indFirstSec > candles1.Count - 1 - CointegrationLookBack
-                && indSecondSec > candles2.Count - 1 - CointegrationLookBack
-                ;
+                indFirstSec >= 0 && indSecondSec >= 0;
                 indFirstSec--, indSecondSec--)
             {
+                if (movesOne.Count == CointegrationLookBack && movesTwo.Count == CointegrationLookBack)
+                    break;
+
                 Candle first = candles1[indFirstSec];
                 Candle second = candles2[indSecondSec];
 
                 if (first.TimeStart > second.TimeStart)
                 { // в случае если время не равно
-                    indFirstSec--;
+                    indSecondSec++;
                     continue;
                 }
-                if (second.TimeStart > first.TimeStart)
+                else if (second.TimeStart > first.TimeStart)
                 { // в случае если время не равно
-                    indSecondSec--;
+                    indFirstSec++;
                     continue;
                 }
 
