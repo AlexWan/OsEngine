@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
@@ -29,6 +34,10 @@ namespace OsEngine.Market.Servers.BinGxSpot
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterBoolean("Extended Data", false);
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label269;
         }
     }
 

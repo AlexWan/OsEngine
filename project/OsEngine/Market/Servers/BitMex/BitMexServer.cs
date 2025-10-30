@@ -31,6 +31,9 @@ namespace OsEngine.Market.Servers.BitMex
 
             CreateParameterString(OsLocalization.Market.ServerParamId, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label272;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
         }
     }
 

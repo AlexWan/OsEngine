@@ -37,6 +37,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterBoolean("HedgeMode", false);
             CreateParameterBoolean("Extended Data", false);
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label250;
+            ServerParameters[3].Comment = OsLocalization.Market.Label270;
         }
     }
 

@@ -38,6 +38,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             CreateParameterEnum("Margin Mode", "Crossed", new List<string> { "Crossed", "Isolated" });
             CreateParameterBoolean("Demo Trading", false);
             CreateParameterBoolean("Extended Data", false);
+
+            ServerParameters[0].Comment = OsLocalization.Market.Label246;
+            ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label271;
+            ServerParameters[3].Comment = OsLocalization.Market.Label250;
+            ServerParameters[4].Comment = OsLocalization.Market.Label249;
+            ServerParameters[5].Comment = OsLocalization.Market.Label268;
+            ServerParameters[6].Comment = OsLocalization.Market.Label270;
         }
     }
 
