@@ -1161,6 +1161,10 @@ namespace OsEngine.Language
          "Eng:If True, we use the Post Only order type. This is only for limit orders. Post Only is an order type that guarantees that your order will be placed in the order book as a maker and will not be executed as a taker_" +
          "Ru:Если True - то используем тип ордера Post Only. Доступно только для лимитных ордеров. Post Only — это тип ордера, который гарантирует, что ваш ордер будет размещен в книги заявок как maker и не исполнится как taker_");
 
+        public string Label277 => OsLocalization.ConvertToLocString(
+         "Eng:User ID. Assigned to each registered user on the exchange._" +
+         "Ru:UID пользователя. Присваивается каждому зарегистрированному пользователю на бирже_");
+
 
         // Servers
 
