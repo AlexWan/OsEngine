@@ -1141,6 +1141,12 @@ namespace OsEngine.Language
          "Eng:Passphrase. This is written down on the exchange's website in the API section when you generate keys_" +
          "Ru:Кодовая фраза. Выписывается на сайте биржи в разделе API, когда создаете ключи_");
 
+        public string Label272 => OsLocalization.ConvertToLocString(
+         "Eng:Id. This can be found on the exchange's website in the API section_" +
+         "Ru:Id. Выписывается на сайте биржи в разделе API_");
+
+
+
 
         // Servers
 
