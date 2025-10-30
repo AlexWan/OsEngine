@@ -182,6 +182,11 @@ namespace OsEngine.Market.Connectors
             {
                 CheckBoxSaveTradeArrayInCandle.IsEnabled = false;
                 CheckBoxSaveTradeArrayInCandle.IsChecked = false;
+                ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Collapsed;
             }
 
             ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
@@ -410,11 +415,13 @@ namespace OsEngine.Market.Connectors
                     {
                         CheckBoxSaveTradeArrayInCandle.IsEnabled = false;
                         CheckBoxSaveTradeArrayInCandle.IsChecked = false;
+                        ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Visible;
                     }
                     else
                     {
                         CheckBoxSaveTradeArrayInCandle.IsEnabled = true;
-                        CheckBoxSaveTradeArrayInCandle.IsChecked = SourcesCreator.SaveTradesInCandles;
+                        CheckBoxSaveTradeArrayInCandle.IsChecked = SourcesCreator.SaveTradesInCandles; 
+                        ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Collapsed;
                     }
                 }
             }
@@ -424,6 +431,18 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        private void ButtonMarketDepthBuildMaxSpread_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                MarketDepthCreateTypeMaxSpreadUi ui = new MarketDepthCreateTypeMaxSpreadUi(SourcesCreator);
+                ui.ShowDialog();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
 
         private void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -2032,5 +2051,6 @@ namespace OsEngine.Market.Connectors
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+
     }
 }

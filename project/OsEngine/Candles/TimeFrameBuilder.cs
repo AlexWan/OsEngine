@@ -92,6 +92,15 @@ namespace OsEngine.Entity
                     CandleSeriesRealization.CandleUpdateEvent += CandleSeriesRealization_CandleUpdateEvent;
                     CandleSeriesRealization.CandleFinishedEvent += CandleSeriesRealization_CandleFinishedEvent;
 
+                    if(reader.EndOfStream == false)
+                    {
+                        _marketDepthBuildMaxSpreadIsOn = Convert.ToBoolean(reader.ReadLine());
+                    }
+                    if (reader.EndOfStream == false)
+                    {
+                        _marketDepthBuildMaxSpread = reader.ReadLine().ToDecimal();
+                    }
+
                     reader.Close();
                 }
             }
@@ -132,6 +141,9 @@ namespace OsEngine.Entity
                     writer.WriteLine(_candleCreateType);
                     writer.WriteLine(CandleSeriesRealization.GetType().Name);
                     writer.WriteLine(CandleSeriesRealization.GetSaveString());
+
+                    writer.WriteLine(_marketDepthBuildMaxSpreadIsOn);
+                    writer.WriteLine(_marketDepthBuildMaxSpread);
 
                     writer.Close();
                 }
@@ -422,6 +434,42 @@ namespace OsEngine.Entity
         }
 
         private bool _saveTradesInCandles;
+
+        public bool MarketDepthBuildMaxSpreadIsOn
+        {
+            get
+            {
+                return _marketDepthBuildMaxSpreadIsOn;
+            }
+            set
+            {
+                if(value == _marketDepthBuildMaxSpreadIsOn)
+                {
+                    return;
+                }
+                _marketDepthBuildMaxSpreadIsOn = value;
+                Save();
+            }
+        }
+        private bool _marketDepthBuildMaxSpreadIsOn;
+
+        public decimal MarketDepthBuildMaxSpread
+        {
+            get
+            {
+                return _marketDepthBuildMaxSpread;
+            }
+            set
+            {
+                if (value == _marketDepthBuildMaxSpread)
+                {
+                    return;
+                }
+                _marketDepthBuildMaxSpread = value;
+                Save();
+            }
+        }
+        private decimal _marketDepthBuildMaxSpread = 0.2m;
 
         private void CandleSeriesRealization_CandleFinishedEvent(List<Candle> candles)
         {

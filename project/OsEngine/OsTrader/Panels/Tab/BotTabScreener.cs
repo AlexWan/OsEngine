@@ -526,7 +526,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(TimeFrame);
                     writer.WriteLine(ServerType + "&" + ServerName);
                     writer.WriteLine(_emulatorIsOn);
-                    writer.WriteLine(CandleMarketDataType);
+                    writer.WriteLine(CandleMarketDataType + "&" + MarketDepthBuildMaxSpread  + "&" + MarketDepthBuildMaxSpreadIsOn);
                     writer.WriteLine(CandleCreateMethodType);
                     writer.WriteLine(CommissionType);
                     writer.WriteLine(CommissionValue);
@@ -585,7 +585,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     _emulatorIsOn = Convert.ToBoolean(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), out CandleMarketDataType);
+
+                    string[] candleMarketDataType = reader.ReadLine().Split('&');
+
+                    Enum.TryParse(candleMarketDataType[0], out CandleMarketDataType);
+
+                    if(candleMarketDataType.Length > 1)
+                    {
+                        MarketDepthBuildMaxSpread = candleMarketDataType[1].ToDecimal();
+                        MarketDepthBuildMaxSpreadIsOn = Convert.ToBoolean(candleMarketDataType[2]);
+                    }
+
                     CandleCreateMethodType = reader.ReadLine();
 
                     try
@@ -899,6 +909,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public bool SaveTradesInCandles;
 
+        public bool MarketDepthBuildMaxSpreadIsOn;
+
+        public decimal MarketDepthBuildMaxSpread = 0.5m;
+
         public ACandlesSeriesRealization CandleSeriesRealization;
 
         public bool IsLoadTabs = false;
@@ -1107,9 +1121,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.Connector.ServerUid = ServerUid;
             }
 
+            tab.TimeFrameBuilder.MarketDepthBuildMaxSpread = MarketDepthBuildMaxSpread;
+            tab.TimeFrameBuilder.MarketDepthBuildMaxSpreadIsOn = MarketDepthBuildMaxSpreadIsOn;
+
             tab.IsCreatedByScreener = true;
-
-
 
             if (haveNewSettings)
             {
@@ -1156,6 +1171,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.TimeFrame = frame;
             newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
             newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.OnStateChange(CandleSeriesState.ParametersChange);
+            newTab.Connector.TimeFrameBuilder.MarketDepthBuildMaxSpread = this.MarketDepthBuildMaxSpread;
+            newTab.Connector.TimeFrameBuilder.MarketDepthBuildMaxSpreadIsOn = this.MarketDepthBuildMaxSpreadIsOn;
             newTab.Connector.SaveTradesInCandles = SaveTradesInCandles;
             newTab.CommissionType = CommissionType;
             newTab.CommissionValue = CommissionValue;

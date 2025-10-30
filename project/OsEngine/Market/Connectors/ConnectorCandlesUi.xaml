@@ -31,15 +31,16 @@
         <TextBox Name ="TextBoxCommissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <WindowsFormsHost Name="SecurityTable" HorizontalAlignment="Left" Height="156" Margin="12,259,0,0" VerticalAlignment="Top" Width="418"/>
         <TextBox Name="TextBoxSearchSecurity" HorizontalAlignment="Left" Margin="310,231,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="120"/>
-        <Grid Name="GridCandleType" HorizontalAlignment="Left" Margin="12,426,0,35" Width="413">
+        <Grid Name="GridCandleType" Margin="12,426,18,35">
 
             <Label Name="Label8" Content="From what we collect candles" HorizontalAlignment="Left" Margin="8,39,0,0" VerticalAlignment="Top"/>
-            <ComboBox Name ="ComboBoxCandleMarketDataType" Margin="213,39,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184" />
+            <ComboBox Name ="ComboBoxCandleMarketDataType" Margin="213,39,21,0" VerticalAlignment="Top" />
             <Label Name="Label9" Content="Candle type" HorizontalAlignment="Left" Margin="8,87,0,0" VerticalAlignment="Top" />
-            <ComboBox Name ="ComboBoxCandleCreateMethodType" Margin="213,87,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+            <ComboBox Name ="ComboBoxCandleCreateMethodType" Margin="213,87,21,0" VerticalAlignment="Top"  />
             <CheckBox Name="CheckBoxSaveTradeArrayInCandle" Content="Save trades array in Candle" HorizontalAlignment="Left" Margin="87,64,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelCandleType" Content="Candle type" HorizontalAlignment="Left" Margin="2,0,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
             <WindowsFormsHost Name ="HostCandleSeriesParameters" Margin="50,123,50,0"/>
+            <Button Name="ButtonMarketDepthBuildMaxSpread" Content="i" Margin="398,40,0,0" VerticalAlignment="Top" Height="21" HorizontalAlignment="Left" Width="17" Click="ButtonMarketDepthBuildMaxSpread_Click"/>
         </Grid>
         <Button Name="ButtonRightInSearchResults" Content=">" HorizontalAlignment="Left" Margin="407,211,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
         <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="310,211,0,0" VerticalAlignment="Top" Width="23" Height="20"/>

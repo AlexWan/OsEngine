@@ -507,7 +507,26 @@ namespace OsEngine.Entity
                 return;
             }
 
-            decimal price = marketDepth.Bids[0].Price.ToDecimal() + (marketDepth.Asks[0].Price.ToDecimal() - marketDepth.Bids[0].Price.ToDecimal()) / 2;
+            decimal bid = marketDepth.Bids[0].Price.ToDecimal();
+            decimal ask = marketDepth.Asks[0].Price.ToDecimal();
+
+            if (TimeFrameBuilder.MarketDepthBuildMaxSpreadIsOn
+                && TimeFrameBuilder.MarketDepthBuildMaxSpread > 0)
+            {
+                decimal spread = ask - bid;
+
+                if(spread > 0)
+                {
+                    decimal spreadPercent = spread / (bid / 100);
+                    
+                    if(spreadPercent > TimeFrameBuilder.MarketDepthBuildMaxSpread)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            decimal price = bid + (ask - bid) / 2;
 
             UpDateCandle(marketDepth.Time, price, 1, true, Side.None);
         }

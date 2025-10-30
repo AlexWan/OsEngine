@@ -139,6 +139,11 @@ namespace OsEngine.Market.Connectors
                 {
                     CheckBoxSaveTradeArrayInCandle.IsEnabled = false;
                     CheckBoxSaveTradeArrayInCandle.IsChecked = false;
+                    ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Collapsed;
                 }
 
                 ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
@@ -412,13 +417,28 @@ namespace OsEngine.Market.Connectors
                     {
                         CheckBoxSaveTradeArrayInCandle.IsEnabled = false;
                         CheckBoxSaveTradeArrayInCandle.IsChecked = false;
+                        ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Visible;
                     }
                     else
                     {
                         CheckBoxSaveTradeArrayInCandle.IsEnabled = true;
                         CheckBoxSaveTradeArrayInCandle.IsChecked = _connectorBot.SaveTradesInCandles;
+                        ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Collapsed;
                     }
                 }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonMarketDepthBuildMaxSpread_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                MarketDepthCreateTypeMaxSpreadUi ui = new MarketDepthCreateTypeMaxSpreadUi(_connectorBot.TimeFrameBuilder);
+                ui.ShowDialog();
             }
             catch (Exception error)
             {
@@ -1868,5 +1888,6 @@ namespace OsEngine.Market.Connectors
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+
     }
 }

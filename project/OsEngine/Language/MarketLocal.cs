@@ -1105,6 +1105,7 @@ namespace OsEngine.Language
          "Eng:Expert advisor port. It is recommended to run the MT5 terminal and OsEngine on the same local machine_" +
          "Ru:Порт советника. Рекомендуется запускать терминал МТ5 и OsEngine на одной локальной машине_");
 
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");
@@ -1165,6 +1166,17 @@ namespace OsEngine.Language
          "Eng:User ID. Assigned to each registered user on the exchange._" +
          "Ru:UID пользователя. Присваивается каждому зарегистрированному пользователю на бирже_");
 
+        public string Label278 => OsLocalization.ConvertToLocString(
+         "Eng:Max spread to build candles_" +
+         "Ru:Max спред для свечек_");
+
+        public string Label279=> OsLocalization.ConvertToLocString(
+         "Eng:Max spread limit is on_" +
+         "Ru:Включить ограничение_");
+
+        public string Label280 => OsLocalization.ConvertToLocString(
+         "Eng:Max spread value %_" +
+         "Ru:Max ширина спреда %_");
 
         // Servers
 

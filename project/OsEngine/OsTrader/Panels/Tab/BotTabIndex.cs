@@ -325,14 +325,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 bool isDeleteTab = false;
 
-                ConnectorCandles[] connectors = Tabs.ToArray();
-
-                for (int i = 0; i < connectors.Length; i++)
+                for (int i = 0; i < Tabs.Count; i++)
                 {
-                    if (connectors[i].TimeFrame != Creator.TimeFrame)
+                    if (Tabs[i].TimeFrame != Creator.TimeFrame)
                     {
-                        connectors[i].Delete();
+                        Tabs[i].Delete();
+                        Tabs.RemoveAt(i);
                         isDeleteTab = true;
+                        i--;
                     }
                 }
 
@@ -397,6 +397,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 creator.SecuritiesClass = connector.SecurityClass;
                 creator.PortfolioName = connector.PortfolioName;
                 creator.SaveTradesInCandles = connector.SaveTradesInCandles;
+                creator.MarketDepthBuildMaxSpread = connector.TimeFrameBuilder.MarketDepthBuildMaxSpread;
+                creator.MarketDepthBuildMaxSpreadIsOn = connector.TimeFrameBuilder.MarketDepthBuildMaxSpreadIsOn;
 
                 creator.CandleCreateMethodType = connector.CandleCreateMethodType;
                 creator.CandleMarketDataType = connector.CandleMarketDataType;
@@ -485,14 +487,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (Tabs[i].SecurityName == security.SecurityName &&
                     Tabs[i].ServerType == creator.ServerType &&
                     Tabs[i].ServerFullName == creator.ServerName &&
-                    Tabs[i].TimeFrame == creator.TimeFrame)
+                    Tabs[i].TimeFrame == creator.TimeFrame &&
+                    Tabs[i].CandleMarketDataType == creator.CandleMarketDataType)
                 {
                     return;
                 }
 
                 if (Tabs[i].SecurityName == security.SecurityName &&
-                    Tabs[i].ServerType == creator.ServerType &&
-                    Tabs[i].TimeFrame != creator.TimeFrame)
+                    Tabs[i].ServerType == creator.ServerType 
+                    &&
+                    (Tabs[i].TimeFrame != creator.TimeFrame
+                    || Tabs[i].CandleMarketDataType != creator.CandleMarketDataType))
                 {
                     Tabs[i].Delete();
                     Tabs.RemoveAt(i);
@@ -534,6 +539,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.CandleCreateMethodType = creator.CandleCreateMethodType;
             connector.CandleMarketDataType = creator.CandleMarketDataType;
             connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(creator.CandleSeriesRealization.GetSaveString());
+            connector.TimeFrameBuilder.MarketDepthBuildMaxSpread = creator.MarketDepthBuildMaxSpread;
+            connector.TimeFrameBuilder.MarketDepthBuildMaxSpreadIsOn = creator.MarketDepthBuildMaxSpreadIsOn;
+
             connector.TimeFrameBuilder.Save();
 
             connector.CommissionType = creator.CommissionType;

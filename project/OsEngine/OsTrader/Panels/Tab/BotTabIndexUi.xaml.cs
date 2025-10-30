@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
+using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -482,106 +483,113 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ReloadSecurityTable()
         {
-            if (_spread.Tabs == null)
+            try
             {
-                return;
-            }
-
-            int showRow = _sourcesGrid.FirstDisplayedScrollingRowIndex;
-
-            int selectedSec = -1;
-
-            if (_sourcesGrid.SelectedCells != null &&
-                _sourcesGrid.SelectedCells.Count > 0)
-            {
-                selectedSec = _sourcesGrid.SelectedCells[0].RowIndex;
-            }
-
-            _sourcesGrid.Rows.Clear();
-
-            string formula = _spread.UserFormula;
-
-            List<Security> secInIndex = _spread.SecuritiesInIndex;
-
-            for (int i = 0; _spread.Tabs != null && i < _spread.Tabs.Count; i++)
-            {
-                DataGridViewRow row = new DataGridViewRow();
-
-                row.Cells.Add((new DataGridViewTextBoxCell()));
-                row.Cells[0].Value = "A" + i;
-
-                row.Cells.Add(new DataGridViewTextBoxCell());
-                if (string.IsNullOrWhiteSpace(_spread.Tabs[i].SecurityName))
+                if (_spread.Tabs == null)
                 {
-                    row.Cells[1].Value = OsLocalization.Trader.Label84;
-
-                }
-                else
-                {
-                    row.Cells[1].Value = _spread.Tabs[i].SecurityName;
+                    return;
                 }
 
-                row.Cells.Add((new DataGridViewTextBoxCell()));
-                row.Cells[2].Value = _spread.Tabs[i].ServerFullName.ToString();
+                int showRow = _sourcesGrid.FirstDisplayedScrollingRowIndex;
 
-                row.Cells.Add((new DataGridViewTextBoxCell()));
-                row.Cells[3].Value = _spread.Tabs[i].TimeFrame.ToString();
+                int selectedSec = -1;
 
-                row.Cells.Add((new DataGridViewTextBoxCell())); // LastPrice
-                // row.Cells[4].Value = _spread.Tabs[i].TimeFrame.ToString();
-
-                DataGridViewButtonCell button = new DataGridViewButtonCell();
-                button.Value = OsLocalization.Trader.Label235;
-                row.Cells.Add(button);
-
-                DataGridViewButtonCell buttonDelete = new DataGridViewButtonCell();
-                buttonDelete.Value = OsLocalization.Trader.Label39;
-                row.Cells.Add(buttonDelete);
-
-                if (secInIndex != null &&
-                    secInIndex.Count > 0)
+                if (_sourcesGrid.SelectedCells != null &&
+                    _sourcesGrid.SelectedCells.Count > 0)
                 {
-                    bool thisSecInIndex = false;
+                    selectedSec = _sourcesGrid.SelectedCells[0].RowIndex;
+                }
 
-                    for (int i2 = 0; i2 < secInIndex.Count; i2++)
+                _sourcesGrid.Rows.Clear();
+
+                string formula = _spread.UserFormula;
+
+                List<Security> secInIndex = _spread.SecuritiesInIndex;
+
+                for (int i = 0; _spread.Tabs != null && i < _spread.Tabs.Count; i++)
+                {
+                    DataGridViewRow row = new DataGridViewRow();
+
+                    row.Cells.Add((new DataGridViewTextBoxCell()));
+                    row.Cells[0].Value = "A" + i;
+
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                    if (string.IsNullOrWhiteSpace(_spread.Tabs[i].SecurityName))
                     {
-                        if (secInIndex[i2].Name == _spread.Tabs[i].SecurityName)
+                        row.Cells[1].Value = OsLocalization.Trader.Label84;
+
+                    }
+                    else
+                    {
+                        row.Cells[1].Value = _spread.Tabs[i].SecurityName;
+                    }
+
+                    row.Cells.Add((new DataGridViewTextBoxCell()));
+                    row.Cells[2].Value = _spread.Tabs[i].ServerFullName;
+
+                    row.Cells.Add((new DataGridViewTextBoxCell()));
+                    row.Cells[3].Value = _spread.Tabs[i].TimeFrame.ToString();
+
+                    row.Cells.Add((new DataGridViewTextBoxCell())); // LastPrice
+                                                                    // row.Cells[4].Value = _spread.Tabs[i].TimeFrame.ToString();
+
+                    DataGridViewButtonCell button = new DataGridViewButtonCell();
+                    button.Value = OsLocalization.Trader.Label235;
+                    row.Cells.Add(button);
+
+                    DataGridViewButtonCell buttonDelete = new DataGridViewButtonCell();
+                    buttonDelete.Value = OsLocalization.Trader.Label39;
+                    row.Cells.Add(buttonDelete);
+
+                    if (secInIndex != null &&
+                        secInIndex.Count > 0)
+                    {
+                        bool thisSecInIndex = false;
+
+                        for (int i2 = 0; i2 < secInIndex.Count; i2++)
                         {
-                            thisSecInIndex = true;
-                            break;
+                            if (secInIndex[i2].Name == _spread.Tabs[i].SecurityName)
+                            {
+                                thisSecInIndex = true;
+                                break;
+                            }
+                        }
+
+                        if (thisSecInIndex)
+                        {
+                            for (int i2 = 0; i2 < row.Cells.Count; i2++)
+                            {
+                                row.Cells[i2].Style.BackColor = Color.DarkGreen;
+                                row.Cells[i2].Style.SelectionBackColor = Color.Black;
+                                row.Cells[i2].Style.ForeColor = Color.White;
+                            }
                         }
                     }
 
-                    if (thisSecInIndex)
+                    for (int i2 = 0; i2 < row.Cells.Count; i2++)
                     {
-                        for (int i2 = 0; i2 < row.Cells.Count; i2++)
-                        {
-                            row.Cells[i2].Style.BackColor = Color.DarkGreen;
-                            row.Cells[i2].Style.SelectionBackColor = Color.Black;
-                            row.Cells[i2].Style.ForeColor = Color.White;
-                        }
+                        row.Cells[i2].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
                     }
+
+                    _sourcesGrid.Rows.Add(row);
                 }
 
-                for (int i2 = 0; i2 < row.Cells.Count; i2++)
+
+                if (showRow > 0 &&
+                    showRow < _sourcesGrid.Rows.Count)
                 {
-                    row.Cells[i2].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                    _sourcesGrid.FirstDisplayedScrollingRowIndex = showRow;
                 }
 
-                _sourcesGrid.Rows.Add(row);
+                if (selectedSec > 0
+                    && selectedSec < _sourcesGrid.Rows.Count)
+                {
+                    _sourcesGrid.Rows[selectedSec].Selected = true;
+                }
             }
-
-
-            if (showRow > 0 &&
-                showRow < _sourcesGrid.Rows.Count)
+            catch(Exception ex) 
             {
-                _sourcesGrid.FirstDisplayedScrollingRowIndex = showRow;
-            }
-
-            if (selectedSec > 0
-                && selectedSec < _sourcesGrid.Rows.Count)
-            {
-                _sourcesGrid.Rows[selectedSec].Selected = true;
+                ServerMaster.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
             }
         }
 

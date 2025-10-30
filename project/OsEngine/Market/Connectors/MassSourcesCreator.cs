@@ -22,7 +22,10 @@ namespace OsEngine.Market.Connectors
             result += TimeFrame + "\n";
             result += ServerType + "&" + ServerName + "\n";
             result += EmulatorIsOn + "\n";
-            result += CandleMarketDataType + "\n";
+            result += CandleMarketDataType + 
+                "&" + MarketDepthBuildMaxSpreadIsOn.ToString() + 
+                "&" + MarketDepthBuildMaxSpread +"\n";
+
             result += CommissionType + "\n";
             result += CommissionValue + "\n";
             result += SaveTradesInCandles + "\n";
@@ -57,7 +60,17 @@ namespace OsEngine.Market.Connectors
             }
 
             EmulatorIsOn = Convert.ToBoolean(values[4]);
-            Enum.TryParse(values[5], out CandleMarketDataType);
+
+            string[] candleMarketDataType = values[5].Split("&");
+
+            Enum.TryParse(candleMarketDataType[0], out CandleMarketDataType);
+
+            if(candleMarketDataType.Length > 1)
+            {
+                MarketDepthBuildMaxSpreadIsOn = Convert.ToBoolean(candleMarketDataType[1]);
+                MarketDepthBuildMaxSpread = candleMarketDataType[2].ToDecimal();
+            }
+
             Enum.TryParse(values[6], out CommissionType);
             CommissionValue = values[7].ToDecimal();
             SaveTradesInCandles = Convert.ToBoolean(values[8]);
@@ -148,6 +161,10 @@ namespace OsEngine.Market.Connectors
         public decimal CommissionValue;
 
         public bool SaveTradesInCandles;
+
+        public bool MarketDepthBuildMaxSpreadIsOn;
+
+        public decimal MarketDepthBuildMaxSpread = 0.5m;
 
     }
 

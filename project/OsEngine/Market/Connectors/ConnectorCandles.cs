@@ -645,6 +645,30 @@ namespace OsEngine.Market.Connectors
             get { return TimeFrameBuilder.CandleMarketDataType; }
         }
 
+        public bool MarketDepthBuildMaxSpreadIsOn
+        {
+            set
+            {
+                TimeFrameBuilder.MarketDepthBuildMaxSpreadIsOn = value;
+            }
+            get
+            {
+                return TimeFrameBuilder.MarketDepthBuildMaxSpreadIsOn;
+            }
+        }
+
+        public decimal MarketDepthBuildMaxSpread
+        {
+            set
+            {
+                TimeFrameBuilder.MarketDepthBuildMaxSpread = value;
+            }
+            get
+            {
+                return TimeFrameBuilder.MarketDepthBuildMaxSpread;
+            }
+        }
+
         /// <summary>
         /// method of creating candles: Simple / Volume / Range / etc
         /// </summary>

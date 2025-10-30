@@ -48,6 +48,7 @@
         <Button Name="ButtonLoadSet" Content="Load set" HorizontalAlignment="Right" Margin="0,0,163,5" VerticalAlignment="Bottom" Width="148" Click="ButtonLoadSet_Click"/>
         <Button Name="ButtonSaveSet" Content="Save set" HorizontalAlignment="Right" Margin="0,0,316,5" VerticalAlignment="Bottom" Width="148" Click="ButtonSaveSet_Click"/>
         <WindowsFormsHost Name ="HostCandleSeriesParameters" Margin="50,341,0,10" HorizontalAlignment="Left" Width="312"/>
+        <Button Name="ButtonMarketDepthBuildMaxSpread" Content="i" Margin="390,260,0,0" VerticalAlignment="Top" Height="21" HorizontalAlignment="Left" Width="17" Click="ButtonMarketDepthBuildMaxSpread_Click"/>
 
     </Grid>
 </Window>
