@@ -1149,6 +1149,17 @@ namespace OsEngine.Language
          "Eng:Choosing a trading mode. Spot or margin_" +
          "Ru:Выбор режима торговли. Спот или маржин_");
 
+        public string Label274 => OsLocalization.ConvertToLocString(
+         "Eng:Selecting a margin currency_" +
+         "Ru:Выбор маржинальной валюты_");
+
+        public string Label275 => OsLocalization.ConvertToLocString(
+         "Eng:Selecting a server for trading. Live or test trading. A separate account and API keys are created for each server_" +
+         "Ru:Выбор сервера для торговли. Реальная торговля или тестовая. Для каждого сервера создается отдельный аккаунт и api ключи_");
+
+        public string Label276 => OsLocalization.ConvertToLocString(
+         "Eng:If True, we use the Post Only order type. This is only for limit orders. Post Only is an order type that guarantees that your order will be placed in the order book as a maker and will not be executed as a taker_" +
+         "Ru:Если True - то используем тип ордера Post Only. Доступно только для лимитных ордеров. Post Only — это тип ордера, который гарантирует, что ваш ордер будет размещен в книги заявок как maker и не исполнится как taker_");
 
 
         // Servers
