@@ -1178,6 +1178,10 @@ namespace OsEngine.Language
          "Eng:Max spread value %_" +
          "Ru:Max ширина спреда %_");
 
+        public string Label281 => OsLocalization.ConvertToLocString(
+         "Eng:The button opens the non-trading periods settings window for the connector. By selecting a non-trading period, the connector will ignore incoming data about trades and market depth_" +
+         "Ru:Кнопка открывает окно настроек неторговых периодов для коннектора. Выбрав неторговый период, коннектор будет игнорировать поступающие данные о трейдах и стакана_");
+
         // Servers
 
         public string Message6 => OsLocalization.ConvertToLocString(
@@ -1705,6 +1709,10 @@ namespace OsEngine.Language
         public string ServerParam13 => OsLocalization.ConvertToLocString(
           "Eng:Market depth levels_" +
           "Ru:Уровней в стакане_");
+
+        public string ServerParam14 => OsLocalization.ConvertToLocString(
+          "Eng:Non trading periods_" +
+          "Ru:Не торговые периоды_");
 
         public string UseStock => OsLocalization.ConvertToLocString(
             "Eng:Stock_" +

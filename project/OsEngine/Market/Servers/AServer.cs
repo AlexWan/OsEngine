@@ -126,7 +126,11 @@ namespace OsEngine.Market.Servers
 
                 CreateParameterButton(OsLocalization.Market.ServerParam12);
                 ServerParameters[9].Comment = OsLocalization.Market.Label131;
-                ((ServerParameterButton)ServerParameters[9]).UserClickButton += AServer_UserClickButton;
+                ((ServerParameterButton)ServerParameters[9]).UserClickButton += AServer_UserClickSecuritiesUiButton;
+
+                CreateParameterButton(OsLocalization.Market.ServerParam14);
+                ServerParameters[10].Comment = OsLocalization.Market.Label281;
+                ((ServerParameterButton)ServerParameters[10]).UserClickButton += AServer_UserClickNonTradePeriodsUiButton;
 
                 if (ServerPermission != null
                     && ServerPermission.IsSupports_ProxyFor_MultipleInstances)
@@ -205,6 +209,8 @@ namespace OsEngine.Market.Servers
                 _ordersHub.ActiveStateOrderCheckStatusEvent += _ordersHub_ActiveStateOrderCheckStatusEvent;
                 _ordersHub.LostOrderEvent += _ordersHub_LostOrderEvent;
                 _ordersHub.LostMyTradesEvent += _ordersHub_LostMyTradesEvent;
+
+                _nonTradePeriods = new NonTradePeriods(ServerType.ToString());
 
                 ComparePositionsModule = new ComparePositionsModule(this);
                 ComparePositionsModule.LogMessageEvent += SendLogMessage;
@@ -1120,6 +1126,8 @@ namespace OsEngine.Market.Servers
                         ServerRealization.GetSecurities();
                     }
 
+                    GetNonTradePeriod();
+
                     if (_lastDateTimeServer.Date != DateTime.Now.Date)
                     {
                         HasConnectionMessageBeenSent = false;
@@ -1352,6 +1360,8 @@ namespace OsEngine.Market.Servers
 
                             for (int i = 0; i < list.Count; i++)
                             {
+                                if (_isNonTradingPeriodNow) break;
+
                                 if (_needToCheckDataFeedOnDisconnect != null
                                     && _needToCheckDataFeedOnDisconnect.Value)
                                 {
@@ -1368,7 +1378,6 @@ namespace OsEngine.Market.Servers
                             }
 
                             if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
-
                             {
                                 for (int i = 0; i < _allTrades.Length; i++)
                                 {
@@ -1393,18 +1402,21 @@ namespace OsEngine.Market.Servers
                         {
                             if (_marketDepthsToSend.Count < 1000)
                             {
-                                if (NewMarketDepthEvent != null)
+                                if (!_isNonTradingPeriodNow)
                                 {
-                                    NewMarketDepthEvent(depth);
-                                }
+                                    if (NewMarketDepthEvent != null)
+                                    {
+                                        NewMarketDepthEvent(depth);
+                                    }
 
-                                if (_needToCheckDataFeedOnDisconnect != null
-                                    && _needToCheckDataFeedOnDisconnect.Value)
-                                {
-                                    SecurityFlowTime tradeTime = new SecurityFlowTime();
-                                    tradeTime.SecurityName = depth.SecurityNameCode;
-                                    tradeTime.LastTimeMarketDepth = DateTime.Now;
-                                    _securitiesFeedFlow.Enqueue(tradeTime);
+                                    if (_needToCheckDataFeedOnDisconnect != null
+                                        && _needToCheckDataFeedOnDisconnect.Value)
+                                    {
+                                        SecurityFlowTime tradeTime = new SecurityFlowTime();
+                                        tradeTime.SecurityName = depth.SecurityNameCode;
+                                        tradeTime.LastTimeMarketDepth = DateTime.Now;
+                                        _securitiesFeedFlow.Enqueue(tradeTime);
+                                    }
                                 }
                             }
                             else
@@ -1439,6 +1451,8 @@ namespace OsEngine.Market.Servers
 
                                 for (int i = 0; i < list.Count; i++)
                                 {
+                                    if (_isNonTradingPeriodNow) break;
+
                                     if (_needToCheckDataFeedOnDisconnect != null
                                     && _needToCheckDataFeedOnDisconnect.Value)
                                     {
@@ -1468,7 +1482,7 @@ namespace OsEngine.Market.Servers
                         {
                             if (_bidAskToSend.Count < 1000)
                             {
-                                if (NewBidAskIncomeEvent != null)
+                                if (!_isNonTradingPeriodNow && NewBidAskIncomeEvent != null)
                                 {
                                     NewBidAskIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                                 }
@@ -1504,6 +1518,8 @@ namespace OsEngine.Market.Servers
 
                                 for (int i = 0; i < list.Count; i++)
                                 {
+                                    if (_isNonTradingPeriodNow) break;
+
                                     if (NewBidAskIncomeEvent != null)
                                     {
                                         NewBidAskIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
@@ -2133,7 +2149,7 @@ namespace OsEngine.Market.Servers
 
         private SecuritiesUi _securitiesUi;
 
-        private void AServer_UserClickButton()
+        private void AServer_UserClickSecuritiesUiButton()
         {
             if (_securitiesUi == null)
             {
@@ -4394,6 +4410,43 @@ namespace OsEngine.Market.Servers
             catch
             {
                 // игнор
+            }
+        }
+
+        #endregion
+
+        #region Non trade periods
+
+        private NonTradePeriods _nonTradePeriods;
+
+        private bool _isNonTradingPeriodNow;
+
+        private void AServer_UserClickNonTradePeriodsUiButton()
+        {
+            if (_nonTradePeriods != null)
+            {
+                _nonTradePeriods.ShowDialog();
+            }
+        }
+
+        private void GetNonTradePeriod()
+        {
+            try
+            {
+                if (_nonTradePeriods == null) return;
+
+                if (!_nonTradePeriods.CanTradeThisTime(DateTime.Now))
+                {
+                    _isNonTradingPeriodNow = true;
+                }
+                else
+                {
+                    _isNonTradingPeriodNow = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
