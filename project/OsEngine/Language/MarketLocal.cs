@@ -1179,8 +1179,8 @@ namespace OsEngine.Language
          "Ru:Max ширина спреда %_");
 
         public string Label281 => OsLocalization.ConvertToLocString(
-         "Eng:The button opens the non-trading periods settings window for the connector. By selecting a non-trading period, the connector will ignore incoming data about trades and market depth_" +
-         "Ru:Кнопка открывает окно настроек неторговых периодов для коннектора. Выбрав неторговый период, коннектор будет игнорировать поступающие данные о трейдах и стакана_");
+         "Eng:The button opens the non-trading periods settings window for the connector. By selecting a non-trading period, the connector will ignore incoming data about trades and market depth. PC time is used as the control time!_" +
+         "Ru:Кнопка открывает окно настроек неторговых периодов для коннектора. Выбрав неторговый период, коннектор будет игнорировать поступающие данные о трейдах и стакана. В качестве контролького времени используется время ПК!_");
 
         // Servers
 

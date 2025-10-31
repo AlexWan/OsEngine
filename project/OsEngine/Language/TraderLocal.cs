@@ -1749,7 +1749,7 @@ namespace OsEngine.Language
 
         public string Label462 => OsLocalization.ConvertToLocString(
           "Eng:Non-trade periods_" +
-          "Ru:Не торговое время_");
+          "Ru:Неторговое время_");
 
         public string Label463 => OsLocalization.ConvertToLocString(
           "Eng:Stop trading_" +
@@ -1793,7 +1793,7 @@ namespace OsEngine.Language
 
         public string Label473 => OsLocalization.ConvertToLocString(
           "Eng:No trade period_" +
-          "Ru:Не торговый период_");
+          "Ru:Неторговый период_");
 
         public string Label474 => OsLocalization.ConvertToLocString(
           "Eng:Trade in Monday_" +
@@ -1925,7 +1925,7 @@ namespace OsEngine.Language
 
         public string Label506 => OsLocalization.ConvertToLocString(
          "Eng:Regime on a non-trading day_" +
-         "Ru:Режим в не торговый день_");
+         "Ru:Режим в неторговый день_");
 
         public string Label507 => OsLocalization.ConvertToLocString(
          "Eng:Open:_" +
@@ -2201,7 +2201,7 @@ namespace OsEngine.Language
 
         public string Label575 => OsLocalization.ConvertToLocString(
         "Eng:No trade periods settings_" +
-        "Ru:Настройки не торговых периодов_");
+        "Ru:Настройки неторговых периодов_");
 
         public string Label576 => OsLocalization.ConvertToLocString(
         "Eng:Page_" +
