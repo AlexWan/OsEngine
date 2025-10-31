@@ -468,14 +468,14 @@ namespace OsEngine.OsTrader.SystemAnalyze
         {
             try
             {
+                if (_chartRam == null)
+                {
+                    return;
+                }
+                
                 if (_chartRam.InvokeRequired)
                 {
                     _chartRam.Invoke(new Action<List<SystemUsagePointRam>>(RePaintRamValues), values);
-                    return;
-                }
-
-                if (_chartRam == null)
-                {
                     return;
                 }
 
