@@ -383,6 +383,36 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        public bool IsNonTradePeriodInConnector
+        {
+            get
+            {
+                if (_myServer == null)
+                {
+                    return false;
+                }
+
+                if (_myServer.ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return false;
+                }
+
+                if (StartProgram != StartProgram.IsOsTrader)
+                { // в тестере и оптимизаторе дальше не проверяем
+                    return false;
+                }
+
+                if (_myServer.GetType().BaseType == typeof(AServer))
+                {
+                    AServer aServer = (AServer)_myServer;
+
+                    return aServer.IsNonTradePeriod;
+                }
+
+                return false;
+            }
+        }
+
         /// <summary>
         /// connector's portfolio number
         /// </summary>

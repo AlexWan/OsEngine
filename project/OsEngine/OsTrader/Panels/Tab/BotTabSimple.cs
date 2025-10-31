@@ -535,6 +535,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// If it is true, then the connector is in a non-trading period. It is better not to perform trading operations.
+        /// </summary>
+        public bool IsNonTradePeriodInConnector
+        {
+            get
+            {
+                if (_connector == null)
+                {
+                    return false;
+                }
+                return _connector.IsNonTradePeriodInConnector;
+            }
+        }
+
+        /// <summary>
         /// The program that created the object
         /// </summary>
         public StartProgram StartProgram;
