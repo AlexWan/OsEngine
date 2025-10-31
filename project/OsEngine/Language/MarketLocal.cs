@@ -999,7 +999,7 @@ namespace OsEngine.Language
 
         public string Label241 => OsLocalization.ConvertToLocString(
          "Eng:Non trade periods_" +
-         "Ru:Не торговые периоды_");
+         "Ru:Неторговые периоды_");
 
         public string Label242 => OsLocalization.ConvertToLocString(
          "Eng:Check data feed on disconnect_" +
