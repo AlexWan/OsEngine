@@ -2421,7 +2421,53 @@ namespace OsEngine.Market.Servers
                 if (_needToSaveCandlesParam.Value == true)
                 {
                     List<Candle> candlesStorage = _candleStorage.GetCandles(series.Specification, _needToLoadCandlesCountParam.Value);
-                    series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
+
+                    if(series.TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+                    {
+                        // нужно вставками прогружать каждую свечу по отдельности. 
+                        series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
+
+                        for(int i = 0;i < candlesStorage.Count;i++)
+                        {
+                            Candle candle = candlesStorage[i];
+
+                            bool isInArray = false;
+
+                            for(int j = 0;j < series.CandlesAll.Count;j++)
+                            {
+                                if (series.CandlesAll[j].TimeStart == candle.TimeStart)
+                                {
+                                    series.CandlesAll[j] = candle;
+                                    isInArray = true;
+                                    break;
+                                }
+                                if(candle.TimeStart < series.CandlesAll[j].TimeStart)
+                                {
+                                    series.CandlesAll.Insert(j, candle);
+                                    isInArray = true;
+                                    break;
+                                }
+                            }
+
+                            if(isInArray == false)
+                            {
+                                series.CandlesAll.Add(candle);
+                            }
+                        }
+
+                        if(series.CandlesAll.Count > _needToLoadCandlesCountParam.Value)
+                        {
+                            series.CandlesAll = 
+                                series.CandlesAll.GetRange(
+                                    series.CandlesAll.Count - _needToLoadCandlesCountParam.Value, 
+                                    _needToLoadCandlesCountParam.Value);
+                        }
+
+                    }
+                    else
+                    {
+                        series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
+                    }
 
                     List<Candle> candlesAll = series.CandlesAll;
 
