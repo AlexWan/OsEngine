@@ -50,6 +50,7 @@ namespace OsEngine.Market.Servers.TInvest
 
     public class TInvestServerRealization : IServerRealization
     {
+        private readonly TimeZoneInfo _mskTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
         #region 1 Constructor, Status, Connection
 
         public TInvestServerRealization()
@@ -1184,8 +1185,8 @@ namespace OsEngine.Market.Servers.TInvest
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            DateTime timeStart = DateTime.UtcNow.AddHours(3) - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * candleCount);
-            DateTime timeEnd = DateTime.UtcNow.AddHours(3); // to MSK
+            DateTime timeEnd = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone); // to MSK
+            DateTime timeStart = timeEnd - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * candleCount);
 
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, timeStart, timeEnd, timeStart);
 
@@ -1195,10 +1196,9 @@ namespace OsEngine.Market.Servers.TInvest
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
-            // ensure all times are UTC
-            startTime = DateTime.SpecifyKind(startTime.AddHours(-3), DateTimeKind.Utc); // MSK -> UTC
-            endTime = DateTime.SpecifyKind(endTime.AddHours(-3), DateTimeKind.Utc);
-            actualTime = DateTime.SpecifyKind(actualTime.AddHours(-3), DateTimeKind.Utc);
+            startTime = TimeZoneInfo.ConvertTimeToUtc(startTime, _mskTimeZone);
+            endTime = TimeZoneInfo.ConvertTimeToUtc(endTime, _mskTimeZone);
+            actualTime = TimeZoneInfo.ConvertTimeToUtc(actualTime, _mskTimeZone);
 
             if (startTime != actualTime)
             {
@@ -1331,14 +1331,17 @@ namespace OsEngine.Market.Servers.TInvest
 
             TradingSchedulesResponse thisDaySchedules = null;
 
-            if (_tradingSchedules.ContainsKey(DateTime.UtcNow.AddHours(3).Date))
+            var mskNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);
+            var mskDate = mskNow.Date;
+
+            if (_tradingSchedules.ContainsKey(mskDate))
             {
-                thisDaySchedules = _tradingSchedules[DateTime.UtcNow.AddHours(3).Date];
+                thisDaySchedules = _tradingSchedules[mskDate];
             }
             else
             {
-                Timestamp from = Timestamp.FromDateTime(DateTime.UtcNow.AddHours(3).Date);
-                Timestamp to = Timestamp.FromDateTime(DateTime.UtcNow.AddHours(3).Date.AddHours(23));
+                Timestamp from = Timestamp.FromDateTime(TimeZoneInfo.ConvertTimeToUtc(mskDate, _mskTimeZone));
+                Timestamp to = Timestamp.FromDateTime(TimeZoneInfo.ConvertTimeToUtc(mskDate.AddDays(1).AddTicks(-1), _mskTimeZone));
 
                 TradingSchedulesRequest tradingSchedulesRequest = new TradingSchedulesRequest();
                 tradingSchedulesRequest.From = from;
@@ -1359,7 +1362,7 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage($"Error fetching trading schedules: {ex}", LogMessageType.Error);
                 }
 
-                _tradingSchedules[DateTime.UtcNow.Date] = thisDaySchedules;
+                _tradingSchedules[mskDate] = thisDaySchedules;
             }
 
             if (thisDaySchedules == null)
@@ -1398,7 +1401,7 @@ namespace OsEngine.Market.Servers.TInvest
                 candle.High = GetValue(histCandle.High);
                 candle.Low = GetValue(histCandle.Low);
                 candle.Volume = histCandle.Volume;
-                candle.TimeStart = histCandle.Time.ToDateTime().AddHours(3); // convert to MSK
+                candle.TimeStart = TimeZoneInfo.ConvertTimeFromUtc(histCandle.Time.ToDateTime(), _mskTimeZone);
 
                 candles.Add(candle);
             }
@@ -1817,7 +1820,7 @@ namespace OsEngine.Market.Servers.TInvest
                         Trade trade = new Trade();
                         trade.SecurityNameCode = security.Name;
                         trade.Price = GetValue(marketDataResponse.Trade.Price);
-                        trade.Time = marketDataResponse.Trade.Time.ToDateTime().AddHours(3); // convert to MSK
+                        trade.Time = TimeZoneInfo.ConvertTimeFromUtc(marketDataResponse.Trade.Time.ToDateTime(), _mskTimeZone); // convert to MSK
                         trade.Id = trade.Time.Ticks.ToString();
                         trade.Side = marketDataResponse.Trade.Direction == TradeDirection.Buy ? Side.Buy : Side.Sell;
                         trade.Volume = marketDataResponse.Trade.Quantity;
@@ -1868,7 +1871,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         MarketDepth depth = new MarketDepth();
                         depth.SecurityNameCode = security.Name;
-                        depth.Time = marketDataResponse.Orderbook.Time.ToDateTime().AddHours(3);// convert to MSK
+                        depth.Time = TimeZoneInfo.ConvertTimeFromUtc(marketDataResponse.Orderbook.Time.ToDateTime(), _mskTimeZone);// convert to MSK
 
                         if(marketDataResponse.Orderbook.LimitUp != null)
                         {
@@ -2052,7 +2055,7 @@ namespace OsEngine.Market.Servers.TInvest
             Trade newTrade = new Trade();
 
             newTrade.SecurityNameCode = mySec.Name;
-            newTrade.Time = price.Time.ToDateTime().AddHours(3);// convert to MSK
+            newTrade.Time = TimeZoneInfo.ConvertTimeFromUtc(price.Time.ToDateTime(), _mskTimeZone);// convert to MSK
             newTrade.Price = GetValue(price.Price);
             newTrade.Side = Side.Buy;
             newTrade.Volume = 1;
@@ -2080,7 +2083,7 @@ namespace OsEngine.Market.Servers.TInvest
             MarketDepth depth = new MarketDepth();
 
             depth.SecurityNameCode = trade.SecurityNameCode;
-            depth.Time = DateTime.UtcNow.AddHours(3);// convert to MSK
+            depth.Time = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);// convert to MSK
             depth.Bids = bids;
 
             List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
@@ -2544,7 +2547,7 @@ namespace OsEngine.Market.Servers.TInvest
                             trade.Volume = tradesResponse.OrderTrades.Trades[i].Quantity / security.Lot;
                             trade.NumberOrderParent = tradesResponse.OrderTrades.OrderId;
                             trade.NumberTrade = tradesResponse.OrderTrades.Trades[i].TradeId;
-                            trade.Time = tradesResponse.OrderTrades.Trades[i].DateTime.ToDateTime().AddHours(3);// convert to MSK
+                            trade.Time = TimeZoneInfo.ConvertTimeFromUtc(tradesResponse.OrderTrades.Trades[i].DateTime.ToDateTime(), _mskTimeZone);// convert to MSK
                             trade.Side = tradesResponse.OrderTrades.Direction == OrderDirection.Buy
                                 ? Side.Buy
                                 : Side.Sell;
@@ -2690,7 +2693,7 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             order.Price = 0;
                         }
-                        order.TimeCallBack = state.CreatedAt?.ToDateTime().AddHours(3) ?? DateTime.UtcNow.AddHours(3);// convert to MSK
+                        order.TimeCallBack = state.CreatedAt?.ToDateTime() != null ? TimeZoneInfo.ConvertTimeFromUtc(state.CreatedAt.ToDateTime(), _mskTimeZone) : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);// convert to MSK
                         order.SecurityClassCode = security.NameClass;
 
                         if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusUnspecified)
@@ -2747,14 +2750,14 @@ namespace OsEngine.Market.Servers.TInvest
                                 trade.Volume = orderTrade.Quantity / security.Lot;
                                 trade.NumberOrderParent = order.NumberMarket;
                                 trade.NumberTrade = orderTrade.TradeId;
-                                trade.Time = orderTrade.DateTime.ToDateTime().AddHours(3); // convert to MSK
+                                trade.Time = TimeZoneInfo.ConvertTimeFromUtc(orderTrade.DateTime.ToDateTime(), _mskTimeZone); // convert to MSK
 
                                 if (trade.Time == DateTime.Parse("01.01.1970 03:00:00"))
                                 {
                                     DateTime tTime = orderTrade.DateTime.ToDateTime();
                                     SendLogMessage($"TInvest sent trade with time == {tTime} for trade Id {orderTrade.TradeId}", LogMessageType.Error);
 
-                                    trade.Time = DateTime.UtcNow.AddHours(3); // fix trade time
+                                    trade.Time = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone); // fix trade time
                                 }
 
                                 trade.Side = order.Side;
@@ -3007,7 +3010,7 @@ namespace OsEngine.Market.Servers.TInvest
                     order.Price = newPrice;
                     order.Volume = request.Quantity;
                     order.VolumeExecute = 0;
-                    order.TimeCallBack = response.ResponseMetadata.ServerTime.ToDateTime().AddHours(3);// convert to MSK
+                    order.TimeCallBack = TimeZoneInfo.ConvertTimeFromUtc(response.ResponseMetadata.ServerTime.ToDateTime(), _mskTimeZone);// convert to MSK
                 }
 
                 if (MyOrderEvent != null)
@@ -3223,7 +3226,7 @@ namespace OsEngine.Market.Servers.TInvest
                 newOrder.Volume = state.LotsRequested;
                 newOrder.VolumeExecute = state.LotsExecuted;
                 newOrder.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialSecurityPrice) : 0;
-                newOrder.TimeCallBack = state.OrderDate.ToDateTime().AddHours(3);// convert to MSK
+                newOrder.TimeCallBack = TimeZoneInfo.ConvertTimeFromUtc(state.OrderDate.ToDateTime(), _mskTimeZone);// convert to MSK
                 newOrder.SecurityClassCode = order.SecurityClassCode;
 
                 if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusUnspecified)
@@ -3273,7 +3276,7 @@ namespace OsEngine.Market.Servers.TInvest
                         trade.Volume = stage.Quantity;
                         trade.NumberOrderParent = state.OrderId;
                         trade.NumberTrade = stage.TradeId;
-                        trade.Time = stage.ExecutionTime.ToDateTime().AddHours(3);// convert to MSK
+                        trade.Time = TimeZoneInfo.ConvertTimeFromUtc(stage.ExecutionTime.ToDateTime(), _mskTimeZone);// convert to MSK
                         trade.Side = state.Direction == OrderDirection.Buy
                             ? Side.Buy
                             : Side.Sell;
@@ -3394,7 +3397,7 @@ namespace OsEngine.Market.Servers.TInvest
                         }
 
                         newOrder.NumberMarket = state.OrderId;
-                        newOrder.TimeCallBack = state.OrderDate.ToDateTime().AddHours(3);// convert to MSK
+                        newOrder.TimeCallBack = TimeZoneInfo.ConvertTimeFromUtc(state.OrderDate.ToDateTime(), _mskTimeZone);// convert to MSK
                         newOrder.Side = state.Direction == OrderDirection.Buy ? Side.Buy : Side.Sell;
 
                         if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusUnspecified)
@@ -3404,7 +3407,7 @@ namespace OsEngine.Market.Servers.TInvest
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusFill)
                         {
                             newOrder.State = OrderStateType.Done;
-                            newOrder.TimeDone = state.OrderDate.ToDateTime().AddHours(3);// convert to MSK
+                            newOrder.TimeDone = TimeZoneInfo.ConvertTimeFromUtc(state.OrderDate.ToDateTime(), _mskTimeZone);// convert to MSK
                         }
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusRejected)
                         {
@@ -3413,7 +3416,7 @@ namespace OsEngine.Market.Servers.TInvest
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusCancelled)
                         {
                             newOrder.State = OrderStateType.Cancel;
-                            newOrder.TimeCancel = state.OrderDate.ToDateTime().AddHours(3);// convert to MSK
+                            newOrder.TimeCancel = TimeZoneInfo.ConvertTimeFromUtc(state.OrderDate.ToDateTime(), _mskTimeZone);// convert to MSK
                         }
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
                         {
