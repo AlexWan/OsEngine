@@ -4433,7 +4433,10 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (_nonTradePeriods == null) return;
+                if (_nonTradePeriods == null)
+                {
+                    return;
+                }
 
                 if (!_nonTradePeriods.CanTradeThisTime(DateTime.Now))
                 {
@@ -4447,6 +4450,14 @@ namespace OsEngine.Market.Servers
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public bool IsNonTradePeriod
+        {
+            get 
+            {
+                return _isNonTradingPeriodNow; 
             }
         }
 

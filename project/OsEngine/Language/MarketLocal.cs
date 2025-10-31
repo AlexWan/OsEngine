@@ -1712,7 +1712,7 @@ namespace OsEngine.Language
 
         public string ServerParam14 => OsLocalization.ConvertToLocString(
           "Eng:Non trading periods_" +
-          "Ru:Не торговые периоды_");
+          "Ru:Неторговые периоды_");
 
         public string UseStock => OsLocalization.ConvertToLocString(
             "Eng:Stock_" +
