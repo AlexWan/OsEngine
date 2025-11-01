@@ -16,6 +16,7 @@ using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Language;
 
+
 /* Description
 trading robot for osengine
 
@@ -405,7 +406,7 @@ public class StrategyLevermor : BotPanel
 
             if (portfolioPrimeAsset == 0)
             {
-                SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                //SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                 return 0;
             }
 

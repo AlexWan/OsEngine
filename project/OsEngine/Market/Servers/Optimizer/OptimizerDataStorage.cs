@@ -269,7 +269,6 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             while (true)
             {
-                Thread.Sleep(50);
                 try
                 {
                     if (_isDeleted == true)
@@ -288,6 +287,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     Thread.Sleep(1000);
                 }
+
+                Thread.Sleep(50);
             }
         }
 
