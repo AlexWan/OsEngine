@@ -34,6 +34,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
             CreateParameterBoolean("Market depth of ticks", true); // 8
             CreateParameterEnum("Deposit currency", "RUB", new List<string> { "RUB", "USD", "EUR" }); // 9
             CreateParameterBoolean("Count the profit in points", true); // 10
+            CreateParameterInt("Candle shift (hours)", 0); // 11
 
             ((ServerParameterBool)ServerParameters[3]).ValueChange += MetaTrader5Server_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[4]).ValueChange += MetaTrader5Server_ParametrValueChange;
@@ -43,6 +44,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
             ((ServerParameterBool)ServerParameters[8]).ValueChange += MetaTrader5Server_ParametrValueChange;
             ((ServerParameterEnum)ServerParameters[9]).ValueChange += MetaTrader5Server_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[10]).ValueChange += MetaTrader5Server_ParametrValueChange;
+            ((ServerParameterInt)ServerParameters[11]).ValueChange += MetaTrader5Server_ParametrValueChange;
 
             ((ServerParameterString)ServerParameters[0]).Comment = OsLocalization.Market.Label266;
             ((ServerParameterInt)ServerParameters[1]).Comment = OsLocalization.Market.Label267;
@@ -55,6 +57,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
             ((ServerParameterBool)ServerParameters[8]).Comment = OsLocalization.Market.Label259;
             ((ServerParameterEnum)ServerParameters[9]).Comment = OsLocalization.Market.Label260;
             ((ServerParameterBool)ServerParameters[10]).Comment = OsLocalization.Market.Label261;
+            ((ServerParameterInt)ServerParameters[11]).Comment = OsLocalization.Market.Label282;
         }
 
         private void MetaTrader5Server_ParametrValueChange()
@@ -67,6 +70,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
             ((MetaTrader5ServerRealization)ServerRealization)._marketDepthOfTicks = ((ServerParameterBool)ServerParameters[8]).Value;
             ((MetaTrader5ServerRealization)ServerRealization)._depositCurrency = ((ServerParameterEnum)ServerParameters[9]).Value;
             ((MetaTrader5ServerRealization)ServerRealization)._profitInPoints = ((ServerParameterBool)ServerParameters[10]).Value;
+            ((MetaTrader5ServerRealization)ServerRealization)._shiftTime = ((ServerParameterInt)ServerParameters[11]).Value;
             ((MetaTrader5ServerRealization)ServerRealization)._changeClassUse = true;
             Securities?.Clear();
         }
@@ -118,6 +122,8 @@ namespace OsEngine.Market.Servers.MetaTrader5
                 _marketDepthOfTicks = ((ServerParameterBool)ServerParameters[8]).Value;
                 _depositCurrency = ((ServerParameterEnum)ServerParameters[9]).Value;
                 _profitInPoints = ((ServerParameterBool)ServerParameters[10]).Value;
+                _profitInPoints = ((ServerParameterBool)ServerParameters[10]).Value;
+                _shiftTime = ((ServerParameterInt)ServerParameters[11]).Value;
 
                 _mtApiClient.ConnectionStateChanged += ConnectionStateChanged;
                 _mtApiClient.QuoteUpdate += QuoteUpdate; // OnTick - новые трейды
@@ -215,6 +221,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
         public bool _marketDepthOfTicks;
         public string _depositCurrency;
         public bool _profitInPoints;
+        public int _shiftTime;
         public bool _useNetting;
         private string _accountId;
 
@@ -729,7 +736,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                     Candle candle = new Candle
                     {
-                        TimeStart = mtCandle.time,
+                        TimeStart = mtCandle.time.AddHours(_shiftTime),
                         Open = mtCandle.open.ToDecimal(),
                         Close = mtCandle.close.ToDecimal(),
                         High = mtCandle.high.ToDecimal(),
@@ -986,7 +993,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                         if (isDeal)
                         {
-                            trade.Time = TimeManager.GetDateTimeFromTimeStamp(_mtApiClient.HistoryDealGetInteger(myTransaction.Trans.Deal, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TIME_MSC));
+                            trade.Time = TimeManager.GetDateTimeFromTimeStamp(_mtApiClient.HistoryDealGetInteger(myTransaction.Trans.Deal, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TIME_MSC)).AddHours(_shiftTime);
                             trade.NumberOrderParent = myTransaction.Trans.Order.ToString();
                             trade.NumberTrade = myTransaction.Trans.Deal.ToString();
                             trade.Volume = (decimal)myTransaction.Trans.Volume;
@@ -1028,7 +1035,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                         order.Price = myTransaction.Trans.Price.ToDecimal();
                         order.ServerType = ServerType.MetaTrader5;
                         order.SecurityNameCode = myTransaction.Trans.Symbol;
-                        order.TimeCallBack = TimeManager.GetDateTimeFromTimeStampSeconds(orderTime);
+                        order.TimeCallBack = TimeManager.GetDateTimeFromTimeStampSeconds(orderTime).AddHours(_shiftTime);
                         order.PortfolioNumber = _accountId;
 
                         if (myTransaction.Trans.OrderType == ENUM_ORDER_TYPE.ORDER_TYPE_BUY)
@@ -1082,7 +1089,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                         order.Price = myTransaction.Trans.Price.ToDecimal();
                         order.ServerType = ServerType.MetaTrader5;
                         order.SecurityNameCode = myTransaction.Trans.Symbol;
-                        order.TimeCallBack = TimeManager.GetDateTimeFromTimeStampSeconds(orderTime);
+                        order.TimeCallBack = TimeManager.GetDateTimeFromTimeStampSeconds(orderTime).AddHours(_shiftTime);
                         order.PortfolioNumber = _accountId;
 
                         if (myTransaction.Trans.OrderType == ENUM_ORDER_TYPE.ORDER_TYPE_BUY)
@@ -1188,7 +1195,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                     if (tickTime.Ticks > _dictionaryLastTimeTick[ticks.Instrument].Ticks)
                     {
                         trade.SecurityNameCode = ticks.Instrument;
-                        trade.Time = tickTime;
+                        trade.Time = tickTime.AddHours(_shiftTime);
                         trade.Id = lastTick.TimeMsc.ToString();
                         trade.Volume = 1;
                         trade.Ask = ticks.Ask.ToDecimal();
@@ -2123,13 +2130,13 @@ namespace OsEngine.Market.Servers.MetaTrader5
             }
         }
 
-        public event Action<News> NewsEvent;
+        public event Action<News> NewsEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent;
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         #endregion
     }

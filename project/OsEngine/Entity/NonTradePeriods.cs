@@ -429,7 +429,7 @@ namespace OsEngine.Entity
                 NonTradePeriod5End.LoadFromString(values[14]);
 
             }
-            catch (Exception e)
+            catch
             {
                 // ignore
             }

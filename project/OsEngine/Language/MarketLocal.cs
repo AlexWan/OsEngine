@@ -1181,6 +1181,10 @@ namespace OsEngine.Language
         public string Label281 => OsLocalization.ConvertToLocString(
          "Eng:The button opens the non-trading periods settings window for the connector. By selecting a non-trading period, the connector will ignore incoming data about trades and market depth. PC time is used as the control time!_" +
          "Ru:Кнопка открывает окно настроек неторговых периодов для коннектора. Выбрав неторговый период, коннектор будет игнорировать поступающие данные о трейдах и стакана. В качестве контролького времени используется время ПК!_");
+       
+        public string Label282 => OsLocalization.ConvertToLocString(
+         "Eng:Shifts the time of candles, trades, market depth, and orders to a specific time._" +
+         "Ru:Сдвигает время свечей, сделок, стакана и ордеров на определенное кол-во часов._");
 
         // Servers
 
