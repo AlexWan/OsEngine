@@ -125,9 +125,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public bool IsCanChangeOrderPrice
         {
-            get { return true; }
+            get { return false; }
         }
-        
+
         public bool UseStandardCandlesStarter
         {
             get { return true; }
@@ -142,7 +142,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
         {
             get { return _tradeTimeFramePermission; }
         }
-        
+
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
@@ -188,7 +188,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             {
                 string[] values = new string[]
                 {
-                    "usdt" 
+                    "usdt"
                 };
 
                 return values;
@@ -251,7 +251,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public bool IsSupports_AsyncOrderSending
         {
-            get { return true; }
+            get { return false; }
         }
 
         public int AsyncOrderSending_RateGateLimitMls
@@ -261,7 +261,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public bool IsSupports_AsyncCandlesStarter
         {
-            get { return true; }
+            get { return false; }
         }
 
         public int AsyncCandlesStarter_RateGateLimitMls

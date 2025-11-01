@@ -27,6 +27,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
         public string u { get; set; }              // lastUpdateId
         public List<List<string>> a { get; set; }  // asks: list of [price, quantity]
         public List<List<string>> b { get; set; }  // bids: list of [price, quantity]
+        public string t { get; set; }              //timestamp
     }
 
     public class XTFuturesSnapshotDepth
@@ -118,6 +119,6 @@ namespace OsEngine.Market.Servers.XT.XTFutures.Entity
 
     public class ProfitFixedLatest
     {
-        public string value { get; set; } = string.Empty; 
+        public string value { get; set; } = string.Empty;
     }
 }
