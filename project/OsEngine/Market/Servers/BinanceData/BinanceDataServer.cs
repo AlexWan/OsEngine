@@ -3,12 +3,12 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BinanceData.Entity;
 using OsEngine.Market.Servers.Entity;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
@@ -33,35 +33,51 @@ namespace OsEngine.Market.Servers.BinanceData
         {
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            if (!Directory.Exists(@"Data\Temp\BinanceDataTempFiles\"))
+            if (!Directory.Exists(_tempDirectory))
             {
-                Directory.CreateDirectory(@"Data\Temp\BinanceDataTempFiles\");
+                Directory.CreateDirectory(_tempDirectory);
             }
         }
 
         public void Connect(WebProxy proxy)
         {
-
-            string startUrl = "https://data.binance.vision/?prefix=data/";
-
-            HttpResponseMessage response = _httpClient.GetAsync(startUrl).Result;
-
-            if (response.StatusCode == HttpStatusCode.OK)
+            try
             {
+                RestRequest request = new(Method.GET);
+                RestClient client = new("https://data.binance.vision/?prefix=data/");
+                request.AddHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36");
 
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                IRestResponse response = client.Execute(request);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ServerStatus = ServerConnectStatus.Connect;
+                    ConnectEvent();
+                }
+                else
+                {
+                    SendLogMessage($"Connect server error: {response.StatusCode}", LogMessageType.Error);
+                }
+
             }
-            else
+            catch (Exception ex)
             {
-                SendLogMessage($"Connect server error: {response.StatusCode}", LogMessageType.Error);
+                SendLogMessage($"Connect server error\n{ex.Message}", LogMessageType.Error);
             }
-
-            response.Dispose();
         }
 
         public void Dispose()
         {
+            string[] files = Directory.GetFiles(_tempDirectory);
+
+            if (files.Length > 0)
+            {
+                for (int i = 0; i < files.Length; i++)
+                {
+                    File.Delete(files[i]);
+                }
+            }
+
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -87,7 +103,7 @@ namespace OsEngine.Market.Servers.BinanceData
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private HttpClient _httpClient = new HttpClient();
+        private string _tempDirectory = @"Data\Temp\BinanceDataTempFiles\";
 
         #endregion
 
@@ -117,7 +133,7 @@ namespace OsEngine.Market.Servers.BinanceData
         {
             try
             {
-                string response = _httpClient.GetStringAsync("https://api.binance.com/api/v3/exchangeInfo").Result;
+                string response = GetStringRequest("https://api.binance.com", "/api/v3/exchangeInfo");
 
                 BinanceSecurityResponse securityInfo = JsonConvert.DeserializeAnonymousType(response, new BinanceSecurityResponse());
 
@@ -131,9 +147,10 @@ namespace OsEngine.Market.Servers.BinanceData
                         security.Name = sec.symbol;
                         security.NameFull = sec.symbol;
                         security.NameClass = "SPOT_" + sec.quoteAsset;
-                        security.NameId = sec.symbol + "/";
+                        security.NameId = sec.symbol + ".S";
                         security.PriceStep = 0;
                         security.PriceStepCost = 0;
+                        security.SecurityType = SecurityType.CurrencyPair;
 
                         _securities.Add(security);
                     }
@@ -149,7 +166,7 @@ namespace OsEngine.Market.Servers.BinanceData
         {
             try
             {
-                string response = _httpClient.GetStringAsync("https://fapi.binance.com/fapi/v1/exchangeInfo").Result;
+                string response = GetStringRequest("https://fapi.binance.com", "/fapi/v1/exchangeInfo");
 
                 BinanceSecurityResponse securityInfo = JsonConvert.DeserializeAnonymousType(response, new BinanceSecurityResponse());
 
@@ -163,9 +180,10 @@ namespace OsEngine.Market.Servers.BinanceData
                         security.Name = sec.symbol;
                         security.NameFull = sec.symbol;
                         security.NameClass = "FUT_USDT-M_" + sec.quoteAsset;
-                        security.NameId = sec.symbol + "/";
+                        security.NameId = sec.symbol + ".F";
                         security.PriceStep = 0;
                         security.PriceStepCost = 0;
+                        security.SecurityType = SecurityType.Futures;
 
                         _securities.Add(security);
                     }
@@ -181,7 +199,7 @@ namespace OsEngine.Market.Servers.BinanceData
         {
             try
             {
-                string response = _httpClient.GetStringAsync("https://dapi.binance.com/dapi/v1/exchangeInfo").Result;
+                string response = GetStringRequest("https://dapi.binance.com", "/dapi/v1/exchangeInfo");
 
                 BinanceSecurityResponse securityInfo = JsonConvert.DeserializeAnonymousType(response, new BinanceSecurityResponse());
 
@@ -200,9 +218,10 @@ namespace OsEngine.Market.Servers.BinanceData
                         else
                             security.NameClass = "FUT_COIN-M_Delivery";
 
-                        security.NameId = sec.symbol + "/";
+                        security.NameId = sec.symbol + ".F";
                         security.PriceStep = 0;
                         security.PriceStepCost = 0;
+                        security.SecurityType = SecurityType.Futures;
 
                         _securities.Add(security);
                     }
@@ -290,23 +309,26 @@ namespace OsEngine.Market.Servers.BinanceData
 
                 string secGroup = "";
 
-                if (security.NameClass.Contains("SPOT"))
+                if (security.SecurityType == SecurityType.CurrencyPair)
                 {
                     secGroup = "spot/";
                 }
-                else if (security.NameClass.Contains("FUT_USDT-M"))
+                else
                 {
-                    secGroup = "futures/um/";
-                }
-                else if (security.NameClass.Contains("FUT_COIN-M"))
-                {
-                    secGroup = "futures/cm/";
+                    if (security.NameClass.Contains("FUT_USDT-M"))
+                    {
+                        secGroup = "futures/um/";
+                    }
+                    else if (security.NameClass.Contains("FUT_COIN-M"))
+                    {
+                        secGroup = "futures/cm/";
+                    }
                 }
 
 
                 // Find out how much data is on the server
 
-                string prefix = "data/" + secGroup + "daily/klines/" + security.NameId + needTf + "/";
+                string prefix = "data/" + secGroup + "daily/klines/" + security.Name + "/" + needTf + "/";
 
                 Tuple<DateTime, DateTime> period = FindDataPeriod(prefix);
 
@@ -350,7 +372,7 @@ namespace OsEngine.Market.Servers.BinanceData
 
                     for (int i = 0; i < timeRanges.Item1.Count; i++)
                     {
-                        string path = $"https://data.binance.vision/data/{secGroup}monthly/klines/{security.NameId}{needTf}/{security.Name}-{needTf}-{timeRanges.Item1[i]}.zip";
+                        string path = $"/data/{secGroup}monthly/klines/{security.Name}/{needTf}/{security.Name}-{needTf}-{timeRanges.Item1[i]}.zip";
 
                         string zipArchivePath = DownloadZipArchive(path);
 
@@ -362,7 +384,7 @@ namespace OsEngine.Market.Servers.BinanceData
                         }
                         else
                         {
-                            return null;
+                            continue;
                         }
                     }
                 }
@@ -373,7 +395,7 @@ namespace OsEngine.Market.Servers.BinanceData
 
                     for (int i = 0; i < timeRanges.Item2.Count; i++)
                     {
-                        string path = $"https://data.binance.vision/data/{secGroup}daily/klines/{security.NameId}{needTf}/{security.Name}-{needTf}-{timeRanges.Item2[i]}.zip";
+                        string path = $"/data/{secGroup}daily/klines/{security.Name}/{needTf}/{security.Name}-{needTf}-{timeRanges.Item2[i]}.zip";
 
                         string zipArchivePath = DownloadZipArchive(path);
 
@@ -385,7 +407,7 @@ namespace OsEngine.Market.Servers.BinanceData
                         }
                         else
                         {
-                            return null;
+                            continue;
                         }
                     }
                 }
@@ -429,7 +451,7 @@ namespace OsEngine.Market.Servers.BinanceData
                 candles.Add(newCandle);
             }
 
-            string[] files = Directory.GetFiles(@"Data\Temp\BinanceDataTempFiles\");
+            string[] files = Directory.GetFiles(_tempDirectory);
 
             if (files.Length > 0)
             {
@@ -466,22 +488,26 @@ namespace OsEngine.Market.Servers.BinanceData
             {
                 string secGroup = "";
 
-                if (security.NameClass.Contains("SPOT"))
+                if (security.SecurityType == SecurityType.CurrencyPair)
                 {
                     secGroup = "spot/";
                 }
-                else if (security.NameClass.Contains("FUT_USDT-M"))
+                else
                 {
-                    secGroup = "futures/um/";
+                    if (security.NameClass.Contains("FUT_USDT-M"))
+                    {
+                        secGroup = "futures/um/";
+                    }
+                    else if (security.NameClass.Contains("FUT_COIN-M"))
+                    {
+                        secGroup = "futures/cm/";
+                    }
                 }
-                else if (security.NameClass.Contains("FUT_COIN-M"))
-                {
-                    secGroup = "futures/cm/";
-                }
+
 
                 // Find out how much data is on the server
 
-                string prefix = "data/" + secGroup + "daily/aggTrades/" + security.NameId;
+                string prefix = "data/" + secGroup + "daily/aggTrades/" + security.Name + "/";
 
                 Tuple<DateTime, DateTime> period = FindDataPeriod(prefix);
 
@@ -525,7 +551,7 @@ namespace OsEngine.Market.Servers.BinanceData
 
                     for (int i = 0; i < timeRanges.Item1.Count; i++)
                     {
-                        string path = $"https://data.binance.vision/data/{secGroup}monthly/aggTrades/{security.NameId}{security.Name}-aggTrades-{timeRanges.Item1[i]}.zip";
+                        string path = $"/data/{secGroup}monthly/aggTrades/{security.Name}/{security.Name}-aggTrades-{timeRanges.Item1[i]}.zip";
 
                         string zipArchivePath = DownloadZipArchive(path);
 
@@ -537,7 +563,7 @@ namespace OsEngine.Market.Servers.BinanceData
                         }
                         else
                         {
-                            return null;
+                            continue;
                         }
                     }
                 }
@@ -548,7 +574,7 @@ namespace OsEngine.Market.Servers.BinanceData
 
                     for (int i = 0; i < timeRanges.Item2.Count; i++)
                     {
-                        string path = $"https://data.binance.vision/data/{secGroup}daily/aggTrades/{security.NameId}{security.Name}-aggTrades-{timeRanges.Item2[i]}.zip";
+                        string path = $"/data/{secGroup}daily/aggTrades/{security.Name}/{security.Name}-aggTrades-{timeRanges.Item2[i]}.zip";
 
                         string zipArchivePath = DownloadZipArchive(path);
 
@@ -560,7 +586,7 @@ namespace OsEngine.Market.Servers.BinanceData
                         }
                         else
                         {
-                            return null;
+                            continue;
                         }
                     }
                 }
@@ -623,7 +649,7 @@ namespace OsEngine.Market.Servers.BinanceData
                 trades.Add(trade);
             }
 
-            string[] files = Directory.GetFiles(@"Data\Temp\BinanceDataTempFiles\");
+            string[] files = Directory.GetFiles(_tempDirectory);
 
             if (files.Length > 0)
             {
@@ -641,36 +667,9 @@ namespace OsEngine.Market.Servers.BinanceData
             return x.Time.CompareTo(y.Time);
         }
 
-        private string DownloadZipArchive(string path)
-        {
-            try
-            {
-                string tempZipPath = @"Data\Temp\BinanceDataTempFiles\" + Path.GetRandomFileName();
-
-                using (HttpResponseMessage response = _httpClient.GetAsync(path).GetAwaiter().GetResult())
-                {
-                    response.EnsureSuccessStatusCode();
-
-                    using (Stream contentStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
-
-                    using (FileStream fileStream = new FileStream(tempZipPath, FileMode.Create, FileAccess.Write, FileShare.None))
-                    {
-                        contentStream.CopyTo(fileStream);
-                    }
-                }
-
-                return tempZipPath;
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage("Сouldn't upload zip archive.\n" + ex, LogMessageType.Error);
-                return null;
-            }
-        }
-
         private string GetSCVFileFromArchive(string tempZipPath)
         {
-            string extractPath = @"Data\Temp\BinanceDataTempFiles\";
+            string extractPath = _tempDirectory;
 
             SafeExtractZip(tempZipPath, extractPath);
 
@@ -719,7 +718,9 @@ namespace OsEngine.Market.Servers.BinanceData
             DateTime start = DateTime.MinValue;
             DateTime end = DateTime.MinValue;
 
-            string s3Url = $"https://s3-ap-northeast-1.amazonaws.com/data.binance.vision?delimiter=/&prefix={prefix}";
+            string baseS3Url = "https://s3-ap-northeast-1.amazonaws.com";
+
+            string s3Url = $"/data.binance.vision?delimiter=/&prefix={prefix}";
 
             bool isArchiveTruncated = true;
             ListBucketResult listBucket = null;
@@ -728,7 +729,8 @@ namespace OsEngine.Market.Servers.BinanceData
 
             try
             {
-                response = _httpClient.GetStreamAsync(s3Url).Result;
+
+                response = GetStreamS3(baseS3Url, s3Url);
 
                 serializer = new XmlSerializer(typeof(ListBucketResult));
 
@@ -750,7 +752,7 @@ namespace OsEngine.Market.Servers.BinanceData
 
                         string additionalListUrl = s3Url + "&marker=" + markerUrl;
 
-                        response = _httpClient.GetStreamAsync(additionalListUrl).Result;
+                        response = GetStreamS3(baseS3Url, additionalListUrl);
 
                         serializer = new XmlSerializer(typeof(ListBucketResult));
 
@@ -896,14 +898,108 @@ namespace OsEngine.Market.Servers.BinanceData
             return Tuple.Create(fullMonths, remainingDays);
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        #endregion
+
+        #region 6 Queries
+
+        private RateGate _rateGateData = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        private string GetStringRequest(string baseUrl, string url)
         {
-            return null;
+            _rateGateData.WaitToProceed();
+
+            try
+            {
+                RestRequest requestRest = new(url, Method.GET);
+                RestClient client = new(baseUrl);
+
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    return response.Content;
+                }
+                else
+                {
+                    SendLogMessage($"Error response: {response.StatusCode}-{response.Content}", LogMessageType.Error);
+                    return null;
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+
+                return null;
+            }
+        }
+
+        private string DownloadZipArchive(string path)
+        {
+            try
+            {
+                string tempZipPath = _tempDirectory + Path.GetRandomFileName();
+
+                RestRequest request = new RestRequest(path, Method.GET);
+
+                RestClient client = new RestClient("https://data.binance.vision");
+
+                request.AddHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36");
+
+                IRestResponse response = client.Execute(request);
+
+                if (response.StatusCode == HttpStatusCode.OK && response.RawBytes != null && response.RawBytes.Length > 0)
+                {
+                    using (FileStream fileStream = new FileStream(tempZipPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        fileStream.Write(response.RawBytes, 0, response.RawBytes.Length);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Сouldn't upload zip archive\n. Http status: {response.StatusCode} - {response.ErrorMessage}", LogMessageType.Error);
+                    return null;
+                }
+
+                return tempZipPath;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Сouldn't upload zip archive.\n" + ex, LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private Stream GetStreamS3(string baseS3Url, string url)
+        {
+            try
+            {
+                RestClient client = new RestClient(baseS3Url);
+                RestRequest request = new RestRequest(url);
+
+                request.AddHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36");
+
+                IRestResponse response = client.Execute(request);
+
+                if (response.StatusCode == HttpStatusCode.OK && response.RawBytes != null && response.RawBytes.Length > 0)
+                {
+                    return new MemoryStream(response.RawBytes);
+                }
+                else
+                {
+                    SendLogMessage($"Сouldn't get stream s3\n. Http status: {response.StatusCode} - {response.ErrorMessage}", LogMessageType.Error);
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Сouldn't get stream s3.\n" + ex, LogMessageType.Error);
+                return null;
+            }
         }
 
         #endregion
 
-        #region 6 Log
+        #region 7 Log
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
@@ -913,71 +1009,40 @@ namespace OsEngine.Market.Servers.BinanceData
         public event Action<string, LogMessageType> LogMessageEvent;
         #endregion
 
-        #region 7 Unused methods
+        #region 8 Unused methods
 
-        public void Subscribe(Security security)
-        {
+        public void Subscribe(Security security) { }
 
-        }
+        public void SendOrder(Order order) { }
 
-        public void SendOrder(Order order)
-        {
+        public void CancelAllOrders() { }
 
-        }
+        public void CancelAllOrdersToSecurity(Security security) { }
 
-        public void CancelAllOrders()
-        {
+        public bool CancelOrder(Order order) { return false; }
 
-        }
+        public void ChangeOrderPrice(Order order, decimal newPrice) { }
 
-        public void CancelAllOrdersToSecurity(Security security)
-        {
+        public void GetAllActivOrders() { }
 
-        }
+        public OrderStateType GetOrderStatus(Order order) { return OrderStateType.None; }
 
-        public bool CancelOrder(Order order)
-        {
-            return false;
-        }
+        public bool SubscribeNews() { return false; }
 
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
+        public List<Order> GetActiveOrders(int startIndex, int count) { return null; }
 
-        }
+        public List<Order> GetHistoricalOrders(int startIndex, int count) { return null; }
 
-        public void GetAllActivOrders()
-        {
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount) { return null; }
 
-        }
-
-        public OrderStateType GetOrderStatus(Order order)
-        {
-            return OrderStateType.None;
-        }
-
-        public bool SubscribeNews()
-        {
-            return false;
-        }
-
-        public List<Order> GetActiveOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public List<Order> GetHistoricalOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public event Action<News> NewsEvent { add { } remove { } }
-        public event Action<MarketDepth> MarketDepthEvent { add { } remove { } }
-        public event Action<Trade> NewTradesEvent { add { } remove { } }
-        public event Action<Order> MyOrderEvent { add { } remove { } }
-        public event Action<MyTrade> MyTradeEvent { add { } remove { } }
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
-        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
-        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
+        public event Action<News> NewsEvent;
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<Trade> NewTradesEvent;
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<Funding> FundingUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

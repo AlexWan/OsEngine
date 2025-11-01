@@ -104,7 +104,7 @@ namespace OsEngine.Market.Servers.BybitData
 
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         #endregion
