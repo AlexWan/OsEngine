@@ -678,7 +678,13 @@ namespace OsEngine.OsTrader.Grids
 
                 if(server.GetType().BaseType.Name == "AServer")
                 {
-                    if(ErrorsReaction.AwaitOnStartConnector((AServer)server) == true)
+                    AServer aServer = (AServer)server;
+                    if (ErrorsReaction.AwaitOnStartConnector(aServer) == true)
+                    {
+                        return;
+                    }
+
+                    if(aServer.IsNonTradePeriod == true)
                     {
                         return;
                     }
