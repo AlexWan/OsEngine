@@ -2427,7 +2427,7 @@ namespace OsEngine.Market.Servers
                         // нужно вставками прогружать каждую свечу по отдельности. 
                         series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
 
-                        for(int i = 0;i < candlesStorage.Count;i++)
+                        for(int i = 0; candlesStorage != null && i < candlesStorage.Count;i++)
                         {
                             Candle candle = candlesStorage[i];
 
@@ -2441,7 +2441,16 @@ namespace OsEngine.Market.Servers
                                     isInArray = true;
                                     break;
                                 }
-                                if(candle.TimeStart < series.CandlesAll[j].TimeStart)
+                                else if (j == 0
+                                   && candle.TimeStart < series.CandlesAll[j].TimeStart)
+                                {
+                                    series.CandlesAll.Insert(j, candle);
+                                    isInArray = true;
+                                    break;
+                                }
+                                else if (j != 0
+                                    && candle.TimeStart > series.CandlesAll[j-1].TimeStart
+                                    && candle.TimeStart < series.CandlesAll[j].TimeStart)
                                 {
                                     series.CandlesAll.Insert(j, candle);
                                     isInArray = true;
