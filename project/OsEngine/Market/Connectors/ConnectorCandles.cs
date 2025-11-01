@@ -731,7 +731,8 @@ namespace OsEngine.Market.Connectors
                         TimeFrameBuilder.TimeFrameTimeSpan.TotalSeconds == 0))
                     {
                         TimeFrameBuilder.TimeFrame = value;
-                        Reconnect();
+
+                        Reconnect();                      
                     }
                 }
                 catch (Exception error)
@@ -777,12 +778,13 @@ namespace OsEngine.Market.Connectors
         private void Reconnect()
         {
             try
-            {
+            {           
                 lock (_reconnectLocker)
                 {
                     if (_lastReconnectTime.AddSeconds(1) > DateTime.Now)
                     {
-                        if (ConnectorStartedReconnectEvent != null)
+                        if (StartProgram != StartProgram.IsOsOptimizer
+                            && ConnectorStartedReconnectEvent != null)
                         {
                             ConnectorStartedReconnectEvent(SecurityName, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerFullName);
                         }
@@ -790,7 +792,6 @@ namespace OsEngine.Market.Connectors
                     }
                     _lastReconnectTime = DateTime.Now;
                 }
-
 
                 if (_mySeries != null)
                 {
@@ -878,6 +879,8 @@ namespace OsEngine.Market.Connectors
 
         private static string _tasksCountLocker = "_tasksCountOnLocker";
 
+        private bool _isFirstTimeSubscribeInOptimizer = true;
+
         private async void Subscribe()
         {
             try
@@ -888,7 +891,14 @@ namespace OsEngine.Market.Connectors
                 {
                     if (ServerType == ServerType.Optimizer)
                     {
-                        await Task.Delay(1);
+                        if(_isFirstTimeSubscribeInOptimizer)
+                        {
+                            _isFirstTimeSubscribeInOptimizer = false;
+                        }
+                        else
+                        {
+                            await Task.Delay(1);
+                        } 
                     }
                     else if (ServerType == ServerType.Tester)
                     {
@@ -935,7 +945,8 @@ namespace OsEngine.Market.Connectors
 
                     List<IServer> servers = ServerMaster.GetServers();
 
-                    if (servers == null)
+                    if (servers == null
+                        && ServerType != ServerType.Optimizer)
                     {
                         if (ServerType != ServerType.None)
                         {
@@ -949,7 +960,7 @@ namespace OsEngine.Market.Connectors
                         if (ServerType == ServerType.Optimizer &&
                             this.ServerUid != 0)
                         {
-                            for (int i = 0; i < servers.Count; i++)
+                            for (int i = 0; servers != null && i < servers.Count; i++)
                             {
                                 if (servers[i] == null)
                                 {
@@ -963,12 +974,11 @@ namespace OsEngine.Market.Connectors
                                     _myServer = servers[i];
                                     break;
                                 }
-
                             }
                         }
                         else
                         {
-                            for (int i = 0; i < servers.Count; i++)
+                            for (int i = 0; servers != null && i < servers.Count; i++)
                             {
                                 if (servers[i].ServerType == ServerType)
                                 {
@@ -996,7 +1006,8 @@ namespace OsEngine.Market.Connectors
 
                     if (_myServer == null)
                     {
-                        if (ServerType != ServerType.None)
+                        if (ServerType != ServerType.None
+                            && ServerType != ServerType.Optimizer)
                         {
                             ServerMaster.SetServerToAutoConnection(ServerType,ServerFullName);
                         }
@@ -1058,6 +1069,10 @@ namespace OsEngine.Market.Connectors
 
                                 await Task.Delay(millisecondsToDelay);
                             }
+                            else if(ServerType == ServerType.Optimizer)
+                            {
+                                // no delay
+                            }
                             else
                             {
                                 await Task.Delay(1);
@@ -1086,21 +1101,25 @@ namespace OsEngine.Market.Connectors
                                 _tasksCountOnSubscribe--;
                             }
 
-                            OptimizerServer myOptimizerServer = _myServer as OptimizerServer;
-                            if (_mySeries == null &&
-                                myOptimizerServer != null &&
-                                myOptimizerServer.ServerType == ServerType.Optimizer &&
-                                myOptimizerServer.NumberServer != ServerUid)
+                            if (ServerType == ServerType.Optimizer)
                             {
-                                for (int i = 0; i < servers.Count; i++)
+                                OptimizerServer myOptimizerServer = _myServer as OptimizerServer;
+
+                                if (_mySeries == null &&
+                                    myOptimizerServer != null &&
+                                    myOptimizerServer.ServerType == ServerType.Optimizer &&
+                                    myOptimizerServer.NumberServer != ServerUid)
                                 {
-                                    if (servers[i].ServerType == ServerType.Optimizer &&
-                                        ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
+                                    for (int i = 0; i < servers.Count; i++)
                                     {
-                                        UnSubscribeOnServer(_myServer);
-                                        _myServer = servers[i];
-                                        SubscribeOnServer(_myServer);
-                                        break;
+                                        if (servers[i].ServerType == ServerType.Optimizer &&
+                                            ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
+                                        {
+                                            UnSubscribeOnServer(_myServer);
+                                            _myServer = servers[i];
+                                            SubscribeOnServer(_myServer);
+                                            break;
+                                        }
                                     }
                                 }
                             }

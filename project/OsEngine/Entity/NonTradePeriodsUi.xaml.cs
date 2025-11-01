@@ -19,7 +19,7 @@ namespace OsEngine.Entity
             InitializeComponent();
 
             OsEngine.Layout.StickyBorders.Listen(this);
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             _periods = periods;
 
@@ -52,69 +52,196 @@ namespace OsEngine.Entity
             CheckBoxTradeInSunday.Unchecked += CheckBoxTradeInSunday_Checked;
 
             // non trade periods
+            CheckPeriods(_periods.NonTradePeriodGeneral,
+                CheckBoxNonTradePeriod1OnOff,
+                TextBoxNonTradePeriod1Start,
+                TextBoxNonTradePeriod1End,
+                CheckBoxNonTradePeriod2OnOff,
+                TextBoxNonTradePeriod2Start,
+                TextBoxNonTradePeriod2End,
+                CheckBoxNonTradePeriod3OnOff,
+                TextBoxNonTradePeriod3Start,
+                TextBoxNonTradePeriod3End,
+                CheckBoxNonTradePeriod4OnOff,
+                TextBoxNonTradePeriod4Start,
+                TextBoxNonTradePeriod4End,
+                CheckBoxNonTradePeriod5OnOff,
+                TextBoxNonTradePeriod5Start,
+                TextBoxNonTradePeriod5End);
 
-            CheckBoxNonTradePeriod1OnOff.IsChecked = _periods.NonTradePeriod1OnOff;
-            CheckBoxNonTradePeriod1OnOff.Checked += CheckBoxNonTradePeriod1OnOff_Checked;
-            CheckBoxNonTradePeriod1OnOff.Unchecked += CheckBoxNonTradePeriod1OnOff_Checked;
+            CheckPeriods(_periods.NonTradePeriodMonday,
+                CheckBoxNonTradePeriod1OnOff_Monday,
+                TextBoxNonTradePeriod1Start_Monday,
+                TextBoxNonTradePeriod1End_Monday,
+                CheckBoxNonTradePeriod2OnOff_Monday,
+                TextBoxNonTradePeriod2Start_Monday,
+                TextBoxNonTradePeriod2End_Monday,
+                CheckBoxNonTradePeriod3OnOff_Monday,
+                TextBoxNonTradePeriod3Start_Monday,
+                TextBoxNonTradePeriod3End_Monday,
+                CheckBoxNonTradePeriod4OnOff_Monday,
+                TextBoxNonTradePeriod4Start_Monday,
+                TextBoxNonTradePeriod4End_Monday,
+                CheckBoxNonTradePeriod5OnOff_Monday,
+                TextBoxNonTradePeriod5Start_Monday,
+                TextBoxNonTradePeriod5End_Monday);
 
-            CheckBoxNonTradePeriod2OnOff.IsChecked = _periods.NonTradePeriod2OnOff;
-            CheckBoxNonTradePeriod2OnOff.Checked += CheckBoxNonTradePeriod2OnOff_Checked;
-            CheckBoxNonTradePeriod2OnOff.Unchecked += CheckBoxNonTradePeriod2OnOff_Checked;
+            CheckPeriods(_periods.NonTradePeriodTuesday,
+                CheckBoxNonTradePeriod1OnOff_Tuesday,
+                TextBoxNonTradePeriod1Start_Tuesday,
+                TextBoxNonTradePeriod1End_Tuesday,
+                CheckBoxNonTradePeriod2OnOff_Tuesday,
+                TextBoxNonTradePeriod2Start_Tuesday,
+                TextBoxNonTradePeriod2End_Tuesday,
+                CheckBoxNonTradePeriod3OnOff_Tuesday,
+                TextBoxNonTradePeriod3Start_Tuesday,
+                TextBoxNonTradePeriod3End_Tuesday,
+                CheckBoxNonTradePeriod4OnOff_Tuesday,
+                TextBoxNonTradePeriod4Start_Tuesday,
+                TextBoxNonTradePeriod4End_Tuesday,
+                CheckBoxNonTradePeriod5OnOff_Tuesday,
+                TextBoxNonTradePeriod5Start_Tuesday,
+                TextBoxNonTradePeriod5End_Tuesday);
 
-            CheckBoxNonTradePeriod3OnOff.IsChecked = _periods.NonTradePeriod3OnOff;
-            CheckBoxNonTradePeriod3OnOff.Checked += CheckBoxNonTradePeriod3OnOff_Checked;
-            CheckBoxNonTradePeriod3OnOff.Unchecked += CheckBoxNonTradePeriod3OnOff_Checked;
+            CheckPeriods(_periods.NonTradePeriodWednesday,
+                CheckBoxNonTradePeriod1OnOff_Wednesday,
+                TextBoxNonTradePeriod1Start_Wednesday,
+                TextBoxNonTradePeriod1End_Wednesday,
+                CheckBoxNonTradePeriod2OnOff_Wednesday,
+                TextBoxNonTradePeriod2Start_Wednesday,
+                TextBoxNonTradePeriod2End_Wednesday,
+                CheckBoxNonTradePeriod3OnOff_Wednesday,
+                TextBoxNonTradePeriod3Start_Wednesday,
+                TextBoxNonTradePeriod3End_Wednesday,
+                CheckBoxNonTradePeriod4OnOff_Wednesday,
+                TextBoxNonTradePeriod4Start_Wednesday,
+                TextBoxNonTradePeriod4End_Wednesday,
+                CheckBoxNonTradePeriod5OnOff_Wednesday,
+                TextBoxNonTradePeriod5Start_Wednesday,
+                TextBoxNonTradePeriod5End_Wednesday);
 
-            CheckBoxNonTradePeriod4OnOff.IsChecked = _periods.NonTradePeriod4OnOff;
-            CheckBoxNonTradePeriod4OnOff.Checked += CheckBoxNonTradePeriod4OnOff_Checked;
-            CheckBoxNonTradePeriod4OnOff.Unchecked += CheckBoxNonTradePeriod4OnOff_Checked;
+            CheckPeriods(_periods.NonTradePeriodThursday,
+                CheckBoxNonTradePeriod1OnOff_Thursday,
+                TextBoxNonTradePeriod1Start_Thursday,
+                TextBoxNonTradePeriod1End_Thursday,
+                CheckBoxNonTradePeriod2OnOff_Thursday,
+                TextBoxNonTradePeriod2Start_Thursday,
+                TextBoxNonTradePeriod2End_Thursday,
+                CheckBoxNonTradePeriod3OnOff_Thursday,
+                TextBoxNonTradePeriod3Start_Thursday,
+                TextBoxNonTradePeriod3End_Thursday,
+                CheckBoxNonTradePeriod4OnOff_Thursday,
+                TextBoxNonTradePeriod4Start_Thursday,
+                TextBoxNonTradePeriod4End_Thursday,
+                CheckBoxNonTradePeriod5OnOff_Thursday,
+                TextBoxNonTradePeriod5Start_Thursday,
+                TextBoxNonTradePeriod5End_Thursday);
 
-            CheckBoxNonTradePeriod5OnOff.IsChecked = _periods.NonTradePeriod5OnOff;
-            CheckBoxNonTradePeriod5OnOff.Checked += CheckBoxNonTradePeriod5OnOff_Checked;
-            CheckBoxNonTradePeriod5OnOff.Unchecked += CheckBoxNonTradePeriod5OnOff_Checked;
+            CheckPeriods(_periods.NonTradePeriodFriday,
+                CheckBoxNonTradePeriod1OnOff_Friday,
+                TextBoxNonTradePeriod1Start_Friday,
+                TextBoxNonTradePeriod1End_Friday,
+                CheckBoxNonTradePeriod2OnOff_Friday,
+                TextBoxNonTradePeriod2Start_Friday,
+                TextBoxNonTradePeriod2End_Friday,
+                CheckBoxNonTradePeriod3OnOff_Friday,
+                TextBoxNonTradePeriod3Start_Friday,
+                TextBoxNonTradePeriod3End_Friday,
+                CheckBoxNonTradePeriod4OnOff_Friday,
+                TextBoxNonTradePeriod4Start_Friday,
+                TextBoxNonTradePeriod4End_Friday,
+                CheckBoxNonTradePeriod5OnOff_Friday,
+                TextBoxNonTradePeriod5Start_Friday,
+                TextBoxNonTradePeriod5End_Friday);
 
-            TextBoxNonTradePeriod1Start.Text = _periods.NonTradePeriod1Start.ToString();
-            TextBoxNonTradePeriod1Start.TextChanged += TextBoxNonTradePeriod1Start_TextChanged;
+            CheckPeriods(_periods.NonTradePeriodSaturday,
+                CheckBoxNonTradePeriod1OnOff_Saturday,
+                TextBoxNonTradePeriod1Start_Saturday,
+                TextBoxNonTradePeriod1End_Saturday,
+                CheckBoxNonTradePeriod2OnOff_Saturday,
+                TextBoxNonTradePeriod2Start_Saturday,
+                TextBoxNonTradePeriod2End_Saturday,
+                CheckBoxNonTradePeriod3OnOff_Saturday,
+                TextBoxNonTradePeriod3Start_Saturday,
+                TextBoxNonTradePeriod3End_Saturday,
+                CheckBoxNonTradePeriod4OnOff_Saturday,
+                TextBoxNonTradePeriod4Start_Saturday,
+                TextBoxNonTradePeriod4End_Saturday,
+                CheckBoxNonTradePeriod5OnOff_Saturday,
+                TextBoxNonTradePeriod5Start_Saturday,
+                TextBoxNonTradePeriod5End_Saturday);
 
-            TextBoxNonTradePeriod2Start.Text = _periods.NonTradePeriod2Start.ToString();
-            TextBoxNonTradePeriod2Start.TextChanged += TextBoxNonTradePeriod2Start_TextChanged;
-
-            TextBoxNonTradePeriod3Start.Text = _periods.NonTradePeriod3Start.ToString();
-            TextBoxNonTradePeriod3Start.TextChanged += TextBoxNonTradePeriod3Start_TextChanged;
-
-            TextBoxNonTradePeriod4Start.Text = _periods.NonTradePeriod4Start.ToString();
-            TextBoxNonTradePeriod4Start.TextChanged += TextBoxNonTradePeriod4Start_TextChanged;
-
-            TextBoxNonTradePeriod5Start.Text = _periods.NonTradePeriod5Start.ToString();
-            TextBoxNonTradePeriod5Start.TextChanged += TextBoxNonTradePeriod5Start_TextChanged;
-
-            TextBoxNonTradePeriod1End.Text = _periods.NonTradePeriod1End.ToString();
-            TextBoxNonTradePeriod1End.TextChanged += TextBoxNonTradePeriod1End_TextChanged;
-
-            TextBoxNonTradePeriod2End.Text = _periods.NonTradePeriod2End.ToString();
-            TextBoxNonTradePeriod2End.TextChanged += TextBoxNonTradePeriod2End_TextChanged;
-
-            TextBoxNonTradePeriod3End.Text = _periods.NonTradePeriod3End.ToString();
-            TextBoxNonTradePeriod3End.TextChanged += TextBoxNonTradePeriod3End_TextChanged;
-
-            TextBoxNonTradePeriod4End.Text = _periods.NonTradePeriod4End.ToString();
-            TextBoxNonTradePeriod4End.TextChanged += TextBoxNonTradePeriod4End_TextChanged;
-
-            TextBoxNonTradePeriod5End.Text = _periods.NonTradePeriod5End.ToString();
-            TextBoxNonTradePeriod5End.TextChanged += TextBoxNonTradePeriod5End_TextChanged;
+            CheckPeriods(_periods.NonTradePeriodSunday,
+                CheckBoxNonTradePeriod1OnOff_Sunday,
+                TextBoxNonTradePeriod1Start_Sunday,
+                TextBoxNonTradePeriod1End_Sunday,
+                CheckBoxNonTradePeriod2OnOff_Sunday,
+                TextBoxNonTradePeriod2Start_Sunday,
+                TextBoxNonTradePeriod2End_Sunday,
+                CheckBoxNonTradePeriod3OnOff_Sunday,
+                TextBoxNonTradePeriod3Start_Sunday,
+                TextBoxNonTradePeriod3End_Sunday,
+                CheckBoxNonTradePeriod4OnOff_Sunday,
+                TextBoxNonTradePeriod4Start_Sunday,
+                TextBoxNonTradePeriod4End_Sunday,
+                CheckBoxNonTradePeriod5OnOff_Sunday,
+                TextBoxNonTradePeriod5Start_Sunday,
+                TextBoxNonTradePeriod5End_Sunday);
 
             // localization
 
             Title = OsLocalization.Trader.Label575;
-            TabItemTradeDays.Header = OsLocalization.Trader.Label461;
             TabItemNonTradePeriods.Header = OsLocalization.Trader.Label462;
+            TabItemByDays.Header = OsLocalization.Trader.Label624;
 
-            // non trade periods
-            CheckBoxNonTradePeriod1OnOff.Content = OsLocalization.Trader.Label473 + " 1";
-            CheckBoxNonTradePeriod2OnOff.Content = OsLocalization.Trader.Label473 + " 2";
-            CheckBoxNonTradePeriod3OnOff.Content = OsLocalization.Trader.Label473 + " 3";
-            CheckBoxNonTradePeriod4OnOff.Content = OsLocalization.Trader.Label473 + " 4";
-            CheckBoxNonTradePeriod5OnOff.Content = OsLocalization.Trader.Label473 + " 5";
+            TabItemMonday.Header = OsLocalization.Trader.Label625;
+            TabItemTuesday.Header = OsLocalization.Trader.Label626;
+            TabItemWednesday.Header = OsLocalization.Trader.Label627;
+            TabItemThursday.Header = OsLocalization.Trader.Label628;
+            TabItemFriday.Header = OsLocalization.Trader.Label629;
+            TabItemSaturday.Header = OsLocalization.Trader.Label630;
+            TabItemSunday.Header = OsLocalization.Trader.Label631;
+
+            // general non trade periods 
+            LocalToPeriods(
+            CheckBoxNonTradePeriod1OnOff, CheckBoxNonTradePeriod2OnOff,
+            CheckBoxNonTradePeriod3OnOff, CheckBoxNonTradePeriod4OnOff,
+            CheckBoxNonTradePeriod5OnOff);
+
+            LocalToPeriods(
+            CheckBoxNonTradePeriod1OnOff_Monday, CheckBoxNonTradePeriod2OnOff_Monday,
+            CheckBoxNonTradePeriod3OnOff_Monday, CheckBoxNonTradePeriod4OnOff_Monday,
+            CheckBoxNonTradePeriod5OnOff_Monday);
+
+            LocalToPeriods(
+            CheckBoxNonTradePeriod1OnOff_Tuesday, CheckBoxNonTradePeriod2OnOff_Tuesday,
+            CheckBoxNonTradePeriod3OnOff_Tuesday, CheckBoxNonTradePeriod4OnOff_Tuesday,
+            CheckBoxNonTradePeriod5OnOff_Tuesday);
+
+            LocalToPeriods(
+            CheckBoxNonTradePeriod1OnOff_Wednesday, CheckBoxNonTradePeriod2OnOff_Wednesday,
+            CheckBoxNonTradePeriod3OnOff_Wednesday, CheckBoxNonTradePeriod4OnOff_Wednesday,
+            CheckBoxNonTradePeriod5OnOff_Wednesday);
+
+            LocalToPeriods(
+            CheckBoxNonTradePeriod1OnOff_Thursday, CheckBoxNonTradePeriod2OnOff_Thursday,
+            CheckBoxNonTradePeriod3OnOff_Thursday, CheckBoxNonTradePeriod4OnOff_Thursday,
+            CheckBoxNonTradePeriod5OnOff_Thursday);
+
+            LocalToPeriods(
+            CheckBoxNonTradePeriod1OnOff_Friday, CheckBoxNonTradePeriod2OnOff_Friday,
+            CheckBoxNonTradePeriod3OnOff_Friday, CheckBoxNonTradePeriod4OnOff_Friday,
+            CheckBoxNonTradePeriod5OnOff_Friday);
+
+            LocalToPeriods(
+            CheckBoxNonTradePeriod1OnOff_Saturday, CheckBoxNonTradePeriod2OnOff_Saturday,
+            CheckBoxNonTradePeriod3OnOff_Saturday, CheckBoxNonTradePeriod4OnOff_Saturday,
+            CheckBoxNonTradePeriod5OnOff_Saturday);
+
+            LocalToPeriods(
+            CheckBoxNonTradePeriod1OnOff_Sunday, CheckBoxNonTradePeriod2OnOff_Sunday,
+            CheckBoxNonTradePeriod3OnOff_Sunday, CheckBoxNonTradePeriod4OnOff_Sunday,
+            CheckBoxNonTradePeriod5OnOff_Sunday);
 
             // trade days 
             CheckBoxTradeInMonday.Content = OsLocalization.Trader.Label474;
@@ -126,6 +253,20 @@ namespace OsEngine.Entity
             CheckBoxTradeInSunday.Content = OsLocalization.Trader.Label480;
 
             this.Closed += NonTradePeriodsUi_Closed;
+        }
+
+        private void LocalToPeriods(
+            CheckBox checkBoxNonTradePeriod1OnOff,
+            CheckBox checkBoxNonTradePeriod2OnOff,
+            CheckBox checkBoxNonTradePeriod3OnOff,
+             CheckBox checkBoxNonTradePeriod4OnOff,
+              CheckBox checkBoxNonTradePeriod5OnOff)
+        {
+            checkBoxNonTradePeriod1OnOff.Content = OsLocalization.Trader.Label473 + " 1";
+            checkBoxNonTradePeriod2OnOff.Content = OsLocalization.Trader.Label473 + " 2";
+            checkBoxNonTradePeriod3OnOff.Content = OsLocalization.Trader.Label473 + " 3";
+            checkBoxNonTradePeriod4OnOff.Content = OsLocalization.Trader.Label473 + " 4";
+            checkBoxNonTradePeriod5OnOff.Content = OsLocalization.Trader.Label473 + " 5";
         }
 
         private void NonTradePeriodsUi_Closed(object sender, EventArgs e)
@@ -231,22 +372,165 @@ namespace OsEngine.Entity
 
         #region Non trade periods
 
-        private void CheckBoxNonTradePeriod1OnOff_Checked(object sender, RoutedEventArgs e)
+        private void CheckPeriods(NonTradePeriodInDay period,
+
+        CheckBox checkBoxNonTradePeriod1OnOff,
+        TextBox nonTradePeriod1Start,
+        TextBox nonTradePeriod1End,
+
+        CheckBox checkBoxNonTradePeriod2OnOff,
+        TextBox nonTradePeriod2Start,
+        TextBox nonTradePeriod2End,
+
+        CheckBox checkBoxNonTradePeriod3OnOff,
+        TextBox nonTradePeriod3Start,
+        TextBox nonTradePeriod3End,
+
+        CheckBox checkBoxNonTradePeriod4OnOff,
+        TextBox nonTradePeriod4Start,
+        TextBox nonTradePeriod4End,
+
+        CheckBox checkBoxNonTradePeriod5OnOff,
+        TextBox nonTradePeriod5Start,
+        TextBox nonTradePeriod5End)
         {
-            _periods.NonTradePeriod1OnOff = CheckBoxNonTradePeriod1OnOff.IsChecked.Value;
-            _periods.Save();
+
+            checkBoxNonTradePeriod1OnOff.IsChecked = period.NonTradePeriod1OnOff;
+            checkBoxNonTradePeriod1OnOff.Checked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod1OnOff_Checked(sender, e, period);
+            };
+            checkBoxNonTradePeriod1OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod1OnOff_Checked(sender, e, period);
+            };
+
+            checkBoxNonTradePeriod2OnOff.IsChecked = period.NonTradePeriod2OnOff;
+            checkBoxNonTradePeriod2OnOff.Checked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod2OnOff_Checked(sender, e, period);
+            };
+            checkBoxNonTradePeriod2OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod2OnOff_Checked(sender, e, period);
+            };
+
+            checkBoxNonTradePeriod3OnOff.IsChecked = period.NonTradePeriod3OnOff;
+            checkBoxNonTradePeriod3OnOff.Checked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod3OnOff_Checked(sender, e, period);
+            };
+            checkBoxNonTradePeriod3OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod3OnOff_Checked(sender, e, period);
+            };
+
+            checkBoxNonTradePeriod4OnOff.IsChecked = period.NonTradePeriod4OnOff;
+            checkBoxNonTradePeriod4OnOff.Checked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod4OnOff_Checked(sender, e, period);
+            };
+            checkBoxNonTradePeriod4OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod4OnOff_Checked(sender, e, period);
+            };
+
+            checkBoxNonTradePeriod5OnOff.IsChecked = period.NonTradePeriod5OnOff;
+            checkBoxNonTradePeriod5OnOff.Checked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod5OnOff_Checked(sender, e, period);
+            };
+            checkBoxNonTradePeriod5OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod5OnOff_Checked(sender, e, period);
+            };
+
+
+            nonTradePeriod1Start.Text = period.NonTradePeriod1Start.ToString();
+            nonTradePeriod1Start.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod1Start_TextChanged(sender, e, period);
+            };
+            nonTradePeriod2Start.Text = period.NonTradePeriod2Start.ToString();
+            nonTradePeriod2Start.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod2Start_TextChanged(sender, e, period);
+            };
+            nonTradePeriod3Start.Text = period.NonTradePeriod3Start.ToString();
+            nonTradePeriod3Start.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod3Start_TextChanged(sender, e, period);
+            };
+            nonTradePeriod4Start.Text = period.NonTradePeriod4Start.ToString();
+            nonTradePeriod4Start.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod4Start_TextChanged(sender, e, period);
+            };
+            nonTradePeriod5Start.Text = period.NonTradePeriod5Start.ToString();
+            nonTradePeriod5Start.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod5Start_TextChanged(sender, e, period);
+            };
+
+
+            nonTradePeriod1End.Text = period.NonTradePeriod1End.ToString();
+            nonTradePeriod1End.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod1End_TextChanged(sender, e, period);
+            };
+            nonTradePeriod2End.Text = period.NonTradePeriod2End.ToString();
+            nonTradePeriod2End.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod2End_TextChanged(sender, e, period);
+            };
+            nonTradePeriod3End.Text = period.NonTradePeriod3End.ToString();
+            nonTradePeriod3End.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod3End_TextChanged(sender, e, period);
+            };
+            nonTradePeriod4End.Text = period.NonTradePeriod4End.ToString();
+            nonTradePeriod4End.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod4End_TextChanged(sender, e, period);
+            };
+            nonTradePeriod5End.Text = period.NonTradePeriod5End.ToString();
+            nonTradePeriod5End.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod5End_TextChanged(sender, e, period);
+            };
         }
 
-        private void TextBoxNonTradePeriod1Start_TextChanged(object sender, TextChangedEventArgs e)
+        #endregion
+
+        #region Non trade periods
+
+        private void CheckBoxNonTradePeriod1OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod1Start.Text))
+                CheckBox box = (CheckBox)sender;
+
+                period.NonTradePeriod1OnOff = box.IsChecked.Value;
+                _periods.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxNonTradePeriod1Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        {
+            try
+            {
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod1Start.LoadFromString(TextBoxNonTradePeriod1Start.Text);
+                period.NonTradePeriod1Start.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch
@@ -255,16 +539,18 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod1End_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxNonTradePeriod1End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod1End.Text))
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod1End.LoadFromString(TextBoxNonTradePeriod1End.Text);
+                period.NonTradePeriod1End.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch
@@ -273,22 +559,35 @@ namespace OsEngine.Entity
             }
         }
 
-        private void CheckBoxNonTradePeriod2OnOff_Checked(object sender, RoutedEventArgs e)
-        {
-            _periods.NonTradePeriod2OnOff = CheckBoxNonTradePeriod2OnOff.IsChecked.Value;
-            _periods.Save();
-        }
 
-        private void TextBoxNonTradePeriod2Start_TextChanged(object sender, TextChangedEventArgs e)
+
+        private void CheckBoxNonTradePeriod2OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod2Start.Text))
+                CheckBox box = (CheckBox)sender;
+
+                period.NonTradePeriod2OnOff = box.IsChecked.Value;
+                _periods.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxNonTradePeriod2Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        {
+            try
+            {
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod2Start.LoadFromString(TextBoxNonTradePeriod2Start.Text);
+                period.NonTradePeriod2Start.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch
@@ -297,16 +596,18 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod2End_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxNonTradePeriod2End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod2End.Text))
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod2End.LoadFromString(TextBoxNonTradePeriod2End.Text);
+                period.NonTradePeriod2End.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch
@@ -315,11 +616,15 @@ namespace OsEngine.Entity
             }
         }
 
-        private void CheckBoxNonTradePeriod3OnOff_Checked(object sender, RoutedEventArgs e)
+
+
+        private void CheckBoxNonTradePeriod3OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                _periods.NonTradePeriod3OnOff = CheckBoxNonTradePeriod3OnOff.IsChecked.Value;
+                CheckBox box = (CheckBox)sender;
+
+                period.NonTradePeriod3OnOff = box.IsChecked.Value;
                 _periods.Save();
             }
             catch
@@ -328,16 +633,18 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod3Start_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxNonTradePeriod3Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod3Start.Text))
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod3Start.LoadFromString(TextBoxNonTradePeriod3Start.Text);
+                period.NonTradePeriod3Start.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch
@@ -346,16 +653,18 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod3End_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxNonTradePeriod3End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod3End.Text))
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod3End.LoadFromString(TextBoxNonTradePeriod3End.Text);
+                period.NonTradePeriod3End.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch
@@ -364,11 +673,15 @@ namespace OsEngine.Entity
             }
         }
 
-        private void CheckBoxNonTradePeriod4OnOff_Checked(object sender, RoutedEventArgs e)
+
+
+        private void CheckBoxNonTradePeriod4OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                _periods.NonTradePeriod4OnOff = CheckBoxNonTradePeriod4OnOff.IsChecked.Value;
+                CheckBox box = (CheckBox)sender;
+
+                period.NonTradePeriod4OnOff = box.IsChecked.Value;
                 _periods.Save();
             }
             catch
@@ -377,16 +690,18 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod4Start_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxNonTradePeriod4Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod4Start.Text))
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod4Start.LoadFromString(TextBoxNonTradePeriod4Start.Text);
+                period.NonTradePeriod4Start.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch
@@ -395,16 +710,18 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod4End_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxNonTradePeriod4End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod4End.Text))
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod4End.LoadFromString(TextBoxNonTradePeriod4End.Text);
+                period.NonTradePeriod4End.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch
@@ -413,11 +730,15 @@ namespace OsEngine.Entity
             }
         }
 
-        private void CheckBoxNonTradePeriod5OnOff_Checked(object sender, RoutedEventArgs e)
+
+
+        private void CheckBoxNonTradePeriod5OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                _periods.NonTradePeriod5OnOff = CheckBoxNonTradePeriod5OnOff.IsChecked.Value;
+                CheckBox box = (CheckBox)sender;
+
+                period.NonTradePeriod5OnOff = box.IsChecked.Value;
                 _periods.Save();
             }
             catch
@@ -426,16 +747,18 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod5Start_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxNonTradePeriod5Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod5Start.Text))
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod5Start.LoadFromString(TextBoxNonTradePeriod5Start.Text);
+                period.NonTradePeriod5Start.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch
@@ -444,16 +767,18 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod5End_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxNonTradePeriod5End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxNonTradePeriod5End.Text))
+                TextBox box = (TextBox)sender;
+
+                if (string.IsNullOrEmpty(box.Text))
                 {
                     return;
                 }
 
-                _periods.NonTradePeriod5End.LoadFromString(TextBoxNonTradePeriod5End.Text);
+                period.NonTradePeriod5End.LoadFromString(box.Text);
                 _periods.Save();
             }
             catch

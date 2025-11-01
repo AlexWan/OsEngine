@@ -18,20 +18,15 @@ namespace OsEngine.Entity
         {
             NameUnique = name + "nonTradePeriod";
 
-            NonTradePeriod1Start = new TimeOfDay();
-            NonTradePeriod1End = new TimeOfDay() { Hour = 7, Minute = 0 };
+            NonTradePeriodGeneral = new NonTradePeriodInDay();
 
-            NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 0 };
-            NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 5 };
-
-            NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 54 };
-            NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 6 };
-
-            NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 40 };
-            NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 6 };
-
-            NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 40 };
-            NonTradePeriod5End = new TimeOfDay() { Hour = 23, Minute = 59 };
+            NonTradePeriodMonday = new NonTradePeriodInDay();
+            NonTradePeriodTuesday = new NonTradePeriodInDay();
+            NonTradePeriodWednesday = new NonTradePeriodInDay();
+            NonTradePeriodThursday = new NonTradePeriodInDay();
+            NonTradePeriodFriday = new NonTradePeriodInDay();
+            NonTradePeriodSaturday = new NonTradePeriodInDay();
+            NonTradePeriodSunday = new NonTradePeriodInDay();
 
             Load();
         }
@@ -45,7 +40,15 @@ namespace OsEngine.Entity
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameUnique + ".txt", false))
                 {
                     writer.WriteLine(GetSaveStringDays());
-                    writer.WriteLine(GetSaveString());
+
+                    writer.WriteLine(NonTradePeriodGeneral.GetSaveString());
+                    writer.WriteLine(NonTradePeriodMonday.GetSaveString());
+                    writer.WriteLine(NonTradePeriodTuesday.GetSaveString());
+                    writer.WriteLine(NonTradePeriodWednesday.GetSaveString());
+                    writer.WriteLine(NonTradePeriodThursday.GetSaveString());
+                    writer.WriteLine(NonTradePeriodFriday.GetSaveString());
+                    writer.WriteLine(NonTradePeriodSaturday.GetSaveString());
+                    writer.WriteLine(NonTradePeriodSunday.GetSaveString());
 
                     writer.Close();
                 }
@@ -67,7 +70,19 @@ namespace OsEngine.Entity
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameUnique + ".txt"))
                 {
                     LoadFromStringDays(reader.ReadLine());
-                    LoadFromString(reader.ReadLine());
+
+                    NonTradePeriodGeneral.LoadFromString(reader.ReadLine());
+
+                    if(reader.EndOfStream == false)
+                    {
+                        NonTradePeriodMonday.LoadFromString(reader.ReadLine());
+                        NonTradePeriodTuesday.LoadFromString(reader.ReadLine());
+                        NonTradePeriodWednesday.LoadFromString(reader.ReadLine());
+                        NonTradePeriodThursday.LoadFromString(reader.ReadLine());
+                        NonTradePeriodFriday.LoadFromString(reader.ReadLine());
+                        NonTradePeriodSaturday.LoadFromString(reader.ReadLine());
+                        NonTradePeriodSunday.LoadFromString(reader.ReadLine());
+                    }
 
                     reader.Close();
                 }
@@ -183,7 +198,160 @@ namespace OsEngine.Entity
 
         #endregion
 
-        #region Periods in day
+        #region Non trade periods
+
+        public NonTradePeriodInDay NonTradePeriodGeneral;
+
+        public NonTradePeriodInDay NonTradePeriodMonday;
+
+        public NonTradePeriodInDay NonTradePeriodTuesday;
+
+        public NonTradePeriodInDay NonTradePeriodWednesday;
+
+        public NonTradePeriodInDay NonTradePeriodThursday;
+
+        public NonTradePeriodInDay NonTradePeriodFriday;
+
+        public NonTradePeriodInDay NonTradePeriodSaturday;
+
+        public NonTradePeriodInDay NonTradePeriodSunday;
+
+        #endregion
+
+        #region Logic
+
+        public bool CanTradeThisTime(DateTime curTime)
+        {
+            // Периоды
+
+            if(NonTradePeriodGeneral.CanTradeThisTime(curTime) == false)
+            {
+                return false;
+            }
+
+            if (NonTradePeriodMonday.CanTradeThisTime(curTime) == false)
+            {
+                return false;
+            }
+
+            if (NonTradePeriodTuesday.CanTradeThisTime(curTime) == false)
+            {
+                return false;
+            }
+
+            if (NonTradePeriodWednesday.CanTradeThisTime(curTime) == false)
+            {
+                return false;
+            }
+
+            if (NonTradePeriodThursday.CanTradeThisTime(curTime) == false)
+            {
+                return false;
+            }
+
+            if (NonTradePeriodFriday.CanTradeThisTime(curTime) == false)
+            {
+                return false;
+            }
+
+            if (NonTradePeriodSaturday.CanTradeThisTime(curTime) == false)
+            {
+                return false;
+            }
+
+            if (NonTradePeriodSunday.CanTradeThisTime(curTime) == false)
+            {
+                return false;
+            }
+
+
+            // дни
+
+            if (TradeInMonday == false
+              && curTime.DayOfWeek == DayOfWeek.Monday)
+            {
+                return false;
+            }
+
+            if (TradeInTuesday == false
+                && curTime.DayOfWeek == DayOfWeek.Tuesday)
+            {
+                return false;
+            }
+
+            if (TradeInWednesday == false
+                && curTime.DayOfWeek == DayOfWeek.Wednesday)
+            {
+                return false;
+            }
+
+            if (TradeInThursday == false
+                && curTime.DayOfWeek == DayOfWeek.Thursday)
+            {
+                return false;
+            }
+
+            if (TradeInFriday == false
+                && curTime.DayOfWeek == DayOfWeek.Friday)
+            {
+                return false;
+            }
+
+            if (TradeInSaturday == false
+                && curTime.DayOfWeek == DayOfWeek.Saturday)
+            {
+                return false;
+            }
+
+            if (TradeInSunday == false
+                && curTime.DayOfWeek == DayOfWeek.Sunday)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        #endregion
+
+        #region Log
+
+        public void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+            else if (type == LogMessageType.Error)
+            {
+                ServerMaster.SendNewLogMessage(message, type);
+            }
+        }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+    }
+
+    public class NonTradePeriodInDay
+    {
+        public NonTradePeriodInDay()
+        {
+            NonTradePeriod1Start = new TimeOfDay();
+            NonTradePeriod1End = new TimeOfDay() { Hour = 7, Minute = 0 };
+
+            NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 0 };
+            NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 5 };
+
+            NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 6 };
+
+            NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 40 };
+            NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 6 };
+
+            NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 40 };
+            NonTradePeriod5End = new TimeOfDay() { Hour = 23, Minute = 59 };
+        }
 
         public bool NonTradePeriod1OnOff;
         public TimeOfDay NonTradePeriod1Start;
@@ -263,18 +431,12 @@ namespace OsEngine.Entity
             }
             catch (Exception e)
             {
-                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+                // ignore
             }
         }
 
-        #endregion
-
-        #region Logic
-
         public bool CanTradeThisTime(DateTime curTime)
         {
-            // Периоды
-
             if (NonTradePeriod1OnOff == true)
             {
                 if (NonTradePeriod1Start < curTime
@@ -320,71 +482,7 @@ namespace OsEngine.Entity
                 }
             }
 
-            // дни
-
-            if (TradeInMonday == false
-    && curTime.DayOfWeek == DayOfWeek.Monday)
-            {
-                return false;
-            }
-
-            if (TradeInTuesday == false
-                && curTime.DayOfWeek == DayOfWeek.Tuesday)
-            {
-                return false;
-            }
-
-            if (TradeInWednesday == false
-                && curTime.DayOfWeek == DayOfWeek.Wednesday)
-            {
-                return false;
-            }
-
-            if (TradeInThursday == false
-                && curTime.DayOfWeek == DayOfWeek.Thursday)
-            {
-                return false;
-            }
-
-            if (TradeInFriday == false
-                && curTime.DayOfWeek == DayOfWeek.Friday)
-            {
-                return false;
-            }
-
-            if (TradeInSaturday == false
-                && curTime.DayOfWeek == DayOfWeek.Saturday)
-            {
-                return false;
-            }
-
-            if (TradeInSunday == false
-                && curTime.DayOfWeek == DayOfWeek.Sunday)
-            {
-                return false;
-            }
-
             return true;
         }
-
-        #endregion
-
-        #region Log
-
-        public void SendNewLogMessage(string message, LogMessageType type)
-        {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
-            else if (type == LogMessageType.Error)
-            {
-                ServerMaster.SendNewLogMessage(message, type);
-            }
-        }
-
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        #endregion
     }
 }

@@ -47,6 +47,11 @@ namespace OsEngine.Market.Servers
                     File.Delete(@"Engine\" + ServerNameUnique + @"ServerSettings.txt");
                 }
 
+                if (File.Exists(@"Engine\" + ServerNameUnique + @"nonTradePeriod.txt"))
+                {
+                    File.Delete(@"Engine\" + ServerNameUnique + @"nonTradePeriod.txt");
+                }
+
                 ServerRealization.Dispose();
             }
             catch
@@ -210,7 +215,7 @@ namespace OsEngine.Market.Servers
                 _ordersHub.LostOrderEvent += _ordersHub_LostOrderEvent;
                 _ordersHub.LostMyTradesEvent += _ordersHub_LostMyTradesEvent;
 
-                _nonTradePeriods = new NonTradePeriods(ServerType.ToString());
+                _nonTradePeriods = new NonTradePeriods(ServerNameUnique);
 
                 ComparePositionsModule = new ComparePositionsModule(this);
                 ComparePositionsModule.LogMessageEvent += SendLogMessage;

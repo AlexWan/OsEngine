@@ -1748,8 +1748,8 @@ namespace OsEngine.Language
           "Ru:Торговые дни_");
 
         public string Label462 => OsLocalization.ConvertToLocString(
-          "Eng:Non-trade periods_" +
-          "Ru:Неторговое время_");
+          "Eng:General non-trading periods_" +
+          "Ru:Общие неторговые периоды_");
 
         public string Label463 => OsLocalization.ConvertToLocString(
           "Eng:Stop trading_" +
@@ -2394,5 +2394,37 @@ namespace OsEngine.Language
         public string Label623 => OsLocalization.ConvertToLocString(
         "Eng:Limit order maker only_" +
         "Ru:Лимит ордера только мейкер_");
+
+        public string Label624 => OsLocalization.ConvertToLocString(
+        "Eng:Settings for each day of the week_" +
+        "Ru:Настройки для каждого дня недели_");
+
+        public string Label625 => OsLocalization.ConvertToLocString(
+        "Eng:Monday_" +
+        "Ru:Понедельник_");
+
+        public string Label626 => OsLocalization.ConvertToLocString(
+        "Eng:Tuesday_" +
+        "Ru:Вторник_");
+
+        public string Label627 => OsLocalization.ConvertToLocString(
+        "Eng:Wednesday_" +
+        "Ru:Среда_");
+
+        public string Label628 => OsLocalization.ConvertToLocString(
+        "Eng:Thursday_" +
+        "Ru:Четверг_");
+
+        public string Label629 => OsLocalization.ConvertToLocString(
+        "Eng:Friday_" +
+        "Ru:Пятница_");
+
+        public string Label630 => OsLocalization.ConvertToLocString(
+        "Eng:Saturday_" +
+        "Ru:Суббота_");
+
+        public string Label631 => OsLocalization.ConvertToLocString(
+        "Eng:Sunday_" +
+        "Ru:Воскресенье_");
     }
 }

@@ -1741,6 +1741,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     {
                         return storage;
                     }
+
+
                     storage = LoadCandlesFromFolder(security, timeFrame, timeStart, timeEnd);
 
                     if (storage == null)
@@ -1758,6 +1760,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     _storages.Add(storage);
                     return storage;
+
+
                 }
                 if (_typeTesterData == TesterDataType.TickOnlyReadyCandle)
                 {
