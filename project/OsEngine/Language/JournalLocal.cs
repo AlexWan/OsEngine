@@ -153,7 +153,7 @@ namespace OsEngine.Language
 
         public string Label23 => OsLocalization.ConvertToLocString(
             "Eng:Benchmark_" +
-            "Ru:Бэнчмарк_");
+            "Ru:Бенчмарк_");
 
         public string TabItem1 => OsLocalization.ConvertToLocString(
             "Eng:Equity_" +
