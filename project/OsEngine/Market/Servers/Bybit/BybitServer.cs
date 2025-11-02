@@ -2784,12 +2784,14 @@ namespace OsEngine.Market.Servers.Bybit
                         "CREATED" => OrderStateType.Active,
                         "NEW" => OrderStateType.Active,
                         "ORDER_NEW" => OrderStateType.Active,
-                        "PARTIALLYFILLED" => OrderStateType.Active,
+                        "UNTRIGGERED" => OrderStateType.Active,
+                        "PARTIALLYFILLED" => OrderStateType.Partial,
                         "FILLED" => OrderStateType.Done,
                         "ORDER_FILLED" => OrderStateType.Done,
                         "CANCELLED" => OrderStateType.Cancel,
                         "ORDER_CANCELLED" => OrderStateType.Cancel,
-                        "PARTIALLYFILLEDCANCELED" => OrderStateType.Partial,
+                        "PARTIALLYFILLEDCANCELED" => OrderStateType.Cancel,
+                        "DEACTIVATED" => OrderStateType.Cancel,
                         "REJECTED" => OrderStateType.Fail,
                         "ORDER_REJECTED" => OrderStateType.Fail,
                         "ORDER_FAILED" => OrderStateType.Fail,
@@ -4134,10 +4136,13 @@ namespace OsEngine.Market.Servers.Bybit
                             newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.updatedTime));
                         }
                         else if (order.orderStatus == "New"
-                            || order.orderStatus == "PartiallyFilled"
                             || order.orderStatus == "Untriggered")
                         {
                             newOrder.State = OrderStateType.Active;
+                        }
+                        else if(order.orderStatus == "PartiallyFilled")
+                        {
+                            newOrder.State = OrderStateType.Partial;
                         }
 
                         if (order.cumExecQty != null)
