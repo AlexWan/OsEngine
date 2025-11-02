@@ -43,6 +43,11 @@ namespace OsEngine.Journal
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
+
+
+            LabelBenchmark.Visibility = Visibility.Hidden;
+            ComboBoxBenchmark.Visibility = Visibility.Hidden;
+
             _startProgram = startProgram;
             _botsJournals = botsJournals;
 
@@ -1369,8 +1374,29 @@ namespace OsEngine.Journal
         {
             try
             {
+                
                 if (originalData == null || originalData.Count == 0)
                     return new Series();
+
+                for(int i = 0;i < originalData.Count;i++)
+                {
+                    if (originalData[i] == 0)
+                    {
+                        continue;
+                    }
+                    if (originalData[i] < chartMin)
+                    {
+                        chartMin = originalData[i];
+                    }
+
+                    if (originalData[i] > chartMax)
+                    {
+                        chartMax = originalData[i];
+                    }
+
+                }
+
+
 
                 Series benchmark = new Series("SeriesBenchmark");
                 benchmark.ChartType = SeriesChartType.Line;
