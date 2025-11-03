@@ -751,7 +751,7 @@ namespace OsEngine.Market.AutoFollow
 
             if(copyServerTime == DateTime.MinValue)
             {
-                return;
+                copyServerTime = DateTime.Now;
             }
 
             if (TradePeriodsSettings.CanTradeThisTime(copyServerTime) == false)
