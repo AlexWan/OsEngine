@@ -522,6 +522,7 @@ namespace OsEngine.Market.Servers.OKX
                     security.NameId = item.instId + "_" + item.ctVal.ToDecimal();
                     security.MinTradeAmount = item.minSz.ToDecimal() * item.ctVal.ToDecimal();
                     security.VolumeStep = item.lotSz.ToDecimal() * item.ctVal.ToDecimal();
+                    security.DecimalsVolume = security.MinTradeAmount.ToString().DecimalsCount();
                     security.UnderlyingAsset = item.uly;
 
                     if (item.expTime != "")
