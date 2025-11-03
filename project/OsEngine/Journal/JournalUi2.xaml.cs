@@ -27,6 +27,7 @@ using OsEngine.Layout;
 using OsEngine.Market;
 using System.Windows.Media;
 using OsEngine.OsData;
+using OpenFAST;
 
 namespace OsEngine.Journal
 {
@@ -43,7 +44,6 @@ namespace OsEngine.Journal
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-
 
             LabelBenchmark.Visibility = Visibility.Hidden;
             ComboBoxBenchmark.Visibility = Visibility.Hidden;
@@ -1177,7 +1177,17 @@ namespace OsEngine.Journal
                 _chartEquity.Series.Add(profitBar);
                 _chartEquity.Series.Add(nullLine);
 
-                if (ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString())
+                if (chartType == "Absolute")
+                {
+                    ComboBoxBenchmark.IsEnabled = true;
+                }
+                else
+                {
+                    ComboBoxBenchmark.IsEnabled = false;
+                }
+
+                if (ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString() &&
+                    chartType == "Absolute")
                 {
                     Series benchmarkLine = GetBenchmarkPoints(nullLine, maxYVal, minYval);
 
@@ -1191,7 +1201,22 @@ namespace OsEngine.Journal
                             _benchmark.DownloadBenchmarkEvent -= Benchmark_DownloadBenchmarkEvent;
                             _benchmark = null;
                         }
-                    }
+
+                        for (int i = 0; i < benchmarkLine.Points.Count; i++)
+                        {
+                            decimal benchmarkValue = (decimal)benchmarkLine.Points[i].YValues[0];
+
+                            if (benchmarkValue > maxYVal)
+                            {
+                                maxYVal = benchmarkValue;
+                            }
+
+                            if (benchmarkValue < minYval)
+                            {
+                                minYval = benchmarkValue;
+                            }
+                        }
+                    }                    
                 }
 
                 if (minYval != decimal.MaxValue &&
@@ -1328,8 +1353,6 @@ namespace OsEngine.Journal
 
                 List<decimal> data = new();
 
-                decimal firstValue = 0;
-
                 for (int i = 0; i < series.Points.Count; i++)
                 {
                     DateTime dateTime = DateTime.Parse(series.Points[i].AxisLabel).Date;
@@ -1344,21 +1367,7 @@ namespace OsEngine.Journal
                         if (ComboBoxChartType.SelectedItem.ToString() == "Absolute")
                         {
                             data.Add(candleData[roundedDateTime]);
-                        }
-                        else if (ComboBoxChartType.SelectedItem.ToString() == "Percent 1 contract")
-                        {
-                            if (i == 0)
-                            {
-                                data.Add(0);
-                                firstValue = candleData[roundedDateTime];
-                            }
-                            else
-                            {
-                                if (firstValue == 0) continue;
-
-                                data.Add(Math.Round((candleData[roundedDateTime] - firstValue) / firstValue * 100, 4));
-                            }
-                        }
+                        }                        
                     }
                 }
                 return data;
@@ -1373,30 +1382,12 @@ namespace OsEngine.Journal
         private Series ScaleDataToChart(List<decimal> originalData, decimal chartMin, decimal chartMax)
         {
             try
-            {
-                
+            {                
                 if (originalData == null || originalData.Count == 0)
                     return new Series();
 
-                for(int i = 0;i < originalData.Count;i++)
-                {
-                    if (originalData[i] == 0)
-                    {
-                        continue;
-                    }
-                    if (originalData[i] < chartMin)
-                    {
-                        chartMin = originalData[i];
-                    }
-
-                    if (originalData[i] > chartMax)
-                    {
-                        chartMax = originalData[i];
-                    }
-
-                }
-
-
+                decimal dataMin = originalData.Min();
+                decimal dataMax = originalData.Max();
 
                 Series benchmark = new Series("SeriesBenchmark");
                 benchmark.ChartType = SeriesChartType.Line;
@@ -1409,52 +1400,17 @@ namespace OsEngine.Journal
 
                 decimal startValue = originalData[0];
 
-                decimal maxPositiveDeviation = 0;
-                decimal maxNegativeDeviation = 0;
+                decimal dataRange = dataMax - dataMin;
+                decimal chartRange = Math.Max(Math.Abs(chartMax), Math.Abs(chartMin));
 
                 for (int i = 0; i < originalData.Count; i++)
                 {
-                    decimal deviation = originalData[i] - startValue;
-                    if (deviation > maxPositiveDeviation)
+                    decimal scaledValue = 0;
+
+                    if (startValue != originalData[i])
                     {
-                        maxPositiveDeviation = deviation;
+                        scaledValue = (originalData[i] - startValue) * chartRange / dataRange;
                     }
-                    if (deviation < maxNegativeDeviation)
-                    {
-                        maxNegativeDeviation = deviation;
-                    }
-                }
-
-                decimal scalePositive = 0;
-                decimal scaleNegative = 0;
-
-                if (maxPositiveDeviation > 0)
-                {
-                    scalePositive = chartMax / maxPositiveDeviation;
-                }
-
-                if (maxNegativeDeviation < 0)
-                {
-                    scaleNegative = Math.Abs(chartMin) / Math.Abs(maxNegativeDeviation);
-                }
-
-                decimal scaleFactor;
-                if (scalePositive > 0 && scaleNegative > 0)
-                {
-                    scaleFactor = Math.Min(scalePositive, scaleNegative);
-                }
-                else if (scalePositive > 0)
-                {
-                    scaleFactor = scalePositive;
-                }
-                else
-                {
-                    scaleFactor = scaleNegative;
-                }
-
-                for (int i = 0; i < originalData.Count; i++)
-                {
-                    decimal scaledValue = (originalData[i] - startValue) * scaleFactor;
                     benchmark.Points.AddXY(i, scaledValue);
                     benchmark.Points[^1].AxisLabel = originalData[i].ToString();
                 }
