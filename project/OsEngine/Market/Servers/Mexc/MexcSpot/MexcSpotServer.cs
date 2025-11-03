@@ -1278,7 +1278,7 @@ namespace OsEngine.Market.Servers.Mexc
                                 {
                                     string securityName = _subscribedSecurities[j];
 
-                                    _webSocketPublic.SendAsync($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@public.deals.v3.api.pb@{securityName}\"] }}");
+                                    _webSocketPublic.SendAsync($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@public.aggre.deals.v3.api.pb@100ms@{securityName}\"] }}");
                                     _webSocketPublic.SendAsync($"{{ \"method\": \"UNSUBSCRIPTION\", \"params\": [\"spot@public.limit.depth.v3.api.pb@{securityName}@20\"] }}");
                                 }
                             }
