@@ -499,7 +499,11 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
 
-            positionToCopy.SlaveSecurityName = positionToCopy.SecurityNameMaster;
+            if(positionToCopy.SlaveSecurityName == null)
+            {
+                positionToCopy.SlaveSecurityName = positionToCopy.SecurityNameMaster;
+            }
+         
             
 
         }
