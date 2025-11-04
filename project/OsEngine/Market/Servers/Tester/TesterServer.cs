@@ -886,8 +886,8 @@ namespace OsEngine.Market.Servers.Tester
                 // check availability of securities on the market / проверяем наличие инструмента на рынке
 
                 SecurityTester security = null;
-                
-                if(order.MySecurityInTester != null)
+
+                if (order.MySecurityInTester != null)
                 {
                     security = order.MySecurityInTester;
                 }
@@ -909,7 +909,7 @@ namespace OsEngine.Market.Servers.Tester
 
                     if (lastTrades != null
                         && lastTrades.Count != 0
-                        && CheckOrdersInTickTest(order, lastTrades[lastTrades.Count - 1], false,security.IsNewDayTrade))
+                        && CheckOrdersInTickTest(order, lastTrades[lastTrades.Count - 1], false, security.IsNewDayTrade))
                     {
                         i--;
                         break;
@@ -1180,7 +1180,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             SecurityTester security = null;
 
-            if(order.MySecurityInTester != null)
+            if (order.MySecurityInTester != null)
             {
                 security = order.MySecurityInTester;
             }
@@ -2442,6 +2442,7 @@ namespace OsEngine.Market.Servers.Tester
                         decimal priceStepCost = array[i][3].ToDecimal();
                         decimal priceStep = array[i][4].ToDecimal();
                         decimal goSell = 0;
+                        DateTime expiration = DateTime.MinValue;
 
                         int volDecimals = 0;
 
@@ -2449,34 +2450,40 @@ namespace OsEngine.Market.Servers.Tester
                         {
                             volDecimals = Convert.ToInt32(array[i][5]);
                         }
+
                         if (array[i].Length > 6)
                         {
                             goSell = Convert.ToDecimal(array[i][6]);
+                        }
+
+                        if (array[i].Length > 7)
+                        {
+                            secu.Expiration = Convert.ToDateTime(array[i][7]);
                         }
 
                         if (lot != 0)
                         {
                             secu.Lot = lot;
                         }
-                            
+
                         if (go != 0)
                         {
                             secu.MarginBuy = go;
                         }
-                           
+
                         if (priceStepCost != 0)
                         {
                             secu.PriceStepCost = priceStepCost;
                         }
-                            
+
                         if (priceStep != 0)
                         {
                             secu.PriceStep = priceStep;
                         }
-                            
+
                         secu.DecimalsVolume = volDecimals;
 
-                        if(goSell != 0)
+                        if (goSell != 0)
                         {
                             secu.MarginSell = goSell;
                         }
@@ -2588,7 +2595,8 @@ namespace OsEngine.Market.Servers.Tester
                     securityToSave.PriceStepCost.ToString(culture),
                     securityToSave.PriceStep.ToString(culture),
                     securityToSave.DecimalsVolume.ToString(culture),
-                    securityToSave.MarginSell.ToString(culture)
+                    securityToSave.MarginSell.ToString(culture),
+                    securityToSave.Expiration.ToString(culture)
                 });
             }
 
@@ -2612,7 +2620,8 @@ namespace OsEngine.Market.Servers.Tester
                     securityToSave.PriceStepCost.ToString(culture),
                     securityToSave.PriceStep.ToString(culture),
                     securityToSave.DecimalsVolume.ToString(culture),
-                    securityToSave.MarginSell.ToString(culture)
+                    securityToSave.MarginSell.ToString(culture),
+                    securityToSave.Expiration.ToString(culture)
                 });
             }
 
@@ -2630,7 +2639,8 @@ namespace OsEngine.Market.Servers.Tester
                             saves[i][3] + "$" +
                             saves[i][4] + "$" +
                             saves[i][5] + "$" +
-                            saves[i][6]
+                            saves[i][6] + "$" +
+                            saves[i][7]
                             );
                     }
 
