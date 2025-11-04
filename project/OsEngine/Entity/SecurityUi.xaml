@@ -1,28 +1,38 @@
 ﻿<Window x:Class="OsEngine.Entity.SecurityUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Security settings" Height="276.533" Width="295" Topmost="True" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico">
+      Title="Security settings" Height="310" Width="295" Topmost="True" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,37" Stroke="Black"/>
         <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
         <Label  Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="33,10,0,0" VerticalAlignment="Top" Width="217"/>
+
         <Label Name="SecuritiesColumn4" Content="Price step" HorizontalAlignment="Left" Margin="28,40,0,0" VerticalAlignment="Top"/>
-        <Label Name="SecuritiesColumn5"  Content="Price step price" HorizontalAlignment="Left" Margin="28,68,0,0" VerticalAlignment="Top"/>
-        <Label Name="SecuritiesColumn6" Content="Margin buy" HorizontalAlignment="Left" Margin="28,96,0,0" VerticalAlignment="Top"/>
-        <Label Name="SecuritiesColumn3"  Content="Lot" HorizontalAlignment="Left" Margin="28,152,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxStep" Height="23" Margin="161,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="89"/>
-        <TextBox Name="TextBoxStepCost" Height="23" Margin="161,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="89"/>
-        <TextBox Name="TextBoxGoPrice" Height="23" Margin="119,96,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="131"/>
-        <TextBox Name="TextBoxLot" Height="23" Margin="119,152,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="131"/>
-        <Label Name="SecuritiesVolumeDecimals"  Content="Volume Decimals" HorizontalAlignment="Left" Margin="28,180,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxVolumeDecimals" Height="23" Margin="161,180,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="89"/>
         <Button Name="ButtonInfoPriceStep" Content="?" Margin="255,42,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoPriceStep_Click" VerticalAlignment="Top"/>
+
+        <Label Name="SecuritiesColumn5"  Content="Price step price" HorizontalAlignment="Left" Margin="28,68,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxStepCost" Height="23" Margin="161,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="89"/>
         <Button Name="ButtonInfoPriceStepPrice" Content="?" Margin="255,70,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoPriceStepPrice_Click" VerticalAlignment="Top"/>
+
+        <Label Name="SecuritiesColumn6" Content="Margin buy" HorizontalAlignment="Left" Margin="28,96,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxGoPrice" Height="23" Margin="119,96,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="131"/>
         <Button Name="ButtonInfoLotPrice" Content="?" Margin="255,98,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoLotPrice_Click" VerticalAlignment="Top"/>
-        <Button Name="ButtonInfoLot" Content="?" Margin="255,154,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoLot_Click" VerticalAlignment="Top"/>
-        <Button Name="ButtonInfoVolume" Content="?" Margin="255,182,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoVolume_Click" VerticalAlignment="Top"/>
+
         <Label Name="LabelSecuritiesMarginSell" Content="Margin sell" HorizontalAlignment="Left" Margin="28,124,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxMarginSell" Height="23" Margin="119,124,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="131"/>
         <Button Name="ButtonInfoMarginSell" Content="?" Margin="255,126,0,0" Height="20" HorizontalAlignment="Left" Width="20" VerticalAlignment="Top" Click="ButtonInfoMarginSell_Click"/>
+
+        <Label Name="SecuritiesColumn3"  Content="Lot" HorizontalAlignment="Left" Margin="28,152,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxLot" Height="23" Margin="119,152,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="131"/>
+        <Button Name="ButtonInfoLot" Content="?" Margin="255,154,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoLot_Click" VerticalAlignment="Top"/>
+
+        <Label Name="SecuritiesVolumeDecimals"  Content="Volume Decimals" HorizontalAlignment="Left" Margin="28,180,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxVolumeDecimals" Height="23" Margin="161,180,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="89"/>
+        <Button Name="ButtonInfoVolume" Content="?" Margin="255,182,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoVolume_Click" VerticalAlignment="Top"/>
+
+        <Label Name="SecuritiesExpiration"  Content="Expiration" HorizontalAlignment="Left" Margin="28,207,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxExpiration" Height="23" Margin="119,207,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="131"/>
+        <Button Name="ButtonInfoExpiration" Content="?" Margin="255,207,0,0" Height="20" HorizontalAlignment="Left" Width="20" Click="ButtonInfoExpiration_Click" VerticalAlignment="Top"/>
     </Grid>
 </Window>

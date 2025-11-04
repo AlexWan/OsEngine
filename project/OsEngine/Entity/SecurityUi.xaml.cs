@@ -167,5 +167,11 @@ namespace OsEngine.Entity
             CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel4);
             ui.ShowDialog();
         }
+
+        private void ButtonInfoExpiration_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel8);
+            ui.ShowDialog();
+        }
     }
 }
