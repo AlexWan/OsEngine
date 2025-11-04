@@ -3103,17 +3103,14 @@ namespace OsEngine.Market.Servers.Tester
                         }
                     }
 
-
                     if (minPriceStep == 1 &&
                         countFive == 20)
                     {
                         minPriceStep = 5;
                     }
 
-
                     security[security.Count - 1].Security.PriceStep = minPriceStep;
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
-
 
                     // last data / последняя дата
                     string lastString = firstRowInFile;
@@ -3132,6 +3129,7 @@ namespace OsEngine.Market.Servers.Tester
                     Candle candle3 = new Candle();
                     candle3.SetCandleFromString(lastString);
                     security[security.Count - 1].TimeEnd = candle3.TimeStart;
+                    security[security.Count - 1].Security.Expiration = candle3.TimeStart;
                     continue;
                 }
                 catch (Exception)
@@ -3283,7 +3281,6 @@ namespace OsEngine.Market.Servers.Tester
 
                         decimal open = (decimal)Convert.ToDouble(tradeN.Price);
 
-
                         if (open.ToString(culture).Split('.').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
@@ -3356,13 +3353,11 @@ namespace OsEngine.Market.Servers.Tester
                         }
                     }
 
-
                     if (minPriceStep == 1 &&
                         countFive == 20)
                     {
                         minPriceStep = 5;
                     }
-
 
                     security[security.Count - 1].Security.PriceStep = minPriceStep;
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
@@ -3385,6 +3380,7 @@ namespace OsEngine.Market.Servers.Tester
                     Trade trade2 = new Trade();
                     trade2.SetTradeFromString(lastString2);
                     security[security.Count - 1].TimeEnd = trade2.Time;
+                    security[security.Count - 1].Security.Expiration = trade2.Time;
                 }
                 catch (Exception)
                 {
@@ -3556,7 +3552,6 @@ namespace OsEngine.Market.Servers.Tester
                                 length = open.ToString(culture).Split('.')[1].Length;
                             }
 
-
                             if (length == 1 && minPriceStep > 0.1m)
                             {
                                 minPriceStep = 0.1m;
@@ -3617,13 +3612,11 @@ namespace OsEngine.Market.Servers.Tester
                         }
                     }
 
-
                     if (minPriceStep == 1 &&
                         countFive == 20)
                     {
                         minPriceStep = 5;
                     }
-
 
                     security[security.Count - 1].Security.PriceStep = minPriceStep;
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
@@ -3646,6 +3639,7 @@ namespace OsEngine.Market.Servers.Tester
                     MarketDepth trade2 = new MarketDepth();
                     trade2.SetMarketDepthFromString(lastString2);
                     security[security.Count - 1].TimeEnd = trade2.Time;
+                    security[security.Count - 1].Security.Expiration = trade2.Time;
                 }
                 catch
                 {
@@ -3737,6 +3731,7 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     return null;
                 }
+
                 // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
@@ -3802,7 +3797,6 @@ namespace OsEngine.Market.Servers.Tester
                         }
                     }
                 }
-
                 else if (TypeTesterData != TesterDataType.Candle &&
                          timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
                 {

@@ -39,6 +39,10 @@ namespace OsEngine.Language
             "Eng:Add indicator to an existing area below the chart_" +
             "Ru:Добавить индикатор в уже созданную область под графиком_");
 
+        public string HintMessageLabel8 => OsLocalization.ConvertToLocString(
+            "Eng:Futures expiration. By default, the date of the last candle._" +
+            "Ru:Экспирация фьючерса. По умолчанию дата последней свечи_");
+
         public string HintMessageError0 => OsLocalization.ConvertToLocString(
             "Eng:The value of Price Step must be a positive number._" +
             "Ru:Значение Шага цены должно быть положительным числом_");

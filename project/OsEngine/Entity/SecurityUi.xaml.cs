@@ -31,6 +31,7 @@ namespace OsEngine.Entity
             TextBoxStep.Text = security.PriceStep.ToString(culture);
             TextBoxStepCost.Text = security.PriceStepCost.ToString(culture);
             TextBoxVolumeDecimals.Text = security.DecimalsVolume.ToString(culture);
+            TextBoxExpiration.Text = security.Expiration.ToString(culture);
 
             Title = OsLocalization.Entity.TitleSecurityUi;
             SecuritiesColumn3.Content = OsLocalization.Entity.SecuritiesColumn3;
@@ -38,6 +39,7 @@ namespace OsEngine.Entity
             SecuritiesColumn5.Content = OsLocalization.Entity.SecuritiesColumn5;
             SecuritiesColumn6.Content = OsLocalization.Entity.SecuritiesColumn6;
             LabelSecuritiesMarginSell.Content = OsLocalization.Entity.SecuritiesColumn21;
+            SecuritiesExpiration.Content = OsLocalization.Entity.SecuritiesColumn18;
 
             SecuritiesVolumeDecimals.Content = OsLocalization.Entity.SecuritiesColumn7;
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
@@ -63,6 +65,7 @@ namespace OsEngine.Entity
             decimal step;
             decimal stepCost;
             int volDecimals;
+            DateTime expiration;
 
             try
             {
@@ -72,6 +75,7 @@ namespace OsEngine.Entity
                 step = TextBoxStep.Text.ToDecimal();
                 stepCost = TextBoxStepCost.Text.ToDecimal();
                 volDecimals = Convert.ToInt32(TextBoxVolumeDecimals.Text);
+                expiration = Convert.ToDateTime(TextBoxExpiration.Text);
 
                 string message = OsLocalization.Message.HintMessageError5 + "\n";
 
@@ -128,6 +132,7 @@ namespace OsEngine.Entity
             _security.PriceStep = step;
             _security.PriceStepCost = stepCost;
             _security.DecimalsVolume = volDecimals;
+            _security.Expiration = expiration;
             IsChanged = true;
             Close();
         }
@@ -165,6 +170,12 @@ namespace OsEngine.Entity
         private void ButtonInfoVolume_Click(object sender, RoutedEventArgs e)
         {
             CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel4);
+            ui.ShowDialog();
+        }
+
+        private void ButtonInfoExpiration_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel8);
             ui.ShowDialog();
         }
     }
