@@ -658,8 +658,7 @@ namespace OsEngine.Entity
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(filePath, false)
-                    )
+                using (StreamWriter writer = new StreamWriter(filePath, false))
                 {
                     writer.WriteLine(mySecurity.GetSaveStr());
 
