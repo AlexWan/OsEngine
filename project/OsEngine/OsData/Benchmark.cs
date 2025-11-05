@@ -51,6 +51,16 @@ namespace OsEngine.OsData
                 _secNameFull = "MCFTR";
                 _fileSetBenchmark = @"Data\Benchmark\MCFTR\Day\MCFTR.txt";
             }
+
+            if (benchmark == BenchmarkSecurity.IMOEX.ToString())
+            {
+                _serverType = ServerType.Finam;
+                _secName = "Индекс МосБиржи";
+                _secId = "420450";
+                _secClass = "Индексы Россия";
+                _secNameFull = "IMOEX";
+                _fileSetBenchmark = @"Data\Benchmark\Индекс МосБиржи\Day\Индекс МосБиржи.txt";
+            }
         }
 
         public string FileSetBenchmark
@@ -119,7 +129,7 @@ namespace OsEngine.OsData
                     {
                         await Task.Delay(6000, cts.Token).ConfigureAwait(false);
 
-                        DateTime timeStart = DateTime.Parse(_series.Points[0].AxisLabel).AddDays(-5);
+                        DateTime timeStart = DateTime.Parse(_series.Points[0].AxisLabel).AddDays(-30);
                         DateTime timeEnd = DateTime.Parse(_series.Points[^1].AxisLabel).AddDays(1);
 
                         SettingsToLoadSecurity param = new();
@@ -210,6 +220,7 @@ namespace OsEngine.OsData
         Off,
         BTC,
         MCFTR,
-        SnP500
+        SnP500,
+        IMOEX
     }
 }
