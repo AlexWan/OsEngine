@@ -44,8 +44,8 @@ namespace OsEngine.Journal
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
 
-            LabelBenchmark.Visibility = Visibility.Hidden;
-            ComboBoxBenchmark.Visibility = Visibility.Hidden;
+            //LabelBenchmark.Visibility = Visibility.Hidden;
+            //ComboBoxBenchmark.Visibility = Visibility.Hidden;
 
             _startProgram = startProgram;
             _botsJournals = botsJournals;
