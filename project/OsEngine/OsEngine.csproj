@@ -27,7 +27,7 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AssemblyVersion>2.0.0.6</AssemblyVersion>
     <PackageOutputPath>$(OutputPath)\</PackageOutputPath>
-    <FileVersion>2.0.0.6</FileVersion>
+    <FileVersion>2.0.0.7</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
    <OutputPath>bin\Debug\</OutputPath>
