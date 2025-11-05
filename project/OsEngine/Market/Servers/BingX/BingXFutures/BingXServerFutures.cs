@@ -35,13 +35,19 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
-            CreateParameterBoolean("HedgeMode", false);
+            CreateParameterBoolean("HedgeMode", true);
+            ServerParameters[2].ValueChange += BingXServerFutures_ValueChange;
             CreateParameterBoolean("Extended Data", false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
             ServerParameters[2].Comment = OsLocalization.Market.Label250;
             ServerParameters[3].Comment = OsLocalization.Market.Label270;
+        }
+
+        private void BingXServerFutures_ValueChange()
+        {
+            ((BingXServerFuturesRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
         }
     }
 
@@ -88,7 +94,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             _myProxy = proxy;
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-            _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
+            HedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
 
             if (string.IsNullOrEmpty(_publicKey) ||
             string.IsNullOrEmpty(_secretKey))
@@ -130,7 +136,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     {
                         CreatePrivateWebSocketConnect();
                         CheckSocketsActivate();
-                        SetPositionMode();
+                        //SetPositionMode();
                     }
                     catch (Exception exception)
                     {
@@ -196,10 +202,10 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 RestRequest request = new RestRequest("/openApi/swap/v1/positionSide/dual", Method.POST);
 
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                string parameters = $"dualSidePosition={_hedgeMode}&timestamp={timeStamp}";
+                string parameters = $"dualSidePosition={HedgeMode}&timestamp={timeStamp}";
                 string sign = CalculateHmacSha256(parameters);
 
-                request.AddParameter("dualSidePosition", _hedgeMode);
+                request.AddParameter("dualSidePosition", HedgeMode);
                 request.AddParameter("timestamp", timeStamp);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
@@ -259,9 +265,24 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private RateGate _generalRateGate3 = new RateGate(100, TimeSpan.FromSeconds(1));
 
-        public string _publicKey;
+        private string _publicKey;
 
-        public string _secretKey;
+        private string _secretKey;
+
+        public bool HedgeMode
+        {
+            get { return _hedgeMode; }
+            set
+            {
+                if (value == _hedgeMode)
+                {
+                    return;
+                }
+                _hedgeMode = value;
+
+                SetPositionMode();
+            }
+        }
 
         private bool _hedgeMode;
 
@@ -1062,6 +1083,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     {
                         ServerStatus = ServerConnectStatus.Connect;
                         ConnectEvent();
+
+                        SetPositionMode();
                     }
                 }
             }
@@ -1928,7 +1951,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     position.PortfolioName = "BingXFutures";
 
-                    if (!_hedgeMode)
+                    if (!HedgeMode)
                     {
                         position.SecurityNameCode = accountUpdate.a.P[i].s + "_BOTH";
 
@@ -2174,8 +2197,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
             try
             {
-                _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
-
                 RestClient client = new RestClient(_baseUrl);
 
                 if (_myProxy != null)
@@ -2261,7 +2282,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             {
                 string positionSide = "";
 
-                if (!_hedgeMode)
+                if (!HedgeMode)
                 {
                     positionSide = "BOTH";
                     return positionSide;
