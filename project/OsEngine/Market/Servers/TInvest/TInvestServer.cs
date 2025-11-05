@@ -1341,7 +1341,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             else
             {
-                Timestamp from = Timestamp.FromDateTime(TimeZoneInfo.ConvertTimeToUtc(mskDate, _mskTimeZone));
+                Timestamp from = Timestamp.FromDateTime(DateTime.UtcNow.Date);
                 Timestamp to = Timestamp.FromDateTime(TimeZoneInfo.ConvertTimeToUtc(mskDate.AddDays(1).AddTicks(-1), _mskTimeZone));
 
                 TradingSchedulesRequest tradingSchedulesRequest = new TradingSchedulesRequest();
