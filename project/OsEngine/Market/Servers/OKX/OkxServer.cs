@@ -35,7 +35,8 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamPassword, "");
-            CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
+            CreateParameterBoolean("Hedge Mode", true);
+            ServerParameters[3].ValueChange += OkxServer_ValueChange;
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
             CreateParameterBoolean("Use Options", false);
             CreateParameterBoolean("Demo Mode", false);
@@ -49,6 +50,11 @@ namespace OsEngine.Market.Servers.OKX
             ServerParameters[5].Comment = OsLocalization.Market.Label253;
             ServerParameters[6].Comment = OsLocalization.Market.Label268;
             ServerParameters[7].Comment = OsLocalization.Market.Label252;
+        }
+
+        private void OkxServer_ValueChange()
+        {
+            ((OkxServerRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
         }
     }
 
@@ -84,15 +90,7 @@ namespace OsEngine.Market.Servers.OKX
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _password = ((ServerParameterPassword)ServerParameters[2]).Value;
-
-            if (((ServerParameterEnum)ServerParameters[3]).Value == "On")
-            {
-                _hedgeMode = true;
-            }
-            else
-            {
-                _hedgeMode = false;
-            }
+            HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
 
             if (((ServerParameterEnum)ServerParameters[4]).Value == "Cross")
             {
@@ -228,6 +226,21 @@ namespace OsEngine.Market.Servers.OKX
         private string _webSocketUrlPrivateDemo = "wss://wspap.okx.com:8443/ws/v5/private";
 
         private bool _hedgeMode;
+
+        public bool HedgeMode
+        {
+            get { return _hedgeMode; }
+            set
+            {
+                if (value == _hedgeMode)
+                {
+                    return;
+                }
+                _hedgeMode = value;
+
+                SetPositionMode();
+            }
+        }
 
         private string _marginMode;
 
@@ -1239,7 +1252,7 @@ namespace OsEngine.Market.Servers.OKX
 
             dict["posMode"] = "net_mode";
 
-            if (_hedgeMode)
+            if (HedgeMode)
             {
                 dict["posMode"] = "long_short_mode";
             }
@@ -2775,7 +2788,7 @@ namespace OsEngine.Market.Servers.OKX
             {
                 string posSide = "net";
 
-                if (_hedgeMode)
+                if (HedgeMode)
                 {
                     posSide = order.Side == Side.Buy ? "long" : "short";
 
