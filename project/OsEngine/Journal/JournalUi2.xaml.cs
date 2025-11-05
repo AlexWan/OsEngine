@@ -27,7 +27,6 @@ using OsEngine.Layout;
 using OsEngine.Market;
 using System.Windows.Media;
 using OsEngine.OsData;
-using OpenFAST;
 
 namespace OsEngine.Journal
 {
@@ -64,6 +63,7 @@ namespace OsEngine.Journal
             ComboBoxBenchmark.Items.Add(BenchmarkSecurity.BTC.ToString());
             ComboBoxBenchmark.Items.Add(BenchmarkSecurity.MCFTR.ToString());
             ComboBoxBenchmark.Items.Add(BenchmarkSecurity.SnP500.ToString());
+            ComboBoxBenchmark.Items.Add(BenchmarkSecurity.IMOEX.ToString());
             ComboBoxBenchmark.SelectedItem = BenchmarkSecurity.Off.ToString();
 
             _currentCulture = OsLocalization.CurCulture;
@@ -548,10 +548,15 @@ namespace OsEngine.Journal
             }
         }
 
+        private int _countLoadBenchmark = 0;
+
         private void ComboBoxBenchmark_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
+                _countLoadBenchmark = 0;
+                _checkBenchmarkData = false;
+
                 RePaint();
                 SaveSettings();
             }
@@ -985,6 +990,8 @@ namespace OsEngine.Journal
 
         private int _lastSeriesEquityChartPointWithLabel = 0;
 
+        private decimal _startValuePortfolio;
+
         private void PaintProfitOnChart(List<Position> positionsAll)
         {
             try
@@ -1189,6 +1196,8 @@ namespace OsEngine.Journal
                 if (ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString() &&
                     chartType == "Absolute")
                 {
+                    _startValuePortfolio = positionsAll[0].PortfolioValueOnOpenPosition;
+
                     Series benchmarkLine = GetBenchmarkPoints(nullLine, maxYVal, minYval);
 
                     if (benchmarkLine != null)
@@ -1275,8 +1284,10 @@ namespace OsEngine.Journal
 
                 if (data == null && !_checkBenchmarkData)
                 {
-                    _benchmark.GetData(series);
                     _checkBenchmarkData = true;
+                    _countLoadBenchmark++;
+
+                    _benchmark.GetData(series);
                 }
                 else
                 {
@@ -1347,9 +1358,23 @@ namespace OsEngine.Journal
                     }
                 }
 
-                if (candleData == null || candleData.Count == 0) return null;
-                if (DateTime.Parse(series.Points[0].AxisLabel) < listData[0]) return null;
-                if (DateTime.Parse(series.Points[^1].AxisLabel).AddDays(-1).Date > listData[^1]) return null;
+                if (_countLoadBenchmark < 3)
+                {
+                    if (candleData == null || candleData.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    if (DateTime.Parse(series.Points[0].AxisLabel) < listData[0])
+                    {
+                        return null;
+                    }
+
+                    if (DateTime.Parse(series.Points[^1].AxisLabel).AddDays(-1).Date > listData[^1])
+                    {
+                        return null;
+                    }
+                }
 
                 List<decimal> data = new();
 
@@ -1360,8 +1385,8 @@ namespace OsEngine.Journal
                     DateTime roundedDateTime = candleData.Keys
                             .Where(date => date < dateTime)
                             .OrderByDescending(date => date)
-                            .FirstOrDefault();
-
+                            .FirstOrDefault(candleData.Keys.Min());
+                                        
                     if (candleData.ContainsKey(roundedDateTime))
                     {
                         if (ComboBoxChartType.SelectedItem.ToString() == "Absolute")
@@ -1370,8 +1395,9 @@ namespace OsEngine.Journal
                         }                        
                     }
                 }
+
                 return data;
-            }
+            }            
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
@@ -1385,10 +1411,7 @@ namespace OsEngine.Journal
             {                
                 if (originalData == null || originalData.Count == 0)
                     return new Series();
-
-                decimal dataMin = originalData.Min();
-                decimal dataMax = originalData.Max();
-
+               
                 Series benchmark = new Series("SeriesBenchmark");
                 benchmark.ChartType = SeriesChartType.Line;
                 benchmark.YAxisType = AxisType.Secondary;
@@ -1400,17 +1423,16 @@ namespace OsEngine.Journal
 
                 decimal startValue = originalData[0];
 
-                decimal dataRange = dataMax - dataMin;
-                decimal chartRange = Math.Max(Math.Abs(chartMax), Math.Abs(chartMin));
-
                 for (int i = 0; i < originalData.Count; i++)
                 {
                     decimal scaledValue = 0;
 
                     if (startValue != originalData[i])
                     {
-                        scaledValue = (originalData[i] - startValue) * chartRange / dataRange;
+                        decimal relativeGrowth = (originalData[i] - startValue) / startValue;
+                        scaledValue = _startValuePortfolio * relativeGrowth;
                     }
+
                     benchmark.Points.AddXY(i, scaledValue);
                     benchmark.Points[^1].AxisLabel = originalData[i].ToString();
                 }
