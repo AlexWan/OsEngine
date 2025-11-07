@@ -2686,7 +2686,7 @@ namespace OsEngine.Market.Servers.TInvest
                             else
                             {
                                 // Fallback to potentially incorrect price and log an error
-                                order.Price = GetValue(state.OrderPrice);
+                                order.Price = GetValue(state.OrderPrice)/security.PriceStepCost*security.PriceStep;
                                 SendLogMessage($"Could not find original price for order request ID {state.OrderRequestId}. Using price from broker.", LogMessageType.Error);
                             }
                         }
@@ -3206,7 +3206,14 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 Order newOrder = new Order();
 
-                lock(_orderNumbersLocker)
+                Security security = _securities.FirstOrDefault(s => s.Name == order.SecurityNameCode);
+                if (security == null)
+                {
+                    SendLogMessage($"Error getting security for {order.SecurityNameCode} in GetOrderStatusWithTrades", LogMessageType.Error);
+                    return OrderStateType.None;
+                }
+
+                lock (_orderNumbersLocker)
                 {
                     if (!_orderNumbers.ContainsKey(state.OrderRequestId))
                     {
@@ -3226,7 +3233,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 newOrder.Volume = state.LotsRequested;
                 newOrder.VolumeExecute = state.LotsExecuted;
-                newOrder.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialSecurityPrice) : 0;
+                newOrder.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialSecurityPrice) / security.PriceStepCost * security.PriceStep : 0;
                 newOrder.TimeCallBack = TimeZoneInfo.ConvertTimeFromUtc(state.OrderDate.ToDateTime(), _mskTimeZone);// convert to MSK
                 newOrder.SecurityClassCode = order.SecurityClassCode;
 
@@ -3273,7 +3280,7 @@ namespace OsEngine.Market.Servers.TInvest
                         MyTrade trade = new MyTrade();
 
                         trade.SecurityNameCode = order.SecurityNameCode;
-                        trade.Price = GetValue(stage.Price);
+                        trade.Price = GetValue(stage.Price) / security.PriceStepCost * security.PriceStep;
                         trade.Volume = stage.Quantity;
                         trade.NumberOrderParent = state.OrderId;
                         trade.NumberTrade = stage.TradeId;
@@ -3379,7 +3386,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (state.OrderType == OrderType.Limit)
                         {
-                            newOrder.Price = GetValue(state.InitialSecurityPrice);
+                            newOrder.Price = GetValue(state.InitialSecurityPrice) / security.PriceStepCost * security.PriceStep;
                         }
 
                         string orderId = state.OrderRequestId;
