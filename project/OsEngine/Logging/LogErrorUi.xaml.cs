@@ -6,6 +6,7 @@
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Layout;
 
 namespace OsEngine.Logging
 {
@@ -19,6 +20,7 @@ namespace OsEngine.Logging
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
+            GlobalGUILayout.Listen(this, "LogErrorUi");
             HostLog.Child = gridErrorLog;
             Title = OsLocalization.Logging.TitleExtraLog;
             Title = Title + " " + OsEngine.PrimeSettings.PrimeSettingsMaster.LabelInHeaderBotStation;
