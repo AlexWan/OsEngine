@@ -157,6 +157,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 SetNewError(serverType + " Security Error 18. MinTradeAmount is 0 ");
             }
+
+            if(security.MarginBuy != 0
+                && security.MarginSell == 0)
+            {
+                SetNewError(serverType + " Security Error 19. security.MarginSell is 0 ");
+            }
         }
 
         private bool IsCompairDecimalsAndStep(int decimals, decimal step)
