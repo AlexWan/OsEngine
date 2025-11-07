@@ -295,13 +295,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public void ShowDialog(StartProgram startProgram)
         {
-            IServer server = _botTab.Connector.MyServer;
-
             IServerPermission serverPermission = null;
 
-            if(server != null)
+            if (_botTab != null)
             {
-                serverPermission = ServerMaster.GetServerPermission(server.ServerType);
+                IServer server = _botTab.Connector.MyServer;
+
+                if (server != null)
+                {
+                    serverPermission = ServerMaster.GetServerPermission(server.ServerType);
+                }
             }
 
             BotManualControlUi ui = new BotManualControlUi(this, startProgram, serverPermission);
