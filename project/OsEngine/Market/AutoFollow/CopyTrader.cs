@@ -1388,13 +1388,13 @@ namespace OsEngine.Market.AutoFollow
             {
                 if (volume <= 0)
                 {
-                    SendLogMessage("Buy at market Error. \n"
+                    SendLogMessage("Sell at market Error. \n"
                     + "Volume: " + volume + "\n"
                     + "Security: " + security.Name, LogMessageType.Error);
                     return null;
                 }
 
-                SendLogMessage("Buy at market. \n"
+                SendLogMessage("Sell at market. \n"
                 + "Volume: " + volume + "\n"
                 + "Security: " + security.Name, LogMessageType.Trade);
 
