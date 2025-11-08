@@ -8,6 +8,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Atp;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
@@ -671,6 +672,14 @@ namespace OsEngine.OsTrader.Grids
                 return;
             }
 
+            if(StartProgram == StartProgram.IsOsTrader)
+            {
+                if (Tab.IsNonTradePeriodInConnector == true)
+                {
+                    return;
+                }
+            }
+
             if(StartProgram == StartProgram.IsOsTrader 
                && ErrorsReaction.WaitOnStartConnectorIsOn == true)
             {
@@ -680,11 +689,6 @@ namespace OsEngine.OsTrader.Grids
                 {
                     AServer aServer = (AServer)server;
                     if (ErrorsReaction.AwaitOnStartConnector(aServer) == true)
-                    {
-                        return;
-                    }
-
-                    if(aServer.IsNonTradePeriod == true)
                     {
                         return;
                     }

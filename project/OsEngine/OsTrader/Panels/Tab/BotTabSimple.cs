@@ -539,7 +539,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public bool IsNonTradePeriodInConnector
         {
-            get
+            get 
             {
                 if (_connector == null)
                 {
