@@ -1920,12 +1920,12 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (RpcException ex)
                 {
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Market data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
-
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
+                        string message = GetGRPCErrorMessage(ex);
+                        SendLogMessage($"Market data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
+
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2240,7 +2240,7 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException exception)
                 {
                     string message = GetGRPCErrorMessage(exception);
-                    SendLogMessage($"Portfolio data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
+                    
                     if (message.Contains("limit"))
                     {
                         GetUserLimits();
@@ -2249,6 +2249,7 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
+                        SendLogMessage($"Portfolio data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2459,11 +2460,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException exception)
                 {
                     string message = GetGRPCErrorMessage(exception);
-                    SendLogMessage($"Positions data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
-
+                 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
+                        SendLogMessage($"Positions data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2780,11 +2781,12 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Order state data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
+                   
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
+                        SendLogMessage($"Order state data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
