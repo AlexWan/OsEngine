@@ -1312,7 +1312,7 @@ namespace OsEngine.Market.Servers.Plaza
 
                 SendLogMessage($"Publisher error. Reconnect.", LogMessageType.System);
 
-                Dispose(); 
+                Dispose();
                 Connect(null);
             }
 
@@ -2459,7 +2459,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     order.NumberUser = replmsg["ext_id"].asInt();
 
                                     order.Volume = replmsg["public_amount"].asInt();
-                                    order.VolumeExecute = replmsg["public_amount_rest"].asInt(); // это у нас оставшееся в заявке
+                                    order.VolumeExecute = order.Volume - replmsg["public_amount_rest"].asInt(); // это у нас оставшееся в заявке
 
                                     order.Price = Convert.ToDecimal(replmsg["price"].asDecimal());
                                     order.PortfolioNumber = replmsg["client_code"].asString();
@@ -2742,7 +2742,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     order.NumberUser = replmsg["ext_id"].asInt();
 
                                     order.Volume = replmsg["public_amount"].asInt();
-                                    order.VolumeExecute = replmsg["public_amount_rest"].asInt();
+                                    order.VolumeExecute = order.Volume - replmsg["public_amount_rest"].asInt();
 
                                     order.Price = Convert.ToDecimal(replmsg["price"].asDecimal());
                                     order.PortfolioNumber = replmsg["client_code"].asString();
@@ -3057,7 +3057,7 @@ namespace OsEngine.Market.Servers.Plaza
             }
         }
 
-        public OrderStateType GetOrderStatus(Order order) 
+        public OrderStateType GetOrderStatus(Order order)
         {
             return OrderStateType.None;
         }
