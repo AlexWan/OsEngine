@@ -37,9 +37,20 @@
                 </TabItem>
                 <TabItem Name="TabItem4" Header="Volume" Width="140" Margin="41,0,-140,0">
                     <Grid>
-                        <WindowsFormsHost Name="HostVolume" Foreground="Black" Margin="0,0,0,38"/>
-                        <Label Name="LabelVolumeShowNumbers" Content="Show" HorizontalAlignment="Left" Margin="310,0,0,10" VerticalAlignment="Bottom" Width="98"/>
-                        <ComboBox Name="VolumeShowNumbers" HorizontalAlignment="Left" Margin="424,0,0,10" VerticalAlignment="Bottom" Width="146"/>
+                        <TabControl Margin="0,0,0,0" BorderThickness="0" Name="TabControlVolume" TabStripPlacement="Bottom">
+                            <TabItem Name="TabItemSecurities" Header="Securities" Width="140" Margin="310,0,-310,0">
+                                <Grid>
+                                    <WindowsFormsHost Name="HostVolume" Foreground="Black" Margin="0,0,0,38"/>
+                                    <Label Name="LabelVolumeShowNumbers" Content="Show" HorizontalAlignment="Left" Margin="310,0,0,10" VerticalAlignment="Bottom" Width="98"/>
+                                    <ComboBox Name="VolumeShowNumbers" HorizontalAlignment="Left" Margin="424,0,0,10" VerticalAlignment="Bottom" Width="146"/>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Name="TabItemPortfolio" Header="To portfolio" Width="140" Margin="310,0,-310,0">
+                                <Grid>
+                                    <WindowsFormsHost Name="HostVolumePortfolio" Foreground="Black" Margin="0,0,0,0"/>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItem5" Header="Open positions" Width="140" Margin="41,0,-140,0">
