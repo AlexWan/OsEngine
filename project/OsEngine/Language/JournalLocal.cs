@@ -283,5 +283,12 @@ namespace OsEngine.Language
              "Eng:Are you sure you want to close all positions at market?_" +
              "Ru:Вы уверены что хотите закрыть все позиции по маркету?_");
 
+        public string TabItemSecurities => OsLocalization.ConvertToLocString(
+            "Eng:Securities_" +
+            "Ru:Инструменты_");
+
+        public string TabItemPortfolio => OsLocalization.ConvertToLocString(
+            "Eng:To portfolio_" +
+            "Ru:К портфелю_");
     }
 }
