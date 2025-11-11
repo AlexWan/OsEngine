@@ -1214,6 +1214,9 @@ namespace OsEngine.Language
          "Eng:Error in the initial API connection method. Reconnect the connector. This is most likely a network connection issue, and everything will be fine in a minute. If this happens again, please provide the following error message to the terminal support team: _" +
          "Ru:Ошибка в методе первичного подключения к АПИ. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала: _");
 
+        public string Label290 => OsLocalization.ConvertToLocString(
+         "Eng:Error in the get portfolio method. Reconnect the connector. This is most likely a network connection issue, and everything will be fine in a minute. If this happens again, please provide the following error message to the terminal support team: _" +
+         "Ru:Ошибка в методе запроса портфеля. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала: _");
 
 
 

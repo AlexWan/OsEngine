@@ -426,10 +426,10 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage(OsLocalization.Market.Label288 + Truncate(ex.ToString()), LogMessageType.System);
-
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
+                    SendLogMessage(OsLocalization.Market.Label288 + Truncate(ex.ToString()), LogMessageType.Error);
+
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
@@ -820,86 +820,81 @@ namespace OsEngine.Market.Servers.TInvest
 
         public void GetPortfolios()
         {
-            GetAccountsResponse accountsResponse = null;
             try
             {
-                accountsResponse = _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata);
-            }
-            catch (RpcException ex)
-            {
-                string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting user portfolios. Info: {message}", LogMessageType.System);
-                return;
-            }
-            catch (Exception e)
-            {
-                SendLogMessage($"Error getting user portfolios: {Truncate(e.Message)}", LogMessageType.System);
-            }
+                GetAccountsResponse accountsResponse = _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata);
 
-            // для sandboxa
-            if (accountsResponse.Accounts.Count == 0)
-            {
-                Portfolio myPortfolio = new Portfolio();
-                myPortfolio.Number = "sandbox";
-                myPortfolio.ValueCurrent = 1;
-                myPortfolio.ValueBegin = 1;
-                _myPortfolios.Add(myPortfolio);
-            }
-
-            for (int i = 0; i < accountsResponse.Accounts.Count; i++)
-            {
-                try
+                // для sandboxa
+                if (accountsResponse.Accounts.Count == 0)
                 {
-                    Account account = accountsResponse.Accounts[i];
+                    Portfolio myPortfolio = new Portfolio();
+                    myPortfolio.Number = "sandbox";
+                    myPortfolio.ValueCurrent = 1;
+                    myPortfolio.ValueBegin = 1;
+                    _myPortfolios.Add(myPortfolio);
+                }
 
-                    if (string.IsNullOrEmpty(account.Id))
-                    {
-                        continue;
-                    }
-
-                    if (account.AccessLevel != AccessLevel.AccountAccessLevelFullAccess) // этот игнорируем, так как ключ API не дает доступа    
-                    {
-                        continue;
-                    }
-
-                    if (account.Type == AccountType.InvestBox) // инвест-копилка - это какая-то неторговая приблуда
-                    {
-                        continue;
-                    }
-
-                    PortfolioRequest portfolioRequest = new PortfolioRequest();
-                    portfolioRequest.AccountId = account.Id;
-
-                    PortfolioResponse portfolioResponse = null;
+                for (int i = 0; i < accountsResponse.Accounts.Count; i++)
+                {
                     try
                     {
-                        portfolioResponse = _operationsClient.GetPortfolio(portfolioRequest, _gRpcMetadata);
-                    }
-                    catch (RpcException ex)
-                    {
-                        string message = GetGRPCErrorMessage(ex);
-                        SendLogMessage($"Error getting user portfolios. Info: {message}", LogMessageType.System);
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage($"Error getting portfolio: {Truncate(ex.Message)}", LogMessageType.System);
-                    }
+                        Account account = accountsResponse.Accounts[i];
 
-                    GetPortfolios(portfolioResponse);
-                    UpdatePositionsInPortfolio(portfolioResponse);
+                        if (string.IsNullOrEmpty(account.Id))
+                        {
+                            continue;
+                        }
+
+                        if (account.AccessLevel != AccessLevel.AccountAccessLevelFullAccess) // этот игнорируем, так как ключ API не дает доступа    
+                        {
+                            continue;
+                        }
+
+                        if (account.Type == AccountType.InvestBox) // инвест-копилка - это какая-то неторговая приблуда
+                        {
+                            continue;
+                        }
+
+                        PortfolioRequest portfolioRequest = new PortfolioRequest();
+                        portfolioRequest.AccountId = account.Id;
+
+                        PortfolioResponse portfolioResponse = null;
+
+                        try
+                        {
+                            portfolioResponse = _operationsClient.GetPortfolio(portfolioRequest, _gRpcMetadata);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+
+                        GetPortfolios(portfolioResponse);
+                        UpdatePositionsInPortfolio(portfolioResponse);
+                    }
+                    catch (Exception)
+                    {
+                        // ignore
+                    }
                 }
-                catch (Exception)
+
+                if (_myPortfolios.Count != 0)
                 {
-                    // ignore
+                    if (PortfolioEvent != null)
+                    {
+                        PortfolioEvent(_myPortfolios);
+                    }
                 }
 
             }
-
-            if (_myPortfolios.Count != 0)
+            catch (Exception ex)
             {
-                if (PortfolioEvent != null)
+                if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    PortfolioEvent(_myPortfolios);
+                    SendLogMessage(OsLocalization.Market.Label290 + Truncate(ex.ToString()), LogMessageType.Error);
+
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
                 }
             }
         }
