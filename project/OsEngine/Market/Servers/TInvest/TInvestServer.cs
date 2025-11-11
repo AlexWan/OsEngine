@@ -185,12 +185,10 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     _marketDataStream.RequestStream.CompleteAsync().Wait();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    SendLogMessage($"Error cancelling stream: {Truncate(ex.ToString())}", LogMessageType.System);
+                    // ignore
                 }
-
-                SendLogMessage("Completed exchange with market data stream", LogMessageType.System);
             }
 
             if (_cancellationTokenSource != null)
@@ -199,9 +197,9 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     _cancellationTokenSource.Cancel();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
+                    // ignore
                 }
             }
 
@@ -212,9 +210,9 @@ namespace OsEngine.Market.Servers.TInvest
                     _marketDataStream.ResponseStream.ReadAllAsync();
                     _marketDataStream.Dispose();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
+                    // ignore
                 }
             }
 
@@ -225,9 +223,9 @@ namespace OsEngine.Market.Servers.TInvest
                     _portfolioDataStream.ResponseStream.ReadAllAsync();
                     _portfolioDataStream.Dispose();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
+                    // ignore
                 }
             }
 
@@ -238,9 +236,9 @@ namespace OsEngine.Market.Servers.TInvest
                     _positionsDataStream.ResponseStream.ReadAllAsync();
                     _positionsDataStream.Dispose();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
+                    // ignore
                 }
             }
 
@@ -251,9 +249,9 @@ namespace OsEngine.Market.Servers.TInvest
                     _myTradesDataStream.ResponseStream.ReadAllAsync();
                     _myTradesDataStream.Dispose();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
+                    // ignore
                 }
             }
 
@@ -264,16 +262,23 @@ namespace OsEngine.Market.Servers.TInvest
                     _myOrderStateDataStream.ResponseStream.ReadAllAsync();
                     _myOrderStateDataStream.Dispose();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
+                    // ignore
                 }
             }
 
             if (_channel != null)
             {
-                _channel.Dispose();
-                _channel = null;
+                try
+                {
+                    _channel.Dispose();
+                    _channel = null;
+                }
+                catch
+                {
+                    // ignore
+                }
             }
 
             _marketDataStream = null;
@@ -281,9 +286,6 @@ namespace OsEngine.Market.Servers.TInvest
             _positionsDataStream = null;
             _myTradesDataStream = null;
             _myOrderStateDataStream = null;
-
-            SendLogMessage("Connection to T-Invest closed. Data streams Closed Event", LogMessageType.System);
-
             _streamSubscribedSecurities.Clear();
             _pollSubscribedSecurities.Clear();
             _myPortfolios.Clear();
@@ -2945,6 +2947,7 @@ namespace OsEngine.Market.Servers.TInvest
                 ReplaceOrderRequest request = new ReplaceOrderRequest();
                 request.AccountId = order.PortfolioNumber;
                 request.OrderId = order.NumberMarket;
+                request.ConfirmMarginTrade = true;
 
                 lock (_orderNumbersLocker)
                 {

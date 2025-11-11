@@ -1213,9 +1213,6 @@ namespace OsEngine.Language
 
 
 
-
-
-
         // Servers
 
         public string Message6 => OsLocalization.ConvertToLocString(
