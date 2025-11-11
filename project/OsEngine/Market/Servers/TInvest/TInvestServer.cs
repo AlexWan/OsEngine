@@ -1120,6 +1120,11 @@ namespace OsEngine.Market.Servers.TInvest
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
+            if(ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return null;
+            }
+
             DateTime timeEnd = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone); // to MSK
             DateTime timeStart = timeEnd - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * candleCount);
 
@@ -1493,9 +1498,9 @@ namespace OsEngine.Market.Servers.TInvest
 
                 try
                 {
-                    SendLogMessage("All streams activated. Connect State", LogMessageType.System);
                     ServerStatus = ServerConnectStatus.Connect;
                     ConnectEvent();
+
                     GetUserLimits();
                     ReconnectGRPCStreams();
                 }
@@ -1512,8 +1517,6 @@ namespace OsEngine.Market.Servers.TInvest
 
         private void ReconnectGRPCStreams()
         {
-            SendLogMessage("Connecting GRPC streams", LogMessageType.Connect);
-
             RepeatedField<string> accountsList = new RepeatedField<string>();
             for (int i = 0; i < _myPortfolios.Count; i++)
             {
@@ -2811,7 +2814,7 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error posting order. Info: {message}", LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Label291 + "\n" + message, LogMessageType.Error);
 
                     order.State = OrderStateType.Fail;
                     MyOrderEvent!(order);
@@ -2820,7 +2823,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage($"Error on order execution: {exception.Message}" , LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception.Message, LogMessageType.Error);
 
                     order.State = OrderStateType.Fail;
                     MyOrderEvent!(order);
@@ -2842,7 +2845,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception exception)
             {
-                SendLogMessage($"Order send error {exception}", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception, LogMessageType.Error);
             }
         }
 
@@ -2985,8 +2988,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (countTryRevokeOrder >= 2)
                     {
-                        SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityNameCode,
-                            LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Label292 + " " + order.SecurityNameCode,
+                            LogMessageType.Error);
                         return false;
                     }
 
@@ -3016,12 +3019,12 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error cancelling order. Info: {message}", LogMessageType.System);
+                    SendLogMessage( OsLocalization.Market.Label293 + "\n" + message, LogMessageType.Error);
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("Error cancelling order. Exception: "
-                        + exception.Message + "  " + order.SecurityClassCode, LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Label293 + "\n" +
+                        exception.Message + "  " + order.SecurityClassCode, LogMessageType.Error);
                 }
 
                 if (response != null)
@@ -3044,7 +3047,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order cancel request error " + Truncate(exception.ToString()), LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Label293 + "\n" + Truncate(exception.ToString()), LogMessageType.System);
             }
             return false;
         }

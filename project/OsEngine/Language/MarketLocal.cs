@@ -1218,6 +1218,20 @@ namespace OsEngine.Language
          "Eng:Error in the get portfolio method. Reconnect the connector. This is most likely a network connection issue, and everything will be fine in a minute. If this happens again, please provide the following error message to the terminal support team: _" +
          "Ru:Ошибка в методе запроса портфеля. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала: _");
 
+        public string Label291 => OsLocalization.ConvertToLocString(
+         "Eng:An error occurred while placing an order. Most likely, the error text contains the reason for the error. Error: _" +
+         "Ru:Ошибка при выставлении ордера. Скорее всего в тексте ошибки ответ почему. Ошибка ниже _");
+
+        public string Label292 => OsLocalization.ConvertToLocString(
+         "Eng:Numerous attempts to withdraw the order. _" +
+         "Ru:Многочисленная попытка отозвать ордер.  _");
+
+        public string Label293 => OsLocalization.ConvertToLocString(
+         "Eng:An error occurred while cancel an order. Most likely, the error text contains the reason for the error. Error: _" +
+         "Ru:Ошибка при отзыве ордера. Скорее всего в тексте ошибки ответ почему. Ошибка ниже _");
+
+
+
 
 
 
