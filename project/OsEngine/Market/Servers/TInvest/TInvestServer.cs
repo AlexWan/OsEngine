@@ -92,10 +92,10 @@ namespace OsEngine.Market.Servers.TInvest
 
             try
             {
-        _streamSubscribedSecurities.Clear();
-        _pollSubscribedSecurities.Clear();
+                _streamSubscribedSecurities.Clear();
+                _pollSubscribedSecurities.Clear();
 
-                SendLogMessage("Start T-Invest Connection", LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Label284, LogMessageType.System);
 
                 _accessToken = ((ServerParameterPassword)ServerParameters[0]).Value;
                 _filterOutNonMarketData = ((ServerParameterBool)ServerParameters[5]).Value;
@@ -104,8 +104,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (string.IsNullOrEmpty(_accessToken))
                 {
-                    SendLogMessage("Connection terminated. You must specify the api token. You can get it on the T-Invest website",
-                        LogMessageType.System);
+                    SendLogMessage(OsLocalization.Market.Label283,
+                        LogMessageType.Error);
                     return;
                 }
 
@@ -113,7 +113,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage(Truncate(ex.Message.ToString()), LogMessageType.System);
+                SendLogMessage(Truncate(ex.Message.ToString()), LogMessageType.Error);
             }
         }
 
@@ -130,18 +130,19 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
-                    bool shitHappenedWithStreams = false;
+                    bool streamsIsLost = false;
+                    string lostStreamName = null;
 
                     if (_marketDataStream != null && _lastMarketDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
-                        SendLogMessage("Market data stream timed out", LogMessageType.System);
-                        shitHappenedWithStreams = true;
+                        lostStreamName = "Market data stream";
+                        streamsIsLost = true;
                     }
 
                     if (_portfolioDataStream != null && _lastPortfolioDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
-                        SendLogMessage("Portfolio data stream timed out", LogMessageType.System);
-                        shitHappenedWithStreams = true;
+                        lostStreamName = "Portfolio data stream";
+                        streamsIsLost = true;
                     }
 
                     //if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.UtcNow)
@@ -152,14 +153,16 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (_myOrderStateDataStream != null && _lastMyOrderStateDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
-                        SendLogMessage("Order state data stream timed out", LogMessageType.System);
-                        shitHappenedWithStreams = true;
+                        lostStreamName = "Order state data stream";
+                        
+                        streamsIsLost = true;
                     }
 
-                    if (shitHappenedWithStreams)
+                    if (streamsIsLost)
                     {
                         if (ServerStatus == ServerConnectStatus.Connect)
                         {
+                            SendLogMessage(OsLocalization.Market.Label286 + lostStreamName, LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent();
                         }

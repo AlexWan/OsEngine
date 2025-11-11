@@ -1186,6 +1186,36 @@ namespace OsEngine.Language
          "Eng:Shifts the time of candles, trades, market depth, and orders to a specific time._" +
          "Ru:Сдвигает время свечей, сделок, стакана и ордеров на определенное кол-во часов._");
 
+        public string Label283 => OsLocalization.ConvertToLocString(
+         "Eng:Connection terminated. No API Key. You must specify the api token. You can get it on the T-Invest website._" +
+         "Ru:Соединение прервано. Токена API нет. Необходимо указать токен api. Вы можете получить его на веб-сайте Т-Инвестиции_");
+
+        public string Label284 => OsLocalization.ConvertToLocString(
+         "Eng:Start T-Invest connection_" +
+         "Ru:Запускаем подключение к Т-Инвестиции_");
+
+        public string Label285 => OsLocalization.ConvertToLocString(
+         "Eng:Start T-Invest connection_" +
+         "Ru:Запускаем подключение к Т-Инвестиции_");
+
+        public string Label286 => OsLocalization.ConvertToLocString(
+         "Eng:The standard reconnect procedure has been started. Connection will be restored in one minute. Reason: Delay in response from the API server. Stream _" +
+         "Ru:Запущена процедура штатного переподключения. Через минуту связь восстановится. Причина: задержка с ответом от сервера API. Поток _");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Servers
 
         public string Message6 => OsLocalization.ConvertToLocString(
