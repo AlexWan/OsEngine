@@ -113,7 +113,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage(Truncate(ex.Message.ToString()), LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Label289 + Truncate(ex.Message.ToString()), LogMessageType.Error);
             }
         }
 
@@ -341,163 +341,97 @@ namespace OsEngine.Market.Servers.TInvest
 
         public void GetSecurities()
         {
-            _useStock = ((ServerParameterBool)ServerParameters[1]).Value;
-            _useFutures = ((ServerParameterBool)ServerParameters[2]).Value;
-            _useOptions = ((ServerParameterBool)ServerParameters[3]).Value;
-            _useOther = ((ServerParameterBool)ServerParameters[4]).Value;
-
-            _rateGateInstruments.WaitToProceed();
-            CurrenciesResponse currenciesResponse = null;
             try
             {
+                _useStock = ((ServerParameterBool)ServerParameters[1]).Value;
+                _useFutures = ((ServerParameterBool)ServerParameters[2]).Value;
+                _useOptions = ((ServerParameterBool)ServerParameters[3]).Value;
+                _useOther = ((ServerParameterBool)ServerParameters[4]).Value;
+
+                _rateGateInstruments.WaitToProceed();
+                CurrenciesResponse currenciesResponse = null;
+
+
                 currenciesResponse = _instrumentsClient.Currencies(new InstrumentsRequest(), headers: _gRpcMetadata);
-            }
-            catch (RpcException ex)
-            {
-                string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error loading currencies. Info: {message}", LogMessageType.System);
+                UpdateCurrenciesFromServer(currenciesResponse);
+
+                if (_useStock || _useOther)
+                {
+                    _rateGateInstruments.WaitToProceed();
+
+                    SharesResponse result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata);
+                    UpdateSharesFromServer(result);
+                }
+
+                if (_useFutures)
+                {
+                    _rateGateInstruments.WaitToProceed();
+
+                    FuturesResponse result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata);
+                    UpdateFuturesFromServer(result);
+                }
+
+                if (_useOptions)
+                {
+                    // https://russianinvestments.github.io/investAPI/faq_instruments/ v1.23
+                    // No options still for T-Invest 
+                    //SendLogMessage("Options trading not supported by T-Invest API", LogMessageType.System);
+
+                    //_rateGateInstruments.WaitToProceed();
+
+                    //OptionsResponse result = null;
+                    //try
+                    //{
+                    //    result = _instrumentsClient.Options(new InstrumentsRequest(), headers: _gRpcMetadata);
+                    //}
+                    //catch (RpcException ex)
+                    //{
+                    //    string message = GetGRPCErrorMessage(ex);
+                    //    SendLogMessage($"Error getting options data. Info: {message}", LogMessageType.System);
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    SendLogMessage("Error loading securities", LogMessageType.System);
+                    //}
+
+                    //UpdateOptionsFromServer(result);
+                }
+
+                if (_useOther)
+                {
+                    _rateGateInstruments.WaitToProceed();
+
+                    BondsResponse result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata);
+                    UpdateBondsFromServer(result);
+
+                    _rateGateInstruments.WaitToProceed();
+
+                    EtfsResponse etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata);
+                    UpdateEtfsFromServer(etfs);
+
+                    _rateGateInstruments.WaitToProceed();
+                    IndicativesResponse indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata);
+                    UpdateIndicativesFromServer(indicatives);
+                }
+
+                if (_securities.Count > 0)
+                {
+                    SendLogMessage(OsLocalization.Market.Label287 + " " + _securities.Count, LogMessageType.System);
+
+                    if (SecurityEvent != null)
+                    {
+                        SecurityEvent.Invoke(_securities);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Error loading securities: {Truncate(ex.ToString())}", LogMessageType.System);
-            }
+                SendLogMessage(OsLocalization.Market.Label288 + Truncate(ex.ToString()), LogMessageType.System);
 
-            UpdateCurrenciesFromServer(currenciesResponse);
-
-            if (_useStock || _useOther)
-            {
-                _rateGateInstruments.WaitToProceed();
-                SharesResponse result = null;
-                try
+                if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata);
-                }
-                catch (RpcException ex)
-                {
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting shares data. Info: {message}", LogMessageType.System);
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage($"Error loading securities: {Truncate(ex.ToString())}", LogMessageType.System);
-                }
-
-                UpdateSharesFromServer(result);
-            }
-
-            if (_useFutures)
-            {
-                _rateGateInstruments.WaitToProceed();
-                FuturesResponse result = null;
-                try
-                {
-                    result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata);
-                }
-                catch (RpcException ex)
-                {
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting futures data. Info: {message}", LogMessageType.System);
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage($"Error loading securities: {Truncate(ex.ToString())}", LogMessageType.System);
-                }
-
-                UpdateFuturesFromServer(result);
-            }
-
-            if (_useOptions)
-            {
-                // https://russianinvestments.github.io/investAPI/faq_instruments/ v1.23
-                // No options still for T-Invest 
-                //SendLogMessage("Options trading not supported by T-Invest API", LogMessageType.System);
-
-                //_rateGateInstruments.WaitToProceed();
-
-                //OptionsResponse result = null;
-                //try
-                //{
-                //    result = _instrumentsClient.Options(new InstrumentsRequest(), headers: _gRpcMetadata);
-                //}
-                //catch (RpcException ex)
-                //{
-                //    string message = GetGRPCErrorMessage(ex);
-                //    SendLogMessage($"Error getting options data. Info: {message}", LogMessageType.System);
-                //}
-                //catch (Exception ex)
-                //{
-                //    SendLogMessage("Error loading securities", LogMessageType.System);
-                //}
-
-                //UpdateOptionsFromServer(result);
-            }
-
-            if (_useOther)
-            {
-                _rateGateInstruments.WaitToProceed();
-                BondsResponse result = null;
-                try
-                {
-                    result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata);
-                }
-                catch (RpcException ex)
-                {
-                    string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.System);
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.System);
-                }
-
-                UpdateBondsFromServer(result);
-
-                _rateGateInstruments.WaitToProceed();
-                EtfsResponse etfs = null;
-
-                try
-                {
-                    etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata);
-                }
-                catch (RpcException ex)
-                {
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting Etfs data. Info: {message}", LogMessageType.System);
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.System);
-                }
-
-                UpdateEtfsFromServer(etfs);
-
-                _rateGateInstruments.WaitToProceed();
-                IndicativesResponse indicatives = null;
-
-                try
-                {
-                    indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata);
-                }
-                catch (RpcException ex)
-                {
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting indicatives data. Info: {message}", LogMessageType.System);
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.System);
-                }
-
-                UpdateIndicativesFromServer(indicatives);
-            }
-
-            if (_securities.Count > 0)
-            {
-                SendLogMessage("Securities loaded. Count: " + _securities.Count, LogMessageType.System);
-
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent.Invoke(_securities);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
                 }
             }
         }

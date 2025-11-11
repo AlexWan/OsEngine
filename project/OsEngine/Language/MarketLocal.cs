@@ -1202,11 +1202,17 @@ namespace OsEngine.Language
          "Eng:The standard reconnect procedure has been started. Connection will be restored in one minute. Reason: Delay in response from the API server. Stream _" +
          "Ru:Запущена процедура штатного переподключения. Через минуту связь восстановится. Причина: задержка с ответом от сервера API. Поток _");
 
+        public string Label287 => OsLocalization.ConvertToLocString(
+         "Eng:Securities loaded. Count: _" +
+         "Ru:Бумаги для торгов подгружены. Количество: _");
 
+        public string Label288 => OsLocalization.ConvertToLocString(
+        "Eng:An error occurred in the security request method. Reconnect the connector. This is most likely a connection issue with the internet, and everything will be fine. If this happens again, please provide the following error message to the terminal support team: _" +
+        "Ru:Ошибка в методе запроса бумаг. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала:  _");
 
-
-
-
+        public string Label289 => OsLocalization.ConvertToLocString(
+         "Eng:Error in the initial API connection method. Reconnect the connector. This is most likely a network connection issue, and everything will be fine in a minute. If this happens again, please provide the following error message to the terminal support team: _" +
+         "Ru:Ошибка в методе первичного подключения к АПИ. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала: _");
 
 
 
