@@ -105,7 +105,7 @@ namespace OsEngine.Market.Servers.TInvest
                 if (string.IsNullOrEmpty(_accessToken))
                 {
                     SendLogMessage("Connection terminated. You must specify the api token. You can get it on the T-Invest website",
-                        LogMessageType.Error);
+                        LogMessageType.System);
                     return;
                 }
 
@@ -113,7 +113,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage(Truncate(ex.Message.ToString()), LogMessageType.Error);
+                SendLogMessage(Truncate(ex.Message.ToString()), LogMessageType.System);
             }
         }
 
@@ -134,25 +134,25 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (_marketDataStream != null && _lastMarketDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
-                        SendLogMessage("Market data stream timed out", LogMessageType.Error);
+                        SendLogMessage("Market data stream timed out", LogMessageType.System);
                         shitHappenedWithStreams = true;
                     }
 
                     if (_portfolioDataStream != null && _lastPortfolioDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
-                        SendLogMessage("Portfolio data stream timed out", LogMessageType.Error);
+                        SendLogMessage("Portfolio data stream timed out", LogMessageType.System);
                         shitHappenedWithStreams = true;
                     }
 
                     //if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.UtcNow)
                     //{
-                    //    SendLogMessage("My trades data stream timed out", LogMessageType.Error);
+                    //    SendLogMessage("My trades data stream timed out", LogMessageType.System);
                     //    shitHappenedWithStreams = true;
                     //}
 
                     if (_myOrderStateDataStream != null && _lastMyOrderStateDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
-                        SendLogMessage("Order state data stream timed out", LogMessageType.Error);
+                        SendLogMessage("Order state data stream timed out", LogMessageType.System);
                         shitHappenedWithStreams = true;
                     }
 
@@ -167,7 +167,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage(Truncate(ex.ToString()), LogMessageType.Error);
+                    SendLogMessage(Truncate(ex.ToString()), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -184,7 +184,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error cancelling stream: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error cancelling stream: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
 
                 SendLogMessage("Completed exchange with market data stream", LogMessageType.System);
@@ -198,7 +198,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
             }
 
@@ -211,7 +211,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
             }
 
@@ -224,7 +224,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
             }
 
@@ -237,7 +237,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
             }
 
@@ -250,7 +250,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
             }
 
@@ -263,7 +263,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
             }
 
@@ -350,11 +350,11 @@ namespace OsEngine.Market.Servers.TInvest
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error loading currencies. Info: {message}", LogMessageType.Error);
+                SendLogMessage($"Error loading currencies. Info: {message}", LogMessageType.System);
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Error loading securities: {Truncate(ex.ToString())}", LogMessageType.Error);
+                SendLogMessage($"Error loading securities: {Truncate(ex.ToString())}", LogMessageType.System);
             }
 
             UpdateCurrenciesFromServer(currenciesResponse);
@@ -370,11 +370,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting shares data. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error getting shares data. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error loading securities: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
 
                 UpdateSharesFromServer(result);
@@ -391,11 +391,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting futures data. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error getting futures data. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error loading securities: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
 
                 UpdateFuturesFromServer(result);
@@ -405,7 +405,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 // https://russianinvestments.github.io/investAPI/faq_instruments/ v1.23
                 // No options still for T-Invest 
-                //SendLogMessage("Options trading not supported by T-Invest API", LogMessageType.Error);
+                //SendLogMessage("Options trading not supported by T-Invest API", LogMessageType.System);
 
                 //_rateGateInstruments.WaitToProceed();
 
@@ -417,11 +417,11 @@ namespace OsEngine.Market.Servers.TInvest
                 //catch (RpcException ex)
                 //{
                 //    string message = GetGRPCErrorMessage(ex);
-                //    SendLogMessage($"Error getting options data. Info: {message}", LogMessageType.Error);
+                //    SendLogMessage($"Error getting options data. Info: {message}", LogMessageType.System);
                 //}
                 //catch (Exception ex)
                 //{
-                //    SendLogMessage("Error loading securities", LogMessageType.Error);
+                //    SendLogMessage("Error loading securities", LogMessageType.System);
                 //}
 
                 //UpdateOptionsFromServer(result);
@@ -438,11 +438,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.Error);
+                SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.System);
                 }
 
                 UpdateBondsFromServer(result);
@@ -457,11 +457,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting Etfs data. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error getting Etfs data. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.System);
                 }
 
                 UpdateEtfsFromServer(etfs);
@@ -476,11 +476,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting indicatives data. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error getting indicatives data. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities:  {Truncate(ex.ToString())}", LogMessageType.System);
                 }
 
                 UpdateIndicativesFromServer(indicatives);
@@ -546,7 +546,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading stocks: {Truncate(e.Message)}", LogMessageType.Error);
+                SendLogMessage($"Error loading stocks: {Truncate(e.Message)}", LogMessageType.System);
             }
         }
 
@@ -600,7 +600,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading bonds: {Truncate(e.Message)}", LogMessageType.Error);
+                SendLogMessage($"Error loading bonds: {Truncate(e.Message)}", LogMessageType.System);
             }
         }
 
@@ -652,7 +652,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading ETFs: {Truncate(e.Message)}", LogMessageType.Error);
+                SendLogMessage($"Error loading ETFs: {Truncate(e.Message)}", LogMessageType.System);
             }
         }
 
@@ -693,7 +693,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading indicatives: {Truncate(e.Message)}", LogMessageType.Error);
+                SendLogMessage($"Error loading indicatives: {Truncate(e.Message)}", LogMessageType.System);
             }
         }
 
@@ -748,7 +748,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading currency pairs: {Truncate(e.Message)}", LogMessageType.Error);
+                SendLogMessage($"Error loading currency pairs: {Truncate(e.Message)}", LogMessageType.System);
             }
         }
 
@@ -811,7 +811,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading futures: {Truncate(e.Message)}", LogMessageType.Error);
+                SendLogMessage($"Error loading futures: {Truncate(e.Message)}", LogMessageType.System);
             }
         }
 
@@ -865,7 +865,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading options: {Truncate(e.Message)}", LogMessageType.Error);
+                SendLogMessage($"Error loading options: {Truncate(e.Message)}", LogMessageType.System);
             }
         }
 
@@ -889,12 +889,12 @@ namespace OsEngine.Market.Servers.TInvest
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting user portfolios. Info: {message}", LogMessageType.Error);
+                SendLogMessage($"Error getting user portfolios. Info: {message}", LogMessageType.System);
                 return;
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error getting user portfolios: {Truncate(e.Message)}", LogMessageType.Error);
+                SendLogMessage($"Error getting user portfolios: {Truncate(e.Message)}", LogMessageType.System);
             }
 
             // для sandboxa
@@ -939,11 +939,11 @@ namespace OsEngine.Market.Servers.TInvest
                     catch (RpcException ex)
                     {
                         string message = GetGRPCErrorMessage(ex);
-                        SendLogMessage($"Error getting user portfolios. Info: {message}", LogMessageType.Error);
+                        SendLogMessage($"Error getting user portfolios. Info: {message}", LogMessageType.System);
                     }
                     catch (Exception ex)
                     {
-                        SendLogMessage($"Error getting portfolio: {Truncate(ex.Message)}", LogMessageType.Error);
+                        SendLogMessage($"Error getting portfolio: {Truncate(ex.Message)}", LogMessageType.System);
                     }
 
                     GetPortfolios(portfolioResponse);
@@ -1004,11 +1004,11 @@ namespace OsEngine.Market.Servers.TInvest
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting positions in portfolio. Info: {message}", LogMessageType.Error);
+                SendLogMessage($"Error getting positions in portfolio. Info: {message}", LogMessageType.System);
             }
             catch
             {
-                SendLogMessage("Error getting positions in portfolio", LogMessageType.Error);
+                SendLogMessage("Error getting positions in portfolio", LogMessageType.System);
             }
 
             for (int i = 0; i < posData.Securities.Count; i++)
@@ -1029,11 +1029,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.Error);
+                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.System);
                 }
 
                 PositionOnBoard newPos = new PositionOnBoard();
@@ -1070,11 +1070,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.Error);
+                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.System);
                 }
 
                 PositionOnBoard newPos = new PositionOnBoard();
@@ -1111,11 +1111,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + Truncate(ex.ToString()), LogMessageType.Error);
+                    SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + Truncate(ex.ToString()), LogMessageType.System);
                 }
 
                 PositionOnBoard newPos = new PositionOnBoard();
@@ -1301,7 +1301,7 @@ namespace OsEngine.Market.Servers.TInvest
                     if (message == "no server message")
                         SendLogMessage($"Couldn't get candles for {security.Name}. Info: probably invalid time interval {fromDateTime}UTC - {toDateTime}UTC", LogMessageType.System);
                     else
-                        SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.Error);
+                        SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
@@ -1311,7 +1311,7 @@ namespace OsEngine.Market.Servers.TInvest
                     }
 
                     SendLogMessage($"Error getting candles for {security.Name}: " + Truncate(ex.ToString()),
-                        LogMessageType.Error);
+                        LogMessageType.System);
                 }
             }
 
@@ -1356,11 +1356,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting trading schedules. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error getting trading schedules. Info: {message}", LogMessageType.System);
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error fetching trading schedules: {Truncate(ex.ToString())}", LogMessageType.Error);
+                    SendLogMessage($"Error fetching trading schedules: {Truncate(ex.ToString())}", LogMessageType.System);
                 }
 
                 _tradingSchedules[mskDate] = thisDaySchedules;
@@ -1496,11 +1496,11 @@ namespace OsEngine.Market.Servers.TInvest
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting user limits. Info: {message}", LogMessageType.Error);
+                SendLogMessage($"Error getting user limits. Info: {message}", LogMessageType.System);
             }
             catch (Exception ex)
             {
-                SendLogMessage(Truncate(ex.ToString()), LogMessageType.Error);
+                SendLogMessage(Truncate(ex.ToString()), LogMessageType.System);
             }
 
             if (response == null)
@@ -1567,12 +1567,12 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage(Truncate(ex.ToString()), LogMessageType.Error);
+                    SendLogMessage(Truncate(ex.ToString()), LogMessageType.System);
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage(Truncate(exception.ToString()), LogMessageType.Error);
+                SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
             }
         }
 
@@ -1726,7 +1726,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception exception)
             {
-                SendLogMessage(Truncate(exception.ToString()), LogMessageType.Error);
+                SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
             }
         }
 
@@ -1924,7 +1924,7 @@ namespace OsEngine.Market.Servers.TInvest
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         string message = GetGRPCErrorMessage(ex);
-                        SendLogMessage($"Market data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
+                        SendLogMessage($"Market data stream was disconnected. Attempting to reconnect.", LogMessageType.System);
 
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
@@ -1933,7 +1933,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.Error);
+                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -1978,7 +1978,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception e)
                 {
-                    SendLogMessage(Truncate(e.ToString()), LogMessageType.Error);
+                    SendLogMessage(Truncate(e.ToString()), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -2025,11 +2025,11 @@ namespace OsEngine.Market.Servers.TInvest
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting last prices. Status: {ex.StatusCode}, Message: {message}, Details: {Truncate(ex.ToString())}", LogMessageType.Error);
+                SendLogMessage($"Error getting last prices. Status: {ex.StatusCode}, Message: {message}, Details: {Truncate(ex.ToString())}", LogMessageType.System);
             }
             catch (Exception ex)
             {
-                SendLogMessage(Truncate(ex.ToString()), LogMessageType.Error);
+                SendLogMessage(Truncate(ex.ToString()), LogMessageType.System);
             }
 
             if (priceResp == null)
@@ -2210,11 +2210,11 @@ namespace OsEngine.Market.Servers.TInvest
                         //    catch (RpcException ex)
                         //    {
                         //        string message = GetGRPCErrorMessage(ex);
-                        //        SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                        //        SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.System);
                         //    }
                         //    catch (Exception ex)
                         //    {
-                        //        SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
+                        //        SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
                         //    }
 
                         //    PositionOnBoard newPos = new PositionOnBoard();
@@ -2249,7 +2249,7 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage($"Portfolio data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
+                        SendLogMessage($"Portfolio data stream was disconnected. Attempting to reconnect.", LogMessageType.System);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2257,7 +2257,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.Error);
+                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -2339,11 +2339,11 @@ namespace OsEngine.Market.Servers.TInvest
                             catch (RpcException ex)
                             {
                                 string message = GetGRPCErrorMessage(ex);
-                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.System);
                             }
                             catch (Exception ex)
                             {
-                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.Error);
+                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.System);
                             }
 
                             PositionOnBoard newPos = new PositionOnBoard();
@@ -2379,11 +2379,11 @@ namespace OsEngine.Market.Servers.TInvest
                             catch (RpcException ex)
                             {
                                 string message = GetGRPCErrorMessage(ex);
-                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.System);
                             }
                             catch (Exception ex)
                             {
-                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.Error);
+                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.System);
                             }
 
                             PositionOnBoard newPos = new PositionOnBoard();
@@ -2413,11 +2413,11 @@ namespace OsEngine.Market.Servers.TInvest
                             catch (RpcException ex)
                             {
                                 string message = GetGRPCErrorMessage(ex);
-                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.System);
                             }
                             catch (Exception ex)
                             {
-                                SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + Truncate(ex.ToString()), LogMessageType.Error);
+                                SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + Truncate(ex.ToString()), LogMessageType.System);
                             }
 
                             PositionOnBoard newPos = new PositionOnBoard();
@@ -2464,7 +2464,7 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage($"Positions data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
+                        SendLogMessage($"Positions data stream was disconnected. Attempting to reconnect.", LogMessageType.System);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2472,7 +2472,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.Error);
+                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -2579,7 +2579,7 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"My trades data stream was disconnected: {message}", LogMessageType.Error);
+                    SendLogMessage($"My trades data stream was disconnected: {message}", LogMessageType.System);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2591,7 +2591,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.Error);
+                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -2688,7 +2688,7 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 // Fallback to potentially incorrect price and log an error
                                 order.Price = GetValue(state.OrderPrice)/security.PriceStepCost*security.PriceStep;
-                                SendLogMessage($"Could not find original price for order request ID {state.OrderRequestId}. Using price from broker.", LogMessageType.Error);
+                                SendLogMessage($"Could not find original price for order request ID {state.OrderRequestId}. Using price from broker.", LogMessageType.System);
                             }
                         }
                         else
@@ -2757,7 +2757,7 @@ namespace OsEngine.Market.Servers.TInvest
                                 if (trade.Time == DateTime.Parse("01.01.1970 03:00:00"))
                                 {
                                     DateTime tTime = orderTrade.DateTime.ToDateTime();
-                                    SendLogMessage($"TInvest sent trade with time == {tTime} for trade Id {orderTrade.TradeId}", LogMessageType.Error);
+                                    SendLogMessage($"TInvest sent trade with time == {tTime} for trade Id {orderTrade.TradeId}", LogMessageType.System);
 
                                     trade.Time = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone); // fix trade time
                                 }
@@ -2786,7 +2786,7 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage($"Order state data stream was disconnected. Attempting to reconnect.", LogMessageType.Error);
+                        SendLogMessage($"Order state data stream was disconnected. Attempting to reconnect.", LogMessageType.System);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2794,7 +2794,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.Error);
+                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -2844,6 +2844,7 @@ namespace OsEngine.Market.Servers.TInvest
                 request.OrderType = order.TypeOrder == OrderPriceType.Limit ? OrderType.Limit : OrderType.Market; // еще есть BestPrice
                 request.Quantity = Convert.ToInt32(order.Volume);
                 request.Price = ConvertToQuotation(order.Price);
+                request.ConfirmMarginTrade = true;
 
                 if (security.SecurityType == SecurityType.Bond) // set price type to points in case security type is bond
                 {
@@ -2876,7 +2877,7 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error posting order. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error posting order. Info: {message}", LogMessageType.System);
 
                     order.State = OrderStateType.Fail;
                     MyOrderEvent!(order);
@@ -2885,7 +2886,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage($"Error on order execution: {exception.Message}" , LogMessageType.Error);
+                    SendLogMessage($"Error on order execution: {exception.Message}" , LogMessageType.System);
 
                     order.State = OrderStateType.Fail;
                     MyOrderEvent!(order);
@@ -2907,7 +2908,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception exception)
             {
-                SendLogMessage($"Order send error {exception}", LogMessageType.Error);
+                SendLogMessage($"Order send error {exception}", LogMessageType.System);
             }
         }
 
@@ -2922,7 +2923,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (order.TypeOrder == OrderPriceType.Market)
                 {
-                    SendLogMessage("Can`t change price to market order", LogMessageType.Error);
+                    SendLogMessage("Can`t change price to market order", LogMessageType.System);
                     return;
                 }
 
@@ -2957,7 +2958,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (request.Quantity <= 0 || order.State != OrderStateType.Active)
                 {
-                    SendLogMessage("Can`t change order price because it`s not in Active state", LogMessageType.Error);
+                    SendLogMessage("Can`t change order price because it`s not in Active state", LogMessageType.System);
                     return;
                 }
 
@@ -2972,7 +2973,7 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error replacing order. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error replacing order. Info: {message}", LogMessageType.System);
 
                     order.State = OrderStateType.Fail;
                     if (MyOrderEvent != null)
@@ -2984,7 +2985,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("Error on order Execution \n" + exception.Message, LogMessageType.Error);
+                    SendLogMessage("Error on order Execution \n" + exception.Message, LogMessageType.System);
 
                     order.State = OrderStateType.Fail;
                     if (MyOrderEvent != null)
@@ -3023,7 +3024,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception error)
             {
-                SendLogMessage(Truncate(error.ToString()), LogMessageType.Error);
+                SendLogMessage(Truncate(error.ToString()), LogMessageType.System);
             }
         }
 
@@ -3108,7 +3109,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order cancel request error " + Truncate(exception.ToString()), LogMessageType.Error);
+                SendLogMessage("Order cancel request error " + Truncate(exception.ToString()), LogMessageType.System);
             }
             return false;
         }
@@ -3193,15 +3194,15 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.Error);
+                    SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.System);
 
                     Thread.Sleep(1);
                     return OrderStateType.None;
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error getting order state " + order.SecurityNameCode + " exception: " + Truncate(ex.ToString()), LogMessageType.Error);
-                    SendLogMessage("Server data was: " + state.ToString(), LogMessageType.Error);
+                    SendLogMessage("Error getting order state " + order.SecurityNameCode + " exception: " + Truncate(ex.ToString()), LogMessageType.System);
+                    SendLogMessage("Server data was: " + state.ToString(), LogMessageType.System);
 
                     Thread.Sleep(1);
                     return OrderStateType.None;
@@ -3211,7 +3212,7 @@ namespace OsEngine.Market.Servers.TInvest
                 Security security = _securities.FirstOrDefault(s => s.Name == order.SecurityNameCode);
                 if (security == null)
                 {
-                    SendLogMessage($"Error getting security for {order.SecurityNameCode} in GetOrderStatusWithTrades", LogMessageType.Error);
+                    SendLogMessage($"Error getting security for {order.SecurityNameCode} in GetOrderStatusWithTrades", LogMessageType.System);
                     return OrderStateType.None;
                 }
 
@@ -3300,11 +3301,11 @@ namespace OsEngine.Market.Servers.TInvest
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.Error);
+                SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.System);
             }
             catch (Exception exception)
             {
-                SendLogMessage("Get order state request error. " + Truncate(exception.ToString()), LogMessageType.Error);
+                SendLogMessage("Get order state request error. " + Truncate(exception.ToString()), LogMessageType.System);
             }
 
             return OrderStateType.None;
@@ -3444,17 +3445,17 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 else
                 {
-                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+                    SendLogMessage("Get all orders request error. ", LogMessageType.System);
                 }
             }
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting all orders. Info: {message}", LogMessageType.Error);
+                SendLogMessage($"Error getting all orders. Info: {message}", LogMessageType.System);
             }
             catch (Exception exception)
             {
-                SendLogMessage("Get all orders request error. " + Truncate(exception.ToString()), LogMessageType.Error);
+                SendLogMessage("Get all orders request error. " + Truncate(exception.ToString()), LogMessageType.System);
             }
 
             return null;
