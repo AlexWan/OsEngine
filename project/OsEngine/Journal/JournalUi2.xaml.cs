@@ -2502,7 +2502,10 @@ namespace OsEngine.Journal
                     {
                         _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Maximum = valueMax;
                         _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Minimum = valueMin;
-                          double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
+                        double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
+
+                        interval = Math.Round(interval, 4);
+
                         _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Interval = interval;
 
                     }
