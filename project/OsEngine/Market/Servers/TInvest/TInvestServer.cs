@@ -92,6 +92,22 @@ namespace OsEngine.Market.Servers.TInvest
 
             try
             {
+                try
+                {
+                    string osNameAndVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+
+                    if (osNameAndVersion.StartsWith("Microsoft Windows 7"))
+                    {
+                        SendLogMessage(OsLocalization.Market.Label299, LogMessageType.System);
+                        return;
+                    }
+
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 _streamSubscribedSecurities.Clear();
                 _pollSubscribedSecurities.Clear();
 
@@ -144,12 +160,6 @@ namespace OsEngine.Market.Servers.TInvest
                         lostStreamName = "Portfolio data stream";
                         streamsIsLost = true;
                     }
-
-                    //if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.UtcNow)
-                    //{
-                    //    SendLogMessage("My trades data stream timed out", LogMessageType.System);
-                    //    shitHappenedWithStreams = true;
-                    //}
 
                     if (_myOrderStateDataStream != null && _lastMyOrderStateDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
@@ -264,19 +274,6 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
-            if (_myTradesDataStream != null)
-            {
-                try
-                {
-                    _myTradesDataStream.ResponseStream.ReadAllAsync();
-                    _myTradesDataStream.Dispose();
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-
             if (_myOrderStateDataStream != null)
             {
                 try
@@ -306,7 +303,6 @@ namespace OsEngine.Market.Servers.TInvest
             _marketDataStream = null;
             _portfolioDataStream = null;
             _positionsDataStream = null;
-            _myTradesDataStream = null;
             _myOrderStateDataStream = null;
             _marketDataRequestsLastPrice.Clear();
             _marketDataRequestsOrderBook.Clear();
@@ -316,7 +312,6 @@ namespace OsEngine.Market.Servers.TInvest
             _myPortfolios.Clear();
             _lastMarketDataTime = DateTime.UtcNow;
             _lastMdTime = DateTime.UtcNow;
-            _lastMyTradesDataTime = DateTime.UtcNow;
             _lastPortfolioDataTime = DateTime.UtcNow;
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -1566,7 +1561,6 @@ namespace OsEngine.Market.Servers.TInvest
                 _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
                     headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
-            _lastMyTradesDataTime = DateTime.UtcNow;
             _lastPortfolioDataTime = DateTime.UtcNow;
         }
 
@@ -1701,7 +1695,6 @@ namespace OsEngine.Market.Servers.TInvest
                     Accounts = { accountsList }
                 }, headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
-                _lastMyTradesDataTime = DateTime.UtcNow;
             }
             catch
             {
@@ -1840,16 +1833,17 @@ namespace OsEngine.Market.Servers.TInvest
         List<Security> _streamSubscribedSecurities = new List<Security>();
         List<Security> _pollSubscribedSecurities = new List<Security>();
 
+
         private bool _useStreamForMarketData = true; // if we are over the limits, then stop using stream and turn to data polling (300+ subscribed secs)
+
         private AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse> _marketDataStream;
-        private AsyncServerStreamingCall<TradesStreamResponse> _myTradesDataStream;
+
         private AsyncServerStreamingCall<OrderStateStreamResponse> _myOrderStateDataStream;
         private AsyncServerStreamingCall<PortfolioStreamResponse> _portfolioDataStream;
         private AsyncServerStreamingCall<PositionsStreamResponse> _positionsDataStream;
 
         private DateTime _lastMarketDataTime = DateTime.MinValue;
         private DateTime _lastPortfolioDataTime = DateTime.MinValue;
-        private DateTime _lastMyTradesDataTime = DateTime.MinValue;
         private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
 
         private List<SubscribeOrderBookRequest> _marketDataRequestsOrderBook = new List<SubscribeOrderBookRequest>();
@@ -2778,125 +2772,6 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         SendLogMessage(OsLocalization.Market.Label294 + "\nPositions", LogMessageType.System);
                         SendMessageOnReconnectInErrorLog();
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
-                    Thread.Sleep(5000);
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
-                    Thread.Sleep(5000);
-                }
-            }
-        }
-
-        private async void MyTradesMessageReader()
-        {
-            Thread.Sleep(1000);
-
-            while (true)
-            {
-                try
-                {
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-
-                    if (_myTradesDataStream == null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    if (await _myTradesDataStream.ResponseStream.MoveNext() == false)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    if (_myTradesDataStream == null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    TradesStreamResponse tradesResponse = _myTradesDataStream.ResponseStream.Current;
-                    if (tradesResponse == null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    _lastMyTradesDataTime = DateTime.UtcNow;
-
-                    if (tradesResponse.Ping != null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    if (tradesResponse.OrderTrades != null)
-                    {
-                        Security security = GetSecurity(tradesResponse.OrderTrades.InstrumentUid);
-
-                        if (security == null)
-                        {
-                            Thread.Sleep(1);
-                            continue;
-                        }
-
-                        HashSet<string> ordersToCheck = new HashSet<string>();
-
-                        for (int i = 0; i < tradesResponse.OrderTrades.Trades.Count; i++)
-                        {
-                            MyTrade trade = new MyTrade();
-
-                            ordersToCheck.Add(tradesResponse.OrderTrades.OrderId); // save for checking status later
-
-                            trade.SecurityNameCode = security.Name;
-                            trade.Price = GetValue(tradesResponse.OrderTrades.Trades[i].Price);
-                            trade.Volume = tradesResponse.OrderTrades.Trades[i].Quantity / security.Lot;
-                            trade.NumberOrderParent = tradesResponse.OrderTrades.OrderId;
-                            trade.NumberTrade = tradesResponse.OrderTrades.Trades[i].TradeId;
-                            trade.Time = TimeZoneInfo.ConvertTimeFromUtc(tradesResponse.OrderTrades.Trades[i].DateTime.ToDateTime(), _mskTimeZone);// convert to MSK
-                            trade.Side = tradesResponse.OrderTrades.Direction == OrderDirection.Buy
-                                ? Side.Buy
-                                : Side.Sell;
-
-                            MyTradeEvent?.Invoke(trade);
-                        }
-
-                        // sometimes order status gets lost so lets query it implicitly
-                        string[] orderIds = ordersToCheck.ToArray();
-                        for (int i = 0; i < orderIds.Length; i++)
-                        {
-                            Order order = new Order();
-                            order.NumberMarket = orderIds[i];
-                            order.PortfolioNumber = tradesResponse.OrderTrades.AccountId;
-
-                            GetOrderStatusWithTrades(order, false); // no need to resend trades
-                        }
-                    }
-                }
-                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-                {
-                    // Handle the cancellation gracefully
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"My trades data stream was cancelled: {message}", LogMessageType.System);
-                    Thread.Sleep(5000);
-                }
-                catch (RpcException ex)
-                {
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"My trades data stream was disconnected: {message}", LogMessageType.System);
-
-                    // need to reconnect everything
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
