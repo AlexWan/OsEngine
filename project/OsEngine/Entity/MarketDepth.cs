@@ -3,6 +3,8 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Market.Servers.Entity;
+using OsEngine.OsData.BinaryEntity;
 using System;
 using System.Collections.Generic;
 
@@ -70,6 +72,115 @@ namespace OsEngine.Entity
         /// Security that owns to market depth
         /// </summary>
         public string SecurityNameCode;
+
+        public int _lastBinaryPrice = 0;
+
+        public void SetMarketDepthFromBinaryFile(DataBinaryReader dr, decimal priceStep, double volumeStep, long lastMilliseconds)
+        {
+            lastMilliseconds = dr.ReadGrowing(lastMilliseconds);
+            Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+
+            int n = (int)dr.ReadLeb128();
+
+            for (int i = 0; i < n; i++)
+            {
+                _lastBinaryPrice += (int)dr.ReadLeb128();
+                double volume = (int)dr.ReadLeb128() * volumeStep;
+
+                if (volume == 0)
+                {
+                    bool isDelete = false;
+                    for (int i2 = Bids.Count - 1; i2 >= 0; i2--)
+                    {
+                        if (Bids[i2].Price == _lastBinaryPrice * (double)priceStep)
+                        {
+                            Bids.Remove(Bids[i2]);
+                            isDelete = true;
+                            break;
+                        }
+                    }
+
+                    if (isDelete) continue;
+
+                    for (int i2 = Asks.Count - 1; i2 >= 0; i2--)
+                    {
+                        if (Asks[i2].Price == _lastBinaryPrice * (double)priceStep)
+                        {
+                            Asks.Remove(Asks[i2]);
+                            break;
+                        }
+                    }
+                }
+                else if (volume > 0)
+                {
+                    bool inArray = false;
+
+                    if (Asks.Count > 0)
+                    {
+                        for (int i2 = 0; i2 < Asks.Count; i2++)
+                        {
+                            if (Asks[i2].Price == _lastBinaryPrice * (double)priceStep)
+                            {
+                                Asks[i2].Ask = volume * volumeStep;
+                                inArray = true;
+                                break;
+                            }
+                        }
+
+                        for (int i2 = Bids.Count - 1; i2 >= 0; i2--)
+                        {
+                            if (Bids[i2].Price == _lastBinaryPrice * (double)priceStep)
+                            {
+                                Bids.Remove(Bids[i2]);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (inArray) continue;
+
+                    MarketDepthLevel newAsk = new MarketDepthLevel();
+                    newAsk.Price = _lastBinaryPrice * (double)priceStep;
+                    newAsk.Ask = volume * volumeStep;
+                    Asks.Add(newAsk);
+                }
+                else if (volume < 0)
+                {
+                    bool inArray = false;
+                    if (Bids.Count > 0)
+                    {
+                        for (int i2 = 0; i2 < Bids.Count; i2++)
+                        {
+                            if (Bids[i2].Price == _lastBinaryPrice * (double)priceStep)
+                            {
+                                Bids[i2].Bid = -(volume * volumeStep);
+                                inArray = true;
+                                break;
+                            }
+                        }
+
+                        for (int i2 = Asks.Count - 1; i2 >= 0; i2--)
+                        {
+                            if (Asks[i2].Price == _lastBinaryPrice * (double)priceStep)
+                            {
+                                Asks.Remove(Asks[i2]);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (inArray) continue;
+
+                    MarketDepthLevel newBid = new MarketDepthLevel();
+                    newBid.Price = _lastBinaryPrice * (double)priceStep;
+                    newBid.Bid = -(volume * volumeStep);
+                    Bids.Add(newBid);
+                }
+            }
+
+            Bids.Sort((bid1, bid2) => bid2.Price.CompareTo(bid1.Price));
+            Asks.Sort((ask1, ask2) => ask1.Price.CompareTo(ask2.Price));
+        }
 
         /// <summary>
         /// Set the market depth from the stored value
