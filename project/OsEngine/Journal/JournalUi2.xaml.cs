@@ -2435,15 +2435,37 @@ namespace OsEngine.Journal
 
                     decimal leverageLevel = Math.Round(leverage, MidpointRounding.ToPositiveInfinity);
 
+                    if (leverage > 1 && leverage <= 1.5m)
+                    {
+                        leverageLevel = 1.5m;
+                    }
+                    else if (leverage > 1.5m && leverage <= 2)
+                    {
+                        leverageLevel = 2;
+                    }
+                    else if (leverage > 2 && leverage <= 2.5m)
+                    {
+                        leverageLevel = 2.5m;
+                    }
+                    else if (leverage > 2.5m && leverage <= 3)
+                    {
+                        leverageLevel = 3;
+                    }
+
+                    if (leverageLevel == 0)
+                    {
+                        leverageLevel = 1;
+                    }
+
                     if (i < allChange.Count - 1)
                     {
                         if (leverageList.ContainsKey(leverageLevel))
                         {
-                            leverageList[Math.Round(leverageLevel)] += allChange[i + 1] - allChange[i];
+                            leverageList[leverageLevel] += allChange[i + 1] - allChange[i];
                         }
                         else
                         {
-                            leverageList[Math.Round(leverageLevel)] = allChange[i + 1] - allChange[i];
+                            leverageList[leverageLevel] = allChange[i + 1] - allChange[i];
                         }
                     }
 
@@ -2532,21 +2554,45 @@ namespace OsEngine.Journal
                     timeSpan += keys.Value;
                 }
                 
-                for (int i = 1; i <= count; i++)
+                for (int i = 0; i < leverageList.Count; i++)
                 {
                     DataGridViewRow newRow = new DataGridViewRow();
-                    newRow.Cells.Add(new DataGridViewTextBoxCell() { Value = $"{i - 1} - {i}" });
 
-                    if (leverageList.ContainsKey(i))
+                    string value = $"{i - 1} - {i}";
+
+                    decimal key = leverageList.Keys.ElementAt(i);
+
+                    switch (leverageList.Keys.ElementAt(i))
                     {
-                        newRow.Cells.Add(new DataGridViewTextBoxCell() { Value = Math.Round(leverageList[i].TotalSeconds / timeSpan.TotalSeconds * 100, 2) + "%" });
+                        case 1:
+                            value = "0 - 1";
+                            break;
+                        case 1.5m:
+                            value = "1 - 1.5";
+                            break;
+                        case 2:
+                            value = "1.5 - 2";
+                            break;
+                        case 2.5m:
+                            value = "2 - 2.5";
+                            break;
+                        case 3:
+                            value = "2.5 - 3";
+                            break;
+                    }
+
+                    newRow.Cells.Add(new DataGridViewTextBoxCell() { Value = value });
+
+                    if (leverageList.ContainsKey(key))
+                    {
+                        newRow.Cells.Add(new DataGridViewTextBoxCell() { Value = Math.Round(leverageList[key].TotalSeconds / timeSpan.TotalSeconds * 100, 2) + "%" });
                     }
                     else
                     {
                         newRow.Cells.Add(new DataGridViewTextBoxCell() { Value = "0%" });
                     }
 
-                    newRow.DefaultCellStyle.ForeColor = GetColorForLeverageLevel(i - 0.1);
+                    newRow.DefaultCellStyle.ForeColor = GetColorForLeverageLevel((double)key - 0.1);
                     newRow.DefaultCellStyle.SelectionForeColor = newRow.DefaultCellStyle.ForeColor;
 
                     _gridLeveragePortfolio.Rows.Add(newRow);
