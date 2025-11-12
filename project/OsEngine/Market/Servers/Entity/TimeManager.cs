@@ -44,6 +44,16 @@ namespace OsEngine.Market.Servers.Entity
             return (long)(time - yearBegin).TotalMilliseconds;
         }
 
+        public static long GetTimeStampMillisecondsFromStartTime(DateTime time)
+        {
+            return time.Ticks / TimeSpan.TicksPerMillisecond;
+        }
+
+        public static DateTime GetDateTimeFromStartTimeMilliseconds(long milliseconds)
+        {
+            return new DateTime(milliseconds * TimeSpan.TicksPerMillisecond);
+        }
+
         private static TimeSpan GetUnixTimeStamp()
         {
             DateTime yearBegin = new DateTime(1970, 1, 1);

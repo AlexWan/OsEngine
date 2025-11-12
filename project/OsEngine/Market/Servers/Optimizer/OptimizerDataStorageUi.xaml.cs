@@ -69,7 +69,7 @@ namespace OsEngine.Market.Servers.Optimizer
             ComboBoxDataType.Items.Add(TesterDataType.Candle);
             ComboBoxDataType.Items.Add(TesterDataType.TickAllCandleState);
             ComboBoxDataType.Items.Add(TesterDataType.TickOnlyReadyCandle);
-            ComboBoxDataType.Items.Add(TesterDataType.MarketDepthOnlyReadyCandle);
+            //ComboBoxDataType.Items.Add(TesterDataType.MarketDepthOnlyReadyCandle);
             ComboBoxDataType.SelectedItem = _server.TypeTesterData;
             ComboBoxDataType.SelectionChanged += ComboBoxDataType_SelectionChanged;
 
