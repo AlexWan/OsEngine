@@ -2419,11 +2419,11 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < allChange.Count; i++)
                 {
-                    decimal totalDataPoint = deposit[i];
+                    decimal totalDataPoint = Math.Round(deposit[i],4);
                     totalPortfolio.Points.AddXY(i, totalDataPoint);
                     totalPortfolio.Points[^1].AxisLabel = allChange[i].ToString();
 
-                    decimal volumeDataPoint = volumeData[i];             
+                    decimal volumeDataPoint = Math.Round(volumeData[i],4);             
                     volumePortfolio.Points.AddXY(i, volumeDataPoint);
                     volumePortfolio.Points[^1].AxisLabel = allChange[i].ToString();
 
@@ -2492,10 +2492,20 @@ namespace OsEngine.Journal
                     maxVolume != 0 &&
                     minVolume != maxVolume)
                 {
-                    _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Maximum = Convert.ToDouble(maxVolume + (maxVolume * 0.05m));
-                    _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Minimum = Convert.ToDouble(minVolume - (minVolume * 0.05m));
-                    double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
-                    _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Interval = interval;
+                    double valueMax = Convert.ToDouble(maxVolume + (maxVolume * 0.05m));
+                    double valueMin = Convert.ToDouble(minVolume - (minVolume * 0.05m));
+
+                    valueMax = Math.Round(valueMax, 4);
+                    valueMin = Math.Round(valueMin, 4);
+
+                    if(valueMax > valueMin)
+                    {
+                        _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Maximum = valueMax;
+                        _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Minimum = valueMin;
+                          double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
+                        _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Interval = interval;
+
+                    }
                 }
 
                 _chartPortfolio.Series.Add(volumePortfolio);

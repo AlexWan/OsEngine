@@ -170,6 +170,11 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (streamsIsLost)
                     {
+                        if (_isDisposedNow == true)
+                        {
+                            continue;
+                        }
+
                         if (lostStreamName == "Market data stream"
                             && TryReconnectDataStream() == true)
                         {
@@ -219,106 +224,121 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
+        private bool _isDisposedNow = false;
+
         public void Dispose()
         {
-            // останавливаем чтение всех потоков
-            if (_marketDataStream != null)
+            _isDisposedNow = true;
+
+            try
             {
-                try
+
+                // останавливаем чтение всех потоков
+                if (_marketDataStream != null)
                 {
-                    _marketDataStream.RequestStream.CompleteAsync().Wait();
-                    _marketDataStream.ResponseStream.ReadAllAsync();
-                    _marketDataStream.Dispose();
+                    try
+                    {
+                        _marketDataStream.RequestStream.CompleteAsync().Wait();
+                        _marketDataStream.ResponseStream.ReadAllAsync();
+                        _marketDataStream.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
                 }
-                catch
+
+                if (_cancellationTokenSource != null)
                 {
-                    // ignore
+                    try
+                    {
+                        _cancellationTokenSource.Cancel();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                if (_portfolioDataStream != null)
+                {
+                    try
+                    {
+                        _portfolioDataStream.ResponseStream.ReadAllAsync();
+                        _portfolioDataStream.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                if (_positionsDataStream != null)
+                {
+                    try
+                    {
+                        _positionsDataStream.ResponseStream.ReadAllAsync();
+                        _positionsDataStream.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                if (_myOrderStateDataStream != null)
+                {
+                    try
+                    {
+                        _myOrderStateDataStream.ResponseStream.ReadAllAsync();
+                        _myOrderStateDataStream.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                if (_channel != null)
+                {
+                    try
+                    {
+                        _channel.Dispose();
+                        _channel = null;
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                _marketDataStream = null;
+                _portfolioDataStream = null;
+                _positionsDataStream = null;
+                _myOrderStateDataStream = null;
+                _marketDataRequestsLastPrice.Clear();
+                _marketDataRequestsOrderBook.Clear();
+                _marketDataRequestsTrades.Clear();
+                _streamSubscribedSecurities.Clear();
+                _pollSubscribedSecurities.Clear();
+                _myPortfolios.Clear();
+                _lastMarketDataTime = DateTime.UtcNow;
+                _lastMdTime = DateTime.UtcNow;
+                _lastPortfolioDataTime = DateTime.UtcNow;
+
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
                 }
             }
-
-            if (_cancellationTokenSource != null)
+            catch(Exception ex) 
             {
-                try
-                {
-                    _cancellationTokenSource.Cancel();
-                }
-                catch
-                {
-                    // ignore
-                }
+                SendLogMessage("Error in Dispose method. " + ex.ToString(), LogMessageType.System);
             }
 
-            if (_portfolioDataStream != null)
-            {
-                try
-                {
-                    _portfolioDataStream.ResponseStream.ReadAllAsync();
-                    _portfolioDataStream.Dispose();
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
 
-            if (_positionsDataStream != null)
-            {
-                try
-                {
-                    _positionsDataStream.ResponseStream.ReadAllAsync();
-                    _positionsDataStream.Dispose();
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-
-            if (_myOrderStateDataStream != null)
-            {
-                try
-                {
-                    _myOrderStateDataStream.ResponseStream.ReadAllAsync();
-                    _myOrderStateDataStream.Dispose();
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-
-            if (_channel != null)
-            {
-                try
-                {
-                    _channel.Dispose();
-                    _channel = null;
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-
-            _marketDataStream = null;
-            _portfolioDataStream = null;
-            _positionsDataStream = null;
-            _myOrderStateDataStream = null;
-            _marketDataRequestsLastPrice.Clear();
-            _marketDataRequestsOrderBook.Clear();
-            _marketDataRequestsTrades.Clear();
-            _streamSubscribedSecurities.Clear();
-            _pollSubscribedSecurities.Clear();
-            _myPortfolios.Clear();
-            _lastMarketDataTime = DateTime.UtcNow;
-            _lastMdTime = DateTime.UtcNow;
-            _lastPortfolioDataTime = DateTime.UtcNow;
-
-            if (ServerStatus != ServerConnectStatus.Disconnect)
-            {
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
-            }
+            _isDisposedNow = false;
         }
 
         public DateTime ServerTime { get; set; }
@@ -2178,19 +2198,15 @@ namespace OsEngine.Market.Servers.TInvest
                         MarketDepthEvent?.Invoke(depth);
                     }
                 }
-                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-                {
-                    // Handle the cancellation gracefully
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Market data stream was cancelled. ", LogMessageType.System);
-                    Thread.Sleep(5000);
-                }
                 catch (RpcException ex)
                 {
-                    // need to reconnect everything
+                    if(_isDisposedNow == true)
+                    {
+                        continue;
+                    }
+
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                       
                         string message = GetGRPCErrorMessage(ex);
 
                         if (message.Contains("limit") == false)
@@ -2516,15 +2532,13 @@ namespace OsEngine.Market.Servers.TInvest
                         PortfolioEvent!(_myPortfolios);
                     }
                 }
-                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-                {
-                    // Handle the cancellation gracefully
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Portfolio data stream was cancelled. ", LogMessageType.System);
-                    Thread.Sleep(5000);
-                }
                 catch (RpcException exception)
                 {
+                    if (_isDisposedNow == true)
+                    {
+                        continue;
+                    }
+
                     string message = GetGRPCErrorMessage(exception);
                     
                     if (message.Contains("limit") == false)
@@ -2744,15 +2758,13 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
                 }
-                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-                {
-                    // Handle the cancellation gracefully
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Positions data stream was cancelled.", LogMessageType.System);
-                    Thread.Sleep(5000);
-                }
                 catch (RpcException exception)
                 {
+                    if (_isDisposedNow == true)
+                    {
+                        continue;
+                    }
+
                     string message = GetGRPCErrorMessage(exception);
 
                     if (message.Contains("limit") == false)
@@ -2959,15 +2971,13 @@ namespace OsEngine.Market.Servers.TInvest
                         MyOrderEvent?.Invoke(order);
                     }
                 }
-                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-                {
-                    // Handle the cancellation gracefully
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Order state data stream was cancelled.", LogMessageType.System);
-                    Thread.Sleep(5000);
-                }
                 catch (RpcException ex)
                 {
+                    if (_isDisposedNow == true)
+                    {
+                        continue;
+                    }
+
                     string message = GetGRPCErrorMessage(ex);
 
                     if (message.Contains("limit") == false)
