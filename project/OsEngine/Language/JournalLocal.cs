@@ -290,5 +290,13 @@ namespace OsEngine.Language
         public string TabItemPortfolio => OsLocalization.ConvertToLocString(
             "Eng:To portfolio_" +
             "Ru:К портфелю_");
+
+        public string LeverageGridColumn0 => OsLocalization.ConvertToLocString(
+            "Eng:Leverage_" +
+            "Ru:Плечо_");
+
+        public string LeverageGridColumn1 => OsLocalization.ConvertToLocString(
+            "Eng:Time at %_" +
+            "Ru:Время в %_");
     }
 }
