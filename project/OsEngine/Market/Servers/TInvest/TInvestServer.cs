@@ -25,6 +25,7 @@ using System.Net;
 using System.Net.Http;
 using Grpc.Net.Client;
 using Grpc.Core;
+using OsEngine.Market.Servers.Transaq.TransaqEntity;
 
 
 namespace OsEngine.Market.Servers.TInvest
@@ -195,7 +196,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (ServerStatus == ServerConnectStatus.Connect)
                         {
-                            SendLogMessage(OsLocalization.Market.Label286 + lostStreamName, LogMessageType.Error);
+                            SendLogMessage(OsLocalization.Market.Label286 + lostStreamName, LogMessageType.System);
+                            SendMessageOnReconnectInErrorLog();
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent();
                         }
@@ -1741,37 +1743,81 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
 
-                    RepeatedField<string> accountsList = new RepeatedField<string>();
-                    for (int i = 0; i < _myPortfolios.Count; i++)
-                    {
-                        accountsList.Add(_myPortfolios[i].Number);
-                    }
+                    // 1 Пересоздаём стрим.
 
                     _marketDataStream = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
                         cancellationToken: _cancellationTokenSource.Token);
 
+                    // 2 Переподписываем поток ЛастПрайс
 
-                    for (int i = 0;i < _marketDataRequestsLastPrice.Count; i++)
+                    if(_marketDataRequestsLastPrice.Count > 0)
                     {
                         _rateGateSubscribe.WaitToProceed();
+
                         MarketDataRequest marketDataRequest = new MarketDataRequest();
-                        marketDataRequest.SubscribeLastPriceRequest = _marketDataRequestsLastPrice[i];
+
+                        SubscribeLastPriceRequest lpRequest = new SubscribeLastPriceRequest
+                        {
+                            SubscriptionAction = SubscriptionAction.Subscribe
+                        };
+
+                        for (int i = 0; i < _marketDataRequestsLastPrice.Count; i++)
+                        {
+                            lpRequest.Instruments.Add(_marketDataRequestsLastPrice[i].Instruments[0]);
+                           
+                        }
+
+                        marketDataRequest.SubscribeLastPriceRequest = lpRequest;
                         _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                        _rateGateSubscribe.WaitToProceed();
                     }
 
-                    for (int i = 0; i < _marketDataRequestsOrderBook.Count; i++)
+                    // 3 Переподписываем поток Стаканов
+
+                    if (_marketDataRequestsOrderBook.Count > 0)
                     {
                         _rateGateSubscribe.WaitToProceed();
+
                         MarketDataRequest marketDataRequest = new MarketDataRequest();
-                        marketDataRequest.SubscribeOrderBookRequest = _marketDataRequestsOrderBook[i];
+
+                        SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest
+                        {
+                            SubscriptionAction = SubscriptionAction.Subscribe
+                        };
+
+                        for (int i = 0; i < _marketDataRequestsOrderBook.Count; i++)
+                        {
+                            subscribeOrderBookRequest.Instruments.Add(_marketDataRequestsOrderBook[i].Instruments[0]);
+                        }
+
+                        marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
                         _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                      
                     }
 
-                    for (int i = 0; i < _marketDataRequestsTrades.Count; i++)
+                    // 3 Переподписываем поток Трейдов из ленты сделок
+
+                    if (_marketDataRequestsTrades.Count > 0)
                     {
                         _rateGateSubscribe.WaitToProceed();
                         MarketDataRequest marketDataRequest = new MarketDataRequest();
-                        marketDataRequest.SubscribeTradesRequest = _marketDataRequestsTrades[i];
+
+                        SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest
+                        {
+                            SubscriptionAction = SubscriptionAction.Subscribe,
+                            TradeSource = _filterOutDealerTrades
+                                ? TradeSourceType.TradeSourceExchange
+                                : TradeSourceType.TradeSourceAll,
+                            WithOpenInterest = true
+                        };
+
+                        for (int i = 0; i < _marketDataRequestsTrades.Count; i++)
+                        {
+                            subscribeTradesRequest.Instruments.Add(_marketDataRequestsTrades[i].Instruments[0]);
+                        }
+
+                        marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
+
                         _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
                     }
                 }
@@ -1811,7 +1857,6 @@ namespace OsEngine.Market.Servers.TInvest
         private List<SubscribeOrderBookRequest> _marketDataRequestsOrderBook = new List<SubscribeOrderBookRequest>();
         private List<SubscribeTradesRequest> _marketDataRequestsTrades = new List<SubscribeTradesRequest>();
         private List<SubscribeLastPriceRequest> _marketDataRequestsLastPrice = new List<SubscribeLastPriceRequest>();
-
 
         private string _marketDataStreamLocker = "_marketDataStreamLocker";
 
@@ -2126,7 +2171,8 @@ namespace OsEngine.Market.Servers.TInvest
                         // need to reconnect everything
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
-                            SendLogMessage(OsLocalization.Market.Label294 + "\nMarket data", LogMessageType.Error);
+                            SendLogMessage(OsLocalization.Market.Label294 + "\nMarket data", LogMessageType.System);
+                            SendMessageOnReconnectInErrorLog();
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent();
                         }
@@ -2459,7 +2505,8 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nPortfolio" , LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nPortfolio" , LogMessageType.System);
+                        SendMessageOnReconnectInErrorLog();
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2686,7 +2733,8 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nPositions", LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nPositions", LogMessageType.System);
+                        SendMessageOnReconnectInErrorLog();
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -3025,7 +3073,8 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nOrders", LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nOrders", LogMessageType.System);
+                        SendMessageOnReconnectInErrorLog();
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -3037,6 +3086,20 @@ namespace OsEngine.Market.Servers.TInvest
                     Thread.Sleep(5000);
                 }
             }
+        }
+
+        private DateTime _lastErrorMessageOnReconnectTime;
+
+        private void SendMessageOnReconnectInErrorLog()
+        {
+            if (_lastErrorMessageOnReconnectTime.AddSeconds(5) > DateTime.Now)
+            {
+                return;
+            }
+
+            _lastErrorMessageOnReconnectTime = DateTime.Now;
+
+            SendLogMessage(OsLocalization.Market.Label296, LogMessageType.Error);
         }
 
         public event Action<Order> MyOrderEvent;

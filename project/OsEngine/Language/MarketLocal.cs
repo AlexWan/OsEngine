@@ -1238,7 +1238,9 @@ namespace OsEngine.Language
          "Eng:A soft re-subscription to the GRPC stream has been detected. No connector restart is required. Stream _" +
          "Ru:Зафиксирована мягкая переподписка на стрим GRPC. Перезапуск коннектора не требуется. Стрим _");
 
-
+        public string Label296 => OsLocalization.ConvertToLocString(
+         "Eng:Reconnecting the terminal to the T-Investments API. Several reconnections per day are normal. If you see this constantly, it is recommended to contact support. You can view the details of the program's operation in the connector log._" +
+         "Ru:Переподключаем терминал к АПИ Т-Инвестиции, это занимает минуту. Несколько переподключений в день норма. Если Вы видите это постоянно, рекомендуется написать в поддержку. Подробности работы программы первично можно посмотреть в логе коннектора. _");
 
         // Servers
 
