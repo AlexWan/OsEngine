@@ -1577,7 +1577,7 @@ namespace OsEngine.Market.Servers.TInvest
             try
             {
                 if (_lastTryReconnectPortfolioStream != DateTime.MinValue
-                 && _lastTryReconnectPortfolioStream.AddMinutes(1) > DateTime.Now)
+                 && _lastTryReconnectPortfolioStream.AddSeconds(30) > DateTime.Now)
                 {
                     return false;
                 }
@@ -1623,7 +1623,7 @@ namespace OsEngine.Market.Servers.TInvest
             try
             {
                 if(_lastTryReconnectPositionsStream != DateTime.MinValue
-                    && _lastTryReconnectPositionsStream.AddMinutes(1) > DateTime.Now)
+                    && _lastTryReconnectPositionsStream.AddSeconds(30) > DateTime.Now)
                 {
                     return false;
                 }
@@ -1670,7 +1670,7 @@ namespace OsEngine.Market.Servers.TInvest
             try
             {
                 if (_lastTryReconnectOrdersStream != DateTime.MinValue
-                    && _lastTryReconnectOrdersStream.AddMinutes(1) > DateTime.Now)
+                    && _lastTryReconnectOrdersStream.AddSeconds(30) > DateTime.Now)
                 {
                     return false;
                 }
@@ -1720,7 +1720,7 @@ namespace OsEngine.Market.Servers.TInvest
                 lock(_marketDataStreamLocker)
                 {
                     if (_lastTryReconnectDataStream != DateTime.MinValue
-                    && _lastTryReconnectDataStream.AddMinutes(1) > DateTime.Now)
+                    && _lastTryReconnectDataStream.AddSeconds(30) > DateTime.Now)
                     {
                         return false;
                     }
