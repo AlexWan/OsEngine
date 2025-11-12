@@ -158,6 +158,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         public DateTime ServerTime { get; set; }
 
         public ServerType ServerType

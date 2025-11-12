@@ -225,6 +225,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         #endregion
 
         #region 2 Properties

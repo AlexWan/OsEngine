@@ -206,6 +206,8 @@ namespace OsEngine.Market.Servers.Alor
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         #endregion
 
         #region 2 Properties

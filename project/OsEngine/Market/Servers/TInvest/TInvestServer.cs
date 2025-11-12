@@ -26,6 +26,7 @@ using System.Net.Http;
 using Grpc.Net.Client;
 using Grpc.Core;
 
+
 namespace OsEngine.Market.Servers.TInvest
 {
     public class TInvestServer : AServer
@@ -160,6 +161,38 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (streamsIsLost)
                     {
+                        if (lostStreamName == "Market data stream"
+                            && TryReconnectDataStream() == true)
+                        {
+                            _lastMarketDataTime = DateTime.Now;
+                            SendLogMessage(OsLocalization.Market.Label295 + "\nMarket data. ConnectionCheckThread()", LogMessageType.System);
+                            continue;
+                        }
+
+                        if (lostStreamName == "Order state data stream"
+                            && TryReconnectOrdersStream() == true)
+                        {
+                            _lastMyOrderStateDataTime = DateTime.Now;
+                            SendLogMessage(OsLocalization.Market.Label295 + "\nOrders data. ConnectionCheckThread()", LogMessageType.System);
+                            
+                            if(ForceCheckOrdersAfterReconnectEvent != null)
+                            {
+                                ForceCheckOrdersAfterReconnectEvent();
+                            }
+                           
+                            continue;
+                        }
+
+                        if (lostStreamName == "Portfolio data stream"
+                            && TryReconnectPortfolioStream() == true
+                            && TryReconnectPositionsStream() == true)
+                        {
+                            _lastPortfolioDataTime = DateTime.Now;
+                            SendLogMessage(OsLocalization.Market.Label295 + "\nPortfolio and Positions data. ConnectionCheckThread()", LogMessageType.System);
+                            continue;
+                        }
+
+
                         if (ServerStatus == ServerConnectStatus.Connect)
                         {
                             SendLogMessage(OsLocalization.Market.Label286 + lostStreamName, LogMessageType.Error);
@@ -184,6 +217,8 @@ namespace OsEngine.Market.Servers.TInvest
                 try
                 {
                     _marketDataStream.RequestStream.CompleteAsync().Wait();
+                    _marketDataStream.ResponseStream.ReadAllAsync();
+                    _marketDataStream.Dispose();
                 }
                 catch
                 {
@@ -196,19 +231,6 @@ namespace OsEngine.Market.Servers.TInvest
                 try
                 {
                     _cancellationTokenSource.Cancel();
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-
-            if (_marketDataStream != null)
-            {
-                try
-                {
-                    _marketDataStream.ResponseStream.ReadAllAsync();
-                    _marketDataStream.Dispose();
                 }
                 catch
                 {
@@ -286,6 +308,9 @@ namespace OsEngine.Market.Servers.TInvest
             _positionsDataStream = null;
             _myTradesDataStream = null;
             _myOrderStateDataStream = null;
+            _marketDataRequestsLastPrice.Clear();
+            _marketDataRequestsOrderBook.Clear();
+            _marketDataRequestsTrades.Clear();
             _streamSubscribedSecurities.Clear();
             _pollSubscribedSecurities.Clear();
             _myPortfolios.Clear();
@@ -1545,10 +1570,221 @@ namespace OsEngine.Market.Servers.TInvest
             _lastPortfolioDataTime = DateTime.UtcNow;
         }
 
-        private void ActivateCurrentPortfolioListening()
+        private DateTime _lastTryReconnectPortfolioStream;
+
+        private bool TryReconnectPortfolioStream()
         {
-            ReconnectGRPCStreams();
+            try
+            {
+                if (_lastTryReconnectPortfolioStream != DateTime.MinValue
+                 && _lastTryReconnectPortfolioStream.AddMinutes(1) > DateTime.Now)
+                {
+                    return false;
+                }
+
+                _lastTryReconnectPortfolioStream = DateTime.Now;
+
+                if (_portfolioDataStream != null)
+                {
+                    try
+                    {
+                        _portfolioDataStream.ResponseStream.ReadAllAsync();
+                        _portfolioDataStream.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                RepeatedField<string> accountsList = new RepeatedField<string>();
+                for (int i = 0; i < _myPortfolios.Count; i++)
+                {
+                    accountsList.Add(_myPortfolios[i].Number);
+                }
+
+                _portfolioDataStream =
+                    _operationsStreamClient.PortfolioStream(new PortfolioStreamRequest { Accounts = { accountsList } },
+                        headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+                _lastPortfolioDataTime = DateTime.UtcNow;
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
+
+        private DateTime _lastTryReconnectPositionsStream;
+
+        private bool TryReconnectPositionsStream()
+        {
+            try
+            {
+                if(_lastTryReconnectPositionsStream != DateTime.MinValue
+                    && _lastTryReconnectPositionsStream.AddMinutes(1) > DateTime.Now)
+                {
+                    return false;
+                }
+
+                _lastTryReconnectPositionsStream = DateTime.Now;
+
+                if (_positionsDataStream != null)
+                {
+                    try
+                    {
+                        _positionsDataStream.ResponseStream.ReadAllAsync();
+                        _positionsDataStream.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                RepeatedField<string> accountsList = new RepeatedField<string>();
+                for (int i = 0; i < _myPortfolios.Count; i++)
+                {
+                    accountsList.Add(_myPortfolios[i].Number);
+                }
+
+                _positionsDataStream =
+                    _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
+                        headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+
+                _lastPortfolioDataTime = DateTime.UtcNow;
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private DateTime _lastTryReconnectOrdersStream;
+
+        private bool TryReconnectOrdersStream()
+        {
+            try
+            {
+                if (_lastTryReconnectOrdersStream != DateTime.MinValue
+                    && _lastTryReconnectOrdersStream.AddMinutes(1) > DateTime.Now)
+                {
+                    return false;
+                }
+
+                _lastTryReconnectOrdersStream = DateTime.Now;
+
+                if (_myOrderStateDataStream != null)
+                {
+                    try
+                    {
+                        _myOrderStateDataStream.ResponseStream.ReadAllAsync();
+                        _myOrderStateDataStream.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                RepeatedField<string> accountsList = new RepeatedField<string>();
+                for (int i = 0; i < _myPortfolios.Count; i++)
+                {
+                    accountsList.Add(_myPortfolios[i].Number);
+                }
+
+                _myOrderStateDataStream = _ordersStreamClient.OrderStateStream(new OrderStateStreamRequest
+                {
+                    Accounts = { accountsList }
+                }, headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+
+                _lastMyTradesDataTime = DateTime.UtcNow;
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private DateTime _lastTryReconnectDataStream;
+
+        private bool TryReconnectDataStream()
+        {
+            try
+            {
+                lock(_marketDataStreamLocker)
+                {
+                    if (_lastTryReconnectDataStream != DateTime.MinValue
+                    && _lastTryReconnectDataStream.AddMinutes(1) > DateTime.Now)
+                    {
+                        return false;
+                    }
+
+                    _lastTryReconnectDataStream = DateTime.Now;
+
+                    if (_marketDataStream != null)
+                    {
+                        try
+                        {
+                            _marketDataStream.RequestStream.CompleteAsync().Wait();
+                            _marketDataStream.ResponseStream.ReadAllAsync();
+                            _marketDataStream.Dispose();
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+
+                    RepeatedField<string> accountsList = new RepeatedField<string>();
+                    for (int i = 0; i < _myPortfolios.Count; i++)
+                    {
+                        accountsList.Add(_myPortfolios[i].Number);
+                    }
+
+                    _marketDataStream = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
+                        cancellationToken: _cancellationTokenSource.Token);
+
+
+                    for (int i = 0;i < _marketDataRequestsLastPrice.Count; i++)
+                    {
+                        _rateGateSubscribe.WaitToProceed();
+                        MarketDataRequest marketDataRequest = new MarketDataRequest();
+                        marketDataRequest.SubscribeLastPriceRequest = _marketDataRequestsLastPrice[i];
+                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                    }
+
+                    for (int i = 0; i < _marketDataRequestsOrderBook.Count; i++)
+                    {
+                        _rateGateSubscribe.WaitToProceed();
+                        MarketDataRequest marketDataRequest = new MarketDataRequest();
+                        marketDataRequest.SubscribeOrderBookRequest = _marketDataRequestsOrderBook[i];
+                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                    }
+
+                    for (int i = 0; i < _marketDataRequestsTrades.Count; i++)
+                    {
+                        _rateGateSubscribe.WaitToProceed();
+                        MarketDataRequest marketDataRequest = new MarketDataRequest();
+                        marketDataRequest.SubscribeTradesRequest = _marketDataRequestsTrades[i];
+                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public event Action ForceCheckOrdersAfterReconnectEvent;
 
         #endregion
 
@@ -1571,6 +1807,13 @@ namespace OsEngine.Market.Servers.TInvest
         private DateTime _lastPortfolioDataTime = DateTime.MinValue;
         private DateTime _lastMyTradesDataTime = DateTime.MinValue;
         private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
+
+        private List<SubscribeOrderBookRequest> _marketDataRequestsOrderBook = new List<SubscribeOrderBookRequest>();
+        private List<SubscribeTradesRequest> _marketDataRequestsTrades = new List<SubscribeTradesRequest>();
+        private List<SubscribeLastPriceRequest> _marketDataRequestsLastPrice = new List<SubscribeLastPriceRequest>();
+
+
+        private string _marketDataStreamLocker = "_marketDataStreamLocker";
 
         public void Subscribe(Security security)
         {
@@ -1598,67 +1841,72 @@ namespace OsEngine.Market.Servers.TInvest
                     return; // Nothing more to do for polled securities
                 }
 
-
-                if (_marketDataStream == null)
+                lock(_marketDataStreamLocker)
                 {
-                    _marketDataStream = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
-                        cancellationToken: _cancellationTokenSource.Token);
-                    SendLogMessage("Created market data stream", LogMessageType.System);
-                }
-
-                _rateGateSubscribe.WaitToProceed();
-
-                MarketDataRequest marketDataRequest = new MarketDataRequest();
-
-                if (security.SecurityType == SecurityType.Index) // only subscribe to last price info for indices
-                {
-                    LastPriceInstrument instrument = new LastPriceInstrument
+                    if (_marketDataStream == null)
                     {
-                        InstrumentId = security.NameId
-                    };
+                        _marketDataStream = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
+                            cancellationToken: _cancellationTokenSource.Token);
+                        SendLogMessage("Created market data stream", LogMessageType.System);
+                    }
 
-                    SubscribeLastPriceRequest lpRequest = new SubscribeLastPriceRequest
+                    _rateGateSubscribe.WaitToProceed();
+
+                    MarketDataRequest marketDataRequest = new MarketDataRequest();
+
+                    if (security.SecurityType == SecurityType.Index) // only subscribe to last price info for indices
                     {
-                        SubscriptionAction = SubscriptionAction.Subscribe,
-                        Instruments = { instrument },
-                    };
-                    marketDataRequest.SubscribeLastPriceRequest = lpRequest;
+                        LastPriceInstrument instrument = new LastPriceInstrument
+                        {
+                            InstrumentId = security.NameId
+                        };
 
-                    _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-                }
-                else
-                {
-                    // subscribe to trades and order books for everything else
-                    TradeInstrument tradeInstrument = new TradeInstrument();
-                    tradeInstrument.InstrumentId = security.NameId;
-
-                    SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest
+                        SubscribeLastPriceRequest lpRequest = new SubscribeLastPriceRequest
+                        {
+                            SubscriptionAction = SubscriptionAction.Subscribe,
+                            Instruments = { instrument },
+                        };
+                        marketDataRequest.SubscribeLastPriceRequest = lpRequest;
+                        _marketDataRequestsLastPrice.Add(lpRequest);
+                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                    }
+                    else
                     {
-                        SubscriptionAction = SubscriptionAction.Subscribe,
-                        Instruments = { tradeInstrument },
-                        TradeSource = _filterOutDealerTrades
-                            ? TradeSourceType.TradeSourceExchange
-                            : TradeSourceType.TradeSourceAll,
-                        WithOpenInterest = true
-                    };
-                    marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
-                    _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                        // subscribe to trades and order books for everything else
+                        TradeInstrument tradeInstrument = new TradeInstrument();
+                        tradeInstrument.InstrumentId = security.NameId;
 
-                    // only one type of marketdata allowed in request so we need to new up request object
-                    marketDataRequest = new MarketDataRequest();
+                        SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest
+                        {
+                            SubscriptionAction = SubscriptionAction.Subscribe,
+                            Instruments = { tradeInstrument },
+                            TradeSource = _filterOutDealerTrades
+                                ? TradeSourceType.TradeSourceExchange
+                                : TradeSourceType.TradeSourceAll,
+                            WithOpenInterest = true
+                        };
+                        marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
+                        _marketDataRequestsTrades.Add(subscribeTradesRequest);
+                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                       
 
-                    // подписываемся на стаканы
-                    OrderBookInstrument orderBookInstrument = new OrderBookInstrument();
-                    orderBookInstrument.InstrumentId = security.NameId;
-                    orderBookInstrument.Depth = 10;
-                    orderBookInstrument.OrderBookType =
-                        _filterOutDealerTrades ? OrderBookType.Exchange : OrderBookType.All;
+                        // only one type of marketdata allowed in request so we need to new up request object
+                        marketDataRequest = new MarketDataRequest();
 
-                    SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest
-                    { SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { orderBookInstrument } };
-                    marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
+                        // подписываемся на стаканы
+                        OrderBookInstrument orderBookInstrument = new OrderBookInstrument();
+                        orderBookInstrument.InstrumentId = security.NameId;
+                        orderBookInstrument.Depth = 10;
+                        orderBookInstrument.OrderBookType =
+                            _filterOutDealerTrades ? OrderBookType.Exchange : OrderBookType.All;
 
-                    _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                        SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest
+                        { SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { orderBookInstrument } };
+                        marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
+                        _marketDataRequestsOrderBook.Add(subscribeOrderBookRequest);
+
+                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                    }
                 }
             }
             catch (Exception exception)
@@ -1860,11 +2108,29 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
+                       
                         string message = GetGRPCErrorMessage(ex);
-                        SendLogMessage($"Market data stream was disconnected. Attempting to reconnect.", LogMessageType.System);
 
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        if (message.Contains("limit") == false)
+                        {
+                            // пробуем восстановить поток без перезапуска коннектора
+                            
+                            if (TryReconnectDataStream() == true)
+                            {
+                                SendLogMessage(OsLocalization.Market.Label295 + "\nMarket data", LogMessageType.System);
+                                Thread.Sleep(1000);
+                                continue;
+                            }
+                        }
+
+                        // need to reconnect everything
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label294 + "\nMarket data", LogMessageType.Error);
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                        Thread.Sleep(5000);
                     }
                     Thread.Sleep(5000);
                 }
@@ -2178,15 +2444,22 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     string message = GetGRPCErrorMessage(exception);
                     
-                    if (message.Contains("limit"))
+                    if (message.Contains("limit") == false)
                     {
-                        GetUserLimits();
+                        // пробуем восстановить поток без перезапуска коннектора
+                        
+                        if (TryReconnectPortfolioStream() == true)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label295 + "\nPortfolio", LogMessageType.System);
+                            Thread.Sleep(1000);
+                            continue;
+                        }
                     }
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage($"Portfolio data stream was disconnected. Attempting to reconnect.", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nPortfolio" , LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2397,11 +2670,23 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException exception)
                 {
                     string message = GetGRPCErrorMessage(exception);
-                 
+
+                    if (message.Contains("limit") == false)
+                    {
+                        // пробуем восстановить поток без перезапуска коннектора
+
+                        if (TryReconnectPositionsStream() == true)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label295 + "\nPositions", LogMessageType.System);
+                            Thread.Sleep(1000);
+                            continue;
+                        }
+                    }
+
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage($"Positions data stream was disconnected. Attempting to reconnect.", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nPositions", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2718,12 +3003,29 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                   
+
+                    if (message.Contains("limit") == false)
+                    {
+                        // пробуем восстановить поток без перезапуска коннектора
+
+                        if (TryReconnectOrdersStream() == true)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label295 + "\nOrders", LogMessageType.System);
+
+                            if(ForceCheckOrdersAfterReconnectEvent != null)
+                            {
+                                ForceCheckOrdersAfterReconnectEvent();
+                            }
+
+                            Thread.Sleep(1000);
+                            continue;
+                        }
+                    }
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage($"Order state data stream was disconnected. Attempting to reconnect.", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nOrders", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -3389,7 +3691,11 @@ namespace OsEngine.Market.Servers.TInvest
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting all orders. Info: {message}", LogMessageType.System);
+
+                if(message.Contains("no server message") == false)
+                {
+                    SendLogMessage($"Error getting all orders. Info: {message}", LogMessageType.System);
+                }
             }
             catch (Exception exception)
             {

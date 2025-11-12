@@ -80,6 +80,7 @@ namespace OsEngine.Market.Servers
                 _serverRealization.PortfolioEvent += _serverRealization_PortfolioEvent;
                 _serverRealization.SecurityEvent += _serverRealization_SecurityEvent;
                 _serverRealization.LogMessageEvent += SendLogMessage;
+                _serverRealization.ForceCheckOrdersAfterReconnectEvent += _serverRealization_ForceCheckOrdersAfterReconnect;
 
                 _serverRealization.NewsEvent += _serverRealization_NewsEvent;
 
@@ -2323,20 +2324,22 @@ namespace OsEngine.Market.Servers
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i] == null)
+                        Security securityCurrent = _securities[i];
+
+                        if (securityCurrent == null)
                         {
                             continue;
                         }
-                        if (_securities[i].Name == securityName &&
-                            (_securities[i].NameClass == securityClass))
+                        if (securityCurrent.Name == securityName &&
+                            (securityCurrent.NameClass == securityClass))
                         {
-                            security = _securities[i];
+                            security = securityCurrent;
                             break;
                         }
-                        if (_securities[i].Name == securityName &&
+                        if (securityCurrent.Name == securityName &&
                             (securityClass == null))
                         {
-                            security = _securities[i];
+                            security = securityCurrent;
                             break;
                         }
                     }
@@ -4058,6 +4061,18 @@ namespace OsEngine.Market.Servers
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _serverRealization_ForceCheckOrdersAfterReconnect()
+        {
+            try
+            {
+                _ordersHub.ForceCheckOrdersAfterReconnect();
+            }
+            catch
+            {
+                // ignore
             }
         }
 

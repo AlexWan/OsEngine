@@ -146,7 +146,10 @@ namespace OsEngine.Market.Servers.RSSNews
         public ServerConnectStatus ServerStatus { get; set; }
 
         public event Action ConnectEvent;
+
         public event Action DisconnectEvent;
+
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
         #endregion
 

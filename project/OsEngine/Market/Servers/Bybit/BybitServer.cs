@@ -67,6 +67,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         public BybitServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;

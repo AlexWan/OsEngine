@@ -130,6 +130,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         #endregion
 
         #region Properties

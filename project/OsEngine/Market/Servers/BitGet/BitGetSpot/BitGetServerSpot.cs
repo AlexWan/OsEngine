@@ -168,6 +168,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         #endregion
 
         #region 2 Properties

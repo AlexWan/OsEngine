@@ -287,6 +287,8 @@ namespace OsEngine.Market.Servers.NinjaTrader
         /// </summary>
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
         // log messages

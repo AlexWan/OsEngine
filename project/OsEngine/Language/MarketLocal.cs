@@ -1199,27 +1199,27 @@ namespace OsEngine.Language
          "Ru:Запускаем подключение к Т-Инвестиции_");
 
         public string Label286 => OsLocalization.ConvertToLocString(
-         "Eng:The standard reconnect procedure has been started. Connection will be restored in one minute. Reason: Delay in response from the API server. Stream _" +
-         "Ru:Запущена процедура штатного переподключения. Через минуту связь восстановится. Причина: задержка с ответом от сервера API. Поток _");
+         "Eng:The standard reconnect procedure has been started. Connection will be restored in one minute. Reason is Delay in response from the API server. Stream _" +
+         "Ru:Запущена процедура штатного переподключения. Через минуту связь восстановится. Причина в задержка с ответом от сервера API. Поток _");
 
         public string Label287 => OsLocalization.ConvertToLocString(
          "Eng:Securities loaded. Count: _" +
          "Ru:Бумаги для торгов подгружены. Количество: _");
 
         public string Label288 => OsLocalization.ConvertToLocString(
-        "Eng:An error occurred in the security request method. Reconnect the connector. This is most likely a connection issue with the internet, and everything will be fine. If this happens again, please provide the following error message to the terminal support team: _" +
-        "Ru:Ошибка в методе запроса бумаг. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала:  _");
+        "Eng:An error occurred in the security request method. Reconnect the connector. This is most likely a connection issue with the internet, and everything will be fine. If this happens again, please provide the following error message to the terminal support team _" +
+        "Ru:Ошибка в методе запроса бумаг. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала _");
 
         public string Label289 => OsLocalization.ConvertToLocString(
-         "Eng:Error in the initial API connection method. Reconnect the connector. This is most likely a network connection issue, and everything will be fine in a minute. If this happens again, please provide the following error message to the terminal support team: _" +
-         "Ru:Ошибка в методе первичного подключения к АПИ. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала: _");
+         "Eng:Error in the initial API connection method. Reconnect the connector. This is most likely a network connection issue, and everything will be fine in a minute. If this happens again, please provide the following error message to the terminal support team _" +
+         "Ru:Ошибка в методе первичного подключения к АПИ. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала _");
 
         public string Label290 => OsLocalization.ConvertToLocString(
-         "Eng:Error in the get portfolio method. Reconnect the connector. This is most likely a network connection issue, and everything will be fine in a minute. If this happens again, please provide the following error message to the terminal support team: _" +
-         "Ru:Ошибка в методе запроса портфеля. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала: _");
+         "Eng:Error in the get portfolio method. Reconnect the connector. This is most likely a network connection issue, and everything will be fine in a minute. If this happens again, please provide the following error message to the terminal support team _" +
+         "Ru:Ошибка в методе запроса портфеля. Переподключаем коннектор. Скорее всего это разрыв связи интернет и всё будет хорошо через минуту. Если это повторится, текст ошибки для поддержки терминала _");
 
         public string Label291 => OsLocalization.ConvertToLocString(
-         "Eng:An error occurred while placing an order. Most likely, the error text contains the reason for the error. Error: _" +
+         "Eng:An error occurred while placing an order. Most likely, the error text contains the reason for the error. Error _" +
          "Ru:Ошибка при выставлении ордера. Скорее всего в тексте ошибки ответ почему. Ошибка ниже _");
 
         public string Label292 => OsLocalization.ConvertToLocString(
@@ -1227,12 +1227,16 @@ namespace OsEngine.Language
          "Ru:Многочисленная попытка отозвать ордер.  _");
 
         public string Label293 => OsLocalization.ConvertToLocString(
-         "Eng:An error occurred while cancel an order. Most likely, the error text contains the reason for the error. Error: _" +
+         "Eng:An error occurred while cancel an order. Most likely, the error text contains the reason for the error. Error _" +
          "Ru:Ошибка при отзыве ордера. Скорее всего в тексте ошибки ответ почему. Ошибка ниже _");
 
+        public string Label294 => OsLocalization.ConvertToLocString(
+         "Eng:The GRPC API stream has an error. Restart the connection. This will take less than a minute and everything is probably fine. If the error happens again, you should contact support. Stream name _" +
+         "Ru:Стрим GRPC API выдал ошибку. Перезапускаем подключение. Это займёт меньше минуты и скорее всего всё в порядке. Если ошибка повторяется непрерывно, надо обратиться в поддержку. Имя стрима _");
 
-
-
+        public string Label295 => OsLocalization.ConvertToLocString(
+         "Eng:A soft re-subscription to the GRPC stream has been detected. No connector restart is required. Stream _" +
+         "Ru:Зафиксирована мягкая переподписка на стрим GRPC. Перезапуск коннектора не требуется. Стрим _");
 
 
 

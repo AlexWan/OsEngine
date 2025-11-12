@@ -163,6 +163,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         public DateTime ServerTime { get; set; }
 
         public ServerConnectStatus ServerStatus { get; set; } = ServerConnectStatus.Disconnect;

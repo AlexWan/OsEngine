@@ -346,6 +346,8 @@ namespace OsEngine.Market.Servers.Atp
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         public bool TradeRouterIsActivate
         {
             get

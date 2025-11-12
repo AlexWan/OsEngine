@@ -68,7 +68,10 @@ namespace OsEngine.Market.Servers.MOEX
         }
 
         public event Action ConnectEvent;
+
         public event Action DisconnectEvent;
+
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
         #endregion
 

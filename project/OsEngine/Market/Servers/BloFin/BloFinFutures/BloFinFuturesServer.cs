@@ -241,6 +241,8 @@ namespace OsEngine.Market.Servers.BloFin
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         #endregion 1
 
         #region 2 Properties

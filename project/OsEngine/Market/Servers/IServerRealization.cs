@@ -60,6 +60,11 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action DisconnectEvent;
 
+        /// <summary>
+        /// Need to re-request order statuses from the connector
+        /// </summary>
+        event Action ForceCheckOrdersAfterReconnectEvent;
+
         #endregion
 
         #region Securities

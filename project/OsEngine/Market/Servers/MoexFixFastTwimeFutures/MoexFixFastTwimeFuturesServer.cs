@@ -607,7 +607,10 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
         public List<IServerParameter> ServerParameters { get; set; }
 
         public event Action ConnectEvent;
+
         public event Action DisconnectEvent;
+
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
         #endregion
 

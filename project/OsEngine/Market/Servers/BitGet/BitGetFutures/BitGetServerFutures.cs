@@ -221,6 +221,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public event Action DisconnectEvent;
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         #endregion
 
         #region 2 Properties

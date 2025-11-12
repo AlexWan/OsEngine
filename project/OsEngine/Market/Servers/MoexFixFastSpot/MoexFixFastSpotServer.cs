@@ -268,12 +268,15 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         public List<IServerParameter> ServerParameters { get; set; }
 
         public event Action ConnectEvent;
+
         public event Action DisconnectEvent;
+
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
         #endregion
 
         #region 2 Properties
-                
+
         private string _MFIXTradeServerAddress;
         private string _MFIXTradeServerPort;
         private string _MFIXTradeServerTargetCompId;

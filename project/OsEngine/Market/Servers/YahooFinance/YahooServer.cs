@@ -514,6 +514,8 @@ namespace OsEngine.Market.Servers.YahooFinance
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
         #endregion
     }
 }

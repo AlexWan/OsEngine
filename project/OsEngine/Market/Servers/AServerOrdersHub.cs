@@ -243,6 +243,12 @@ namespace OsEngine.Market.Servers
 
         public event Action GetAllActiveOrdersOnReconnectEvent;
 
+        public void ForceCheckOrdersAfterReconnect()
+        {
+            _lastDisconnectTime = DateTime.Now;
+            _checkOrdersAfterLastConnect = false;
+        }
+
         #endregion
 
         #region Orders Hub
