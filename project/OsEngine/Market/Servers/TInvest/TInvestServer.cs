@@ -25,8 +25,6 @@ using System.Net;
 using System.Net.Http;
 using Grpc.Net.Client;
 using Grpc.Core;
-using OsEngine.Market.Servers.Transaq.TransaqEntity;
-
 
 namespace OsEngine.Market.Servers.TInvest
 {
@@ -1862,8 +1860,15 @@ namespace OsEngine.Market.Servers.TInvest
 
         public void Subscribe(Security security)
         {
+            SubscribeLoop(0, security);
+        }
+
+        private void SubscribeLoop(int tryCount, Security security)
+        {
             try
             {
+                tryCount++;
+
                 if (_streamSubscribedSecurities.Any(s => s.Name == security.Name) ||
                     _pollSubscribedSecurities.Any(s => s.Name == security.Name))
                 {
@@ -1886,7 +1891,7 @@ namespace OsEngine.Market.Servers.TInvest
                     return; // Nothing more to do for polled securities
                 }
 
-                lock(_marketDataStreamLocker)
+                lock (_marketDataStreamLocker)
                 {
                     if (_marketDataStream == null)
                     {
@@ -1933,7 +1938,7 @@ namespace OsEngine.Market.Servers.TInvest
                         marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
                         _marketDataRequestsTrades.Add(subscribeTradesRequest);
                         _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-                       
+
 
                         // only one type of marketdata allowed in request so we need to new up request object
                         marketDataRequest = new MarketDataRequest();
@@ -1956,7 +1961,45 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception exception)
             {
-                SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
+                for(int i = 0;i < _streamSubscribedSecurities.Count;i++)
+                {
+
+                    if (_streamSubscribedSecurities[i].NameId == security.NameId)
+                    {
+                        _streamSubscribedSecurities.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                for (int i = 0; i < _pollSubscribedSecurities.Count; i++)
+                {
+
+                    if (_pollSubscribedSecurities[i].NameId == security.NameId)
+                    {
+                        _pollSubscribedSecurities.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                if(tryCount < 3)
+                {
+                    SendLogMessage(
+                        OsLocalization.Market.Label297 + tryCount + " " + security.Name + " \n" + Truncate(exception.ToString()), LogMessageType.System);
+                   
+                    SubscribeLoop(tryCount, security);
+                }
+                else
+                {
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage(
+                             OsLocalization.Market.Label298 + security.Name + " \n" + Truncate(exception.ToString()), LogMessageType.Error);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+
+                    return;
+                }
             }
         }
 

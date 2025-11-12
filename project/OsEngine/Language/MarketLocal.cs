@@ -1105,27 +1105,6 @@ namespace OsEngine.Language
          "Eng:Expert advisor port. It is recommended to run the MT5 terminal and OsEngine on the same local machine_" +
          "Ru:Порт советника. Рекомендуется запускать терминал МТ5 и OsEngine на одной локальной машине_");
 
-
-        public string LabelCommissionType => OsLocalization.ConvertToLocString(
-            "Eng:Commission type_" +
-            "Ru:Тип комиссии_");
-
-        public string LabelCommissionValue => OsLocalization.ConvertToLocString(
-            "Eng:Commission value_" +
-            "Ru:Значение комиссии_");
-
-        public string TitleServerMasterUi => OsLocalization.ConvertToLocString(
-            "Eng:Router_" +
-            "Ru:Роутер_");
-
-        public string TabItem1 => OsLocalization.ConvertToLocString(
-            "Eng: Servers _" +
-            "Ru: Подключения _");
-
-        public string TabItem2 => OsLocalization.ConvertToLocString(
-            "Eng: Logging_" +
-            "Ru: Логирование _");
-
         public string Label268 => OsLocalization.ConvertToLocString(
         "Eng:A demo server where you can trade on a virtual account. If True, demo mode is enabled; if False, it's disabled. Separate public and private keys are required for demo mode_" +
         "Ru:Демонстрационный сервер, где можно поторговать на виртуальном счете. Если True - то демо режим включен, если False - выключен. Для демо нужно выписывать отдельные публичный и приватный ключи_");
@@ -1241,6 +1220,40 @@ namespace OsEngine.Language
         public string Label296 => OsLocalization.ConvertToLocString(
          "Eng:Reconnecting the terminal to the T-Investments API. Several reconnections per day are normal. If you see this constantly, it is recommended to contact support. You can view the details of the program's operation in the connector log._" +
          "Ru:Переподключаем терминал к АПИ Т-Инвестиции, это занимает минуту. Несколько переподключений в день норма. Если Вы видите это постоянно, рекомендуется написать в поддержку. Подробности работы программы первично можно посмотреть в логе коннектора. _");
+
+        public string Label297 => OsLocalization.ConvertToLocString(
+         "Eng:Security Subscribe error. Sending to next attempt. Attempt number_" +
+         "Ru:Ошибка в подписке бумаги. Отправляем на следующую попытку. Попытка номер _");
+
+        public string Label298 => OsLocalization.ConvertToLocString(
+         "Eng:Security Subscribe error. After three attempts, we still haven't subscribed. We're going to reconnect the connector. Security _" +
+         "Ru:Ошибка в подписке бумаги. После трёх попыток всё ещё не подписались. Уходим на переподключение коннектора. Бумага _");
+
+
+
+
+
+
+
+        public string LabelCommissionType => OsLocalization.ConvertToLocString(
+            "Eng:Commission type_" +
+            "Ru:Тип комиссии_");
+
+        public string LabelCommissionValue => OsLocalization.ConvertToLocString(
+            "Eng:Commission value_" +
+            "Ru:Значение комиссии_");
+
+        public string TitleServerMasterUi => OsLocalization.ConvertToLocString(
+            "Eng:Router_" +
+            "Ru:Роутер_");
+
+        public string TabItem1 => OsLocalization.ConvertToLocString(
+            "Eng: Servers _" +
+            "Ru: Подключения _");
+
+        public string TabItem2 => OsLocalization.ConvertToLocString(
+            "Eng: Logging_" +
+            "Ru: Логирование _");
 
         // Servers
 
