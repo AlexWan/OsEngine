@@ -26,7 +26,7 @@ namespace OsEngine.Market.Servers.Plaza
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "11111111");
             CreateParameterInt("Max orders per second", 30);
             CreateParameterBoolean("Cancel on disconnect", true);
-            CreateParameterInt("p2lrpcq or p2tcp", 1);
+            CreateParameterEnum("Connection type", "p2lrpcq", new List<string> { "p2tcp", "p2lrpcq" });
         }
     }
 
@@ -55,7 +55,7 @@ namespace OsEngine.Market.Servers.Plaza
             string key = ((ServerParameterString)ServerParameters[0]).Value;
             int limitation = ((ServerParameterInt)ServerParameters[1]).Value;
             _COD = ((ServerParameterBool)ServerParameters[2]).Value;
-            int connectionType = ((ServerParameterInt)ServerParameters[3]).Value;
+            string connectionType = ((ServerParameterEnum)ServerParameters[3]).Value;
 
             _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(1000 / limitation));
 
@@ -90,13 +90,13 @@ namespace OsEngine.Market.Servers.Plaza
             // Creating a connection to the router | Создание соединения с роутером
             try
             {
-                if (connectionType == 1)
+                if (connectionType == "p2tcp")
                 {
-                    Connection = new Connection(ConnectionOpenString_p2lrpcq);
+                    Connection = new Connection(ConnectionOpenString_p2tcp);
                 }
                 else
                 {
-                    Connection = new Connection(ConnectionOpenString_p2tcp);
+                    Connection = new Connection(ConnectionOpenString_p2lrpcq);
                 }
             }
             catch (CGateException error)
@@ -2363,7 +2363,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     trade.NumberTrade = replmsg["id_deal"].asLong().ToString();
                                     trade.SecurityNameCode = replmsg["isin_id"].asInt().ToString();
 
-                                    if (_securities != null)
+                                    if (_securities != null && _securities.Count != 0)
                                     {
                                         Security security = _securities.Find(security1 => security1.NameId == trade.SecurityNameCode);
 
@@ -2433,7 +2433,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     order.PortfolioNumber = replmsg["client_code"].asString();
                                     string securityNameCode = replmsg["isin_id"].asInt().ToString();
 
-                                    if (_securities != null)
+                                    if (_securities != null && _securities.Count != 0)
                                     {
                                         Security security = _securities.Find(sec => sec.NameId == securityNameCode);
 
