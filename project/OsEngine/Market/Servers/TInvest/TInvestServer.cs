@@ -1176,9 +1176,9 @@ namespace OsEngine.Market.Servers.TInvest
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
-            startTime = TimeZoneInfo.ConvertTimeToUtc(startTime, _mskTimeZone);
-            endTime = TimeZoneInfo.ConvertTimeToUtc(endTime, _mskTimeZone);
-            actualTime = TimeZoneInfo.ConvertTimeToUtc(actualTime, _mskTimeZone);
+            startTime = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(startTime, DateTimeKind.Unspecified), _mskTimeZone);
+            endTime = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(endTime, DateTimeKind.Unspecified), _mskTimeZone);
+            actualTime = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(actualTime, DateTimeKind.Unspecified), _mskTimeZone);
 
             if (startTime != actualTime)
             {
