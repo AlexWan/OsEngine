@@ -37,6 +37,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             CreateParameterString("User ID", "");
             CreateParameterEnum("Currency", "USDT", new List<string> { "USDT", "BTC" });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
+            ServerParameters[4].ValueChange += GateIoServerFutures_ValueChange;
             CreateParameterBoolean("Extended Data", false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
@@ -45,6 +46,18 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             ServerParameters[3].Comment = OsLocalization.Market.Label274;
             ServerParameters[4].Comment = OsLocalization.Market.Label250;
             ServerParameters[5].Comment = OsLocalization.Market.Label270;
+        }
+
+        private void GateIoServerFutures_ValueChange()
+        {
+            if (((ServerParameterEnum)ServerParameters[4]).Value == "On")
+            {
+                ((GateIoServerFuturesRealization)ServerRealization).HedgeMode = true;
+            }
+            else
+            {
+                ((GateIoServerFuturesRealization)ServerRealization).HedgeMode = false;
+            }
         }
     }
 
@@ -107,11 +120,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             if (((ServerParameterEnum)ServerParameters[4]).Value == "On")
             {
-                _hedgeMode = true;
+                HedgeMode = true;
             }
             else
             {
-                _hedgeMode = false;
+                HedgeMode = false;
             }
 
             if (((ServerParameterBool)ServerParameters[5]).Value == true)
@@ -178,7 +191,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             try
             {
-                string mode = _hedgeMode == true ? "true" : "false";
+                string mode = HedgeMode == true ? "true" : "false";
                 string queryParam = $"dual_mode={mode}";
                 string endpoint = $"{_path}/{_wallet}/dual_mode?{queryParam}";
 
@@ -271,6 +284,21 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         private string _userId = "";
 
         private bool _hedgeMode;
+
+        public bool HedgeMode
+        {
+            get { return _hedgeMode; }
+            set
+            {
+                if (value == _hedgeMode)
+                {
+                    return;
+                }
+                _hedgeMode = value;
+
+                SetDualMode();
+            }
+        }
 
         private bool _extendedMarketData;
 
@@ -2214,7 +2242,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                 string bodyContent;
 
-                if (_hedgeMode)
+                if (HedgeMode)
                 {
                     if (order.PositionConditionType == OrderPositionConditionType.Close)
                     {
