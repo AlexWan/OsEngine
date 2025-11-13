@@ -2,6 +2,7 @@
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.Pionex.Entity;
 using OsEngine.Market.Servers.Plaza.Entity;
 using ru.micexrts.cgate;
 using ru.micexrts.cgate.message;
@@ -25,7 +26,7 @@ namespace OsEngine.Market.Servers.Plaza
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "11111111");
             CreateParameterInt("Max orders per second", 30);
             CreateParameterBoolean("Cancel on disconnect", true);
-            CreateParameterInt("p2lrpcq or p2tcp", 1);
+            CreateParameterEnum("Connection type", "p2lrpcq", new List<string> { "p2tcp", "p2lrpcq" });
         }
     }
 
@@ -38,15 +39,15 @@ namespace OsEngine.Market.Servers.Plaza
             ServerStatus = ServerConnectStatus.Disconnect;
             _statusNeeded = ServerConnectStatus.Disconnect;
 
-            _threadPrime = new Thread(PrimeWorkerThreadSpace);
-            _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
-            _threadPrime.IsBackground = true;
-            _threadPrime.Start();
+            Thread worker1 = new Thread(PrimeWorkerThreadSpace);
+            worker1.CurrentCulture = new CultureInfo("ru-RU");
+            worker1.IsBackground = true;
+            worker1.Start();
 
-            _heartBeatSenderThread = new Thread(HeartBeatSender);
-            _heartBeatSenderThread.CurrentCulture = new CultureInfo("ru-RU");
-            _heartBeatSenderThread.IsBackground = true;
-            _heartBeatSenderThread.Start();
+            Thread worker2 = new Thread(HeartBeatSender);
+            worker2.CurrentCulture = new CultureInfo("ru-RU");
+            worker2.IsBackground = true;
+            worker2.Start();
         }
 
         public void Connect(WebProxy proxy)
@@ -54,7 +55,7 @@ namespace OsEngine.Market.Servers.Plaza
             string key = ((ServerParameterString)ServerParameters[0]).Value;
             int limitation = ((ServerParameterInt)ServerParameters[1]).Value;
             _COD = ((ServerParameterBool)ServerParameters[2]).Value;
-            int connectionType = ((ServerParameterInt)ServerParameters[3]).Value;
+            string connectionType = ((ServerParameterEnum)ServerParameters[3]).Value;
 
             _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(1000 / limitation));
 
@@ -89,13 +90,13 @@ namespace OsEngine.Market.Servers.Plaza
             // Creating a connection to the router | Создание соединения с роутером
             try
             {
-                if (connectionType == 1)
+                if (connectionType == "p2tcp")
                 {
-                    Connection = new Connection(ConnectionOpenString_p2lrpcq);
+                    Connection = new Connection(ConnectionOpenString_p2tcp);
                 }
                 else
                 {
-                    Connection = new Connection(ConnectionOpenString_p2tcp);
+                    Connection = new Connection(ConnectionOpenString_p2lrpcq);
                 }
             }
             catch (CGateException error)
@@ -320,9 +321,8 @@ namespace OsEngine.Market.Servers.Plaza
                     _publisher = null;
                 }
 
-                _rebildDepths = null;
                 _marketDepths = new List<MarketDepth>();
-                _marketDepthsRevisions = null;
+                _lastRevisions = null;
                 _ordersToExecute = new Queue<Order>();
                 _ordersToCansel = new Queue<Order>();
                 _ordersToChange = new Queue<Order>();
@@ -371,20 +371,6 @@ namespace OsEngine.Market.Servers.Plaza
         #region 2 Properties, Connection strings
 
         private RateGate _rateGate;
-
-        /// <summary>
-		/// thread responsible for connecting to Plaza, monitoring threads and processing incoming data
-        /// поток отвечающий за соединение с плазой, следящий за потоками и обрабатывающий входящие данные
-        /// </summary>
-        private Thread _threadPrime;
-
-        /// <summary>
-        /// CODHeartbeat thread. COD - specially ordered service from a broker. Allows you to delete all active orders of your login when the connection with your program is broken
-        /// It works as well - while signals from the program are being sent - everything is ok. How to stop - the exchange cancels all orders. | 
-        /// Поток отправляющий CODHeartbeat.COD - специально заказываемая услуга у брокера. Позволяет при обрыве связи с Вашей программой удалять все активные заявки Вашего логина
-        /// Работает так- пока сигналы из программы идут - всё ок. Как прекращаются - биржа кроет все заявки.
-        /// </summary>
-        private Thread _heartBeatSenderThread;
 
         /// <summary>
         /// a flag indicating whether the connection to CGate is open or not |
@@ -1810,12 +1796,6 @@ namespace OsEngine.Market.Servers.Plaza
         }
 
         /// <summary>
-        /// depths that have been updated for the previous data series and mailing these depths is required |
-        /// стаканы которые обновились за предыдущую серию данных и требуется рассылка этих стаканов
-        /// </summary>
-        private List<MarketDepth> _rebildDepths;
-
-        /// <summary>
 		/// depth is processed here
         /// здесь обрабатывается стакан
         /// </summary>
@@ -1855,28 +1835,9 @@ namespace OsEngine.Market.Servers.Plaza
                                         return 0;
                                     }
 
-                                    if (_rebildDepths == null)
+                                    if (MarketDepthEvent != null)
                                     {
-                                        _rebildDepths = new List<MarketDepth>();
-                                    }
-
-                                    if (_rebildDepths.Find(depth => depth.SecurityNameCode == myDepth.SecurityNameCode) == null)
-                                    {
-                                        _rebildDepths.Add(myDepth.GetCopy());
-                                    }
-
-                                    if (_rebildDepths != null && _rebildDepths.Count != 0)
-                                    {
-                                        for (int i = 0; i < _rebildDepths.Count; i++)
-                                        {
-                                            if (MarketDepthEvent != null && _rebildDepths[i] != null &&
-                                                _rebildDepths[i].Bids != null && _rebildDepths[i].Bids.Count != 0 &&
-                                                _rebildDepths[i].Asks != null && _rebildDepths[i].Asks.Count != 0)
-                                            {
-                                                MarketDepthEvent(_rebildDepths[i]);
-                                            }
-                                        }
-                                        _rebildDepths.Clear();
+                                        MarketDepthEvent(myDepth);
                                     }
                                 }
                                 catch (Exception error)
@@ -1955,7 +1916,7 @@ namespace OsEngine.Market.Servers.Plaza
             }
         }
 
-        private List<RevisionInfo> _marketDepthsRevisions;
+        private List<RevisionInfo> _lastRevisions;
 
         private List<MarketDepth> _marketDepths;
 
@@ -1970,21 +1931,21 @@ namespace OsEngine.Market.Servers.Plaza
             revision.ReplId = replmsg["replID"].asLong(); // уникальный идентификатор записи в таблице. При вставке каждой новой записи, этой записи присваивается уникальный идентификатор
             revision.Security = security.Name;
 
-            if (_marketDepthsRevisions == null)
+            if (_lastRevisions == null)
             {
-                _marketDepthsRevisions = new List<RevisionInfo>();
+                _lastRevisions = new List<RevisionInfo>();
             }
 
             // remove at the same price, if any | удаляем по этой же цене, если такая есть
-            RevisionInfo revisionInArray = _marketDepthsRevisions.Find(info => info.Security == revision.Security && info.ReplId == revision.ReplId);
+            RevisionInfo revisionInArray = _lastRevisions.Find(info => info.Security == revision.Security && info.ReplId == revision.ReplId);
 
             if (revisionInArray != null)
             {
-                _marketDepthsRevisions.Remove(revisionInArray);
+                _lastRevisions.Remove(revisionInArray);
             }
 
             // add new | добавляем новую
-            _marketDepthsRevisions.Add(revision);
+            _lastRevisions.Add(revision);
 
             // create line for depth | создаём строку для стакана
             MarketDepthLevel depthLevel = new MarketDepthLevel();
@@ -2000,7 +1961,7 @@ namespace OsEngine.Market.Servers.Plaza
                 depthLevel.Ask = replmsg["volume"].asInt();
             }
 
-            depthLevel.Price = Convert.ToDouble(replmsg["price"].asDecimal());
+            depthLevel.Price = replmsg["price"].asDouble();
             depthLevel.Id = replmsg["replID"].asLong();
 
             // take our depth | берём наш стакан
@@ -2009,7 +1970,15 @@ namespace OsEngine.Market.Servers.Plaza
                 _marketDepths = new List<MarketDepth>();
             }
 
-            MarketDepth myDepth = _marketDepths.Find(depth => depth.SecurityNameCode == security.Name);
+            MarketDepth myDepth = null;
+            for (int i = 0; i < _marketDepths.Count; i++)
+            {
+                if (_marketDepths[i].SecurityNameCode == security.Name)
+                {
+                    myDepth = _marketDepths[i];
+                    break;
+                }
+            }
 
             if (myDepth == null)
             {
@@ -2018,7 +1987,7 @@ namespace OsEngine.Market.Servers.Plaza
                 _marketDepths.Add(myDepth);
             }
 
-            myDepth.Time = replmsg["moment"].asDateTime();
+            myDepth.Time = DateTime.Now; //replmsg["moment"].asDateTime();
 
             // add line in our depth | добавляем строку в наш стакан
 
@@ -2075,9 +2044,7 @@ namespace OsEngine.Market.Servers.Plaza
 
                         for (int i = 0, i2 = 0; i2 < bids.Count + 1; i2++)
                         {
-                            if (i == bids.Count && isIn == false ||
-                                (isIn == false &&
-                                 depthLevel.Price > bids[i].Price))
+                            if (i == bids.Count && isIn == false || (isIn == false && depthLevel.Price > bids[i].Price))
                             {
                                 isIn = true;
                                 asksNew.Add(depthLevel);
@@ -2097,8 +2064,7 @@ namespace OsEngine.Market.Servers.Plaza
                         bids = asksNew;
                     }
 
-                    if (asks != null && asks.Count != 0 &&
-                        asks[0].Price <= bids[0].Price)
+                    if (asks != null && asks.Count != 0 && asks[0].Price <= bids[0].Price)
                     {
                         while (asks.Count != 0 &&
                                asks[0].Price <= bids[0].Price)
@@ -2194,7 +2160,7 @@ namespace OsEngine.Market.Servers.Plaza
         {
             // process revision | обрабатываем ревизию
 
-            if (_marketDepthsRevisions == null)
+            if (_lastRevisions == null)
             {
                 return null;
             }
@@ -2205,11 +2171,11 @@ namespace OsEngine.Market.Servers.Plaza
 
             // remove at the same price, if any | удаляем по этой же цене, если такая есть
             RevisionInfo revisionInArray =
-                _marketDepthsRevisions.Find(info => info.Security == revision.Security && info.ReplId == revision.ReplId);
+                _lastRevisions.Find(info => info.Security == revision.Security && info.ReplId == revision.ReplId);
 
             if (revisionInArray != null)
             {
-                _marketDepthsRevisions.Remove(revisionInArray);
+                _lastRevisions.Remove(revisionInArray);
             }
 
             MarketDepth myDepth = _marketDepths.Find(depth => depth.SecurityNameCode == security.Name);
@@ -2222,7 +2188,7 @@ namespace OsEngine.Market.Servers.Plaza
                 _marketDepths.Add(myDepth);
                 return myDepth;
             }
-            myDepth.Time = replmsg["moment"].asDateTime();
+            myDepth.Time = DateTime.Now; // replmsg["moment"].asDateTime();
 
             if (revisionInArray == null)
             {
@@ -2301,11 +2267,11 @@ namespace OsEngine.Market.Servers.Plaza
             // msg.TableIdx;
             // msg.TableRev;
 
-            for (int i = 0; _marketDepthsRevisions != null && i < _marketDepthsRevisions.Count; i++)
+            for (int i = 0; _lastRevisions != null && i < _lastRevisions.Count; i++)
             {
-                if (_marketDepthsRevisions[i].TableRevision < msg.TableRev)
+                if (_lastRevisions[i].TableRevision < msg.TableRev)
                 {
-                    ClearThisRevision(_marketDepthsRevisions[i]);
+                    ClearThisRevision(_lastRevisions[i]);
                 }
             }
         }
@@ -2314,7 +2280,7 @@ namespace OsEngine.Market.Servers.Plaza
         {
             try
             {
-                _marketDepthsRevisions.Remove(info);
+                _lastRevisions.Remove(info);
 
                 MarketDepth myDepth = _marketDepths.Find(depth => depth.SecurityNameCode == info.Security);
 
@@ -2397,7 +2363,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     trade.NumberTrade = replmsg["id_deal"].asLong().ToString();
                                     trade.SecurityNameCode = replmsg["isin_id"].asInt().ToString();
 
-                                    if (_securities != null)
+                                    if (_securities != null && _securities.Count != 0)
                                     {
                                         Security security = _securities.Find(security1 => security1.NameId == trade.SecurityNameCode);
 
@@ -2467,7 +2433,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     order.PortfolioNumber = replmsg["client_code"].asString();
                                     string securityNameCode = replmsg["isin_id"].asInt().ToString();
 
-                                    if (_securities != null)
+                                    if (_securities != null && _securities.Count != 0)
                                     {
                                         Security security = _securities.Find(sec => sec.NameId == securityNameCode);
 
