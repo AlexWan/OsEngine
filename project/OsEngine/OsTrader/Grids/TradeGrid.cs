@@ -2312,6 +2312,13 @@ namespace OsEngine.OsTrader.Grids
 
         public void SendNewLogMessage(string message, LogMessageType type)
         {
+            if(type == LogMessageType.Error)
+            {
+                message = "Grid error. Bot: " + this.Tab.NameStrategy + "\n"
+                + "Security name: " + this.Tab.Connector.SecurityName +
+                message;
+            }
+
             if (LogMessageEvent != null)
             {
                 LogMessageEvent(message, type);
