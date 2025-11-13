@@ -16,6 +16,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -455,11 +456,7 @@ namespace OsEngine.OsData
     {
         #region Service
 
-        public SecurityToLoad()
-        {
-
-
-        }
+        public SecurityToLoad() { }
 
         public string SetName = "";
 
@@ -1983,29 +1980,12 @@ namespace OsEngine.OsData
             _volumeStep = volumeStep;
             _filePath = filePath;
 
-            Stream = File.Create(_filePath);
-            Writer = new BinaryWriter(Stream, Encoding.UTF8);
-
             CreateSource();
         }
 
         public void Delete()
         {
             _isDeleted = true;
-
-            if (Stream != null)
-            {
-                Stream.Dispose();
-                Stream.Close();
-                Stream = null;
-            }
-
-            if (Writer != null)
-            {
-                Writer.Dispose();
-                Writer.Close();
-                Writer = null;
-            }
 
             if (MarketDepthSource != null)
             {
@@ -2025,7 +2005,6 @@ namespace OsEngine.OsData
                 + _secClass + "_"
                 + _depth;
 
-
             MarketDepthSource = new BotTabSimple(nameTab, StartProgram.IsOsData);
             MarketDepthSource.Connector.SecurityName = _secName;
             MarketDepthSource.Connector.SecurityClass = _secClass;
@@ -2033,7 +2012,6 @@ namespace OsEngine.OsData
             MarketDepthSource.Connector.ServerFullName = _serverName;
             MarketDepthSource.TimeFrameBuilder.TimeFrame = TimeFrame.Hour1;
 
-            CreateHeader();
 
             MarketDepthSource.MarketDepthUpdateEvent += MarketDepthSource_MarketDepthUpdateEvent;
             MarketDepthSource.LogMessageEvent += SendNewLogMessage;
@@ -2043,29 +2021,29 @@ namespace OsEngine.OsData
             thread.Start();
         }
 
-        private void CreateHeader()
+        private void CreateHeader(BinaryWriter writer)
         {
             try
             {
                 byte[] signature = Encoding.UTF8.GetBytes("QScalp History Data");
-                Writer.Write(signature);
-                Writer.Write((byte)4);
-                WriteString("OsEngine");
-                WriteString($"VolumeStep:{_volumeStep}");
+                writer.Write(signature);
+                writer.Write((byte)4);
+                WriteString(writer, "OsEngine");
+                WriteString(writer, $"VolumeStep:{_volumeStep}");
 
                 long startTicks = DateTime.Now.Ticks;
                 _lastTimeStampMarketDepth = TimeManager.GetTimeStampMillisecondsFromStartTime(DateTime.Now);
-                Writer.Write(startTicks);
+                writer.Write(startTicks);
 
                 byte streamCount = (byte)1;
-                Writer.Write(streamCount);
+                writer.Write(streamCount);
 
-                Writer.Write(GetStreamId(StreamType.Quotes));
+                writer.Write(GetStreamId(StreamType.Quotes));
 
                 string instrumentCode = $"{_serverType.ToString()}:{_secName}:{_secClass}:1:{_priceStep}";
-                WriteString(instrumentCode);
+                WriteString(writer, instrumentCode);
 
-                Writer.Flush();
+                writer.Flush();
             }
             catch (Exception ex)
             {
@@ -2088,19 +2066,19 @@ namespace OsEngine.OsData
             };
         }
 
-        private void WriteString(string value)
+        private void WriteString(BinaryWriter writer, string value)
         {
             try
             {
                 if (string.IsNullOrEmpty(value))
                 {
-                    ULeb128.WriteULeb128(Writer, 0);
+                    ULeb128.WriteULeb128(writer, 0);
                     return;
                 }
 
                 byte[] bytes = Encoding.UTF8.GetBytes(value);
-                ULeb128.WriteULeb128(Writer, (ulong)bytes.Length);
-                Writer.Write(bytes);
+                ULeb128.WriteULeb128(writer, (ulong)bytes.Length);
+                writer.Write(bytes);
             }
             catch (Exception ex)
             {
@@ -2130,18 +2108,28 @@ namespace OsEngine.OsData
 
                             if (_lastMarketDepth == null)
                             {
-                                WriteFrameHeader(md.Time);
-                                WriteFirstMarketDepthData(md);
+                                using (FileStream fs = new FileStream(_filePath, FileMode.Create, FileAccess.Write))
+                                {
+                                    BinaryWriter writer = new BinaryWriter(fs, Encoding.UTF8);
+                                    CreateHeader(writer);
+                                    WriteFrameHeader(writer, md.Time);
+                                    WriteFirstMarketDepthData(writer, md);
 
-                                _lastMarketDepth = md;
+                                    _lastMarketDepth = md;
 
-                                Writer.Flush();
+                                    writer.Flush();
+                                }
                             }
                             else
                             {
-                                WriteSecondMarketDepthData(md);
+                                using (FileStream fs = new FileStream(_filePath, FileMode.Append, FileAccess.Write))
+                                {
+                                    BinaryWriter writer = new BinaryWriter(fs, Encoding.UTF8);
 
-                                Writer.Flush();
+                                    WriteSecondMarketDepthData(writer, md);
+
+                                    writer.Flush();
+                                }
                             }
                         }
                     }
@@ -2155,7 +2143,7 @@ namespace OsEngine.OsData
             }
         }
 
-        private void WriteSecondMarketDepthData(MarketDepth md)
+        private void WriteSecondMarketDepthData(BinaryWriter writer, MarketDepth md)
         {
             try
             {
@@ -2166,8 +2154,8 @@ namespace OsEngine.OsData
 
                 if (changes.Count > 0)
                 {
-                    WriteFrameHeader(md.Time);
-                    WriteChangesToFile(changes);
+                    WriteFrameHeader(writer, md.Time);
+                    WriteChangesToFile(writer, changes);
                     _lastMarketDepth = md;
                 }
             }
@@ -2177,18 +2165,18 @@ namespace OsEngine.OsData
             }
         }
 
-        private void WriteChangesToFile(List<QuoteChange> changes)
+        private void WriteChangesToFile(BinaryWriter writer, List<QuoteChange> changes)
         {
-            Leb128.WriteLeb128(Writer, changes.Count);
+            Leb128.WriteLeb128(writer, changes.Count);
 
             for (int i = changes.Count - 1; i >= 0; i--)
             {
                 QuoteChange change = changes[i];
 
-                Leb128.WriteLeb128(Writer, change.Price - _lastPrice);
+                Leb128.WriteLeb128(writer, change.Price - _lastPrice);
                 _lastPrice = change.Price;
 
-                Leb128.WriteLeb128(Writer, change.Volume);
+                Leb128.WriteLeb128(writer, change.Volume);
             }
         }
 
@@ -2282,7 +2270,7 @@ namespace OsEngine.OsData
             }
         }
 
-        private void WriteFirstMarketDepthData(MarketDepth md)
+        private void WriteFirstMarketDepthData(BinaryWriter writer, MarketDepth md)
         {
             try
             {
@@ -2308,7 +2296,7 @@ namespace OsEngine.OsData
                     changes.Insert(0, quoteChange);
                 }
 
-                WriteChangesToFile(changes);
+                WriteChangesToFile(writer, changes);
             }
             catch (Exception ex)
             {
@@ -2316,13 +2304,13 @@ namespace OsEngine.OsData
             }
         }
 
-        private void WriteFrameHeader(DateTime time)
+        private void WriteFrameHeader(BinaryWriter writer, DateTime time)
         {
             try
             {
                 long timeStamp = TimeManager.GetTimeStampMillisecondsFromStartTime(time);
 
-                WriteGrowing(timeStamp);
+                WriteGrowing(writer, timeStamp);
             }
             catch (Exception ex)
             {
@@ -2330,7 +2318,7 @@ namespace OsEngine.OsData
             }
         }
 
-        private void WriteGrowing(long timeStamp)
+        private void WriteGrowing(BinaryWriter writer, long timeStamp)
         {
             try
             {
@@ -2339,12 +2327,12 @@ namespace OsEngine.OsData
 
                 if (diff >= 0 && diff <= 268435454)
                 {
-                    ULeb128.WriteULeb128(Writer, ((ulong)diff));
+                    ULeb128.WriteULeb128(writer, ((ulong)diff));
                 }
                 else
                 {
-                    ULeb128.WriteULeb128(Writer, 268435455);
-                    Leb128.WriteLeb128(Writer, diff);
+                    ULeb128.WriteULeb128(writer, 268435455);
+                    Leb128.WriteLeb128(writer, diff);
                 }
             }
             catch (Exception ex)
@@ -2371,10 +2359,6 @@ namespace OsEngine.OsData
 
         public event Action<string, LogMessageType> NewLogMessageEvent;
 
-        public Stream Stream;
-
-        public BinaryWriter Writer;
-
         private MarketDepth _lastMarketDepth;
 
         private decimal _priceStep;
@@ -2384,6 +2368,9 @@ namespace OsEngine.OsData
         private long _lastPrice;
 
         private long _lastTimeStampMarketDepth;
+
+        private byte[] _prefix = Encoding.UTF8.GetBytes("QScalp History Data");
+
 
         #endregion
 

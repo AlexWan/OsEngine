@@ -99,6 +99,9 @@ namespace OsEngine.Entity
                     LabelAwaitString.Dispatcher.Invoke(new Action<decimal>(_master_ValueCurrentChangedEvent), value);
                     return;
                 }
+
+                if (_master == null) return;
+
                 ProgressBarAwait.Value = Convert.ToDouble(_master.ValueCurrent);
             }
             catch
