@@ -3192,7 +3192,26 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage(OsLocalization.Market.Label291 + "\n" + message, LogMessageType.Error);
+
+                    if(message.Contains("Not enough assets"))
+                    {
+                        message = OsLocalization.Market.Label301;
+                    }
+                    else if (message.Contains("The price is too high"))
+                    {
+                        message = OsLocalization.Market.Label302;
+                    }
+                    else if (message.Contains("The price is outside the limits for"))
+                    {
+                        message = OsLocalization.Market.Label304;
+                    }
+
+                    SendLogMessage(OsLocalization.Market.Label291 +
+                            "\n" + message +
+                            "\n" + order.SecurityNameCode 
+                            + ", " + OsLocalization.Market.Message21 + order.Volume
+                            + ", " + OsLocalization.Market.Label303 + " " + order.Price
+                            , LogMessageType.Error);
 
                     order.State = OrderStateType.Fail;
                     MyOrderEvent!(order);

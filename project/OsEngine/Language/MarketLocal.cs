@@ -1199,7 +1199,7 @@ namespace OsEngine.Language
 
         public string Label291 => OsLocalization.ConvertToLocString(
          "Eng:An error occurred while placing an order. Most likely, the error text contains the reason for the error. Error _" +
-         "Ru:Ошибка при выставлении ордера. Скорее всего в тексте ошибки ответ почему. Ошибка ниже _");
+         "Ru:Ошибка при выставлении ордера. _");
 
         public string Label292 => OsLocalization.ConvertToLocString(
          "Eng:Numerous attempts to withdraw the order. _" +
@@ -1207,7 +1207,7 @@ namespace OsEngine.Language
 
         public string Label293 => OsLocalization.ConvertToLocString(
          "Eng:An error occurred while cancel an order. Most likely, the error text contains the reason for the error. Error _" +
-         "Ru:Ошибка при отзыве ордера. Скорее всего в тексте ошибки ответ почему. Ошибка ниже _");
+         "Ru:Ошибка при отзыве ордера. _");
 
         public string Label294 => OsLocalization.ConvertToLocString(
          "Eng:The GRPC API stream has an error. Restart the connection. This will take less than a minute and everything is probably fine. If the error happens again, you should contact support. Stream name _" +
@@ -1237,7 +1237,21 @@ namespace OsEngine.Language
          "Eng:Your connection token does not support trading operations. You need to issue a new token on the T-Investments website. Select the \"Trading\" option. Then connect using the new token. _" +
          "Ru:Ваш токен подключения не поддерживает торговые операции. Необходимо выписать новый токен на сайте Т-Инвестиции. Указав галочку ТОРГОВЛЯ. И подключаться через него. _");
 
+        public string Label301 => OsLocalization.ConvertToLocString(
+         "Eng:There is not enough money in the portfolio for the operation _" +
+         "Ru:На счёте недостаточно средств для операции. _");
 
+        public string Label302 => OsLocalization.ConvertToLocString(
+         "Eng:The price is too high_" +
+         "Ru:Цена слишком высока _");
+
+        public string Label303 => OsLocalization.ConvertToLocString(
+         "Eng:Price_" +
+         "Ru:Цена_");
+
+        public string Label304 => OsLocalization.ConvertToLocString(
+         "Eng:The price is outside the limits_" +
+         "Ru:Цена за пределами лимита по инструменту_");
 
 
 
