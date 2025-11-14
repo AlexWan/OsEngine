@@ -50,7 +50,6 @@ namespace OsEngine.Market.Servers.TInvest
 
     public class TInvestServerRealization : IServerRealization
     {
-        private const int MaxExceptionLogLength = 50;
         private readonly TimeZoneInfo _mskTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
         #region 1 Constructor, Status, Connection
 
@@ -129,7 +128,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage(OsLocalization.Market.Label289 + Truncate(ex.Message.ToString()), LogMessageType.Error);
+                SendLogMessage(OsLocalization.Market.Label289 + ex.Message.ToString(), LogMessageType.Error);
             }
         }
 
@@ -175,11 +174,15 @@ namespace OsEngine.Market.Servers.TInvest
                             continue;
                         }
 
+                        _isDisposedNow = true;
+
                         if (lostStreamName == "Market data stream"
                             && TryReconnectDataStream() == true)
                         {
                             _lastMarketDataTime = DateTime.Now;
                             SendLogMessage(OsLocalization.Market.Label295 + "\nMarket data. ConnectionCheckThread()", LogMessageType.System);
+                            Thread.Sleep(2000);
+                            _isDisposedNow = false;
                             continue;
                         }
 
@@ -193,7 +196,8 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 ForceCheckOrdersAfterReconnectEvent();
                             }
-                           
+                            Thread.Sleep(2000);
+                            _isDisposedNow = false;
                             continue;
                         }
 
@@ -203,9 +207,12 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             _lastPortfolioDataTime = DateTime.Now;
                             SendLogMessage(OsLocalization.Market.Label295 + "\nPortfolio and Positions data. ConnectionCheckThread()", LogMessageType.System);
+                            Thread.Sleep(2000);
+                            _isDisposedNow = false;
                             continue;
                         }
 
+                        _isDisposedNow = false;
 
                         if (ServerStatus == ServerConnectStatus.Connect)
                         {
@@ -213,12 +220,14 @@ namespace OsEngine.Market.Servers.TInvest
                             SendMessageOnReconnectInErrorLog();
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent();
+                            Thread.Sleep(2000);                          
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage(Truncate(ex.ToString()), LogMessageType.System);
+                    _isDisposedNow = false;
+                    SendLogMessage(ex.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -468,7 +477,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage(OsLocalization.Market.Label288 + Truncate(ex.ToString()), LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Label288 + ex.ToString(), LogMessageType.Error);
 
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
@@ -525,7 +534,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading stocks: {Truncate(e.Message)}", LogMessageType.System);
+                SendLogMessage($"Error loading stocks: {e.Message}", LogMessageType.System);
             }
         }
 
@@ -579,7 +588,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading bonds: {Truncate(e.Message)}", LogMessageType.System);
+                SendLogMessage($"Error loading bonds: {e.Message}", LogMessageType.System);
             }
         }
 
@@ -631,7 +640,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading ETFs: {Truncate(e.Message)}", LogMessageType.System);
+                SendLogMessage($"Error loading ETFs: {e.Message}", LogMessageType.System);
             }
         }
 
@@ -672,7 +681,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading indicatives: {Truncate(e.Message)}", LogMessageType.System);
+                SendLogMessage($"Error loading indicatives: {e.Message}", LogMessageType.System);
             }
         }
 
@@ -727,7 +736,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading currency pairs: {Truncate(e.Message)}", LogMessageType.System);
+                SendLogMessage($"Error loading currency pairs: {e.Message}", LogMessageType.System);
             }
         }
 
@@ -790,7 +799,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading futures: {Truncate(e.Message)}", LogMessageType.System);
+                SendLogMessage($"Error loading futures: {e.Message}", LogMessageType.System);
             }
         }
 
@@ -844,7 +853,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception e)
             {
-                SendLogMessage($"Error loading options: {Truncate(e.Message)}", LogMessageType.System);
+                SendLogMessage($"Error loading options: {e.Message}", LogMessageType.System);
             }
         }
 
@@ -940,7 +949,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage(OsLocalization.Market.Label290 + Truncate(ex.ToString()), LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Label290 + ex.ToString(), LogMessageType.Error);
 
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
@@ -1016,7 +1025,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.System);
+                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
                 }
 
                 PositionOnBoard newPos = new PositionOnBoard();
@@ -1057,7 +1066,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.System);
+                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
                 }
 
                 PositionOnBoard newPos = new PositionOnBoard();
@@ -1098,7 +1107,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + Truncate(ex.ToString()), LogMessageType.System);
+                    SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + ex.ToString(), LogMessageType.System);
                 }
 
                 PositionOnBoard newPos = new PositionOnBoard();
@@ -1298,7 +1307,7 @@ namespace OsEngine.Market.Servers.TInvest
                         break; // connection broke before we could get candles
                     }
 
-                    SendLogMessage($"Error getting candles for {security.Name}: " + Truncate(ex.ToString()),
+                    SendLogMessage($"Error getting candles for {security.Name}: " + ex.ToString(),
                         LogMessageType.System);
                 }
             }
@@ -1348,7 +1357,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error fetching trading schedules: {Truncate(ex.ToString())}", LogMessageType.System);
+                    SendLogMessage($"Error fetching trading schedules: {ex.ToString()}", LogMessageType.System);
                 }
 
                 _tradingSchedules[mskDate] = thisDaySchedules;
@@ -1488,7 +1497,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage(Truncate(ex.ToString()), LogMessageType.System);
+                SendLogMessage(ex.ToString(), LogMessageType.System);
             }
 
             if (response == null)
@@ -1555,12 +1564,12 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage(Truncate(ex.ToString()), LogMessageType.System);
+                    SendLogMessage(ex.ToString(), LogMessageType.System);
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
+                SendLogMessage(exception.ToString(), LogMessageType.System);
             }
         }
 
@@ -2007,7 +2016,7 @@ namespace OsEngine.Market.Servers.TInvest
                 if(tryCount < 3)
                 {
                     SendLogMessage(
-                        OsLocalization.Market.Label297 + tryCount + " " + security.Name + " \n" + Truncate(exception.ToString()), LogMessageType.System);
+                        OsLocalization.Market.Label297 + tryCount + " " + security.Name + " \n" + exception.ToString(), LogMessageType.System);
                    
                     SubscribeLoop(tryCount, security);
                 }
@@ -2016,7 +2025,7 @@ namespace OsEngine.Market.Servers.TInvest
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         SendLogMessage(
-                             OsLocalization.Market.Label298 + security.Name + " \n" + Truncate(exception.ToString()), LogMessageType.Error);
+                             OsLocalization.Market.Label298 + security.Name + " \n" + exception.ToString(), LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
@@ -2244,7 +2253,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
+                    SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -2289,7 +2298,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception e)
                 {
-                    SendLogMessage(Truncate(e.ToString()), LogMessageType.System);
+                    SendLogMessage(e.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -2336,11 +2345,11 @@ namespace OsEngine.Market.Servers.TInvest
             catch (RpcException ex)
             {
                 string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting last prices. Status: {ex.StatusCode}, Message: {message}, Details: {Truncate(ex.ToString())}", LogMessageType.System);
+                SendLogMessage($"Error getting last prices. Status: {ex.StatusCode}, Message: {message}, Details: {ex.ToString()}", LogMessageType.System);
             }
             catch (Exception ex)
             {
-                SendLogMessage(Truncate(ex.ToString()), LogMessageType.System);
+                SendLogMessage(ex.ToString(), LogMessageType.System);
             }
 
             if (priceResp == null)
@@ -2574,7 +2583,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
+                    SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -2660,7 +2669,7 @@ namespace OsEngine.Market.Servers.TInvest
                             }
                             catch (Exception ex)
                             {
-                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.System);
+                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
                             }
 
                             PositionOnBoard newPos = new PositionOnBoard();
@@ -2700,7 +2709,7 @@ namespace OsEngine.Market.Servers.TInvest
                             }
                             catch (Exception ex)
                             {
-                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + Truncate(ex.ToString()), LogMessageType.System);
+                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
                             }
 
                             PositionOnBoard newPos = new PositionOnBoard();
@@ -2734,7 +2743,7 @@ namespace OsEngine.Market.Servers.TInvest
                             }
                             catch (Exception ex)
                             {
-                                SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + Truncate(ex.ToString()), LogMessageType.System);
+                                SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + ex.ToString(), LogMessageType.System);
                             }
 
                             PositionOnBoard newPos = new PositionOnBoard();
@@ -2800,7 +2809,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
+                    SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -3019,7 +3028,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(Truncate(exception.ToString()), LogMessageType.System);
+                    SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -3264,7 +3273,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception error)
             {
-                SendLogMessage(Truncate(error.ToString()), LogMessageType.System);
+                SendLogMessage(error.ToString(), LogMessageType.System);
             }
         }
 
@@ -3349,7 +3358,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception exception)
             {
-                SendLogMessage(OsLocalization.Market.Label293 + "\n" + Truncate(exception.ToString()), LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Label293 + "\n" + exception.ToString(), LogMessageType.System);
             }
             return false;
         }
@@ -3441,7 +3450,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error getting order state " + order.SecurityNameCode + " exception: " + Truncate(ex.ToString()), LogMessageType.System);
+                    SendLogMessage("Error getting order state " + order.SecurityNameCode + " exception: " + ex.ToString(), LogMessageType.System);
                     SendLogMessage("Server data was: " + state.ToString(), LogMessageType.System);
 
                     Thread.Sleep(1);
@@ -3545,7 +3554,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception exception)
             {
-                SendLogMessage("Get order state request error. " + Truncate(exception.ToString()), LogMessageType.System);
+                SendLogMessage("Get order state request error. " + exception.ToString(), LogMessageType.System);
             }
 
             return OrderStateType.None;
@@ -3699,7 +3708,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception exception)
             {
-                SendLogMessage("Get all orders request error. " + Truncate(exception.ToString()), LogMessageType.System);
+                SendLogMessage("Get all orders request error. " + exception.ToString(), LogMessageType.System);
             }
 
             return null;
@@ -3823,15 +3832,6 @@ namespace OsEngine.Market.Servers.TInvest
         #endregion
 
         #region 10 Helpers
-
-        private string Truncate(string message)
-        {
-            if (message.Length > MaxExceptionLogLength)
-            {
-                return message.Substring(0, MaxExceptionLogLength);
-            }
-            return message;
-        }
 
         private string GetGRPCErrorMessage(RpcException exception)
         {
