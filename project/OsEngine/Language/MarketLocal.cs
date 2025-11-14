@@ -1233,6 +1233,11 @@ namespace OsEngine.Language
          "Eng:Unfortunately, Windows 7 does not support this connector. You need to update your operating system to version 10 or higher. _" +
          "Ru:К сожалению Windows 7, данный коннектор не поддерживает. Вам надо обновить операционную систему до 10 версии или выше. _");
 
+        public string Label300 => OsLocalization.ConvertToLocString(
+         "Eng:Your connection token does not support trading operations. You need to issue a new token on the T-Investments website. Select the \"Trading\" option. Then connect using the new token. _" +
+         "Ru:Ваш токен подключения не поддерживает торговые операции. Необходимо выписать новый токен на сайте Т-Инвестиции. Указав галочку ТОРГОВЛЯ. И подключаться через него. _");
+
+
 
 
 

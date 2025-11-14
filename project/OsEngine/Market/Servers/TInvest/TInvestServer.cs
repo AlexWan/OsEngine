@@ -925,7 +925,16 @@ namespace OsEngine.Market.Servers.TInvest
                         PortfolioEvent(_myPortfolios);
                     }
                 }
-
+                else
+                {
+                    // нет портфелей. Токен просмотровый
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage(OsLocalization.Market.Label300, LogMessageType.Error);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                }
             }
             catch (Exception ex)
             {
