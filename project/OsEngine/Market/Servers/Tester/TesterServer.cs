@@ -3486,7 +3486,7 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
                 security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
 
-                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
+                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1].Split('.')[0];
 
                 security[security.Count - 1].Security = new Security();
                 security[security.Count - 1].Security.Name = name;
@@ -3619,7 +3619,7 @@ namespace OsEngine.Market.Servers.Tester
                         security[security.Count - 1].TimeEnd = lastDateTime;
                         security[security.Count - 1].Security.Expiration = lastDateTime;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         security.Remove(security[security.Count - 1]);
                     }
