@@ -73,7 +73,7 @@ namespace OsEngine.Entity
         /// </summary>
         public string SecurityNameCode;
 
-        public int _lastBinaryPrice = 0;
+        public int LastBinaryPrice = 0;
 
         public void SetMarketDepthFromBinaryFile(DataBinaryReader dr, decimal priceStep, double volumeStep, long lastMilliseconds)
         {
@@ -84,7 +84,7 @@ namespace OsEngine.Entity
 
             for (int i = 0; i < n; i++)
             {
-                _lastBinaryPrice += (int)dr.ReadLeb128();
+                LastBinaryPrice += (int)dr.ReadLeb128();
                 double volume = (int)dr.ReadLeb128() * volumeStep;
 
                 if (volume == 0)
@@ -92,7 +92,7 @@ namespace OsEngine.Entity
                     bool isDelete = false;
                     for (int i2 = Bids.Count - 1; i2 >= 0; i2--)
                     {
-                        if (Bids[i2].Price == _lastBinaryPrice * (double)priceStep)
+                        if (Bids[i2].Price == LastBinaryPrice * (double)priceStep)
                         {
                             Bids.Remove(Bids[i2]);
                             isDelete = true;
@@ -104,7 +104,7 @@ namespace OsEngine.Entity
 
                     for (int i2 = Asks.Count - 1; i2 >= 0; i2--)
                     {
-                        if (Asks[i2].Price == _lastBinaryPrice * (double)priceStep)
+                        if (Asks[i2].Price == LastBinaryPrice * (double)priceStep)
                         {
                             Asks.Remove(Asks[i2]);
                             break;
@@ -119,7 +119,7 @@ namespace OsEngine.Entity
                     {
                         for (int i2 = 0; i2 < Asks.Count; i2++)
                         {
-                            if (Asks[i2].Price == _lastBinaryPrice * (double)priceStep)
+                            if (Asks[i2].Price == LastBinaryPrice * (double)priceStep)
                             {
                                 Asks[i2].Ask = volume * volumeStep;
                                 inArray = true;
@@ -129,7 +129,7 @@ namespace OsEngine.Entity
 
                         for (int i2 = Bids.Count - 1; i2 >= 0; i2--)
                         {
-                            if (Bids[i2].Price == _lastBinaryPrice * (double)priceStep)
+                            if (Bids[i2].Price == LastBinaryPrice * (double)priceStep)
                             {
                                 Bids.Remove(Bids[i2]);
                                 break;
@@ -140,7 +140,7 @@ namespace OsEngine.Entity
                     if (inArray) continue;
 
                     MarketDepthLevel newAsk = new MarketDepthLevel();
-                    newAsk.Price = _lastBinaryPrice * (double)priceStep;
+                    newAsk.Price = LastBinaryPrice * (double)priceStep;
                     newAsk.Ask = volume * volumeStep;
                     Asks.Add(newAsk);
                 }
@@ -151,7 +151,7 @@ namespace OsEngine.Entity
                     {
                         for (int i2 = 0; i2 < Bids.Count; i2++)
                         {
-                            if (Bids[i2].Price == _lastBinaryPrice * (double)priceStep)
+                            if (Bids[i2].Price == LastBinaryPrice * (double)priceStep)
                             {
                                 Bids[i2].Bid = -(volume * volumeStep);
                                 inArray = true;
@@ -161,7 +161,7 @@ namespace OsEngine.Entity
 
                         for (int i2 = Asks.Count - 1; i2 >= 0; i2--)
                         {
-                            if (Asks[i2].Price == _lastBinaryPrice * (double)priceStep)
+                            if (Asks[i2].Price == LastBinaryPrice * (double)priceStep)
                             {
                                 Asks.Remove(Asks[i2]);
                                 break;
@@ -172,7 +172,7 @@ namespace OsEngine.Entity
                     if (inArray) continue;
 
                     MarketDepthLevel newBid = new MarketDepthLevel();
-                    newBid.Price = _lastBinaryPrice * (double)priceStep;
+                    newBid.Price = LastBinaryPrice * (double)priceStep;
                     newBid.Bid = -(volume * volumeStep);
                     Bids.Add(newBid);
                 }
