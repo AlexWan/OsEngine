@@ -36,6 +36,9 @@ namespace OsEngine.OsTrader.Grids
             Tab.PositionProfitActivateEvent += Tab_PositionProfitActivateEvent;
             Tab.Connector.TestStartEvent += Connector_TestStartEvent;
 
+            Tab.PositionOpeningFailEvent += Tab_PositionOpeningFailEvent;
+            Tab.PositionClosingFailEvent += Tab_PositionClosingFailEvent;
+
             StartProgram = startProgram;
 
             NonTradePeriods = new TradeGridNonTradePeriods();
@@ -241,6 +244,9 @@ namespace OsEngine.OsTrader.Grids
                 Tab.PositionStopActivateEvent -= Tab_PositionStopActivateEvent;
                 Tab.PositionProfitActivateEvent -= Tab_PositionProfitActivateEvent;
                 Tab.Connector.TestStartEvent -= Connector_TestStartEvent;
+                Tab.PositionOpeningFailEvent -= Tab_PositionOpeningFailEvent;
+                Tab.PositionClosingFailEvent -= Tab_PositionClosingFailEvent;
+
                 Tab = null;
             }
 
@@ -321,19 +327,89 @@ namespace OsEngine.OsTrader.Grids
 
         private void Connector_TestStartEvent()
         {
-            List<TradeGridLine> lines = GridCreator.Lines;
-
-            if(lines == null)
+            try
             {
-                return;
-            }
+                List<TradeGridLine> lines = GridCreator.Lines;
 
-            for(int i = 0;i < lines.Count;i++)
+                if (lines == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    lines[i].Position = null;
+                    lines[i].PositionNum = 0;
+                }
+            }
+            catch (Exception e)
             {
-                lines[i].Position = null;
-                lines[i].PositionNum = 0;
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
             }
+        }
 
+        private void Tab_PositionClosingFailEvent(Position position)
+        {
+            try
+            {
+                if (Regime != TradeGridRegime.Off)
+                {
+                    bool isInArray = false;
+
+                    for (int i = 0; i < GridCreator.Lines.Count; i++)
+                    {
+                        TradeGridLine line = GridCreator.Lines[i];
+
+                        if (line.Position != null
+                            && line.Position.Number == position.Number)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray)
+                    {
+                        ErrorsReaction.PositionClosingFailEvent(position);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void Tab_PositionOpeningFailEvent(Position position)
+        {
+            try
+            {
+                if (Regime != TradeGridRegime.Off)
+                {
+                    bool isInArray = false;
+
+                    for (int i = 0; i < GridCreator.Lines.Count; i++)
+                    {
+                        TradeGridLine line = GridCreator.Lines[i];
+
+                        if (line.Position != null
+                            && line.Position.Number == position.Number)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray)
+                    {
+                        ErrorsReaction.PositionOpeningFailEvent(position);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
         }
 
         public event Action NeedToSaveEvent;
@@ -517,7 +593,6 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                _isDeleted = true;
                 GridCreator.DeleteGrid();
                 Save();
             }
@@ -610,7 +685,7 @@ namespace OsEngine.OsTrader.Grids
 
         private void Tab_PositionOpeningSuccesEvent(Position position)
         {
-            if (Regime == TradeGridRegime.On)
+            if (Regime != TradeGridRegime.Off)
             {
                 bool isInArray = false;
 
@@ -692,6 +767,15 @@ namespace OsEngine.OsTrader.Grids
                     {
                         return;
                     }
+                }
+            }
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {// сбрасываем кол-во ошибок по утрам и на старте сессии
+
+                if(ErrorsReaction.TryResetErrorsAtStartOfDay(Tab.TimeServerCurrent) == true)
+                {
+                    Save();
                 }
             }
 

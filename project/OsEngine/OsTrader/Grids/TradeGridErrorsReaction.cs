@@ -18,16 +18,12 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridErrorsReaction(TradeGrid grid)
         {
-            _tab = grid.Tab;
-            _tab.PositionOpeningFailEvent += _tab_PositionOpeningFailEvent;
-            _tab.PositionClosingFailEvent += _tab_PositionClosingFailEvent;
+
         }
 
         public void Delete()
         {
-            _tab.PositionOpeningFailEvent -= _tab_PositionOpeningFailEvent;
-            _tab.PositionClosingFailEvent -= _tab_PositionClosingFailEvent;
-            _tab = null;
+
         }
 
         public bool FailOpenOrdersReactionIsOn = true;
@@ -108,9 +104,7 @@ namespace OsEngine.OsTrader.Grids
 
         #region Errors collect
 
-        private BotTabSimple _tab;
-
-        private void _tab_PositionClosingFailEvent(Position position)
+        public void PositionClosingFailEvent(Position position)
         {
             if(position.CloseOrders == null
                 || position.CloseOrders.Count == 0)
@@ -126,7 +120,7 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        private void _tab_PositionOpeningFailEvent(Position position)
+        public void PositionOpeningFailEvent(Position position)
         {
             if (position.OpenOrders == null
                 || position.OpenOrders.Count == 0)
@@ -145,6 +139,28 @@ namespace OsEngine.OsTrader.Grids
             {
                 FailOpenOrdersCountFact++;
             }
+        }
+
+        private DateTime _lastResetTime;
+
+        public bool TryResetErrorsAtStartOfDay(DateTime time)
+        {
+            if(_lastResetTime.Date == time.Date)
+            {
+                return false;
+            }
+
+            _lastResetTime = time;
+
+            if(FailOpenOrdersCountFact != 0 
+                || FailCancelOrdersCountFact != 0)
+            {
+                FailOpenOrdersCountFact = 0;
+                FailCancelOrdersCountFact = 0;
+                return true;
+            }
+
+            return false;
         }
 
         #endregion
