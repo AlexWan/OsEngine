@@ -481,6 +481,11 @@ namespace OsEngine.Robots.AlgoStart
                 if(pos.ProfitOrderPrice == 0)
                 {
                     pos.ProfitOrderPrice = priceTake;
+                    
+                    if(StartProgram == StartProgram.IsOsTrader)
+                    {
+                        tab._journal.Save();
+                    }
                 }
 
                 decimal lastClose = candles[^1].Close;
