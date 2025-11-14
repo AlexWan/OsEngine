@@ -174,45 +174,59 @@ namespace OsEngine.Market.Servers.TInvest
                             continue;
                         }
 
-                        _isDisposedNow = true;
-
-                        if (lostStreamName == "Market data stream"
-                            && TryReconnectDataStream() == true)
+                        if (lostStreamName == "Market data stream")
                         {
-                            _lastMarketDataTime = DateTime.Now;
-                            SendLogMessage(OsLocalization.Market.Label295 + "\nMarket data. ConnectionCheckThread()", LogMessageType.System);
-                            Thread.Sleep(2000);
-                            _isDisposedNow = false;
-                            continue;
-                        }
+                            _isReconnectByPingMarketData = true;
 
-                        if (lostStreamName == "Order state data stream"
-                            && TryReconnectOrdersStream() == true)
-                        {
-                            _lastMyOrderStateDataTime = DateTime.Now;
-                            SendLogMessage(OsLocalization.Market.Label295 + "\nOrders data. ConnectionCheckThread()", LogMessageType.System);
-                            
-                            if(ForceCheckOrdersAfterReconnectEvent != null)
+                            if (TryReconnectDataStream() == true)
                             {
-                                ForceCheckOrdersAfterReconnectEvent();
+                                _lastMarketDataTime = DateTime.Now;
+                                SendLogMessage(OsLocalization.Market.Label295 + "\nMarket data. ConnectionCheckThread()", LogMessageType.System);
+                                Thread.Sleep(2000);
+                                _isReconnectByPingMarketData = false;
+                                continue;
+
                             }
-                            Thread.Sleep(2000);
-                            _isDisposedNow = false;
-                            continue;
                         }
 
-                        if (lostStreamName == "Portfolio data stream"
-                            && TryReconnectPortfolioStream() == true
-                            && TryReconnectPositionsStream() == true)
+                        if (lostStreamName == "Order state data stream")
                         {
-                            _lastPortfolioDataTime = DateTime.Now;
-                            SendLogMessage(OsLocalization.Market.Label295 + "\nPortfolio and Positions data. ConnectionCheckThread()", LogMessageType.System);
-                            Thread.Sleep(2000);
-                            _isDisposedNow = false;
-                            continue;
+                            _isReconnectByOrdersData = true;
+
+                            if (TryReconnectOrdersStream() == true)
+                            {
+                                _lastMyOrderStateDataTime = DateTime.Now;
+                                SendLogMessage(OsLocalization.Market.Label295 + "\nOrders data. ConnectionCheckThread()", LogMessageType.System);
+
+                                if (ForceCheckOrdersAfterReconnectEvent != null)
+                                {
+                                    ForceCheckOrdersAfterReconnectEvent();
+                                }
+                                Thread.Sleep(2000);
+                                _isReconnectByOrdersData = false;
+                                continue;
+
+                            }
                         }
 
-                        _isDisposedNow = false;
+                        if (lostStreamName == "Portfolio data stream")
+                        {
+                            _isReconnectByPingPortfoliosData = true;
+
+                            if (TryReconnectPortfolioStream() == true
+                            && TryReconnectPositionsStream() == true)
+                            {
+                                _lastPortfolioDataTime = DateTime.Now;
+                                SendLogMessage(OsLocalization.Market.Label295 + "\nPortfolio and Positions data. ConnectionCheckThread()", LogMessageType.System);
+                                Thread.Sleep(2000);
+                                _isReconnectByPingPortfoliosData = false;
+                                continue;
+                            }
+                        }
+
+                        _isReconnectByPingMarketData = false;
+                        _isReconnectByOrdersData = false;
+                        _isReconnectByPingPortfoliosData = false;
 
                         if (ServerStatus == ServerConnectStatus.Connect)
                         {
@@ -226,7 +240,10 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    _isDisposedNow = false;
+                    _isReconnectByPingMarketData = false;
+                    _isReconnectByOrdersData = false;
+                    _isReconnectByPingPortfoliosData = false;
+
                     SendLogMessage(ex.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
@@ -234,6 +251,12 @@ namespace OsEngine.Market.Servers.TInvest
         }
 
         private bool _isDisposedNow = false;
+
+        private bool _isReconnectByPingMarketData = false;
+
+        private bool _isReconnectByPingPortfoliosData = false;
+
+        private bool _isReconnectByOrdersData = false;
 
         public void Dispose()
         {
@@ -2223,6 +2246,11 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
+                    if(_isReconnectByPingMarketData)
+                    {
+                        continue;
+                    }
+
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         string message = GetGRPCErrorMessage(ex);
@@ -2253,6 +2281,12 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
+                    if(exception.ToString().Contains("Cannot access a disposed"))
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
                     SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
@@ -2557,6 +2591,11 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
+                    if(_isReconnectByPingPortfoliosData == true)
+                    {
+                        continue;
+                    }
+
                     string message = GetGRPCErrorMessage(exception);
                     
                     if (message.Contains("limit") == false)
@@ -2583,6 +2622,12 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
+                    if (exception.ToString().Contains("Cannot access a disposed"))
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
                     SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
@@ -2783,6 +2828,11 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
+                    if (_isReconnectByPingPortfoliosData == true)
+                    {
+                        continue;
+                    }
+
                     string message = GetGRPCErrorMessage(exception);
 
                     if (message.Contains("limit") == false)
@@ -2809,6 +2859,12 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
+                    if (exception.ToString().Contains("Cannot access a disposed"))
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
                     SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
@@ -2996,6 +3052,11 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
+                    if(_isReconnectByOrdersData == true)
+                    {
+                        continue;
+                    }
+
                     string message = GetGRPCErrorMessage(ex);
 
                     if (message.Contains("limit") == false)
@@ -3028,6 +3089,12 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception exception)
                 {
+                    if (exception.ToString().Contains("Cannot access a disposed"))
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
                     SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
