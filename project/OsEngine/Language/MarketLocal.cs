@@ -1253,6 +1253,16 @@ namespace OsEngine.Language
          "Eng:The price is outside the limits_" +
          "Ru:Цена за пределами лимита по инструменту_");
 
+        public string Label305 => OsLocalization.ConvertToLocString(
+         "Eng:Unable to download the list of securities. We are reconnecting the connector. This may be a temporary issue due to a lack of internet connection, and the connection will be restored in a few minutes. Or you have blocked requests to the Internet. Try to run the application from the Administrator or disable the antivirus_" +
+         "Ru:Не удаётся скачать список бумаг. Уходим на переподключение коннектора. Это может быть разовая проблема из-за отсутствия интернета, тогда через пару минут связь восстановится. Либо у Вас заблокированы запросы в Интернет. Пробуйте запустить приложение от Администратора или отключить антивирус_");
+
+
+
+
+
+
+
 
 
 

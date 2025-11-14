@@ -495,6 +495,16 @@ namespace OsEngine.Market.Servers.TInvest
                         SecurityEvent.Invoke(_securities);
                     }
                 }
+                else
+                {
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage(OsLocalization.Market.Label305, LogMessageType.Error);
+
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                }
             }
             catch (Exception ex)
             {
