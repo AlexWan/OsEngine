@@ -605,9 +605,9 @@ namespace OsEngine.Market.Servers
                     db.Commit();
                 }
             }
-            catch (Exception e)
+            catch //(Exception e)
             {
-                SendLogMessage(e.ToString(), LogMessageType.Error);
+                //SendLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
 
