@@ -238,7 +238,19 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             GlobalGUILayout.Listen(this, "testerServerGui");
+
+            _timerTextBoxFrom = new System.Windows.Forms.Timer();
+            _timerTextBoxFrom.Interval = 2000;
+            _timerTextBoxFrom.Tick += _timer_TextBoxFrom;
+
+            _timerTextBoxTo = new System.Windows.Forms.Timer();
+            _timerTextBoxTo.Interval = 2000;
+            _timerTextBoxTo.Tick += _timer_TextBoxTo;
         }
+
+        private System.Windows.Forms.Timer _timerTextBoxFrom;
+
+        private System.Windows.Forms.Timer _timerTextBoxTo;
 
         private CultureInfo _currentCulture;
 
@@ -1761,9 +1773,17 @@ namespace OsEngine.Market.Servers.Tester
 
         private void TextBoxTo_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
+            _timerTextBoxTo.Stop();
+            _timerTextBoxTo.Start();
+        }
+
+        private void _timer_TextBoxTo(object sender, EventArgs e)
+        {   
             DateTime to;
             try
             {
+                _timerTextBoxTo.Stop();
+
                 to = Convert.ToDateTime(TextBoxTo.Text, _currentCulture);
 
                 if (to < _server.TimeMin ||
@@ -1786,9 +1806,17 @@ namespace OsEngine.Market.Servers.Tester
 
         private void TextBoxFrom_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
+            _timerTextBoxFrom.Stop();
+            _timerTextBoxFrom.Start();
+        }
+
+        private void _timer_TextBoxFrom(object sender, EventArgs e)
+        {
             DateTime from;
             try
             {
+                _timerTextBoxFrom.Stop();
+
                 from = Convert.ToDateTime(TextBoxFrom.Text, _currentCulture);
 
                 if (from < _server.TimeMin ||
