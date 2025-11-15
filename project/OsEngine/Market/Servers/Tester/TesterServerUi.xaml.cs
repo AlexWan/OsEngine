@@ -313,6 +313,14 @@ namespace OsEngine.Market.Servers.Tester
 
             _log.StopPaint();
             _log = null;
+
+            _timerTextBoxFrom.Stop();
+            _timerTextBoxFrom.Tick -= _timer_TextBoxFrom;
+            _timerTextBoxFrom = null;
+
+            _timerTextBoxTo.Stop();
+            _timerTextBoxTo.Tick -= _timer_TextBoxTo;
+            _timerTextBoxTo = null;
         }
 
         private void CheckBoxRemoveTrades_Click(object sender, RoutedEventArgs e)
@@ -1773,8 +1781,15 @@ namespace OsEngine.Market.Servers.Tester
 
         private void TextBoxTo_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            _timerTextBoxTo.Stop();
-            _timerTextBoxTo.Start();
+            try
+            {
+                _timerTextBoxTo.Stop();
+                _timerTextBoxTo.Start();
+            }
+            catch (Exception ex)
+            {
+                _server.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void _timer_TextBoxTo(object sender, EventArgs e)
@@ -1806,8 +1821,15 @@ namespace OsEngine.Market.Servers.Tester
 
         private void TextBoxFrom_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            _timerTextBoxFrom.Stop();
-            _timerTextBoxFrom.Start();
+            try
+            {
+                _timerTextBoxFrom.Stop();
+                _timerTextBoxFrom.Start();
+            }
+            catch (Exception ex) 
+            {
+                _server.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void _timer_TextBoxFrom(object sender, EventArgs e)
