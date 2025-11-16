@@ -1603,6 +1603,11 @@ namespace OsEngine.OsTrader.Grids
 
         private void CheckWrongCloseOrders()
         {
+            if(Tab.StartProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
             List<TradeGridLine> linesAll = GridCreator.Lines;
 
             for (int i = 0; i < linesAll.Count; i++)
@@ -1969,6 +1974,7 @@ namespace OsEngine.OsTrader.Grids
                 SendNewLogMessage(message, LogMessageType.Signal);
                 Regime = TradeGridRegime.Off;
                 RePaintGrid();
+                _needToSave = true;
             }
         }
 
