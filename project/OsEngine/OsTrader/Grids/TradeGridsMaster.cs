@@ -83,11 +83,6 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGrid CreateNewTradeGrid()
         {
-            TradeGrid newGrid = new TradeGrid(_startProgram, _tab);
-            newGrid.NeedToSaveEvent += NewGrid_NeedToSaveEvent;
-            newGrid.LogMessageEvent += SendNewLogMessage;
-            newGrid.RePaintSettingsEvent += NewGrid_UpdateTableEvent;
-
             int gridNum = 1;
 
             for (int i = 0; i < TradeGrids.Count; i++)
@@ -98,7 +93,10 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            newGrid.Number = gridNum;
+            TradeGrid newGrid = new TradeGrid(_startProgram, _tab,gridNum);
+            newGrid.NeedToSaveEvent += NewGrid_NeedToSaveEvent;
+            newGrid.LogMessageEvent += SendNewLogMessage;
+            newGrid.RePaintSettingsEvent += NewGrid_UpdateTableEvent;
 
             TradeGrids.Add(newGrid);
 
@@ -286,7 +284,9 @@ namespace OsEngine.OsTrader.Grids
                             continue;
                         }
 
-                        TradeGrid newGrid = new TradeGrid(_startProgram, _tab);
+                        int num = Convert.ToInt32(settings.Split('@')[0]);
+
+                        TradeGrid newGrid = new TradeGrid(_startProgram, _tab, num);
 
                         newGrid.NeedToSaveEvent += NewGrid_NeedToSaveEvent;
                         newGrid.LogMessageEvent += SendNewLogMessage;

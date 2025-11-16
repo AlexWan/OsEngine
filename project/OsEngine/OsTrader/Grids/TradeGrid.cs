@@ -21,9 +21,10 @@ namespace OsEngine.OsTrader.Grids
     {
         #region Service
 
-        public TradeGrid(StartProgram startProgram, BotTabSimple tab)
+        public TradeGrid(StartProgram startProgram, BotTabSimple tab, int number)
         {
             Tab = tab;
+            Number = number;
 
             if(Tab.ManualPositionSupport != null)
             {
@@ -41,11 +42,8 @@ namespace OsEngine.OsTrader.Grids
 
             StartProgram = startProgram;
 
-            NonTradePeriods = new TradeGridNonTradePeriods();
+            NonTradePeriods = new TradeGridNonTradePeriods(tab.TabName+"Grid"+number);
             NonTradePeriods.LogMessageEvent += SendNewLogMessage;
-
-            NonTradeDays = new TradeGridNonTradeDays();
-            NonTradeDays.LogMessageEvent += SendNewLogMessage;
 
             StopBy = new TradeGridStopBy();
             StopBy.LogMessageEvent += SendNewLogMessage;
@@ -88,8 +86,6 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridNonTradePeriods NonTradePeriods;
 
-        public TradeGridNonTradeDays NonTradeDays;
-
         public TradeGridStopBy StopBy;
 
         public TradeGridStopAndProfit StopAndProfit;
@@ -131,7 +127,7 @@ namespace OsEngine.OsTrader.Grids
             result += "%";
 
             // trade days
-            result += NonTradeDays.GetSaveString();
+            result += "";
             result += "%";
 
             // stop grid by event
@@ -207,7 +203,7 @@ namespace OsEngine.OsTrader.Grids
                 NonTradePeriods.LoadFromString(array[1]);
 
                 // trade days
-                NonTradeDays.LoadFromString(array[2]);
+                // removed
 
                 // stop grid by event
                 StopBy.LoadFromString(array[3]);
@@ -253,13 +249,8 @@ namespace OsEngine.OsTrader.Grids
             if (NonTradePeriods != null)
             {
                 NonTradePeriods.LogMessageEvent -= SendNewLogMessage;
+                NonTradePeriods.Delete();
                 NonTradePeriods = null;
-            }
-
-            if (NonTradeDays != null)
-            {
-                NonTradeDays.LogMessageEvent -= SendNewLogMessage;
-                NonTradeDays = null;
             }
 
             if (StopBy != null)
@@ -860,11 +851,9 @@ namespace OsEngine.OsTrader.Grids
 
                 DateTime serverTime = Tab.TimeServerCurrent;
 
-                TradeGridRegime tradeDaysRegime = NonTradeDays.GetNonTradeDaysRegime(serverTime);
                 TradeGridRegime nonTradePeriodsRegime = NonTradePeriods.GetNonTradePeriodsRegime(serverTime);
 
-                if(tradeDaysRegime != TradeGridRegime.On 
-                    || nonTradePeriodsRegime != TradeGridRegime.On)
+                if(nonTradePeriodsRegime != TradeGridRegime.On)
                 { // авто-старт не может быть включен, если сейчас не торговый период
                     return;
                 }
@@ -943,23 +932,11 @@ namespace OsEngine.OsTrader.Grids
             {
                 DateTime serverTime = Tab.TimeServerCurrent;
 
-                TradeGridRegime tradeDaysRegime = NonTradeDays.GetNonTradeDaysRegime(serverTime);
                 TradeGridRegime nonTradePeriodsRegime = NonTradePeriods.GetNonTradePeriodsRegime(serverTime);
 
                 if(nonTradePeriodsRegime != TradeGridRegime.On)
                 {
                     baseRegime = nonTradePeriodsRegime;
-
-                    if (baseRegime == TradeGridRegime.CloseForced)
-                    {
-                        Regime = baseRegime;
-                        Save();
-                        RePaintGrid();
-                    }
-                }
-                if(tradeDaysRegime != TradeGridRegime.On)
-                {
-                    baseRegime = tradeDaysRegime;
 
                     if (baseRegime == TradeGridRegime.CloseForced)
                     {
