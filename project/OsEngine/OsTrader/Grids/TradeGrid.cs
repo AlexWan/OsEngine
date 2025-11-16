@@ -1543,6 +1543,8 @@ namespace OsEngine.OsTrader.Grids
 
         private void TrySetClosingOrders(decimal lastPrice)
         {
+            CheckWrongCloseOrders();
+
             List<TradeGridLine> linesOpenPoses = GetLinesWithOpenPosition();
 
             int startIndex = linesOpenPoses.Count - MaxCloseOrdersInMarket;
@@ -1595,6 +1597,37 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 Tab.CloseAtLimit(pos, line.PriceExit, volume);
+            }
+        }
+
+
+        private void CheckWrongCloseOrders()
+        {
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            for (int i = 0; i < linesAll.Count; i++)
+            {
+                TradeGridLine curLine = linesAll[i];
+                Position pos = curLine.Position;
+                
+                if (pos == null)
+                {
+                    continue;
+                }
+
+                decimal volumePosOpen = pos.OpenVolume;
+
+                if (pos.CloseActive == true)
+                {
+                    Order orderToClose = pos.CloseOrders[^1];
+                    decimal volumeCloseOrder = orderToClose.Volume;
+                    decimal volumeExecuteCloseOrder = orderToClose.VolumeExecute;
+
+                    if (volumePosOpen != (volumeCloseOrder - volumeExecuteCloseOrder))
+                    {
+                        Tab.CloseOrder(orderToClose);
+                    }
+                }
             }
         }
 
@@ -2249,7 +2282,8 @@ namespace OsEngine.OsTrader.Grids
                     Position position = curLine.Position;
 
                     if(position != null 
-                        && position.OpenVolume > 0)
+                        && position.OpenVolume > 0
+                        && position.OpenActive == false)
                     {
                         continue;
                     }
@@ -2294,7 +2328,8 @@ namespace OsEngine.OsTrader.Grids
                     Position position = curLine.Position;
 
                     if (position != null
-                        && position.OpenVolume > 0)
+                        && position.OpenVolume > 0
+                        && position.OpenActive == false)
                     {
                         continue;
                     }

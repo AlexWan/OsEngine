@@ -106,9 +106,9 @@ namespace OsEngine.OsData
                     reader.Close();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ignored
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -537,15 +537,29 @@ namespace OsEngine.OsData
             IsCollapsed = Convert.ToBoolean(saveArray[3]);
             SecExchange = saveArray[4];
             SetName = saveArray[5];
-            PriceStep = saveArray[6].ToDecimal();
-            VolumeStep = saveArray[7].ToDecimal();
-            SettingsToLoadSecurities.Load(saveArray[8]);
-            if (saveArray.Length > 9)
+
+            if (saveArray[6].Contains("False"))
             {
-                SecNameFull = saveArray[9];
+                SettingsToLoadSecurities.Load(saveArray[6]);
+                if (saveArray.Length > 7)
+                {
+                    SecNameFull = saveArray[7];
+                }
+                ActivateLoaders();
+            }
+            else
+            {
+                PriceStep = saveArray[6].ToDecimal();
+                VolumeStep = saveArray[7].ToDecimal();
+                SettingsToLoadSecurities.Load(saveArray[8]);
+                if (saveArray.Length > 9)
+                {
+                    SecNameFull = saveArray[9];
+                }
+
+                ActivateLoaders();
             }
 
-            ActivateLoaders();
         }
 
         public string GetSaveStr()
