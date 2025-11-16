@@ -398,7 +398,7 @@ namespace OsEngine.OsTrader.Grids
 
             TabItemBaseSettings.Header = OsLocalization.Trader.Label458;
             TabItemGridCreation.Header = OsLocalization.Trader.Label459;
-            TabItemNonTradePeriods.Header = OsLocalization.Trader.Label462;
+            TabItemNonTradePeriods.Header = OsLocalization.Trader.Label633;
             TabItemStopTrading.Header = OsLocalization.Trader.Label463;
             TabItemStopAndProfit.Header = OsLocalization.Trader.Label464;
             TabItemGridLinesTable.Header = OsLocalization.Trader.Label465;

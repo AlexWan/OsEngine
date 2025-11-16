@@ -2430,5 +2430,9 @@ namespace OsEngine.Language
         public string Label632 => OsLocalization.ConvertToLocString(
         "Eng:Set non trade periods_" +
         "Ru:Установить периоды_");
+
+        public string Label633 => OsLocalization.ConvertToLocString(
+         "Eng:Non trade periods_" +
+         "Ru:Неторговое время_");
     }
 }
