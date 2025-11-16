@@ -3530,13 +3530,17 @@ namespace OsEngine.Market.Servers.Tester
                                 {
                                     string[] volumeSplit = comment.Split(':');
 
-                                    double volumeStep = 1;
+                                    decimal volumeStep = 1;
 
                                     if (volumeSplit.Length == 2)
                                     {
-                                        if (volumeSplit[0] == "VolumeStep" && double.TryParse(volumeSplit[1].Replace(',', '.'), NumberStyles.Float, NumberFormatInfo.InvariantInfo, out volumeStep))
+                                        if (volumeSplit[0] == "VolumeStep")
                                         {
-                                            security[security.Count - 1].Security.VolumeStep = (decimal)volumeStep;
+                                            string normalized = volumeSplit[1].Replace(',', '.');
+                                            if (decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out volumeStep))
+                                            {
+                                                security[security.Count - 1].Security.VolumeStep = volumeStep;
+                                            }
                                         }
                                     }
                                 }
@@ -4688,6 +4692,8 @@ namespace OsEngine.Market.Servers.Tester
         {
             try
             {
+                OffStream();
+
                 _reader = new StreamReader(FileAddress);
                 LastCandle = null;
                 LastTrade = null;
@@ -5002,11 +5008,12 @@ namespace OsEngine.Market.Servers.Tester
 
         private long _lastMilliseconds = 0;
 
-
         private void CheckMarketDepth(DateTime now)
         {
-            if (_dataBinaryReader == null)
+            if (_stream == null)
             {
+                OffStream();
+
                 byte[] prefix = Encoding.UTF8.GetBytes("QScalp History Data");
                 FileStream fs = File.OpenRead(FileAddress);
                 _stream = GetDataStream(fs, prefix);
@@ -5017,7 +5024,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return;
             }
-
+            
             if (LastMarketDepth != null && LastMarketDepth.Time > now)
             {
                 return;
@@ -5051,9 +5058,13 @@ namespace OsEngine.Market.Servers.Tester
                             decimal volumeStep = 1;
                             if (volumeSplit.Length == 2)
                             {
-                                if (volumeSplit[0] == "VolumeStep" && decimal.TryParse(volumeSplit[1], NumberStyles.Float, NumberFormatInfo.InvariantInfo, out volumeStep))
+                                if (volumeSplit[0] == "VolumeStep")
                                 {
-                                    Security.VolumeStep = volumeStep;
+                                    string normalized = volumeSplit[1].Replace(',', '.');
+                                    if (decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out volumeStep))
+                                    {
+                                        Security.VolumeStep = volumeStep;
+                                    }
                                 }
                             }
                         }
@@ -5100,14 +5111,7 @@ namespace OsEngine.Market.Servers.Tester
             }
             catch (EndOfStreamException)
             {
-                _stream.Dispose();
-                _stream.Close();
-
-                _dataBinaryReader.Dispose();
-                _dataBinaryReader.Close();
-
-                _stream = null;
-                _dataBinaryReader = null;
+                OffStream();
             }
 
             if (LastMarketDepth.Time != now)
@@ -5118,6 +5122,23 @@ namespace OsEngine.Market.Servers.Tester
             if (NewMarketDepthEvent != null)
             {
                 NewMarketDepthEvent(LastMarketDepth);
+            }
+        }
+
+        private void OffStream()
+        {
+            if (_stream != null)
+            {
+                _stream.Dispose();
+                _stream.Close();
+                _stream = null;
+            }
+
+            if (_dataBinaryReader != null)
+            {
+                _dataBinaryReader.Dispose();
+                _dataBinaryReader.Close();
+                _dataBinaryReader = null;
             }
         }
 
