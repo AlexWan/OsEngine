@@ -1596,7 +1596,7 @@ namespace OsEngine.OsTrader.Grids
                     }
                 }
 
-                Tab.CloseAtLimit(pos, line.PriceExit, volume);
+                Tab.CloseAtLimitUnsafe(pos, line.PriceExit, volume);
             }
         }
 

@@ -1092,9 +1092,10 @@ namespace OsEngine.Entity
 
                 SyncPositionWithOrdersAndMyTrades();
                 SavePosition();
+                SaveMyTrades();
                 SaveOrders(_position.OpenOrders, _openOrdersGrid.Rows);
                 SaveOrders(_position.CloseOrders, _closeOrdersGrid.Rows);
-                SaveMyTrades();
+              
 
                 PositionChanged = true;
 
