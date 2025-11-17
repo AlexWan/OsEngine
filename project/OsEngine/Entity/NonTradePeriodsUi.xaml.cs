@@ -4,9 +4,13 @@
 */
 
 using OsEngine.Language;
+using OsEngine.Logging;
+using OsEngine.Market.Connectors;
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Collections.Generic;
 
 namespace OsEngine.Entity
 {
@@ -14,40 +18,49 @@ namespace OsEngine.Entity
     {
         private NonTradePeriods _periods;
 
-        public NonTradePeriodsUi(NonTradePeriods periods)
+        private void SetCurrentSettingsInForm()
         {
-            InitializeComponent();
-
-            OsEngine.Layout.StickyBorders.Listen(this);
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
-
-            _periods = periods;
+            _repaintNow = true;
 
             CheckBoxTradeInMonday.IsChecked = _periods.TradeInMonday;
+            CheckBoxTradeInMonday.Checked -= CheckBoxTradeInMonday_Checked;
+            CheckBoxTradeInMonday.Unchecked -= CheckBoxTradeInMonday_Checked;
             CheckBoxTradeInMonday.Checked += CheckBoxTradeInMonday_Checked;
             CheckBoxTradeInMonday.Unchecked += CheckBoxTradeInMonday_Checked;
 
             CheckBoxTradeInTuesday.IsChecked = _periods.TradeInTuesday;
+            CheckBoxTradeInTuesday.Checked -= CheckBoxTradeInTuesday_Checked;
+            CheckBoxTradeInTuesday.Unchecked -= CheckBoxTradeInTuesday_Checked;
             CheckBoxTradeInTuesday.Checked += CheckBoxTradeInTuesday_Checked;
             CheckBoxTradeInTuesday.Unchecked += CheckBoxTradeInTuesday_Checked;
 
             CheckBoxTradeInWednesday.IsChecked = _periods.TradeInWednesday;
+            CheckBoxTradeInWednesday.Checked -= CheckBoxTradeInWednesday_Checked;
+            CheckBoxTradeInWednesday.Unchecked -= CheckBoxTradeInWednesday_Checked;
             CheckBoxTradeInWednesday.Checked += CheckBoxTradeInWednesday_Checked;
             CheckBoxTradeInWednesday.Unchecked += CheckBoxTradeInWednesday_Checked;
 
             CheckBoxTradeInThursday.IsChecked = _periods.TradeInThursday;
+            CheckBoxTradeInThursday.Checked -= CheckBoxTradeInThursday_Checked;
+            CheckBoxTradeInThursday.Unchecked -= CheckBoxTradeInThursday_Checked;
             CheckBoxTradeInThursday.Checked += CheckBoxTradeInThursday_Checked;
             CheckBoxTradeInThursday.Unchecked += CheckBoxTradeInThursday_Checked;
 
             CheckBoxTradeInFriday.IsChecked = _periods.TradeInFriday;
+            CheckBoxTradeInFriday.Checked -= CheckBoxTradeInFriday_Checked;
+            CheckBoxTradeInFriday.Unchecked -= CheckBoxTradeInFriday_Checked;
             CheckBoxTradeInFriday.Checked += CheckBoxTradeInFriday_Checked;
             CheckBoxTradeInFriday.Unchecked += CheckBoxTradeInFriday_Checked;
 
             CheckBoxTradeInSaturday.IsChecked = _periods.TradeInSaturday;
+            CheckBoxTradeInSaturday.Checked -= CheckBoxTradeInSaturday_Checked;
+            CheckBoxTradeInSaturday.Unchecked -= CheckBoxTradeInSaturday_Checked;
             CheckBoxTradeInSaturday.Checked += CheckBoxTradeInSaturday_Checked;
             CheckBoxTradeInSaturday.Unchecked += CheckBoxTradeInSaturday_Checked;
 
             CheckBoxTradeInSunday.IsChecked = _periods.TradeInSunday;
+            CheckBoxTradeInSunday.Checked -= CheckBoxTradeInSunday_Checked;
+            CheckBoxTradeInSunday.Unchecked -= CheckBoxTradeInSunday_Checked;
             CheckBoxTradeInSunday.Checked += CheckBoxTradeInSunday_Checked;
             CheckBoxTradeInSunday.Unchecked += CheckBoxTradeInSunday_Checked;
 
@@ -188,6 +201,21 @@ namespace OsEngine.Entity
                 TextBoxNonTradePeriod5Start_Sunday,
                 TextBoxNonTradePeriod5End_Sunday);
 
+
+            _repaintNow = false;
+        }
+
+        public NonTradePeriodsUi(NonTradePeriods periods)
+        {
+            InitializeComponent();
+
+            OsEngine.Layout.StickyBorders.Listen(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+
+            _periods = periods;
+
+            SetCurrentSettingsInForm();
+
             // localization
 
             Title = OsLocalization.Trader.Label575;
@@ -201,6 +229,10 @@ namespace OsEngine.Entity
             TabItemFriday.Header = OsLocalization.Trader.Label629;
             TabItemSaturday.Header = OsLocalization.Trader.Label630;
             TabItemSunday.Header = OsLocalization.Trader.Label631;
+
+            ButtonLoadSet.Content = OsLocalization.Market.Label98;
+            ButtonSaveSet.Content = OsLocalization.Market.Label99;
+
 
             // general non trade periods 
             LocalToPeriods(
@@ -396,6 +428,7 @@ namespace OsEngine.Entity
         {
 
             checkBoxNonTradePeriod1OnOff.IsChecked = period.NonTradePeriod1OnOff;
+
             checkBoxNonTradePeriod1OnOff.Checked += (object sender, RoutedEventArgs e) =>
             {
                 CheckBoxNonTradePeriod1OnOff_Checked(sender, e, period);
@@ -504,10 +537,16 @@ namespace OsEngine.Entity
 
         #region Non trade periods
 
+        private bool _repaintNow = false;
+
         private void CheckBoxNonTradePeriod1OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
         {
             try
             {
+                if(_repaintNow == true)
+                {
+                    return;
+                }
                 CheckBox box = (CheckBox)sender;
 
                 period.NonTradePeriod1OnOff = box.IsChecked.Value;
@@ -523,6 +562,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -543,6 +586,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -565,6 +612,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 CheckBox box = (CheckBox)sender;
 
                 period.NonTradePeriod2OnOff = box.IsChecked.Value;
@@ -580,6 +631,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -600,6 +655,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -622,6 +681,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 CheckBox box = (CheckBox)sender;
 
                 period.NonTradePeriod3OnOff = box.IsChecked.Value;
@@ -637,6 +700,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -657,6 +724,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -679,6 +750,11 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
+
                 CheckBox box = (CheckBox)sender;
 
                 period.NonTradePeriod4OnOff = box.IsChecked.Value;
@@ -694,6 +770,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -714,6 +794,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -736,6 +820,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 CheckBox box = (CheckBox)sender;
 
                 period.NonTradePeriod5OnOff = box.IsChecked.Value;
@@ -751,6 +839,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -771,6 +863,10 @@ namespace OsEngine.Entity
         {
             try
             {
+                if (_repaintNow == true)
+                {
+                    return;
+                }
                 TextBox box = (TextBox)sender;
 
                 if (string.IsNullOrEmpty(box.Text))
@@ -789,5 +885,112 @@ namespace OsEngine.Entity
 
         #endregion
 
+        #region Save or Load settings
+
+        private void ButtonSaveSet_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+                saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+
+                saveFileDialog.RestoreDirectory = true;
+                saveFileDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(saveFileDialog.FileName))
+                {
+                    return;
+                }
+
+                string filePath = saveFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    using (FileStream stream = File.Create(filePath))
+                    {
+                        // do nothin
+                    }
+                }
+
+                try
+                {
+                    List<string> array = _periods.GetFullSaveArray();
+
+                    using (StreamWriter writer = new StreamWriter(filePath))
+                    {
+                        for(int i = 0;i < array.Count;i++)
+                        {
+                            writer.WriteLine(array[i]);
+                        }
+                    }
+                }
+                catch (Exception error)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                    ui.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.ToString());
+                ui.ShowDialog();
+            }
+        }
+
+        private void ButtonLoadSet_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog();
+                openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+                openFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                openFileDialog.RestoreDirectory = true;
+                openFileDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(openFileDialog.FileName))
+                {
+                    return;
+                }
+
+                string filePath = openFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    return;
+                }
+
+                try
+                {
+                    List<string> array = new List<string>();
+
+                    using (StreamReader reader = new StreamReader(filePath))
+                    {
+                        while(reader.EndOfStream == false)
+                        {
+                            array.Add(reader.ReadLine());
+                        }
+                    }
+
+                    _periods.LoadFromSaveArray(array);
+                }
+                catch (Exception error)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                    ui.ShowDialog();
+                }
+
+                SetCurrentSettingsInForm();
+
+                _periods.Save();
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.ToString());
+                ui.ShowDialog();
+            }
+        }
+
+        #endregion
     }
 }

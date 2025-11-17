@@ -6,7 +6,9 @@
 using OsEngine.Logging;
 using OsEngine.Market;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Windows.Documents;
 
 namespace OsEngine.Entity
 {
@@ -39,16 +41,13 @@ namespace OsEngine.Entity
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameUnique + ".txt", false))
                 {
-                    writer.WriteLine(GetSaveStringDays());
 
-                    writer.WriteLine(NonTradePeriodGeneral.GetSaveString());
-                    writer.WriteLine(NonTradePeriodMonday.GetSaveString());
-                    writer.WriteLine(NonTradePeriodTuesday.GetSaveString());
-                    writer.WriteLine(NonTradePeriodWednesday.GetSaveString());
-                    writer.WriteLine(NonTradePeriodThursday.GetSaveString());
-                    writer.WriteLine(NonTradePeriodFriday.GetSaveString());
-                    writer.WriteLine(NonTradePeriodSaturday.GetSaveString());
-                    writer.WriteLine(NonTradePeriodSunday.GetSaveString());
+                    List<string> array = GetFullSaveArray();
+
+                    for(int i = 0;i < array.Count;i++)
+                    {
+                        writer.WriteLine(array[i]);
+                    }
 
                     writer.Close();
                 }
@@ -86,6 +85,45 @@ namespace OsEngine.Entity
 
                     reader.Close();
                 }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        public List<string> GetFullSaveArray()
+        {
+            List<string> array = new List<string>();
+
+            array.Add(GetSaveStringDays());
+            array.Add(NonTradePeriodGeneral.GetSaveString());
+            array.Add(NonTradePeriodMonday.GetSaveString());
+            array.Add(NonTradePeriodTuesday.GetSaveString());
+            array.Add(NonTradePeriodWednesday.GetSaveString());
+            array.Add(NonTradePeriodThursday.GetSaveString());
+            array.Add(NonTradePeriodFriday.GetSaveString());
+            array.Add(NonTradePeriodSaturday.GetSaveString());
+            array.Add(NonTradePeriodSunday.GetSaveString());
+
+            return array;
+        }
+
+        public void LoadFromSaveArray(List<string> array)
+        {
+            try
+            {
+                LoadFromStringDays(array[0]);
+
+                NonTradePeriodGeneral.LoadFromString(array[1]);
+
+                NonTradePeriodMonday.LoadFromString(array[2]);
+                NonTradePeriodTuesday.LoadFromString(array[3]);
+                NonTradePeriodWednesday.LoadFromString(array[4]);
+                NonTradePeriodThursday.LoadFromString(array[5]);
+                NonTradePeriodFriday.LoadFromString(array[6]);
+                NonTradePeriodSaturday.LoadFromString(array[7]);
+                NonTradePeriodSunday.LoadFromString(array[8]);
             }
             catch
             {

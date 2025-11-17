@@ -7,28 +7,32 @@
         mc:Ignorable="d"
                Title="Securities" Height="348" Width="490" MinWidth="300" MinHeight="350" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
-        <TabControl Margin="0,0,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TabControl Margin="0,0,0,40" Grid.ColumnSpan="2">
             <TabItem Name="TabItemNonTradePeriods" Header="No trade periods common">
                 <Grid >
                     <CheckBox Name="CheckBoxNonTradePeriod1OnOff" Content="No trade period 1" HorizontalAlignment="Left" Margin="21,50,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxNonTradePeriod1Start" HorizontalAlignment="Left" Margin="174,50,0,0" TextWrapping="Wrap" Text="0:0:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod1End" Margin="253,50,21,0" TextWrapping="Wrap" Text="7:0:0:0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod1End" Margin="253,50,14,0" TextWrapping="Wrap" Text="7:0:0:0" VerticalAlignment="Top"/>
 
                     <CheckBox Name="CheckBoxNonTradePeriod2OnOff" Content="No trade period 2" HorizontalAlignment="Left" Margin="21,84,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxNonTradePeriod2Start" HorizontalAlignment="Left" Margin="174,84,0,0" TextWrapping="Wrap" Text="9:0:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod2End" Margin="253,84,21,0" TextWrapping="Wrap" Text="10:5:0:0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod2End" Margin="253,84,14,0" TextWrapping="Wrap" Text="10:5:0:0" VerticalAlignment="Top"/>
 
                     <CheckBox Name="CheckBoxNonTradePeriod3OnOff" Content="No trade period 3" HorizontalAlignment="Left" Margin="21,119,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxNonTradePeriod3Start" HorizontalAlignment="Left" Margin="174,119,0,0" TextWrapping="Wrap" Text="13:54:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod3End" Margin="253,119,21,0" TextWrapping="Wrap" Text="14:6:0:0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod3End" Margin="253,119,14,0" TextWrapping="Wrap" Text="14:6:0:0" VerticalAlignment="Top"/>
 
                     <CheckBox Name="CheckBoxNonTradePeriod4OnOff" Content="No trade period 4" HorizontalAlignment="Left" Margin="21,154,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxNonTradePeriod4Start" HorizontalAlignment="Left" Margin="174,154,0,0" TextWrapping="Wrap" Text="18:40:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod4End" Margin="253,154,21,0" TextWrapping="Wrap" Text="19:5:0:0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod4End" Margin="253,154,14,0" TextWrapping="Wrap" Text="19:5:0:0" VerticalAlignment="Top"/>
 
                     <CheckBox Name="CheckBoxNonTradePeriod5OnOff" Content="No trade period 5" HorizontalAlignment="Left" Margin="21,188,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxNonTradePeriod5Start" HorizontalAlignment="Left" Margin="174,188,0,0" TextWrapping="Wrap" Text="23:40:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod5End" Margin="253,188,21,0" TextWrapping="Wrap" Text="23:59:0:0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod5End" Margin="253,188,14,0" TextWrapping="Wrap" Text="23:59:0:0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemByDays" Header="Settings for each day of the week">
@@ -183,6 +187,8 @@
                 </Grid>
             </TabItem>
         </TabControl>
+        <Button Name="ButtonLoadSet" Content="Load set" Margin="10,0,66,10" VerticalAlignment="Bottom" Click="ButtonLoadSet_Click" Grid.Column="1" Height="25"/>
+        <Button Name="ButtonSaveSet" Content="Save set" Margin="66,0,10,10" VerticalAlignment="Bottom" Click="ButtonSaveSet_Click" Height="25"/>
 
 
     </Grid>
