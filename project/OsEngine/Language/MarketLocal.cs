@@ -1257,7 +1257,9 @@ namespace OsEngine.Language
          "Eng:Unable to download the list of securities. We are reconnecting the connector. This may be a temporary issue due to a lack of internet connection, and the connection will be restored in a few minutes. Or you have blocked requests to the Internet. Try to run the application from the Administrator or disable the antivirus_" +
          "Ru:Не удаётся скачать список бумаг. Уходим на переподключение коннектора. Это может быть разовая проблема из-за отсутствия интернета, тогда через пару минут связь восстановится. Либо у Вас заблокированы запросы в Интернет. Пробуйте запустить приложение от Администратора или отключить антивирус_");
 
-
+        public string Label306 => OsLocalization.ConvertToLocString(
+         "Eng:If true is enabled, all downloaded papers will be saved to a file the first time the connector is started, and the next time the connector is restarted within 1 hour, the data will be downloaded from the file. If false, the data will be loaded from the MT5 terminal each time. Use true when the broker provides several thousand securities for trading._" +
+         "Ru:Если включен true, то при первом запуске коннектора все загруженные бумаги будут записаны в файл и при следующих запусках коннектора в течении 1 часа данные будут загружены из файла. Если false, то каждый раз данные будут грузиться с терминала МТ5. Используйте true когда брокер предоставляет несколько тысяч бумаг для торгов._");
 
 
 
