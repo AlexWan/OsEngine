@@ -1907,6 +1907,11 @@ namespace OsEngine.OsTrader.Grids
                         return;
                     }
 
+                    if(_gridDataGrid.Rows[row].Cells[column].Value.ToString() == "_")
+                    {
+                        return;
+                    }
+
                     int number = Convert.ToInt32(_gridDataGrid.Rows[row].Cells[column].Value.ToString());
 
                     Position pos = TradeGrid.Tab._journal.GetPositionForNumber(number);
