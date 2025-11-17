@@ -3953,7 +3953,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                         if (state == OrderStateType.None)
                         {
-                            SendLogMessage($"Cancel Order Error. {place_order_response}.", LogMessageType.Error);
+                            SendLogMessage($"Cancel Order Error. {order.SecurityNameCode} || {place_order_response}.", LogMessageType.Error);
                             return false;
                         }
                         else
@@ -3968,7 +3968,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                     if (state == OrderStateType.None)
                     {
-                        SendLogMessage($"Cancel Order Error. {place_order_response}.", LogMessageType.Error);
+                        SendLogMessage($"Cancel Order Error. {order.SecurityNameCode} || {place_order_response}.", LogMessageType.Error);
                         return false;
                     }
                     else
