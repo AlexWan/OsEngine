@@ -30,15 +30,16 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             ServerRealization = new QuikLuaServerRealization();
 
-            CreateParameterBoolean(OsLocalization.Market.UseStock, true);
-            CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
-            CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
-            CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
-            CreateParameterBoolean(OsLocalization.Market.UseBonds, false);
-            CreateParameterBoolean(OsLocalization.Market.UseOther, false);
-            CreateParameterBoolean(OsLocalization.Market.Label109, false);
-            CreateParameterString("Client code", null);
-            CreateParameterBoolean(OsLocalization.Market.Label162, false);
+            CreateParameterBoolean(OsLocalization.Market.UseStock, true); // 0
+            CreateParameterBoolean(OsLocalization.Market.UseFutures, true); // 1
+            CreateParameterBoolean(OsLocalization.Market.UseCurrency, true); // 2
+            CreateParameterBoolean(OsLocalization.Market.UseOptions, false); // 3
+            CreateParameterBoolean(OsLocalization.Market.UseBonds, false); // 4
+            CreateParameterBoolean(OsLocalization.Market.UseOther, false); // 5
+            CreateParameterBoolean(OsLocalization.Market.Label109, false); // 6
+            CreateParameterString("Client code", null); // 7
+            CreateParameterBoolean(OsLocalization.Market.Label162, false); // 8
+            CreateParameterEnum(OsLocalization.Market.Label307, "T0", new List<string> { "T0", "T1", "T2", "NotImplemented" }); // 9
 
             ServerParameters[0].Comment = OsLocalization.Market.Label107;
             ServerParameters[1].Comment = OsLocalization.Market.Label107;
@@ -49,6 +50,7 @@ namespace OsEngine.Market.Servers.QuikLua
             ServerParameters[6].Comment = OsLocalization.Market.Label110;
             ServerParameters[7].Comment = OsLocalization.Market.Label121;
             ServerParameters[8].Comment = OsLocalization.Market.Label163;
+            ServerParameters[9].Comment = OsLocalization.Market.Label308;
 
             ((ServerParameterBool)ServerParameters[0]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[1]).ValueChange += QuikLuaServer_ParametrValueChange;
@@ -128,8 +130,14 @@ namespace OsEngine.Market.Servers.QuikLua
                     _useBonds = (ServerParameterBool)ServerParameters[4];
                     _useOther = (ServerParameterBool)ServerParameters[5];
                     _isClientCodeOne = ((ServerParameterBool)ServerParameters[8]).Value;
+                    string tradeMode = ((ServerParameterEnum)ServerParameters[9]).Value;
 
-                    QuikLua = new QuikSharp.Quik(QuikSharp.Quik.DefaultPort, new InMemoryStorage());
+                    if (tradeMode == "T0") _tradeMode = 0;
+                    else if (tradeMode == "T1") _tradeMode = 1;
+                    else if (tradeMode == "T2") _tradeMode = 2;
+                    else if (tradeMode == "NotImplemented") _tradeMode = 3;
+
+                    QuikLua = new Quik(Quik.DefaultPort, new InMemoryStorage());
                     QuikLua.Events.OnConnected += EventsOnOnConnected;
                     QuikLua.Events.OnDisconnected += EventsOnOnDisconnected;
                     QuikLua.Events.OnConnectedToQuik += EventsOnOnConnectedToQuik;
@@ -270,6 +278,8 @@ namespace OsEngine.Market.Servers.QuikLua
         private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         private RateGate _gateToGetCandles = new RateGate(1, TimeSpan.FromMilliseconds(500));
+
+        private int _tradeMode;
 
         private bool _isClientCodeOne = false;
 
@@ -624,12 +634,12 @@ namespace OsEngine.Market.Servers.QuikLua
 
                         myPortfolio.Number = accaunts[i].TrdaccId;
 
-                        PortfolioInfo qPortfolio = new PortfolioInfo();
+                        PortfolioInfoEx qPortfolio = new PortfolioInfoEx();
 
                         if (_isClientCodeOne == false && QuikLua != null)
-                            qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, accaunts[i].TrdaccId).Result;
+                            qPortfolio = QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, accaunts[i].TrdaccId, _tradeMode).Result;
                         else if (QuikLua != null)
-                            qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, _clientCode).Result;
+                            qPortfolio = QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, _clientCode, _tradeMode).Result;
 
                         if (qPortfolio != null && (qPortfolio.Assets == null ||
                             qPortfolio.Assets.ToDecimal() == 0))
@@ -637,7 +647,7 @@ namespace OsEngine.Market.Servers.QuikLua
                             if (QuikLua == null) continue;
 
                             PortfolioInfoEx qPortfolioEx =
-                                QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, myPortfolio.Number, 0).Result;
+                                QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, myPortfolio.Number, _tradeMode).Result;
 
                             if (qPortfolioEx != null &&
                                 qPortfolioEx.StartLimitOpenPos != null)
@@ -718,7 +728,14 @@ namespace OsEngine.Market.Servers.QuikLua
                         DepoLimitEx pos = spotPos[i];
                         Security sec = _securities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
 
-                        if (pos.LimitKind == LimitKind.T0 && sec != null)
+                        LimitKind limitKind = LimitKind.T0;
+
+                        if (_tradeMode == 0) limitKind = LimitKind.T0;
+                        else if (_tradeMode == 1) limitKind = LimitKind.T1;
+                        else if (_tradeMode == 2) limitKind = LimitKind.T2;
+                        else limitKind = LimitKind.NotImplemented;
+
+                        if (pos.LimitKind == limitKind && sec != null)
                         {
                             needPortf = _portfolios.Find(p => p.Number == pos.TrdAccId);
 
