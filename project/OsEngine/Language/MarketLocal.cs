@@ -1261,7 +1261,13 @@ namespace OsEngine.Language
          "Eng:If true is enabled, all downloaded papers will be saved to a file the first time the connector is started, and the next time the connector is restarted within 1 hour, the data will be downloaded from the file. If false, the data will be loaded from the MT5 terminal each time. Use true when the broker provides several thousand securities for trading._" +
          "Ru:Если включен true, то при первом запуске коннектора все загруженные бумаги будут записаны в файл и при следующих запусках коннектора в течении 1 часа данные будут загружены из файла. Если false, то каждый раз данные будут грузиться с терминала МТ5. Используйте true когда брокер предоставляет несколько тысяч бумаг для торгов._");
 
+        public string Label307 => OsLocalization.ConvertToLocString(
+          "Eng:Trading mode_" +
+          "Ru:Режим торгов_");
 
+        public string Label308 => OsLocalization.ConvertToLocString(
+          "Eng:Trading mode on the Moscow Stock Exchange. Affects the display of the portfolio, accounts and positions_" +
+          "Ru:Режим торгов на Московской бирже. Влияет на отображение портфеля, счетов и позиций_");
 
 
 
