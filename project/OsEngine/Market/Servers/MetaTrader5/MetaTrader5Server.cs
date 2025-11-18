@@ -13,7 +13,6 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading;
-using System.Windows.Forms.VisualStyles;
 
 namespace OsEngine.Market.Servers.MetaTrader5
 {
