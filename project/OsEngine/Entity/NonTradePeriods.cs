@@ -267,37 +267,44 @@ namespace OsEngine.Entity
                 return false;
             }
 
-            if (NonTradePeriodMonday.CanTradeThisTime(curTime) == false)
+            if (curTime.DayOfWeek == DayOfWeek.Monday &&
+                NonTradePeriodMonday.CanTradeThisTime(curTime) == false)
             {
                 return false;
             }
 
-            if (NonTradePeriodTuesday.CanTradeThisTime(curTime) == false)
+            if (curTime.DayOfWeek == DayOfWeek.Tuesday && 
+                NonTradePeriodTuesday.CanTradeThisTime(curTime) == false)
             {
                 return false;
             }
 
-            if (NonTradePeriodWednesday.CanTradeThisTime(curTime) == false)
+            if (curTime.DayOfWeek == DayOfWeek.Wednesday && 
+                NonTradePeriodWednesday.CanTradeThisTime(curTime) == false)
             {
                 return false;
             }
 
-            if (NonTradePeriodThursday.CanTradeThisTime(curTime) == false)
+            if (curTime.DayOfWeek == DayOfWeek.Thursday && 
+                NonTradePeriodThursday.CanTradeThisTime(curTime) == false)
             {
                 return false;
             }
 
-            if (NonTradePeriodFriday.CanTradeThisTime(curTime) == false)
+            if (curTime.DayOfWeek == DayOfWeek.Friday && 
+                NonTradePeriodFriday.CanTradeThisTime(curTime) == false)
             {
                 return false;
             }
 
-            if (NonTradePeriodSaturday.CanTradeThisTime(curTime) == false)
+            if (curTime.DayOfWeek == DayOfWeek.Saturday && 
+                NonTradePeriodSaturday.CanTradeThisTime(curTime) == false)
             {
                 return false;
             }
 
-            if (NonTradePeriodSunday.CanTradeThisTime(curTime) == false)
+            if (curTime.DayOfWeek == DayOfWeek.Sunday && 
+                NonTradePeriodSunday.CanTradeThisTime(curTime) == false)
             {
                 return false;
             }
