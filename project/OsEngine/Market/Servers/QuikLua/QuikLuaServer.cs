@@ -982,7 +982,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     return;
                 }
 
-                if(QuikLua == null)
+                if (QuikLua == null)
                 {
                     return;
                 }
@@ -1781,21 +1781,116 @@ namespace OsEngine.Market.Servers.QuikLua
                  order.NumberUser).Result;
                 }
 
+                bool needTrade = false;
+
                 if (foundOrder != null)
                 {
-                    EventsOnOnOrder(foundOrder);
+                    if (foundOrder.TransID == 0)
+                    {
+                        return OrderStateType.None;
+                    }
+
+                    order.NumberUser = Convert.ToInt32(foundOrder.TransID);
+                    order.NumberMarket = foundOrder.OrderNum.ToString(new CultureInfo("ru-RU"));
+                    order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(foundOrder.LuaTimeStamp);
+                    order.SecurityNameCode = foundOrder.SecCode + "+" + foundOrder.ClassCode;
+                    order.SecurityClassCode = order.SecurityNameCode.Split('+')[1];
+                    order.Price = foundOrder.Price;
+                    order.Volume = foundOrder.Quantity;
+                    order.VolumeExecute = foundOrder.Quantity - foundOrder.Balance;
+                    order.PortfolioNumber = foundOrder.Account;
+                    order.TypeOrder = foundOrder.Flags.ToString().Contains("IsLimit")
+                        ? OrderPriceType.Limit
+                        : OrderPriceType.Market;
+                    order.ServerType = ServerType.QuikLua;
 
                     if (foundOrder.State == State.Active)
                     {
-                        return OrderStateType.Active;
+                        order.State = OrderStateType.Active;
+                        order.TimeCallBack = new DateTime(foundOrder.Datetime.year, foundOrder.Datetime.month,
+                            foundOrder.Datetime.day,
+                            foundOrder.Datetime.hour, foundOrder.Datetime.min, foundOrder.Datetime.sec);
                     }
                     else if (foundOrder.State == State.Completed)
                     {
-                        return OrderStateType.Done;
+                        order.State = OrderStateType.Done;
+                        order.VolumeExecute = foundOrder.Quantity;
+                        order.TimeDone = order.TimeCallBack;
+
+                        needTrade = true;
                     }
                     else if (foundOrder.State == State.Canceled)
                     {
-                        return OrderStateType.Cancel;
+                        order.TimeCancel = new DateTime(foundOrder.WithdrawDatetime.year, foundOrder.WithdrawDatetime.month,
+                            foundOrder.WithdrawDatetime.day,
+                            foundOrder.WithdrawDatetime.hour, foundOrder.WithdrawDatetime.min, foundOrder.WithdrawDatetime.sec);
+                        order.State = OrderStateType.Cancel;
+                        order.VolumeExecute = 0;
+                    }
+                    else if (foundOrder.Balance != 0)
+                    {
+                        order.State = OrderStateType.Partial;
+                        order.VolumeExecute = foundOrder.Quantity - foundOrder.Balance;
+
+                        needTrade = true;
+                    }
+
+                    if (_ordersAllReadyCanseled.Find(o => o.NumberUser == foundOrder.TransID) != null)
+                    {
+                        order.State = OrderStateType.Cancel;
+                        order.TimeCancel = order.TimeCallBack;
+                    }
+
+                    if (foundOrder.Operation == Operation.Buy)
+                    {
+                        order.Side = Side.Buy;
+                    }
+                    else
+                    {
+                        order.Side = Side.Sell;
+                    }
+
+                    if (MyOrderEvent != null)
+                    {
+                        MyOrderEvent(order);
+                    }
+
+                    if (needTrade)
+                    {
+                        var quikTrades = QuikLua.Trading.GetTrades_by_OdrerNumber(Convert.ToInt64(order.NumberMarket)).Result;
+
+                        if (quikTrades != null)
+                        {
+                            for (int i = 0; i < quikTrades.Count; i++)
+                            {
+                                var quikTrade = quikTrades[i];
+                                MyTrade trade = new MyTrade();
+                                trade.NumberTrade = quikTrade.TradeNum.ToString();
+                                trade.SecurityNameCode = quikTrade.SecCode + "+" + quikTrade.ClassCode;
+                                trade.NumberOrderParent = quikTrade.OrderNum.ToString();
+                                trade.Price = Convert.ToDecimal(quikTrade.Price);
+                                trade.Volume = quikTrade.Quantity;
+                                trade.Time = new DateTime(quikTrade.QuikDateTime.year, quikTrade.QuikDateTime.month,
+                                    quikTrade.QuikDateTime.day, quikTrade.QuikDateTime.hour,
+                                    quikTrade.QuikDateTime.min, quikTrade.QuikDateTime.sec, quikTrade.QuikDateTime.ms);
+
+                                if (quikTrade.Flags.ToString().Contains("IsSell"))
+                                {
+                                    trade.Side = Side.Sell;
+                                }
+                                else
+                                {
+                                    trade.Side = Side.Buy;
+                                }
+
+                                trade.MicroSeconds = quikTrade.QuikDateTime.mcs;
+
+                                if (MyTradeEvent != null)
+                                {
+                                    MyTradeEvent(trade);
+                                }
+                            }
+                        }
                     }
                 }
                 else
