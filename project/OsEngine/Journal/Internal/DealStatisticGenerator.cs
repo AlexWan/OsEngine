@@ -68,7 +68,7 @@ namespace OsEngine.Journal.Internal
             report.Add(Math.Round(GetAllProfitPercent(deals), 6).ToString(new CultureInfo("ru-RU")));//Net profti %
             report.Add(deals.Length.ToString(new CultureInfo("ru-RU")));// Number of transactions
             report.Add(GetAverageTimeOnPoses(deals));
-            report.Add(GetSharpRatio(deals, 7).ToString());
+            report.Add(GetSharpRatio(deals, 0).ToString());
 
             report.Add(Math.Round(GetProfitFactor(deals), 6).ToString(new CultureInfo("ru-RU")));   //Profit Factor
             report.Add(Math.Round(GetRecovery(deals), 6).ToString(new CultureInfo("ru-RU")));   // Recovery
@@ -80,7 +80,7 @@ namespace OsEngine.Journal.Internal
             report.Add(Math.Round(GetMiddleProfitInPercentToDeposit(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in %
 
             report.Add(""); // 11
-            report.Add(GetProfitDial(deals).ToString(new CultureInfo("ru-RU"))); //wining trades/выигрышных сделок
+            report.Add(GetProfitDeal(deals).ToString(new CultureInfo("ru-RU"))); //wining trades/выигрышных сделок
             report.Add(Math.Round(GetProfitDialPercent(deals), 6).ToString(new CultureInfo("ru-RU")));//wining trade in %/выигрышных сделок в %
             //report += Convert.ToDouble(GetAllProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //total profit margins/общий профит выигрышных сделок
             report.Add(Convert.ToDouble(GetAllMiddleProfitInProfitInAbsolute(deals)).ToString(new CultureInfo("ru-RU"))); //Average profit in winning trades/средний профит в выигрышных сделках
@@ -280,7 +280,7 @@ namespace OsEngine.Journal.Internal
             }
 
             List<decimal> tradeReturns = new List<decimal>();
-
+          
             for (int i = 0; i < deals.Length; i++)
             {
                 decimal returnDecimal = deals[i].ProfitPortfolioAbs;
@@ -288,7 +288,9 @@ namespace OsEngine.Journal.Internal
                 tradeReturns.Add(returnDecimal);
             }
 
-            decimal ahpr = GetAllProfitPercent(deals);
+            //decimal ahpr = GetAllProfitPercent(deals);
+
+            decimal ahpr = tradeReturns.Average();
 
             DateTime timeFirstDeal = DateTime.MaxValue;
             DateTime timeEndDeal = DateTime.MinValue;
@@ -321,7 +323,9 @@ namespace OsEngine.Journal.Internal
                 return 0;
             }
                 
-            decimal sharp = (ahpr - rfr) / sd;
+            //decimal sharp = (ahpr - rfr) / sd;
+            decimal sharp = (ahpr - rfr) / sd * (decimal)Math.Sqrt(365);
+
             return Math.Round(sharp, 4);
         }
 
@@ -350,12 +354,13 @@ namespace OsEngine.Journal.Internal
 
             // Sample standard deviation (divide by n-1)
             decimal variance = sumSquaredDifferences / (length);
-            decimal sd = (decimal)Math.Sqrt((double)variance) / 100;
+            //decimal sd = (decimal)Math.Sqrt((double)variance) / 100;
+            decimal sd = (decimal)Math.Sqrt((double)variance);
 
             return Math.Round(sd, 5);
         }
 
-        private static int GetProfitDial(Position[] deals)
+        private static int GetProfitDeal(Position[] deals)
         {
             int profitDeal = 0;
 
@@ -372,7 +377,7 @@ namespace OsEngine.Journal.Internal
 
         private static decimal GetProfitDialPercent(Position[] deals)
         {
-            decimal profitDeal = GetProfitDial(deals);
+            decimal profitDeal = GetProfitDeal(deals);
 
             if (profitDeal == 0)
             {
@@ -400,12 +405,12 @@ namespace OsEngine.Journal.Internal
                 return profit;
             }
 
-            if (GetProfitDial(deals) == 0)
+            if (GetProfitDeal(deals) == 0)
             {
                 return 0;
             }
 
-            return Math.Round(profit / GetProfitDial(deals), 6);
+            return Math.Round(profit / GetProfitDeal(deals), 6);
         }
 
         private static decimal GetAllMiddleProfitInProfitInPercent(Position[] deals)
@@ -424,12 +429,12 @@ namespace OsEngine.Journal.Internal
                 return profit;
             }
 
-            if (GetProfitDial(deals) == 0)
+            if (GetProfitDeal(deals) == 0)
             {
                 return 0;
             }
 
-            return profit / GetProfitDial(deals);
+            return profit / GetProfitDeal(deals);
         }
 
         private static decimal GetAllMiddleProfitInProfitInAbsoluteOnDeposit(Position[] deals)
@@ -449,12 +454,12 @@ namespace OsEngine.Journal.Internal
                 return profit;
             }
 
-            if (GetProfitDial(deals) == 0)
+            if (GetProfitDeal(deals) == 0)
             {
                 return 0;
             }
 
-            return Math.Round(profit / GetProfitDial(deals), 6);
+            return Math.Round(profit / GetProfitDeal(deals), 6);
         }
 
         private static decimal GetAllMiddleProfitInProfitInPercentOnDeposit(Position[] deals)
@@ -473,12 +478,12 @@ namespace OsEngine.Journal.Internal
                 return profit;
             }
 
-            if (GetProfitDial(deals) == 0)
+            if (GetProfitDeal(deals) == 0)
             {
                 return 0;
             }
 
-            return profit / GetProfitDial(deals);
+            return profit / GetProfitDeal(deals);
         }
 
         private static int GetMaxProfitSeries(Position[] deals)
@@ -701,7 +706,7 @@ namespace OsEngine.Journal.Internal
             decimal maxDownAbs = decimal.MaxValue;
             decimal maxDownPercent = decimal.MaxValue;
 
-            if (GetProfitDial(deals) == 0)
+            if (GetProfitDeal(deals) == 0)
             {
                 return 0;
             }
@@ -863,7 +868,7 @@ namespace OsEngine.Journal.Internal
             decimal recovery = 0m;
             decimal maxDownAbs = decimal.MaxValue;
 
-            if (GetProfitDial(deals) == 0)
+            if (GetProfitDeal(deals) == 0)
             {
                 return 0;
             }
@@ -923,7 +928,7 @@ namespace OsEngine.Journal.Internal
             }
 
             decimal profit = GetAllProfitInAbsolute(deals);
-            if (profit != 0 && maxDownAbs != 0) recovery = Math.Abs(profit / maxDownAbs);
+            if (profit != 0 && maxDownAbs != 0) recovery = profit / Math.Abs(maxDownAbs);
 
             return Round(recovery);
         }
