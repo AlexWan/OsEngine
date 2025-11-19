@@ -1794,8 +1794,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
                 else
                 {
-                    foundOrder = QuikLua.Orders.GetOrder_by_transID(order.SecurityNameCode.Split('+')[1], order.SecurityNameCode.Split('+')[0],
-                 order.NumberUser).Result;
+                    foundOrder = QuikLua.Orders.GetOrder_by_transID(order.SecurityNameCode.Split('+')[1], order.SecurityNameCode.Split('+')[0], order.NumberUser).Result;
                 }
 
                 bool needTrade = false;
