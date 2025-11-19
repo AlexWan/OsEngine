@@ -11,7 +11,7 @@ namespace OsEngine.Indicators
     {
         private IndicatorParameterInt _lengthAdx;
 
-        private IndicatorParameterInt _ratio;   
+        private IndicatorParameterInt _ratio;
 
         private IndicatorDataSeries _upChannel;
 
@@ -47,12 +47,16 @@ namespace OsEngine.Indicators
                 return;
             }
 
-            if(_adx.DataSeries[0].Last == 0)
+            decimal adxLast = _adx.DataSeries[0].Last;
+            decimal adxOnIndex = _adx.DataSeries[0].Values[index];
+
+            if (adxLast == 0
+                || adxOnIndex == 0)
             {
                 return;
             }
 
-            _seriesX.Values[index] = Math.Max(Math.Truncate(_ratio.ValueInt / _adx.DataSeries[0].Values[index]), 1);
+            _seriesX.Values[index] = Math.Max(Math.Truncate(_ratio.ValueInt / adxOnIndex), 1);
 
             int x = (Int32)_seriesX.Values[index];
 
