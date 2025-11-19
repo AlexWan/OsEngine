@@ -9,7 +9,6 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.GateIo.GateIoFutures.Entities;
 using OsEngine.OsData.BinaryEntity;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
@@ -18,9 +17,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace OsEngine.OsData
