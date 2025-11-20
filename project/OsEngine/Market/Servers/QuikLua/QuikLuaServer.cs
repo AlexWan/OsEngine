@@ -209,7 +209,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     QuikLua.Events.OnTransReply -= Events_OnTransReply;
                 }
 
-                subscribedBook = new List<string>();
+                subscribedSecurities = new List<Security>();
                 _clientCode = null;
                 QuikLua = null;
 
@@ -726,7 +726,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     for (int i = 0; i < spotPos.Count; i++)
                     {
                         DepoLimitEx pos = spotPos[i];
-                        Security sec = _securities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
+                        Security sec = subscribedSecurities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
 
                         LimitKind limitKind = LimitKind.T0;
 
@@ -744,9 +744,9 @@ namespace OsEngine.Market.Servers.QuikLua
                             if (needPortf != null)
                             {
                                 position.PortfolioName = pos.TrdAccId;
-                                position.ValueBegin = pos.OpenBalance;
-                                position.ValueCurrent = pos.CurrentBalance;
-                                position.ValueBlocked = pos.LockedSell;
+                                position.ValueBegin = pos.OpenBalance / sec.Lot;
+                                position.ValueCurrent = pos.CurrentBalance / sec.Lot;
+                                position.ValueBlocked = pos.LockedSell / sec.Lot;
                                 position.SecurityNameCode = sec.Name;
 
                                 needPortf.SetNewPosition(position);
@@ -988,13 +988,13 @@ namespace OsEngine.Market.Servers.QuikLua
 
         #region 6 Security subscribe
 
-        private List<string> subscribedBook = new List<string>();
+        private List<Security> subscribedSecurities = new List<Security>();
 
         public void Subscribe(Security security)
         {
             try
             {
-                if (subscribedBook.Find(s => s == security.Name) != null)
+                if (subscribedSecurities.Find(sec => sec.Name == security.Name) != null)
                 {
                     return;
                 }
@@ -1007,7 +1007,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 lock (_serverLocker)
                 {
                     QuikLua.OrderBook.Subscribe(security.NameClass, security.Name.Split('+')[0]);
-                    subscribedBook.Add(security.Name);
+                    subscribedSecurities.Add(security);
                     QuikLua.Events.OnAllTrade -= EventsOnOnAllTrade;
                     QuikLua.Events.OnAllTrade += EventsOnOnAllTrade;
                 }
@@ -1304,7 +1304,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     string curName = orderBook.sec_code + "+" + orderBook.class_code;
 
-                    if (subscribedBook.Find(name => name == curName) == null)
+                    if (subscribedSecurities.Find(sec => sec.Name == curName) == null)
                     {
                         return;
                     }
