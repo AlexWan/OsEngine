@@ -2159,7 +2159,7 @@ namespace OsEngine.OsData
                     }
                     else
                     {
-                        _binaryWriter.Flush();
+                        if (_binaryWriter != null) _binaryWriter.Flush();
 
                         OffStream();
 
