@@ -1186,7 +1186,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             XmlNode currencyPortfolio = root.SelectSingleNode("portfolio_currency");
 
-            if(currencyPortfolio != null)
+            if (currencyPortfolio != null)
             {
                 XmlNode balance = currencyPortfolio.SelectSingleNode("cover");
                 string cr = currencyPortfolio.Attributes[0].Value;
@@ -2300,7 +2300,7 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else
                             {
-                                SendLogMessage(data, LogMessageType.Error);
+                                SendLogMessage(data, LogMessageType.System);
                             }
                         }
                     }
