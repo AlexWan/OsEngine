@@ -54,7 +54,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
 
     //public class Pagination
     //{
-    //    public bool has_next { get; set; }
+    //    public string total { get; set; }
+    //    public string has_next { get; set; }
     //}
 
     public class MarketInfoData
@@ -66,6 +67,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         public string min_amount { get; set; }
         public string base_ccy { get; set; }
         public string quote_ccy { get; set; }
+        public string status { get; set; }
         public string base_ccy_precision { get; set; }
         public string quote_ccy_precision { get; set; }
         public string tick_size { get; set; }
@@ -73,5 +75,46 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         public string is_copy_trading_available { get; set; }
         public List<string> leverage { get; set; }
         public string open_interest_volume { get; set; }
+    }
+
+    public class OrderRestResponse
+    {
+        public string order_id { get; set; }
+        public string market { get; set; }
+        public string market_type { get; set; }
+        public string side { get; set; }
+        public string type { get; set; }
+        public string amount { get; set; }
+        public string price { get; set; }
+        public string unfilled_amount { get; set; }
+        public string filled_amount { get; set; }
+        public string filled_value { get; set; }
+        public string client_id { get; set; }
+        public string fee { get; set; }
+        public string fee_ccy { get; set; }
+        public string maker_fee_rate { get; set; }
+        public string taker_fee_rate { get; set; }
+        public string last_filled_amount { get; set; }
+        public string last_filled_price { get; set; }
+        public string realized_pnl { get; set; }
+        public string created_at { get; set; }
+        public string updated_at { get; set; }
+        public string status { get; set; }
+    }
+
+    public class MyTradeRestResponse
+    {
+        public string deal_id { get; set; }
+        public string created_at { get; set; }
+        public string market { get; set; }
+        public string side { get; set; }
+        public string order_id { get; set; }
+        public string position_id { get; set; }
+        public string price { get; set; }
+        public string amount { get; set; }
+        public string role { get; set; }
+        public string fee { get; set; }
+        public string fee_ccy { get; set; }
+        public string realized_pnl { get; set; }
     }
 }
