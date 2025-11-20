@@ -869,7 +869,18 @@ namespace OsEngine.Market.Servers.Tester
             {
                 _candleSeriesTesterActivate[i].Load(TimeNow);
             }
+
+            if (EndNextMinuteWithCandlesEvent != null
+                && _timeAddType == TimeAddInTestType.Minute
+                && _timeLastCandle == TimeNow)
+            {
+                EndNextMinuteWithCandlesEvent();
+            }
         }
+
+        private DateTime _timeLastCandle;
+
+        public event Action EndNextMinuteWithCandlesEvent;
 
         #endregion
 
@@ -4382,6 +4393,8 @@ namespace OsEngine.Market.Servers.Tester
         private void TesterServer_NewCandleEvent(Candle candle, string nameSecurity, TimeSpan timeFrame)
         {
             ServerTime = candle.TimeStart;
+
+            _timeLastCandle = candle.TimeStart;
 
             if (_dataIsActive == false)
             {
