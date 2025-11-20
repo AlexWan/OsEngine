@@ -2273,7 +2273,7 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<error>"))
                             {
-                                SendLogMessage(data, LogMessageType.Error);
+                                SendLogMessage($"Transaq. Пришла ошибка с сервера: {data}", LogMessageType.Error);
                             }
                             else if (data.StartsWith("<news_header>"))
                             {
@@ -2300,7 +2300,7 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else
                             {
-                                SendLogMessage(data, LogMessageType.System);
+                                SendLogMessage($"Пришло необработанное сообщение с сервера. Зачастую это просто информационное сообщение и его можно игнорировать: {data}", LogMessageType.System);
                             }
                         }
                     }
