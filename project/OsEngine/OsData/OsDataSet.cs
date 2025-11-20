@@ -2228,20 +2228,20 @@ namespace OsEngine.OsData
         private void ProcessAsksChanges(List<MarketDepthLevel> oldAsks, List<MarketDepthLevel> newAsks, List<QuoteChange> changes)
         {
             Dictionary<double, double> oldAsksDict = new Dictionary<double, double>();
-            for (int i = 0; i < oldAsks.Count; i++)
+            for (int i = 0; i < oldAsks.Count && i < _depth; i++)
             {
                 MarketDepthLevel ask = oldAsks[i];
                 oldAsksDict[ask.Price] = ask.Ask;
             }
 
             Dictionary<double, double> newAsksDict = new Dictionary<double, double>();
-            for (int i = 0; i < newAsks.Count; i++)
+            for (int i = 0; i < newAsks.Count && i < _depth; i++)
             {
                 MarketDepthLevel ask = newAsks[i];
                 newAsksDict[ask.Price] = ask.Ask;
             }
 
-            for (int i = 0; i < oldAsks.Count; i++)
+            for (int i = 0; i < oldAsks.Count && i < _depth; i++)
             {
                 MarketDepthLevel oldAsk = oldAsks[i];
 
@@ -2255,7 +2255,7 @@ namespace OsEngine.OsData
                 }
             }
 
-            for (int i = 0; i < newAsks.Count; i++)
+            for (int i = 0; i < newAsks.Count && i < _depth; i++)
             {
                 MarketDepthLevel newAsk = newAsks[i];
 
@@ -2284,20 +2284,20 @@ namespace OsEngine.OsData
         private void ProcessBidsChanges(List<MarketDepthLevel> oldBids, List<MarketDepthLevel> newBids, List<QuoteChange> changes)
         {
             Dictionary<double, double> oldBidsDict = new Dictionary<double, double>();
-            for (int i = 0; i < oldBids.Count; i++)
+            for (int i = 0; i < oldBids.Count && i < _depth; i++)
             {
                 MarketDepthLevel bid = oldBids[i];
                 oldBidsDict[bid.Price] = bid.Bid;
             }
 
             Dictionary<double, double> newBidsDict = new Dictionary<double, double>();
-            for (int i = 0; i < newBids.Count; i++)
+            for (int i = 0; i < newBids.Count && i < _depth; i++)
             {
                 MarketDepthLevel bid = newBids[i];
                 newBidsDict[bid.Price] = bid.Bid;
             }
 
-            for (int i = 0; i < oldBids.Count; i++)
+            for (int i = 0; i < oldBids.Count && i < _depth; i++)
             {
                 MarketDepthLevel oldBid = oldBids[i];
 
@@ -2311,7 +2311,7 @@ namespace OsEngine.OsData
                 }
             }
 
-            for (int i = 0; i < newBids.Count; i++)
+            for (int i = 0; i < newBids.Count && i < _depth; i++)
             {
                 MarketDepthLevel newBid = newBids[i];
 
@@ -2343,7 +2343,7 @@ namespace OsEngine.OsData
             {
                 List<QuoteChange> changes = new List<QuoteChange>();
 
-                for (int i = 0; i < md.Asks.Count; i++)
+                for (int i = 0; i < md.Asks.Count && i < _depth; i++)
                 {
                     QuoteChange quoteChange = new QuoteChange();
 
@@ -2353,7 +2353,7 @@ namespace OsEngine.OsData
                     changes.Add(quoteChange);
                 }
 
-                for (int i = 0; i < md.Bids.Count; i++)
+                for (int i = 0; i < md.Bids.Count && i < _depth; i++)
                 {
                     QuoteChange quoteChange = new QuoteChange();
 
@@ -2516,7 +2516,6 @@ namespace OsEngine.OsData
 
             return true;
         }
-
 
         private bool CheckPrefix(Stream stream, byte[] buffer, byte[] prefix)
         {
