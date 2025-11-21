@@ -1243,7 +1243,8 @@ namespace OsEngine.Market.Servers.TInvest
 
             if (tf == TimeFrame.Hour1 ||
                 tf == TimeFrame.Hour2 ||
-                tf == TimeFrame.Hour4)
+                tf == TimeFrame.Hour4 ||
+                tf == TimeFrame.Min30)
             {
                 days = 7; // Tinkoff api позволяет запрашивать большие интервалы данных для таймфреймов более 1 часа
             }
