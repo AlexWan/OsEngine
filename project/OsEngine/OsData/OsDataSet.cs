@@ -2163,7 +2163,7 @@ namespace OsEngine.OsData
 
                         OffStream();
 
-                        await Task.Delay(1000);
+                        await Task.Delay(500);
                     }
                 }
                 catch (Exception ex)
