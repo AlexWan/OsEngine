@@ -9,6 +9,8 @@ using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
 using OsEngine.Attributes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Threading;
 
 namespace OsEngine.Indicators
 {
@@ -573,57 +575,75 @@ namespace OsEngine.Indicators
 
         public void Process(List<Candle> candles)
         {
-            if (StartProgram == StartProgram.IsOsTrader
-               && UpdateIntervalInSeconds != 0)
+            ProcessLoop(candles, 1);
+        }
+
+        private void ProcessLoop(List<Candle> candles, int attemptNumber)
+        {
+            try
             {
-                if (_nextUpdateIndicatorsTime > DateTime.Now
-                    && _lastUpdateCandleTime == candles[^1].TimeStart)
+                if (StartProgram == StartProgram.IsOsTrader
+                  && UpdateIntervalInSeconds != 0)
+                {
+                    if (_nextUpdateIndicatorsTime > DateTime.Now
+                        && _lastUpdateCandleTime == candles[^1].TimeStart)
+                    {
+                        return;
+                    }
+                    _nextUpdateIndicatorsTime = DateTime.Now.AddSeconds(UpdateIntervalInSeconds);
+                    _lastUpdateCandleTime = candles[^1].TimeStart;
+                }
+
+                if (candles.Count == 0)
                 {
                     return;
                 }
-                _nextUpdateIndicatorsTime = DateTime.Now.AddSeconds(UpdateIntervalInSeconds);
-                _lastUpdateCandleTime = candles[^1].TimeStart;
-            }
 
-            //lock(_indicatorUpdateLocker)
-            //{
-            if (candles.Count == 0)
-            {
-                return;
-            }
-
-            if (DataSeries == null || DataSeries.Count == 0)
-            {
-                return;
-            }
-
-            if (_myCandles == null ||
-            candles.Count < _myCandles.Count ||
-            candles.Count > _myCandles.Count + 1 ||
-            (_lastFirstCandle != null && _lastFirstCandle.TimeStart != candles[0].TimeStart))
-            {
-                ProcessAll(candles);
-            }
-            else if (candles.Count < DataSeries[0].Values.Count)
-            {
-                foreach (var ds in DataSeries)
+                if (DataSeries == null || DataSeries.Count == 0)
                 {
-                    ds.Values.Clear();
+                    return;
                 }
-                ProcessAll(candles);
-            }
-            else if (_myCandles.Count == candles.Count)
-            {
-                ProcessLast(candles);
-            }
-            else if (_myCandles.Count + 1 == candles.Count)
-            {
-                ProcessNew(candles, candles.Count - 1);
-            }
 
-            _myCandles = candles;
-            _lastFirstCandle = candles[0];
-            //}
+                if (_myCandles == null ||
+                candles.Count < _myCandles.Count ||
+                candles.Count > _myCandles.Count + 1 ||
+                (_lastFirstCandle != null && _lastFirstCandle.TimeStart != candles[0].TimeStart))
+                {
+                    ProcessAll(candles);
+                }
+                else if (candles.Count < DataSeries[0].Values.Count)
+                {
+                    foreach (var ds in DataSeries)
+                    {
+                        ds.Values.Clear();
+                    }
+                    ProcessAll(candles);
+                }
+                else if (_myCandles.Count == candles.Count)
+                {
+                    ProcessLast(candles);
+                }
+                else if (_myCandles.Count + 1 == candles.Count)
+                {
+                    ProcessNew(candles, candles.Count - 1);
+                }
+
+                _myCandles = candles;
+                _lastFirstCandle = candles[0];
+            }
+            catch
+            {
+                if(StartProgram == StartProgram.IsOsTrader
+                    && attemptNumber < 3)
+                {
+                    Thread.Sleep(10);
+                    ProcessLoop(candles, attemptNumber + 1);
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         private void ProcessAll(List<Candle> candles)
