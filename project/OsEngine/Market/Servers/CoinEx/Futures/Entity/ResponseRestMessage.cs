@@ -7,6 +7,13 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         public string code { get; set; }
         public T data { get; set; }
         public string message { get; set; }
+        public Pagination pagination { get; set; }
+    }
+
+    public class Pagination
+    {
+        public string total { get; set; }
+        public string has_next { get; set; }
     }
 
     public class BalanceData
@@ -17,6 +24,18 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         public string margin { get; set; }
         public string unrealized_pnl { get; set; }
         public string transferrable { get; set; }
+    }
+
+    public class ResponseCandle
+    {
+        public string market { get; set; }
+        public string open { get; set; }
+        public string close { get; set; }
+        public string high { get; set; }
+        public string low { get; set; }
+        public string volume { get; set; }
+        public string value { get; set; }
+        public string created_at { get; set; }
     }
 
     public class PositionData
@@ -49,14 +68,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         public string adl_level { get; set; }
         public string settle_price { get; set; }
         public string settle_value { get; set; }
-
     }
-
-    //public class Pagination
-    //{
-    //    public string total { get; set; }
-    //    public string has_next { get; set; }
-    //}
 
     public class MarketInfoData
     {

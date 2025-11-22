@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO.Compression;
 using System.Net;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -117,7 +116,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
 
-            _securities.Clear();
+            _subscribedSecurities.Clear();
 
             Disconnect();
         }
@@ -506,32 +505,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
-        //public List<CexMarketInfoItem> GetMarketsInfo(List<string> securities)
-        //{
-        //    // https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
-        //    List<CexMarketInfoItem> cexInfo = new List<CexMarketInfoItem>();
-
-        //    string endPoint = "/futures/ticker";
-        //    try
-        //    {
-        //        if (securities.Count > 10)
-        //        {
-        //            // If list is empty - gets all markets info
-        //            securities = new List<string>();
-        //        }
-
-        //        cexInfo = _restClient.Get<List<CexMarketInfoItem>>(endPoint, false, new Dictionary<string, Object>()
-        //        {
-        //            { "market", String.Join(",", securities.ToArray())},
-        //        });
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        SendLogMessage("Market info request error:" + exception.ToString(), LogMessageType.Error);
-        //    }
-        //    return cexInfo;
-        //}
-
         public event Action<List<Portfolio>> PortfolioEvent;
 
         #endregion
@@ -563,46 +536,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            DateTime endTime = DateTime.Now.ToUniversalTime();
-
-            while (endTime.Hour != 23)
-            {
-                endTime = endTime.AddHours(1);
-            }
-
-            int candlesInDay = 0;
-
-            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes >= 1)
-            {
-                candlesInDay = 900 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
-            }
-            else
-            {
-                candlesInDay = 54000 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
-            }
-
-            if (candlesInDay == 0)
-            {
-                candlesInDay = 1;
-            }
-
-            int daysCount = candleCount / candlesInDay;
-
-            if (daysCount == 0)
-            {
-                daysCount = 1;
-            }
-
-            daysCount++;
-
-            DateTime startTime = endTime.AddDays(-daysCount);
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime endTime = DateTime.UtcNow;
+            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
-
-            while (candles.Count > candleCount)
-            {
-                candles.RemoveAt(0);
-            }
 
             return candles;
         }
@@ -631,12 +569,12 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             while (actualTime < endTime)
             {
                 List<Candle> newCandles = new List<Candle>();
-                List<CexCandle> history = cexGetCandleHistory(security, tfTotalMinutes, actualTime, endTimeReal);
+                List<ResponseCandle> history = cexGetCandleHistory(security, tfTotalMinutes, actualTime, endTimeReal);
                 if (history != null && history.Count > 0)
                 {
                     for (int i = 0; i < history.Count; i++)
                     {
-                        CexCandle cexCandle = history[i];
+                        ResponseCandle cexCandle = history[i];
 
                         Candle candle = new Candle();
                         candle.Open = cexCandle.open.ToString().ToDecimal();
@@ -644,7 +582,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                         candle.Low = cexCandle.low.ToString().ToDecimal();
                         candle.Close = cexCandle.close.ToString().ToDecimal();
                         candle.Volume = cexCandle.volume.ToString().ToDecimal();
-                        candle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(cexCandle.created_at);
+                        candle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(cexCandle.created_at));
 
                         //fix candle
                         if (candle.Open < candle.Low)
@@ -697,7 +635,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             return candles.Count > 0 ? candles : null;
         }
 
-        private List<CexCandle> cexGetCandleHistory(Security security, int tfTotalMinutes,
+        private List<ResponseCandle> cexGetCandleHistory(Security security, int tfTotalMinutes,
           DateTime startTime, DateTime endTime)
         {
             _rateGateCandlesHistory.WaitToProceed();
@@ -724,39 +662,49 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 );
             try
             {
-                HttpClient _client = new HttpClient();
-                HttpRequestMessage req = new HttpRequestMessage(new HttpMethod("GET"), url);
-                HttpResponseMessage response = _client.SendAsync(req).Result;
-                response.EnsureSuccessStatusCode();
-                string responseContent = response.Content.ReadAsStringAsync().Result;
-                if (!responseContent.Contains("Success")) { return null; }
-                CoinExHttpResp<List<List<object>>> resp = JsonConvert.DeserializeObject<CoinExHttpResp<List<List<object>>>>(responseContent);
-                resp!.EnsureSuccessStatusCode();
+                RestRequest requestRest = new RestRequest(Method.GET);
+                IRestResponse response = new RestClient(url).Execute(requestRest);
 
-                List<CexCandle> cexCandles = new List<CexCandle>();
-                for (int i = 0; i < resp.data.Count; i++)
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    CexCandle candle = new CexCandle();
-                    candle.market = security.Name;
+                    ResponseRestMessage<List<List<object>>> responseCandles = JsonConvert.DeserializeObject<ResponseRestMessage<List<List<object>>>>(response.Content);
 
-                    List<object> data = resp.data[i];
+                    if (responseCandles.code == "0")
+                    {
+                        List<ResponseCandle> cexCandles = new List<ResponseCandle>();
 
-                    candle.created_at = 1000 * (long)data[0];
-                    candle.open = data[1].ToString();
-                    candle.close = data[2].ToString();
-                    candle.high = data[3].ToString();
-                    candle.low = data[4].ToString();
-                    candle.volume = data[5].ToString();
-                    candle.value = data[6].ToString();
+                        for (int i = 0; i < responseCandles.data.Count; i++)
+                        {
+                            ResponseCandle candle = new ResponseCandle();
+                            candle.market = security.Name;
 
-                    cexCandles.Add(candle);
+                            List<object> data = responseCandles.data[i];
+
+                            candle.created_at = (1000 * (long)data[0]).ToString();
+                            candle.open = data[1].ToString();
+                            candle.close = data[2].ToString();
+                            candle.high = data[3].ToString();
+                            candle.low = data[4].ToString();
+                            candle.volume = data[5].ToString();
+                            candle.value = data[6].ToString();
+
+                            cexCandles.Add(candle);
+                        }
+                        if (cexCandles != null && cexCandles.Count > 0)
+                        {
+                            SendLogMessage($"Empty Candles response to url {url}", LogMessageType.System);
+                            return cexCandles;
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Candles request error. {responseCandles.code} || msg: {responseCandles.message}", LogMessageType.Error);
+                    }
                 }
-                if (cexCandles != null && cexCandles.Count > 0)
+                else
                 {
-                    return cexCandles;
+                    SendLogMessage($"Candles request error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
-                SendLogMessage($"Empty Candles response to url {url}", LogMessageType.System);
-                _client.Dispose();
             }
             catch (Exception ex)
             {
@@ -1063,17 +1011,13 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 if (e.IsBinary)
                 {
                     string message = Decompress(e.RawData);
-                    FIFOListWebSocketPublicMessage.Enqueue(message);
-                }
 
-                if (e.IsText)
-                {
-                    if (e.Data.Contains("pong"))
-                    { // pong message
+                    if (message.Contains("pong"))
+                    {
                         return;
                     }
 
-                    FIFOListWebSocketPublicMessage.Enqueue(e.Data);
+                    FIFOListWebSocketPublicMessage.Enqueue(message);
                 }
             }
             catch (Exception error)
@@ -1155,17 +1099,12 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                         SubscribePrivate();
                     }
 
-                    FIFOListWebSocketPrivateMessage.Enqueue(message);
-                }
-
-                if (e.IsText)
-                {
-                    if (e.Data.Contains("pong"))
-                    { // pong message
+                    if (message.Contains("pong"))
+                    {
                         return;
                     }
 
-                    FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
+                    FIFOListWebSocketPrivateMessage.Enqueue(message);
                 }
             }
             catch (Exception error)
@@ -1212,55 +1151,53 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         #region 8 WebSocket check alive
 
-        private DateTime _lastTimeWsCheckConnection = DateTime.MinValue;
-
         private void ConnectionCheckThread()
         {
             while (true)
             {
-                Thread.Sleep(50000); // Sleep1
-
                 try
                 {
-                    if (ServerStatus != ServerConnectStatus.Connect)
+                    Thread.Sleep(25000);
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         continue;
                     }
 
-                    //SendWsPing();
-
-                    Thread.Sleep(3000); // Sleep2
-
-                    // Sleep1 + Sleep2 + some overhead
-                    // Trigger when twice fail
-                    if (_lastTimeWsCheckConnection.AddSeconds(5) < DateTime.Now && _lastTimeWsCheckConnection > DateTime.MinValue)
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        if (ServerStatus == ServerConnectStatus.Connect)
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        if (webSocketPublic != null
+                            && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            webSocketPublic.SendAsync($"{{\"method\": \"server.ping\",\"params\": {{}},\"id\": 11}}");
+                        }
+                        else
+                        {
+                            Disconnect();
                         }
                     }
-                }
-                catch (Exception error)
-                {
-                    if (ServerStatus == ServerConnectStatus.Connect)
+
+                    if (_webSocketPrivate != null &&
+                        (_webSocketPrivate.ReadyState == WebSocketState.Open ||
+                        _webSocketPrivate.ReadyState == WebSocketState.Connecting)
+                        )
                     {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        _webSocketPrivate.SendAsync($"{{\"method\": \"server.ping\",\"params\": {{}},\"id\": 22}}");
                     }
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                    Thread.Sleep(1000);
+                    else
+                    {
+                        Disconnect();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(3000);
                 }
             }
         }
-
-        //private void SendWsPing()
-        //{
-        //    if (_wsClients.Count == 0) { return; }
-        //    CexRequestSocketPing message = new CexRequestSocketPing();
-        //    _wsClients[0].SendAsync(message.ToString());
-        //}
 
         #endregion
 
@@ -1340,7 +1277,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     webSocketPublic.SendAsync($"{{\"method\":\"deals.subscribe\",\"params\":{{\"market_list\":[\"{security.Name}\"]}},\"id\":2}}");
                     webSocketPublic.SendAsync($"{{\"method\":\"depth.subscribe\",\"params\":{{\"market_list\":[[\"{security.Name}\",{_marketDepth},\"0\",true]]}},\"id\":3}}");
 
-
                     //if (_extendedMarketData)
                     //{
                     //    webSocketPublic.SendAsync($" {{ \"action\":\"subscribe\", \"args\":[\"futures/fundingRate:{security.Name}\"]}}");
@@ -1360,7 +1296,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             {
                 _webSocketPrivate.SendAsync($"{{\"method\":\"balance.subscribe\",\"params\":{{\"ccy_list\":[]}},\"id\":4}}");
                 _webSocketPrivate.SendAsync($"{{\"method\":\"order.subscribe\",\"params\":{{\"market_list\":[]}},\"id\":5}}");
-                _webSocketPrivate.SendAsync($"{{\"method\":\"position.subscribe\",\"params\":{{\"market_list\":[]}},\"id\":6}}");
+                //_webSocketPrivate.SendAsync($"{{\"method\":\"position.subscribe\",\"params\":{{\"market_list\":[]}},\"id\":6}}");
                 _webSocketPrivate.SendAsync($"{{\"method\":\"user_deals.subscribe\",\"params\":{{\"market_list\":[]}},\"id\":7}}");
             }
             catch (Exception exception)
@@ -1420,7 +1356,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 {
                     _webSocketPrivate.SendAsync($"{{\"method\":\"balance.unsubscribe\",\"params\":{{\"ccy_list\":[]}},\"id\":4}}");
                     _webSocketPrivate.SendAsync($"{{\"method\":\"order.unsubscribe\",\"params\":{{\"market_list\":[]}},\"id\":5}}");
-                    _webSocketPrivate.SendAsync($"{{\"method\":\"position.unsubscribe\",\"params\":{{\"market_list\":[]}},\"id\":6}}");
+                    //_webSocketPrivate.SendAsync($"{{\"method\":\"position.unsubscribe\",\"params\":{{\"market_list\":[]}},\"id\":6}}");
                     _webSocketPrivate.SendAsync($"{{\"method\":\"user_deals.unsubscribe\",\"params\":{{\"market_list\":[]}},\"id\":7}}");
                 }
                 catch
@@ -1561,10 +1497,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     else if (baseMessage.method == "user_deals.update")
                     {
                         UpdateMyTrade(baseMessage.data.ToString());
-                    }
-                    else if (baseMessage.method == "position.update")
-                    {
-
                     }
                     else
                     {
@@ -1809,12 +1741,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 }
 
                 MyOrderEvent?.Invoke(order);
-
-                //if (MyTradeEvent != null)
-                ////(order.State == OrderStateType.Done || order.State == OrderStateType.Partial ))
-                //{
-                //    UpdateTrades(order);
-                //}
             }
             catch (Exception ex)
             {
@@ -1841,26 +1767,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             catch (Exception ex)
             {
                 SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
-        private void UpdateTrades(Order order)
-        {
-            if (string.IsNullOrEmpty(order.NumberMarket))
-            {
-                SendLogMessage("UpdateTrades: Empty NumberMarket", LogMessageType.System);
-                return;
-            }
-            List<MyTrade> trades = GetTradesForOrder(order.SecurityNameCode, order.NumberMarket);
-
-            if (trades == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < trades.Count; i++)
-            {
-                MyTradeEvent?.Invoke(trades[i]);
             }
         }
 
@@ -1902,38 +1808,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     myPortfolio.SetNewPosition(pos);
                 }
 
-                //if (pendingPositions != null && pendingPositions.Count > 0)
-                //{
-                //    for (int i = 0; i < pendingPositions.Count; i++)
-                //    {
-                //        CexPositionItem cexPositionItem = pendingPositions[i];
-
-                //        PositionOnBoard pos = new PositionOnBoard();
-
-                //        pos.SecurityNameCode = cexPositionItem.market;
-                //        pos.ValueCurrent = cexPositionItem.open_interest.ToDecimal();
-                //        pos.ValueBlocked = pos.ValueCurrent;
-                //        pos.PortfolioName = portfolioName;
-                //        pos.UnrealizedPnl = cexPositionItem.unrealized_pnl.ToDecimal();
-                //        if (pos.ValueBegin == 1)
-                //        {
-                //            pos.ValueBegin = pos.ValueCurrent + pos.ValueBlocked;
-                //        }
-
-                //        if (cexPositionItem.side == "short")
-                //        {
-                //            pos.ValueCurrent = -pos.ValueCurrent;
-                //            pos.ValueBlocked = -pos.ValueBlocked;
-                //        }
-
-                //        if (Math.Abs(pos.ValueBlocked + pos.ValueCurrent) > 0)
-                //        {
-                //            myPortfolio.SetNewPosition(pos);
-                //        }
-                //    }
-
-                //}
-
                 PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
@@ -1960,8 +1834,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
         #endregion
 
         #region 11 Trade
-
-        //private string _lockOrder = "lockOrder";
 
         private RateGate _rateGateSendOrder = new RateGate(30, TimeSpan.FromMilliseconds(950));
 
@@ -2236,48 +2108,100 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         public OrderStateType GetOrderStatus(Order order)
         {
-            Order myOrder = GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket);
+            List<Order> orderFromExchange = GetAllOpenOrders();
 
-            if (myOrder == null)
+            if (orderFromExchange == null
+                || orderFromExchange.Count == 0)
+            {
+                orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberUser.ToString());
+            }
+
+            if (orderFromExchange == null
+               || orderFromExchange.Count == 0)
             {
                 return OrderStateType.None;
             }
 
-            MyOrderEvent?.Invoke(myOrder);
+            Order orderOnMarket = null;
 
-            if (myOrder.State == OrderStateType.Done
-                || myOrder.State == OrderStateType.Partial)
+            for (int i = 0; i < orderFromExchange.Count; i++)
             {
-                GetTradesForOrder(myOrder.SecurityNameCode, myOrder.NumberMarket);
+                Order curOder = orderFromExchange[i];
+
+                if (order.NumberUser != 0
+                    && curOder.NumberUser != 0
+                    && curOder.NumberUser == order.NumberUser)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+
+                if (string.IsNullOrEmpty(order.NumberMarket) == false
+                    && order.NumberMarket == curOder.NumberMarket)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
             }
-            return myOrder.State;
+
+            if (orderOnMarket == null)
+            {
+                return OrderStateType.None;
+            }
+
+            if (orderOnMarket != null &&
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+
+            if (orderOnMarket.State == OrderStateType.Done
+                || orderOnMarket.State == OrderStateType.Partial)
+            {
+                GetTradesForOrder(orderOnMarket.SecurityNameCode, orderOnMarket.NumberMarket);
+            }
+            return orderOnMarket.State;
         }
 
 
-        private Order GetOrderFromExchange(string securityName, string numberMarket)
+        private List<Order> GetOrderFromExchange(string securityName, string numberUser)
         {
             _rateGateGetOrder.WaitToProceed();
 
             try
             {
-                string path = $"/futures/order-status";
-                string requestStr = $"{path}?market={securityName}&order_id={(long)numberMarket.ToDecimal()}";
+                string path = $"/futures/finished-order";
+                string requestStr = $"{path}?market_type=FUTURES&limit=1000";
 
                 IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    ResponseRestMessage<OrderRestResponse> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<OrderRestResponse>());
-
+                    ResponseRestMessage<List<OrderRestResponse>> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<OrderRestResponse>>());
                     if (orderResponse.code == "0")
                     {
-                        Order order = GetOrderOsEngineFromOrder(orderResponse.data);
+                        List<Order> orders = new List<Order>();
 
-                        return order;
+                        for (int i = 0; i < orderResponse.data.Count; i++)
+                        {
+                            OrderRestResponse item = orderResponse.data[i];
+
+                            Order order = GetOrderOsEngineFromOrder(item);
+                            orders.Add(order);
+                        }
+
+                        return orders;
                     }
                     else
                     {
-                        SendLogMessage($"Get order request error: {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
+                        if (orderResponse.message.Contains("order not exists"))
+                        {
+                            //
+                        }
+                        else
+                        {
+                            SendLogMessage($"Get order request error: {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
+                        }
                     }
                 }
                 else
@@ -2313,15 +2237,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             order.Price = cexOrder.price.ToString().ToDecimal();
 
             order.TypeOrder = cexOrder.type == "limit" ? OrderPriceType.Limit : OrderPriceType.Market;
-
-            //if (cexOrder.type == CexOrderType.LIMIT.ToString())
-            //{
-            //    order.TypeOrder = OrderPriceType.Limit;
-            //}
-            //else if (cexOrder.type == CexOrderType.MARKET.ToString())
-            //{
-            //    order.TypeOrder = OrderPriceType.Market;
-            //}
 
             order.ServerType = ServerType.CoinExFutures;
 
@@ -2366,9 +2281,13 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
             else
             {
-                if (cexOrder.unfilled_amount.ToString().ToDecimal() > 0)
+                if (cexOrder.unfilled_amount.ToDecimal() > 0)
                 {
                     order.State = cexOrder.amount == cexOrder.unfilled_amount ? OrderStateType.Active : OrderStateType.Partial;
+                }
+                else if (cexOrder.filled_amount.ToDecimal() > 0)
+                {
+                    order.State = cexOrder.amount == cexOrder.filled_amount ? OrderStateType.Done : OrderStateType.Partial;
                 }
             }
 
