@@ -29,18 +29,8 @@ using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers.TInvest
 {
-    public class MarketDataStreamWrapper
-    {
-        public AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse> StreamClient { get; set; }
-        public List<MarketDataRequest> Subscriptions { get; set; } = new List<MarketDataRequest>();
-        public bool IsConnected { get; set; }
-        public DateTime LastMessageTime { get; set; }
-        public string Name { get; set; } // For logging purposes
-    }
-
     public class TInvestServer : AServer
     {
-
         public TInvestServer(int uniqueId)
         {
             ServerNum = uniqueId;
@@ -217,14 +207,11 @@ namespace OsEngine.Market.Servers.TInvest
                                 _lastMyOrderStateDataTime = DateTime.Now;
                                 SendLogMessage(OsLocalization.Market.Label295 + "\nOrders data. ConnectionCheckThread()", LogMessageType.System);
 
-                                if (ForceCheckOrdersAfterReconnectEvent != null)
-                                {
-                                    ForceCheckOrdersAfterReconnectEvent();
-                                }
+                                ForceCheckOrdersAfterReconnectEvent();
+
                                 Thread.Sleep(2000);
                                 _isReconnectByOrdersData = false;
                                 continue;
-
                             }
                         }
 
@@ -279,7 +266,6 @@ namespace OsEngine.Market.Servers.TInvest
 
             try
             {
-
                 // останавливаем чтение всех потоков
                 if (_marketDataStreams != null)
                 {
@@ -1918,7 +1904,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (_useStreamForMarketData)
                 {
-                    MarketDataStreamWrapper streamWrapper = _marketDataStreams.FirstOrDefault(s => s.Subscriptions.Count < 300);
+                    MarketDataStreamWrapper streamWrapper = _marketDataStreams.FirstOrDefault(s => s.Subscriptions.Count < 150); // 300 topics per stream. 2 topics per instruments. So 300/2 = 150
 
                     if (streamWrapper == null)
                     {
@@ -3922,6 +3908,15 @@ namespace OsEngine.Market.Servers.TInvest
             bigDecimal += Convert.ToDecimal(moneyValue.Nano) / 1000000000;
 
             return bigDecimal;
+        }
+
+        public class MarketDataStreamWrapper
+        {
+            public AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse> StreamClient { get; set; }
+            public List<MarketDataRequest> Subscriptions { get; set; } = new List<MarketDataRequest>();
+            public bool IsConnected { get; set; }
+            public DateTime LastMessageTime { get; set; }
+            public string Name { get; set; } // For logging purposes
         }
 
         #endregion
