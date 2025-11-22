@@ -442,7 +442,7 @@ namespace OsEngine.Market.AutoFollow
 
         public string PanelsPosition = "1,1,1";
 
-        public decimal MinCurrencyQty = 25;
+        public decimal MinCurrencyQty = 0;
 
         public bool FailOpenOrdersReactionIsOn = true;
 
