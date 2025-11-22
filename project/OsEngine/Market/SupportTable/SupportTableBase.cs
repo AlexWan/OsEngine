@@ -376,16 +376,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(bloFin);
 
-            SupportConnection bitmex = new SupportConnection()
-            {
-                ServerType = ServerType.BitMex,
-                SupportType = SupportServerType.Standart,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Bitmex.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(bitmex);
-
             SupportConnection exMo = new SupportConnection()
             {
                 ServerType = ServerType.ExmoSpot,
