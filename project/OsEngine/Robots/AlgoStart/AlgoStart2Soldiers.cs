@@ -467,22 +467,31 @@ namespace OsEngine.Robots.AlgoStart
                 {
                     continue;
                 }
-
-                decimal heightPattern =
-                    Math.Abs(tab.CandlesAll[tab.CandlesAll.Count - 4].Open - tab.CandlesAll[tab.CandlesAll.Count - 2].Close);
-
-                decimal priceStop = _lastPrice - (heightPattern * _procHeightStop.ValueDecimal) / 100;
-                decimal priceTake = _lastPrice + (heightPattern * _procHeightTake.ValueDecimal) / 100;
-
-                if(pos.StopOrderPrice == 0)
+                if (pos.StopOrderPrice == 0)
                 {
+                    int firstPatternIndex = tab.CandlesAll.Count;
+
+                    for (int i2 = candles.Count - 1; i2 >= 0; i2--)
+                    {
+                        Candle candle = candles[i2];
+
+                        if(candle.TimeStart <= pos.TimeOpen)
+                        {
+                            firstPatternIndex = i2 + 1;
+                            break;
+                        }
+                    }
+
+                    decimal heightPattern =
+                    Math.Abs(tab.CandlesAll[firstPatternIndex - 4].Open - tab.CandlesAll[firstPatternIndex - 2].Close);
+
+                    decimal priceStop = _lastPrice - (heightPattern * _procHeightStop.ValueDecimal) / 100;
+                    decimal priceTake = _lastPrice + (heightPattern * _procHeightTake.ValueDecimal) / 100;
+
                     pos.StopOrderPrice = priceStop;
-                }
-                if(pos.ProfitOrderPrice == 0)
-                {
                     pos.ProfitOrderPrice = priceTake;
-                    
-                    if(StartProgram == StartProgram.IsOsTrader)
+
+                    if (StartProgram == StartProgram.IsOsTrader)
                     {
                         tab._journal.Save();
                     }
