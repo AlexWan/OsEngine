@@ -67,11 +67,17 @@ namespace OsEngine.OsTrader.Grids
                 Enum.TryParse(values[2], out RebuildGridRegime);
                 ShiftFirstPrice = values[3].ToDecimal();
 
-                StartGridByTimeOfDayIsOn = Convert.ToBoolean(values[4]);
-                StartGridByTimeOfDayHour = Convert.ToInt32(values[5]);
-                StartGridByTimeOfDayMinute = Convert.ToInt32(values[6]);
-                StartGridByTimeOfDaySecond = Convert.ToInt32(values[7]);
-
+                try
+                {
+                    StartGridByTimeOfDayIsOn = Convert.ToBoolean(values[4]);
+                    StartGridByTimeOfDayHour = Convert.ToInt32(values[5]);
+                    StartGridByTimeOfDayMinute = Convert.ToInt32(values[6]);
+                    StartGridByTimeOfDaySecond = Convert.ToInt32(values[7]);
+                }
+                catch
+                {
+                    // ignore
+                }
             }
             catch (Exception e)
             {
