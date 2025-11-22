@@ -1224,7 +1224,8 @@ namespace OsEngine.Journal
                     ComboBoxBenchmark.IsEnabled = false;
                 }
 
-                if (ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString() &&
+                if (positionsAll.Count > 0 
+                    && ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString() &&
                     chartType == "Absolute")
                 {
                     _startValuePortfolio = positionsAll[0].PortfolioValueOnOpenPosition;
