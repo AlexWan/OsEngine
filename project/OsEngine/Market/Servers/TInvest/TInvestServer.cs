@@ -25,11 +25,22 @@ using System.Net;
 using System.Net.Http;
 using Grpc.Net.Client;
 using Grpc.Core;
+using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers.TInvest
 {
+    public class MarketDataStreamWrapper
+    {
+        public AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse> StreamClient { get; set; }
+        public List<MarketDataRequest> Subscriptions { get; set; } = new List<MarketDataRequest>();
+        public bool IsConnected { get; set; }
+        public DateTime LastMessageTime { get; set; }
+        public string Name { get; set; } // For logging purposes
+    }
+
     public class TInvestServer : AServer
     {
+
         public TInvestServer(int uniqueId)
         {
             ServerNum = uniqueId;
@@ -107,8 +118,9 @@ namespace OsEngine.Market.Servers.TInvest
                     // ignore
                 }
 
-                _streamSubscribedSecurities.Clear();
                 _pollSubscribedSecurities.Clear();
+                _marketDataStreams = new List<MarketDataStreamWrapper>();
+                _securityStreamMap = new Dictionary<string, MarketDataStreamWrapper>();
 
                 SendLogMessage(OsLocalization.Market.Label284, LogMessageType.System);
 
@@ -148,10 +160,17 @@ namespace OsEngine.Market.Servers.TInvest
                     bool streamsIsLost = false;
                     string lostStreamName = null;
 
-                    if (_marketDataStream != null && _lastMarketDataTime.AddMinutes(3) < DateTime.UtcNow)
+                    if (_marketDataStreams != null)
                     {
-                        lostStreamName = "Market data stream";
-                        streamsIsLost = true;
+                        foreach (var stream in _marketDataStreams)
+                        {
+                            if (stream.LastMessageTime.AddMinutes(3) < DateTime.UtcNow)
+                            {
+                                lostStreamName = stream.Name;
+                                streamsIsLost = true;
+                                break;
+                            }
+                        }
                     }
 
                     if (_portfolioDataStream != null && _lastPortfolioDataTime.AddMinutes(3) < DateTime.UtcNow)
@@ -174,18 +193,18 @@ namespace OsEngine.Market.Servers.TInvest
                             continue;
                         }
 
-                        if (lostStreamName == "Market data stream")
+                        if (lostStreamName != null && lostStreamName.StartsWith("Market data stream"))
                         {
-                            _isReconnectByPingMarketData = true;
-
-                            if (TryReconnectDataStream() == true)
+                            var streamToReconnect = _marketDataStreams.FirstOrDefault(s => s.Name == lostStreamName);
+                            if (streamToReconnect != null)
                             {
-                                _lastMarketDataTime = DateTime.Now;
-                                SendLogMessage(OsLocalization.Market.Label295 + "\nMarket data. ConnectionCheckThread()", LogMessageType.System);
-                                Thread.Sleep(2000);
-                                _isReconnectByPingMarketData = false;
-                                continue;
-
+                                if (TryReconnectDataStream(streamToReconnect) == true)
+                                {
+                                    streamToReconnect.LastMessageTime = DateTime.UtcNow;
+                                    SendLogMessage(OsLocalization.Market.Label295 + $"\n{streamToReconnect.Name}. ConnectionCheckThread()", LogMessageType.System);
+                                    Thread.Sleep(2000);
+                                    continue;
+                                }
                             }
                         }
 
@@ -224,7 +243,6 @@ namespace OsEngine.Market.Servers.TInvest
                             }
                         }
 
-                        _isReconnectByPingMarketData = false;
                         _isReconnectByOrdersData = false;
                         _isReconnectByPingPortfoliosData = false;
 
@@ -240,7 +258,6 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    _isReconnectByPingMarketData = false;
                     _isReconnectByOrdersData = false;
                     _isReconnectByPingPortfoliosData = false;
 
@@ -251,8 +268,6 @@ namespace OsEngine.Market.Servers.TInvest
         }
 
         private bool _isDisposedNow = false;
-
-        private bool _isReconnectByPingMarketData = false;
 
         private bool _isReconnectByPingPortfoliosData = false;
 
@@ -266,17 +281,20 @@ namespace OsEngine.Market.Servers.TInvest
             {
 
                 // останавливаем чтение всех потоков
-                if (_marketDataStream != null)
+                if (_marketDataStreams != null)
                 {
-                    try
+                    foreach (var streamWrapper in _marketDataStreams)
                     {
-                        _marketDataStream.RequestStream.CompleteAsync().Wait();
-                        _marketDataStream.ResponseStream.ReadAllAsync();
-                        _marketDataStream.Dispose();
-                    }
-                    catch
-                    {
-                        // ignore
+                        try
+                        {
+                            streamWrapper.StreamClient.RequestStream.CompleteAsync().Wait();
+                            streamWrapper.StreamClient.ResponseStream.ReadAllAsync();
+                            streamWrapper.StreamClient.Dispose();
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
                     }
                 }
 
@@ -344,14 +362,11 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                 }
 
-                _marketDataStream = null;
+                _marketDataStreams?.Clear();
+                _securityStreamMap?.Clear();
                 _portfolioDataStream = null;
                 _positionsDataStream = null;
                 _myOrderStateDataStream = null;
-                _marketDataRequestsLastPrice.Clear();
-                _marketDataRequestsOrderBook.Clear();
-                _marketDataRequestsTrades.Clear();
-                _streamSubscribedSecurities.Clear();
                 _pollSubscribedSecurities.Clear();
                 _myPortfolios.Clear();
                 _lastMarketDataTime = DateTime.UtcNow;
@@ -1775,29 +1790,19 @@ namespace OsEngine.Market.Servers.TInvest
             return true;
         }
 
-        private DateTime _lastTryReconnectDataStream;
-
-        private bool TryReconnectDataStream()
+        private bool TryReconnectDataStream(MarketDataStreamWrapper streamWrapper)
         {
             try
             {
-                lock(_marketDataStreamLocker)
+                lock (_marketDataStreamLocker)
                 {
-                    if (_lastTryReconnectDataStream != DateTime.MinValue
-                    && _lastTryReconnectDataStream.AddSeconds(30) > DateTime.Now)
-                    {
-                        return false;
-                    }
-
-                    _lastTryReconnectDataStream = DateTime.Now;
-
-                    if (_marketDataStream != null)
+                    if (streamWrapper.StreamClient != null)
                     {
                         try
                         {
-                            _marketDataStream.RequestStream.CompleteAsync().Wait();
-                            _marketDataStream.ResponseStream.ReadAllAsync();
-                            _marketDataStream.Dispose();
+                            streamWrapper.StreamClient.RequestStream.CompleteAsync().Wait();
+                            streamWrapper.StreamClient.ResponseStream.ReadAllAsync();
+                            streamWrapper.StreamClient.Dispose();
                         }
                         catch
                         {
@@ -1805,82 +1810,56 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
 
-                    // 1 Пересоздаём стрим.
-
-                    _marketDataStream = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
+                    streamWrapper.StreamClient = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
                         cancellationToken: _cancellationTokenSource.Token);
 
-                    // 2 Переподписываем поток ЛастПрайс
+                    streamWrapper.IsConnected = true;
+                    streamWrapper.LastMessageTime = DateTime.UtcNow;
 
-                    if(_marketDataRequestsLastPrice.Count > 0)
+                    if (streamWrapper.Subscriptions.Count > 0)
                     {
-                        _rateGateSubscribe.WaitToProceed();
+                        var tradesToResubscribe = new SubscribeTradesRequest { SubscriptionAction = SubscriptionAction.Subscribe };
+                        var orderBooksToResubscribe = new SubscribeOrderBookRequest { SubscriptionAction = SubscriptionAction.Subscribe };
+                        var lastPricesToResubscribe = new SubscribeLastPriceRequest { SubscriptionAction = SubscriptionAction.Subscribe };
 
-                        MarketDataRequest marketDataRequest = new MarketDataRequest();
-
-                        SubscribeLastPriceRequest lpRequest = new SubscribeLastPriceRequest
+                        // Consolidate all individual subscriptions into batch requests
+                        foreach (var sub in streamWrapper.Subscriptions)
                         {
-                            SubscriptionAction = SubscriptionAction.Subscribe
-                        };
-
-                        for (int i = 0; i < _marketDataRequestsLastPrice.Count; i++)
-                        {
-                            lpRequest.Instruments.Add(_marketDataRequestsLastPrice[i].Instruments[0]);
-                           
+                            if (sub.SubscribeTradesRequest != null)
+                            {
+                                tradesToResubscribe.Instruments.AddRange(sub.SubscribeTradesRequest.Instruments);
+                                tradesToResubscribe.TradeSource = sub.SubscribeTradesRequest.TradeSource;
+                                tradesToResubscribe.WithOpenInterest = sub.SubscribeTradesRequest.WithOpenInterest;
+                            }
+                            else if (sub.SubscribeOrderBookRequest != null)
+                            {
+                                orderBooksToResubscribe.Instruments.AddRange(sub.SubscribeOrderBookRequest.Instruments);
+                            }
+                            else if (sub.SubscribeLastPriceRequest != null)
+                            {
+                                lastPricesToResubscribe.Instruments.AddRange(sub.SubscribeLastPriceRequest.Instruments);
+                            }
                         }
 
-                        marketDataRequest.SubscribeLastPriceRequest = lpRequest;
-                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-                        _rateGateSubscribe.WaitToProceed();
-                    }
-
-                    // 3 Переподписываем поток Стаканов
-
-                    if (_marketDataRequestsOrderBook.Count > 0)
-                    {
                         _rateGateSubscribe.WaitToProceed();
 
-                        MarketDataRequest marketDataRequest = new MarketDataRequest();
-
-                        SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest
+                        if (tradesToResubscribe.Instruments.Any())
                         {
-                            SubscriptionAction = SubscriptionAction.Subscribe
-                        };
-
-                        for (int i = 0; i < _marketDataRequestsOrderBook.Count; i++)
-                        {
-                            subscribeOrderBookRequest.Instruments.Add(_marketDataRequestsOrderBook[i].Instruments[0]);
+                            var batchTradeRequest = new MarketDataRequest { SubscribeTradesRequest = tradesToResubscribe };
+                            streamWrapper.StreamClient.RequestStream.WriteAsync(batchTradeRequest).Wait();
+                            _rateGateSubscribe.WaitToProceed();
                         }
-
-                        marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
-                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-                      
-                    }
-
-                    // 3 Переподписываем поток Трейдов из ленты сделок
-
-                    if (_marketDataRequestsTrades.Count > 0)
-                    {
-                        _rateGateSubscribe.WaitToProceed();
-                        MarketDataRequest marketDataRequest = new MarketDataRequest();
-
-                        SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest
+                        if (orderBooksToResubscribe.Instruments.Any())
                         {
-                            SubscriptionAction = SubscriptionAction.Subscribe,
-                            TradeSource = _filterOutDealerTrades
-                                ? TradeSourceType.TradeSourceExchange
-                                : TradeSourceType.TradeSourceAll,
-                            WithOpenInterest = true
-                        };
-
-                        for (int i = 0; i < _marketDataRequestsTrades.Count; i++)
-                        {
-                            subscribeTradesRequest.Instruments.Add(_marketDataRequestsTrades[i].Instruments[0]);
+                            var batchOrderBookRequest = new MarketDataRequest { SubscribeOrderBookRequest = orderBooksToResubscribe };
+                            streamWrapper.StreamClient.RequestStream.WriteAsync(batchOrderBookRequest).Wait();
+                            _rateGateSubscribe.WaitToProceed();
                         }
-
-                        marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
-
-                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
+                        if (lastPricesToResubscribe.Instruments.Any())
+                        {
+                            var batchLastPriceRequest = new MarketDataRequest { SubscribeLastPriceRequest = lastPricesToResubscribe };
+                            streamWrapper.StreamClient.RequestStream.WriteAsync(batchLastPriceRequest).Wait();
+                        }
                     }
                 }
             }
@@ -1900,15 +1879,16 @@ namespace OsEngine.Market.Servers.TInvest
 
         // Для всех типов подписок в методе установлены ограничения максимального количества запросов на подписку. Если количество запросов за минуту превысит 100, то для всех элементов будет установлен статус SUBSCRIPTION_STATUS_TOO_MANY_REQUESTS.
         // мы подписываемся на стаканы+сделки, поэтому лимит пополам
-        private RateGate _rateGateSubscribe = new RateGate(50, TimeSpan.FromMinutes(1));
-        List<Security> _streamSubscribedSecurities = new List<Security>();
-        List<Security> _pollSubscribedSecurities = new List<Security>();
+        private List<MarketDataStreamWrapper> _marketDataStreams;
 
+        private Dictionary<string, MarketDataStreamWrapper> _securityStreamMap;
+
+        private RateGate _rateGateSubscribe = new RateGate(50, TimeSpan.FromMinutes(1));
+        
+        private List<Security> _pollSubscribedSecurities = new List<Security>();
 
         private bool _useStreamForMarketData = true; // if we are over the limits, then stop using stream and turn to data polling (300+ subscribed secs)
-
-        private AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse> _marketDataStream;
-
+        
         private AsyncServerStreamingCall<OrderStateStreamResponse> _myOrderStateDataStream;
         private AsyncServerStreamingCall<PortfolioStreamResponse> _portfolioDataStream;
         private AsyncServerStreamingCall<PositionsStreamResponse> _positionsDataStream;
@@ -1916,11 +1896,7 @@ namespace OsEngine.Market.Servers.TInvest
         private DateTime _lastMarketDataTime = DateTime.MinValue;
         private DateTime _lastPortfolioDataTime = DateTime.MinValue;
         private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
-
-        private List<SubscribeOrderBookRequest> _marketDataRequestsOrderBook = new List<SubscribeOrderBookRequest>();
-        private List<SubscribeTradesRequest> _marketDataRequestsTrades = new List<SubscribeTradesRequest>();
-        private List<SubscribeLastPriceRequest> _marketDataRequestsLastPrice = new List<SubscribeLastPriceRequest>();
-
+        
         private string _marketDataStreamLocker = "_marketDataStreamLocker";
 
         public void Subscribe(Security security)
@@ -1934,7 +1910,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 tryCount++;
 
-                if (_streamSubscribedSecurities.Any(s => s.Name == security.Name) ||
+                if (_securityStreamMap.ContainsKey(security.NameId) ||
                     _pollSubscribedSecurities.Any(s => s.Name == security.Name))
                 {
                     return;
@@ -1942,108 +1918,113 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (_useStreamForMarketData)
                 {
-                    _streamSubscribedSecurities.Add(security);
+                    MarketDataStreamWrapper streamWrapper = _marketDataStreams.FirstOrDefault(s => s.Subscriptions.Count < 300);
 
-                    if (_streamSubscribedSecurities.Count >= 150)
+                    if (streamWrapper == null)
                     {
-                        _useStreamForMarketData = false;
-                        SendLogMessage("Switching to polling mode for new market data subscriptions.", LogMessageType.System);
+                        if (_marketDataStreams.Count < 16)
+                        {
+                            streamWrapper = new MarketDataStreamWrapper()
+                            {
+                                Name = "Market data stream " + (_marketDataStreams.Count + 1),
+                                IsConnected = false,
+                                LastMessageTime = DateTime.UtcNow,
+                            };
+                            _marketDataStreams.Add(streamWrapper);
+                            TryReconnectDataStream(streamWrapper);
+                            SendLogMessage("Created market data stream: " + streamWrapper.Name, LogMessageType.System);
+                        }
+                        else
+                        {
+                            _useStreamForMarketData = false;
+                            SendLogMessage("Switching to polling mode for new market data subscriptions.", LogMessageType.System);
+                            _pollSubscribedSecurities.Add(security);
+                            return;
+                        }
+                    }
+
+                    lock (_marketDataStreamLocker)
+                    {
+                        if (security.SecurityType == SecurityType.Index)
+                        {
+                            LastPriceInstrument instrument = new LastPriceInstrument
+                            {
+                                InstrumentId = security.NameId
+                            };
+
+                            SubscribeLastPriceRequest lpRequest = new SubscribeLastPriceRequest
+                            {
+                                SubscriptionAction = SubscriptionAction.Subscribe,
+                                Instruments = { instrument },
+                            };
+                            MarketDataRequest marketDataRequest = new MarketDataRequest();
+                            marketDataRequest.SubscribeLastPriceRequest = lpRequest;
+                            
+                            streamWrapper.Subscriptions.Add(marketDataRequest);
+                            streamWrapper.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait();
+                        }
+                        else
+                        {
+                            TradeInstrument tradeInstrument = new TradeInstrument();
+                            tradeInstrument.InstrumentId = security.NameId;
+
+                            SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest
+                            {
+                                SubscriptionAction = SubscriptionAction.Subscribe,
+                                Instruments = { tradeInstrument },
+                                TradeSource = _filterOutDealerTrades
+                                    ? TradeSourceType.TradeSourceExchange
+                                    : TradeSourceType.TradeSourceAll,
+                                WithOpenInterest = true
+                            };
+                            MarketDataRequest marketDataRequest = new MarketDataRequest();
+                            marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
+                            
+                            streamWrapper.Subscriptions.Add(marketDataRequest);
+                            streamWrapper.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait();
+
+
+                            marketDataRequest = new MarketDataRequest();
+
+                            OrderBookInstrument orderBookInstrument = new OrderBookInstrument();
+                            orderBookInstrument.InstrumentId = security.NameId;
+                            orderBookInstrument.Depth = 10;
+                            orderBookInstrument.OrderBookType =
+                                _filterOutDealerTrades ? OrderBookType.Exchange : OrderBookType.All;
+
+                            SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest
+                                { SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { orderBookInstrument } };
+                            marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
+                            
+                            streamWrapper.Subscriptions.Add(marketDataRequest);
+                            streamWrapper.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait();
+                        }
+                        _securityStreamMap.Add(security.NameId, streamWrapper);
                     }
                 }
                 else
                 {
                     _pollSubscribedSecurities.Add(security);
-                    return; // Nothing more to do for polled securities
-                }
-
-                lock (_marketDataStreamLocker)
-                {
-                    if (_marketDataStream == null)
-                    {
-                        _marketDataStream = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
-                            cancellationToken: _cancellationTokenSource.Token);
-                        SendLogMessage("Created market data stream", LogMessageType.System);
-                    }
-
-                    _rateGateSubscribe.WaitToProceed();
-
-                    MarketDataRequest marketDataRequest = new MarketDataRequest();
-
-                    if (security.SecurityType == SecurityType.Index) // only subscribe to last price info for indices
-                    {
-                        LastPriceInstrument instrument = new LastPriceInstrument
-                        {
-                            InstrumentId = security.NameId
-                        };
-
-                        SubscribeLastPriceRequest lpRequest = new SubscribeLastPriceRequest
-                        {
-                            SubscriptionAction = SubscriptionAction.Subscribe,
-                            Instruments = { instrument },
-                        };
-                        marketDataRequest.SubscribeLastPriceRequest = lpRequest;
-                        _marketDataRequestsLastPrice.Add(lpRequest);
-                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-                    }
-                    else
-                    {
-                        // subscribe to trades and order books for everything else
-                        TradeInstrument tradeInstrument = new TradeInstrument();
-                        tradeInstrument.InstrumentId = security.NameId;
-
-                        SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest
-                        {
-                            SubscriptionAction = SubscriptionAction.Subscribe,
-                            Instruments = { tradeInstrument },
-                            TradeSource = _filterOutDealerTrades
-                                ? TradeSourceType.TradeSourceExchange
-                                : TradeSourceType.TradeSourceAll,
-                            WithOpenInterest = true
-                        };
-                        marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
-                        _marketDataRequestsTrades.Add(subscribeTradesRequest);
-                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-
-
-                        // only one type of marketdata allowed in request so we need to new up request object
-                        marketDataRequest = new MarketDataRequest();
-
-                        // подписываемся на стаканы
-                        OrderBookInstrument orderBookInstrument = new OrderBookInstrument();
-                        orderBookInstrument.InstrumentId = security.NameId;
-                        orderBookInstrument.Depth = 10;
-                        orderBookInstrument.OrderBookType =
-                            _filterOutDealerTrades ? OrderBookType.Exchange : OrderBookType.All;
-
-                        SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest
-                        { SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { orderBookInstrument } };
-                        marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
-                        _marketDataRequestsOrderBook.Add(subscribeOrderBookRequest);
-
-                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-                    }
+                    return; 
                 }
             }
             catch (Exception exception)
             {
-                for(int i = 0;i < _streamSubscribedSecurities.Count;i++)
+                if (_securityStreamMap.ContainsKey(security.NameId))
                 {
+                    var streamWrapper = _securityStreamMap[security.NameId];
+                    var subToRemove = streamWrapper.Subscriptions.Where(s => 
+                        (s.SubscribeTradesRequest != null && s.SubscribeTradesRequest.Instruments.Any(i => i.InstrumentId == security.NameId)) ||
+                        (s.SubscribeOrderBookRequest != null && s.SubscribeOrderBookRequest.Instruments.Any(i => i.InstrumentId == security.NameId)) ||
+                        (s.SubscribeLastPriceRequest != null && s.SubscribeLastPriceRequest.Instruments.Any(i => i.InstrumentId == security.NameId))
+                        ).ToList();
 
-                    if (_streamSubscribedSecurities[i].NameId == security.NameId)
+                    foreach (var sub in subToRemove)
                     {
-                        _streamSubscribedSecurities.RemoveAt(i);
-                        break;
+                        streamWrapper.Subscriptions.Remove(sub);
                     }
-                }
 
-                for (int i = 0; i < _pollSubscribedSecurities.Count; i++)
-                {
-
-                    if (_pollSubscribedSecurities[i].NameId == security.NameId)
-                    {
-                        _pollSubscribedSecurities.RemoveAt(i);
-                        break;
-                    }
+                    _securityStreamMap.Remove(security.NameId);
                 }
 
                 if(tryCount < 3)
@@ -2057,13 +2038,9 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage(
-                             OsLocalization.Market.Label298 + security.Name + " \n" + exception.ToString(), LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        SendLogMessage(OsLocalization.Market.Label292 + " " + security.Name, LogMessageType.Error);
+                        SendLogMessage(exception.ToString(), LogMessageType.Error);
                     }
-
-                    return;
                 }
             }
         }
@@ -2083,225 +2060,165 @@ namespace OsEngine.Market.Servers.TInvest
 
         private async void DataMessageReader()
         {
-            Thread.Sleep(1000);
-
             while (true)
             {
+                if (_marketDataStreams == null || 
+                    _marketDataStreams.Count == 0 ||
+                    _isDisposedNow == true)
+                {
+                    await Task.Delay(1000);
+                    continue;
+                }
+
                 try
                 {
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(100);
-                        continue;
-                    }
-
-                    if (_marketDataStream == null)
-                    {
-                        Thread.Sleep(100);
-                        continue;
-                    }
-
-                    if (await _marketDataStream.ResponseStream.MoveNext() == false)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    if (_marketDataStream == null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    MarketDataResponse marketDataResponse = _marketDataStream.ResponseStream.Current;
-
-                    if (marketDataResponse == null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    _lastMarketDataTime = DateTime.UtcNow;
-
-                    if (marketDataResponse.Ping != null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-                    
-                    if (marketDataResponse.OpenInterest != null)
-                    {
-                        Security security = GetSecurity(marketDataResponse.OpenInterest.InstrumentUid);
-                        if (security == null)
-                            continue;
-
-                        if (_filterOutNonMarketData)
-                        {
-                            if (isTodayATradingDayForSecurity(security) == false)
-                                continue;
-                        }
-
-                        _openInterestData[security.Name] = marketDataResponse.OpenInterest; // save open interest data to cache
-                    }
-
-                    if (marketDataResponse.Trade != null)
-                    {
-                        Security security = GetSecurity(marketDataResponse.Trade.InstrumentUid);
-                        if (security == null)
-                            continue;
-
-                        if (_filterOutNonMarketData)
-                        {
-                            if (isTodayATradingDayForSecurity(security) == false)
-                                continue;
-                        }
-
-                        Trade trade = new Trade();
-                        trade.SecurityNameCode = security.Name;
-                        trade.Price = GetValue(marketDataResponse.Trade.Price);
-                        trade.Time = TimeZoneInfo.ConvertTimeFromUtc(marketDataResponse.Trade.Time.ToDateTime(), _mskTimeZone); // convert to MSK
-                        trade.Id = trade.Time.Ticks.ToString();
-                        trade.Side = marketDataResponse.Trade.Direction == TradeDirection.Buy ? Side.Buy : Side.Sell;
-                        trade.Volume = marketDataResponse.Trade.Quantity;
-
-                        if (_openInterestData.ContainsKey(security.Name))
-                        {
-                            trade.OpenInterest = _openInterestData[security.Name].OpenInterest_;
-                        }
-
-                        if (_ignoreMorningAuctionTrades && trade.Time.Hour < 9) // process only mornings
-                        {
-                            if (security.SecurityType == SecurityType.Futures)
-                            {
-                                if (trade.Time < trade.Time.Date.AddHours(9)) // futures start trading at 9
-                                {
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                if (trade.Time < trade.Time.Date.AddHours(7)) // options start trading at 7
-                                {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        NewTradesEvent?.Invoke(trade);
-                    }
-
-                   
-                    if (marketDataResponse.LastPrice != null)
-                    {
-                        ProcessLastPrice(marketDataResponse.LastPrice);
-                    }
-
-                    if (marketDataResponse.Orderbook != null)
-                    {
-                        Security security = GetSecurity(marketDataResponse.Orderbook.InstrumentUid);
-                        if (security == null)
-                            continue;
-
-                        if (_filterOutNonMarketData)
-                        {
-                            if (isTodayATradingDayForSecurity(security) == false)
-                                continue;
-                        }
-
-                        MarketDepth depth = new MarketDepth();
-                        depth.SecurityNameCode = security.Name;
-                        depth.Time = TimeZoneInfo.ConvertTimeFromUtc(marketDataResponse.Orderbook.Time.ToDateTime(), _mskTimeZone);// convert to MSK
-
-                        if(marketDataResponse.Orderbook.LimitUp != null)
-                        {
-                            security.PriceLimitHigh = GetValue(marketDataResponse.Orderbook.LimitUp);
-                        }
-                        
-                        if(marketDataResponse.Orderbook.LimitDown != null)
-                        {
-                            security.PriceLimitLow = GetValue(marketDataResponse.Orderbook.LimitDown);
-                        }
-   
-                        for (int i = 0; i < marketDataResponse.Orderbook.Bids.Count; i++)
-                        {
-                            MarketDepthLevel newBid = new MarketDepthLevel();
-                            newBid.Price = Convert.ToDouble(GetValue(marketDataResponse.Orderbook.Bids[i].Price));
-                            newBid.Bid = marketDataResponse.Orderbook.Bids[i].Quantity;
-                            depth.Bids.Add(newBid);
-                        }
-
-                        for (int i = 0; i < marketDataResponse.Orderbook.Asks.Count; i++)
-                        {
-                            MarketDepthLevel newAsk = new MarketDepthLevel();
-                            newAsk.Price = Convert.ToDouble(GetValue(marketDataResponse.Orderbook.Asks[i].Price));
-                            newAsk.Ask = marketDataResponse.Orderbook.Asks[i].Quantity;
-                            depth.Asks.Add(newAsk);
-                        }
-
-                        if (_lastMdTime != DateTime.MinValue &&
-                            _lastMdTime >= depth.Time)
-                        {
-                            depth.Time = _lastMdTime.AddMilliseconds(1);
-                        }
-
-                        _lastMdTime = depth.Time;
-
-                        MarketDepthEvent?.Invoke(depth);
-                    }
+                    var tasks = _marketDataStreams.Select(ReadStream).ToList();
+                    await Task.WhenAll(tasks);
                 }
-                catch (RpcException ex)
+                catch (Exception ex)
                 {
-                    if(_isDisposedNow == true)
-                    {
-                        continue;
-                    }
-
-                    if(_isReconnectByPingMarketData)
-                    {
-                        continue;
-                    }
-
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        string message = GetGRPCErrorMessage(ex);
-
-                        if (message.Contains("limit") == false)
-                        {
-                            // пробуем восстановить поток без перезапуска коннектора
-                            
-                            if (TryReconnectDataStream() == true)
-                            {
-                                SendLogMessage(OsLocalization.Market.Label295 + "\nMarket data", LogMessageType.System);
-                                Thread.Sleep(1000);
-                                continue;
-                            }
-                        }
-
-                        // need to reconnect everything
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
-                        {
-                            SendLogMessage(OsLocalization.Market.Label294 + "\nMarket data", LogMessageType.System);
-                            SendMessageOnReconnectInErrorLog();
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                        }
-                        Thread.Sleep(5000);
-                    }
-                    Thread.Sleep(5000);
-                }
-                catch (Exception exception)
-                {
-                    if(exception.ToString().Contains("Cannot access a disposed"))
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
-                    SendLogMessage(exception.ToString(), LogMessageType.System);
-                    Thread.Sleep(5000);
+                    SendLogMessage("TInvest data stream reader error: " + ex.Message, LogMessageType.System);
+                    await Task.Delay(5000); // prevent excessive logging in case of a persistent error
                 }
             }
         }
+
+        private async Task ReadStream(MarketDataStreamWrapper streamWrapper)
+        {
+            if (streamWrapper.StreamClient == null)
+            {
+                return;
+            }
+            try
+            {
+                await foreach (var marketData in streamWrapper.StreamClient.ResponseStream.ReadAllAsync(
+                                   cancellationToken: _cancellationTokenSource.Token))
+                {
+                    _lastMarketDataTime = DateTime.UtcNow;
+                    streamWrapper.LastMessageTime = _lastMarketDataTime;
+                    ProcessMarketDataResponse(marketData);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"TInvest stream {streamWrapper.Name} exception: " + ex.Message, LogMessageType.System);
+                streamWrapper.IsConnected = false;
+            }
+        }
+
+        private void ProcessMarketDataResponse(MarketDataResponse marketData)
+        {
+            try
+            {
+                if (marketData.Trade != null)
+                {
+                    var trade = marketData.Trade;
+                    Security security = GetSecurity(trade.InstrumentUid);
+                    if (security == null)
+                    {
+                        return;
+                    }
+
+                    if (_ignoreMorningAuctionTrades)
+                    {
+                        var tradeTimeMsk = TimeZoneInfo.ConvertTimeFromUtc(trade.Time.ToDateTime(), _mskTimeZone);
+                        if (security.SecurityType == SecurityType.Stock && tradeTimeMsk.Hour < 7)
+                        {
+                            return;
+                        }
+                        if (security.SecurityType == SecurityType.Futures && tradeTimeMsk.Hour < 9)
+                        {
+                            return;
+                        }
+                    }
+
+                    Trade newTrade = new Trade();
+                    newTrade.SecurityNameCode = security.Name;
+                    newTrade.Price = GetValue(trade.Price);
+                    newTrade.Volume = trade.Quantity;
+                    newTrade.Time = TimeZoneInfo.ConvertTimeFromUtc(trade.Time.ToDateTime(), _mskTimeZone);
+                    newTrade.Id = newTrade.Time.Ticks.ToString();
+                    newTrade.Side = trade.Direction == TradeDirection.Buy ? Side.Buy : Side.Sell;
+
+                    if (_openInterestData.TryGetValue(security.Name, out var oi))
+                    {
+                        newTrade.OpenInterest = oi.OpenInterest_;
+                    }
+
+                    NewTradesEvent?.Invoke(newTrade);
+                }
+                else if (marketData.Orderbook != null)
+                {
+                    var orderbook = marketData.Orderbook;
+                    Security security = GetSecurity(orderbook.InstrumentUid);
+                    if (security == null)
+                    {
+                        return;
+                    }
+
+                    MarketDepth depth = new MarketDepth();
+                    depth.SecurityNameCode = security.Name;
+                    depth.Time = TimeZoneInfo.ConvertTimeFromUtc(orderbook.Time.ToDateTime(), _mskTimeZone);
+
+                    depth.Bids = new List<MarketDepthLevel>(orderbook.Bids.Count);
+                    foreach (var bid in orderbook.Bids)
+                    {
+                        depth.Bids.Add(new MarketDepthLevel { Price = (double)GetValue(bid.Price), Bid = (double)bid.Quantity });
+                    }
+
+                    depth.Asks = new List<MarketDepthLevel>(orderbook.Asks.Count);
+                    foreach (var ask in orderbook.Asks)
+                    {
+                        depth.Asks.Add(new MarketDepthLevel { Price = (double)GetValue(ask.Price), Ask = (double)ask.Quantity });
+                    }
+
+                    if (depth.Asks.Count > 0 || depth.Bids.Count > 0)
+                    {
+                        MarketDepthEvent?.Invoke(depth);
+                    }
+                }
+                else if (marketData.LastPrice != null)
+                {
+                    ProcessLastPrice(marketData.LastPrice);
+                }
+                else if (marketData.OpenInterest != null)
+                {
+                    var oi = marketData.OpenInterest;
+                    var security = GetSecurity(oi.InstrumentUid);
+                    if (security != null)
+                    {
+                        _openInterestData[security.Name] = oi;
+                    }
+                }
+                else if (marketData.TradingStatus != null)
+                {
+                    var status = marketData.TradingStatus;
+                    var security = GetSecurity(status.InstrumentUid);
+                    if (security != null)
+                    {
+                        // TODO: Do something with the trading status? For now, just log it.
+                        // SendLogMessage($"Trading status for {security.Name} is {status.TradingStatus_}", LogMessageType.System);
+                    }
+                }
+                else if (marketData.Ping != null)
+                {
+                    // Already handled in ReadStream by updating LastMessageTime
+                }
+                else if (marketData.SubscribeTradesResponse != null ||
+                         marketData.SubscribeOrderBookResponse != null ||
+                         marketData.SubscribeInfoResponse != null ||
+                         marketData.SubscribeLastPriceResponse != null)
+                {
+                    // These are subscription status messages, can be logged if needed for diagnostics.
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error processing market data response: {ex}", LogMessageType.Error);
+            }
+        }
+
+
 
         // Чудо-поток для опроса последних цен инструментов и эмуляции стакана L1.
         // Работает только если количество подписок превышает лимит gRPC-потока
@@ -3150,7 +3067,7 @@ namespace OsEngine.Market.Servers.TInvest
 
             try
             {
-                Security security = _streamSubscribedSecurities.Find((sec) =>
+                Security security = _securities.Where(s => _securityStreamMap.ContainsKey(s.NameId)).FirstOrDefault((sec) =>
                     sec.Name == order.SecurityNameCode);
 
                 if (security == null)
