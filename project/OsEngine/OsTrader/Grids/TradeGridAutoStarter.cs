@@ -158,6 +158,8 @@ namespace OsEngine.OsTrader.Grids
                         message += "Current server time: " + time.ToString();
                         SendNewLogMessage(message, LogMessageType.Signal);
 
+                        StartGridByTimeOfDayIsOn = false;
+
                         return true;
                     }
                 }
