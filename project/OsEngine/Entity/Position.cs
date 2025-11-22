@@ -566,6 +566,52 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// Position closing price in partial close
+        /// </summary>
+        private decimal ClosePriceInPartialClose(decimal curPrice)
+        {
+            if (_closeOrders == null ||
+                _closeOrders.Count == 0)
+            {
+                return 0;
+            }
+
+            decimal price = 0;
+            decimal volume = 0;
+
+            for (int i = 0; i < _closeOrders.Count; i++)
+            {
+                Order order = _closeOrders[i];
+
+                if (order == null)
+                {
+                    continue;
+                }
+
+                decimal volumeEx = order.VolumeExecute;
+                if (volumeEx != 0)
+                {
+                    volume += order.VolumeExecute;
+                    price += order.VolumeExecute * order.PriceReal;
+                }
+            }
+            if (volume == 0)
+            {
+                return 0;
+            }
+
+            decimal openVol = OpenVolume;
+
+            if(openVol != 0)
+            {
+                volume += openVol;
+                price += openVol * curPrice;
+            }
+
+            return price / volume;
+        }
+
+        /// <summary>
         /// Multiplier for position analysis, used for the needs of the platform. IMPORTANT. Don't change the value.
         /// </summary>
         public decimal MultToJournal = 100;
@@ -880,7 +926,8 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if (ClosePrice != 0)
+                if (ClosePrice != 0
+                    && OpenVolume == 0)
                 {
                     return;
                 }
@@ -892,18 +939,51 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if (Direction == Side.Buy &&
-                    bid != 0)
+                if (ClosePrice == 0)
                 {
-                    ProfitOperationPercent = bid / entryPrice * 100 - 100;
-                    ProfitOperationAbs = bid - entryPrice;
+                    if (Direction == Side.Buy &&
+                        bid != 0)
+                    {
+                        ProfitOperationPercent = bid / entryPrice * 100 - 100;
+                        ProfitOperationAbs = bid - entryPrice;
+                    }
+                    else if (Direction == Side.Sell
+                        && ask != 0)
+                    {
+                        ProfitOperationPercent = -(ask / entryPrice * 100 - 100);
+                        ProfitOperationAbs = entryPrice - ask;
+                    }
                 }
-                else if(Direction == Side.Sell
-                    && ask != 0)
+                else
                 {
-                    ProfitOperationPercent = -(ask / entryPrice * 100 - 100);
-                    ProfitOperationAbs = entryPrice - ask;
+                    decimal closePrice = 0;
+
+                    if (Direction == Side.Buy &&
+                       bid != 0)
+                    {
+                        closePrice = ClosePriceInPartialClose(bid);
+                    }
+                    else if (Direction == Side.Sell
+                        && ask != 0)
+                    {
+                        closePrice = ClosePriceInPartialClose(ask);
+                    }
+
+                    if (entryPrice != 0 && closePrice != 0)
+                    {
+                        if (Direction == Side.Buy)
+                        {
+                            ProfitOperationPercent = closePrice / entryPrice * 100 - 100;
+                            ProfitOperationAbs = closePrice - entryPrice;
+                        }
+                        else
+                        {
+                            ProfitOperationAbs = entryPrice - closePrice;
+                            ProfitOperationPercent = -(closePrice / entryPrice * 100 - 100);
+                        }
+                    }
                 }
+
             }
         }
 
