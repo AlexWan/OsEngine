@@ -3251,7 +3251,7 @@ namespace OsEngine.Market.Servers.TInvest
                             "\n" + message +
                             "\n" + order.SecurityNameCode 
                             + ", " + OsLocalization.Market.Message21 + order.Volume
-                            + ", " + OsLocalization.Market.Label303 + " " + order.Price
+                            + ", " + OsLocalization.Market.Label303 + " " + order.Price + " " + order.Side
                             , LogMessageType.Error);
 
                     order.State = OrderStateType.Fail;
