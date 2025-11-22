@@ -158,7 +158,7 @@ namespace OsEngine.Market.Servers.TInvest
         TimeFrameMin5IsOn = true,
         TimeFrameMin10IsOn = true,
         TimeFrameMin15IsOn = true,
-        TimeFrameMin20IsOn = true,
+        TimeFrameMin20IsOn = false,
         TimeFrameMin30IsOn = true,
         TimeFrameMin45IsOn = false,
         TimeFrameHour1IsOn = true,
