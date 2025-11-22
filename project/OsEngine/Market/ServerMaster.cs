@@ -16,7 +16,6 @@ using OsEngine.Market.Servers.AstsBridge;
 using OsEngine.Market.Servers.Binance.Futures;
 using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
-using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.NinjaTrader;
@@ -315,7 +314,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Deribit);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
-                serverTypes.Add(ServerType.BitMex);
                 serverTypes.Add(ServerType.BitfinexSpot);
                 serverTypes.Add(ServerType.BitfinexFutures);
                 serverTypes.Add(ServerType.KuCoinSpot);
@@ -456,7 +454,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BingXFutures);
-                serverTypes.Add(ServerType.BitMex);
                 serverTypes.Add(ServerType.BitfinexSpot);
                 serverTypes.Add(ServerType.BitfinexFutures);
                 serverTypes.Add(ServerType.ExmoSpot);
@@ -761,10 +758,6 @@ namespace OsEngine.Market
                     else if (type == ServerType.NinjaTrader)
                     {
                         newServer = new NinjaTraderServer();
-                    }
-                    else if (type == ServerType.BitMex)
-                    {
-                        newServer = new BitMexServer();
                     }
                     else if (type == ServerType.QuikLua)
                     {
@@ -1586,10 +1579,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new MoexFixFastTwimeFuturesServerPermission();
                 }
-                else if (type == ServerType.BitMex)
-                {
-                    serverPermission = new BitMexServerPermission();
-                }
                 else if (type == ServerType.TraderNet)
                 {
                     serverPermission = new TraderNetServerPermission();
@@ -2187,12 +2176,6 @@ namespace OsEngine.Market
         /// нинзя трейдер
         /// </summary>
         NinjaTrader,
-
-        /// <summary>
-        /// cryptocurrency exchange BitMEX
-        /// биржа криптовалют BitMEX
-        /// </summary>
-        BitMex,
 
         /// <summary>
         /// optimizer

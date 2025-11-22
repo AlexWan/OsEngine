@@ -310,7 +310,7 @@ namespace OsEngine.Entity
         public double Price;
 
         /// <summary>
-        /// Unique price level number, required for working with BitMex
+        /// Unique price level number
         /// </summary>
         public long Id;
     }
