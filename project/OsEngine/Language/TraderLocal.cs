@@ -1916,8 +1916,8 @@ namespace OsEngine.Language
          "Ru:Лимит_");
 
         public string Label504 => OsLocalization.ConvertToLocString(
-         "Eng:Regime_" +
-         "Ru:Режим_");
+         "Eng:Start by price regime_" +
+         "Ru:Режим старт по цене_");
 
         public string Label505 => OsLocalization.ConvertToLocString(
          "Eng:Price_" +
@@ -2434,5 +2434,9 @@ namespace OsEngine.Language
         public string Label633 => OsLocalization.ConvertToLocString(
          "Eng:Non trade periods_" +
          "Ru:Неторговое время_");
+
+        public string Label634 => OsLocalization.ConvertToLocString(
+         "Eng:Start by time_" +
+         "Ru:Старт по времени_");
     }
 }

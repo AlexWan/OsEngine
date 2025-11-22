@@ -293,6 +293,16 @@ namespace OsEngine.OsTrader.Grids
             TextBoxShiftFirstPrice.Text = tradeGrid.AutoStarter.ShiftFirstPrice.ToString();
             TextBoxShiftFirstPrice.TextChanged += TextBoxShiftFirstPrice_TextChanged;
 
+            CheckBoxStartGridByTimeOfDayIsOn.IsChecked = tradeGrid.AutoStarter.StartGridByTimeOfDayIsOn;
+            CheckBoxStartGridByTimeOfDayIsOn.Checked += CheckBoxStartGridByTimeOfDayIsOn_Checked;
+            CheckBoxStartGridByTimeOfDayIsOn.Unchecked += CheckBoxStartGridByTimeOfDayIsOn_Checked;
+            TextBoxStartGridByTimeOfDayHour.Text = tradeGrid.AutoStarter.StartGridByTimeOfDayHour.ToString();
+            TextBoxStartGridByTimeOfDayHour.TextChanged += TextBoxStartGridByTimeOfDayHour_TextChanged;
+            TextBoxStartGridByTimeOfDayMinute.Text = tradeGrid.AutoStarter.StartGridByTimeOfDayMinute.ToString();
+            TextBoxStartGridByTimeOfDayMinute.TextChanged += TextBoxStartGridByTimeOfDayMinute_TextChanged;
+            TextBoxStartGridByTimeOfDaySecond.Text = tradeGrid.AutoStarter.StartGridByTimeOfDaySecond.ToString();
+            TextBoxStartGridByTimeOfDaySecond.TextChanged += TextBoxStartGridByTimeOfDaySecond_TextChanged;
+
             // error reaction
 
             CheckBoxFailOpenOrdersReactionIsOn.IsChecked = tradeGrid.ErrorsReaction.FailOpenOrdersReactionIsOn;
@@ -466,6 +476,10 @@ namespace OsEngine.OsTrader.Grids
             LabelRebuildGridRegime.Content = OsLocalization.Trader.Label535;
             LabelShiftFirstPrice.Content = OsLocalization.Trader.Label536;
 
+            CheckBoxStartGridByTimeOfDayIsOn.Content = OsLocalization.Trader.Label634;
+            LabelStartGridByTimeOfDayHour.Content = OsLocalization.Trader.Label527 + ":";
+            LabelStartGridByTimeOfDayMinute.Content = OsLocalization.Trader.Label528 + ":";
+            LabelStartGridByTimeOfDaySecond.Content = OsLocalization.Trader.Label529 + ":";
             // errors
 
             CheckBoxFailOpenOrdersReactionIsOn.Content = OsLocalization.Trader.Label538; 
@@ -2259,6 +2273,73 @@ namespace OsEngine.OsTrader.Grids
             catch (Exception ex)
             {
                 TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void CheckBoxStartGridByTimeOfDayIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.AutoStarter.StartGridByTimeOfDayIsOn = CheckBoxStartGridByTimeOfDayIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxStartGridByTimeOfDayHour_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStartGridByTimeOfDayHour.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.AutoStarter.StartGridByTimeOfDayHour = Convert.ToInt32(TextBoxStartGridByTimeOfDayHour.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxStartGridByTimeOfDayMinute_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStartGridByTimeOfDayMinute.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.AutoStarter.StartGridByTimeOfDayMinute = Convert.ToInt32(TextBoxStartGridByTimeOfDayMinute.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxStartGridByTimeOfDaySecond_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStartGridByTimeOfDaySecond.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.AutoStarter.StartGridByTimeOfDaySecond = Convert.ToInt32(TextBoxStartGridByTimeOfDaySecond.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
             }
         }
 
