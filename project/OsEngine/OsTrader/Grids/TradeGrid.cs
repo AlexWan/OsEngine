@@ -118,6 +118,8 @@ namespace OsEngine.OsTrader.Grids
             result += DelayInReal + "@";
             result += CheckMicroVolumes + "@";
             result += MaxDistanceToOrdersPercent + "@";
+            result += OpenOrdersMakerOnly + "@";
+            result += "@";
             result += "@";
 
             result += "%";
@@ -197,6 +199,15 @@ namespace OsEngine.OsTrader.Grids
                 catch
                 {
                     MaxDistanceToOrdersPercent = 1.5m;
+                }
+
+                try
+                {
+                    OpenOrdersMakerOnly = Convert.ToBoolean(values[14]);
+                }
+                catch
+                {
+                    OpenOrdersMakerOnly = true;
                 }
 
                 // non trade periods
@@ -458,6 +469,8 @@ namespace OsEngine.OsTrader.Grids
         public bool CheckMicroVolumes = true;
 
         public decimal MaxDistanceToOrdersPercent = 0;
+
+        public bool OpenOrdersMakerOnly = true;
 
         #endregion
 
@@ -2314,10 +2327,13 @@ namespace OsEngine.OsTrader.Grids
                         }
                     }
 
-                    if (curLine.PriceEnter <= lastPrice)
+                    if (OpenOrdersMakerOnly
+                        && curLine.PriceEnter > lastPrice)
                     {
-                        linesWithOrdersToOpenNeed.Add(curLine);
+                        continue;
                     }
+
+                    linesWithOrdersToOpenNeed.Add(curLine);
 
                     if (linesWithOrdersToOpenNeed.Count >= MaxOpenOrdersInMarket)
                     {
@@ -2360,11 +2376,14 @@ namespace OsEngine.OsTrader.Grids
                         }
                     }
 
-                    if (curLine.PriceEnter >= lastPrice)
+                    if (OpenOrdersMakerOnly 
+                        && curLine.PriceEnter < lastPrice)
                     {
-                        linesWithOrdersToOpenNeed.Add(curLine);
+                        continue;
                     }
 
+                    linesWithOrdersToOpenNeed.Add(curLine);
+                    
                     if (linesWithOrdersToOpenNeed.Count >= MaxOpenOrdersInMarket)
                     {
                         break;

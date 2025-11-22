@@ -2432,11 +2432,15 @@ namespace OsEngine.Language
         "Ru:Установить периоды_");
 
         public string Label633 => OsLocalization.ConvertToLocString(
-         "Eng:Non trade periods_" +
-         "Ru:Неторговое время_");
+         "Eng:Other_" +
+         "Ru:Дополнительные_");
 
         public string Label634 => OsLocalization.ConvertToLocString(
          "Eng:Start by time_" +
          "Ru:Старт по времени_");
+
+        public string Label635 => OsLocalization.ConvertToLocString(
+         "Eng:Open orders maker only_" +
+         "Ru:Открытие только мэйкер_");
     }
 }

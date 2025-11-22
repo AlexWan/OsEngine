@@ -177,11 +177,14 @@
             </TabItem>
         </TabControl>
         <TabControl Name="TabControlSecond" Grid.Column="1">
-            <TabItem Name="TabItemNonTradePeriods" Header="Non-trade periods">
+            <TabItem Name="TabItemNonTradePeriods" Header="Other settings">
                 <Grid >
                     <Label Name="LabelNoTradePeriod1Regime" Content="Regime" HorizontalAlignment="Left" Margin="14,10,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxNonTradePeriod1Regime" Margin="211,10,10,0" VerticalAlignment="Top"/>
-                    <Button Name="ButtonSetNonTradePeriods" Content="Set periods" Margin="211,38,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods_Click"/>
+                    <ComboBox Name="ComboBoxNonTradePeriod1Regime" Margin="202,10,10,0" VerticalAlignment="Top"/>
+                    <Button Name="ButtonSetNonTradePeriods" Content="Set periods" Margin="203,38,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods_Click"/>
+                   
+                    <ComboBox Name="ComboBoxOpenOrdersMakerOnly" Margin="202,95,10,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelOpenOrdersMakerOnly" Content="Open orders maker only" HorizontalAlignment="Left" Margin="14,95,0,0" VerticalAlignment="Top"/>
 
                 </Grid>
             </TabItem>

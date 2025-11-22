@@ -109,7 +109,7 @@ namespace OsEngine.OsTrader.Grids
             TextBoxMaxDistanceToOrdersPercent.Text = tradeGrid.MaxDistanceToOrdersPercent.ToString();
             TextBoxMaxDistanceToOrdersPercent.TextChanged += TextBoxMaxDistanceToOrdersPercent_TextChanged;
 
-            // non trade periods
+            // other settings
 
             ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.Off.ToString());
             ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
@@ -117,6 +117,12 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxNonTradePeriod1Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod1Regime.ToString();
             ComboBoxNonTradePeriod1Regime.SelectionChanged += ComboBoxNonTradePeriod1Regime_SelectionChanged;
+
+            ComboBoxOpenOrdersMakerOnly.Items.Add(true.ToString());
+            ComboBoxOpenOrdersMakerOnly.Items.Add(false.ToString());
+            ComboBoxOpenOrdersMakerOnly.SelectedItem = tradeGrid.OpenOrdersMakerOnly.ToString();
+            ComboBoxOpenOrdersMakerOnly.SelectionChanged += ComboBoxOpenOrdersMakerOnly_SelectionChanged;
+
 
             // stop grid by event
 
@@ -420,6 +426,7 @@ namespace OsEngine.OsTrader.Grids
             // trade days 
             LabelNoTradePeriod1Regime.Content = OsLocalization.Trader.Label506;
             ButtonSetNonTradePeriods.Content = OsLocalization.Trader.Label632;
+            LabelOpenOrdersMakerOnly.Content = OsLocalization.Trader.Label635;
 
             // stop grid by event
             CheckBoxStopGridByMoveUpIsOn.Content = OsLocalization.Trader.Label481;
@@ -2357,6 +2364,19 @@ namespace OsEngine.OsTrader.Grids
             try
             {
                 Enum.TryParse(ComboBoxNonTradePeriod1Regime.SelectedItem.ToString(), out TradeGrid.NonTradePeriods.NonTradePeriod1Regime);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxOpenOrdersMakerOnly_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.OpenOrdersMakerOnly = Convert.ToBoolean(ComboBoxOpenOrdersMakerOnly.SelectedItem.ToString());
                 TradeGrid.Save();
             }
             catch (Exception ex)
