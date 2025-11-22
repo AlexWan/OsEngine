@@ -684,12 +684,10 @@ namespace OsEngine.Market.Servers.Tester
 
                     if (!_dataIsReady)
                     {
-
                         SendLogMessage(OsLocalization.Market.Message48, LogMessageType.System);
                         TesterRegime = TesterRegime.NotActive;
                         continue;
                     }
-
 
                     if (TesterRegime == TesterRegime.PlusOne)
                     {
@@ -700,9 +698,8 @@ namespace OsEngine.Market.Servers.Tester
                         CheckOrders();
                         continue;
                     }
-                    if (TesterRegime == TesterRegime.Play)
+                    else if (TesterRegime == TesterRegime.Play)
                     {
-
                         LoadNextData();
                         CheckOrders();
                     }
@@ -946,7 +943,12 @@ namespace OsEngine.Market.Servers.Tester
                 }
                 else if (security.DataType == SecurityTesterDataType.MarketDepth)
                 {
-                    // HERE!!!!!!!!!!!! / ЗДЕСЬ!!!!!!!!!!!!!!!!!!!!
+                    if (order.MySecurityInTester.LastMarketDepth.Time.Day != ServerTime.Day)
+                    {
+                        security = GetMySecurity(order);
+                        order.MySecurityInTester = security;
+                    }
+
                     MarketDepth depth = security.LastMarketDepth;
 
                     if (CheckOrdersInMarketDepthTest(order, depth))
@@ -1399,6 +1401,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return false;
             }
+
             decimal sellBestPrice = lastMarketDepth.Asks[0].Price.ToDecimal();
             decimal buyBestPrice = lastMarketDepth.Bids[0].Price.ToDecimal();
 
@@ -1777,6 +1780,22 @@ namespace OsEngine.Market.Servers.Tester
                                  (tester.LastCandle != null
                                  || tester.LastTradeSeries != null
                                  || tester.LastMarketDepth != null));
+                }
+            }
+            else if (TypeTesterData == TesterDataType.MarketDepthAllCandleState || TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
+            {
+                for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
+                {
+                    SecurityTester testerSecurity = _candleSeriesTesterActivate[i];
+
+                    if (testerSecurity.Security.Name == order.SecurityNameCode && ServerTime.Day == testerSecurity.TimeStart.Day &&
+                             (testerSecurity.LastCandle != null
+                             || testerSecurity.LastTradeSeries != null
+                             || testerSecurity.LastMarketDepth != null))
+                    {
+                        security = testerSecurity;
+                        break;
+                    }
                 }
             }
             else
