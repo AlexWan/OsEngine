@@ -316,7 +316,7 @@ namespace OsEngine.OsData
             return Math.Round(result, 2);
         }
 
-        LqdtDataFakeServer _lqdtDataServer;
+        private LqdtDataFakeServer _lqdtDataServer;
 
         public void AddLqdtMoex()
         {
