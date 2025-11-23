@@ -102,4 +102,31 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         public string fee { get; set; }
         public string fee_ccy { get; set; }
     }
+
+    public class ResponseWSState
+    {
+        public List<StateWSData> state_list { get; set; }
+    }
+    public class StateWSData
+    {
+        public string market { get; set; }
+        public string last { get; set; }
+        public string open { get; set; }
+        public string close { get; set; }
+        public string high { get; set; }
+        public string low { get; set; }
+        public string volume { get; set; }
+        public string value { get; set; }
+        public string volume_sell { get; set; }
+        public string volume_buy { get; set; }
+        public string open_interest_size { get; set; }
+        public string insurance_fund_size { get; set; }
+        public string mark_price { get; set; }
+        public string index_price { get; set; }
+        public string latest_funding_rate { get; set; }
+        public string next_funding_rate { get; set; }
+        public string latest_funding_time { get; set; }
+        public string next_funding_time { get; set; }
+        public string period { get; set; }
+    }
 }

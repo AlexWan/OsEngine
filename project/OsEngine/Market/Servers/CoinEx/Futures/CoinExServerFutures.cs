@@ -34,10 +34,12 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Market depth", "20", new List<string> { "5", "10", "20", "50" });
+            CreateParameterBoolean("Extended Data", false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
             ServerParameters[2].Comment = OsLocalization.Market.ServerParam13;
+            ServerParameters[3].Comment = OsLocalization.Market.Label270;
         }
     }
 
@@ -67,20 +69,29 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         public void Connect(WebProxy proxy = null)
         {
+
+            _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
+            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            _marketDepth = Int16.Parse(((ServerParameterEnum)ServerParameters[2]).Value);
+
+            if (string.IsNullOrEmpty(_publicKey)
+                || string.IsNullOrEmpty(_secretKey))
+            {
+                SendLogMessage("Connection terminated. You must specify the public and private keys. You can get it on the CoinEx website.",
+                    LogMessageType.Error);
+                return;
+            }
+
+            if (((ServerParameterBool)ServerParameters[3]).Value == true)
+            {
+                _extendedMarketData = true;
+            }
+            else
+            {
+                _extendedMarketData = false;
+            }
             try
             {
-                _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
-                _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-                _marketDepth = Int16.Parse(((ServerParameterEnum)ServerParameters[2]).Value);
-
-                if (string.IsNullOrEmpty(_publicKey)
-                    || string.IsNullOrEmpty(_secretKey))
-                {
-                    SendLogMessage("Connection terminated. You must specify the public and private keys. You can get it on the CoinEx website.",
-                        LogMessageType.Error);
-                    return;
-                }
-
                 RestRequest requestRest = new RestRequest("/time", Method.GET);
                 IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
 
@@ -117,6 +128,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
 
             _subscribedSecurities.Clear();
+            FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -158,6 +171,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
         private string _baseUrl = "https://api.coinex.com/v2";
 
         private int _marketDepth;
+
+        private bool _extendedMarketData;
 
         #endregion
 
@@ -1277,11 +1292,12 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     webSocketPublic.SendAsync($"{{\"method\":\"deals.subscribe\",\"params\":{{\"market_list\":[\"{security.Name}\"]}},\"id\":2}}");
                     webSocketPublic.SendAsync($"{{\"method\":\"depth.subscribe\",\"params\":{{\"market_list\":[[\"{security.Name}\",{_marketDepth},\"0\",true]]}},\"id\":3}}");
 
-                    //if (_extendedMarketData)
-                    //{
-                    //    webSocketPublic.SendAsync($" {{ \"action\":\"subscribe\", \"args\":[\"futures/fundingRate:{security.Name}\"]}}");
-                    //    GetFundingHistory(security.Name);
-                    //}
+                    if (_extendedMarketData)
+                    {
+                        webSocketPublic.SendAsync($"{{\"method\":\"state.subscribe\",\"params\":{{\"market_list\":[\"{security.Name}\"]}},\"id\":9}}");
+                        GetFundingData(security.Name);
+                        GetFundingHistory(security.Name);
+                    }
                 }
             }
             catch (Exception exeption)
@@ -1302,6 +1318,85 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             catch (Exception exception)
             {
                 SendLogMessage(exception.Message, LogMessageType.Error);
+            }
+        }
+
+        private void GetFundingData(string security)
+        {
+            try
+            {
+                string path = $"/futures/funding-rate";
+                string requestStr = $"{path}?market={security}";
+
+                IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<FundingRateRestResponse>> fundingResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<FundingRateRestResponse>>());
+
+                    if (fundingResponse.code == "0")
+                    {
+                        for (int i = 0; i < fundingResponse.data.Count; i++)
+                        {
+                            Funding funding = new Funding();
+
+                            funding.MinFundingRate = fundingResponse.data[i].min_funding_rate.ToDecimal();
+                            funding.MaxFundingRate = fundingResponse.data[i].max_funding_rate.ToDecimal();
+
+                            FundingUpdateEvent?.Invoke(funding);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Funding error: {fundingResponse.code} || msg: {fundingResponse.message}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Funding error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void GetFundingHistory(string security)
+        {
+            try
+            {
+                string path = $"/futures/funding-rate-history";
+                string requestStr = $"{path}?market={security}&limit=5";
+
+                IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<FundingDataHistory>> fundingResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<FundingDataHistory>>());
+
+                    if (fundingResponse.code == "0")
+                    {
+                        Funding funding = new Funding();
+
+                        funding.PreviousValue = fundingResponse.data[0].actual_funding_rate.ToDecimal();
+                        funding.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)fundingResponse.data[0].funding_time.ToDecimal());
+
+                        FundingUpdateEvent?.Invoke(funding);
+                    }
+                    else
+                    {
+                        SendLogMessage($"FundingHistory error: {fundingResponse.code} || msg: {fundingResponse.message}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"FundingHistory error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1329,10 +1424,10 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                                         webSocketPublic.SendAsync($"{{\"method\":\"deals.unsubscribe\",\"params\":{{\"market_list\":[\"{securityName}\"]}},\"id\":4}}");
                                         webSocketPublic.SendAsync($"{{\"method\":\"depth.unsubscribe\",\"params\":{{\"market_list\":[[\"{securityName}\",{_marketDepth},\"0\",true]]}},\"id\":5}}");
 
-                                        //if (_extendedMarketData)
-                                        //{
-                                        //    webSocketPublic.SendAsync($" {{ \"action\":\"unsubscribe\", \"args\":[\"futures/fundingRate:{securityName}\"]}}");
-                                        //}
+                                        if (_extendedMarketData)
+                                        {
+                                            webSocketPublic.SendAsync($"{{\"method\":\"state.unsubscribe\",\"params\":{{\"market_list\":[\"{securityName}\"]}},\"id\":9}}");
+                                        }
                                     }
                                 }
                             }
@@ -1431,6 +1526,10 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     {
                         UpdateTrade(baseMessage.data.ToString());
                     }
+                    else if (baseMessage.method == "state.update")
+                    {
+                        UpdateState(baseMessage.data.ToString());
+                    }
                     else
                     {
                         SendLogMessage("Unknown message method: " + baseMessage.message, LogMessageType.Error);
@@ -1528,7 +1627,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     return;
                 }
 
-                for (int i = responseTrade.deal_list.Count - 1; i >= 0; i--)
+                for (int i = 0; i < responseTrade.deal_list.Count; i++)
                 {
                     DealData cexTrade = responseTrade.deal_list[i];
 
@@ -1545,6 +1644,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                         continue;
                     }
 
+                    if (_extendedMarketData)
+                    {
+                        trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
+                    }
+
                     if (NewTradesEvent != null)
                     {
                         NewTradesEvent(trade);
@@ -1555,6 +1659,27 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             {
                 SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
+
+        private decimal GetOpenInterestValue(string securityNameCode)
+        {
+            if (_openInterest.Count == 0
+                 || _openInterest == null)
+            {
+                return 0;
+            }
+
+            for (int i = 0; i < _openInterest.Count; i++)
+            {
+                if (_openInterest[i].SecurityName == securityNameCode)
+                {
+                    return _openInterest[i].OpenInterestValue.ToDecimal();
+                }
+            }
+
+            return 0;
         }
 
         private void UpdateMarketDepth(string data)
@@ -1619,6 +1744,74 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
         }
 
         private DateTime _lastMdTime = DateTime.MinValue;
+
+        private void UpdateState(string data)
+        {
+            try
+            {
+                ResponseWSState responseState = JsonConvert.DeserializeObject<ResponseWSState>(data);
+
+                if (responseState.state_list == null
+                    || responseState.state_list.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < responseState.state_list.Count; i++)
+                {
+                    StateWSData item = responseState.state_list[i];
+
+                    OpenInterestData openInterest = new OpenInterestData();
+
+                    openInterest.SecurityName = item.market;
+
+                    if (item.open_interest_size != null)
+                    {
+                        openInterest.OpenInterestValue = item.open_interest_size;
+
+                        bool isInArray = false;
+
+                        for (int j = 0; j < _openInterest.Count; j++)
+                        {
+                            if (_openInterest[j].SecurityName == openInterest.SecurityName)
+                            {
+                                _openInterest[j].OpenInterestValue = openInterest.OpenInterestValue;
+                                isInArray = true;
+                                break;
+                            }
+                        }
+
+                        if (isInArray == false)
+                        {
+                            _openInterest.Add(openInterest);
+                        }
+                    }
+
+                    Funding funding = new Funding();
+
+                    funding.SecurityNameCode = item.market;
+                    funding.CurrentValue = item.latest_funding_rate.ToDecimal() * 100;
+                    funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.latest_funding_time.ToDecimal());
+                    funding.TimeUpdate = DateTime.UtcNow;
+                    TimeSpan timePeriod = TimeManager.GetDateTimeFromTimeStamp((long)item.next_funding_time.ToDecimal()) - TimeManager.GetDateTimeFromTimeStamp((long)item.latest_funding_time.ToDecimal());
+                    funding.FundingIntervalHours = int.Parse(timePeriod.Hours.ToString());
+
+                    FundingUpdateEvent?.Invoke(funding);
+
+                    SecurityVolumes volume = new SecurityVolumes();
+
+                    volume.SecurityNameCode = item.market;
+                    volume.Volume24h = item.volume.ToDecimal();
+                    volume.Volume24hUSDT = item.value.ToDecimal();
+
+                    Volume24hUpdateEvent?.Invoke(volume);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
 
         private void UpdateMyOrder(string data)
         {
@@ -1827,9 +2020,9 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
-        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
+        public event Action<Funding> FundingUpdateEvent;
 
-        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 
@@ -2178,6 +2371,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseRestMessage<List<OrderRestResponse>> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<OrderRestResponse>>());
+
                     if (orderResponse.code == "0")
                     {
                         List<Order> orders = new List<Order>();
@@ -2434,6 +2628,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+    }
 
+    public class OpenInterestData
+    {
+        public string SecurityName { get; set; }
+        public string OpenInterestValue { get; set; }
     }
 }
