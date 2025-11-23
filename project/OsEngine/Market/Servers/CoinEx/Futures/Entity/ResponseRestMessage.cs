@@ -129,4 +129,24 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         public string fee_ccy { get; set; }
         public string realized_pnl { get; set; }
     }
+
+    public class FundingRateRestResponse
+    {
+        public string market { get; set; }
+        public string mark_price { get; set; }
+        public string latest_funding_rate { get; set; }
+        public string next_funding_rate { get; set; }
+        public string max_funding_rate { get; set; }
+        public string min_funding_rate { get; set; }
+        public string latest_funding_time { get; set; }
+        public string next_funding_time { get; set; }
+    }
+
+    public class FundingDataHistory
+    {
+        public string market { get; set; }
+        public string funding_time { get; set; }
+        public string theoretical_funding_rate { get; set; }
+        public string actual_funding_rate { get; set; }
+    }
 }
