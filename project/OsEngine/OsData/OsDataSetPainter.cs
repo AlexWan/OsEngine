@@ -82,9 +82,10 @@ namespace OsEngine.OsData
 
         #region Object service part
 
-        public OsDataSetPainter(OsDataSet set)
+        public OsDataSetPainter(OsDataMasterPainter master)
         {
-            _set = set;
+            _set = master.Master.SelectedSet;
+            _masterPainter = master;
 
             DateTime centuryBegin = new DateTime(2021, 4, 29);
             DateTime currentDate = DateTime.Now;
@@ -104,6 +105,8 @@ namespace OsEngine.OsData
         }
 
         private OsDataSet _set;
+
+        private OsDataMasterPainter _masterPainter;
 
         #endregion
 
@@ -351,8 +354,64 @@ namespace OsEngine.OsData
 
                 _previousActiveRow = rowIndex;
 
-                if (columnIndex == 10)
-                { // chart or раскрыть/скрыть бумаги внутри
+                bool isRowWithManageButtons = ((_dataGrid.Rows[rowIndex].Cells[1].Value == null || _dataGrid.Rows[rowIndex].Cells[1].Value.ToString() == "")
+                                             && (_dataGrid.Rows[rowIndex].Cells[4].Value == null || _dataGrid.Rows[rowIndex].Cells[4].Value.ToString() == "")
+                                             && _dataGrid.SelectedCells[0] is DataGridViewButtonCell);
+
+                if (columnIndex == 6)
+                { // get set settings window
+
+                    if (isRowWithManageButtons)
+                    {
+
+                    }
+                }
+                else if (columnIndex == 7)
+                { // delete
+
+                    if (isRowWithManageButtons)
+                    {
+
+                    }
+                }
+                else if (columnIndex == 8)
+                { // cut
+                    if (isRowWithManageButtons)
+                    {
+
+                    }
+                }
+                else if (columnIndex == 9)
+                { // copying
+                    if (isRowWithManageButtons)
+                    {
+                        // временно кнопка настройки
+                        try
+                        {
+                            int rowGridSetsIndex = _masterPainter.GridSets.CurrentCell.RowIndex;
+
+                            OsDataSetUi ui = new OsDataSetUi(_set);
+                            ui.ShowDialog();
+
+                            if (ui.IsSaved)
+                            {
+                                _set.Save();
+                                RePaintInterface();
+                            }
+
+                            _masterPainter.RefreshActiveSet();
+                            _masterPainter.RePaintSetGrid();
+                            _masterPainter.GridSets.Rows[rowGridSetsIndex].Selected = true;
+                        }
+                        catch (Exception error)
+                        {
+                            SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                        }
+
+                    }
+                }
+                else if (columnIndex == 10)
+                { // chart or раскрыть/скрыть бумаги внутри, update set
 
                     _dataGrid.Rows[rowIndex].Cells[0].Selected = true;
 
@@ -369,7 +428,40 @@ namespace OsEngine.OsData
                         isClickOnShowHideSecs = true;
                     }
 
-                    if (isClickOnShowHideSecs)
+                    if (isRowWithManageButtons)
+                    { // update set
+
+                        // временно кнопка удалить
+                        try
+                        {
+                            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label9);
+                            ui.ShowDialog();
+
+                            if (ui.UserAcceptAction == false)
+                            {
+                                return;
+                            }
+
+                            _set.Delete();
+                            _set.BaseSettings.Regime = DataSetState.Off;
+
+                            if (_set != null)
+                            {
+                                _masterPainter.StopPaintActiveSet();
+                                _masterPainter.Master.SelectedSet = null;
+                            }
+
+                            _masterPainter.Master.Sets.Remove(_set);
+                            _masterPainter.RePaintSetGrid();
+
+                            RePaintInterface();
+                        }
+                        catch (Exception error)
+                        {
+                            SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                        }
+                    }
+                    else if (isClickOnShowHideSecs)
                     { // скрыть/раскрыть бумаги
                         int realNum = 0;
 
@@ -439,7 +531,7 @@ namespace OsEngine.OsData
                         {
                             candles = loader.GetExtCandlesFromTrades();
                         }
-                        else if (loader.TimeFrame == TimeFrame.Tick) 
+                        else if (loader.TimeFrame == TimeFrame.Tick)
                         {
                             return;
                         }
@@ -460,11 +552,16 @@ namespace OsEngine.OsData
                     }
                 }
                 else if (columnIndex == 11)
-                { // delete or detail
+                { // delete or detail / LQDT
 
                     _dataGrid.Rows[rowIndex].Cells[0].Selected = true;
 
-                    if (_dataGrid.Rows[rowIndex].Cells[0].Value == null
+                    if (isRowWithManageButtons) // add LQDT
+                    {
+                        LqdtDataUi ui = new LqdtDataUi(_set, this);
+                        ui.Show();
+                    }
+                    else if (_dataGrid.Rows[rowIndex].Cells[0].Value == null
                        || _dataGrid.Rows[rowIndex].Cells[0].Value.ToString() == "")
                     {
                         // detail
@@ -520,45 +617,47 @@ namespace OsEngine.OsData
 
                         return;
                     }
-
-                    int realNum = 0;
-
-                    try
+                    else
                     {
-                        realNum = Convert.ToInt32(_dataGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                        int realNum = 0;
+
+                        try
+                        {
+                            realNum = Convert.ToInt32(_dataGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                        }
+                        catch
+                        {
+                            return;
+                        }
+
+                        string secName = "";
+
+                        try
+                        {
+                            secName = _dataGrid.Rows[rowIndex].Cells[1].Value.ToString();
+                        }
+                        catch
+                        {
+                            return;
+                        }
+
+                        AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label42 + "  " + secName);
+                        ui.ShowDialog();
+
+                        if (ui.UserAcceptAction == false)
+                        {
+                            return;
+                        }
+
+                        _set.DeleteSecurity(realNum - 1);
+
+                        RePaintInterface();
                     }
-                    catch
-                    {
-                        return;
-                    }
-
-                    string secName = "";
-
-                    try
-                    {
-                        secName = _dataGrid.Rows[rowIndex].Cells[1].Value.ToString();
-                    }
-                    catch
-                    {
-                        return;
-                    }
-
-                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label42 + "  " + secName);
-                    ui.ShowDialog();
-
-                    if (ui.UserAcceptAction == false)
-                    {
-                        return;
-                    }
-
-                    _set.DeleteSecurity(realNum - 1);
-
-                    RePaintInterface();
                 }
             }
             catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -627,6 +726,8 @@ namespace OsEngine.OsData
                     }
                 }
 
+                _dataGrid.Rows.AddRange(GetRowWithManageButtons());
+
                 if (lastShowRow != -1 &&
                     lastShowRow < _dataGrid.Rows.Count)
                 {
@@ -663,12 +764,12 @@ namespace OsEngine.OsData
                     }
                 }
 
-                if (_dataGrid.Rows.Count != allRows.Count)
+                if (_dataGrid.Rows.Count - 2 != allRows.Count)
                 {
                     return;
                 }
 
-                for (int i = 0; i < _dataGrid.Rows.Count; i++)
+                for (int i = 0; i < allRows.Count; i++)
                 {
                     DataGridViewRow rowInGrid = _dataGrid.Rows[i];
                     DataGridViewRow rowInNewArray = allRows[i];
@@ -679,6 +780,49 @@ namespace OsEngine.OsData
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private DataGridViewRow[] GetRowWithManageButtons()
+        {
+            DataGridViewRow[] rows = [new DataGridViewRow(), new DataGridViewRow()];
+
+            for (int i = 0; i < 12; i++)
+            {
+                rows[0].Cells.Add(new DataGridViewTextBoxCell() { Value = "" });
+            }
+
+            for (int i = 0; i <= 8; i++)
+            {
+                rows[1].Cells.Add(new DataGridViewTextBoxCell() { Value = "" });
+            }
+
+            for (int i = 9; i <= 11; i++)
+            {
+                DataGridViewButtonCell buttonCell = new DataGridViewButtonCell();
+
+                switch (i)
+                {
+                    case 9:
+                        buttonCell.Value = OsLocalization.Data.Label61; break; //Настройки
+                    case 10:
+                        buttonCell.Value = OsLocalization.Data.Label8; break; // удалить
+                    //case 8:
+                    //    buttonCell.Value = "Обрезать"; break;
+                    //case 9:
+                    //    buttonCell.Value = "Дублировать"; break;
+                    //case 10:
+                    //    buttonCell.Value = "Обновление"; break;
+                    case 11:
+                        buttonCell.Value = "+LQDT"; break;
+                }
+
+                buttonCell.Style.ForeColor = System.Drawing.Color.FromArgb(250, 250, 250);
+                buttonCell.Style.BackColor = System.Drawing.Color.FromArgb(17, 18, 23);
+
+                rows[1].Cells.Add(buttonCell);
+            }
+
+            return rows;
         }
 
         private void CompareCellsInRow(DataGridViewRow rowInGrid, DataGridViewRow rowInNewArray)

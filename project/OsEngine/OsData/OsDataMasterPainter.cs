@@ -26,6 +26,16 @@ namespace OsEngine.OsData
 
         private OsDataMaster _master;
 
+        public OsDataMaster Master
+        {
+            get { return _master; }
+        }
+
+        public DataGridView GridSets
+        {
+            get { return _gridSets; }
+        }
+
         public OsDataMasterPainter(OsDataMaster master,
             WindowsFormsHost hostSetGrid, 
             WindowsFormsHost hostLog,
@@ -277,7 +287,7 @@ namespace OsEngine.OsData
 
                 if (curPainter == null)
                 {
-                    curPainter = new OsDataSetPainter(_master.SelectedSet);
+                    curPainter = new OsDataSetPainter(this);
                     curPainter.NewLogMessageEvent += SendNewLogMessage;
                     _painters.Add(curPainter);
                 }
@@ -318,7 +328,7 @@ namespace OsEngine.OsData
 
                 if (curPainter == null)
                 {
-                    curPainter = new OsDataSetPainter(_master.SelectedSet);
+                    curPainter = new OsDataSetPainter(this);
                     curPainter.NewLogMessageEvent += SendNewLogMessage;
                     _painters.Add(curPainter);
                 }
@@ -591,7 +601,7 @@ namespace OsEngine.OsData
             _hostSets.Child = _gridSets;
         }
 
-        private void RePaintSetGrid()
+        public void RePaintSetGrid()
         {
             try
             {

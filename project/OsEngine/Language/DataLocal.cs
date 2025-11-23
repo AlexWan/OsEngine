@@ -256,5 +256,21 @@ namespace OsEngine.Language
            "Eng:Data has been downloaded and saved to the hard drive_" +
            "Ru:Данные загружены и сохранены на жёсткий диск_");
 
+        public string TitleAddLqdt => OsLocalization.ConvertToLocString(
+           "Eng:Add LQDT_" +
+           "Ru:Добавить LQDT_");
+
+        public string Label60 => OsLocalization.ConvertToLocString(
+           "Eng:Exchange_" +
+           "Ru:Биржа_");
+
+        public string ButtonCreate => OsLocalization.ConvertToLocString(
+           "Eng:Create_" +
+           "Ru:Создать_");
+
+        public string Label61 => OsLocalization.ConvertToLocString(
+          "Eng:Settings_" +
+          "Ru:Настройки_");
+
     }
 }
