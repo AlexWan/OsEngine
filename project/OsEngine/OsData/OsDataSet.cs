@@ -316,6 +316,77 @@ namespace OsEngine.OsData
             return Math.Round(result, 2);
         }
 
+        LqdtDataFakeServer _lqdtDataServer;
+
+        public void AddLqdtMoex()
+        {
+            _lqdtDataServer = null;
+
+            CreateLqdtServer("MOEX");
+
+            if (_lqdtDataServer.IsRatesDownloaded == false)
+            {
+                _lqdtDataServer = null;
+                return;
+            }
+
+            SecurityToLoad record = new SecurityToLoad();
+            record.SecName = "LQDTMOEX";
+            record.SecId = "LQDTMOEX";
+            record.SecClass = "LQDT";
+            record.SecExchange = "MOEX";
+            record.SecNameFull = "LQDTMOEX";
+            record.SetName = SetName;
+            record.NewLogMessageEvent += SendNewLogMessage;
+
+            record.CopySettingsFromParam(BaseSettings);
+
+            if (SecuritiesLoad != null && SecuritiesLoad.Find(s => s.SecId == record.SecId) == null)
+            {
+                SecuritiesLoad.Add(record);
+            }
+
+            Save();
+        }
+
+        public void AddLqdtNyse()
+        {
+            _lqdtDataServer = null;
+
+            CreateLqdtServer("NYSE");
+
+            if (_lqdtDataServer.IsRatesDownloaded == false)
+            {
+                _lqdtDataServer = null;
+                return;
+            }
+
+            SecurityToLoad record = new SecurityToLoad();
+            record.SecName = "LQDTNYSE";
+            record.SecId = "LQDTNYSE";
+            record.SecClass = "LQDT";
+            record.SecExchange = "NYSE";
+            record.SecNameFull = "LQDTNYSE";
+            record.SetName = SetName;
+            record.NewLogMessageEvent += SendNewLogMessage;
+
+            record.CopySettingsFromParam(BaseSettings);
+
+            if (SecuritiesLoad != null && SecuritiesLoad.Find(s => s.SecId == record.SecId) == null)
+            {
+                SecuritiesLoad.Add(record);
+            }
+
+            Save();
+        }
+
+        private void CreateLqdtServer(string exchange)
+        {
+            _lqdtDataServer = new LqdtDataFakeServer(exchange);
+
+            _lqdtDataServer.StartServer();
+        }
+
         #endregion
 
         #region Data loading
@@ -381,7 +452,25 @@ namespace OsEngine.OsData
                     return;
                 }
 
-                SecuritiesLoad[i].Process(_myServer);
+                 if (SecuritiesLoad[i].SecClass == "LQDT")
+                {
+                    if (_lqdtDataServer == null)
+                    {
+                        CreateLqdtServer(SecuritiesLoad[i].SecExchange);
+
+                        if(!_lqdtDataServer.IsRatesDownloaded)
+                        {
+                            _lqdtDataServer = null;
+                            return;
+                        }
+                    }
+
+                    SecuritiesLoad[i].Process(_lqdtDataServer);
+                }
+                else
+                {
+                   SecuritiesLoad[i].Process(_myServer);
+                }
             }
         }
 
