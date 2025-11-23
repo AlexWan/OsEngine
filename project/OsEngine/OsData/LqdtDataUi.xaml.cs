@@ -1,13 +1,20 @@
-﻿using OsEngine.Language;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Language;
+using OsEngine.Market;
+using System;
 using System.Windows;
 
 namespace OsEngine.OsData
 {
     public partial class LqdtDataUi : Window
     {
-        OsDataSet _set;
+        private OsDataSet _set;
 
-        OsDataSetPainter _setPainter;
+        private OsDataSetPainter _setPainter;
 
         public LqdtDataUi(OsDataSet set, OsDataSetPainter setPainter)
         {
@@ -22,22 +29,46 @@ namespace OsEngine.OsData
 
             Activate();
             Focus();
+
+            Closed += LqdtDataUi_Closed;
+        }
+
+        private void LqdtDataUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _set = null;
+                _setPainter = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ComboBoxExchange.Text == "MOEX")
+            try
             {
-                _set.AddLqdtMoex();
+                if (ComboBoxExchange.Text == "MOEX")
+                {
+                    _set.AddLqdtMoex();
+                }
+                else // NYSE
+                {
+                    _set.AddLqdtNyse();
+                }
+
+                _setPainter.RePaintInterface();
+
+                Close();
             }
-            else // NYSE
+            catch (Exception ex)
             {
-                _set.AddLqdtNyse();
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
 
-            _setPainter.RePaintInterface();
-
-            Close();
         }
     }
 }
+
