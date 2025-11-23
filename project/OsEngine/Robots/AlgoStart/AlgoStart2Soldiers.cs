@@ -455,7 +455,7 @@ namespace OsEngine.Robots.AlgoStart
         // Close position logic
         private void LogicClosePosition(List<Candle> candles, BotTabSimple tab)
         {
-            decimal _lastPrice = candles[candles.Count - 1].Close;
+            
 
             List<Position> openPositions = tab.PositionsOpenAll;
 
@@ -482,11 +482,13 @@ namespace OsEngine.Robots.AlgoStart
                         }
                     }
 
+                    decimal lastPrice = candles[firstPatternIndex - 1].Close;
+
                     decimal heightPattern =
                     Math.Abs(tab.CandlesAll[firstPatternIndex - 4].Open - tab.CandlesAll[firstPatternIndex - 2].Close);
 
-                    decimal priceStop = _lastPrice - (heightPattern * _procHeightStop.ValueDecimal) / 100;
-                    decimal priceTake = _lastPrice + (heightPattern * _procHeightTake.ValueDecimal) / 100;
+                    decimal priceStop = lastPrice - (heightPattern * _procHeightStop.ValueDecimal) / 100;
+                    decimal priceTake = lastPrice + (heightPattern * _procHeightTake.ValueDecimal) / 100;
 
                     pos.StopOrderPrice = priceStop;
                     pos.ProfitOrderPrice = priceTake;
