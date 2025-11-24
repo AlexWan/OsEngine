@@ -597,7 +597,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                         candle.Low = cexCandle.low.ToString().ToDecimal();
                         candle.Close = cexCandle.close.ToString().ToDecimal();
                         candle.Volume = cexCandle.volume.ToString().ToDecimal();
-                        candle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(cexCandle.created_at));
+                        candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp((long)cexCandle.created_at.ToDecimal());
 
                         //fix candle
                         if (candle.Open < candle.Low)
@@ -1228,16 +1228,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             {
                 _rateGateSubscribe.WaitToProceed();
 
-
-                for (int i = 0; i < _subscribedSecurities.Count; i++)
-                {
-                    if (_subscribedSecurities[i].NameClass == security.NameClass
-                        && _subscribedSecurities[i].Name == security.Name)
-                    {
-                        return;
-                    }
-                }
-
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
@@ -1633,7 +1623,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
                     Trade trade = new Trade();
                     trade.Price = cexTrade.price.ToString().ToDecimal();
-                    trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(cexTrade.created_at));
+                    trade.Time = TimeManager.GetDateTimeFromTimeStamp((long)cexTrade.created_at.ToDecimal());
                     trade.Id = cexTrade.deal_id;
                     trade.Side = cexTrade.side == "buy" ? Side.Buy : trade.Side = Side.Sell;
                     trade.Volume = cexTrade.amount.ToDecimal();
@@ -1696,7 +1686,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 DepthData cexDepth = responseDepth.depth;
 
                 MarketDepth depth = new MarketDepth();
-                depth.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(cexDepth.updated_at));
+                depth.Time = TimeManager.GetDateTimeFromTimeStamp((long)cexDepth.updated_at.ToDecimal());
 
                 for (int k = 0; k < cexDepth.bids.Count; k++)
                 {
@@ -1856,8 +1846,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
                 order.ServerType = ServerType.CoinExFutures;
                 order.NumberMarket = cexOrder.order_id.ToString();
-                order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(cexOrder.updated_at));
-                order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(cexOrder.created_at));
+                order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.updated_at.ToDecimal());
+                order.TimeCreate = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.created_at.ToDecimal());
                 order.Side = cexOrder.side == "buy" ? Side.Buy : Side.Sell;
 
                 order.PortfolioNumber = getPortfolioName();
@@ -1948,7 +1938,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 ResponseUserDeal responseMyTrade = JsonConvert.DeserializeObject<ResponseUserDeal>(data);
                 MyTrade newTrade = new MyTrade();
 
-                newTrade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(responseMyTrade.created_at));
+                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp((long)responseMyTrade.created_at.ToDecimal());
                 newTrade.SecurityNameCode = responseMyTrade.market;
                 newTrade.NumberOrderParent = responseMyTrade.order_id;
                 newTrade.Price = responseMyTrade.price.ToDecimal();
@@ -2436,8 +2426,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
             order.NumberMarket = cexOrder.order_id.ToString();
 
-            order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(cexOrder.updated_at));
-            order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(cexOrder.created_at));
+            order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.updated_at.ToDecimal());
+            order.TimeCreate = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.created_at.ToDecimal());
             order.PortfolioNumber = getPortfolioName();
             order.Side = cexOrder.side == "buy" ? Side.Buy : Side.Sell;
 
@@ -2513,7 +2503,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                             myTrade.NumberOrderParent = cexTrade.order_id.ToString();
                             myTrade.NumberTrade = cexTrade.deal_id.ToString();
                             myTrade.SecurityNameCode = cexTrade.market;
-                            myTrade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(cexTrade.created_at));
+                            myTrade.Time = TimeManager.GetDateTimeFromTimeStamp((long)cexTrade.created_at.ToDecimal());
                             myTrade.Side = cexTrade.side == "buy" ? Side.Buy : Side.Sell;
                             myTrade.Price = cexTrade.price.ToString().ToDecimal();
                             myTrade.Volume = cexTrade.amount.ToString().ToDecimal();
