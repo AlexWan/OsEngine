@@ -44,9 +44,6 @@ namespace OsEngine.Journal
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
 
-            //LabelBenchmark.Visibility = Visibility.Hidden;
-            //ComboBoxBenchmark.Visibility = Visibility.Hidden;
-
             _startProgram = startProgram;
             _botsJournals = botsJournals;
 
@@ -771,7 +768,7 @@ namespace OsEngine.Journal
 
         #region Equity chart
 
-        Chart _chartEquity;
+        private Chart _chartEquity;
 
         private void CreateChartProfit()
         {
@@ -1224,8 +1221,7 @@ namespace OsEngine.Journal
                     ComboBoxBenchmark.IsEnabled = false;
                 }
 
-                if (positionsAll.Count > 0 
-                    && ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString() &&
+                if (ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString() &&
                     chartType == "Absolute")
                 {
                     _startValuePortfolio = positionsAll[0].PortfolioValueOnOpenPosition;
@@ -2071,11 +2067,11 @@ namespace OsEngine.Journal
 
         #region Volume to Portfolio
 
-        Chart _chartPortfolio;
+        private Chart _chartPortfolio;
 
-        DataGridView _gridLeveragePortfolio;
+        private DataGridView _gridLeveragePortfolio;
 
-        TableLayoutPanel _layoutPanelPortfolio;
+        private TableLayoutPanel _layoutPanelPortfolio;
 
         private void CreateChartPortfolio()
         {
@@ -2622,7 +2618,7 @@ namespace OsEngine.Journal
 
         #region Max DD Chart
 
-        Chart _chartDd;
+        private Chart _chartDd;
 
         private void CreateChartDrawDown()
         {
