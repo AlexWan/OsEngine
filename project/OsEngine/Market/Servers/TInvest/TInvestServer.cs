@@ -62,9 +62,7 @@ namespace OsEngine.Market.Servers.TInvest
             worker.Name = "CheckAliveTInvest";
             worker.Start();
 
-            Thread worker2 = new Thread(DataMessageReader);
-            worker2.Name = "DataMessageReaderTInvest";
-            worker2.Start();
+
 
             Thread worker3 = new Thread(PortfolioMessageReader);
             worker3.Name = "PortfolioMessageReaderTInvest";
@@ -1799,6 +1797,8 @@ namespace OsEngine.Market.Servers.TInvest
                     streamWrapper.StreamClient = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
                         cancellationToken: _cancellationTokenSource.Token);
 
+                    streamWrapper.ReadingTask = Task.Run(() => ReadStream(streamWrapper));
+
                     streamWrapper.IsConnected = true;
                     streamWrapper.LastMessageTime = DateTime.UtcNow;
 
@@ -2044,30 +2044,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         private Dictionary<string, OpenInterest> _openInterestData = new Dictionary<string, OpenInterest>(); // save open interest data to use later in trade updates
 
-        private async void DataMessageReader()
-        {
-            while (true)
-            {
-                if (_marketDataStreams == null || 
-                    _marketDataStreams.Count == 0 ||
-                    _isDisposedNow == true)
-                {
-                    await Task.Delay(1000);
-                    continue;
-                }
 
-                try
-                {
-                    var tasks = _marketDataStreams.Select(ReadStream).ToList();
-                    await Task.WhenAll(tasks);
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage("TInvest data stream reader error: " + ex.Message, LogMessageType.System);
-                    await Task.Delay(5000); // prevent excessive logging in case of a persistent error
-                }
-            }
-        }
 
         private async Task ReadStream(MarketDataStreamWrapper streamWrapper)
         {
@@ -3917,6 +3894,7 @@ namespace OsEngine.Market.Servers.TInvest
             public bool IsConnected { get; set; }
             public DateTime LastMessageTime { get; set; }
             public string Name { get; set; } // For logging purposes
+            public Task ReadingTask { get; set; }
         }
 
         #endregion
