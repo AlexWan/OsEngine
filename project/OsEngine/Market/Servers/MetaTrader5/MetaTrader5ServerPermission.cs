@@ -51,7 +51,7 @@
 
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf1MinuteCanLoad

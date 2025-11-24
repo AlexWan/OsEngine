@@ -475,6 +475,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BybitData);
                 serverTypes.Add(ServerType.GateIoData);
                 serverTypes.Add(ServerType.BitGetData);
+                serverTypes.Add(ServerType.MetaTrader5);
 
                 return serverTypes;
             }
