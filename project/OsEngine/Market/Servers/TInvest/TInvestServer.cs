@@ -1331,6 +1331,8 @@ namespace OsEngine.Market.Servers.TInvest
                         SendLogMessage($"Couldn't get candles for {security.Name}. Info: probably market was closed for security during {fromDateTime}UTC - {toDateTime}UTC", LogMessageType.System);
                     else
                         SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.System);
+
+                    return new List<Candle>();
                 }
                 catch (Exception ex)
                 {
@@ -1807,6 +1809,7 @@ namespace OsEngine.Market.Servers.TInvest
                         var tradesToResubscribe = new SubscribeTradesRequest { SubscriptionAction = SubscriptionAction.Subscribe };
                         var orderBooksToResubscribe = new SubscribeOrderBookRequest { SubscriptionAction = SubscriptionAction.Subscribe };
                         var lastPricesToResubscribe = new SubscribeLastPriceRequest { SubscriptionAction = SubscriptionAction.Subscribe };
+                        var candlesToResubscribe = new SubscribeCandlesRequest { SubscriptionAction = SubscriptionAction.Subscribe };
 
                         // Consolidate all individual subscriptions into batch requests
                         foreach (var sub in streamWrapper.Subscriptions)
@@ -1824,6 +1827,10 @@ namespace OsEngine.Market.Servers.TInvest
                             else if (sub.SubscribeLastPriceRequest != null)
                             {
                                 lastPricesToResubscribe.Instruments.AddRange(sub.SubscribeLastPriceRequest.Instruments);
+                            }
+                            else if (sub.SubscribeCandlesRequest != null)
+                            {
+                                candlesToResubscribe.Instruments.AddRange(sub.SubscribeCandlesRequest.Instruments);
                             }
                         }
 
@@ -1845,6 +1852,12 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             var batchLastPriceRequest = new MarketDataRequest { SubscribeLastPriceRequest = lastPricesToResubscribe };
                             streamWrapper.StreamClient.RequestStream.WriteAsync(batchLastPriceRequest).Wait();
+                             _rateGateSubscribe.WaitToProceed();
+                        }
+                        if (candlesToResubscribe.Instruments.Any())
+                        {
+                            var batchCandlesRequest = new MarketDataRequest { SubscribeCandlesRequest = candlesToResubscribe };
+                            streamWrapper.StreamClient.RequestStream.WriteAsync(batchCandlesRequest).Wait();
                         }
                     }
                 }
@@ -1869,11 +1882,11 @@ namespace OsEngine.Market.Servers.TInvest
 
         private Dictionary<string, MarketDataStreamWrapper> _securityStreamMap;
 
-        private RateGate _rateGateSubscribe = new RateGate(50, TimeSpan.FromMinutes(1));
-        
+        private RateGate _rateGateSubscribe = new RateGate(100, TimeSpan.FromMinutes(1)); // https://developer.tbank.ru/invest/intro/intro/limits
+
         private List<Security> _pollSubscribedSecurities = new List<Security>();
 
-        private bool _useStreamForMarketData = true; // if we are over the limits, then stop using stream and turn to data polling (300+ subscribed secs)
+        private bool _useStreamForMarketData = true; // if we are over the limits, then stop using stream and turn to data polling (> 150*16  + subscribed secs)
         
         private AsyncServerStreamingCall<OrderStateStreamResponse> _myOrderStateDataStream;
         private AsyncServerStreamingCall<PortfolioStreamResponse> _portfolioDataStream;
@@ -1904,7 +1917,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (_useStreamForMarketData)
                 {
-                    MarketDataStreamWrapper streamWrapper = _marketDataStreams.FirstOrDefault(s => s.Subscriptions.Count < 150); // 300 topics per stream. 2 topics per instruments. So 300/2 = 150
+                    MarketDataStreamWrapper streamWrapper = _marketDataStreams.FirstOrDefault(s => s.Subscriptions.Count < 300); // 300 topics per stream. 
 
                     if (streamWrapper == null)
                     {
@@ -1947,6 +1960,8 @@ namespace OsEngine.Market.Servers.TInvest
                             marketDataRequest.SubscribeLastPriceRequest = lpRequest;
                             
                             streamWrapper.Subscriptions.Add(marketDataRequest);
+
+                            _rateGateSubscribe.WaitToProceed();
                             streamWrapper.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait();
                         }
                         else
@@ -1967,6 +1982,7 @@ namespace OsEngine.Market.Servers.TInvest
                             marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
                             
                             streamWrapper.Subscriptions.Add(marketDataRequest);
+                            _rateGateSubscribe.WaitToProceed();
                             streamWrapper.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait();
 
 
@@ -1983,6 +1999,7 @@ namespace OsEngine.Market.Servers.TInvest
                             marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
                             
                             streamWrapper.Subscriptions.Add(marketDataRequest);
+                            _rateGateSubscribe.WaitToProceed();
                             streamWrapper.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait();
                         }
                         _securityStreamMap.Add(security.NameId, streamWrapper);
@@ -2002,6 +2019,7 @@ namespace OsEngine.Market.Servers.TInvest
                     var subToRemove = streamWrapper.Subscriptions.Where(s => 
                         (s.SubscribeTradesRequest != null && s.SubscribeTradesRequest.Instruments.Any(i => i.InstrumentId == security.NameId)) ||
                         (s.SubscribeOrderBookRequest != null && s.SubscribeOrderBookRequest.Instruments.Any(i => i.InstrumentId == security.NameId)) ||
+                        (s.SubscribeCandlesRequest != null && s.SubscribeCandlesRequest.Instruments.Any(i => i.InstrumentId == security.NameId)) ||
                         (s.SubscribeLastPriceRequest != null && s.SubscribeLastPriceRequest.Instruments.Any(i => i.InstrumentId == security.NameId))
                         ).ToList();
 
@@ -2140,6 +2158,26 @@ namespace OsEngine.Market.Servers.TInvest
                         MarketDepthEvent?.Invoke(depth);
                     }
                 }
+                else if (marketData.Candle != null)
+                {
+                    var tinvestCandle = marketData.Candle;
+                    Security security = GetSecurity(tinvestCandle.InstrumentUid);
+                    if (security == null)
+                    {
+                        return;
+                    }
+
+                    Candle osCandle = new Candle();
+                    osCandle.Open = GetValue(tinvestCandle.Open);
+                    osCandle.High = GetValue(tinvestCandle.High);
+                    osCandle.Low = GetValue(tinvestCandle.Low);
+                    osCandle.Close = GetValue(tinvestCandle.Close);
+                    osCandle.Volume = tinvestCandle.Volume;
+                    osCandle.TimeStart = TimeZoneInfo.ConvertTimeFromUtc(tinvestCandle.Time.ToDateTime(), _mskTimeZone);
+                    osCandle.State = CandleState.Finished;
+
+                    NewCandleEvent?.Invoke(osCandle);
+                }
                 else if (marketData.LastPrice != null)
                 {
                     ProcessLastPrice(marketData.LastPrice);
@@ -2153,16 +2191,6 @@ namespace OsEngine.Market.Servers.TInvest
                         _openInterestData[security.Name] = oi;
                     }
                 }
-                else if (marketData.TradingStatus != null)
-                {
-                    var status = marketData.TradingStatus;
-                    var security = GetSecurity(status.InstrumentUid);
-                    if (security != null)
-                    {
-                        // TODO: Do something with the trading status? For now, just log it.
-                        // SendLogMessage($"Trading status for {security.Name} is {status.TradingStatus_}", LogMessageType.System);
-                    }
-                }
                 else if (marketData.Ping != null)
                 {
                     // Already handled in ReadStream by updating LastMessageTime
@@ -2170,9 +2198,53 @@ namespace OsEngine.Market.Servers.TInvest
                 else if (marketData.SubscribeTradesResponse != null ||
                          marketData.SubscribeOrderBookResponse != null ||
                          marketData.SubscribeInfoResponse != null ||
-                         marketData.SubscribeLastPriceResponse != null)
+                         marketData.SubscribeLastPriceResponse != null ||
+                         marketData.SubscribeCandlesResponse != null)
                 {
-                    // These are subscription status messages, can be logged if needed for diagnostics.
+                    if (marketData.SubscribeTradesResponse != null)
+                    {
+                        foreach (var sub in marketData.SubscribeTradesResponse.TradeSubscriptions)
+                        {
+                            if (sub.SubscriptionStatus != SubscriptionStatus.Success)
+                            {
+                                var security = GetSecurity(sub.InstrumentUid);
+                                SendLogMessage($"Failed to subscribe to trades for {security?.Name}. Status: {sub.SubscriptionStatus}", LogMessageType.Error);
+                            }
+                        }
+                    }
+                    if (marketData.SubscribeOrderBookResponse != null)
+                    {
+                        foreach (var sub in marketData.SubscribeOrderBookResponse.OrderBookSubscriptions)
+                        {
+                            if (sub.SubscriptionStatus != SubscriptionStatus.Success)
+                            {
+                                var security = GetSecurity(sub.InstrumentUid);
+                                SendLogMessage($"Failed to subscribe to order book for {security?.Name}. Status: {sub.SubscriptionStatus}", LogMessageType.Error);
+                            }
+                        }
+                    }
+                    if (marketData.SubscribeLastPriceResponse != null)
+                    {
+                        foreach (var sub in marketData.SubscribeLastPriceResponse.LastPriceSubscriptions)
+                        {
+                            if (sub.SubscriptionStatus != SubscriptionStatus.Success)
+                            {
+                                var security = GetSecurity(sub.InstrumentUid);
+                                SendLogMessage($"Failed to subscribe to last price for {security?.Name}. Status: {sub.SubscriptionStatus}", LogMessageType.Error);
+                            }
+                        }
+                    }
+                    if (marketData.SubscribeCandlesResponse != null)
+                    {
+                        foreach (var sub in marketData.SubscribeCandlesResponse.CandlesSubscriptions)
+                        {
+                            if (sub.SubscriptionStatus != SubscriptionStatus.Success)
+                            {
+                                var security = GetSecurity(sub.InstrumentUid);
+                                SendLogMessage($"Failed to subscribe to candles for {security?.Name}. Status: {sub.SubscriptionStatus}", LogMessageType.Error);
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -2359,6 +2431,8 @@ namespace OsEngine.Market.Servers.TInvest
         public event Action<Trade> NewTradesEvent;
 
         public event Action<MarketDepth> MarketDepthEvent;
+
+        public event Action<Candle> NewCandleEvent;
 
         private async void PortfolioMessageReader()
         {
