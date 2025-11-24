@@ -10,6 +10,8 @@
 
 [FAQ. Огромный гайд по работе с проектом из более чем 500 постов](https://o-s-a.net/os-engine-faq)
 
+[Группа поддержки в Телеграмм](https://t.me/osengine_official_support)
+
 [Группа поддержки в MAX](https://max.ru/join/Yar1c0k41XMwbnBXWutnmj4rWMk3RrhXIUqpGl8wOog)
 
 [Софт внесён в перечень отечественного ПО Российской Федерации](https://reestr.digital.gov.ru/reestr/4075388/)
