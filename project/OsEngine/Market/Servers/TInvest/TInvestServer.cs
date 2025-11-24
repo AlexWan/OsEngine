@@ -1328,7 +1328,7 @@ namespace OsEngine.Market.Servers.TInvest
                     string message = GetGRPCErrorMessage(ex);
 
                     if (message == "no server message")
-                        SendLogMessage($"Couldn't get candles for {security.Name}. Info: probably invalid time interval {fromDateTime}UTC - {toDateTime}UTC", LogMessageType.System);
+                        SendLogMessage($"Couldn't get candles for {security.Name}. Info: probably market was closed for security during {fromDateTime}UTC - {toDateTime}UTC", LogMessageType.System);
                     else
                         SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.System);
                 }
