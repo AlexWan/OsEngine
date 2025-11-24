@@ -1462,61 +1462,72 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private List<Security> _subscribedSecurities = new List<Security>();
 
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(150));
+
         public void Subscribe(Security security)
         {
-            if (ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                return;
-            }
+            _rateGateSubscribe.WaitToProceed();
 
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
+            try
             {
-                if (_subscribedSecurities[i].NameClass == security.NameClass
-                    && _subscribedSecurities[i].Name == security.Name)
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
                 }
+
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
+                {
+                    if (_subscribedSecurities[i].NameClass == security.NameClass
+                        && _subscribedSecurities[i].Name == security.Name)
+                    {
+                        return;
+                    }
+                }
+
+                _subscribedSecurities.Add(security);
+
+                string urlStr = null;
+
+                if (((ServerParameterBool)ServerParameters[10]).Value == false)
+                {
+                    urlStr = "wss://stream.binance.com:9443/stream?streams="
+                                                + security.Name.ToLower()
+                                                + "@depth5/"
+                                                + security.Name.ToLower() + "@trade";
+                }
+                else
+                {
+                    urlStr = "wss://stream.binance.com:9443/stream?streams="
+                                                + security.Name.ToLower()
+                                                + "@depth20/"
+                                                + security.Name.ToLower() + "@trade";
+                }
+
+                if (_extendedMarketData)
+                {
+                    urlStr += "/" + security.Name.ToLower() + "@miniTicker";
+                }
+
+                WebSocket _wsClient = new WebSocket(urlStr); // create web-socket 
+
+                if (_myProxy != null)
+                {
+                    _wsClient.SetProxy(_myProxy);
+                }
+
+                _wsClient.EmitOnPing = true;
+
+                _wsClient.OnMessage += _publicSocketClient_RessageReceived;
+                _wsClient.OnError += Client_Error;
+                _wsClient.OnClose += Client_Closed;
+                _wsClient.ConnectAsync();
+
+                _wsStreamsSecurityData.Add(security.Name, _wsClient);
             }
-
-            _subscribedSecurities.Add(security);
-
-            string urlStr = null;
-
-            if (((ServerParameterBool)ServerParameters[10]).Value == false)
+            catch (Exception ex)
             {
-                urlStr = "wss://stream.binance.com:9443/stream?streams="
-                                            + security.Name.ToLower()
-                                            + "@depth5/"
-                                            + security.Name.ToLower() + "@trade";
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
-            else
-            {
-                urlStr = "wss://stream.binance.com:9443/stream?streams="
-                                            + security.Name.ToLower()
-                                            + "@depth20/"
-                                            + security.Name.ToLower() + "@trade";
-            }
-
-            if (_extendedMarketData)
-            {
-                urlStr += "/" + security.Name.ToLower() + "@miniTicker";
-            }
-
-            WebSocket _wsClient = new WebSocket(urlStr); // create web-socket 
-
-            if (_myProxy != null)
-            {
-                _wsClient.SetProxy(_myProxy);
-            }
-
-            _wsClient.EmitOnPing = true;
-
-            _wsClient.OnMessage += _publicSocketClient_RessageReceived;
-            _wsClient.OnError += Client_Error;
-            _wsClient.OnClose += Client_Closed;
-            _wsClient.ConnectAsync();
-
-            _wsStreamsSecurityData.Add(security.Name, _wsClient);
         }
 
         public bool SubscribeNews()
