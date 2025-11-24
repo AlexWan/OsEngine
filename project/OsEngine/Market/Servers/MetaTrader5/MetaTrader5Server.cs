@@ -1442,11 +1442,11 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                     long fillingMode = _mtApiClient.SymbolInfoInteger(order.SecurityNameCode, ENUM_SYMBOL_INFO_INTEGER.SYMBOL_FILLING_MODE);
 
-                    if ((fillingMode & 0) == 0)
+                    if ((fillingMode & 1) == 1)
                     {
                         request.Type_filling = ENUM_ORDER_TYPE_FILLING.ORDER_FILLING_FOK;
                     }
-                    else
+                    else if ((fillingMode & 2) == 2)
                     {
                         request.Type_filling = ENUM_ORDER_TYPE_FILLING.ORDER_FILLING_IOC;
                     }
