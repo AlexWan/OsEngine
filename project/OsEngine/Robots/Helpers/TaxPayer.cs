@@ -22,8 +22,12 @@ using OsEngine.Journal;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using OsEngine.Market.Connectors;
+using OsEngine.Language;
 
 /* Description
+Робот работает только в Тестере. При тестировании робот по окончанию года проверяет Журналы всех ботов. 
+Считает в Журнале профит сделок за последний год, расчитывает налог, и списывает этот налог из депозита.
+
 The bot only works in the Tester. During testing, the bot checks the Journal of all bots at the end of the year. 
 It calculates the profit of trades for the last year in the Journal, calculates the tax, and deducts this tax from the deposit.
  */
@@ -41,7 +45,9 @@ namespace OsEngine.Robots.Helpers
         {
             if (startProgram != StartProgram.IsTester)
             {
-                SendNewLogMessage("Бот работает только в Тестере", Logging.LogMessageType.Error);                
+                string message = OsLocalization.ConvertToLocString("Eng:The bot only works in the Tester._" + "Ru:Бот работает только в Тестере_");
+
+                SendNewLogMessage(message, Logging.LogMessageType.Error);                
                 return;
             }
 
@@ -50,11 +56,11 @@ namespace OsEngine.Robots.Helpers
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            string tabName = " Параметры ";
+            string tabName = " Parameters ";
 
-            _regime = CreateParameter("Режим", "Off", new string[] { "Off", "On" }, tabName);
+            _regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" }, tabName);
 
-            CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab(" Периоды ");
+            CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab(" Periods ");
 
             CreateTable();
             customTab.AddChildren(_host);
@@ -91,13 +97,13 @@ namespace OsEngine.Robots.Helpers
                 _dgv.ColumnCount = 3;
                 _dgv.RowCount = 1;
 
-                _dgv.Columns[0].HeaderText = "Год";
-                _dgv.Columns[1].HeaderText = "Ставка";
+                _dgv.Columns[0].HeaderText = OsLocalization.ConvertToLocString("Eng:Year_" + "Ru:Год_");
+                _dgv.Columns[1].HeaderText = OsLocalization.ConvertToLocString("Eng:Rate_" + "Ru:Ставка_");
 
                 DataGridViewButtonCell cellButton = new();
 
                 _dgv.Rows[^1].Cells[0] = cellButton;
-                _dgv.Rows[^1].Cells[0].Value = "Добавить строку";
+                _dgv.Rows[^1].Cells[0].Value = OsLocalization.ConvertToLocString("Eng:Add row_" + "Ru:Добавить строку_");
                 _dgv.Rows[^1].Cells[0].ReadOnly = true;
                 _dgv.Rows[^1].Cells[1].ReadOnly = true;
                 _dgv.Rows[^1].Cells[2].ReadOnly = true;
@@ -154,7 +160,7 @@ namespace OsEngine.Robots.Helpers
             _dgv.Rows.Insert(_dgv.RowCount - 1);
 
             _dgv.Rows[^2].Cells[2] = cellButton;
-            _dgv.Rows[^2].Cells[2].Value = "Удалить строку";
+            _dgv.Rows[^2].Cells[2].Value = OsLocalization.ConvertToLocString("Eng:Delete row_" + "Ru:Удалить строку_");
             _dgv.Rows[^2].Cells[2].ReadOnly = true;
 
             SaveTable();
@@ -162,14 +168,18 @@ namespace OsEngine.Robots.Helpers
 
         private void DeleteRow(int rowIndex)
         {
-            int year = int.Parse(_dgv[0, rowIndex].Value.ToString());
-            int deleteIndex = _listTable.FindIndex(x => x.Year == year);
+            int year = 0;
 
-            if (deleteIndex > -1)
-            {
-                _listTable.RemoveAt(deleteIndex);
+            if (int.TryParse(_dgv[0, rowIndex].Value?.ToString(), out year))
+            {                
+                int deleteIndex = _listTable.FindIndex(x => x.Year == year);
+
+                if (deleteIndex > -1)
+                {
+                    _listTable.RemoveAt(deleteIndex);
+                }
             }
-            
+                        
             _dgv.Rows.RemoveAt(rowIndex);
 
             SaveTable();
@@ -221,7 +231,9 @@ namespace OsEngine.Robots.Helpers
                             else
                             {
                                 _dgv.Rows[e.RowIndex].Cells[0].Value = "";
-                                SendNewLogMessage("В таблице уже есть такой год", Logging.LogMessageType.Error);
+
+                                string message = OsLocalization.ConvertToLocString("Eng:There is already such a year in the table._" + "Ru:В таблице уже есть такой год._");
+                                SendNewLogMessage(message, Logging.LogMessageType.Error);
                             }
                         }
                     }
@@ -276,7 +288,7 @@ namespace OsEngine.Robots.Helpers
                     DataGridViewRow row = new();
                     row.Cells.Add(new DataGridViewTextBoxCell() { Value = _listTable[i].Year });
                     row.Cells.Add(new DataGridViewTextBoxCell() { Value = _listTable[i].Rate });
-                    row.Cells.Add(new DataGridViewButtonCell() { Value = "Удалить строку" });
+                    row.Cells.Add(new DataGridViewButtonCell() { Value = OsLocalization.ConvertToLocString("Eng:Delete row_" + "Ru:Удалить строку_") });
 
                     _dgv.Rows.Insert(_dgv.RowCount - 1, row);
                 }
