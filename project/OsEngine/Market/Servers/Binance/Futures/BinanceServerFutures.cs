@@ -1622,62 +1622,73 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private List<Security> _subscribedSecurities = new List<Security>();
 
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(150));
+
         public void Subscribe(Security security)
         {
-            if (ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                return;
-            }
+            _rateGateSubscribe.WaitToProceed();
 
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
+            try
             {
-                if (_subscribedSecurities[i].NameClass == security.NameClass
-                    && _subscribedSecurities[i].Name == security.Name)
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
                 }
+
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
+                {
+                    if (_subscribedSecurities[i].NameClass == security.NameClass
+                        && _subscribedSecurities[i].Name == security.Name)
+                    {
+                        return;
+                    }
+                }
+
+                _subscribedSecurities.Add(security);
+
+                string urlStrDepth = null;
+
+                if (((ServerParameterBool)ServerParameters[13]).Value == false)
+                {
+                    urlStrDepth = wss_point + "/stream?streams="
+                                 + security.Name.ToLower() + "@depth5"
+                                 + "/" + security.Name.ToLower() + "@trade";
+
+                }
+                else
+                {
+                    urlStrDepth = wss_point + "/stream?streams="
+                     + security.Name.ToLower() + "@depth20"
+                     + "/" + security.Name.ToLower() + "@trade";
+                }
+
+                if (_extendedMarketData)
+                {
+                    urlStrDepth += "/" + security.Name.ToLower() + "@markPrice" + "/" + security.Name.ToLower() + "@miniTicker";
+
+                    GetFundingRate(security.Name);
+                    GetFundingHistory(security.Name.ToLower());
+                }
+
+                WebSocket wsClientDepth = new WebSocket(urlStrDepth);
+
+                if (_myProxy != null)
+                {
+                    wsClientDepth.SetProxy(_myProxy);
+                }
+
+                wsClientDepth.EmitOnPing = true;
+                wsClientDepth.OnMessage += _socket_PublicMessage;
+                wsClientDepth.OnError += _socketClient_Error;
+                wsClientDepth.OnClose += _socketClient_Closed;
+                wsClientDepth.ConnectAsync();
+
+                _socketsArray.Add(security.Name + "_depth20", wsClientDepth);
             }
-
-            _subscribedSecurities.Add(security);
-
-            string urlStrDepth = null;
-
-            if (((ServerParameterBool)ServerParameters[13]).Value == false)
+            catch (Exception ex)
             {
-                urlStrDepth = wss_point + "/stream?streams="
-                             + security.Name.ToLower() + "@depth5"
-                             + "/" + security.Name.ToLower() + "@trade";
-
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
-            else
-            {
-                urlStrDepth = wss_point + "/stream?streams="
-                 + security.Name.ToLower() + "@depth20"
-                 + "/" + security.Name.ToLower() + "@trade";
-            }
-
-            if (_extendedMarketData)
-            {
-                urlStrDepth += "/" + security.Name.ToLower() + "@markPrice" + "/" + security.Name.ToLower() + "@miniTicker";
-
-                GetFundingRate(security.Name);
-                GetFundingHistory(security.Name.ToLower());
-            }
-
-            WebSocket wsClientDepth = new WebSocket(urlStrDepth);
-
-            if (_myProxy != null)
-            {
-                wsClientDepth.SetProxy(_myProxy);
-            }
-
-            wsClientDepth.EmitOnPing = true;
-            wsClientDepth.OnMessage += _socket_PublicMessage;
-            wsClientDepth.OnError += _socketClient_Error;
-            wsClientDepth.OnClose += _socketClient_Closed;
-            wsClientDepth.ConnectAsync();
-
-            _socketsArray.Add(security.Name + "_depth20", wsClientDepth);
         }
 
         private void GetFundingRate(string security)
@@ -2249,7 +2260,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     MyTradeEvent(trade);
                 }
 
-                if (order.X == "FILLED" 
+                if (order.X == "FILLED"
                     || order.X == "PARTIALLY_FILLED")
                 {
                     Order newOrder = new Order();
