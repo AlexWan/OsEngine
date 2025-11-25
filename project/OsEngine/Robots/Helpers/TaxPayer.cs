@@ -277,11 +277,18 @@ namespace OsEngine.Robots.Helpers
 
                 if (!File.Exists(fileName))
                 {
+                    SetDefaultTablePeriods();
                     return;
                 }
 
                 string json = File.ReadAllText(fileName);
                 _listTable = JsonConvert.DeserializeObject<List<ListTablePeriods>>(json);
+
+                if (_listTable == null || _listTable.Count == 0)
+                {
+                    SetDefaultTablePeriods();
+                    return;
+                }
 
                 for (int i = 0; i < _listTable.Count; i++)
                 {
@@ -296,6 +303,23 @@ namespace OsEngine.Robots.Helpers
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void SetDefaultTablePeriods()
+        {
+            _listTable.Clear();
+
+            for (int i = 0; i < 31; i++)
+            {
+                DataGridViewRow row = new();
+                row.Cells.Add(new DataGridViewTextBoxCell() { Value = 2000 + i });
+                row.Cells.Add(new DataGridViewTextBoxCell() { Value = 13 });
+                row.Cells.Add(new DataGridViewButtonCell() { Value = OsLocalization.ConvertToLocString("Eng:Delete row_" + "Ru:Удалить строку_") });
+
+                _dgv.Rows.Insert(_dgv.RowCount - 1, row);
+
+                _listTable.Add(new ListTablePeriods() { Year = 2000 + i, Rate = 13});
             }
         }
 
