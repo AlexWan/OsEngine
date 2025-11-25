@@ -3841,8 +3841,6 @@ namespace OsEngine.Market.Servers.Tester
                     timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.Tick;
                 }
 
-                CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsTester);
-
                 // start security for unloading / запускаем бумагу на выгрузку
 
                 if (TypeTesterData != TesterDataType.Candle &&
@@ -3912,6 +3910,8 @@ namespace OsEngine.Market.Servers.Tester
                                                             tester.TimeFrameSpan == time));
                     }
                 }
+
+                CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsTester);
 
                 _candleManager.StartSeries(series);
 
