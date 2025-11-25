@@ -51,6 +51,7 @@ namespace OsEngine.Market.Servers.TInvest
     public class TInvestServerRealization : IServerRealization
     {
         private readonly TimeZoneInfo _mskTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
+
         #region 1 Constructor, Status, Connection
 
         public TInvestServerRealization()
@@ -900,10 +901,19 @@ namespace OsEngine.Market.Servers.TInvest
 
         private List<Portfolio> _myPortfolios = new List<Portfolio>();
 
+        private DateTime _lastTimeGetPortfolio;
+
         public void GetPortfolios()
         {
             try
             {
+                if(_lastTimeGetPortfolio.AddSeconds(10) > DateTime.Now)
+                {
+                    return;
+                }
+
+                _lastTimeGetPortfolio = DateTime.Now;
+
                 GetAccountsResponse accountsResponse = _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata);
 
                 // для sandboxa
@@ -1001,6 +1011,12 @@ namespace OsEngine.Market.Servers.TInvest
                 myPortfolio.ValueCurrent = portfolioResponse.TotalAmountPortfolio != null ? GetValue(portfolioResponse.TotalAmountPortfolio) : 1;
                 myPortfolio.ValueBegin = myPortfolio.ValueCurrent;
                 _myPortfolios.Add(myPortfolio);
+            }
+            else
+            {
+                myPortfolio.Number = portfolioResponse.AccountId;
+                myPortfolio.ValueCurrent = portfolioResponse.TotalAmountPortfolio != null ? GetValue(portfolioResponse.TotalAmountPortfolio) : 1;
+                myPortfolio.ValueBegin = myPortfolio.ValueCurrent;
             }
         }
 
@@ -1193,6 +1209,27 @@ namespace OsEngine.Market.Servers.TInvest
 
                 sectionPoses.Add(newPos);
             }
+
+            // удаляем не существующие на текущий момент позиции из портфеля
+
+            for(int i = 0; portf.PositionOnBoard != null && i < portf.PositionOnBoard.Count;i++)
+            {
+                PositionOnBoard pos = portf.PositionOnBoard[i];
+
+                if(pos.ValueCurrent == 0)
+                {
+                    continue;
+                }
+
+                if(sectionPoses.Count == 0 
+                    || sectionPoses.Find(p => p.SecurityNameCode == pos.SecurityNameCode) == null)
+                {
+                    portf.PositionOnBoard.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            // обновляем в портфеле существующие позиции
 
             for (int i = 0; i < sectionPoses.Count; i++)
             {
@@ -1624,7 +1661,7 @@ namespace OsEngine.Market.Servers.TInvest
                     ConnectEvent();
 
                     GetUserLimits();
-                    ReconnectGRPCStreams();
+                    ConnectGRPCStreams();
                 }
                 catch (Exception ex)
                 {
@@ -1637,7 +1674,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        private void ReconnectGRPCStreams()
+        private void ConnectGRPCStreams()
         {
             RepeatedField<string> accountsList = new RepeatedField<string>();
             for (int i = 0; i < _myPortfolios.Count; i++)
@@ -1665,6 +1702,10 @@ namespace OsEngine.Market.Servers.TInvest
 
             _lastPortfolioDataTime = DateTime.UtcNow;
         }
+
+        #endregion
+
+        #region 6 gRPC streams fast reconnect
 
         private DateTime _lastTryReconnectPortfolioStream;
 
@@ -1709,6 +1750,15 @@ namespace OsEngine.Market.Servers.TInvest
                 return false;
             }
 
+            try
+            {
+                GetPortfolios();
+            }
+            catch
+            {
+                // ignore
+            }
+
             return true;
         }
 
@@ -1718,7 +1768,7 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
-                if(_lastTryReconnectPositionsStream != DateTime.MinValue
+                if (_lastTryReconnectPositionsStream != DateTime.MinValue
                     && _lastTryReconnectPositionsStream.AddSeconds(30) > DateTime.Now)
                 {
                     return false;
@@ -1754,6 +1804,15 @@ namespace OsEngine.Market.Servers.TInvest
             catch
             {
                 return false;
+            }
+
+            try
+            {
+                GetPortfolios();
+            }
+            catch
+            {
+                // ignore
             }
 
             return true;
@@ -1812,7 +1871,7 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
-                lock(_marketDataStreamLocker)
+                lock (_marketDataStreamLocker)
                 {
                     if (_lastTryReconnectDataStream != DateTime.MinValue
                     && _lastTryReconnectDataStream.AddSeconds(30) > DateTime.Now)
@@ -1843,7 +1902,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     // 2 Переподписываем поток ЛастПрайс
 
-                    if(_marketDataRequestsLastPrice.Count > 0)
+                    if (_marketDataRequestsLastPrice.Count > 0)
                     {
                         _rateGateSubscribe.WaitToProceed();
 
@@ -1857,7 +1916,7 @@ namespace OsEngine.Market.Servers.TInvest
                         for (int i = 0; i < _marketDataRequestsLastPrice.Count; i++)
                         {
                             lpRequest.Instruments.Add(_marketDataRequestsLastPrice[i].Instruments[0]);
-                           
+
                         }
 
                         marketDataRequest.SubscribeLastPriceRequest = lpRequest;
@@ -1885,7 +1944,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
                         _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-                      
+
                     }
 
                     // 3 Переподписываем поток Трейдов из ленты сделок
@@ -1934,7 +1993,6 @@ namespace OsEngine.Market.Servers.TInvest
         private RateGate _rateGateSubscribe = new RateGate(50, TimeSpan.FromMinutes(1));
         List<Security> _streamSubscribedSecurities = new List<Security>();
         List<Security> _pollSubscribedSecurities = new List<Security>();
-
 
         private bool _useStreamForMarketData = true; // if we are over the limits, then stop using stream and turn to data polling (300+ subscribed secs)
 
@@ -2564,7 +2622,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (portf == null)
                         {
-                            return;
+                            continue;
                         }
 
                         if (portfolioResponse.Portfolio.TotalAmountPortfolio != null)
@@ -2585,42 +2643,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                         portf.UnrealizedPnl = GetValue(portfolioResponse.Portfolio.DailyYield);
                         UpdatePositionsInPortfolio(portfolioResponse.Portfolio);
-
-                        //for (int i = 0; i < portfolioResponse.Portfolio.Positions.Count; i++)
-                        //{
-
-                        //    PortfolioPosition pos = portfolioResponse.Portfolio.Positions[i];
-
-                        //    InstrumentRequest instrumentRequest = new InstrumentRequest();
-                        //    instrumentRequest.Id = pos.InstrumentUid;
-                        //    instrumentRequest.IdType = InstrumentIdType.Uid;
-
-                        //    InstrumentResponse instrumentResponse = null;
-
-                        //    try
-                        //    {
-                        //        _rateGateInstruments.WaitToProceed();
-                        //        instrumentResponse = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
-                        //    }
-                        //    catch (RpcException ex)
-                        //    {
-                        //        string message = GetGRPCErrorMessage(ex);
-                        //        SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.System);
-                        //    }
-                        //    catch (Exception ex)
-                        //    {
-                        //        SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
-                        //    }
-
-                        //    PositionOnBoard newPos = new PositionOnBoard();
-                        //    newPos.PortfolioName = portf.Number;
-                        //    newPos.ValueCurrent = GetValue(pos.Quantity)/instrumentResponse.Instrument.Lot;
-                        //    newPos.ValueBlocked = GetValue(pos.BlockedLots);
-                        //    newPos.UnrealizedPnl = GetValue(pos.ExpectedYield);
-                        //    newPos.SecurityNameCode = instrumentResponse.Instrument.Ticker;
-
-                        //    portf.SetNewPosition(newPos);
-                        //}
 
                         PortfolioEvent!(_myPortfolios);
                     }
@@ -2730,7 +2752,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (portf == null)
                         {
-                            return;
+                            continue;
                         }
 
                         for (int i = 0; i < posData.Securities.Count; i++)
