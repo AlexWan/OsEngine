@@ -857,7 +857,8 @@ namespace OsEngine.OsTrader.Grids
 
                 // проверяем работу авто-стартера, если он включен
 
-                if (AutoStarter.AutoStartRegime == TradeGridAutoStartRegime.Off)
+                if (AutoStarter.AutoStartRegime == TradeGridAutoStartRegime.Off
+                    && AutoStarter.StartGridByTimeOfDayIsOn == false)
                 {
                     return;
                 }

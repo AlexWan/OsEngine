@@ -720,6 +720,12 @@ namespace OsEngine.OsTrader.Grids
                 ComboBoxAutoStartRegime.SelectedItem = TradeGrid.AutoStarter.AutoStartRegime.ToString();
                 ComboBoxAutoStartRegime.SelectionChanged += ComboBoxAutoStartRegime_SelectionChanged;
 
+                CheckBoxStartGridByTimeOfDayIsOn.Checked -= CheckBoxStartGridByTimeOfDayIsOn_Checked;
+                CheckBoxStartGridByTimeOfDayIsOn.Unchecked -= CheckBoxStartGridByTimeOfDayIsOn_Checked;
+                CheckBoxStartGridByTimeOfDayIsOn.IsChecked = TradeGrid.AutoStarter.StartGridByTimeOfDayIsOn;
+                CheckBoxStartGridByTimeOfDayIsOn.Checked += CheckBoxStartGridByTimeOfDayIsOn_Checked;
+                CheckBoxStartGridByTimeOfDayIsOn.Unchecked += CheckBoxStartGridByTimeOfDayIsOn_Checked;
+
                 CheckEnabledItems();
             }
             catch (Exception ex)
