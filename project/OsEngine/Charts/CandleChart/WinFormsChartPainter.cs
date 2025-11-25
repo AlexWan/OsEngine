@@ -4893,7 +4893,6 @@ ContextMenuStrip menu)
             }
         }
 
-
         /// <summary>
         /// add a series of data to chart safely
         /// добавить серию данных на чарт безопасно
@@ -7365,7 +7364,8 @@ ContextMenuStrip menu)
 
                    double maxOnSeries = yLength.Ymax;
 
-                   if (maxOnSeries > max)
+                   if (maxOnSeries != double.MinValue
+                        && maxOnSeries > max)
                    {
                        max = maxOnSeries;
                    }
@@ -7498,13 +7498,23 @@ ContextMenuStrip menu)
                 {
                     x = series.Points.Count - 1;
                 }
-                if (series.Points[x].YValues.Max() > currentLength.Ymax)
+
+                double max = series.Points[x].YValues.Max();
+
+                if (max != 0 &&
+                    max != double.NaN &&
+                    max > currentLength.Ymax)
                 {
-                    currentLength.Ymax = series.Points[x].YValues.Max();
+                    currentLength.Ymax = max;
                 }
-                if (series.Points[x].YValues.Min() < currentLength.Ymin)
+
+                double min = series.Points[x].YValues.Min();
+
+                if (min != 0
+                    && min != double.NaN
+                    && min < currentLength.Ymin)
                 {
-                    currentLength.Ymin = series.Points[x].YValues.Min();
+                    currentLength.Ymin = min;
                 }
                 currentLength.Xstart = start;
                 currentLength.Xend = end;
@@ -7590,11 +7600,6 @@ ContextMenuStrip menu)
             catch (Exception)
             {
 
-            }
-
-            if(max == Double.MinValue)
-            {
-                return 0;
             }
 
             return max;
