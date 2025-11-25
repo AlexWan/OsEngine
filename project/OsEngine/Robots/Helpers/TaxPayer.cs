@@ -34,7 +34,7 @@ It calculates the profit of trades for the last year in the Journal, calculates 
 
 namespace OsEngine.Robots.Helpers
 {
-    [Bot ("TaxPayer")]
+    [Bot("TaxPayer")]
     public class TaxPayer : BotPanel
     {
         private BotTabSimple _tab;
@@ -47,7 +47,7 @@ namespace OsEngine.Robots.Helpers
             {
                 string message = OsLocalization.ConvertToLocString("Eng:The bot only works in the Tester._" + "Ru:Бот работает только в Тестере_");
 
-                SendNewLogMessage(message, Logging.LogMessageType.Error);                
+                SendNewLogMessage(message, Logging.LogMessageType.Error);
                 return;
             }
 
@@ -128,7 +128,7 @@ namespace OsEngine.Robots.Helpers
 
         private void _dgv_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            
+
         }
 
         private void _dgv_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -171,7 +171,7 @@ namespace OsEngine.Robots.Helpers
             int year = 0;
 
             if (int.TryParse(_dgv[0, rowIndex].Value?.ToString(), out year))
-            {                
+            {
                 int deleteIndex = _listTable.FindIndex(x => x.Year == year);
 
                 if (deleteIndex > -1)
@@ -179,7 +179,7 @@ namespace OsEngine.Robots.Helpers
                     _listTable.RemoveAt(deleteIndex);
                 }
             }
-                        
+
             _dgv.Rows.RemoveAt(rowIndex);
 
             SaveTable();
@@ -319,7 +319,7 @@ namespace OsEngine.Robots.Helpers
 
                 _dgv.Rows.Insert(_dgv.RowCount - 1, row);
 
-                _listTable.Add(new ListTablePeriods() { Year = 2000 + i, Rate = 13});
+                _listTable.Add(new ListTablePeriods() { Year = 2000 + i, Rate = 13 });
             }
         }
 
@@ -440,15 +440,15 @@ namespace OsEngine.Robots.Helpers
             }
 
             decimal tax = Math.Round(profit * rate / 100, 2);
-                 
+
             if (tax > 0)
             {
                 Security security = new();
                 security.Name = "Taxes";
                 security.NameClass = "TestClass";
-                
+
                 ConnectorCandles connector = taxBot.TabsSimple[0].Connector;
-                Portfolio portfolio = taxBot.TabsSimple[0].Portfolio;                
+                Portfolio portfolio = taxBot.TabsSimple[0].Portfolio;
                 BotManualControl manualPositionSupport = taxBot.TabsSimple[0].ManualPositionSupport;
                 Journal.Journal journal = taxBot.TabsSimple[0].GetJournal();
 
