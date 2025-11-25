@@ -365,7 +365,7 @@ namespace OsEngine.Market.Servers
                 }
                 else
                 {
-                    for (int i = 1; i < _grid.Rows.Count; i++)
+                    for (int i = 0; i < _grid.Rows.Count; i++)
                     {
                         TryRePaintRow(_grid.Rows[i], rows[i]);
                     }
@@ -380,7 +380,7 @@ namespace OsEngine.Market.Servers
 
         private void TryRePaintRow(DataGridViewRow oldRow, DataGridViewRow newRow)
         {
-            for (int i = 1; i < oldRow.Cells.Count; i++)
+            for (int i = 1; i < oldRow.Cells.Count && i < newRow.Cells.Count; i++)
             {
                 if (oldRow.Cells[i].Value != newRow.Cells[i].Value)
                 {
@@ -400,7 +400,15 @@ namespace OsEngine.Market.Servers
             DataGridViewRow firstRow = new DataGridViewRow();
             firstRow.Cells.Add(new DataGridViewTextBoxCell());
             firstRow.Cells[0].Value = portfolio.PortfolioName;
+            firstRow.Cells.Add(new DataGridViewTextBoxCell());
+            firstRow.Cells.Add(new DataGridViewTextBoxCell());
+            firstRow.Cells.Add(new DataGridViewTextBoxCell());
+            firstRow.Cells.Add(new DataGridViewTextBoxCell());
+
             rows.Add(firstRow);
+
+            int longAllBots = 0;
+            int shortAllBots = 0;
 
             for (int i = 0; i < portfolio.CompareSecurities.Count; i++)
             {
@@ -429,8 +437,18 @@ namespace OsEngine.Market.Servers
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = portfolio.CompareSecurities[i].RobotsLong.ToStringWithNoEndZero();
 
+                if(portfolio.CompareSecurities[i].RobotsLong > 0)
+                {
+                    longAllBots++;
+                }
+              
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[4].Value = portfolio.CompareSecurities[i].RobotsShort.ToStringWithNoEndZero();
+
+                if (portfolio.CompareSecurities[i].RobotsShort < 0)
+                {
+                    shortAllBots++;
+                }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[5].Value = portfolio.CompareSecurities[i].RobotsCommon.ToStringWithNoEndZero();
@@ -458,6 +476,9 @@ namespace OsEngine.Market.Servers
 
                 rows.Add(nRow);
             }
+
+            firstRow.Cells[3].Value = longAllBots;
+            firstRow.Cells[4].Value = shortAllBots;
 
             return rows;
         }
