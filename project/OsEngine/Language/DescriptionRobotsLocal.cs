@@ -1314,5 +1314,11 @@ namespace OsEngine.Language
         public string DescriptionLabel326 => OsLocalization.ConvertToLocString(
             "Eng:The trend robot on Adaptive Price Channel and Volatility group. Buy -  The candle closed above the upper line of the Price Channel. Filter by volatility groups. All screener papers are divided into 3 groups. One of them is traded. Exit for long -  When the Price Channel bottom line is broken._" +
             "Ru:Трендовый робот скринер, на Adaptive Price Channel и группах волатильности. Покупка - Свеча закрылась выше верхней линии ценового канала. Фильтр по группам волатильности. Все бумаги для проверки разделены на 3 группы. Одна из них торгуется. Выход -  когда нижняя линия ценового канала пробита._");
+
+        public string DescriptionLabel327 => OsLocalization.ConvertToLocString(
+        "Eng:The bot for pay taxes in Tester. During testing, the bot checks the Journal of all bots at the end of the year. It calculates the profit of trades for the last year in the Journal, calculates the tax, and deducts this tax from the deposit._" +
+        "Ru:Робот для уплаты налогов в Тестере. При тестировании робот по окончанию года проверяет Журналы всех ботов. Считает в Журнале профит сделок за последний год, расчитывает налог, и списывает этот налог из депозита._");
+
+
     }
 }

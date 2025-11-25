@@ -114,6 +114,7 @@ StopByTradeFeedSample&Технический пример робота для Os
 StrategyBillWilliams&Стратегия по Биллу Уильямсу (Bill Williams). Покупка (Buy)- 1. Текущая цена должна быть выше всех трех линий индикатора Alligator. 2. Дополнительно, цена должна быть выше уровня восходящего фрактала (&Include&&Simple 1*&Alligator*AO*Fractal*&
 StrategyBollinger&Пример робота Countertrend- Buy- 1. Цена ниже линии BollingerDownLine. Sell- 1. Цена выше линии BollingerUpLine. Выход- 1. При пересечении скользящей средней (Sma) с ценой.&Include&&Simple 1*&Bollinger*Sma*&
 TakeFunding&&Include&&&&
+TaxPayer&Робот для уплаты налогов в Тестере. При тестировании робот по окончанию года проверяет Журналы всех ботов. Считает в Журнале профит сделок за последний год, расчитывает налог, и списывает этот налог из депозита.&Include&&Simple 1*&&
 TelegramCryptoXBot&Робот работает с источником новостей и скринером, получая торговые сигналы из канала CryptoX|Protruding в Telegram.   На основе сигнала робот ищет соответствующий актив, открывает сделку, устанавливает три уровня тейк-профита. После срабатывания второго уровня тейк-профита стоп-лосс перемещается в безубыток. Таймфрейм — 1 минута. Ссылка- https-//t.me/+byORdjvgSFQ2ODQ0&Include&&Screener 1*News 1*&&
 TestBotCandlesComparison&TestBot для OsEngine. Не включай - робот для проверки синхронности свечей созданный внутри OsEngine и запрошенный с биржи&Include&&Simple 1*&&
 TestBotConnection&Не включайте - робот для проверки связи с Биржей&Include&&Screener 1*&&

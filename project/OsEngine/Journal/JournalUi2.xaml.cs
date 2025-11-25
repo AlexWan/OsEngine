@@ -1221,7 +1221,8 @@ namespace OsEngine.Journal
                     ComboBoxBenchmark.IsEnabled = false;
                 }
 
-                if (ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString() &&
+                if (positionsAll.Count > 0
+                    && ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString() &&
                     chartType == "Absolute")
                 {
                     _startValuePortfolio = positionsAll[0].PortfolioValueOnOpenPosition;
@@ -4311,6 +4312,11 @@ namespace OsEngine.Journal
             try
             {
                 List<Journal> journals = new List<Journal>();
+
+                if(_botsJournals == null)
+                {
+                    return null;
+                }
 
                 for (int i = 0; i < _botsJournals.Count; i++)
                 {

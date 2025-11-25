@@ -2692,13 +2692,20 @@ position => position.State != PositionStateType.OpeningFail
 
         public void AddChildren(object children)
         {
-            if (GridToPaint.Dispatcher.CheckAccess() == false)
+            try
             {
-                GridToPaint.Dispatcher.Invoke(new Action<object>(AddChildren), children);
-                return;
-            }
+                if (GridToPaint.Dispatcher.CheckAccess() == false)
+                {
+                    GridToPaint.Dispatcher.Invoke(new Action<object>(AddChildren), children);
+                    return;
+                }
 
-            GridToPaint.Children.Add((UIElement)children);
+                GridToPaint.Children.Add((UIElement)children);
+            }
+            catch
+            {
+                // ignore
+            }
         }
     }
 	

@@ -5,7 +5,6 @@
 
 using Newtonsoft.Json;
 using OsEngine.Entity;
-using OsEngine.Logging;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -13,12 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using OsEngine.Journal;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using OsEngine.Market.Connectors;
@@ -59,15 +54,26 @@ namespace OsEngine.Robots.Helpers
             string tabName = " Parameters ";
 
             _regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" }, tabName);
+            try
+            {
+                CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab(" Periods ");
 
-            CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab(" Periods ");
+                CreateTable();
 
-            CreateTable();
-            customTab.AddChildren(_host);
-
-            LoadTable();
+                if (_dgv != null)
+                {
+                    customTab.AddChildren(_host);
+                    LoadTable();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
 
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = OsLocalization.Description.DescriptionLabel327;
         }
 
         #region Table Periods
@@ -122,7 +128,7 @@ namespace OsEngine.Robots.Helpers
             }
             catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                //SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
