@@ -727,6 +727,7 @@ namespace OsEngine.Market.Servers.Bybit
                             security.NameId = oneSec.symbol;
                             security.NameClass = oneSec.quoteCoin;
                             security.MinTradeAmount = oneSec.lotSizeFilter.minOrderAmt.ToDecimal();
+                            security.MinTradeAmountType = MinTradeAmountType.C_Currency;
                         }
                         else if (category == Category.linear)
                         {
@@ -742,7 +743,8 @@ namespace OsEngine.Market.Servers.Bybit
                                 security.NameClass = oneSec.contractType;
                             }
 
-                            security.MinTradeAmount = oneSec.lotSizeFilter.minNotionalValue.ToDecimal();
+                            security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
+                            security.MinTradeAmountType = MinTradeAmountType.Contract;
                         }
                         else if (category == Category.inverse)
                         {
@@ -750,6 +752,7 @@ namespace OsEngine.Market.Servers.Bybit
                             security.NameId = oneSec.symbol + ".I";
                             security.NameClass = oneSec.contractType;
                             security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
+                            security.MinTradeAmountType = MinTradeAmountType.Contract;
                         }
                         else if (category == Category.option)
                         {
@@ -758,6 +761,7 @@ namespace OsEngine.Market.Servers.Bybit
                             security.NameId = oneSec.symbol;
                             security.NameClass = oneSec.quoteCoin + "_Options";
                             security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
+                            security.MinTradeAmountType = MinTradeAmountType.Contract;
                             security.OptionType = oneSec.optionsType == "Call" ? OptionType.Call : OptionType.Put;
 
                             // https://bybit-exchange.github.io/docs/api-explorer/v5/market/instrument
@@ -785,8 +789,6 @@ namespace OsEngine.Market.Servers.Bybit
 
                         security.PriceStep = oneSec.priceFilter.tickSize.ToDecimal();
                         security.PriceStepCost = oneSec.priceFilter.tickSize.ToDecimal();
-
-                        security.MinTradeAmountType = MinTradeAmountType.C_Currency;
 
                         if (oneSec.lotSizeFilter.qtyStep != null)
                         {
