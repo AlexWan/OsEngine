@@ -46,6 +46,7 @@ namespace OsEngine.Robots.Helpers
         private StrategyParameterString _regime;
         private StartProgram _startProgram;
         List<BotPanel> _bots;
+        private StrategyParameterBool _fullLogIsOn;
 
         public PayOfMarginBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -62,7 +63,11 @@ namespace OsEngine.Robots.Helpers
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _regime = CreateParameter("Regime", "Off", new string[] { "Off", "Summ", "Percent" }, " Main ");
+            string tabName = " Main ";
+
+            _regime = CreateParameter("Regime", "Off", new string[] { "Off", "Summ", "Percent" }, tabName);
+
+            _fullLogIsOn = CreateParameter("Full log is on", false, tabName);
 
             CustomTabToParametersUi customTabSumm = ParamGuiSettings.CreateCustomTab(" Summ ");
 
@@ -595,6 +600,11 @@ namespace OsEngine.Robots.Helpers
 
         private void MainLogic(DateTime timeStart)
         {
+            if (_fullLogIsOn.ValueBool == true)
+            {
+                SendNewLogMessage("Logic entry. Date: " + timeStart.ToString("dd.MM.yyyy"), Logging.LogMessageType.System);
+            }
+
             decimal volume = 0;
             decimal deposit = 0;
             DateTime timeDeposit = DateTime.MinValue;
@@ -603,7 +613,7 @@ namespace OsEngine.Robots.Helpers
 
             for (int i = 0; i < _bots.Count; i++)
             {
-                if (_bots[i].GetNameStrategyType() == "MarginBot")
+                if (_bots[i].GetNameStrategyType() == "PayOfMarginBot")
                 {
                     taxBot = _bots[i];
                     continue;
@@ -614,26 +624,31 @@ namespace OsEngine.Robots.Helpers
                     continue;
                 }
 
-                List<Journal.Journal> journal = _bots[i].GetJournals();
+                List<Journal.Journal> journals = _bots[i].GetJournals();
 
                 decimal volumeBot = 0;
 
-                for (int i2 = 0; i2 < journal[0].OpenPositions.Count; i2++)
+                for (int j = 0; j < journals.Count; j++)
                 {
-                    if (journal[0].OpenPositions[i2].TimeOpen != timeStart)
+                    Journal.Journal curJournal = journals[j];
+
+                    for (int i2 = 0; i2 < curJournal.OpenPositions.Count; i2++)
                     {
-                        continue;
+                        if (curJournal.OpenPositions[i2].TimeOpen != timeStart)
+                        {
+                            continue;
+                        }
+
+                        volumeBot += curJournal.OpenPositions[i2].EntryPrice * curJournal.OpenPositions[i2].OpenVolume;
+
+                        DateTime time = _bots[i].OpenPositions[^1].TimeOpen;
+
+                        if (timeDeposit < time)
+                        {
+                            deposit = _bots[i].OpenPositions[^1].PortfolioValueOnOpenPosition;
+                            timeDeposit = time;
+                        }
                     }
-
-                    volumeBot += journal[0].OpenPositions[i2].EntryPrice * journal[0].OpenPositions[i2].OpenVolume;
-
-                    DateTime time = _bots[i].OpenPositions[^1].TimeOpen;
-
-                    if (timeDeposit < time)
-                    {
-                        deposit = _bots[i].OpenPositions[^1].PortfolioValueOnOpenPosition;
-                        timeDeposit = time;
-                    }                    
                 }
 
                 volume += volumeBot;               
@@ -641,8 +656,15 @@ namespace OsEngine.Robots.Helpers
 
             if (volume > deposit)
             {
-                TaxDeal(taxBot, timeStart, volume - deposit);
-            }            
+                TaxDeal(taxBot, timeStart, Math.Round(volume - deposit, 2));
+            }
+            else
+            {
+                if (_fullLogIsOn.ValueBool == true)
+                {
+                    SendNewLogMessage("No margin. Date: " + timeStart.ToString("dd.MM.yyyy") + " Amount positions: " + volume + " Deposit: " + deposit, Logging.LogMessageType.System);
+                }
+            }
         }
 
         private void TaxDeal(BotPanel taxBot, DateTime timeStart, decimal margin)
@@ -732,6 +754,11 @@ namespace OsEngine.Robots.Helpers
 
                     if (rate <= 0)
                     {
+                        if (_fullLogIsOn.ValueBool == true)
+                        {
+                            SendNewLogMessage("No Rate. Date: " + timeStart.ToString("dd.MM.yyyy") + " Rate: " + rate, Logging.LogMessageType.System);
+                        }
+
                         return 0;
                     }
 
@@ -742,7 +769,10 @@ namespace OsEngine.Robots.Helpers
                         marginComission = Math.Round(margin * rate / 100, 2);
                     }
 
-                    SendNewLogMessage($"{timeStart}, margin = {margin}, rate = {rate}, typeRate = {typeValue}, comission = {marginComission}", LogMessageType.Error);
+                    if (_fullLogIsOn.ValueBool == true)
+                    {
+                        SendNewLogMessage($"Date: {timeStart.ToString("dd.MM.yyyy")}, Margin: {margin}, Rate: {rate}, TypeRate: {typeValue}, Comission: {marginComission}", LogMessageType.System);
+                    }
 
                     return marginComission;
                 }
@@ -760,7 +790,10 @@ namespace OsEngine.Robots.Helpers
 
                     decimal marginComission = Math.Round(rate / daysInYear * margin, 2);
 
-                    SendNewLogMessage($"{timeStart}, margin = {margin}, rate = {rate}, typeRate = {typeValue}, comission = {marginComission}", LogMessageType.Error);
+                    if (_fullLogIsOn.ValueBool == true)
+                    {
+                        SendNewLogMessage($"Date: {timeStart.ToString("dd.MM.yyyy")}, Margin: {margin}, Rate: {rate}, TypeRate: {typeValue}, Comission: {marginComission}", LogMessageType.System);
+                    }
 
                     return marginComission;
                 }                                
