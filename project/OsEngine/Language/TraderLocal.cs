@@ -2442,5 +2442,9 @@ namespace OsEngine.Language
         public string Label635 => OsLocalization.ConvertToLocString(
          "Eng:Open orders maker only_" +
          "Ru:Открытие только мэйкер_");
+
+        public string Label636 => OsLocalization.ConvertToLocString(
+         "Eng:Single activation mode_" +
+         "Ru:Режим одиночной активации_");
     }
 }

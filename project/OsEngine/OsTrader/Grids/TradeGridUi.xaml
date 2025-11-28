@@ -137,23 +137,24 @@
             </TabItem>
             <TabItem Name="TabItemAutoStart" Header="Auto start">
                 <Grid >
-                    <Label Name="LabelAutoStartRegime" Content="Start by price regime" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="134"/>
+                    <Label Name="LabelAutoStartRegime" Content="Start by price regime" HorizontalAlignment="Left" Margin="15,10,0,0" VerticalAlignment="Top" Width="134"/>
                     <ComboBox Name="ComboBoxAutoStartRegime" Margin="164,10,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelAutoStartPrice" Content="Price" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" Width="67"/>
+                    <Label Name="LabelAutoStartPrice" Content="Price" HorizontalAlignment="Left" Margin="15,38,0,0" VerticalAlignment="Top" Width="67"/>
                     <TextBox Name="TextBoxAutoStartPrice" Margin="165,38,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelRebuildGridRegime" Content="Rebuild grid on start" HorizontalAlignment="Left" Margin="10,132,0,0" VerticalAlignment="Top" Width="189"/>
+                    <Label Name="LabelRebuildGridRegime" Content="Rebuild grid on start" HorizontalAlignment="Left" Margin="15,132,0,0" VerticalAlignment="Top" Width="180"/>
                     <ComboBox Name="ComboBoxRebuildGridRegime" Margin="201,132,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelShiftFirstPrice" Content="Shift first price %" HorizontalAlignment="Left" Margin="10,160,0,0" VerticalAlignment="Top" Width="189"/>
+                    <Label Name="LabelShiftFirstPrice" Content="Shift first price %" HorizontalAlignment="Left" Margin="15,160,0,0" VerticalAlignment="Top" Width="180"/>
                     <TextBox Name="TextBoxShiftFirstPrice" Margin="201,160,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxStartGridByTimeOfDayIsOn"  Content="Start by time" HorizontalAlignment="Left" Margin="10,87,0,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxStartGridByTimeOfDayIsOn"  Content="Start by time" HorizontalAlignment="Left" Margin="15,88,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxStartGridByTimeOfDayHour" Margin="208,87,0,0" TextWrapping="Wrap" Text="14" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23"/>
                     <Label Name="LabelStartGridByTimeOfDayHour" Content="H:" HorizontalAlignment="Left" Margin="188,87,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxStartGridByTimeOfDayMinute" Margin="253,87,0,0" TextWrapping="Wrap" Text="15" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23"/>
                     <Label Name="LabelStartGridByTimeOfDayMinute" Content="M:" HorizontalAlignment="Left" Margin="231,87,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxStartGridByTimeOfDaySecond" Margin="298,87,17,0" TextWrapping="Wrap" Text="00" VerticalAlignment="Top"/>
                     <Label Name="LabelStartGridByTimeOfDaySecond" Content="S:" HorizontalAlignment="Left" Margin="280,87,0,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxSingleActivationMode"  Content="Single activation mode" HorizontalAlignment="Left" Margin="15,204,0,0" VerticalAlignment="Top"/>
 
                 </Grid>
             </TabItem>
@@ -182,7 +183,7 @@
                     <Label Name="LabelNoTradePeriod1Regime" Content="Regime" HorizontalAlignment="Left" Margin="14,10,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxNonTradePeriod1Regime" Margin="202,10,10,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonSetNonTradePeriods" Content="Set periods" Margin="203,38,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods_Click"/>
-                   
+
                     <ComboBox Name="ComboBoxOpenOrdersMakerOnly" Margin="202,95,10,0" VerticalAlignment="Top"/>
                     <Label Name="LabelOpenOrdersMakerOnly" Content="Open orders maker only" HorizontalAlignment="Left" Margin="14,95,0,0" VerticalAlignment="Top"/>
 

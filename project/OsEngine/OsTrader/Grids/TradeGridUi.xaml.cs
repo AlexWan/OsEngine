@@ -309,6 +309,10 @@ namespace OsEngine.OsTrader.Grids
             TextBoxStartGridByTimeOfDaySecond.Text = tradeGrid.AutoStarter.StartGridByTimeOfDaySecond.ToString();
             TextBoxStartGridByTimeOfDaySecond.TextChanged += TextBoxStartGridByTimeOfDaySecond_TextChanged;
 
+            CheckBoxSingleActivationMode.IsChecked = tradeGrid.AutoStarter.SingleActivationMode;
+            CheckBoxSingleActivationMode.Checked += CheckBoxSingleActivationMode_Checked;
+            CheckBoxSingleActivationMode.Unchecked += CheckBoxSingleActivationMode_Checked;
+
             // error reaction
 
             CheckBoxFailOpenOrdersReactionIsOn.IsChecked = tradeGrid.ErrorsReaction.FailOpenOrdersReactionIsOn;
@@ -487,6 +491,10 @@ namespace OsEngine.OsTrader.Grids
             LabelStartGridByTimeOfDayHour.Content = OsLocalization.Trader.Label527 + ":";
             LabelStartGridByTimeOfDayMinute.Content = OsLocalization.Trader.Label528 + ":";
             LabelStartGridByTimeOfDaySecond.Content = OsLocalization.Trader.Label529 + ":";
+
+
+            CheckBoxSingleActivationMode.Content = OsLocalization.Trader.Label636;
+
             // errors
 
             CheckBoxFailOpenOrdersReactionIsOn.Content = OsLocalization.Trader.Label538; 
@@ -2348,6 +2356,20 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 TradeGrid.AutoStarter.StartGridByTimeOfDaySecond = Convert.ToInt32(TextBoxStartGridByTimeOfDaySecond.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+
+        private void CheckBoxSingleActivationMode_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.AutoStarter.SingleActivationMode = CheckBoxSingleActivationMode.IsChecked.Value;
                 TradeGrid.Save();
             }
             catch

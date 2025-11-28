@@ -33,6 +33,8 @@ namespace OsEngine.OsTrader.Grids
 
         public int StartGridByTimeOfDaySecond = 0;
 
+        public bool SingleActivationMode = true;
+
         public string GetSaveString()
         {
             string result = "";
@@ -45,7 +47,7 @@ namespace OsEngine.OsTrader.Grids
             result += StartGridByTimeOfDayHour + "@";
             result += StartGridByTimeOfDayMinute + "@";
             result += StartGridByTimeOfDaySecond + "@";
-            result += "@";
+            result += SingleActivationMode;
             result += "@";
             result += "@";
             result += "@";
@@ -73,6 +75,7 @@ namespace OsEngine.OsTrader.Grids
                     StartGridByTimeOfDayHour = Convert.ToInt32(values[5]);
                     StartGridByTimeOfDayMinute = Convert.ToInt32(values[6]);
                     StartGridByTimeOfDaySecond = Convert.ToInt32(values[7]);
+                    SingleActivationMode = Convert.ToBoolean(values[8]);
                 }
                 catch
                 {
@@ -117,7 +120,12 @@ namespace OsEngine.OsTrader.Grids
                     message += "Market price: " + price;
 
                     SendNewLogMessage(message, LogMessageType.Signal);
-                    AutoStartRegime = TradeGridAutoStartRegime.Off;
+
+                    if(SingleActivationMode == true)
+                    {
+                        AutoStartRegime = TradeGridAutoStartRegime.Off;
+                    }
+
                     return true;
                 }
                 else if (AutoStartRegime == TradeGridAutoStartRegime.LowerOrEqual
@@ -128,7 +136,11 @@ namespace OsEngine.OsTrader.Grids
                     message += "Auto-starter price: " + AutoStartPrice + "\n";
                     message += "Market price: " + price;
                     SendNewLogMessage(message, LogMessageType.Signal);
-                    AutoStartRegime = TradeGridAutoStartRegime.Off;
+
+                    if (SingleActivationMode == true)
+                    {
+                        AutoStartRegime = TradeGridAutoStartRegime.Off;
+                    }
 
                     return true;
                 }
@@ -164,7 +176,10 @@ namespace OsEngine.OsTrader.Grids
                         message += "Current server time: " + time.ToString();
                         SendNewLogMessage(message, LogMessageType.Signal);
 
-                        StartGridByTimeOfDayIsOn = false;
+                        if (SingleActivationMode == true)
+                        {
+                            StartGridByTimeOfDayIsOn = false;
+                        }
 
                         return true;
                     }
