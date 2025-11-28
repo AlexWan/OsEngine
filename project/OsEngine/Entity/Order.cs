@@ -132,6 +132,11 @@ namespace OsEngine.Entity
         private decimal _volumeExecute;
         private bool _volumeExecuteChange;
 
+        public void ReCalculateVolume()
+        {
+            _volumeExecuteChange = true;
+        }
+
         /// <summary>
         /// My trades belonging to this order
         /// </summary>

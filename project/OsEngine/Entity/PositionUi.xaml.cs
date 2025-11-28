@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using OsEngine.Market;
+using System.Drawing;
 
 namespace OsEngine.Entity
 {
@@ -400,6 +401,11 @@ namespace OsEngine.Entity
                 newOrder.PortfolioNumber = GetPortfolioName();
                 newOrder.PositionConditionType = OrderPositionConditionType.Close;
 
+                if (string.IsNullOrEmpty(_position.SecurityName) == false)
+                {
+                    newOrder.SecurityNameCode = _position.SecurityName;
+                }
+
                 _position.AddNewCloseOrder(newOrder);
 
                 SyncPositionWithOrdersAndMyTrades();
@@ -547,6 +553,11 @@ namespace OsEngine.Entity
                 newOrder.TypeOrder = OrderPriceType.Limit;
                 newOrder.PortfolioNumber = GetPortfolioName();
                 newOrder.PositionConditionType = OrderPositionConditionType.Open;
+
+                if(string.IsNullOrEmpty(_position.SecurityName) == false)
+                {
+                    newOrder.SecurityNameCode = _position.SecurityName;
+                }
 
                 _position.AddNewOpenOrder(newOrder);
 
@@ -843,6 +854,18 @@ namespace OsEngine.Entity
                 trade.NumberPosition = _position.Number.ToString();
                 trade.NumberTrade = NumberGen.GetNumberOrder(_startProgram).ToString();
 
+                if(myOrd.MyTrades != null 
+                    && myOrd.MyTrades.Count != 0)
+                {
+                    MyTrade firstTrade = myOrd.MyTrades[0];
+
+                    if(firstTrade != null)
+                    {
+                        trade.Time = firstTrade.Time;
+                        trade.Price = firstTrade.Price;
+                    }
+                }
+
                 myOrd.SetTrade(trade);
 
                 SyncPositionWithOrdersAndMyTrades();
@@ -951,6 +974,7 @@ namespace OsEngine.Entity
                             break;
                         }
                     }
+                    curOrd.ReCalculateVolume();
                 }
 
                 for (int i = 0; closeOrders != null && i < closeOrders.Count; i++)
@@ -973,6 +997,7 @@ namespace OsEngine.Entity
                             break;
                         }
                     }
+                    curOrd.ReCalculateVolume();
                 }
 
                 RePaint();
@@ -1047,6 +1072,7 @@ namespace OsEngine.Entity
             for (int i = 0; openOrders != null && i < openOrders.Count; i++)
             {
                 Order curOrd = openOrders[i];
+                curOrd.ReCalculateVolume();
                 curOrd.SecurityNameCode = securityName;
 
                 List<MyTrade> trades = openOrders[i].MyTrades;
@@ -1060,6 +1086,7 @@ namespace OsEngine.Entity
             for (int i = 0; closeOrders != null && i < closeOrders.Count; i++)
             {
                 Order curOrd = closeOrders[i];
+                curOrd.ReCalculateVolume();
                 curOrd.SecurityNameCode = securityName;
 
                 List<MyTrade> trades = closeOrders[i].MyTrades;
