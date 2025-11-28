@@ -495,6 +495,8 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         SecurityEvent.Invoke(_securities);
                     }
+
+                    GetPortfolios();
                 }
                 else
                 {
@@ -1015,16 +1017,20 @@ namespace OsEngine.Market.Servers.TInvest
             else
             {
                 myPortfolio.Number = portfolioResponse.AccountId;
-                myPortfolio.ValueCurrent = portfolioResponse.TotalAmountPortfolio != null ? GetValue(portfolioResponse.TotalAmountPortfolio) : 1;
-                myPortfolio.ValueBegin = myPortfolio.ValueCurrent;
+
+                decimal value = portfolioResponse.TotalAmountPortfolio != null ? GetValue(portfolioResponse.TotalAmountPortfolio) : 1;
+
+                if(value != 1)
+                {
+                    myPortfolio.ValueCurrent = value;
+                }
+                
             }
         }
 
         private void UpdatePositionsInPortfolio(PortfolioResponse portfolio)
         {
             Portfolio portf = _myPortfolios.Find(p => p.Number == portfolio.AccountId);
-
-            
 
             if (portf == null)
             {
@@ -1051,6 +1057,10 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage("Error getting positions in portfolio", LogMessageType.System);
             }
+
+            // переменные для учёта позиций
+            decimal futuresAndOptionsGO = 0;
+            decimal spotShortValue = 0;
 
             for (int i = 0; i < posData.Securities.Count; i++)
             {
@@ -1092,6 +1102,12 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                 sectionPoses.Add(newPos);
+
+                if(pos.Balance < 0
+                    && instrument.Instrument.Currency == "rub")
+                {
+                    spotShortValue += GetGoByShortSpotOperations(pos.InstrumentUid, newPos.ValueCurrent);
+                }
             }
 
             for (int i = 0; i < posData.Futures.Count; i++)
@@ -1133,6 +1149,11 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                 sectionPoses.Add(newPos);
+
+                if (instrument.Instrument.Currency == "rub")
+                {
+                    futuresAndOptionsGO += GetGoByFuturesOrOptions(pos.InstrumentUid, newPos.ValueCurrent);
+                }
             }
 
             for (int i = 0; i < posData.Options.Count; i++)
@@ -1174,6 +1195,11 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                 sectionPoses.Add(newPos);
+
+                if (instrument.Instrument.Currency == "rub")
+                {
+                    futuresAndOptionsGO += GetGoByFuturesOrOptions(pos.InstrumentUid, newPos.ValueCurrent);
+                }
             }
 
             PortfolioPosition rubPosition = null;
@@ -1186,6 +1212,10 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
+            // Блокированные средства по портфелю целиком
+
+            portf.ValueBlocked = 0;
+
             for (int i = 0; i < portfolio.Positions.Count; i++)
             {
                 if (portfolio.Positions[i].InstrumentType == "currency")
@@ -1194,18 +1224,28 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
-            for (int i = 0; i < posData.Money.Count; i++) // posData.Blocked обработать отдельно?
+            // Денежная позиция в портфеле
+
+            for (int i = 0; i < posData.Money.Count; i++)
             {
                 MoneyValue posMoney = posData.Money[i];
 
                 PositionOnBoard newPos = new PositionOnBoard();
-
-                newPos.PortfolioName = portf.Number;
-                newPos.ValueCurrent = GetValue(posMoney);
-                newPos.ValueBegin = newPos.ValueCurrent;
-                newPos.ValueBlocked = rubPosition == null ? 0 : GetValue(rubPosition.BlockedLots);
-
                 newPos.SecurityNameCode = posMoney.Currency;
+                newPos.PortfolioName = portf.Number;
+
+                if(newPos.SecurityNameCode == "rub")
+                {
+                    decimal valuePortfolio = GetValue(posMoney);
+
+                    newPos.ValueCurrent = valuePortfolio - futuresAndOptionsGO - spotShortValue;
+                }
+                else
+                {
+                    newPos.ValueCurrent = GetValue(posMoney);
+                }
+                    
+                newPos.ValueBegin = newPos.ValueCurrent;
 
                 sectionPoses.Add(newPos);
             }
@@ -1234,6 +1274,72 @@ namespace OsEngine.Market.Servers.TInvest
             for (int i = 0; i < sectionPoses.Count; i++)
             {
                 portf.SetNewPosition(sectionPoses[i]);
+            }
+        }
+
+        private decimal GetGoByShortSpotOperations(string tickerId, decimal volume)
+        {
+            if (volume >= 0)
+            {
+                return 0;
+            }
+
+            Security mySecurity = _securities.Find(s => s.NameId == tickerId);
+
+            if (mySecurity == null)
+            {
+                return 0;
+            }
+
+            GetLastPricesRequest request = new GetLastPricesRequest();
+            request.InstrumentId.Add(tickerId);
+
+            GetLastPricesResponse response = _marketDataServiceClient.GetLastPrices(request, _gRpcMetadata);
+
+            if(response == null 
+                || response.LastPrices == null
+                || response.LastPrices.Count == 0)
+            {
+                return 0;
+            }
+
+            decimal lastPrice = GetValue(response.LastPrices[0].Price);
+
+            if(lastPrice == 0)
+            {
+                return 0;
+            }
+
+
+            decimal result = - (volume * lastPrice * mySecurity.Lot) * 2;
+
+            return result;
+
+        }
+
+        private decimal GetGoByFuturesOrOptions(string tickerId, decimal volume)
+        {
+            if (volume == 0)
+            {
+                return 0;
+            }
+
+            Security mySecurity = _securities.Find(s => s.NameId == tickerId);
+
+            if (mySecurity == null)
+            {
+                return 0;
+            }
+
+            if (volume > 0)
+            {
+                decimal result = volume * mySecurity.MarginBuy;
+                return result;
+            }
+            else
+            {
+                decimal result = -volume * mySecurity.MarginSell;
+                return result;
             }
         }
 
@@ -2631,14 +2737,17 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                         else
                         {
-                            portf.ValueCurrent = 0;
-                            portf.ValueCurrent += GetValue(portfolioResponse.Portfolio.TotalAmountBonds);
-                            portf.ValueCurrent += GetValue(portfolioResponse.Portfolio.TotalAmountCurrencies);
-                            portf.ValueCurrent += GetValue(portfolioResponse.Portfolio.TotalAmountEtf);
-                            portf.ValueCurrent += GetValue(portfolioResponse.Portfolio.TotalAmountFutures);
-                            portf.ValueCurrent += GetValue(portfolioResponse.Portfolio.TotalAmountOptions);
-                            portf.ValueCurrent += GetValue(portfolioResponse.Portfolio.TotalAmountShares);
-                            portf.ValueCurrent += GetValue(portfolioResponse.Portfolio.TotalAmountSp);
+                            decimal resultValue = 0;
+
+                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountBonds);
+                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountCurrencies);
+                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountEtf);
+                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountFutures);
+                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountOptions);
+                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountShares);
+                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountSp);
+
+                            portf.ValueCurrent = resultValue;
                         }
 
                         portf.UnrealizedPnl = GetValue(portfolioResponse.Portfolio.DailyYield);
@@ -2828,6 +2937,7 @@ namespace OsEngine.Market.Servers.TInvest
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                             portf.SetNewPosition(newPos);
+                            
                         }
 
                         for (int i = 0; i < posData.Options.Count; i++)
@@ -2864,19 +2974,18 @@ namespace OsEngine.Market.Servers.TInvest
                             portf.SetNewPosition(newPos);
                         }
 
-                        for (int i = 0; i < posData.Money.Count; i++)
+                        /*for (int i = 0; i < posData.Money.Count; i++)
                         {
                             PositionsMoney pos = posData.Money[i];
 
                             PositionOnBoard newPos = new PositionOnBoard();
 
                             newPos.PortfolioName = portf.Number;
+                            newPos.SecurityNameCode = pos.AvailableValue.Currency;
                             newPos.ValueCurrent = GetValue(pos.AvailableValue);
                             newPos.ValueBlocked = GetValue(pos.BlockedValue);
-                            newPos.SecurityNameCode = pos.AvailableValue.Currency;
-
                             portf.SetNewPosition(newPos);
-                        }
+                        }*/
 
                         if (PortfolioEvent != null)
                         {
