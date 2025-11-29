@@ -1,5 +1,10 @@
-﻿
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader;
@@ -10,12 +15,34 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+/* Description
+Робот предназначен для покупки TMON вечером на свободные средства и продаже всего объема TMON утром.
+
+The robot is designed to buy TMON in the evening with available funds and sell the entire volume of TMON in the morning.
+ */
 
 namespace OsEngine.Robots
 {
     [Bot("TMONRebalancer")]
     public class TMONRebalancer : BotPanel
     {
+        private BotTabSimple _tab;
+
+        private StrategyParameterString _regimeParameter;
+        private StrategyParameterDecimal _minBalance;
+        private StrategyParameterDecimal _allowedSpreadSize;
+        private StrategyParameterTimeOfDay _timeToBuy;
+        private StrategyParameterTimeOfDay _timeToSell;
+        private StrategyParameterCheckBox _tradeMonday;
+        private StrategyParameterCheckBox _tradeTuesday;
+        private StrategyParameterCheckBox _tradeWednesday;
+        private StrategyParameterCheckBox _tradeThursday;
+        private StrategyParameterCheckBox _tradeFriday;
+        private StrategyParameterCheckBox _tradeSaturday;
+        private StrategyParameterCheckBox _tradeSunday;
+        private StrategyParameterButton _rebalanceNowButton;
+        private bool _rebalanceNow;
+
         public TMONRebalancer(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
@@ -50,6 +77,10 @@ namespace OsEngine.Robots
             {
                 _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
             }
+
+            Description = OsLocalization.ConvertToLocString(
+                "En:The robot is designed to buy TMON in the evening with available funds and sell the entire volume of TMON in the morning._" +
+                "Ru:Робот предназначен для покупки TMON вечером на свободные средства и продаже всего объема TMON утром._");
         }
 
         private void _rebalanceNowButton_UserClickOnButtonEvent()
@@ -84,6 +115,21 @@ namespace OsEngine.Robots
                     if (CheckDayOfWeek() == false)
                     {
                         Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_tab.Connector.MyServer.ServerType != ServerType.TInvest
+                        || _tab.Security.Name != "TMON@")
+                    {
+                        SendNewLogMessage("Робот предназначен только для ребалансировки TMON у брокера Т-Инвестиции и для запуска в тестере", Logging.LogMessageType.Error);
+                        Thread.Sleep(60000);
+                        continue;
+                    }
+
+                    if (_timeToSell.Value > _timeToBuy.Value)
+                    {
+                        SendNewLogMessage("Неправильно указано время!!! Время для покупки должно быть больше, чем время для продажи", Logging.LogMessageType.Error);
+                        Thread.Sleep(60000);
                         continue;
                     }
 
@@ -352,27 +398,6 @@ namespace OsEngine.Robots
 
         #endregion
 
-        #region Fields
-
-        BotTabSimple _tab;
-
-        private StrategyParameterString _regimeParameter;
-        private StrategyParameterDecimal _minBalance;
-        private StrategyParameterDecimal _allowedSpreadSize;
-        private StrategyParameterTimeOfDay _timeToBuy;
-        private StrategyParameterTimeOfDay _timeToSell;
-        private StrategyParameterCheckBox _tradeMonday;
-        private StrategyParameterCheckBox _tradeTuesday;
-        private StrategyParameterCheckBox _tradeWednesday;
-        private StrategyParameterCheckBox _tradeThursday;
-        private StrategyParameterCheckBox _tradeFriday;
-        private StrategyParameterCheckBox _tradeSaturday;
-        private StrategyParameterCheckBox _tradeSunday;
-        private StrategyParameterButton _rebalanceNowButton;
-        private bool _rebalanceNow;
-
-        #endregion
-
         #region Helpers
 
         private bool CheckSpread()
@@ -404,11 +429,6 @@ namespace OsEngine.Robots
                 SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                 return false;
             }
-        }
-
-        public override string GetNameStrategyType()
-        {
-            return "TMONRebalancer";
         }
 
         #endregion
