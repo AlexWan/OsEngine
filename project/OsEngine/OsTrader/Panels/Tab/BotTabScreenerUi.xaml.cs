@@ -1616,7 +1616,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                ComboBoxPortfolio.Text = curCreator.PortfolioName;
+                for(int i = 0; ComboBoxPortfolio.Items != null && i < ComboBoxPortfolio.Items.Count;i++)
+                {
+                    if(ComboBoxPortfolio.Items[i] == null)
+                    {
+                        continue;
+                    }
+
+                    string portfolio = ComboBoxPortfolio.Items[i].ToString();
+
+                    if(portfolio == curCreator.PortfolioName)
+                    {
+                        ComboBoxPortfolio.Text = curCreator.PortfolioName;
+                    }
+                }
+
                 CheckBoxIsEmulator.IsChecked = curCreator.EmulatorIsOn;
                 ComboBoxTypeServer.Text = curCreator.ServerType.ToString();
                 ComboBoxCandleMarketDataType.Text = curCreator.CandleMarketDataType.ToString();
