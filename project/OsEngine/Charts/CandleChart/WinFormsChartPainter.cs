@@ -6570,9 +6570,14 @@ ContextMenuStrip menu)
             decimal minPriceStep = decimal.MaxValue;
             int countFive = 0;
 
-            for (int i = 0; i < candles.Count && i < 50; i++)
+            for (int i = 0; i < candles.Count && i < 1000; i++)
             {
                 Candle candleN = candles[i];
+
+                if(candleN == null)
+                {
+                    continue;
+                }
 
                 decimal open = candleN.Open;
                 decimal high = candleN.High;
