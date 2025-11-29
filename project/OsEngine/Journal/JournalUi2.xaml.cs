@@ -512,7 +512,7 @@ namespace OsEngine.Journal
 
         private void PaintTitleAbsProfit(List<Position> positionsAll)
         {
-            decimal absProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(positionsAll.ToArray());
+            decimal absProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(positionsAll.ToArray(), false);
 
             if (absProfit != 0)
             {
@@ -1106,6 +1106,11 @@ namespace OsEngine.Journal
                     }
                     else if (chartType == "Percent 1 contract")
                     {
+                        if (positionsAll[i].NameBotClass == "TaxPayer"
+                         || positionsAll[i].NameBotClass == "PayOfMarginBot")
+                        {
+                            continue;
+                        }
                         curProfit = positionsAll[i].ProfitOperationPercent * (curMult / 100);
                     }
 

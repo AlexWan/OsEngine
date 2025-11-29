@@ -242,6 +242,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public string TabName { get; set; }
 
+        public string BotClassName { get; set; }
+
         /// <summary>
         /// Tab number
         /// </summary>
@@ -1828,6 +1830,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.State = PositionStateType.Opening;
 
                 newDeal.NameBot = TabName;
+                newDeal.NameBotClass = this.BotClassName;
                 newDeal.Lots = Security.Lot;
                 newDeal.PriceStepCost = Security.PriceStepCost;
                 newDeal.PriceStep = Security.PriceStep;
@@ -1914,6 +1917,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.State = PositionStateType.Opening;
 
                 newDeal.NameBot = TabName;
+                newDeal.NameBotClass = this.BotClassName;
                 newDeal.Lots = Security.Lot;
                 newDeal.PriceStepCost = Security.PriceStepCost;
                 newDeal.PriceStep = Security.PriceStep;
@@ -2001,6 +2005,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ManualPositionSupport.OrderTypeTime,
                     ManualPositionSupport.LimitsMakerOnly);
 
+                newDeal.NameBotClass = this.BotClassName;
+
                 _journal.SetNewDeal(newDeal);
 
                 OrderFakeExecute(newDeal.OpenOrders[0], time);
@@ -2052,6 +2058,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ManualPositionSupport.SecondToOpen, Security, Portfolio, 
                     StartProgram, ManualPositionSupport.OrderTypeTime,
                     ManualPositionSupport.LimitsMakerOnly);
+
+                newDeal.NameBotClass = this.BotClassName;
 
                 newDeal.SignalTypeOpen = signalType;
 
@@ -2885,6 +2893,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.State = PositionStateType.Opening;
 
                 newDeal.NameBot = TabName;
+                newDeal.NameBotClass = this.BotClassName;
                 newDeal.Lots = Security.Lot;
                 newDeal.PriceStepCost = Security.PriceStepCost;
                 newDeal.PriceStep = Security.PriceStep;
@@ -2979,6 +2988,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.State = PositionStateType.Opening;
 
                 newDeal.NameBot = TabName;
+                newDeal.NameBotClass = this.BotClassName;
                 newDeal.Lots = Security.Lot;
                 newDeal.PriceStepCost = Security.PriceStepCost;
                 newDeal.PriceStep = Security.PriceStep;
@@ -3073,6 +3083,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     StartProgram, ManualPositionSupport.OrderTypeTime,
                     ManualPositionSupport.LimitsMakerOnly);
 
+                newDeal.NameBotClass = this.BotClassName;
+
                 _journal.SetNewDeal(newDeal);
 
                 OrderFakeExecute(newDeal.OpenOrders[0], time);
@@ -3125,6 +3137,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ManualPositionSupport.SecondToOpen, Security, Portfolio, 
                     StartProgram, ManualPositionSupport.OrderTypeTime,
                     ManualPositionSupport.LimitsMakerOnly);
+
+                newDeal.NameBotClass = this.BotClassName;
 
                 newDeal.SignalTypeOpen = signalType;
 
@@ -4688,6 +4702,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ManualPositionSupport.OrderTypeTime,
                     ManualPositionSupport.LimitsMakerOnly);
 
+                newDeal.NameBotClass = this.BotClassName;
+
                 newDeal.OpenOrders[0].IsStopOrProfit = isStopOrProfit;
                 _journal.SetNewDeal(newDeal);
 
@@ -4826,6 +4842,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     timeLife, Security, Portfolio, StartProgram, 
                     ManualPositionSupport.OrderTypeTime,
                     ManualPositionSupport.LimitsMakerOnly);
+
+                newDeal.NameBotClass = this.BotClassName;
 
                 newDeal.OpenOrders[0].IsStopOrProfit = isStopOrProfit;
                 _journal.SetNewDeal(newDeal);

@@ -785,7 +785,7 @@ namespace OsEngine.OsTrader.Panels
 position => position.State != PositionStateType.OpeningFail
 && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStatisticGenerator.GetAllProfitPercent(positions.ToArray());
+                    result += PositionStatisticGenerator.GetAllProfitPercent(positions.ToArray(), false);
                 }
                 return result;
             }
@@ -820,7 +820,7 @@ position => position.State != PositionStateType.OpeningFail
 position => position.State != PositionStateType.OpeningFail
 && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStatisticGenerator.GetAllProfitInAbsolute(positions.ToArray());
+                    result += PositionStatisticGenerator.GetAllProfitInAbsolute(positions.ToArray(), false);
                 }
                 return result;
             }
@@ -1904,6 +1904,10 @@ position => position.State != PositionStateType.OpeningFail
                 if (tabType == BotTabType.Simple)
                 {
                     newTab = new BotTabSimple(nameTab, StartProgram);
+
+                    string nameClass = this.GetType().Name;
+
+                    ((BotTabSimple)newTab).BotClassName = nameClass;
                 }
                 else if (tabType == BotTabType.Index)
                 {

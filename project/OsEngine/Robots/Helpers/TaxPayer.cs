@@ -502,6 +502,8 @@ namespace OsEngine.Robots.Helpers
                    manualPositionSupport.OrderTypeTime,
                    manualPositionSupport.LimitsMakerOnly);
 
+                newDeal.NameBotClass = this._tab.BotClassName;
+
                 journal.SetNewDeal(newDeal);
 
                 taxBot.TabsSimple[0].OrderFakeExecute(newDeal.OpenOrders[0], new DateTime(year, 12, 31, 23, 59, 58));

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using LiteDB;
 using OsEngine.Entity;
 
 namespace OsEngine.Journal.Internal
@@ -64,9 +65,9 @@ namespace OsEngine.Journal.Internal
             */
 
 
-            report.Add(Convert.ToDouble(GetAllProfitInAbsolute(deals)).ToString(new CultureInfo("ru-RU"))); //Net profit
-            report.Add(Math.Round(GetAllProfitPercent(deals), 6).ToString(new CultureInfo("ru-RU")));//Net profti %
-            report.Add(deals.Length.ToString(new CultureInfo("ru-RU")));// Number of transactions
+            report.Add(Convert.ToDouble(GetAllProfitInAbsolute(deals, false)).ToString(new CultureInfo("ru-RU"))); //Net profit
+            report.Add(Math.Round(GetAllProfitPercent(deals, false), 6).ToString(new CultureInfo("ru-RU")));//Net profti %
+            report.Add(GetAllDealsCount(deals).ToString(new CultureInfo("ru-RU")));// Number of transactions
             report.Add(GetAverageTimeOnPoses(deals));
             report.Add(GetSharpRatio(deals, 7).ToString());
 
@@ -109,19 +110,28 @@ namespace OsEngine.Journal.Internal
 
         #region Profit
 
-        public static decimal GetAllProfitInAbsolute(Position[] deals)
+        public static decimal GetAllProfitInAbsolute(Position[] deals, bool ignoreTax)
         {
             decimal profit = 0;
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (ignoreTax == true)
+                {
+                    if (deals[i].NameBotClass == "TaxPayer"
+                     || deals[i].NameBotClass == "PayOfMarginBot")
+                    {
+                        continue;
+                    }
+                }
+
                 profit += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
             }
 
             return Round(profit);
         }
 
-        public static decimal GetAllProfitPercent(Position[] deals)
+        public static decimal GetAllProfitPercent(Position[] deals, bool ignoreTax)
         {
             if (deals == null || deals.Length == 0)
             {
@@ -130,12 +140,26 @@ namespace OsEngine.Journal.Internal
 
             decimal start = 0;
             int i = 0;
+
             while (start == 0)
             {
+                if(ignoreTax == true)
+                {
+                    if (deals[i].NameBotClass == "TaxPayer"
+                     || deals[i].NameBotClass == "PayOfMarginBot")
+                    {
+                        continue;
+                    }
+                }
+
                 start = deals[i].PortfolioValueOnOpenPosition;
+
                 i++;
+
                 if (i >= deals.Length)
+                {
                     break;
+                }
             }
 
             if (start == 0)
@@ -143,10 +167,34 @@ namespace OsEngine.Journal.Internal
                 return 0;
             }
 
-            decimal end = start + GetAllProfitInAbsolute(deals);
+            decimal end = start + GetAllProfitInAbsolute(deals, ignoreTax);
 
             decimal profit = end / start * 100 - 100;
             return profit;
+        }
+
+        public static int GetAllDealsCount(Position[] deals)
+        {
+            if (deals.Length == 0)
+            {
+                return 0;
+            }
+
+            int result = 0;
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
+                result++;
+            }
+
+            return result;
+
         }
 
         public static decimal GetMiddleProfitInPercentOneContract(Position[] deals)
@@ -162,6 +210,13 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    divider--;
+                    continue;
+                }
+
                 decimal enter = deals[i].EntryPrice;
                 decimal exit = deals[i].ClosePrice;
 
@@ -200,33 +255,36 @@ namespace OsEngine.Journal.Internal
                 return 0;
             }
             decimal profit = 0;
-            decimal someProfit = 0;
+            int pointsCount = 0;
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 decimal curProfit = deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
 
                 profit += curProfit;
 
-                if (curProfit != 0)
-                {
-                    someProfit = curProfit;
-                }
-            }
-
-            if (Convert.ToInt32(someProfit) == someProfit)
-            {
-                return Math.Round(profit / deals.Length, 6);
+                pointsCount++;
             }
 
             try
             {
-                return Math.Round(profit / deals.Length, 6);
+                if(pointsCount != 0)
+                {
+                    return Math.Round(profit / pointsCount, 6);
+                }
             }
             catch (Exception)
             {
-                return Math.Round(profit, 6);
+                // ignore
             }
+
+            return Math.Round(profit, 6);
         }
 
         private static decimal GetMiddleProfitInAbsoluteToDeposit(Position[] deals)
@@ -236,13 +294,25 @@ namespace OsEngine.Journal.Internal
                 return 0;
             }
             decimal profit = 0;
+            int pointsCount = 0;
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+                pointsCount++;
                 profit += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
             }
 
-            return Math.Round(profit / deals.Length, 6);
+            if(pointsCount != 0)
+            {
+                return Math.Round(profit / pointsCount, 6);
+            }
+
+            return 0;
         }
 
         private static decimal GetMiddleProfitInPercentToDeposit(Position[] deals)
@@ -252,13 +322,26 @@ namespace OsEngine.Journal.Internal
                 return 0;
             }
             decimal profit = 0;
+            int pointsCount = 0;
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
+                pointsCount++;
                 profit += deals[i].ProfitPortfolioPercent * (deals[i].MultToJournal / 100);
             }
 
-            return Math.Round(profit / deals.Length, 6);
+            if(pointsCount != 0)
+            {
+                return Math.Round(profit / pointsCount, 6);
+            }
+
+            return 0;
         }
 
         public static decimal GetSharpRatio(Position[] deals, decimal riskFreeProfitInYear)
@@ -283,12 +366,17 @@ namespace OsEngine.Journal.Internal
           
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                    || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
                 decimal returnDecimal = deals[i].ProfitPortfolioAbs;
                 decimal scaledReturn = returnDecimal * (deals[i].MultToJournal / 100m);
                 tradeReturns.Add(returnDecimal);
             }
 
-            decimal ahpr = GetAllProfitPercent(deals);
+            decimal ahpr = GetAllProfitPercent(deals, true);
 
             //decimal ahpr = tradeReturns.Average();
 
@@ -297,6 +385,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                   || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 if (deals[i].TimeOpen < timeFirstDeal)
                 {
                     timeFirstDeal = deals[i].TimeOpen;
@@ -366,6 +460,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 if (deals[i].ProfitOperationPercent > 0)
                 {
                     profitDeal++;
@@ -384,7 +484,20 @@ namespace OsEngine.Journal.Internal
                 return profitDeal;
             }
 
-            return profitDeal / deals.Length * 100;
+            int allDealsCount = 0;
+
+            for(int i = 0;i < deals.Length;i++)
+            {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
+                allDealsCount++;
+            }
+
+            return profitDeal / allDealsCount * 100;
 
         }
 
@@ -394,6 +507,11 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
                 if (deals[i].ProfitOperationAbs > 0)
                 {
                     profit += deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
@@ -419,6 +537,11 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
                 if (deals[i].ProfitOperationPercent > 0)
                 {
                     profit += deals[i].ProfitOperationPercent * (deals[i].MultToJournal / 100);
@@ -443,6 +566,11 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
                 if (deals[i].ProfitPortfolioAbs > 0)
                 {
                     profit += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
@@ -468,6 +596,11 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
                 if (deals[i].ProfitPortfolioPercent > 0)
                 {
                     profit += deals[i].ProfitPortfolioPercent * (deals[i].MultToJournal / 100);
@@ -494,6 +627,11 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
                 if (deals[i].ProfitOperationPercent > 0)
                 {
                     nowSeries++;
@@ -522,6 +660,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 if (deals[i].ProfitOperationPercent <= 0)
                 {
                     lossDeal++;
@@ -540,7 +684,24 @@ namespace OsEngine.Journal.Internal
                 return lossDeal;
             }
 
-            return lossDeal / deals.Length * 100;
+            int allDeals = 0;
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
+                if (deals[i].ProfitOperationPercent <= 0)
+                {
+                    allDeals++;
+                }
+            }
+
+
+            return lossDeal / allDeals * 100;
 
         }
 
@@ -550,15 +711,23 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 if (deals[i].ProfitOperationAbs <= 0)
                 {
                     loss += deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                 }
             }
+
             if (loss == 0)
             {
                 return loss;
             }
+
             return Math.Round(loss / GetLossDial(deals), 6);
         }
 
@@ -568,6 +737,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 if (deals[i].ProfitOperationPercent <= 0)
                 {
                     loss += deals[i].ProfitOperationPercent * (deals[i].MultToJournal / 100);
@@ -586,11 +761,18 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 if (deals[i].ProfitPortfolioAbs <= 0)
                 {
                     loss += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
                 }
             }
+
             if (loss == 0)
             {
                 return loss;
@@ -611,6 +793,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 if (deals[i].ProfitPortfolioPercent <= 0)
                 {
                     loss += deals[i].ProfitPortfolioPercent * (deals[i].MultToJournal / 100);
@@ -639,6 +827,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                } 
+
                 if (deals[i].ProfitOperationPercent <= 0)
                 {
                     nowSeries++;
@@ -670,6 +864,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                    || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 DateTime openTime = deals[i].TimeOpen;
                 DateTime closeTime = deals[i].TimeClose;
 
@@ -797,6 +997,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 commissionTotal += deals[i].CommissionTotal() * (deals[i].MultToJournal / 100);
             }
 
@@ -811,6 +1017,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                   || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 if (deals[i].ProfitOperationAbs < 0)
                 {
                     commonLossPunkt = commonLossPunkt + deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
@@ -836,6 +1048,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 if (deals[i].ProfitOperationAbs > 0)
                 {
                     allProfit += deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
@@ -893,6 +1111,12 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
+                if (deals[i].NameBotClass == "TaxPayer"
+                 || deals[i].NameBotClass == "PayOfMarginBot")
+                {
+                    continue;
+                }
+
                 thisSum += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
 
                 decimal thisDown;
@@ -927,7 +1151,7 @@ namespace OsEngine.Journal.Internal
                 }
             }
 
-            decimal profit = GetAllProfitInAbsolute(deals);
+            decimal profit = GetAllProfitInAbsolute(deals, true);
             if (profit != 0 && maxDownAbs != 0) recovery = profit / Math.Abs(maxDownAbs);
 
             return Round(recovery);

@@ -313,6 +313,11 @@ namespace OsEngine.Entity
         public string NameBot;
 
         /// <summary>
+        /// The name of the robot class that created the position
+        /// </summary>
+        public string NameBotClass;
+
+        /// <summary>
         /// unique server name in multi-connection mode
         /// </summary>
         public string ServerName

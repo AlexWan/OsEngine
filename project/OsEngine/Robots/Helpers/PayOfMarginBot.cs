@@ -72,34 +72,38 @@ namespace OsEngine.Robots.Helpers
             CustomTabToParametersUi customTabSumm = ParamGuiSettings.CreateCustomTab(" Summ ");
 
             CreateTableSumm();
-            customTabSumm.AddChildren(_hostSumm);
-            LoadTableSumm();
 
-            CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab(" Percent ");
-
-            CreateTable();
-            customTab.AddChildren(_host);
-            LoadTable();
-
-            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
-
-            if (StartProgram == StartProgram.IsTester
-                && ServerMaster.GetServers() != null)
+            if(_dgvSumm != null)
             {
-                List<IServer> servers = ServerMaster.GetServers();
+                customTabSumm.AddChildren(_hostSumm);
+                LoadTableSumm();
 
-                if (servers != null
-                    && servers.Count > 0
-                    && servers[0].ServerType == ServerType.Tester)
+                CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab(" Percent ");
+
+                CreateTable();
+                customTab.AddChildren(_host);
+                LoadTable();
+
+                _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+                if (StartProgram == StartProgram.IsTester
+                    && ServerMaster.GetServers() != null)
                 {
-                    TesterServer server = (TesterServer)servers[0];
-                    server.TestingStartEvent += Server_TestingStartEvent;
+                    List<IServer> servers = ServerMaster.GetServers();
+
+                    if (servers != null
+                        && servers.Count > 0
+                        && servers[0].ServerType == ServerType.Tester)
+                    {
+                        TesterServer server = (TesterServer)servers[0];
+                        server.TestingStartEvent += Server_TestingStartEvent;
+                    }
                 }
             }
 
             Description = OsLocalization.ConvertToLocString(
                 "En:The bot only works in the Tester. The bot is designed to charge a margin commission daily if the total amount of accepted orders exceeds the deposit amount._" +
-                "Ru:Робот работает только в Тестере. Робот предназначен для ежедневного списания маржинальной комиссии, если сумма взятых ордеров превышает размеры депозита._");
+                "Ru:Робот работает только в Тестере. Робот предназначен для ежедневного списания маржинальной комиссии, если сумма взятых позиций превышает размеры депозита._");
         }
 
         private void Server_TestingStartEvent()
@@ -160,7 +164,7 @@ namespace OsEngine.Robots.Helpers
             }
             catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                //SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
      
@@ -634,12 +638,16 @@ namespace OsEngine.Robots.Helpers
 
                     for (int i2 = 0; i2 < curJournal.OpenPositions.Count; i2++)
                     {
-                        if (curJournal.OpenPositions[i2].TimeOpen != timeStart)
-                        {
-                            continue;
-                        }
+                        Position position = curJournal.OpenPositions[i2];
 
-                        volumeBot += curJournal.OpenPositions[i2].EntryPrice * curJournal.OpenPositions[i2].OpenVolume;
+                        if(position.Lots != 0)
+                        {
+                            volumeBot += position.EntryPrice * position.OpenVolume * position.Lots;
+                        }
+                        else
+                        {
+                            volumeBot += position.EntryPrice * position.OpenVolume;
+                        }
 
                         DateTime time = _bots[i].OpenPositions[^1].TimeOpen;
 
@@ -698,6 +706,8 @@ namespace OsEngine.Robots.Helpers
                security, portfolio, _startProgram,
                manualPositionSupport.OrderTypeTime,
                manualPositionSupport.LimitsMakerOnly);
+
+            newDeal.NameBotClass = this._tab.BotClassName;
 
             journal.SetNewDeal(newDeal);
 
