@@ -368,7 +368,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// create STRING server parameter
         /// </summary>
-        public void CreateParameterString(string name, string param)
+        public ServerParameterString CreateParameterString(string name, string param)
         {
             ServerParameterString newParam = new ServerParameterString();
             newParam.Name = name;
@@ -385,12 +385,14 @@ namespace OsEngine.Market.Servers
             }
 
             newParam.ValueChange += userChangeParameter_ValueChange;
+
+            return newParam;
         }
 
         /// <summary>
         /// create INT server parameter
         /// </summary>
-        public void CreateParameterInt(string name, int param)
+        public ServerParameterInt CreateParameterInt(string name, int param)
         {
             ServerParameterInt newParam = new ServerParameterInt();
             newParam.Name = name;
@@ -407,12 +409,14 @@ namespace OsEngine.Market.Servers
             }
 
             newParam.ValueChange += userChangeParameter_ValueChange;
+
+            return newParam;
         }
 
         /// <summary>
         /// create ENUM server parameter
         /// </summary>
-        public void CreateParameterEnum(string name, string value, List<string> collection)
+        public ServerParameterEnum CreateParameterEnum(string name, string value, List<string> collection)
         {
             ServerParameterEnum newParam = new ServerParameterEnum();
             newParam.Name = name;
@@ -430,12 +434,14 @@ namespace OsEngine.Market.Servers
             }
 
             newParam.ValueChange += userChangeParameter_ValueChange;
+
+            return newParam;
         }
 
         /// <summary>
         /// create DECIMAL server parameter
         /// </summary>
-        public void CreateParameterDecimal(string name, decimal param)
+        public ServerParameterDecimal CreateParameterDecimal(string name, decimal param)
         {
             ServerParameterDecimal newParam = new ServerParameterDecimal();
             newParam.Name = name;
@@ -452,12 +458,14 @@ namespace OsEngine.Market.Servers
             }
 
             newParam.ValueChange += userChangeParameter_ValueChange;
+
+            return newParam;
         }
 
         /// <summary>
         /// create BOOL server parameter
         /// </summary>
-        public void CreateParameterBoolean(string name, bool param)
+        public ServerParameterBool CreateParameterBoolean(string name, bool param)
         {
             ServerParameterBool newParam = new ServerParameterBool();
             newParam.Name = name;
@@ -475,12 +483,14 @@ namespace OsEngine.Market.Servers
 
 
             newParam.ValueChange += userChangeParameter_ValueChange;
+
+            return newParam;
         }
 
         /// <summary>
         /// create PASSWORD server parameter
         /// </summary>
-        public void CreateParameterPassword(string name, string param)
+        public ServerParameterPassword CreateParameterPassword(string name, string param)
         {
             ServerParameterPassword newParam = new ServerParameterPassword();
             newParam.Name = name;
@@ -497,12 +507,14 @@ namespace OsEngine.Market.Servers
             }
 
             newParam.ValueChange += userChangeParameter_ValueChange;
+
+            return newParam;
         }
 
         /// <summary>
         /// create PATH TO FILE server parameter
         /// </summary>
-        public void CreateParameterPath(string name)
+        public ServerParameterPath CreateParameterPath(string name)
         {
             ServerParameterPath newParam = new ServerParameterPath();
             newParam.Name = name;
@@ -518,12 +530,14 @@ namespace OsEngine.Market.Servers
             }
 
             newParam.ValueChange += userChangeParameter_ValueChange;
+
+            return newParam;
         }
 
         /// <summary>
         /// create Button server parameter
         /// </summary>
-        public void CreateParameterButton(string name)
+        public ServerParameterButton CreateParameterButton(string name)
         {
             ServerParameterButton newParam = new ServerParameterButton();
             newParam.Name = name;
@@ -539,6 +553,8 @@ namespace OsEngine.Market.Servers
             }
 
             newParam.ValueChange += userChangeParameter_ValueChange;
+
+            return newParam;
         }
 
         /// <summary>
