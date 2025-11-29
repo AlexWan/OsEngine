@@ -23,8 +23,8 @@ The robot is designed to buy TMON in the evening with available funds and sell t
 
 namespace OsEngine.Robots
 {
-    [Bot("TMONRebalancer")]
-    public class TMONRebalancer : BotPanel
+    [Bot("TmonRebalancer")]
+    public class TmonRebalancer : BotPanel
     {
         private BotTabSimple _tab;
 
@@ -43,7 +43,7 @@ namespace OsEngine.Robots
         private StrategyParameterButton _rebalanceNowButton;
         private bool _rebalanceNow;
 
-        public TMONRebalancer(string name, StartProgram startProgram) : base(name, startProgram)
+        public TmonRebalancer(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -105,6 +105,12 @@ namespace OsEngine.Robots
                         continue;
                     }
 
+                    if(_tab.IsConnected == false
+                        || _tab.IsReadyToTrade == false)
+                    {
+                        continue;
+                    }
+
                     if (_tab.Security == null
                         || _tab.CandlesAll == null)
                     {
@@ -123,7 +129,7 @@ namespace OsEngine.Robots
                     {
                         SendNewLogMessage("Робот предназначен только для ребалансировки TMON у брокера Т-Инвестиции и для запуска в тестере", Logging.LogMessageType.Error);
                         Thread.Sleep(60000);
-                        continue;
+                        return;
                     }
 
                     if (_timeToSell.Value > _timeToBuy.Value)
