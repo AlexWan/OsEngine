@@ -35,7 +35,6 @@
         public string T; //": 1568879465650,           //  Transaction Time
 
         public OrderBinFutResp o; // order
-
     }
 
     public class OrderOpenRestRespFut
@@ -66,9 +65,5 @@
         public string priceMatch; //": "NONE",              //price match mode
         public string selfTradePreventionMode; //": "NONE", //self trading preventation mode
         public string goodTillDate; //": 0      //order pre-set auot cancel time for TIF GTD order
-
-
     }
-
-
 }
