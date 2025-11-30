@@ -89,7 +89,7 @@ namespace OsEngine.Robots
             _rebalanceNow = true;
         }
 
-        #region Work thread
+        #region Work thread for Real
 
         private void StartThread()
         {
@@ -162,7 +162,7 @@ namespace OsEngine.Robots
 
         #endregion
 
-        #region Candlestick completion event 
+        #region Candlestick completion event for Tester
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
@@ -198,7 +198,7 @@ namespace OsEngine.Robots
 
         #endregion
 
-        #region Logic robot
+        #region Logic
 
         private void RebalanceLogic()
         {
@@ -265,10 +265,6 @@ namespace OsEngine.Robots
                 }
             }
         }
-
-        #endregion
-
-        #region Position on board
 
         private decimal GetPortfolioValue()
         {
@@ -353,41 +349,6 @@ namespace OsEngine.Robots
             return 0;
         }
 
-        #endregion
-
-        #region Volume
-
-        private decimal GetVolume(decimal balance)
-        {
-            decimal contractPrice = _tab.PriceBestAsk;
-            decimal volume = balance / contractPrice;
-
-            if (StartProgram == StartProgram.IsOsTrader)
-            {
-                IServerPermission serverPermission = ServerMaster.GetServerPermission(_tab.Connector.ServerType);
-
-                if (serverPermission != null &&
-                    serverPermission.IsUseLotToCalculateProfit &&
-                _tab.Security.Lot != 0 &&
-                    _tab.Security.Lot > 1)
-                {
-                    volume = balance / (contractPrice * _tab.Security.Lot);
-                }
-
-                volume = Math.Round(volume, _tab.Security.DecimalsVolume);
-            }
-            else // Tester or Optimizer
-            {
-                volume = Math.Round(volume, 6);
-            }
-
-            return volume;
-        }
-
-        #endregion
-
-        #region Trade time
-
         private bool CheckDayOfWeek()
         {
             DayOfWeek currentdDayOfWeek = TimeServer.DayOfWeek;
@@ -401,10 +362,6 @@ namespace OsEngine.Robots
             else if (currentdDayOfWeek == DayOfWeek.Sunday && _tradeSunday == false) return false;
             else return true;
         }
-
-        #endregion
-
-        #region Helpers
 
         private bool CheckSpread()
         {
@@ -435,6 +392,33 @@ namespace OsEngine.Robots
                 SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                 return false;
             }
+        }
+
+        private decimal GetVolume(decimal balance)
+        {
+            decimal contractPrice = _tab.PriceBestAsk;
+            decimal volume = balance / contractPrice;
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                IServerPermission serverPermission = ServerMaster.GetServerPermission(_tab.Connector.ServerType);
+
+                if (serverPermission != null &&
+                    serverPermission.IsUseLotToCalculateProfit &&
+                _tab.Security.Lot != 0 &&
+                    _tab.Security.Lot > 1)
+                {
+                    volume = balance / (contractPrice * _tab.Security.Lot);
+                }
+
+                volume = Math.Round(volume, _tab.Security.DecimalsVolume);
+            }
+            else // Tester or Optimizer
+            {
+                volume = Math.Round(volume, 6);
+            }
+
+            return volume;
         }
 
         #endregion
