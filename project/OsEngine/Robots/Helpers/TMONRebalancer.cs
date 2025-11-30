@@ -209,18 +209,18 @@ namespace OsEngine.Robots
                 return;
             }
 
-            if (_tab.Portfolio.PositionOnBoard == null)
+            if(StartProgram == StartProgram.IsOsTrader)
             {
-                return;
-            }
+                if (_tab.Portfolio.PositionOnBoard == null)
+                {
+                    return;
+                }
 
-            if (!CheckSpread())
-            {
-                return;
-            }
+                if (!CheckSpread())
+                {
+                    return;
+                }
 
-            if(StartProgram != StartProgram.IsTester)
-            {
                 if (_tab.Connector.MyServer.ServerType != ServerType.TInvest
                  || _tab.Security.Name != "TMON@")
                 {
