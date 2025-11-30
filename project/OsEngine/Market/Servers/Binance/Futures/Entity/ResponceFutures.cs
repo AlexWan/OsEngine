@@ -1,9 +1,5 @@
 ﻿using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers.Binance.Futures.Entity
 {
@@ -75,7 +71,7 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
         public string goodTillDate; // ": 1693207680000      //order pre-set auot cancel time for TIF GTD order
     }
 
-    public class SecurityResponce
+    public class SecurityResponse
     {
         public string timezone { get; set; }
         public long serverTime { get; set; }
