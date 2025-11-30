@@ -944,9 +944,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // 1 remove unwanted tabs
 
                 bool deleteSomeTabs = false;
-
+              
                 for (int i = 0; i < Tabs.Count; i++)
                 {
+                    UpdateTabSettings(Tabs[i]);
+
                     if (TabIsAlive(SecuritiesNames, TimeFrame, Tabs[i]) == false)
                     {
                         string chartName = Tabs[i].TabName + "_Engine";
@@ -1196,6 +1198,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
+            // 1 проверка. Чтобы была бумага в торгах
+
             ActivatedSecurity sec = null;
 
             for (int i = 0; i < securities.Count; i++)
@@ -1222,6 +1226,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 return false;
             }
+
+            // 2 проверка. На таймфрейм. 
+
 
             if (tab.TimeFrameBuilder.CandleSeriesRealization.GetType().Name
                 != CandleSeriesRealization.GetType().Name)
