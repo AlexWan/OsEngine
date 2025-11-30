@@ -293,7 +293,8 @@ namespace OsEngine.Entity
         {
             try
             {
-                if (series.CandleCreateMethodType != "Simple" ||
+                if ((series.CandleCreateMethodType != "Simple" && series.CandleCreateMethodType != "TimeShiftCandle")
+                    ||
                     series.TimeFrameSpan.TotalMinutes < 1)
                 {
                     List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
