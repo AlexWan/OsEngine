@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 /* Description
 Робот предназначен для покупки TMON вечером на свободные средства и продаже всего объема TMON утром.
@@ -41,7 +42,7 @@ namespace OsEngine.Robots
         private StrategyParameterCheckBox _tradeSaturday;
         private StrategyParameterCheckBox _tradeSunday;
         private StrategyParameterButton _rebalanceNowButton;
-        private bool _rebalanceNow;
+        private bool _botClosePositionToday;
 
         public TmonRebalancer(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -85,8 +86,8 @@ namespace OsEngine.Robots
 
         private void _rebalanceNowButton_UserClickOnButtonEvent()
         {
-            RebalanceLogic();
-            _rebalanceNow = true;
+            _botClosePositionToday = true;
+            Task.Run(RebalanceLogic);
         }
 
         #region Work thread for Real
@@ -124,31 +125,32 @@ namespace OsEngine.Robots
                         continue;
                     }
 
-                    if (_tab.Connector.MyServer.ServerType != ServerType.TInvest
-                        || _tab.Security.Name != "TMON@")
+                    if (_timeToSell.Value > _timeToBuy.Value)
                     {
-                        SendNewLogMessage("Робот предназначен только для ребалансировки TMON у брокера Т-Инвестиции и для запуска в тестере", Logging.LogMessageType.Error);
-                        Thread.Sleep(60000);
+                        SendNewLogMessage(
+                            OsLocalization.ConvertToLocString(
+                           "En:The time is incorrect!!! The time for buying should be longer than the time for selling_" +
+                           "Ru:Неправильно указано время!!! Время для покупки должно быть больше, чем время для продажи_")
+                            , Logging.LogMessageType.Error);
+
+                        Thread.Sleep(10000);
                         return;
                     }
 
-                    if (_timeToSell.Value > _timeToBuy.Value)
-                    {
-                        SendNewLogMessage("Неправильно указано время!!! Время для покупки должно быть больше, чем время для продажи", Logging.LogMessageType.Error);
-                        Thread.Sleep(60000);
-                        continue;
-                    }
-
-                    if (_timeToSell.Value < TimeServer && _timeToBuy.Value > TimeServer && _rebalanceNow == false)
+                    if (_timeToSell.Value < TimeServer 
+                        && _timeToBuy.Value > TimeServer 
+                        && _botClosePositionToday == false)
                     {
                         ClosePositions();
+                        _botClosePositionToday = true;
                         continue;
                     }
 
-                    if (_timeToBuy.Value < TimeServer)
+                    if (_timeToBuy.Value < TimeServer
+                        && _botClosePositionToday == true)
                     {
                         RebalanceLogic();
-                        _rebalanceNow = false;
+                        _botClosePositionToday = false;
                         continue;
                     }
                 }
@@ -182,7 +184,7 @@ namespace OsEngine.Robots
                 return;
             }
 
-            if (_timeToSell.Value < TimeServer && _timeToBuy.Value > TimeServer && _rebalanceNow == false)
+            if (_timeToSell.Value < TimeServer && _timeToBuy.Value > TimeServer && _botClosePositionToday == false)
             {
                 ClosePositions();
                 return;
@@ -191,7 +193,7 @@ namespace OsEngine.Robots
             if (_timeToBuy.Value < TimeServer)
             {
                 RebalanceLogic();
-                _rebalanceNow = false;
+                _botClosePositionToday = false;
                 return;
             }
         }
@@ -202,7 +204,7 @@ namespace OsEngine.Robots
 
         private void RebalanceLogic()
         {
-            if (!CheckSpread())
+            if (_tab.Portfolio == null)
             {
                 return;
             }
@@ -212,9 +214,24 @@ namespace OsEngine.Robots
                 return;
             }
 
-            if (_tab.Portfolio == null)
+            if (!CheckSpread())
             {
                 return;
+            }
+
+            if(StartProgram != StartProgram.IsTester)
+            {
+                if (_tab.Connector.MyServer.ServerType != ServerType.TInvest
+                 || _tab.Security.Name != "TMON@")
+                {
+                    SendNewLogMessage(OsLocalization.ConvertToLocString(
+                               "En:The robot is only intended for rebalancing TMON with the T-Investments broker and for testing._" +
+                               "Ru:Робот предназначен только для ребалансировки TMON у брокера Т-Инвестиции и для запуска в тестере_")
+                               , Logging.LogMessageType.Error);
+                    Thread.Sleep(10000);
+                    return;
+                }
+
             }
 
             decimal balance = GetPortfolioValue();
