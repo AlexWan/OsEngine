@@ -1026,6 +1026,11 @@ namespace OsEngine.Market.Servers.TInvest
 
         private void GetPortfolios(PortfolioResponse portfolioResponse)
         {
+            if(portfolioResponse == null)
+            {
+                return;
+            }
+
             Portfolio myPortfolio = _myPortfolios.Find(p => p.Number == portfolioResponse.AccountId);
 
             if (myPortfolio == null)
@@ -2996,18 +3001,25 @@ namespace OsEngine.Market.Servers.TInvest
                             portf.SetNewPosition(newPos);
                         }
 
-                        /*for (int i = 0; i < posData.Money.Count; i++)
+                        for (int i = 0; i < posData.Money.Count; i++)
                         {
                             PositionsMoney pos = posData.Money[i];
 
-                            PositionOnBoard newPos = new PositionOnBoard();
+                            if(pos.AvailableValue.Currency == "rub")
+                            {
+                                portf.ValueBlocked = GetValue(pos.BlockedValue);
 
-                            newPos.PortfolioName = portf.Number;
-                            newPos.SecurityNameCode = pos.AvailableValue.Currency;
-                            newPos.ValueCurrent = GetValue(pos.AvailableValue);
-                            newPos.ValueBlocked = GetValue(pos.BlockedValue);
-                            portf.SetNewPosition(newPos);
-                        }*/
+                                List<PositionOnBoard> posesInPortfolio = portf.PositionOnBoard;
+
+                                for(int j = 0; j < posesInPortfolio.Count;j++)
+                                {
+                                    if (posesInPortfolio[j].SecurityNameCode == "rub")
+                                    {
+                                        posesInPortfolio[j].ValueBlocked = portf.ValueBlocked;
+                                    }
+                                }
+                            }
+                        }
 
                         if (PortfolioEvent != null)
                         {
