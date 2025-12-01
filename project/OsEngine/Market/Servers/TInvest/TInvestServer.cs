@@ -3011,7 +3011,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 List<PositionOnBoard> posesInPortfolio = portf.PositionOnBoard;
 
-                                for(int j = 0; j < posesInPortfolio.Count;j++)
+                                for(int j = 0; posesInPortfolio != null && j < posesInPortfolio.Count;j++)
                                 {
                                     if (posesInPortfolio[j].SecurityNameCode == "rub")
                                     {
