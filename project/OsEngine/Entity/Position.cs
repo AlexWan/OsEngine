@@ -667,6 +667,7 @@ namespace OsEngine.Entity
                 {
                     openOrder.State = newOrder.State;     //AVP 
                 }
+
                 openOrder.NumberMarket = newOrder.NumberMarket;
 
                 if (openOrder.TimeCallBack == DateTime.MinValue)
