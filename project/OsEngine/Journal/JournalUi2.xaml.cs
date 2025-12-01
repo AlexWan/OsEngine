@@ -2446,7 +2446,13 @@ namespace OsEngine.Journal
                     volumePortfolio.Points.AddXY(i, volumeDataPoint);
                     volumePortfolio.Points[^1].AxisLabel = allChange[i].ToString();
 
-                    decimal leverage = Math.Round(volumeDataPoint / totalDataPoint, 2);
+                    decimal leverage = 0;
+
+                    if (totalDataPoint != 0)
+                    {
+                        leverage = Math.Round(volumeDataPoint / totalDataPoint, 2);
+                    }
+                    
                     leverageBars.Points.AddXY(i, leverage);
                     leverageBars.Points[^1].AxisLabel = allChange[i].ToString();
 
