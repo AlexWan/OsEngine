@@ -2438,6 +2438,12 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
         {
+            if (series.IsMergedByCandlesFromFile == false 
+                && series.CandleCreateMethodType == "TimeShiftCandle")
+            {
+                series.IsMergedByCandlesFromFile = true;
+            }
+
             if (series.IsMergedByCandlesFromFile == false)
             {
                 series.IsMergedByCandlesFromFile = true;
