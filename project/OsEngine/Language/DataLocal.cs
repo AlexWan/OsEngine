@@ -331,10 +331,13 @@ namespace OsEngine.Language
         public string Label76 => OsLocalization.ConvertToLocString(
             "Eng:You want to delete these securities.Are you sure?_" +
             "Ru:Вы собираетесь удалить следующие инструменты.Вы уверены?_");
-
-        //fractional or integer number
+ 
         public string Label77 => OsLocalization.ConvertToLocString(
           "Eng:You must enter fractional or integer number_" +
           "Ru:Необходимо ввести целое или дробное число_");
+
+        public string Label78 => OsLocalization.ConvertToLocString(
+          "Eng:Deleting data based on a condition_" +
+          "Ru:Удаление данных по условию_");
     }
 }
