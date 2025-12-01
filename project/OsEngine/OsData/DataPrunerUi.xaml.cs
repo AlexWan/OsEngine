@@ -23,9 +23,13 @@ namespace OsEngine.OsData
         {
              InitializeComponent();
 
+            OsEngine.Layout.StickyBorders.Listen(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+
             _set = set;
             _setPainter = setPainter;
 
+            Title = OsLocalization.Data.Label78;
             ButtonDelete1.Content = OsLocalization.Data.Label41;
             ButtonDelete2.Content = OsLocalization.Data.Label41;
             ButtonDelete3.Content = OsLocalization.Data.Label41;
@@ -73,14 +77,12 @@ namespace OsEngine.OsData
                 if (DatePickerTimeStart.SelectedDate == null || DatePickerTimeEnd.SelectedDate == null)
                 {
                     ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label74, Logging.LogMessageType.Error);
-                    Close();
-                    return;
+                     return;
                 }
 
                 if (DatePickerTimeStart.SelectedDate > DatePickerTimeEnd.SelectedDate)
                 {
                     ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label75, Logging.LogMessageType.Error);
-                    Close();
                     return;
                 }
 
@@ -107,7 +109,6 @@ namespace OsEngine.OsData
                 if (wrongSecurities.Count > 0)
                     DeleteWrongSecurities(wrongSecurities);
 
-                Close();
             }
             catch (Exception ex)
             {
@@ -122,7 +123,6 @@ namespace OsEngine.OsData
                 if (!Int32.TryParse(TextBoxObjs.Text, out int needObjects))
                 {
                     ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label74, Logging.LogMessageType.Error);
-                    Close();
                     return;
                 }
 
@@ -145,7 +145,6 @@ namespace OsEngine.OsData
                 if (wrongSecurities.Count > 0)
                     DeleteWrongSecurities(wrongSecurities);
 
-                Close();
             }
             catch (Exception ex)
             {
@@ -176,7 +175,6 @@ namespace OsEngine.OsData
                 if (string.IsNullOrEmpty( TextBoxMaxVol.Text) || string.IsNullOrEmpty(TextBoxMinVol.Text))
                 {
                     ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label77, Logging.LogMessageType.Error);
-                    Close();
                     return;
                 }
 
@@ -210,7 +208,6 @@ namespace OsEngine.OsData
                 if (wrongSecurities.Count > 0)
                     DeleteWrongSecurities(wrongSecurities);
 
-                Close();
             }
             catch (Exception ex)
             {
@@ -309,7 +306,6 @@ namespace OsEngine.OsData
                 if (!Int32.TryParse(TextBoxMaxDigits.Text, out int maxDigit) || !Int32.TryParse(TextBoxMinDigits.Text, out int minDigit))
                 {
                     ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label74, Logging.LogMessageType.Error);
-                    Close();
                     return;
                 }
 
@@ -338,8 +334,7 @@ namespace OsEngine.OsData
 
                 if (wrongSecurities.Count > 0)
                     DeleteWrongSecurities(wrongSecurities);
-
-                Close();
+   
             }
             catch (Exception ex)
             {
@@ -428,6 +423,8 @@ namespace OsEngine.OsData
             }
 
             _setPainter.RePaintInterface();
+
+            Close();
         }
     }
 }
