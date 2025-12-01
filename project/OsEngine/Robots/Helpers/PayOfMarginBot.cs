@@ -28,6 +28,10 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.ComponentModel.Design;
+using System.Windows;
+using System.Windows.Media.Imaging;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 /* Description
 Робот работает только в Тестере.
@@ -117,9 +121,9 @@ namespace OsEngine.Robots.Helpers
 
         private DataGridView _dgvSumm;
 
-        private List<ListTableSumm> _listTableSumm = new();
+        private Dictionary<int, List<ListTableSumm>> _dictTableSumm = new();
 
-        private List<TypeValue> _listTypeValue = new() { TypeValue.Absolute, TypeValue.Percent };
+        private List<TypeValueTableSumm> _listTypeValue = new() { TypeValueTableSumm.Absolute, TypeValueTableSumm.Percent };
 
         private void CreateTableSumm()
         {
@@ -132,24 +136,24 @@ namespace OsEngine.Robots.Helpers
                 _dgvSumm.Dock = DockStyle.Fill;
                 _dgvSumm.ScrollBars = ScrollBars.Vertical;
                 _dgvSumm.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-                _dgvSumm.GridColor = Color.Gray;
+                _dgvSumm.GridColor = System.Drawing.Color.Gray;
                 _dgvSumm.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-                _dgvSumm.ColumnHeadersDefaultCellStyle.Font = new Font(_dgvSumm.Font, FontStyle.Bold | FontStyle.Italic);
+                _dgvSumm.ColumnHeadersDefaultCellStyle.Font = new Font(_dgvSumm.Font, System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic);
                 _dgvSumm.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-                _dgvSumm.ColumnCount = 3;
-                _dgvSumm.RowCount = 0;
+                _dgvSumm.ColumnCount = 1;
+                _dgvSumm.RowCount = 31;
 
-                _dgvSumm.Columns[0].HeaderText = OsLocalization.ConvertToLocString("Eng:Amount margin_" + "Ru:Сумма непокрытой позиции_");
-                _dgvSumm.Columns[1].HeaderText = OsLocalization.ConvertToLocString("Eng:Type rate_" + "Ru:Вид ставки_");
-                _dgvSumm.Columns[2].HeaderText = OsLocalization.ConvertToLocString("Eng:Rate_" + "Ru:Ставка_");
+                _dgvSumm.Columns[0].HeaderText = OsLocalization.ConvertToLocString("Eng:Year_" + "Ru:Год_");
+
+                DataGridViewButtonColumn button = new();
+                _dgvSumm.Columns.Add(button);
 
                 _dgvSumm.Columns[0].ReadOnly = true;
                 _dgvSumm.Columns[1].ReadOnly = true;
 
-                _dgvSumm.Columns[0].Width = 250;
-                _dgvSumm.Columns[1].Width = 100;
-                _dgvSumm.Columns[2].Width = 100;
+                _dgvSumm.Columns[0].Width = 150;
+                _dgvSumm.Columns[1].Width = 150;
 
                 foreach (DataGridViewColumn column in _dgvSumm.Columns)
                 {
@@ -157,8 +161,14 @@ namespace OsEngine.Robots.Helpers
                     column.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 }
 
-                _dgvSumm.CellValueChanged += _dgvSumm_CellValueChanged;
+                for (int i = 0; i < _dgvSumm.Rows.Count; i++)
+                {
+                    _dgvSumm.Rows[i].Cells[0].Value = 2000 + i;
+                    _dgvSumm.Rows[i].Cells[1].Value = "En:Settings_Ru:Настроить_";
+                }
+
                 _dgvSumm.DataError += _dgv_DataError;
+                _dgvSumm.CellClick += _dgvSumm_CellClick;
 
                 _hostSumm.Child = _dgvSumm;
             }
@@ -167,27 +177,18 @@ namespace OsEngine.Robots.Helpers
                 //SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
-     
-        private void _dgvSumm_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+
+        private void _dgvSumm_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            try
+            if (e.ColumnIndex == 1)
             {
-                if (e.ColumnIndex == 2)
+                int year = 0;
+                int.TryParse(_dgvSumm.Rows[e.RowIndex].Cells[0].Value.ToString(), out year);
+
+                if (year != 0) 
                 {
-                    ListTableSumm list = new();
-                    
-                    list.Summ = _listTableSumm[e.RowIndex].Summ;
-                    list.TypeValue = _dgvSumm.Rows[e.RowIndex].Cells[1].Value?.ToString() == TypeValue.Absolute.ToString() ? TypeValue.Absolute : TypeValue.Percent;
-                    decimal.TryParse(_dgvSumm.Rows[e.RowIndex].Cells[2].Value?.ToString(), out list.Rate);
-
-                    _listTableSumm[e.RowIndex] = list;
-
-                    SaveTableSumm();
+                    EditRatesWindow window = new(this, _dictTableSumm[year], year);                    
                 }
-            }
-            catch (Exception ex)
-            {
-                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -204,15 +205,13 @@ namespace OsEngine.Robots.Helpers
                 }
 
                 string json = File.ReadAllText(fileName);
-                _listTableSumm = JsonConvert.DeserializeObject<List<ListTableSumm>>(json);
+                _dictTableSumm = JsonConvert.DeserializeObject<Dictionary<int, List<ListTableSumm>>>(json);
 
-                if (_listTableSumm == null || _listTableSumm.Count == 0)
+                if (_dictTableSumm == null || _dictTableSumm.Count == 0)
                 {
                     SetDefaultTableSumm();
                     return;
-                }
-
-                FillTableSumm();                
+                }           
             }
             catch (Exception ex)
             {
@@ -220,53 +219,56 @@ namespace OsEngine.Robots.Helpers
             }
         }
 
-        private void FillTableSumm()
-        {
-            for (int i = 0; i < 12; i++)
-            {
-                DataGridViewRow row = new();
-
-                if (i == 11)
-                {
-                    row.Cells.Add(new DataGridViewTextBoxCell() { Value = $"более {_listTableSumm[i - 1].Summ.ToString("N0", new CultureInfo("ru-RU"))} Р" });
-                }
-                else
-                {
-                    row.Cells.Add(new DataGridViewTextBoxCell() { Value = $"до {_listTableSumm[i].Summ.ToString("N0", new CultureInfo("ru-RU"))} Р" });
-                }
-
-                row.Cells.Add(new DataGridViewTextBoxCell() { Value = _listTableSumm[i].TypeValue });
-                row.Cells.Add(new DataGridViewTextBoxCell() { Value = _listTableSumm[i].Rate });
-
-                _dgvSumm.Rows.Add(row);
-            }
-        }
-
         private void SetDefaultTableSumm()
         {
-            _listTableSumm.Clear();
+            _dictTableSumm.Clear();
 
-            _listTableSumm.Add(new ListTableSumm() { Summ = 5000, TypeValue = TypeValue.Absolute, Rate = 0 });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 50000, TypeValue = TypeValue.Absolute, Rate = 45 });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 100000, TypeValue = TypeValue.Absolute, Rate = 90 });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 250000, TypeValue = TypeValue.Absolute, Rate = 215 });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 500000, TypeValue = TypeValue.Absolute, Rate = 430 });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 1000000, TypeValue = TypeValue.Absolute, Rate = 850 });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 2500000, TypeValue = TypeValue.Absolute, Rate = 2100 });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 5000000, TypeValue = TypeValue.Absolute, Rate = 4100 });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 10000000, TypeValue = TypeValue.Absolute, Rate = 8000 });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 25000000, TypeValue = TypeValue.Percent, Rate = 0.078m });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 50000000, TypeValue = TypeValue.Percent, Rate = 0.075m });
-            _listTableSumm.Add(new ListTableSumm() { Summ = 60000000, TypeValue = TypeValue.Percent, Rate = 0.067m });
+            for (int i = 2000; i < 2031; i++)
+            {              
+                _dictTableSumm[i] = GetListTableToYear(i);
+            }           
+        }
 
-            FillTableSumm();
+        private List<ListTableSumm> GetListTableToYear(int year)
+        {
+            List<ListTableSumm> list = new();
+
+            if (year >= 2024)
+            {
+                list.Add(new ListTableSumm() { Summ = 5000, TypeValue = TypeValueTableSumm.Absolute, Rate = 0 });
+                list.Add(new ListTableSumm() { Summ = 50000, TypeValue = TypeValueTableSumm.Absolute, Rate = 45 });
+                list.Add(new ListTableSumm() { Summ = 100000, TypeValue = TypeValueTableSumm.Absolute, Rate = 90 });
+                list.Add(new ListTableSumm() { Summ = 250000, TypeValue = TypeValueTableSumm.Absolute, Rate = 215 });
+                list.Add(new ListTableSumm() { Summ = 500000, TypeValue = TypeValueTableSumm.Absolute, Rate = 430 });
+                list.Add(new ListTableSumm() { Summ = 1000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 850 });
+                list.Add(new ListTableSumm() { Summ = 2500000, TypeValue = TypeValueTableSumm.Absolute, Rate = 2100 });
+                list.Add(new ListTableSumm() { Summ = 5000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 4100 });
+                list.Add(new ListTableSumm() { Summ = 10000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 8000 });
+                list.Add(new ListTableSumm() { Summ = 25000000, TypeValue = TypeValueTableSumm.Percent, Rate = 0.078m });
+                list.Add(new ListTableSumm() { Summ = 50000000, TypeValue = TypeValueTableSumm.Percent, Rate = 0.075m });
+                list.Add(new ListTableSumm() { Summ = 60000000, TypeValue = TypeValueTableSumm.Percent, Rate = 0.067m });
+            }
+            else
+            {
+                list.Add(new ListTableSumm() { Summ = 50000, TypeValue = TypeValueTableSumm.Absolute, Rate = 25 });
+                list.Add(new ListTableSumm() { Summ = 100000, TypeValue = TypeValueTableSumm.Absolute, Rate = 45 });
+                list.Add(new ListTableSumm() { Summ = 200000, TypeValue = TypeValueTableSumm.Absolute, Rate = 85 });
+                list.Add(new ListTableSumm() { Summ = 300000, TypeValue = TypeValueTableSumm.Absolute, Rate = 115 });
+                list.Add(new ListTableSumm() { Summ = 500000, TypeValue = TypeValueTableSumm.Absolute, Rate = 185 });
+                list.Add(new ListTableSumm() { Summ = 1000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 365 });
+                list.Add(new ListTableSumm() { Summ = 2000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 700 });
+                list.Add(new ListTableSumm() { Summ = 5000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 1700 });
+                list.Add(new ListTableSumm() { Summ = 6000000, TypeValue = TypeValueTableSumm.Percent, Rate = 0.033m });
+            }
+
+            return list;
         }
 
         private void SaveTableSumm()
         {
             try
             {
-                string json = JsonConvert.SerializeObject(_listTableSumm, Formatting.Indented);
+                string json = JsonConvert.SerializeObject(_dictTableSumm, Formatting.Indented);
                 File.WriteAllText(@"Engine\" + NameStrategyUniq + @"TableSumm.json", json);
             }
             catch (Exception ex)
@@ -275,17 +277,10 @@ namespace OsEngine.Robots.Helpers
             }
         }
 
-        private class ListTableSumm
+        public void AddListTableSumm(List<ListTableSumm> list, int year)
         {
-            public int Summ;
-            public TypeValue TypeValue;
-            public decimal Rate;
-        }
-
-        private enum TypeValue
-        {
-            Absolute,
-            Percent
+            _dictTableSumm[year] = list;
+            SaveTableSumm();
         }
 
         #endregion
@@ -309,9 +304,9 @@ namespace OsEngine.Robots.Helpers
                 _dgv.Dock = DockStyle.Fill;
                 _dgv.ScrollBars = ScrollBars.Vertical;
                 _dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-                _dgv.GridColor = Color.Gray;
+                _dgv.GridColor = System.Drawing.Color.Gray;
                 _dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-                _dgv.ColumnHeadersDefaultCellStyle.Font = new Font(_dgv.Font, FontStyle.Bold | FontStyle.Italic);
+                _dgv.ColumnHeadersDefaultCellStyle.Font = new Font(_dgv.Font, System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic);
                 _dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
                 _dgv.ColumnCount = 3;
@@ -734,30 +729,32 @@ namespace OsEngine.Robots.Helpers
             try
             {
                 decimal rate = 0;
-                TypeValue typeValue = TypeValue.Absolute;
+                TypeValueTableSumm typeValue = TypeValueTableSumm.Absolute;
 
                 if (_regime == "Summ")
                 {
-                    for (int i = 0; i < _listTableSumm.Count; i++)
+                    List<ListTableSumm> list = _dictTableSumm[timeStart.Year];
+
+                    for (int i = 0; i < list.Count; i++)
                     {
-                        if (_listTableSumm[i].Summ > margin && i == 0)
+                        if (list[i].Summ > margin && i == 0)
                         {
-                            rate = _listTableSumm[i].Rate;
-                            typeValue = _listTableSumm[i].TypeValue;
+                            rate = list[i].Rate;
+                            typeValue = list[i].TypeValue;
                             break;
                         }
 
-                        if(i > 0 && _listTableSumm[i - 1].Summ <= margin && _listTableSumm[i].Summ > margin)
+                        if(i > 0 && list[i - 1].Summ <= margin && list[i].Summ > margin)
                         {
-                            rate = _listTableSumm[i].Rate;
-                            typeValue = _listTableSumm[i].TypeValue;
+                            rate = list[i].Rate;
+                            typeValue = list[i].TypeValue;
                             break;
                         }
 
-                        if (i == 11)
+                        if (i == list.Count - 1)
                         {
-                            rate = _listTableSumm[^1].Rate;
-                            typeValue = _listTableSumm[^1].TypeValue;
+                            rate = list[^1].Rate;
+                            typeValue = list[^1].TypeValue;
                             break;
                         }
                     }
@@ -774,7 +771,7 @@ namespace OsEngine.Robots.Helpers
 
                     decimal marginComission = rate;
 
-                    if (typeValue == TypeValue.Percent)
+                    if (typeValue == TypeValueTableSumm.Percent)
                     {
                         marginComission = Math.Round(margin * rate / 100, 2);
                     }
@@ -827,4 +824,207 @@ namespace OsEngine.Robots.Helpers
 
         #endregion
     }        
+
+    public class EditRatesWindow : Window
+    {
+        private WindowsFormsHost _host;
+        private DataGridView _dgv;
+        private List<ListTableSumm> _listTableSumm;
+        private List<TypeValueTableSumm> _listTypeValue = new() { TypeValueTableSumm.Absolute, TypeValueTableSumm.Percent };
+        private int _year;
+        private System.Windows.Controls.Button _createButton;
+        private PayOfMarginBot _bot;
+        private StackPanel _mainPanel;
+
+        public EditRatesWindow(PayOfMarginBot bot, List<ListTableSumm> list, int year)
+        {
+            _year = year;
+            _listTableSumm = list;
+            _bot = bot;
+
+            this.Title = OsLocalization.ConvertToLocString($"En:{bot.NameStrategyUniq} {year} year_Ru:{bot.NameStrategyUniq} {year} год_");            
+            this.Width = 460;
+            this.Height = 350;
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            this.Topmost = false;
+            this.Style = (Style)FindResource("WindowStyleNoResize");
+            this.Icon = GetIcon();
+
+            _mainPanel = new StackPanel();
+            _mainPanel.Orientation = System.Windows.Controls.Orientation.Vertical;
+            _mainPanel.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 21, 26, 30)); 
+           
+            _host = new WindowsFormsHost();
+            _host.Child = GetTable();
+            FillTableSumm();
+
+            _createButton = new System.Windows.Controls.Button();
+            _createButton.Content = OsLocalization.ConvertToLocString("En:Accept_Ru:Принять_");
+            _createButton.Width = 120;
+            _createButton.Height = 30;
+            _createButton.Margin = new Thickness(300, 0, 0, 0);
+            _createButton.Click += CreateButton_Click;
+
+            _mainPanel.Children.Add(_host);
+            _mainPanel.Children.Add(_createButton);
+
+            this.Content = _mainPanel;
+
+            this.Closed += EditRatesWindow_Closed;
+
+            Activate();
+            Focus();
+            this.Show();
+        }
+
+        private void CreateButton_Click(object sender, RoutedEventArgs e)
+        {
+            _bot.AddListTableSumm(_listTableSumm, _year);
+            Close();
+        }
+
+        private void EditRatesWindow_Closed(object sender, EventArgs e)
+        {
+            try
+            {              
+                this.Closed -= EditRatesWindow_Closed;
+                _createButton.Click -= CreateButton_Click;
+                _createButton = null;
+                _dgv = null;
+                _host = null;
+                _mainPanel = null;
+                _bot = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private System.Windows.Media.ImageSource GetIcon()
+        {
+            try
+            {
+                return new BitmapImage(new Uri("pack://application:,,,/OsEngine;component/Images/OsLogo.ico"));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private DataGridView GetTable()
+        {
+            try
+            {
+                _dgv = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
+
+                _dgv.Dock = DockStyle.Fill;
+                _dgv.ScrollBars = ScrollBars.Vertical;
+                _dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+                _dgv.GridColor = System.Drawing.Color.Gray;
+                _dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+                _dgv.ColumnHeadersDefaultCellStyle.Font = new Font(_dgv.Font, System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic);
+                _dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                _dgv.ColumnCount = 3;
+                _dgv.RowCount = 0;
+
+                _dgv.Columns[0].HeaderText = OsLocalization.ConvertToLocString("Eng:Amount margin_" + "Ru:Сумма непокрытой позиции_");
+                _dgv.Columns[1].HeaderText = OsLocalization.ConvertToLocString("Eng:Type rate_" + "Ru:Вид ставки_");
+                _dgv.Columns[2].HeaderText = OsLocalization.ConvertToLocString("Eng:Rate_" + "Ru:Ставка_");
+
+                _dgv.Columns[0].ReadOnly = true;
+                _dgv.Columns[1].ReadOnly = true;
+
+                _dgv.Columns[0].Width = 250;
+                _dgv.Columns[1].Width = 100;
+                _dgv.Columns[2].Width = 100;
+
+                foreach (DataGridViewColumn column in _dgv.Columns)
+                {
+                    column.SortMode = DataGridViewColumnSortMode.NotSortable;
+                    column.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                }
+
+                _dgv.CellValueChanged += _dgv_CellValueChanged;
+                _dgv.DataError += _dgv_DataError;
+
+                return _dgv;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void _dgv_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            
+        }
+
+        private void _dgv_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {                
+                if (e.ColumnIndex == 2)
+                {
+                    ListTableSumm list = new();
+
+                    list.Summ = _listTableSumm[e.RowIndex].Summ;
+                    list.TypeValue = _dgv.Rows[e.RowIndex].Cells[1].Value?.ToString() == TypeValueTableSumm.Absolute.ToString() ? TypeValueTableSumm.Absolute : TypeValueTableSumm.Percent;
+                    decimal.TryParse(_dgv.Rows[e.RowIndex].Cells[2].Value?.ToString(), out list.Rate);
+
+                    _listTableSumm[e.RowIndex] = list;
+                    _bot.AddListTableSumm(_listTableSumm, _year);
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+                
+        private void FillTableSumm()
+        {
+            try
+            {
+                for (int i = 0; i < _listTableSumm.Count; i++)
+                {
+                    DataGridViewRow row = new();
+
+                    if (i == _listTableSumm.Count - 1)
+                    {
+                        row.Cells.Add(new DataGridViewTextBoxCell() { Value = $"более {_listTableSumm[i - 1].Summ.ToString("N0", new CultureInfo("ru-RU"))} Р" });
+                    }
+                    else
+                    {
+                        row.Cells.Add(new DataGridViewTextBoxCell() { Value = $"до {_listTableSumm[i].Summ.ToString("N0", new CultureInfo("ru-RU"))} Р" });
+                    }
+
+                    row.Cells.Add(new DataGridViewTextBoxCell() { Value = _listTableSumm[i].TypeValue });
+                    row.Cells.Add(new DataGridViewTextBoxCell() { Value = _listTableSumm[i].Rate });
+
+                    _dgv.Rows.Add(row);
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }       
+    }
+
+    public class ListTableSumm
+    {
+        public int Summ;
+        public TypeValueTableSumm TypeValue;
+        public decimal Rate;
+    }
+
+    public enum TypeValueTableSumm
+    {
+        Absolute,
+        Percent
+    }
 }
