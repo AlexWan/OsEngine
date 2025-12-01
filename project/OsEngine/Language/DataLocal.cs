@@ -272,5 +272,60 @@ namespace OsEngine.Language
           "Eng:Settings_" +
           "Ru:Настройки_");
 
+        public string Label62 => OsLocalization.ConvertToLocString(
+          "Eng:Deleting by start and end time_" +
+          "Ru:Удаление по времени начала и конца_");
+
+        public string Label63 => OsLocalization.ConvertToLocString(
+          "Eng:Data start time_" +
+          "Ru:Начало данных_");
+
+        public string Label64 => OsLocalization.ConvertToLocString(
+          "Eng:Data end time_" +
+          "Ru:Конец данных_");
+
+        public string Label65 => OsLocalization.ConvertToLocString(
+          "Eng:Deleting by start and end time_" +
+          "Ru:Удаление по количеству объектов_");
+
+        public string Label66 => OsLocalization.ConvertToLocString(
+          "Eng:Objects in security_" +
+          "Ru:Кол-во объектов у бумаги_");
+
+        public string Label67 => OsLocalization.ConvertToLocString(
+          "Eng:Deleting by volatility_" +
+          "Ru:Удаление по волатильности_");
+
+        public string Label68 => OsLocalization.ConvertToLocString(
+           "Eng:Max volatility_" +
+           "Ru:Макс. волатильность_");
+
+        public string Label69 => OsLocalization.ConvertToLocString(
+           "Eng:Min volatility_" +
+           "Ru:Мин. волатильность_");
+
+        public string Label70 => OsLocalization.ConvertToLocString(
+           "Eng:Deleting by significant digit count_" +
+           "Ru:Удаление по значимой части цены_");
+
+        public string Label71 => OsLocalization.ConvertToLocString(
+          "Eng:Max digits_" +
+          "Ru:Макс. цифр_");
+
+        public string Label72 => OsLocalization.ConvertToLocString(
+           "Eng:Min digits_" +
+           "Ru:Мин. цифр_");
+
+        public string Label73 => OsLocalization.ConvertToLocString(
+           "Eng:Prune_" +
+           "Ru:Обрезать_");
+
+        public string Label74 => OsLocalization.ConvertToLocString(
+           "Eng:You must enter an integer_" +
+           "Ru:Необходимо ввести целое число_");
+
+        public string Label75 => OsLocalization.ConvertToLocString(
+           "Eng:The date range must be specified correctly_" +
+           "Ru:Необходимо корректно указать диапазон дат_");
     }
 }
