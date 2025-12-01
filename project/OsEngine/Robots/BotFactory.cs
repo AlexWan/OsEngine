@@ -620,6 +620,13 @@ namespace OsEngine.Robots
             for (int i = args.ThreadIndex; i < args.AllBotNames.Count; i += args.TotalThreads)
             {
                 string botNameClass = args.AllBotNames[i];
+
+                if(botNameClass == "PayOfMarginBot"
+                    || botNameClass == "TaxPayer")
+                {
+                    continue;
+                }
+
                 BotPanel bot = null;
                 try
                 {

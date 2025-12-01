@@ -490,7 +490,7 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
-            column3.HeaderText = "Max Drow Dawn";
+            column3.HeaderText = "Max Drow Dawn %";
             column3.ReadOnly = false;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridResults.Columns.Add(column3);
@@ -590,7 +590,7 @@ namespace OsEngine.OsOptimizer
                 _gridResults.Columns[3].HeaderCell.Style.BackColor = cellColor;
             }
 
-            _gridResults.Columns[4].HeaderText = "Max Drow Dawn";
+            _gridResults.Columns[4].HeaderText = "Max Drow Dawn %";
             if (_sortBotsType == SortBotsType.MaxDrawDawn)
             {
                 _gridResults.Columns[4].HeaderText += " vvv";
@@ -1045,6 +1045,10 @@ namespace OsEngine.OsOptimizer
                  + (num + 1) + " " + fazeReport.Faze.TypeFaze + ". "
                  + OsLocalization.Optimizer.Label69 + ": " + _sortBotsType;
 
+                if(_sortBotsType == SortBotsType.MaxDrawDawn)
+                {
+                    LabelSeriesResultChart.Content += " %";
+                }
 
                 List<ChartOptimizationResultValue> values = new List<ChartOptimizationResultValue>();
 
