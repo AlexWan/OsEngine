@@ -21,7 +21,7 @@ namespace OsEngine.OsData
 
         public DataPrunerUi(OsDataSet set, OsDataSetPainter setPainter)
         {
-            InitializeComponent();
+             InitializeComponent();
 
             _set = set;
             _setPainter = setPainter;
@@ -68,22 +68,22 @@ namespace OsEngine.OsData
 
         private void ButtonDelete1_Click(object sender, RoutedEventArgs e) // по времени
         {
-            if (DatePickerTimeStart.SelectedDate == null || DatePickerTimeEnd.SelectedDate == null)
-            {
-                ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label74, Logging.LogMessageType.Error);
-                Close();
-                return;
-            }
-
-            if (DatePickerTimeStart.SelectedDate > DatePickerTimeEnd.SelectedDate)
-            {
-                ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label75, Logging.LogMessageType.Error);
-                Close();
-                return;
-            }
-
             try
             {
+                if (DatePickerTimeStart.SelectedDate == null || DatePickerTimeEnd.SelectedDate == null)
+                {
+                    ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label74, Logging.LogMessageType.Error);
+                    Close();
+                    return;
+                }
+
+                if (DatePickerTimeStart.SelectedDate > DatePickerTimeEnd.SelectedDate)
+                {
+                    ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label75, Logging.LogMessageType.Error);
+                    Close();
+                    return;
+                }
+
                 DateTime? start = DatePickerTimeStart.SelectedDate;
 
                 DateTime? end = DatePickerTimeEnd.SelectedDate;
@@ -173,12 +173,16 @@ namespace OsEngine.OsData
         {
             try
             {
-                if (!Int32.TryParse(TextBoxMaxVol.Text, out int maxVol) || !Int32.TryParse(TextBoxMinVol.Text, out int minVol))
+                if (string.IsNullOrEmpty( TextBoxMaxVol.Text) || string.IsNullOrEmpty(TextBoxMinVol.Text))
                 {
-                    ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label74, Logging.LogMessageType.Error);
+                    ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label77, Logging.LogMessageType.Error);
                     Close();
                     return;
                 }
+
+                decimal maxVol = TextBoxMaxVol.Text.ToDecimal();
+                decimal minVol = TextBoxMinVol.Text.ToDecimal();
+                
 
                 List<SecurityToLoad> wrongSecurities = [];
 
@@ -212,7 +216,6 @@ namespace OsEngine.OsData
             {
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-
         }
 
         private List<Candle> GetDailyCandlesForMonth(SecurityTfLoader loader)
@@ -407,6 +410,18 @@ namespace OsEngine.OsData
 
         private void DeleteWrongSecurities(List<SecurityToLoad> wrongSecurities)
         {
+            string secList = string.Join(", ", wrongSecurities.ConvertAll(security => security.SecName));
+   
+            string attentionMsg = $"{OsLocalization.Data.Label76.Split('.')[0]}:\n{secList}\n{OsLocalization.Data.Label76.Split('.')[1]}";
+
+            AcceptDialogUi ui = new AcceptDialogUi(attentionMsg);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptAction == false)
+            {
+                return;
+            }
+
             for (int i = 0; i < wrongSecurities.Count; i++)
             {
                 _set.SecuritiesLoad.Remove(wrongSecurities[i]);

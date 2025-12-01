@@ -461,9 +461,12 @@ namespace OsEngine.OsData
 
                         // временно кнопка обрезать
 
-                        DataPrunerUi ui = new DataPrunerUi(_set, this);
-                        ui.Show();
-
+                        if (_set.SecuritiesLoad.Count > 0)
+                        {
+                            DataPrunerUi ui = new DataPrunerUi(_set, this);
+                            ui.Show();
+                            return;
+                        }
                     }
                     else if (isClickOnShowHideSecs)
                     { // скрыть/раскрыть бумаги

@@ -39,7 +39,7 @@
         </Grid>
 
         <!-- Верхний правый прямоугольник и элементы -->
-        <Rectangle x:Name="DelByObjects" Grid.Row="2" Grid.Column="2"/>
+        <Rectangle Name="DelByObjects" Grid.Row="2" Grid.Column="2"/>
         <Grid Grid.Row="2" Grid.Column="2" Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -55,16 +55,16 @@
                 <ColumnDefinition Width="120"/>
             </Grid.ColumnDefinitions>
 
-            <Label x:Name="LabelObjNums" Content="Deleting by number of objects" FontWeight="Bold" Grid.Row="0" Grid.ColumnSpan="2"/>
-            <Label x:Name="LabelObjsNum" Content="Objects in security" Foreground="#FFE2E3E8" Grid.Row="2" Grid.Column="0"/>
-            <TextBox Name="TextBoxObjs" Height="23" Grid.Row="2" Grid.Column="1" Width="100"/>
-            <Label x:Name="LabelTf" Content="Time frame" Foreground="#FFE2E3E8" Grid.Row="4" Grid.Column="0"/>
+            <Label Name="LabelObjNums" Content="Deleting by number of objects" FontWeight="Bold" Grid.Row="0" Grid.ColumnSpan="2"/>
+            <Label Name="LabelObjsNum" Content="Objects in security" Foreground="#FFE2E3E8" Grid.Row="2" Grid.Column="0"/>
+            <TextBox Name="TextBoxObjs" Height="23" Grid.Row="2" Grid.Column="1" Width="100" Text="1000"/>
+            <Label Name="LabelTf" Content="Time frame" Foreground="#FFE2E3E8" Grid.Row="4" Grid.Column="0"/>
             <ComboBox Name="ComboBoxTf" Height="22" Grid.Row="4" Grid.Column="1" Width="100"/>
             <Button Name="ButtonDelete2" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete2_Click"/>
         </Grid>
 
         <!-- Нижний левый прямоугольник и элементы -->
-        <Rectangle x:Name="VolatilityArea" Grid.Row="4" Grid.Column="0"/>
+        <Rectangle Name="VolatilityArea" Grid.Row="4" Grid.Column="0"/>
         <Grid Grid.Row="4" Grid.Column="0" Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -81,15 +81,15 @@
             </Grid.ColumnDefinitions>
 
             <Label Name="LabelDelByVol" Content="Deleting by volatility" FontWeight="Bold" Grid.Row="0" Grid.ColumnSpan="2"/>
-            <Label x:Name="LabelMaxVol" Content="Max volatility" Foreground="#FFDFE1E6" Grid.Row="2" Grid.Column="0"/>
-            <TextBox x:Name="TextBoxMaxVol" Height="24" Grid.Row="2" Grid.Column="1" Width="100"/>
-            <Label x:Name="LabelMinVol" Content="Min volatility" Foreground="#FFDFE1E6" Grid.Row="4" Grid.Column="0"/>
-            <TextBox Name="TextBoxMinVol" Height="23" Grid.Row="4" Grid.Column="1" Width="100"/>
-            <Button x:Name="ButtonDelete3" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete3_Click"/>
+            <Label Name="LabelMaxVol" Content="Max volatility" Foreground="#FFDFE1E6" Grid.Row="2" Grid.Column="0"/>
+            <TextBox Name="TextBoxMaxVol" Height="24" Grid.Row="2" Grid.Column="1" Width="100" Text="30"/>
+            <Label Name="LabelMinVol" Content="Min volatility" Foreground="#FFDFE1E6" Grid.Row="4" Grid.Column="0"/>
+            <TextBox Name="TextBoxMinVol" Height="23" Grid.Row="4" Grid.Column="1" Width="100" Text="0.5"/>
+            <Button Name="ButtonDelete3" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete3_Click"/>
         </Grid>
 
         <!-- Нижний правый прямоугольник и элементы -->
-        <Rectangle x:Name="DelByDecimals" Grid.Row="4" Grid.Column="2"/>
+        <Rectangle Name="DelByDecimals" Grid.Row="4" Grid.Column="2"/>
         <Grid Grid.Row="4" Grid.Column="2" Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -105,12 +105,12 @@
                 <ColumnDefinition Width="120"/>
             </Grid.ColumnDefinitions>
 
-            <Label x:Name="LabelDelByFract" Content="Deleting by significant digit count" FontWeight="Bold" Grid.Row="0" Grid.ColumnSpan="2"/>
-            <Label x:Name="LabelMaxDigit" Content="Max digits" Foreground="#FFE2E3E8" Grid.Row="2" Grid.Column="0"/>
-            <TextBox Name="TextBoxMaxDigits" Height="23" Grid.Row="2" Grid.Column="1" Width="100"/>
-            <Label x:Name="LabelMinDigit" Content="Min digits" Foreground="#FFE2E3E8" Grid.Row="4" Grid.Column="0"/>
-            <TextBox Name="TextBoxMinDigits" Height="23" Grid.Row="4" Grid.Column="1" Width="100"/>
-            <Button x:Name="ButtonDelete4" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete4_Click"/>
+            <Label Name="LabelDelByFract" Content="Deleting by significant digit count" FontWeight="Bold" Grid.Row="0" Grid.ColumnSpan="2"/>
+            <Label Name="LabelMaxDigit" Content="Max digits" Foreground="#FFE2E3E8" Grid.Row="2" Grid.Column="0"/>
+            <TextBox Name="TextBoxMaxDigits" Height="23" Grid.Row="2" Grid.Column="1" Width="100" Text="7"/>
+            <Label Name="LabelMinDigit" Content="Min digits" Foreground="#FFE2E3E8" Grid.Row="4" Grid.Column="0"/>
+            <TextBox Name="TextBoxMinDigits" Height="23" Grid.Row="4" Grid.Column="1" Width="100" Text="3"/>
+            <Button Name="ButtonDelete4" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete4_Click"/>
         </Grid>
     </Grid>
 </Window>

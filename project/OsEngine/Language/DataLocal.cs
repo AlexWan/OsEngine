@@ -327,5 +327,14 @@ namespace OsEngine.Language
         public string Label75 => OsLocalization.ConvertToLocString(
            "Eng:The date range must be specified correctly_" +
            "Ru:Необходимо корректно указать диапазон дат_");
+
+        public string Label76 => OsLocalization.ConvertToLocString(
+            "Eng:You want to delete these securities.Are you sure?_" +
+            "Ru:Вы собираетесь удалить следующие инструменты.Вы уверены?_");
+
+        //fractional or integer number
+        public string Label77 => OsLocalization.ConvertToLocString(
+          "Eng:You must enter fractional or integer number_" +
+          "Ru:Необходимо ввести целое или дробное число_");
     }
 }
