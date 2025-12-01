@@ -684,7 +684,7 @@ namespace OsEngine.Journal.Internal
                 return lossDeal;
             }
 
-            int allDeals = 0;
+            int allDealsCount = 0;
 
             for (int i = 0; i < deals.Length; i++)
             {
@@ -694,14 +694,10 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
 
-                if (deals[i].ProfitOperationPercent <= 0)
-                {
-                    allDeals++;
-                }
+                allDealsCount++;
             }
 
-
-            return lossDeal / allDeals * 100;
+            return lossDeal / allDealsCount * 100;
 
         }
 

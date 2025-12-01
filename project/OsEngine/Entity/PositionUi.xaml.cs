@@ -9,8 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using OsEngine.Market;
-using System.Drawing;
-using static Grpc.Tradeapi.V1.Marketdata.OrderBook.Types;
 
 namespace OsEngine.Entity
 {
