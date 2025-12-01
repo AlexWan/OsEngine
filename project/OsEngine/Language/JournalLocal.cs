@@ -152,8 +152,19 @@ namespace OsEngine.Language
          "Ru:Фильтр по бумагам_");
 
         public string Label23 => OsLocalization.ConvertToLocString(
-            "Eng:Benchmark_" +
-            "Ru:Бенчмарк_");
+         "Eng:Benchmark_" +
+         "Ru:Бенчмарк_");
+
+        public string Label24 => OsLocalization.ConvertToLocString(
+         "Eng:P E R C E N T_" +
+         "Ru:П Р О Ц Е Н Т Ы_");
+
+        public string Label25 => OsLocalization.ConvertToLocString(
+         "Eng:A B S O L U T E_" +
+         "Ru:А Б С О Л Ю Т_");
+
+
+
 
         public string TabItem1 => OsLocalization.ConvertToLocString(
             "Eng:Equity_" +

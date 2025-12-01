@@ -2660,6 +2660,8 @@ namespace OsEngine.Journal
                 areaDdPunct.Position.Y = 0;
                 areaDdPunct.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
                 areaDdPunct.CursorX.IsUserEnabled = true; //trait/чертa
+                areaDdPunct.AxisY2.Title = OsLocalization.Journal.Label25;
+                areaDdPunct.AxisY2.TitleForeColor = Color.DeepSkyBlue;
 
                 _chartDd.ChartAreas.Add(areaDdPunct);
 
@@ -2670,6 +2672,8 @@ namespace OsEngine.Journal
                 areaDdPercent.Position.Y = 50;
                 areaDdPercent.AxisX.Enabled = AxisEnabled.False;
                 areaDdPercent.CursorX.IsUserEnabled = true; //trait/чертa
+                areaDdPercent.AxisY2.Title = OsLocalization.Journal.Label24;
+                areaDdPercent.AxisY2.TitleForeColor = Color.DarkOrange;
 
                 _chartDd.ChartAreas.Add(areaDdPercent);
 
