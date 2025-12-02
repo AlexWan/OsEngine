@@ -49,7 +49,7 @@ namespace OsEngine.Robots
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _regimeParameter = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClose" });
+            _regimeParameter = CreateParameter("Regime", "Off", new[] { "Off", "On", "RebalancingOnceADay", "OnlyClose" });
 
             _minBalance = CreateParameter("Minimum balance", 5000m, 5000m, 5000m, 5000m);
             _allowedSpreadSize = CreateParameter("Allowed spread size(%)", 0.01m, 0.01m, 0.01m, 0.01m);
@@ -92,6 +92,8 @@ namespace OsEngine.Robots
 
         #region Work thread for Real
 
+        private DateTime _timeLast = DateTime.MinValue;
+
         private void StartThread()
         {
             while (true)
@@ -106,9 +108,10 @@ namespace OsEngine.Robots
                         continue;
                     }
 
-                    if(_tab.IsConnected == false
+                    if (_tab.IsConnected == false
                         || _tab.IsReadyToTrade == false)
                     {
+                        Thread.Sleep(1000);
                         continue;
                     }
 
@@ -119,10 +122,39 @@ namespace OsEngine.Robots
                         continue;
                     }
 
+                    if (_regimeParameter.ValueString == "OnlyClose")
+                    {
+                        ClosePositions();
+                        continue;
+                    }
+
                     if (CheckDayOfWeek() == false)
                     {
                         Thread.Sleep(1000);
                         continue;
+                    }
+
+                    if (_regimeParameter.ValueString == "RebalancingOnceADay")
+                    {
+                        if (_timeToBuy.Value < TimeServer)
+                        {
+                            if (_timeLast.AddDays(1) < TimeServer)
+                            {
+                                RebalanceLogic();
+                                _timeLast = TimeServer;
+                                continue;
+                            }
+                            else
+                            {
+                                Thread.Sleep(1000);
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+                            continue;
+                        }
                     }
 
                     if (_timeToSell.Value > _timeToBuy.Value)
@@ -134,11 +166,11 @@ namespace OsEngine.Robots
                             , Logging.LogMessageType.Error);
 
                         Thread.Sleep(10000);
-                        return;
+                        continue;
                     }
 
-                    if (_timeToSell.Value < TimeServer 
-                        && _timeToBuy.Value > TimeServer 
+                    if (_timeToSell.Value < TimeServer
+                        && _timeToBuy.Value > TimeServer
                         && _botClosePositionToday == false)
                     {
                         ClosePositions();
@@ -153,6 +185,7 @@ namespace OsEngine.Robots
                         _botClosePositionToday = false;
                         continue;
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -184,17 +217,34 @@ namespace OsEngine.Robots
                 return;
             }
 
-            if (_timeToSell.Value < TimeServer && _timeToBuy.Value > TimeServer && _botClosePositionToday == false)
+            if (_regimeParameter.ValueString == "RebalancingOnceADay")
             {
-                ClosePositions();
-                return;
+                if (_timeToBuy.Value < TimeServer)
+                {
+                    if (_timeLast.AddDays(1) < TimeServer
+                        || _timeLast > candles[^1].TimeStart
+                        || _timeLast == DateTime.MinValue)
+                    {
+                        RebalanceLogic();
+                        _timeLast = TimeServer;
+                        return;
+                    }
+                }
             }
-
-            if (_timeToBuy.Value < TimeServer)
+            else
             {
-                RebalanceLogic();
-                _botClosePositionToday = false;
-                return;
+                if (_timeToSell.Value < TimeServer && _timeToBuy.Value > TimeServer && _botClosePositionToday == false)
+                {
+                    ClosePositions();
+                    return;
+                }
+
+                if (_timeToBuy.Value < TimeServer)
+                {
+                    RebalanceLogic();
+                    _botClosePositionToday = false;
+                    return;
+                }
             }
         }
 
@@ -209,7 +259,7 @@ namespace OsEngine.Robots
                 return;
             }
 
-            if(StartProgram == StartProgram.IsOsTrader)
+            if (StartProgram == StartProgram.IsOsTrader)
             {
                 if (_tab.Portfolio.PositionOnBoard == null)
                 {
@@ -274,6 +324,11 @@ namespace OsEngine.Robots
 
         private void ClosePositions()
         {
+            if (!CheckSpread())
+            {
+                return;
+            }
+
             if (_tab.PositionsOpenAll.Count > 0)
             {
                 for (int i = 0; i < _tab.PositionsOpenAll.Count; i++)
