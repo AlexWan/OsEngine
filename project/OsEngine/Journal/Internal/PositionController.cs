@@ -601,6 +601,11 @@ namespace OsEngine.Journal.Internal
                         continue;
                     }
 
+                    if(curPosition.SecurityName != updateOrder.SecurityNameCode)
+                    {
+                        continue;
+                    }
+
                     bool isCloseOrder = false;
 
                     if (curPosition.CloseOrders != null && curPosition.CloseOrders.Count > 0)
