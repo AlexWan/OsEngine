@@ -106,7 +106,7 @@ namespace OsEngine.Robots.Helpers
             }
 
             Description = OsLocalization.ConvertToLocString(
-                "En:The bot only works in the Tester. The bot is designed to charge a margin commission daily if the total amount of accepted orders exceeds the deposit amount._" +
+                "Eng:The bot only works in the Tester. The bot is designed to charge a margin commission daily if the total amount of accepted orders exceeds the deposit amount._" +
                 "Ru:Робот работает только в Тестере. Робот предназначен для ежедневного списания маржинальной комиссии, если сумма взятых позиций превышает размеры депозита._");
         }
 
@@ -842,7 +842,7 @@ namespace OsEngine.Robots.Helpers
             _listTableSumm = list;
             _bot = bot;
 
-            this.Title = OsLocalization.ConvertToLocString($"En:{bot.NameStrategyUniq} {year} year_Ru:{bot.NameStrategyUniq} {year} год_");            
+            this.Title = OsLocalization.ConvertToLocString($"Eng:{bot.NameStrategyUniq} {year} year_Ru:{bot.NameStrategyUniq} {year} год_");            
             this.Width = 460;
             this.Height = 350;
             this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -859,7 +859,7 @@ namespace OsEngine.Robots.Helpers
             FillTableSumm();
 
             _createButton = new System.Windows.Controls.Button();
-            _createButton.Content = OsLocalization.ConvertToLocString("En:Accept_Ru:Принять_");
+            _createButton.Content = OsLocalization.ConvertToLocString("Eng:Accept_Ru:Принять_");
             _createButton.Width = 120;
             _createButton.Height = 30;
             _createButton.Margin = new Thickness(300, 0, 0, 0);
