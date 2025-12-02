@@ -49,7 +49,7 @@ namespace OsEngine.Robots
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _regimeParameter = CreateParameter("Regime", "Off", new[] { "Off", "On", "RebalancingOnceADay", "OnlyClose" });
+            _regimeParameter = CreateParameter("Regime", "Off", new[] { "Off", "RebalancingTwiceADay", "RebalancingOnceADay", "OnlyClose" });
 
             _minBalance = CreateParameter("Minimum balance", 5000m, 5000m, 5000m, 5000m);
             _allowedSpreadSize = CreateParameter("Allowed spread size(%)", 0.01m, 0.01m, 0.01m, 0.01m);
@@ -125,6 +125,7 @@ namespace OsEngine.Robots
                     if (_regimeParameter.ValueString == "OnlyClose")
                     {
                         ClosePositions();
+                        _regimeParameter.ValueString = "Off";
                         continue;
                     }
 
@@ -231,7 +232,7 @@ namespace OsEngine.Robots
                     }
                 }
             }
-            else
+            else // _regimeParameter.ValueString == "RebalancingTwiceADay"
             {
                 if (_timeToSell.Value < TimeServer && _timeToBuy.Value > TimeServer && _botClosePositionToday == false)
                 {
