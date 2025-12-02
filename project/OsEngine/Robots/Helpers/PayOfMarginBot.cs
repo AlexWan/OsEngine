@@ -164,7 +164,7 @@ namespace OsEngine.Robots.Helpers
                 for (int i = 0; i < _dgvSumm.Rows.Count; i++)
                 {
                     _dgvSumm.Rows[i].Cells[0].Value = 2000 + i;
-                    _dgvSumm.Rows[i].Cells[1].Value = "En:Settings_Ru:Настроить_";
+                    _dgvSumm.Rows[i].Cells[1].Value = OsLocalization.ConvertToLocString("Eng:Settings_Ru:Настроить_");
                 }
 
                 _dgvSumm.DataError += _dgv_DataError;
