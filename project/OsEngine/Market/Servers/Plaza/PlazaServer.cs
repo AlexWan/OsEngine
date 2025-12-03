@@ -1731,7 +1731,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     security.PriceLimitLow = Convert.ToDecimal(replmsg["settlement_price"].asDecimal()) - Convert.ToDecimal(replmsg["limit_down"].asDecimal());
                                     security.PriceLimitHigh = Convert.ToDecimal(replmsg["settlement_price"].asDecimal()) + Convert.ToDecimal(replmsg["limit_up"].asDecimal());
 
-                                    security.Lot = replmsg["lot_volume"].asInt(); //Convert.ToDecimal(replmsg["lot_volume"].asInt());
+                                    security.Lot = 1;
 
                                     security.SecurityType = SecurityType.Futures;
 
