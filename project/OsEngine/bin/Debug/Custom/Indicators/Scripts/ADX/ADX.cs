@@ -28,264 +28,239 @@ namespace OsEngine.Indicators
             }
             else if (state == IndicatorState.Dispose)
             {
-                _dmjPlus = null;
-                _dmjPlusAverage = null;
-                _dmjMinus = null;
-                _dmjMinusAverage = null;
-                _trueRange = null;
-                _trueRangeAverage = null;
-                _sDIjPlus = null;
-                _sDIjMinus = null;
-                _dX = null;
-                _adX = null;
+                _dmPlus?.Clear();
+                _dmMinus?.Clear();
+                _tr?.Clear();
+                _smoothedTR?.Clear();
+                _smoothedDMPlus?.Clear();
+                _smoothedDMMinus?.Clear();
+                _diPlus?.Clear();
+                _diMinus?.Clear();
+                _dx?.Clear();
+                _adx?.Clear();
             }
         }
 
-        private List<decimal> _dmjPlus;
-        private List<decimal> _dmjPlusAverage;
-        private List<decimal> _dmjMinus;
-        private List<decimal> _dmjMinusAverage;
-        private List<decimal> _trueRange;
-        private List<decimal> _trueRangeAverage;
-        private List<decimal> _sDIjPlus;
-        private List<decimal> _sDIjMinus;
-        private List<decimal> _dX;
-        private List<decimal> _adX;
+        private List<decimal> _dmPlus;
+        private List<decimal> _dmMinus;
+        private List<decimal> _tr;
+        private List<decimal> _smoothedTR;
+        private List<decimal> _smoothedDMPlus;
+        private List<decimal> _smoothedDMMinus;
+        private List<decimal> _diPlus;
+        private List<decimal> _diMinus;
+        private List<decimal> _dx;
+        private List<decimal> _adx;
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if (index >= _series.Values.Count)
+            if (index == 0)
             {
-                return;
+                _dmPlus = new List<decimal>();
+                _dmMinus = new List<decimal>();
+                _tr = new List<decimal>();
+                _smoothedTR = new List<decimal>();
+                _smoothedDMPlus = new List<decimal>();
+                _smoothedDMMinus = new List<decimal>();
+                _diPlus = new List<decimal>();
+                _diMinus = new List<decimal>();
+                _dx = new List<decimal>();
+                _adx = new List<decimal>();
             }
-            _series.Values[index] = GetValueStandard(candles, index);
+
+            while (_dmPlus.Count <= index)
+            {
+                _dmPlus.Add(0);
+            }
+
+            while (_dmMinus.Count <= index)
+            {
+                _dmMinus.Add(0);
+            }
+
+            while (_tr.Count <= index)
+            {
+                _tr.Add(0);
+            }
+
+            while (_smoothedTR.Count <= index)
+            {
+                _smoothedTR.Add(0);
+            }
+
+            while (_smoothedDMPlus.Count <= index)
+            {
+                _smoothedDMPlus.Add(0);
+            }
+
+            while (_smoothedDMMinus.Count <= index)
+            {
+                _smoothedDMMinus.Add(0);
+            }
+
+            while (_diPlus.Count <= index)
+            {
+                _diPlus.Add(0);
+            }
+
+            while (_diMinus.Count <= index)
+            {
+                _diMinus.Add(0);
+            }
+
+            while (_dx.Count <= index)
+            {
+                _dx.Add(0);
+            }
+
+            while (_adx.Count <= index)
+            {
+                _adx.Add(0);
+            }
+
+            CalculateADX(candles, index);
+
+            _series.Values[index] = Math.Round(_adx[index], 4);
+            _seriesPlus.Values[index] = Math.Round(_diPlus[index], 4);
+            _seriesMinus.Values[index] = Math.Round(_diMinus[index], 4);
         }
 
         public List<decimal> ValuesDiPlus
         {
-            get
-            {
-                return new List<decimal>(_sDIjPlus);
-            }
+            get { return new List<decimal>(_diPlus); }
         }
 
         public List<decimal> ValuesDiMinus
         {
-            get
-            {
-                return new List<decimal>(_sDIjMinus);
-            }
+            get { return new List<decimal>(_diMinus); }
         }
 
-        public decimal GetValueStandard(List<Candle> candles, int index)
+        public List<decimal> ValuesADX
+        {
+            get { return new List<decimal>(_adx); }
+        }
+
+        private void CalculateADX(List<Candle> candles, int index)
         {
             if (index == 0)
             {
-                _dmjPlus = null;
-                _dmjMinus = null;
-                _trueRange = null;
-                _sDIjPlus = null;
-                _sDIjMinus = null;
-                _dX = null;
-                _adX = null;
+                _dmPlus[0] = 0;
+                _dmMinus[0] = 0;
+                _tr[0] = 0;
+                return;
             }
-            // 1 counting new directional movements
-            DmjReload(candles, index);
 
-            _dmjPlusAverage = MovingAverageWild(_dmjPlus, _dmjPlusAverage, _length.ValueInt, index);
-            _dmjMinusAverage = MovingAverageWild(_dmjMinus, _dmjMinusAverage, _length.ValueInt, index);
-            // 2 calculate true range
+            // 1. Calculation of +DM and -DM
+            decimal upMove = candles[index].High - candles[index - 1].High;
+            decimal downMove = candles[index - 1].Low - candles[index].Low;
 
-            TrueRangeReload(candles, index);
-
-            _trueRangeAverage = MovingAverageWild(_trueRange, _trueRangeAverage, _length.ValueInt, index);
-            // 3 smoothing movement through true range 
-
-            SdijReload(index);
-
-            // 5 making an array DX
-
-            DxReload(index);
-
-            if (_length.ValueInt == 0 || _length.ValueInt > _dX.Count)
+            if (upMove > downMove && upMove > 0)
             {
-                // if it's not possible to calculate
-                return 0;
+                _dmPlus[index] = upMove;
+                _dmMinus[index] = 0;
+            }
+            else if (downMove > upMove && downMove > 0)
+            {
+                _dmMinus[index] = downMove;
+                _dmPlus[index] = 0;
             }
             else
             {
-                // calculating
-                _adX = MovingAverageWild(_dX, _adX, _length.ValueInt, index);
-                return Math.Round(_adX[_adX.Count - 1], 4);
-            }
-        }
-
-        private void DmjReload(List<Candle> candles, int index)
-        {
-            if (index == 0)
-            {
-                _dmjMinus = new List<decimal>();
-                _dmjPlus = new List<decimal>();
-                _dmjMinus.Add(0);
-                _dmjPlus.Add(0);
-                return;
+                _dmPlus[index] = 0;
+                _dmMinus[index] = 0;
             }
 
-            while (index > _dmjMinus.Count - 1)
+            // 2. True Range Calculation
+            decimal highLow = candles[index].High - candles[index].Low;
+            decimal highPrevClose = Math.Abs(candles[index].High - candles[index - 1].Close);
+            decimal lowPrevClose = Math.Abs(candles[index].Low - candles[index - 1].Close);
+
+            _tr[index] = Math.Max(highLow, Math.Max(highPrevClose, lowPrevClose));
+
+            // 3. Smoothing values
+            int length = _length.ValueInt;
+
+            if (index < length)
             {
-                _dmjMinus.Add(0);
-                _dmjPlus.Add(0);
-            }
-
-            if (candles[index].High >= candles[index - 1].High
-                &&
-                candles[index].High - candles[index - 1].High >= candles[index - 1].Low - candles[index].Low
-                )
-            {
-                _dmjPlus[_dmjPlus.Count - 1] = candles[index].High - candles[index - 1].High;
-            }
-
-            if (candles[index].Low <= candles[index - 1].Low
-                &&
-                candles[index].High - candles[index - 1].High <= candles[index - 1].Low - candles[index].Low
-                )
-            {
-                _dmjMinus[_dmjMinus.Count - 1] = candles[index - 1].Low - candles[index].Low;
-            }
-        }
-
-        private void TrueRangeReload(List<Candle> candles, int index)
-        {
-            // True range is the largest of following three values:
-            // difference between current maximum and minimum;
-            // difference between previous closing price an current maximum
-            // difference between previous closing price and current minimum
-
-            if (index == 0)
-            {
-                _trueRange = new List<decimal>();
-                _trueRange.Add(0);
-                return;
-            }
-
-            while (index > _trueRange.Count - 1)
-            {
-                _trueRange.Add(0);
-            }
-
-            decimal hiToLow = Math.Abs(candles[index].High - candles[index].Low);
-            decimal closeToHigh = Math.Abs(candles[index - 1].Close - candles[index].High);
-            decimal closeToLow = Math.Abs(candles[index - 1].Close - candles[index].Low);
-
-            _trueRange[_trueRange.Count - 1] = Math.Max(Math.Max(hiToLow, closeToHigh), closeToLow);
-        }
-
-        private void SdijReload(int index)
-        {
-            if (index == 0)
-            {
-                _sDIjMinus = new List<decimal>();
-                _sDIjPlus = new List<decimal>();
-                _sDIjMinus.Add(0);
-                _sDIjPlus.Add(0);
-                return;
-            }
-
-            if (index > _sDIjMinus.Count - 1)
-            {
-                _sDIjMinus.Add(0);
-                _sDIjPlus.Add(0);
-            }
-
-            decimal trueRange = _trueRangeAverage[index];
-            decimal dmjiPlus = _dmjPlusAverage[index];
-            decimal dmjiMinus = _dmjMinusAverage[index];
-
-            if (trueRange == 0)
-            {
-                _sDIjPlus[_sDIjPlus.Count - 1] = 0;
-                _sDIjMinus[_sDIjMinus.Count - 1] = 0;
-            }
-            else
-            {
-                _sDIjPlus[_sDIjPlus.Count - 1] = Math.Round(100 * dmjiPlus / trueRange, 0);
-                _sDIjMinus[_sDIjMinus.Count - 1] = Math.Round(100 * dmjiMinus / trueRange, 0);
-            }
-
-            _seriesPlus.Values[index] = _sDIjPlus[_sDIjPlus.Count - 1];
-            _seriesMinus.Values[index] = _sDIjMinus[_sDIjMinus.Count - 1];
-        }
-
-        private List<decimal> MovingAverageWild(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
-        {
-            length = _length.ValueInt;
-            if (moving == null || length > valuesSeries.Count)
-            {
-                moving = new List<decimal>();
-                for (int i = 0; i < index + 1; i++)
+                if (index == 0)
                 {
-                    moving.Add(0);
-                }
-            }
-            else if (length == valuesSeries.Count)
-            {
-                // it's first value. Calculate as MA
-
-                decimal lastMoving = 0;
-
-                for (int i = index; i > -1 && i > valuesSeries.Count - 1 - length; i--)
-                {
-                    lastMoving += valuesSeries[i];
-                }
-                if (lastMoving != 0)
-                {
-                    moving.Add(lastMoving / length);
+                    _smoothedTR[0] = _tr[0];
+                    _smoothedDMPlus[0] = _dmPlus[0];
+                    _smoothedDMMinus[0] = _dmMinus[0];
                 }
                 else
                 {
-                    moving.Add(0);
+                    decimal sumTR = 0;
+                    decimal sumDMPlus = 0;
+                    decimal sumDMMinus = 0;
+
+                    for (int i = 0; i <= index; i++)
+                    {
+                        sumTR += _tr[i];
+                        sumDMPlus += _dmPlus[i];
+                        sumDMMinus += _dmMinus[i];
+                    }
+
+                    _smoothedTR[index] = sumTR / (index + 1);
+                    _smoothedDMPlus[index] = sumDMPlus / (index + 1);
+                    _smoothedDMMinus[index] = sumDMMinus / (index + 1);
                 }
             }
             else
             {
-                decimal lastValueSeries = valuesSeries[valuesSeries.Count - 1];
+                decimal prevSmoothedTR = _smoothedTR[index - 1];
+                decimal prevSmoothedDMPlus = _smoothedDMPlus[index - 1];
+                decimal prevSmoothedDMMinus = _smoothedDMMinus[index - 1];
 
-                while (index > moving.Count - 1)
+                _smoothedTR[index] = (prevSmoothedTR * (length - 1) + _tr[index]) / length;
+                _smoothedDMPlus[index] = (prevSmoothedDMPlus * (length - 1) + _dmPlus[index]) / length;
+                _smoothedDMMinus[index] = (prevSmoothedDMMinus * (length - 1) + _dmMinus[index]) / length;
+            }
+
+            // 4. Calculation of +DI and -DI
+            if (_smoothedTR[index] > 0)
+            {
+                _diPlus[index] = 100 * (_smoothedDMPlus[index] / _smoothedTR[index]);
+                _diMinus[index] = 100 * (_smoothedDMMinus[index] / _smoothedTR[index]);
+            }
+            else
+            {
+                _diPlus[index] = 0;
+                _diMinus[index] = 0;
+            }
+
+            // 5. DX calculation
+            decimal diSum = _diPlus[index] + _diMinus[index];
+            decimal diDiff = Math.Abs(_diPlus[index] - _diMinus[index]);
+
+            if (diSum > 0)
+            {
+                _dx[index] = 100 * (diDiff / diSum);
+            }
+            else
+            {
+                _dx[index] = 0;
+            }
+
+            // 6. ADX calculation
+            if (index < length * 2 - 1)
+            {
+                _adx[index] = 0;
+            }
+            else if (index == length * 2 - 1)
+            {
+                decimal sumDX = 0;
+
+                for (int i = length; i <= index; i++)
                 {
-                    moving.Add(0);
+                    sumDX += _dx[i];
                 }
-
-                decimal lastValueMoving = moving[moving.Count - 2];
-
-                moving[moving.Count - 1] = (lastValueMoving * (_length.ValueInt - 1) + lastValueSeries) / _length.ValueInt;
-            }
-
-            return moving;
-        }
-
-        private void DxReload(int index)
-        {
-            if (index == 0)
-            {
-                _dX = new List<decimal>();
-                _dX.Add(0);
-                return;
-            }
-
-            if (index > _dX.Count - 1)
-            {
-                _dX.Add(0);
-            }
-
-            if (_sDIjPlus[_sDIjPlus.Count - 1] == 0 ||
-                _sDIjMinus[_sDIjMinus.Count - 1] == 0)
-            {
-                _dX[_dX.Count - 1] = 0;
+                _adx[index] = sumDX / length;
             }
             else
             {
-                _dX[_dX.Count - 1] = Math.Round((100 * Math.Abs(_sDIjPlus[_sDIjPlus.Count - 1] - _sDIjMinus[_sDIjMinus.Count - 1])) /
-                                     Math.Abs(_sDIjPlus[_sDIjPlus.Count - 1] + _sDIjMinus[_sDIjMinus.Count - 1]));
+                decimal prevADX = _adx[index - 1];
+                _adx[index] = (prevADX * (length - 1) + _dx[index]) / length;
             }
         }
     }
