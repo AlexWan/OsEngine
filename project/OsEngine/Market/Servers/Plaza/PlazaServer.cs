@@ -1722,6 +1722,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     security.NameId = replmsg["isin_id"].asInt().ToString();
                                     security.State = SecurityStateType.Activ;
                                     security.VolumeStep = 1;
+									security.Expiration = replmsg["last_trade_date"].asDateTime();
                                     security.Exchange = "MOEX";
 
                                     security.PriceStep = Convert.ToDecimal(replmsg["min_step"].asDecimal());
