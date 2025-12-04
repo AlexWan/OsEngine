@@ -646,8 +646,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         {
                             if (QuikLua == null) continue;
 
-                            PortfolioInfoEx qPortfolioEx =
-                                QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, myPortfolio.Number, _tradeMode).Result;
+                            PortfolioInfoEx qPortfolioEx = QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, myPortfolio.Number, _tradeMode).Result;
 
                             if (qPortfolioEx != null &&
                                 qPortfolioEx.StartLimitOpenPos != null)
@@ -667,9 +666,9 @@ namespace OsEngine.Market.Servers.QuikLua
                             myPortfolio.ValueBegin = begin.Remove(begin.Length - 4).ToDecimal();
                         }
 
-                        if (qPortfolio != null && qPortfolio.Assets != null)
+                        if (qPortfolio != null && qPortfolio.PortfolioValue != null)
                         {
-                            string current = qPortfolio.Assets.Replace('.', separator);
+                            string current = qPortfolio.PortfolioValue.Replace('.', separator);
                             myPortfolio.ValueCurrent = current.Remove(current.Length - 4).ToDecimal();
                         }
 
