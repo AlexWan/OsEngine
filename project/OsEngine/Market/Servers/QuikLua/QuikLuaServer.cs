@@ -95,25 +95,21 @@ namespace OsEngine.Market.Servers.QuikLua
                 SendLogMessage($"Ошибка в QuikSharp: {message}", LogMessageType.Error);
             };
 
-            Thread worker1 = new Thread(UpdateSpotPosition);
+            Thread worker1 = new Thread(GetPortfoliosArea);
             worker1.CurrentCulture = new CultureInfo("ru-Ru");
             worker1.Start();
 
-            Thread worker2 = new Thread(GetPortfoliosArea);
+            Thread worker2 = new Thread(ThreadTradesParsingWorkPlace);
             worker2.CurrentCulture = new CultureInfo("ru-Ru");
             worker2.Start();
 
-            Thread worker3 = new Thread(ThreadTradesParsingWorkPlace);
+            Thread worker3 = new Thread(ThreadMarketDepthsParsingWorkPlace);
             worker3.CurrentCulture = new CultureInfo("ru-Ru");
             worker3.Start();
 
-            Thread worker4 = new Thread(ThreadMarketDepthsParsingWorkPlace);
-            worker4.CurrentCulture = new CultureInfo("ru-Ru");
+            Thread worker4 = new Thread(ThreadDataParsingWorkPlace);
+            worker4.CurrentCulture = new CultureInfo("ru-RU");
             worker4.Start();
-
-            Thread worker5 = new Thread(ThreadDataParsingWorkPlace);
-            worker5.CurrentCulture = new CultureInfo("ru-RU");
-            worker5.Start();
 
         }
 
@@ -612,6 +608,12 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
 
+                    List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
+
+                    List<MoneyLimitEx> money = QuikLua.Trading.GetMoneyLimits().Result;
+
+                    List<FuturesLimits> futuresLimits = QuikLua.Trading.GetFuturesClientLimits().Result;
+
                     if (accaunts == null)
                     {
                         continue;
@@ -641,8 +643,8 @@ namespace OsEngine.Market.Servers.QuikLua
                         else if (QuikLua != null)
                             qPortfolio = QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, _clientCode, _tradeMode).Result;
 
-                        if (qPortfolio != null && (qPortfolio.Assets == null ||
-                            qPortfolio.Assets.ToDecimal() == 0))
+                        if (qPortfolio != null && (qPortfolio.PortfolioValue == null ||
+                            qPortfolio.PortfolioValue.ToDecimal() == 0))
                         {
                             if (QuikLua == null) continue;
 
@@ -653,36 +655,80 @@ namespace OsEngine.Market.Servers.QuikLua
                             {
                                 qPortfolio.InAssets = qPortfolioEx.StartLimitOpenPos;
                             }
+
                             if (qPortfolioEx != null &&
-                                qPortfolioEx.TotalLimitOpenPos != null)
+                                qPortfolioEx.PortfolioValue != null)
                             {
-                                qPortfolio.Assets = qPortfolioEx.TotalLimitOpenPos;
+                                qPortfolio.PortfolioValue = qPortfolioEx.PortfolioValue;
+                            }
+
+                            if (qPortfolioEx.IsFutures != "")
+                            {
+                                qPortfolio = qPortfolioEx;
+
+                                for (int i2 = 0; i2 < futuresLimits.Count; i2++)
+                                {
+                                    if (futuresLimits[i2].TrdAccId != qPortfolioEx.IsFutures) continue;
+
+                                    string begin = futuresLimits[i2].CbpPrevLimit.ToString().Replace('.', separator);
+                                    qPortfolio.InAllAssets = begin;
+
+                                    string varMargin = futuresLimits[i2].VarMargin.ToString().Replace('.', separator);
+                                    string CbpLUsed = futuresLimits[i2].CbpLUsed.ToString().Replace('.', separator);
+                                    string CbpLPlanned = futuresLimits[i2].CbpLPlanned.ToString().Replace('.', separator);
+
+                                    qPortfolio.AllAssets = (CbpLUsed.ToDecimal() + CbpLPlanned.ToDecimal() + varMargin.ToDecimal()).ToString();
+
+                                    break;
+                                }
                             }
                         }
 
-                        if (qPortfolio != null && qPortfolio.InAssets != null)
+                        if (qPortfolio != null && qPortfolio.InAllAssets != null)
                         {
-                            string begin = qPortfolio.InAssets.Replace('.', separator);
-                            myPortfolio.ValueBegin = begin.Remove(begin.Length - 4).ToDecimal();
+                            string begin = qPortfolio.InAllAssets.Replace('.', separator);
+
+                            int dotIndex = begin.IndexOf(separator);
+                            if (dotIndex > 0 && begin.Length > dotIndex + 5)
+                                begin = begin.Substring(0, dotIndex + 5);
+
+                            myPortfolio.ValueBegin = begin.ToDecimal();
                         }
 
-                        if (qPortfolio != null && qPortfolio.PortfolioValue != null)
+                        if (qPortfolio != null && qPortfolio.AllAssets != null)
                         {
-                            string current = qPortfolio.PortfolioValue.Replace('.', separator);
-                            myPortfolio.ValueCurrent = current.Remove(current.Length - 4).ToDecimal();
+                            string current = qPortfolio.AllAssets.Replace('.', separator);
+
+                            int dotIndex = current.IndexOf(separator);
+                            if (dotIndex > 0 && current.Length > dotIndex + 5)
+                                current = current.Substring(0, dotIndex + 5);
+
+                            myPortfolio.ValueCurrent = current.ToDecimal();
                         }
 
                         if (qPortfolio != null && qPortfolio.TotalLockedMoney != null)
                         {
                             string blocked = qPortfolio.TotalLockedMoney.Replace('.', separator);
+
+                            int dotIndex = blocked.IndexOf(separator);
+                            if (dotIndex > 0 && blocked.Length > dotIndex + 5)
+                                blocked = blocked.Substring(0, dotIndex + 5);
+
                             myPortfolio.ValueBlocked = blocked.Remove(blocked.Length - 4).ToDecimal();
                         }
 
                         if (qPortfolio != null && qPortfolio.ProfitLoss != null)
                         {
                             string profit = qPortfolio.ProfitLoss.Replace('.', separator);
+
+                            int dotIndex = profit.IndexOf(separator);
+                            if (dotIndex > 0 && profit.Length > dotIndex + 5)
+                                profit = profit.Substring(0, dotIndex + 5);
+
                             myPortfolio.UnrealizedPnl = profit.Remove(profit.Length - 4).ToDecimal();
                         }
+
+                        UpdateSpotPosition(spotPos, myPortfolio, money, qPortfolio);
                     }
 
                     Thread.Sleep(5000);
@@ -699,70 +745,82 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        private void UpdateSpotPosition()
+        private void UpdateSpotPosition(List<DepoLimitEx> spotPos, Portfolio needPortf, List<MoneyLimitEx> money, PortfolioInfoEx portfolioEx)
         {
-            while (true)
+            try
             {
+                if (spotPos == null) return;
+
+                Char separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
+
+                for (int i = 0; i < spotPos.Count; i++)
+                {
+                    DepoLimitEx pos = spotPos[i];
+
+                    if (needPortf.Number != pos.TrdAccId) continue;
+
+                    Security sec = subscribedSecurities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
+
+                    LimitKind limitKind = LimitKind.T0;
+
+                    if (_tradeMode == 0) limitKind = LimitKind.T0;
+                    else if (_tradeMode == 1) limitKind = LimitKind.T1;
+                    else if (_tradeMode == 2) limitKind = LimitKind.T2;
+                    else limitKind = LimitKind.NotImplemented;
+
+                    PositionOnBoard position = new PositionOnBoard();
+
+                    if (pos.LimitKind == limitKind && sec != null)
+                    {
+                        position.PortfolioName = pos.TrdAccId;
+                        position.ValueBegin = pos.OpenBalance / sec.Lot;
+                        position.ValueCurrent = pos.CurrentBalance / sec.Lot;
+                        position.ValueBlocked = pos.LockedSell / sec.Lot;
+                        position.SecurityNameCode = sec.Name;
+
+                        needPortf.SetNewPosition(position);
+                    }
+
+                    PositionOnBoard position2 = new PositionOnBoard();
+
+                    for (int i2 = 0; i2 < money.Count; i2++)
+                    {
+                        if (_clientCode != money[i2].ClientCode || _tradeMode != money[i2].LimitKind) continue;
+
+                        position2.PortfolioName = pos.TrdAccId;
+                        position2.SecurityNameCode = "rub";
+                        position2.ValueBlocked = 0;
+                        position2.ValueCurrent = money[i2].CurrentBal.ToDecimal();
+                        position2.ValueBegin = money[i2].OpenBal.ToDecimal();
+
+                        needPortf.SetNewPosition(position2);
+
+                        break;
+                    }
+                }
+
+                if (portfolioEx.IsFutures != "")
+                {
+                    PositionOnBoard position = new PositionOnBoard();
+
+                    position.PortfolioName = portfolioEx.IsFutures;
+                    position.SecurityNameCode = "rub";
+                    position.ValueBlocked = 0;
+                    position.ValueCurrent = portfolioEx.LimitOpenPos.ToDecimal();
+                    position.ValueBegin = portfolioEx.StartLimitOpenPos.ToDecimal();
+
+                    needPortf.SetNewPosition(position);
+                }
+
+                if (PortfolioEvent != null)
+                {
+                    PortfolioEvent(_portfolios);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
                 Thread.Sleep(5000);
-
-                try
-                {
-                    if (QuikLua == null)
-                    {
-                        continue;
-                    }
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        continue;
-                    }
-
-                    List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
-
-                    if (spotPos == null) continue;
-
-                    Portfolio needPortf;
-                    for (int i = 0; i < spotPos.Count; i++)
-                    {
-                        DepoLimitEx pos = spotPos[i];
-                        Security sec = subscribedSecurities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
-
-                        LimitKind limitKind = LimitKind.T0;
-
-                        if (_tradeMode == 0) limitKind = LimitKind.T0;
-                        else if (_tradeMode == 1) limitKind = LimitKind.T1;
-                        else if (_tradeMode == 2) limitKind = LimitKind.T2;
-                        else limitKind = LimitKind.NotImplemented;
-
-                        if (pos.LimitKind == limitKind && sec != null)
-                        {
-                            needPortf = _portfolios.Find(p => p.Number == pos.TrdAccId);
-
-                            PositionOnBoard position = new PositionOnBoard();
-
-                            if (needPortf != null)
-                            {
-                                position.PortfolioName = pos.TrdAccId;
-                                position.ValueBegin = pos.OpenBalance / sec.Lot;
-                                position.ValueCurrent = pos.CurrentBalance / sec.Lot;
-                                position.ValueBlocked = pos.LockedSell / sec.Lot;
-                                position.SecurityNameCode = sec.Name;
-
-                                needPortf.SetNewPosition(position);
-                            }
-                        }
-                    }
-
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(_portfolios);
-                    }
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                    Thread.Sleep(5000);
-                }
             }
         }
 
