@@ -584,7 +584,7 @@ namespace OsEngine.Market.Servers.Bybit
             Dictionary<string, object> parametrs = new Dictionary<string, object>();
             parametrs.Add("limit", "1000");
             parametrs["category"] = category.ToString();
-            
+
             string cursor = "";
 
             while (true)
@@ -604,7 +604,7 @@ namespace OsEngine.Market.Servers.Bybit
                     else
                     {
                         SendLogMessage($"{category} securities error. Code: {responseSymbols?.retCode}\nMessage: {responseSymbols?.retMsg}", LogMessageType.Error);
-                        break; 
+                        break;
                     }
 
                     if (string.IsNullOrEmpty(responseSymbols.result.nextPageCursor))
@@ -618,7 +618,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 else
                 {
-                    break; 
+                    break;
                 }
             }
         }
@@ -705,7 +705,7 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         Security security = new Security();
                         security.NameFull = oneSec.symbol;
-                        
+
                         if (category == Category.linear
                             || category == Category.inverse)
                         {
@@ -894,8 +894,12 @@ namespace OsEngine.Market.Servers.Bybit
             CreateQueryPortfolio(true);
         }
 
+        private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(30));
+
         private void CreateQueryPortfolio(bool IsUpdateValueBegin)
         {
+            _rateGatePortfolio.WaitToProceed();
+
             try
             {
                 Dictionary<string, object> parametrs = new Dictionary<string, object>();
@@ -1052,8 +1056,12 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        private RateGate _rateGatePositions = new RateGate(1, TimeSpan.FromMilliseconds(30));
+
         private List<PositionOnBoard> GetPositionsInverse(string portfolioNumber, bool IsUpdateValueBegin)
         {
+            _rateGatePositions.WaitToProceed();
+
             List<PositionOnBoard> positionOnBoards = new List<PositionOnBoard>();
 
             try
@@ -1137,6 +1145,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         private List<PositionOnBoard> GetPositionsSpot(List<Coin> coinList, string portfolioNumber, bool IsUpdateValueBegin)
         {
+            _rateGatePositions.WaitToProceed();
+
             try
             {
                 List<PositionOnBoard> pb = new List<PositionOnBoard>();
@@ -1169,6 +1179,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         private List<PositionOnBoard> GetPositionsLinear(string portfolioNumber, bool IsUpdateValueBegin)
         {
+            _rateGatePositions.WaitToProceed();
+
             List<PositionOnBoard> positionOnBoards = new List<PositionOnBoard>();
 
             try
@@ -4162,7 +4174,7 @@ namespace OsEngine.Market.Servers.Bybit
                         {
                             newOrder.State = OrderStateType.Active;
                         }
-                        else if(order.orderStatus == "PartiallyFilled")
+                        else if (order.orderStatus == "PartiallyFilled")
                         {
                             newOrder.State = OrderStateType.Partial;
                         }
