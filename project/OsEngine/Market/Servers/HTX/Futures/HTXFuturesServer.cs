@@ -20,6 +20,7 @@ using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 
+
 namespace OsEngine.Market.Servers.HTX.Futures
 {
     public class HTXFuturesServer : AServer
@@ -55,6 +56,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
             threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
             threadMessageReaderPrivate.Start();
+
+            Thread threadCheckAliveWebSocket = new Thread(CheckAliveWebSocket);
+            threadCheckAliveWebSocket.IsBackground = true;
+            threadCheckAliveWebSocket.Name = "CheckAliveWebSocketHTXFutures";
+            threadCheckAliveWebSocket.Start();
         }
 
         public DateTime ServerTime { get; set; }
@@ -62,72 +68,53 @@ namespace OsEngine.Market.Servers.HTX.Futures
         public void Connect(WebProxy proxy)
         {
             _accessKey = ((ServerParameterString)ServerParameters[0]).Value;
-            _secretKey = ((ServerParameterString)ServerParameters[1]).Value;
+            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
             if (string.IsNullOrEmpty(_accessKey) ||
                 string.IsNullOrEmpty(_secretKey))
             {
                 SendLogMessage("Connection can be open. No keys", LogMessageType.Error);
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                Disconnect();
                 return;
             }
 
             string url = $"https://{_baseUrl}/api/v1/timestamp";
             RestClient client = new RestClient(url);
             RestRequest request = new RestRequest(Method.GET);
-
             IRestResponse responseMessage = client.Execute(request);
 
-            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
                 try
                 {
                     _privateUriBuilder = new PrivateUrlBuilder(_accessKey, _secretKey, _baseUrl);
                     _signer = new Signer(_secretKey);
 
-                    _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                    _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                    CreateWebSocketConnection();
+                    CreatePublicWebSocketConnect();
+                    CreatePrivateWebSocketConnect();
                 }
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                     SendLogMessage("Connection can be open. HTXFutures. Error request", LogMessageType.Error);
 
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
+                    Disconnect();
                 }
             }
             else
             {
                 SendLogMessage("Connection can be open. HTXFutures. Error request", LogMessageType.Error);
 
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                Disconnect();
             }
         }
 
         public void Dispose()
         {
-            if (ServerStatus != ServerConnectStatus.Disconnect)
-            {
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
-            }
-
             try
             {
                 UnsubscribeFromAllWebSockets();
+                DeleteWebscoektConnection();
             }
             catch (Exception exception)
             {
@@ -138,22 +125,22 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _arrayPrivateChannels.Clear();
             _arrayPublicChannels.Clear();
 
-            try
-            {
-                DeleteWebscoektConnection();
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
+            Disconnect();
+        }
+
+        public void Disconnect()
+        {
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+
+                if (DisconnectEvent != null)
+                {
+                    DisconnectEvent();
+                }
             }
         }
 
@@ -334,6 +321,93 @@ namespace OsEngine.Market.Servers.HTX.Futures
         public void GetPortfolios()
         {
             CreateQueryPortfolio(true);
+        }
+
+        private void CreateQueryPortfolio(bool IsUpdateValueBegin)
+        {
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                string url = _privateUriBuilder.Build("POST", $"/api/v1/contract_account_info");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.POST);
+                IRestResponse responseMessage = client.Execute(request);
+
+                string JsonResponse = responseMessage.Content;
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    UpdatePorfolio(JsonResponse, IsUpdateValueBegin);
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdatePorfolio(string json, bool IsUpdateValueBegin)
+        {
+            ResponseMessagePortfolios response = JsonConvert.DeserializeObject<ResponseMessagePortfolios>(json);
+            List<ResponseMessagePortfolios.Data> item = response.data;
+
+            Portfolio portfolio = new Portfolio();
+            portfolio.Number = "HTXFuturesPortfolio";
+            portfolio.ValueBegin = 1;
+            portfolio.ValueCurrent = 1;
+
+            for (int i = 0; item != null && i < item.Count; i++)
+            {
+                if (item[i].margin_balance == "0")
+                {
+                    continue;
+                }
+                PositionOnBoard pos = new PositionOnBoard();
+                pos.PortfolioName = "HTXFuturesPortfolio";
+                pos.SecurityNameCode = item[i].symbol.ToString();
+                pos.ValueBlocked = item[i].margin_frozen.ToDecimal();
+                pos.ValueCurrent = item[i].margin_balance.ToDecimal();
+
+                portfolio.SetNewPosition(pos);
+            }
+
+            string url = _privateUriBuilder.Build("POST", $"/api/v1/contract_position_info");
+
+            RestClient client = new RestClient(url);
+            RestRequest request = new RestRequest(Method.POST);
+            IRestResponse responseMessage = client.Execute(request);
+
+            string JsonResponse = responseMessage.Content;
+
+            if (JsonResponse.Contains("\"status\":\"ok\""))
+            {
+                ResponseMessagePositions responsePosition = JsonConvert.DeserializeObject<ResponseMessagePositions>(JsonResponse);
+
+                List<ResponseMessagePositions.Data> itemPosition = responsePosition.data;
+
+                for (int j = 0; j < itemPosition.Count; j++)
+                {
+                    PositionOnBoard pos = new PositionOnBoard();
+
+                    pos.PortfolioName = "HTXFuturesPortfolio";
+                    pos.SecurityNameCode = itemPosition[j].symbol;
+                    pos.ValueBlocked = itemPosition[j].frozen.ToDecimal();
+                    pos.ValueCurrent = itemPosition[j].volume.ToDecimal();
+
+                    if (IsUpdateValueBegin)
+                    {
+                        pos.ValueBegin = itemPosition[j].volume.ToDecimal();
+                    }
+                    portfolio.SetNewPosition(pos);
+                }
+                PortfolioEvent(new List<Portfolio> { portfolio });
+            }
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -581,36 +655,75 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         #region 6 WebSocket creation
 
-        private WebSocket _webSocketPublic;
+        private List<WebSocket> _webSocketPublic = new List<WebSocket>();
 
         private WebSocket _webSocketPrivate;
 
-        private void CreateWebSocketConnection()
+        private void CreatePublicWebSocketConnect()
         {
-            _publicSocketOpen = false;
-            _privateSocketOpen = false;
+            try
+            {
+                if (_FIFOListWebSocketPublicMessage == null)
+                {
+                    _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                }
 
-            _webSocketPublic = new WebSocket($"wss://{_baseUrl}{_webSocketPathPublic}");
+                _webSocketPublic.Add(CreateNewPublicSocket());
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
 
-            //_webSocketPublic.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+        private WebSocket CreateNewPublicSocket()
+        {
+            try
+            {
+                WebSocket webSocketPublicNew = new WebSocket($"wss://{_baseUrl}{_webSocketPathPublic}");
 
-            _webSocketPublic.OnOpen += webSocketPublic_OnOpen;
-            _webSocketPublic.OnMessage += webSocketPublic_OnMessage;
-            _webSocketPublic.OnError += webSocketPublic_OnError;
-            _webSocketPublic.OnClose += webSocketPublic_OnClose;
+                //if (_myProxy != null)
+                //{
+                //    webSocketPublicNew.SetProxy(_myProxy);
+                //}
 
-            _webSocketPublic.ConnectAsync();
+                webSocketPublicNew.EmitOnPing = true;
+                webSocketPublicNew.OnOpen += webSocketPublic_OnOpen;
+                webSocketPublicNew.OnMessage += webSocketPublic_OnMessage;
+                webSocketPublicNew.OnError += webSocketPublic_OnError;
+                webSocketPublicNew.OnClose += webSocketPublic_OnClose;
+                webSocketPublicNew.ConnectAsync();
 
-            _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_webSocketPathPrivate}");
+                return webSocketPublicNew;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
 
-            //_webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+        private void CreatePrivateWebSocketConnect()
+        {
+            try
+            {
+                if (_webSocketPrivate != null)
+                {
+                    return;
+                }
 
-            _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
-            _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
-            _webSocketPrivate.OnError += webSocketPrivate_OnError;
-            _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
+                _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_webSocketPathPrivate}");
+                _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
+                _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
+                _webSocketPrivate.OnError += webSocketPrivate_OnError;
+                _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
+                _webSocketPrivate.ConnectAsync();
 
-            _webSocketPrivate.ConnectAsync();
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void DeleteWebscoektConnection()
@@ -619,17 +732,29 @@ namespace OsEngine.Market.Servers.HTX.Futures
             {
                 try
                 {
-                    _webSocketPublic.OnOpen -= webSocketPublic_OnOpen;
-                    _webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
-                    _webSocketPublic.OnError -= webSocketPublic_OnError;
-                    _webSocketPublic.OnClose -= webSocketPublic_OnClose;
-                    _webSocketPublic.CloseAsync();
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        webSocketPublic.OnOpen -= webSocketPublic_OnOpen;
+                        webSocketPublic.OnClose -= webSocketPublic_OnClose;
+                        webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
+                        webSocketPublic.OnError -= webSocketPublic_OnError;
+
+                        if (webSocketPublic.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.CloseAsync();
+                        }
+
+                        webSocketPublic = null;
+                    }
                 }
                 catch
                 {
                     // ignore
                 }
-                _webSocketPublic = null;
+
+                _webSocketPublic.Clear();
             }
 
             if (_webSocketPrivate != null)
@@ -651,15 +776,35 @@ namespace OsEngine.Market.Servers.HTX.Futures
             }
         }
 
-        private string _socketAcvateLocker = "socketAcvateLocker";
+        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsHtxSwap";
 
-        private void CheckSocketsActivate()
+        private void CheckActivationSockets()
         {
-            lock (_socketAcvateLocker)
+            lock (_lockerCheckActivateionSockets)
             {
-                if (_publicSocketOpen
-                    && _privateSocketOpen
-                    && ServerStatus == ServerConnectStatus.Disconnect)
+                if (_webSocketPrivate == null
+                    || _webSocketPrivate.ReadyState != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                if (_webSocketPublic.Count == 0)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                WebSocket webSocketPublic = _webSocketPublic[0];
+
+                if (webSocketPublic == null
+                    || webSocketPublic?.ReadyState != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
 
@@ -670,10 +815,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 }
             }
         }
-
-        private bool _publicSocketOpen = false;
-
-        private bool _privateSocketOpen = false;
 
         #endregion
 
@@ -764,9 +905,18 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void webSocketPublic_OnOpen(object sender, EventArgs e)
         {
-            SendLogMessage("Connection Websocket Public Open", LogMessageType.System);
-            _publicSocketOpen = true;
-            CheckSocketsActivate();
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("HTXFutures connection websocket public open", LogMessageType.System);
+                    CheckActivationSockets();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void webSocketPrivate_OnError(object sender, ErrorEventArgs e)
@@ -825,7 +975,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     _FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
                 }
-
             }
             catch (Exception error)
             {
@@ -857,13 +1006,10 @@ namespace OsEngine.Market.Servers.HTX.Futures
         {
             try
             {
-                SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
-
                 string authRequest = BuildSign(DateTime.UtcNow);
                 _webSocketPrivate.SendAsync(authRequest);
-                _privateSocketOpen = true;
-
-                CheckSocketsActivate();
+                SendLogMessage("HTXFutures connection websocket private open", LogMessageType.System);
+                CheckActivationSockets();
             }
             catch (Exception error)
             {
@@ -874,6 +1020,57 @@ namespace OsEngine.Market.Servers.HTX.Futures
         #endregion
 
         #region 8 WebSocket check alive
+
+        private void CheckAliveWebSocket()
+        {
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(10000);
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_webSocketPrivate != null && _webSocketPrivate.ReadyState == WebSocketState.Open ||
+                        _webSocketPrivate.ReadyState == WebSocketState.Connecting)
+                    {
+                        // Supports one-way heartbeat.
+                        string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                        //_webSocketPrivate.Send($"{{\"op\": \"ping\",\"ts\": \"{timestamp}\"}}");
+                    }
+                    else
+                    {
+                        Disconnect();
+                    }
+
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        if (webSocketPublic != null
+                            && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        {
+                            // Supports two-way heartbeat
+                            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                            webSocketPublic.SendAsync($"{{\"ping\": \"{timestamp}\"}}");
+                        }
+                        else
+                        {
+                            Disconnect();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
 
         #endregion
 
@@ -891,6 +1088,200 @@ namespace OsEngine.Market.Servers.HTX.Futures
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<string> _subscribedSecurities = new List<string>();
+
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
+        {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
+            if (_webSocketPublic == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
+            {
+                if (_subscribedSecurities[i].Equals(security.Name))
+                {
+                    return;
+                }
+            }
+
+            _subscribedSecurities.Add(security.Name);
+
+            if (_webSocketPublic.Count == 0)
+            {
+                return;
+            }
+
+            WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+            if (webSocketPublic.ReadyState == WebSocketState.Open
+                && _subscribedSecurities.Count != 0
+                && _subscribedSecurities.Count % 50 == 0)
+            {
+                // creating a new socket
+                WebSocket newSocket = CreateNewPublicSocket();
+
+                DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                while (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    Thread.Sleep(1000);
+
+                    if (timeEnd < DateTime.Now)
+                    {
+                        break;
+                    }
+                }
+
+                if (newSocket.ReadyState == WebSocketState.Open)
+                {
+                    _webSocketPublic.Add(newSocket);
+                    webSocketPublic = newSocket;
+                }
+            }
+
+            string clientId = "";
+
+            if (webSocketPublic != null)
+            {
+                string topic = $"market.{security.Name}.depth.step0";
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+
+                topic = $"market.{security.Name}.trade.detail";
+                webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+            }
+        }
+
+        private void SendSubscribePrivate()
+        {
+            string clientId = "";
+            string channelOrders = "orders.*";
+            string channelAccounts = "accounts.*";
+            string channelPositions = "positions.*";
+
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
+            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
+        }
+
+        private void CreatePingMessageWebSocketPublic(string message)
+        {
+            ResponsePingPublic response = JsonConvert.DeserializeObject<ResponsePingPublic>(message);
+
+            if (_webSocketPublic == null)
+            {
+                return;
+            }
+            else
+            {
+                for (int i = 0; i < _webSocketPublic.Count; i++)
+                {
+                    WebSocket webSocketPublic = _webSocketPublic[i];
+
+                    try
+                    {
+                        if (webSocketPublic != null
+                        && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                    }
+                }
+
+
+                //_webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
+            }
+        }
+
+        private void CreatePingMessageWebSocketPrivate(string message)
+        {
+            ResponsePingPrivate response = JsonConvert.DeserializeObject<ResponsePingPrivate>(message);
+
+            if (_webSocketPrivate == null)
+            {
+                return;
+            }
+            else
+            {
+                try
+                {
+                    _webSocketPrivate.SendAsync($"{{\"op\": \"pong\",\"ts\": \"{response.ts}\"}}");
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
+
+                //_webSocketPrivate.SendAsync($"{{\"pong\": \"{response.ts}\"}}");
+            }
+        }
+
+        private void UnsubscribeFromAllWebSockets()
+        {
+            if (_webSocketPublic.Count != 0
+               && _webSocketPublic != null)
+            {
+
+                for (int i = 0; i < _webSocketPublic.Count; i++)
+                {
+                    WebSocket webSocketPublic = _webSocketPublic[i];
+
+                    try
+                    {
+                        if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        {
+                            if (_subscribedSecurities != null)
+                            {
+                                for (int j = 0; j < _subscribedSecurities.Count; j++)
+                                {
+                                    string securityName = _subscribedSecurities[j];
+
+                                    string topic = $"market.{securityName}.depth.step0";
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+
+                                    topic = $"market.{securityName}.trade.detail";
+                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                    }
+                }
+            }
+
+            if (_webSocketPrivate != null
+                && _webSocketPrivate.ReadyState == WebSocketState.Open)
+            {
+                try
+                {
+                    string channelOrders = "orders.*";
+                    string channelAccounts = "accounts.*";
+                    string channelPositions = "positions.*";
+
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelOrders}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelAccounts}\"}}");
+                    _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{channelPositions}\"}}");
+
+                }
+                catch
+                {
+                    // ignore
+                }
             }
         }
 
@@ -942,6 +1333,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
                             continue;
                         }
 
+                        if (message.Contains("pong"))
+                        {
+                            continue;
+                        }
+
                         if (message.Contains("depth"))
                         {
                             UpdateDepth(message);
@@ -952,6 +1348,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         {
                             UpdateTrade(message);
                             continue;
+                        }
+
+                        if (message.Contains("error"))
+                        {
+                            SendLogMessage("Message public str: \n" + message, LogMessageType.Error);
                         }
                     }
                     catch (Exception exception)
@@ -1017,15 +1418,22 @@ namespace OsEngine.Market.Servers.HTX.Futures
                             UpdateOrder(message);
                             continue;
                         }
+
                         if (message.Contains("accounts."))
                         {
                             UpdatePortfolioFromSubscribe(message);
                             continue;
                         }
+
                         if (message.Contains("positions."))
                         {
                             UpdatePositionFromSubscribe(message);
                             continue;
+                        }
+
+                        if (message.Contains("error"))
+                        {
+                            SendLogMessage("Message private str: \n" + message, LogMessageType.Error);
                         }
                     }
                     catch (Exception exception)
@@ -1045,131 +1453,145 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void UpdateTrade(string message)
         {
-            ResponseChannelTrades responseTrade = JsonConvert.DeserializeObject<ResponseChannelTrades>(message);
-
-            if (responseTrade == null)
+            try
             {
-                return;
+                ResponseChannelTrades responseTrade = JsonConvert.DeserializeObject<ResponseChannelTrades>(message);
+
+                if (responseTrade == null)
+                {
+                    return;
+                }
+
+                if (responseTrade.tick == null)
+                {
+                    return;
+                }
+
+                List<ResponseChannelTrades.Data> item = responseTrade.tick.data;
+
+                for (int i = 0; i < item.Count; i++)
+                {
+                    Trade trade = new Trade();
+                    trade.SecurityNameCode = GetSecurityName(responseTrade.ch);
+                    trade.Price = item[i].price.ToDecimal();
+                    trade.Id = item[i].id;
+                    trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[i].ts));
+                    trade.Volume = item[i].amount.ToDecimal();
+                    trade.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
+
+                    NewTradesEvent(trade);
+                }
             }
-
-            if (responseTrade.tick == null)
+            catch (Exception ex)
             {
-                return;
-            }
-
-            List<ResponseChannelTrades.Data> item = responseTrade.tick.data;
-
-            for (int i = 0; i < item.Count; i++)
-            {
-                Trade trade = new Trade();
-                trade.SecurityNameCode = GetSecurityName(responseTrade.ch);
-                trade.Price = item[i].price.ToDecimal();
-                trade.Id = item[i].id;
-                trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[i].ts));
-                trade.Volume = item[i].amount.ToDecimal();
-                trade.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
-
-                NewTradesEvent(trade);
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
         }
 
         private void UpdateDepth(string message)
         {
-            ResponseChannelBook responseDepth = JsonConvert.DeserializeObject<ResponseChannelBook>(message);
-
-            ResponseChannelBook.Tick item = responseDepth.tick;
-
-            if (item == null)
+            try
             {
-                return;
-            }
+                ResponseChannelBook responseDepth = JsonConvert.DeserializeObject<ResponseChannelBook>(message);
 
-            if (item.asks.Count == 0 && item.bids.Count == 0)
-            {
-                return;
-            }
+                ResponseChannelBook.Tick item = responseDepth.tick;
 
-            MarketDepth marketDepth = new MarketDepth();
-
-            List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
-            List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
-
-            marketDepth.SecurityNameCode = responseDepth.ch.Split('.')[1];
-
-            if (item.asks.Count > 0)
-            {
-                for (int i = 0; i < 25 && i < item.asks.Count; i++)
+                if (item == null)
                 {
-                    if (item.asks[i].Count < 2)
-                    {
-                        continue;
-                    }
-
-                    double ask = item.asks[i][1].ToString().ToDouble();
-                    double price = item.asks[i][0].ToString().ToDouble();
-
-                    if (ask == 0 ||
-                        price == 0)
-                    {
-                        continue;
-                    }
-
-                    MarketDepthLevel level = new MarketDepthLevel();
-                    level.Ask = ask;
-                    level.Price = price;
-                    ascs.Add(level);
+                    return;
                 }
-            }
 
-            if (item.bids.Count > 0)
-            {
-                for (int i = 0; i < 25 && i < item.bids.Count; i++)
+                if (item.asks.Count == 0 && item.bids.Count == 0)
                 {
-                    if (item.bids[i].Count < 2)
-                    {
-                        continue;
-                    }
-
-                    double bid = item.bids[i][1].ToString().ToDouble();
-                    double price = item.bids[i][0].ToString().ToDouble();
-
-                    if (bid == 0 ||
-                        price == 0)
-                    {
-                        continue;
-                    }
-
-                    MarketDepthLevel level = new MarketDepthLevel();
-                    level.Bid = bid;
-                    level.Price = price;
-                    bids.Add(level);
+                    return;
                 }
-            }
 
-            if (ascs.Count == 0 ||
-                bids.Count == 0)
+                MarketDepth marketDepth = new MarketDepth();
+
+                List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
+                List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+                marketDepth.SecurityNameCode = responseDepth.ch.Split('.')[1];
+
+                if (item.asks.Count > 0)
+                {
+                    for (int i = 0; i < 25 && i < item.asks.Count; i++)
+                    {
+                        if (item.asks[i].Count < 2)
+                        {
+                            continue;
+                        }
+
+                        double ask = item.asks[i][1].ToString().ToDouble();
+                        double price = item.asks[i][0].ToString().ToDouble();
+
+                        if (ask == 0 ||
+                            price == 0)
+                        {
+                            continue;
+                        }
+
+                        MarketDepthLevel level = new MarketDepthLevel();
+                        level.Ask = ask;
+                        level.Price = price;
+                        ascs.Add(level);
+                    }
+                }
+
+                if (item.bids.Count > 0)
+                {
+                    for (int i = 0; i < 25 && i < item.bids.Count; i++)
+                    {
+                        if (item.bids[i].Count < 2)
+                        {
+                            continue;
+                        }
+
+                        double bid = item.bids[i][1].ToString().ToDouble();
+                        double price = item.bids[i][0].ToString().ToDouble();
+
+                        if (bid == 0 ||
+                            price == 0)
+                        {
+                            continue;
+                        }
+
+                        MarketDepthLevel level = new MarketDepthLevel();
+                        level.Bid = bid;
+                        level.Price = price;
+                        bids.Add(level);
+                    }
+                }
+
+                if (ascs.Count == 0 ||
+                    bids.Count == 0)
+                {
+                    return;
+                }
+
+                marketDepth.Asks = ascs;
+                marketDepth.Bids = bids;
+                marketDepth.Time
+                    = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.ts));
+
+                if (marketDepth.Time < _lastTimeMd)
+                {
+                    marketDepth.Time = _lastTimeMd;
+                }
+                else if (marketDepth.Time == _lastTimeMd)
+                {
+                    _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
+                    marketDepth.Time = _lastTimeMd;
+                }
+
+                _lastTimeMd = marketDepth.Time;
+
+                MarketDepthEvent(marketDepth);
+            }
+            catch (Exception ex)
             {
-                return;
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
-
-            marketDepth.Asks = ascs;
-            marketDepth.Bids = bids;
-            marketDepth.Time
-                = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.ts));
-
-            if (marketDepth.Time < _lastTimeMd)
-            {
-                marketDepth.Time = _lastTimeMd;
-            }
-            else if (marketDepth.Time == _lastTimeMd)
-            {
-                _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
-                marketDepth.Time = _lastTimeMd;
-            }
-
-            _lastTimeMd = marketDepth.Time;
-
-            MarketDepthEvent(marketDepth);
         }
 
         private DateTime _lastTimeMd;
@@ -1200,47 +1622,54 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void UpdateOrder(string message)
         {
-            ResponseChannelUpdateOrder response = JsonConvert.DeserializeObject<ResponseChannelUpdateOrder>(message);
-
-            if (response == null)
-            {
-                return;
-            }
-
-            if (string.IsNullOrEmpty(response.order_id))
-            {
-                return;
-            }
-
-            Order newOrder = new Order();
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.ts));
-            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.created_at));
-            newOrder.ServerType = ServerType.HTXFutures;
-            newOrder.SecurityNameCode = JoinSecurityName(response.symbol, response.contract_type);
-
             try
             {
-                newOrder.NumberUser = Convert.ToInt32(response.client_order_id);
+                ResponseChannelUpdateOrder response = JsonConvert.DeserializeObject<ResponseChannelUpdateOrder>(message);
+
+                if (response == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(response.order_id))
+                {
+                    return;
+                }
+
+                Order newOrder = new Order();
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.ts));
+                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.created_at));
+                newOrder.ServerType = ServerType.HTXFutures;
+                newOrder.SecurityNameCode = JoinSecurityName(response.symbol, response.contract_type);
+
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(response.client_order_id);
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                newOrder.NumberMarket = response.order_id.ToString();
+
+                newOrder.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
+                newOrder.State = GetOrderState(response.status);
+                newOrder.Volume = response.volume.ToDecimal();
+                newOrder.Price = response.price.ToDecimal();
+                newOrder.PortfolioNumber = $"HTXFuturesPortfolio";
+                newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+
+                MyOrderEvent(newOrder);
+
+                if (response.trade != null)
+                {
+                    UpdateMyTrade(response);
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
-            }
-
-            newOrder.NumberMarket = response.order_id.ToString();
-
-            newOrder.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
-            newOrder.State = GetOrderState(response.status);
-            newOrder.Volume = response.volume.ToDecimal();
-            newOrder.Price = response.price.ToDecimal();
-            newOrder.PortfolioNumber = $"HTXFuturesPortfolio";
-            newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
-
-            MyOrderEvent(newOrder);
-
-            if (response.trade != null)
-            {
-                UpdateMyTrade(response);
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
         }
 
@@ -1280,68 +1709,83 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void UpdatePortfolioFromSubscribe(string message)
         {
-            ResponseChannelPortfolio response = JsonConvert.DeserializeObject<ResponseChannelPortfolio>(message);
-
-            List<ResponseChannelPortfolio.Data> item = response.data;
-
-            if (item == null)
+            try
             {
-                return;
-            }
+                ResponseChannelPortfolio response = JsonConvert.DeserializeObject<ResponseChannelPortfolio>(message);
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "HTXFuturesPortfolio";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+                List<ResponseChannelPortfolio.Data> item = response.data;
 
-            if (item.Count != 0)
-            {
-                for (int i = 0; i < item.Count; i++)
+                if (item == null)
                 {
-                    PositionOnBoard pos = new PositionOnBoard();
-
-                    pos.PortfolioName = "HTXFuturesPortfolio";
-                    pos.SecurityNameCode = item[i].symbol;
-                    pos.ValueBlocked = item[i].margin_frozen.ToDecimal();
-                    pos.ValueCurrent = item[i].margin_balance.ToDecimal();
-
-                    portfolio.SetNewPosition(pos);
+                    return;
                 }
+
+                Portfolio portfolio = new Portfolio();
+                portfolio.Number = "HTXFuturesPortfolio";
+                portfolio.ValueBegin = 1;
+                portfolio.ValueCurrent = 1;
+
+                if (item.Count != 0)
+                {
+                    for (int i = 0; i < item.Count; i++)
+                    {
+                        PositionOnBoard pos = new PositionOnBoard();
+
+                        pos.PortfolioName = "HTXFuturesPortfolio";
+                        pos.SecurityNameCode = item[i].symbol;
+                        pos.ValueBlocked = item[i].margin_frozen.ToDecimal();
+                        pos.ValueCurrent = item[i].margin_balance.ToDecimal();
+
+                        portfolio.SetNewPosition(pos);
+                    }
+                }
+                PortfolioEvent(new List<Portfolio> { portfolio });
             }
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
         }
 
         private void UpdatePositionFromSubscribe(string message)
         {
-            ResponseChannelUpdatePositions response = JsonConvert.DeserializeObject<ResponseChannelUpdatePositions>(message);
-
-            List<ResponseChannelUpdatePositions.Data> item = response.data;
-
-            if (item == null)
+            try
             {
-                return;
-            }
+                ResponseChannelUpdatePositions response = JsonConvert.DeserializeObject<ResponseChannelUpdatePositions>(message);
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "HTXFuturesPortfolio";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+                List<ResponseChannelUpdatePositions.Data> item = response.data;
 
-            if (item.Count != 0)
-            {
-                for (int i = 0; i < item.Count; i++)
+                if (item == null)
                 {
-                    PositionOnBoard pos = new PositionOnBoard();
-
-                    pos.PortfolioName = "HTXFuturesPortfolio";
-                    pos.SecurityNameCode = JoinSecurityName(item[i].symbol, item[i].contract_type);
-                    pos.ValueBlocked = item[i].frozen.ToDecimal();
-                    pos.ValueCurrent = item[i].volume.ToDecimal();
-
-                    portfolio.SetNewPosition(pos);
+                    return;
                 }
+
+                Portfolio portfolio = new Portfolio();
+                portfolio.Number = "HTXFuturesPortfolio";
+                portfolio.ValueBegin = 1;
+                portfolio.ValueCurrent = 1;
+
+                if (item.Count != 0)
+                {
+                    for (int i = 0; i < item.Count; i++)
+                    {
+                        PositionOnBoard pos = new PositionOnBoard();
+
+                        pos.PortfolioName = "HTXFuturesPortfolio";
+                        pos.SecurityNameCode = JoinSecurityName(item[i].symbol, item[i].contract_type);
+                        pos.ValueBlocked = item[i].frozen.ToDecimal();
+                        pos.ValueCurrent = item[i].volume.ToDecimal();
+
+                        portfolio.SetNewPosition(pos);
+                    }
+                }
+
+                PortfolioEvent(new List<Portfolio> { portfolio });
             }
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
         }
 
         public event Action<Order> MyOrderEvent;
@@ -1353,6 +1797,10 @@ namespace OsEngine.Market.Servers.HTX.Futures
         public event Action<Trade> NewTradesEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
+
+        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
 
@@ -1443,6 +1891,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             {
                 return true;
             }
+
             try
             {
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
@@ -1810,197 +2259,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         #region 12 Queries
 
-        private List<string> _subscribedSecurities = new List<string>();
-
-        private void CreateSubscribeSecurityMessageWebSocket(Security security)
-        {
-
-            if (_webSocketPublic == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
-            {
-                if (_subscribedSecurities[i].Equals(security.Name))
-                {
-                    return;
-                }
-            }
-
-            string clientId = "";
-
-            string topic = $"market.{security.Name}.depth.step0";
-            _webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
-            _arrayPublicChannels.Add(topic);
-
-            topic = $"market.{security.Name}.trade.detail";
-            _webSocketPublic.SendAsync($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
-            _arrayPublicChannels.Add(topic);
-        }
-
-        private void SendSubscribePrivate()
-        {
-            string clientId = "";
-            string channelOrders = "orders.*";
-            string channelAccounts = "accounts.*";
-            string channelPositions = "positions.*";
-            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelOrders}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelAccounts}\", \"cid\": \"{clientId}\" }}");
-            _webSocketPrivate.SendAsync($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
-            _arrayPrivateChannels.Add(channelAccounts);
-            _arrayPrivateChannels.Add(channelOrders);
-            _arrayPrivateChannels.Add(channelPositions);
-        }
-
-        private void CreatePingMessageWebSocketPublic(string message)
-        {
-            ResponsePingPublic response = JsonConvert.DeserializeObject<ResponsePingPublic>(message);
-
-            if (_webSocketPublic == null)
-            {
-                return;
-            }
-            else
-            {
-                _webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
-            }
-        }
-
-        private void CreatePingMessageWebSocketPrivate(string message)
-        {
-            ResponsePingPrivate response = JsonConvert.DeserializeObject<ResponsePingPrivate>(message);
-
-            if (_webSocketPrivate == null)
-            {
-                return;
-            }
-            else
-            {
-                _webSocketPrivate.SendAsync($"{{\"pong\": \"{response.ts}\"}}");
-            }
-        }
-
-        private void UnsubscribeFromAllWebSockets()
-        {
-            if (_webSocketPublic != null)
-            {
-                try
-                {
-                    for (int i = 0; i < _arrayPublicChannels.Count; i++)
-                    {
-                        _webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
-                    }
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-
-            if (_webSocketPrivate != null)
-            {
-                try
-                {
-                    for (int i = 0; i < _arrayPrivateChannels.Count; i++)
-                    {
-                        _webSocketPrivate.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
-                    }
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-        }
-
-        private void CreateQueryPortfolio(bool IsUpdateValueBegin)
-        {
-            _rateGatePortfolio.WaitToProceed();
-
-            try
-            {
-                string url = _privateUriBuilder.Build("POST", $"/api/v1/contract_account_info");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                IRestResponse responseMessage = client.Execute(request);
-
-                string JsonResponse = responseMessage.Content;
-
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    UpdatePorfolio(JsonResponse, IsUpdateValueBegin);
-                }
-                else
-                {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
-                }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void UpdatePorfolio(string json, bool IsUpdateValueBegin)
-        {
-            ResponseMessagePortfolios response = JsonConvert.DeserializeObject<ResponseMessagePortfolios>(json);
-            List<ResponseMessagePortfolios.Data> item = response.data;
-
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "HTXFuturesPortfolio";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            for (int i = 0; item != null && i < item.Count; i++)
-            {
-                if (item[i].margin_balance == "0")
-                {
-                    continue;
-                }
-                PositionOnBoard pos = new PositionOnBoard();
-                pos.PortfolioName = "HTXFuturesPortfolio";
-                pos.SecurityNameCode = item[i].symbol.ToString();
-                pos.ValueBlocked = item[i].margin_frozen.ToDecimal();
-                pos.ValueCurrent = item[i].margin_balance.ToDecimal();
-
-                portfolio.SetNewPosition(pos);
-            }
-
-            string url = _privateUriBuilder.Build("POST", $"/api/v1/contract_position_info");
-
-            RestClient client = new RestClient(url);
-            RestRequest request = new RestRequest(Method.POST);
-            IRestResponse responseMessage = client.Execute(request);
-
-            string JsonResponse = responseMessage.Content;
-
-            if (JsonResponse.Contains("\"status\":\"ok\""))
-            {
-                ResponseMessagePositions responsePosition = JsonConvert.DeserializeObject<ResponseMessagePositions>(JsonResponse);
-
-                List<ResponseMessagePositions.Data> itemPosition = responsePosition.data;
-
-                for (int j = 0; j < itemPosition.Count; j++)
-                {
-                    PositionOnBoard pos = new PositionOnBoard();
-
-                    pos.PortfolioName = "HTXFuturesPortfolio";
-                    pos.SecurityNameCode = itemPosition[j].symbol;
-                    pos.ValueBlocked = itemPosition[j].frozen.ToDecimal();
-                    pos.ValueCurrent = itemPosition[j].volume.ToDecimal();
-
-                    if (IsUpdateValueBegin)
-                    {
-                        pos.ValueBegin = itemPosition[j].volume.ToDecimal();
-                    }
-                    portfolio.SetNewPosition(pos);
-                }
-                PortfolioEvent(new List<Portfolio> { portfolio });
-            }
-        }
-
         public static string Decompress(byte[] input)
         {
             using (GZipStream stream = new GZipStream(new System.IO.MemoryStream(input), CompressionMode.Decompress))
@@ -2049,16 +2307,12 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         #region 13 Log
 
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent { add { } remove { } }
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
-
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent(message, messageType);
         }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
     }
