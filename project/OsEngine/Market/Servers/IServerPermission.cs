@@ -100,7 +100,7 @@ namespace OsEngine.Market.Servers
 
         int AsyncCandlesStarter_RateGateLimitMls { get; }
 
-        string[] IpAddresServer { get; }
+        string[] IpAddressServer { get; }
 
         #endregion
     }

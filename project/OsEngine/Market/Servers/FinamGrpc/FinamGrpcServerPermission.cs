@@ -267,7 +267,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             get { return 10; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get { return null; }
         }

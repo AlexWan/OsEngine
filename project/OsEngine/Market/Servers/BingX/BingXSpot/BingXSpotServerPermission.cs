@@ -268,7 +268,7 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
             get { return 10; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get
             {

@@ -281,7 +281,7 @@ namespace OsEngine.Market.Servers.BybitData
             get { return false; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get { return null; }
         }

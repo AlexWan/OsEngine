@@ -262,7 +262,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
             get { return 10; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get
             {

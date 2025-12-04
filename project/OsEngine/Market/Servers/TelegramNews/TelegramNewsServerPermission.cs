@@ -250,7 +250,7 @@ namespace OsEngine.Market.Servers.TelegramNews
             get { return 10; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get { return null;  }
         }

@@ -283,7 +283,7 @@ namespace OsEngine.Market.Servers.Bybit
             get { return 50; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get
             {

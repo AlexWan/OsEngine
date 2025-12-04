@@ -253,7 +253,7 @@ namespace OsEngine.Market.Servers.BitGetData
             get { return false; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get { return null; }
         }

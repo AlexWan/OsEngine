@@ -179,14 +179,14 @@ namespace OsEngine.OsTrader.ServerAvailability
 
                 if (permission == null) return;
 
-                if (permission.IpAddresServer == null) return;
+                if (permission.IpAddressServer == null) return;
 
                 if (_currentIpConnectors.Count == 0)
                 {
                     IpAdressConnectorService connectorService = new IpAdressConnectorService();
-                    connectorService.IpAddresses = permission.IpAddresServer;
+                    connectorService.IpAddresses = permission.IpAddressServer;
                     connectorService.ServerType = server.ServerType.ToString();
-                    connectorService.CurrentIpAddres = permission.IpAddresServer[0];
+                    connectorService.CurrentIpAddres = permission.IpAddressServer[0];
                     connectorService.PingValue = "None";
                     connectorService.IsOn = true;
 
@@ -210,9 +210,9 @@ namespace OsEngine.OsTrader.ServerAvailability
                     if (!inStock)
                     {
                         IpAdressConnectorService connectorService = new IpAdressConnectorService();
-                        connectorService.IpAddresses = permission.IpAddresServer;
+                        connectorService.IpAddresses = permission.IpAddressServer;
                         connectorService.ServerType = server.ServerType.ToString();
-                        connectorService.CurrentIpAddres = permission.IpAddresServer[0];
+                        connectorService.CurrentIpAddres = permission.IpAddressServer[0];
                         connectorService.PingValue = "None";
                         connectorService.IsOn = true;
 

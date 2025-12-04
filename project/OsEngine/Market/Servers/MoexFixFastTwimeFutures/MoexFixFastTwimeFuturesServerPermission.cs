@@ -248,7 +248,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             get { return 10; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get { return null; }
         }

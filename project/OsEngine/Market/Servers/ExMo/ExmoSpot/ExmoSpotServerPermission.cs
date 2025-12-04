@@ -261,7 +261,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
             get { return 10; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get
             {

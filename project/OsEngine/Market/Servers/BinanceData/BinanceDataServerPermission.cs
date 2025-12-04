@@ -240,7 +240,7 @@ namespace OsEngine.Market.Servers.BinanceData
             get { return 10; }
         }
 
-        public string[] IpAddresServer
+        public string[] IpAddressServer
         {
             get { return null; }
         }
