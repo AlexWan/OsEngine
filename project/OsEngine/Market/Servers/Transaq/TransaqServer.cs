@@ -2702,7 +2702,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (order.Orderno == "0")
                 {
-                    //continue;
+                    continue;
                 }
 
                 Order newOrder = new Order();
@@ -2710,6 +2710,7 @@ namespace OsEngine.Market.Servers.Transaq
                 newOrder.NumberUser = Convert.ToInt32(order.Transactionid);
                 newOrder.SecurityClassCode = order.Board;
                 newOrder.NumberMarket = order.Orderno;
+
                 newOrder.TimeCallBack = order.Time != null ? DateTime.Parse(order.Time) : ServerTime;
                 newOrder.Side = order.Buysell == "B" ? Side.Buy : Side.Sell;
                 newOrder.Volume = order.Quantity.ToDecimal();
