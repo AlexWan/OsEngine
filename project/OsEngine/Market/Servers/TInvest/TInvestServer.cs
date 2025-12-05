@@ -827,6 +827,8 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         newSecurity.PriceStep = 1;
                     }
+                  
+                    newSecurity.Expiration = TimeZoneInfo.ConvertTimeFromUtc(item.ExpirationDate.ToDateTime(), _mskTimeZone);// convert to MSK;
 
                     if (newSecurity.PriceStep == 0)
                     {
