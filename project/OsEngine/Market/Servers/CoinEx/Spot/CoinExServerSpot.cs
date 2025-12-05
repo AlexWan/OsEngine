@@ -23,6 +23,7 @@ using System.Net;
 using RestSharp;
 
 
+
 namespace OsEngine.Market.Servers.CoinEx.Spot
 {
     public class CoinExServerSpot : AServer
@@ -169,32 +170,73 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #region 3 Securities
 
-        private List<Security> _securities = new List<Security>();
-
-        public event Action<List<Security>> SecurityEvent;
+        private List<Security> _securities;
 
         public void GetSecurities()
         {
-            UpdateSec();
-
-            if (_securities.Count > 0)
+            if (_securities == null)
             {
-                SendLogMessage("Securities loaded. Count: " + _securities.Count, LogMessageType.System);
-
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent.Invoke(_securities);
-                }
+                _securities = new List<Security>();
             }
-        }
 
-        private void UpdateSec()
-        {
-            // https://docs.coinex.com/api/v2/spot/market/http/list-market
             try
             {
-                List<CexSecurity> securities = _restClient.Get<List<CexSecurity>>("/spot/market");
-                UpdateSecuritiesFromServer(securities);
+                RestRequest requestRest = new RestRequest("/spot/market", Method.GET);
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<SpotMarketInfo>> responseMarket = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<SpotMarketInfo>>());
+
+                    if (responseMarket.code == "0")
+                    {
+                        for (int i = 0; i < responseMarket.data.Count; i++)
+                        {
+                            SpotMarketInfo item = responseMarket.data[i];
+
+                            if (item.status != "online")
+                            {
+                                continue;
+                            }
+
+                            Security security = new Security();
+                            security.Name = item.market;
+                            security.NameId = item.market;
+                            security.NameFull = item.market;
+                            security.NameClass = item.quote_ccy;
+                            security.State = SecurityStateType.Activ;
+                            security.Decimals = Convert.ToInt32(item.quote_ccy_precision);
+                            security.MinTradeAmount = item.min_amount.ToDecimal();
+                            security.DecimalsVolume = Convert.ToInt32(item.base_ccy_precision);
+                            security.PriceStep = security.Decimals.GetValueByDecimals();
+                            security.PriceStepCost = security.PriceStep;
+                            security.Lot = 1;
+                            security.SecurityType = SecurityType.CurrencyPair;
+                            security.Exchange = ServerType.CoinExSpot.ToString();
+                            security.VolumeStep = security.DecimalsVolume.GetValueByDecimals();
+
+                            _securities.Add(security);
+                        }
+
+                        if (_securities.Count > 0)
+                        {
+                            SendLogMessage("Securities loaded. Count: " + _securities.Count, LogMessageType.System);
+
+                            if (SecurityEvent != null)
+                            {
+                                SecurityEvent.Invoke(_securities);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Securities error. Code:{responseMarket.code} || msg: {responseMarket.message}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Securities error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
             }
             catch (Exception exception)
             {
@@ -202,48 +244,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
-        private void UpdateSecuritiesFromServer(List<CexSecurity> stocks)
-        {
-            try
-            {
-                if (stocks == null ||
-                    stocks.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < stocks.Count; i++)
-                {
-                    CexSecurity cexSecurity = stocks[i];
-
-                    Security security = new Security();
-                    security.Name = cexSecurity.market;
-                    security.NameId = cexSecurity.market;
-                    security.NameFull = cexSecurity.market;
-                    security.NameClass = cexSecurity.quote_ccy;
-                    security.State = SecurityStateType.Activ;
-                    security.Decimals = Convert.ToInt32(cexSecurity.quote_ccy_precision);
-                    security.MinTradeAmount = cexSecurity.min_amount.ToDecimal();
-                    security.DecimalsVolume = Convert.ToInt32(cexSecurity.base_ccy_precision);
-                    security.PriceStep = security.Decimals.GetValueByDecimals();
-                    security.PriceStepCost = security.PriceStep; // FIX Сомнительно! Проверить!
-                    security.Lot = 1;
-                    security.SecurityType = SecurityType.CurrencyPair;
-                    security.Exchange = ServerType.CoinExSpot.ToString();
-
-                    _securities.Add(security);
-                }
-
-                _securities.Sort(delegate (Security x, Security y)
-                {
-                    return String.Compare(x.NameFull, y.NameFull);
-                });
-            }
-            catch (Exception e)
-            {
-                SendLogMessage($"Error loading stocks: {e.Message}" + e.ToString(), LogMessageType.Error);
-            }
-        }
+        public event Action<List<Security>> SecurityEvent;
 
         #endregion
 
