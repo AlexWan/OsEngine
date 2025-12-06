@@ -28,4 +28,16 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public string is_pre_trading_available { get; set; }
         public string is_api_trading_available { get; set; }
     }
+
+    public class ResponseCandle
+    {
+        public string market { get; set; }
+        public string created_at { get; set; }
+        public string open { get; set; }
+        public string close { get; set; }
+        public string high { get; set; }
+        public string low { get; set; }
+        public string volume { get; set; }
+        public string value { get; set; }
+    }
 }
