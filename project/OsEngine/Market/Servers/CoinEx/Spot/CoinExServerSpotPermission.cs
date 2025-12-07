@@ -49,16 +49,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             get { return false; }
         }
 
-        public bool DataFeedTfTickCanLoad
-        {
-            get { return false; }
-        }
-
-        public bool DataFeedTfMarketDepthCanLoad
-        {
-            get { return true; }
-        }
-
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return true; }
@@ -109,6 +99,16 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             get { return true; }
         }
 
+        public bool DataFeedTfTickCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfMarketDepthCanLoad
+        {
+            get { return true; }
+        }
+
         #endregion
 
         #region Trade permission
@@ -135,7 +135,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         public bool ManuallyClosePositionOnBoard_IsOn
         {
-            get { return true; }
+            get { return false; }
         }
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
@@ -145,7 +145,15 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "USDT"
+                };
+
+                return values;
+            }
         }
 
         public bool CanQueryOrdersAfterReconnect
@@ -177,13 +185,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = false,
-                TimeFrameSec2IsOn = false,
-                TimeFrameSec5IsOn = false,
-                TimeFrameSec10IsOn = false,
-                TimeFrameSec15IsOn = false,
-                TimeFrameSec20IsOn = false,
-                TimeFrameSec30IsOn = false,
+                TimeFrameSec1IsOn = true,
+                TimeFrameSec2IsOn = true,
+                TimeFrameSec5IsOn = true,
+                TimeFrameSec10IsOn = true,
+                TimeFrameSec15IsOn = true,
+                TimeFrameSec20IsOn = true,
+                TimeFrameSec30IsOn = true,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
                 TimeFrameMin3IsOn = true,

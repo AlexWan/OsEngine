@@ -40,4 +40,30 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public string volume { get; set; }
         public string value { get; set; }
     }
+
+    public class ResponseBalanceSpot
+    {
+        public string ccy { get; set; }
+        public string available { get; set; }
+        public string frozen { get; set; }
+    }
+
+    public class ResponseBalanceMargin
+    {
+        public string margin_account { get; set; }
+        public string base_ccy { get; set; }
+        public string quote_ccy { get; set; }
+        public CurrencyAmount available { get; set; }
+        public CurrencyAmount frozen { get; set; }
+        public CurrencyAmount repaid { get; set; }
+        public CurrencyAmount interest { get; set; }
+        public string rik_rate { get; set; }
+        public string liq_price { get; set; }
+    }
+
+    public class CurrencyAmount
+    {
+        public string base_ccy { get; set; }
+        public string quote_ccy { get; set; }
+    }
 }
