@@ -20,7 +20,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using TL;
 
 
 
@@ -253,8 +252,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #region 4 Portfolios
 
-        public event Action<List<Portfolio>> PortfolioEvent;
-
         private RateGate _rateGateAccountStatus = new RateGate(10, TimeSpan.FromMilliseconds(950));
 
         private List<Portfolio> _portfolios = new List<Portfolio>();
@@ -266,15 +263,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 return "CoinExSpot";
             }
 
-            return "Margin " + securityName;
+            return "CoinExMargin " + securityName;
         }
 
         public void GetPortfolios()
-        {
-            GetCurrentPortfolios();
-        }
-
-        public bool GetCurrentPortfolios()
         {
             _rateGateAccountStatus.WaitToProceed();
 
@@ -282,71 +274,93 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 if (_marketMode == CexMarketType.SPOT.ToString())
                 {
-                    List<CexSpotPortfolioItem> cexPortfolio = _restClient.Get<List<CexSpotPortfolioItem>>("/assets/spot/balance", true);
-                    ConvertSpotToPortfolio(cexPortfolio);
+                    IRestResponse response = CreatePrivateQuery("/assets/spot/balance", Method.GET);
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        ResponseRestMessage<List<ResponseBalanceSpot>> responseBalance = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<ResponseBalanceSpot>>());
+
+                        if (responseBalance.data == null
+                        || responseBalance.data.Count == 0)
+                        {
+                            return;
+                        }
+
+                        if (responseBalance.code == "0")
+                        {
+                            ConvertSpotToPortfolio(responseBalance.data);
+                        }
+                        else
+                        {
+                            SendLogMessage($"PortfolioSpot error. Code:{responseBalance.code} || msg: {responseBalance.message}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"PortfolioSpot request error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    }
+
                 }
                 if (_marketMode == CexMarketType.MARGIN.ToString())
                 {
-                    List<CexMarginPortfolioItem> cexPortfolio = _restClient.Get<List<CexMarginPortfolioItem>>("/assets/margin/balance", true);
-                    ConvertMarginToPortfolio(cexPortfolio);
+                    IRestResponse response = CreatePrivateQuery("/assets/margin/balance", Method.GET);
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        ResponseRestMessage<List<ResponseBalanceMargin>> responseBalance = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<ResponseBalanceMargin>>());
+
+                        if (responseBalance.data == null
+                        || responseBalance.data.Count == 0)
+                        {
+                            return;
+                        }
+
+                        if (responseBalance.code == "0")
+                        {
+                            ConvertMarginToPortfolio(responseBalance.data);
+                        }
+                        else
+                        {
+                            SendLogMessage($"PortfolioMargin error. Code:{responseBalance.code} || msg: {responseBalance.message}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"PortfolioMargin request error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    }
                 }
-                return _portfolios.Count > 0;
             }
             catch (Exception exception)
             {
                 SendLogMessage("Portfolio request error " + exception.ToString(), LogMessageType.Error);
             }
-            return false;
         }
 
-        private void ConvertSpotToPortfolio(List<CexSpotPortfolioItem> portfolioItems)
+        private void ConvertSpotToPortfolio(List<ResponseBalanceSpot> portfolioItems)
         {
-            string portfolioName = getPortfolioName();
             try
             {
-                Portfolio myPortfolio = _portfolios.Find(p => p.Number == portfolioName);
+                Portfolio portfolio = new Portfolio();
 
-                if (myPortfolio == null)
-                {
-                    Portfolio newPortf = new Portfolio();
-                    newPortf.Number = portfolioName;
-                    newPortf.ServerType = ServerType;
-                    newPortf.ValueBegin = 1;
-                    newPortf.ValueCurrent = 1;
-                    _portfolios.Add(newPortf);
-                    myPortfolio = newPortf;
-                }
-
-                if (portfolioItems == null || portfolioItems.Count == 0)
-                {
-                    SendLogMessage("No portfolios detected!", LogMessageType.System);
-                    return;
-                }
+                portfolio.Number = getPortfolioName();
+                portfolio.ValueBegin = 1;
+                portfolio.ValueCurrent = 1;
 
                 for (int i = 0; i < portfolioItems.Count; i++)
                 {
-                    CexSpotPortfolioItem cexPortfolioItem = portfolioItems[i];
+                    ResponseBalanceSpot item = portfolioItems[i];
 
                     PositionOnBoard pos = new PositionOnBoard();
+                    pos.SecurityNameCode = item.ccy;
+                    pos.ValueBegin = item.available.ToDecimal();
+                    pos.ValueBlocked = item.frozen.ToDecimal();
+                    pos.ValueCurrent = item.available.ToDecimal();
+                    pos.PortfolioName = getPortfolioName();
 
-                    pos.SecurityNameCode = cexPortfolioItem.ccy;
-                    pos.ValueBlocked = cexPortfolioItem.frozen.ToString().ToDecimal();
-                    pos.ValueCurrent = cexPortfolioItem.available.ToString().ToDecimal();
-                    pos.PortfolioName = portfolioName;
-                    if (pos.ValueBegin == 1)
-                    {
-                        pos.ValueBegin = pos.ValueCurrent + pos.ValueBlocked;
-                    }
-
-                    if (pos.ValueBlocked + pos.ValueCurrent > 0)
-                    {
-                        myPortfolio.SetNewPosition(pos);
-                    }
+                    portfolio.SetNewPosition(pos);
                 }
 
-                myPortfolio.ValueCurrent = getPortfolioValue(myPortfolio);
-
-                PortfolioEvent?.Invoke(_portfolios);
+                PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
             }
             catch (Exception error)
             {
@@ -354,19 +368,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
-        private void ConvertMarginToPortfolio(List<CexMarginPortfolioItem> portfolioItems)
+        private void ConvertMarginToPortfolio(List<ResponseBalanceMargin> portfolioItems)
         {
             try
             {
-                if (portfolioItems == null || portfolioItems.Count == 0)
-                {
-                    SendLogMessage("No portfolios detected!", LogMessageType.System);
-                    return;
-                }
-
                 for (int i = 0; i < portfolioItems.Count; i++)
                 {
-                    CexMarginPortfolioItem cexPortfolioItem = portfolioItems[i];
+                    ResponseBalanceMargin cexPortfolioItem = portfolioItems[i];
                     string portfolioName = getPortfolioName(cexPortfolioItem.margin_account);
                     Portfolio myPortfolio = _portfolios.Find(p => p.Number == portfolioName);
 
@@ -382,10 +390,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                     PositionOnBoard pos = new PositionOnBoard();
                     pos.SecurityNameCode = cexPortfolioItem.base_ccy;
-                    pos.ValueBlocked = cexPortfolioItem.frozen.base_ccy.ToString().ToDecimal();
-                    pos.ValueCurrent = cexPortfolioItem.available.base_ccy.ToString().ToDecimal();
+                    pos.ValueBlocked = cexPortfolioItem.frozen.base_ccy.ToDecimal();
+                    pos.ValueCurrent = cexPortfolioItem.available.base_ccy.ToDecimal();
                     pos.PortfolioName = portfolioName;
-                    pos.ValueBegin = pos.ValueCurrent;
+                    pos.ValueBegin = cexPortfolioItem.available.base_ccy.ToDecimal();
 
                     if (pos.ValueBlocked + pos.ValueCurrent > 0)
                     {
@@ -394,10 +402,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                     pos = new PositionOnBoard();
                     pos.SecurityNameCode = cexPortfolioItem.quote_ccy;
-                    pos.ValueBlocked = cexPortfolioItem.frozen.quote_ccy.ToString().ToDecimal();
-                    pos.ValueCurrent = cexPortfolioItem.available.quote_ccy.ToString().ToDecimal();
+                    pos.ValueBlocked = cexPortfolioItem.frozen.quote_ccy.ToDecimal();
+                    pos.ValueCurrent = cexPortfolioItem.available.quote_ccy.ToDecimal();
                     pos.PortfolioName = portfolioName;
-                    pos.ValueBegin = pos.ValueCurrent;
+                    pos.ValueBegin = cexPortfolioItem.available.quote_ccy.ToDecimal();
 
                     if (pos.ValueBlocked + pos.ValueCurrent > 0)
                     {
@@ -410,11 +418,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                     _portfolios.Add(myPortfolio);
 
-                    myPortfolio.ValueCurrent = getPortfolioValue(myPortfolio);
+                    //myPortfolio.ValueCurrent = getPortfolioValue(myPortfolio);
 
                     PortfolioEvent?.Invoke(_portfolios);
                 }
-
             }
             catch (Exception error)
             {
@@ -506,6 +513,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
             return cexInfo;
         }
+
+        public event Action<List<Portfolio>> PortfolioEvent;
 
         #endregion
 
@@ -655,9 +664,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             long tsStartTime = (startTime > DateTime.UtcNow) ? TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow) : TimeManager.GetTimeStampSecondsToDateTime(startTime);
             long tsEndTime = (endTime > DateTime.UtcNow) ? TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow) : TimeManager.GetTimeStampSecondsToDateTime(endTime);
 
-            if (tsStartTime > tsEndTime || tsStartTime < 0 || tsEndTime < 0) 
-            { 
-                return null; 
+            if (tsStartTime > tsEndTime || tsStartTime < 0 || tsEndTime < 0)
+            {
+                return null;
             }
 
             // https://www.coinex.com/res/market/kline?market=XRPUSDT&start_time=1719781200&end_time=1725138000&interval=300
