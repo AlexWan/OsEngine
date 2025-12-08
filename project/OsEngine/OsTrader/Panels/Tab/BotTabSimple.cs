@@ -1345,6 +1345,40 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// спред в стакане в процентах
+        /// </summary>
+        public decimal BidAskSpreadPercent
+        {
+            get
+            {
+                decimal ask = PriceBestAsk;
+
+                if (ask == 0)
+                {
+                    return 0;
+                }
+
+                decimal bid = PriceBestBid;
+
+                if (bid == 0)
+                {
+                    return 0;
+                }
+
+                if (bid >= ask)
+                {
+                    return 0;
+                }
+
+                decimal different = ask - bid;
+
+                decimal result = different / (bid / 100);
+
+                return result;
+            }
+        }
+
+        /// <summary>
         /// Does the server support market orders
         /// </summary>
         public bool ServerIsSupportMarketOrders

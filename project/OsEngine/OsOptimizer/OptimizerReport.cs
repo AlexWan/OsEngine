@@ -449,15 +449,15 @@ namespace OsEngine.OsOptimizer
 
             BotName = str[0];
             PositionsCount = Convert.ToInt32(str[1]);
-            TotalProfit = Convert.ToDecimal(str[2]);
-            MaxDrawDawn = Convert.ToDecimal(str[3]);
-            AverageProfit = Convert.ToDecimal(str[4]);
-            AverageProfitPercentOneContract = Convert.ToDecimal(str[5]);
-            ProfitFactor = Convert.ToDecimal(str[6]);
-            PayOffRatio = Convert.ToDecimal(str[7]);
-            Recovery = Convert.ToDecimal(str[8]);
-            TotalProfitPercent = Convert.ToDecimal(str[9]);
-            SharpRatio = Convert.ToDecimal(str[10]);
+            TotalProfit = str[2].ToDecimal();
+            MaxDrawDawn = str[3].ToDecimal();
+            AverageProfit = str[4].ToDecimal();
+            AverageProfitPercentOneContract = str[5].ToDecimal();
+            ProfitFactor = str[6].ToDecimal();
+            PayOffRatio = str[7].ToDecimal();
+            Recovery = str[8].ToDecimal();
+            TotalProfitPercent = str[9].ToDecimal();
+            SharpRatio = str[10].ToDecimal();
 
             string[] param = str[11].Split('&');
 
