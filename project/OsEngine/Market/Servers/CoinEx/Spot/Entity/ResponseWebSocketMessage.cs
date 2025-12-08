@@ -58,15 +58,16 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public string side { get; set; }
         public string price { get; set; }
         public string amount { get; set; }
-        public string unfill_amount { get; set; }
-        public string fill_value { get; set; }
+        public string unfilled_amount { get; set; }
+        public string filled_amount { get; set; }
+        public string filled_value { get; set; }
         public string taker_fee_rate { get; set; }
         public string maker_fee_rate { get; set; }
         public string base_ccy_fee { get; set; }
         public string quote_ccy_fee { get; set; }
         public string discount_ccy_fee { get; set; }
-        public string last_fill_amount { get; set; }
-        public string last_fill_price { get; set; }
+        public string last_filled_amount { get; set; }
+        public string last_filled_price { get; set; }
         public string client_id { get; set; }
         public string created_at { get; set; }
         public string updated_at { get; set; }
