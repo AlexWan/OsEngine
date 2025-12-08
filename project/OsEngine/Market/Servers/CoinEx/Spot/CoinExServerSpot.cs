@@ -492,11 +492,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         ResponseCandle cexCandle = history[i];
 
                         Candle candle = new Candle();
-                        candle.Open = cexCandle.open.ToString().ToDecimal();
-                        candle.High = cexCandle.high.ToString().ToDecimal();
-                        candle.Low = cexCandle.low.ToString().ToDecimal();
-                        candle.Close = cexCandle.close.ToString().ToDecimal();
-                        candle.Volume = cexCandle.volume.ToString().ToDecimal();
+                        candle.Open = cexCandle.open.ToDecimal();
+                        candle.High = cexCandle.high.ToDecimal();
+                        candle.Low = cexCandle.low.ToDecimal();
+                        candle.Close = cexCandle.close.ToDecimal();
+                        candle.Volume = cexCandle.volume.ToDecimal();
                         candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp((long)cexCandle.created_at.ToDecimal());
 
                         //fix candle
@@ -818,7 +818,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             long timestamp = TimeManager.GetUnixTimeStampMilliseconds();
             string sign = Sign(timestamp.ToString());
 
-            _webSocketPrivate.SendAsync($"{{\"method\":\"server.sign\",\"params\":{{\"access_id\":\"{_publicKey}\",\"signed_str\":\"{sign}\",\"timestamp\":{timestamp}}},\"id\":1}}");
+            _webSocketPrivate?.SendAsync($"{{\"method\":\"server.sign\",\"params\":{{\"access_id\":\"{_publicKey}\",\"signed_str\":\"{sign}\",\"timestamp\":{timestamp}}},\"id\":1}}");
         }
 
         private string _socketActivateLocker = "socketAcvateLocker";
@@ -1329,6 +1329,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         && baseMessage.code != null)
                     {
                         SendLogMessage($"WebSocketPublic error: {baseMessage.code} || {baseMessage.message}", LogMessageType.Error);
+                        Thread.Sleep(1);
+                        continue;
                     }
 
                     if (baseMessage.method == null)
@@ -1394,6 +1396,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         && baseMessage.code != null)
                     {
                         SendLogMessage($"WebSocketPrivate error: {baseMessage.code} || {baseMessage.message}", LogMessageType.Error);
+                        Thread.Sleep(1);
+                        continue;
                     }
 
                     if (baseMessage.method == null)
@@ -2266,7 +2270,14 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         {
             Order order = new Order();
 
-            order.NumberUser = Convert.ToInt32(cexOrder.client_id);
+            try
+            {
+                order.NumberUser = Convert.ToInt32(cexOrder.client_id);
+            }
+            catch
+            {
+                // ignore
+            }
 
             order.SecurityNameCode = cexOrder.market;
             order.SecurityClassCode = cexOrder.market.Substring(cexOrder.ccy?.Length ?? cexOrder.market.Length - 3); // Fix for Futures (no Currency info)
@@ -2280,6 +2291,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             order.NumberMarket = cexOrder.order_id.ToString();
             order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.updated_at.ToDecimal());
             order.TimeCreate = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.created_at.ToDecimal());
+            order.PortfolioNumber = getPortfolioName();
             order.Side = cexOrder.side == "buy" ? Side.Buy : Side.Sell;
 
             // Order placed successfully (unfilled/partially filled)
@@ -2351,13 +2363,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                             MyTradeSpotResponse cexTrade = orderResponse.data[i];
 
                             MyTrade myTrade = new MyTrade();
-                            myTrade.NumberOrderParent = cexTrade.order_id.ToString();
-                            myTrade.NumberTrade = cexTrade.deal_id.ToString();
+                            myTrade.NumberOrderParent = cexTrade.order_id;
+                            myTrade.NumberTrade = cexTrade.deal_id;
                             myTrade.SecurityNameCode = string.IsNullOrEmpty(cexTrade.margin_market) ? cexTrade.market : cexTrade.margin_market;
                             myTrade.Time = TimeManager.GetDateTimeFromTimeStamp((long)cexTrade.created_at.ToDecimal());
                             myTrade.Side = cexTrade.side == "buy" ? Side.Buy : Side.Sell;
-                            myTrade.Price = cexTrade.price.ToString().ToDecimal();
-                            myTrade.Volume = cexTrade.amount.ToString().ToDecimal();
+                            myTrade.Price = cexTrade.price.ToDecimal();
+                            myTrade.Volume = cexTrade.amount.ToDecimal();
 
                             MyTradeEvent(myTrade);
                         }
