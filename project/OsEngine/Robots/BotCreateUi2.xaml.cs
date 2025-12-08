@@ -271,6 +271,11 @@ namespace OsEngine.Robots
                     return;
                 }
 
+                if(row < 0)
+                {
+                    return;
+                }
+
                 for (int i = 0; i < _grid.Rows.Count; i++)
                 {
                     if (i == row)
