@@ -9,12 +9,12 @@ using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity;
-using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
 using OsEngine.Market.Servers.Entity;
 using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO.Compression;
 using System.Net;
 using System.Security.Cryptography;
@@ -35,7 +35,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Market depth", "20", new List<string> { "5", "10", "20", "50" });
-            CreateParameterEnum("Market Mode", CexMarketType.SPOT.ToString(), new List<string> { CexMarketType.SPOT.ToString(), CexMarketType.MARGIN.ToString() });
+            CreateParameterEnum("Market Mode", MarketType.SPOT.ToString(), new List<string> { MarketType.SPOT.ToString(), MarketType.MARGIN.ToString() });
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
@@ -80,9 +80,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             try
             {
-                _restClient = new CoinExRestClient(_publicKey, _secretKey);
-                _restClient.LogMessageEvent += SendLogMessage;
-
                 RestRequest requestRest = new RestRequest("/time", Method.GET);
                 IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
 
@@ -165,8 +162,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         private int _marketDepth;
 
         private string _marketMode;
-
-        private CoinExRestClient _restClient;
 
         #endregion
 
@@ -258,7 +253,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         public string getPortfolioName(string securityName = "")
         {
-            if (_marketMode == CexMarketType.SPOT.ToString())
+            if (_marketMode == MarketType.SPOT.ToString())
             {
                 return "CoinExSpot";
             }
@@ -272,7 +267,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             try
             {
-                if (_marketMode == CexMarketType.SPOT.ToString())
+                if (_marketMode == MarketType.SPOT.ToString())
                 {
                     IRestResponse response = CreatePrivateQuery("/assets/spot/balance", Method.GET);
 
@@ -301,7 +296,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     }
 
                 }
-                if (_marketMode == CexMarketType.MARGIN.ToString())
+                if (_marketMode == MarketType.MARGIN.ToString())
                 {
                     IRestResponse response = CreatePrivateQuery("/assets/margin/balance", Method.GET);
 
@@ -427,91 +422,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-        }
-
-        public decimal getPortfolioValue(Portfolio portfolio)
-        {
-            List<PositionOnBoard> poses = portfolio.GetPositionOnBoard();
-            if (poses == null || poses.Count == 0) return 0;
-            string mainCurrency = "";
-            for (int i = 0; i < poses.Count; i++)
-            {
-                if (poses[i].SecurityNameCode == "USDT"
-                 || poses[i].SecurityNameCode == "USDC"
-                 || poses[i].SecurityNameCode == "USD"
-                 || poses[i].SecurityNameCode == "RUB"
-                 || poses[i].SecurityNameCode == "EUR")
-                {
-                    mainCurrency = poses[i].SecurityNameCode;
-                    break;
-                }
-            }
-
-            if (string.IsNullOrEmpty(mainCurrency)) { return 0; }
-
-            List<string> securities = new List<string>();
-            for (int i = 0; i < poses.Count; i++)
-            {
-                if (poses[i].SecurityNameCode == mainCurrency)
-                {
-                    continue;
-                }
-                securities.Add(poses[i].SecurityNameCode + mainCurrency);
-            }
-
-            List<CexMarketInfoItem> marketInfo = GetMarketsInfo(securities);
-
-            decimal val = 0;
-            for (int i = 0; i < poses.Count; i++)
-            {
-                if (poses[i].SecurityNameCode == mainCurrency)
-                {
-                    val += poses[i].ValueCurrent;
-                    continue;
-                }
-                else
-                {
-                    if (marketInfo != null)
-                    {
-                        for (int j = 0; j < marketInfo.Count; j++)
-                        {
-                            if (marketInfo[j].market == poses[i].SecurityNameCode + mainCurrency)
-                            {
-                                val += poses[i].ValueCurrent * marketInfo[j].last.ToString().ToDecimal();
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return Math.Round(val, 2);
-        }
-
-        public List<CexMarketInfoItem> GetMarketsInfo(List<string> securities)
-        {
-            // https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
-            List<CexMarketInfoItem> cexInfo = new List<CexMarketInfoItem>();
-
-            string endPoint = "/spot/ticker";
-            try
-            {
-                if (securities.Count > 10)
-                {
-                    // If list is empty - gets all markets info
-                    securities = new List<string>();
-                }
-
-                cexInfo = _restClient.Get<List<CexMarketInfoItem>>(endPoint, false, new Dictionary<string, Object>()
-                {
-                    { "market", String.Join(",", securities.ToArray())},
-                });
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage("Market info request error:" + exception.ToString(), LogMessageType.Error);
-            }
-            return cexInfo;
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -1572,7 +1482,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 ResponseDepthUpdate responseDepth = JsonConvert.DeserializeObject<ResponseDepthUpdate>(data);
 
-                if (responseDepth.depth.asks.Count == 0 && responseDepth.depth.bids.Count == 0)
+                if (responseDepth.depth.asks.Count == 0
+                    && responseDepth.depth.bids.Count == 0)
                 {
                     return;
                 }
@@ -1655,10 +1566,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 }
 
                 order.SecurityNameCode = cexOrder.market;
-                // Cex.Amount - объём в единицах тикера
-                // Cex.Value - объём в деньгах
                 order.Volume = cexOrder.amount.ToDecimal();
-                order.VolumeExecute = cexOrder.last_fill_amount.ToDecimal(); // FIX Разобраться с названием параметра!
+                order.VolumeExecute = cexOrder.filled_amount.ToDecimal(); 
 
                 if (cexOrder.type == "limit")
                 {
@@ -1678,19 +1587,18 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 order.PortfolioNumber = getPortfolioName();
                 decimal cexAmount = cexOrder.amount.ToDecimal();
-                decimal cexFilledAmount = cexOrder.last_fill_amount.ToDecimal();
-                decimal cexFilledValue = cexOrder.fill_value.ToDecimal();
+                decimal cexFilledAmount = cexOrder.filled_amount.ToDecimal();
+                decimal cexFilledValue = cexOrder.filled_value.ToDecimal();
 
-                if (responseOrder.@event == CexOrderEvent.PUT.ToString())
+                if (responseOrder.@event == "put")
                 {
                     // Order placed successfully (unfilled/partially filled)
-                    if (cexAmount == cexOrder.unfill_amount.ToDecimal())
+                    if (cexAmount == cexOrder.unfilled_amount.ToDecimal())
                     {
                         order.State = OrderStateType.Active;
                     }
                     else if (cexAmount == cexFilledAmount || cexAmount == cexFilledValue)
                     {
-                        // Undocumented behavior
                         order.State = OrderStateType.Done;
                         order.TimeDone = order.TimeCallBack;
                     }
@@ -1699,12 +1607,12 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         order.State = OrderStateType.Partial;
                     }
                 }
-                else if (responseOrder.@event == CexOrderEvent.UPDATE.ToString())
+                else if (responseOrder.@event == "update")
                 {
                     // Order updated (partially filled)
                     order.State = OrderStateType.Partial;
                 }
-                else if (responseOrder.@event == CexOrderEvent.FINISH.ToString())
+                else if (responseOrder.@event == "finish")
                 {
                     // Order completed (filled or canceled)
                     order.State = OrderStateType.Cancel;
@@ -1724,7 +1632,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         order.TimeCancel = order.TimeCallBack;
                     }
                 }
-                else if (responseOrder.@event == CexOrderEvent.MODIFY.ToString())
+                else if (responseOrder.@event == "modify")
                 {
                     // Order modified successfully (unfilled/partially filled)
                     if (cexFilledAmount == 0)
@@ -1752,11 +1660,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 MyOrderEvent?.Invoke(order);
 
-                if (MyTradeEvent != null)
-                //(order.State == OrderStateType.Done || order.State == OrderStateType.Partial ))
-                {
-                    UpdateTrades(order);
-                }
             }
             catch (Exception ex)
             {
@@ -1798,17 +1701,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     return;
                 }
 
-                if (_portfolios == null)
-                {
-                    return;
-                }
-
-                if (_marketMode == CexMarketType.SPOT.ToString())
+                if (_marketMode == MarketType.SPOT.ToString())
                 {
                     wsUpdateSpotPortfolio(responswBalance);
                 }
-                if (_marketMode == CexMarketType.MARGIN.ToString())
+                if (_marketMode == MarketType.MARGIN.ToString())
                 {
+                    if (_portfolios == null)
+                    {
+                        return;
+                    }
+
                     wsUpdateMarginPortfolio(responswBalance);
                 }
             }
@@ -1820,38 +1723,28 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private void wsUpdateSpotPortfolio(ResponseWSBalance data)
         {
-            string portfolioName = getPortfolioName();
-            Portfolio portfolio = _portfolios.Find(p => p.Number == portfolioName);
+            Portfolio portfolio = new Portfolio();
 
-            if (portfolio == null)
-            {
-                return;
-            }
+            portfolio.Number = getPortfolioName();
+            portfolio.ValueBegin = 1;
+            portfolio.ValueCurrent = 1;
 
             for (int i = 0; i < data.balance_list.Count; i++)
             {
-                PositionOnBoard pos =
-                    portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == data.balance_list[i].ccy);
+                PositionOnBoard pos = new PositionOnBoard();
 
-                if (pos == null)
-                {
-                    BalanceWSData cexPosition = data.balance_list[i];
+                BalanceWSData cexPosition = data.balance_list[i];
 
-                    pos = new PositionOnBoard();
-                    pos.ValueCurrent = cexPosition.available.ToString().ToDecimal();
-                    pos.ValueBlocked = cexPosition.frozen.ToString().ToDecimal();
-                    pos.SecurityNameCode = cexPosition.ccy;
-                    pos.PortfolioName = portfolioName;
+                pos = new PositionOnBoard();
+                pos.ValueCurrent = cexPosition.available.ToDecimal();
+                pos.ValueBlocked = cexPosition.frozen.ToDecimal();
+                pos.SecurityNameCode = cexPosition.ccy;
+                pos.PortfolioName = getPortfolioName();
 
-                    portfolio.SetNewPosition(pos);
-                    continue;
-                }
-
-                pos.ValueCurrent = data.balance_list[i].available.ToString().ToDecimal();
-                pos.ValueBlocked = data.balance_list[i].frozen.ToString().ToDecimal();
+                portfolio.SetNewPosition(pos);
             }
 
-            PortfolioEvent?.Invoke(_portfolios);
+            PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
         }
 
         private void wsUpdateMarginPortfolio(ResponseWSBalance data)
@@ -1916,47 +1809,57 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private RateGate _rateGateOrdersHistory = new RateGate(10, TimeSpan.FromMilliseconds(950));
 
-        private string _lockOrder = "lockOrder";
-
-        public void GetAllActivOrders()
-        {
-            List<Order> openOrders = cexGetAllActiveOrders();
-
-            if (openOrders == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < openOrders.Count; i++)
-            {
-                MyOrderEvent?.Invoke(openOrders[i]);
-            }
-        }
-
         public void SendOrder(Order order)
         {
             _rateGateSendOrder.WaitToProceed();
 
             try
             {
-                // https://docs.coinex.com/api/v2/spot/order/http/put-order#http-request
-                Dictionary<string, Object> body = (new CexRequestSendOrder(_marketMode, order)).parameters;
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+                parameters.Add("market", order.SecurityNameCode);
+                parameters.Add("market_type", _marketMode);
+                parameters.Add("side", order.Side == Side.Buy ? "buy" : "sell");
+                parameters.Add("amount", order.Volume.ToString(CultureInfo.InvariantCulture).Replace(",", "."));
+                parameters.Add("client_id", order.NumberUser.ToString());
+                parameters.Add("ccy", order.SecurityNameCode.Replace("USDT", ""));
 
-                CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/order", body, true);
-
-                if (cexOrder.order_id > 0)
+                if (order.TypeOrder == OrderPriceType.Limit)
                 {
-                    order.State = OrderStateType.Active;
-                    order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
-                    order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.created_at);
-                    order.NumberMarket = cexOrder.order_id.ToString();
-                    MyOrderEvent?.Invoke(order);
-                    SendLogMessage("Order executed", LogMessageType.Trade);
+                    parameters.Add("type", "limit");
+                    parameters.Add("price", order.Price.ToString(CultureInfo.InvariantCulture).Replace(",", "."));
+                }
+                else if (order.TypeOrder == OrderPriceType.Market)
+                {
+                    parameters.Add("type", "market");
+                }
+
+                string jsonRequest = JsonConvert.SerializeObject(parameters);
+
+                IRestResponse response = CreatePrivateQuery("/spot/order", Method.POST, jsonRequest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<SpotOrderResponse> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<SpotOrderResponse>());
+
+                    if (orderResponse.code == "0")
+                    {
+                        //order.State = OrderStateType.Active;
+                        //order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
+                        //order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.created_at);
+                        //order.NumberMarket = cexOrder.order_id.ToString();
+                        //MyOrderEvent?.Invoke(order);
+                        //SendLogMessage("Order executed", LogMessageType.Trade);
+                    }
+                    else
+                    {
+                        CreateOrderFail(order);
+                        SendLogMessage($"Send Order error. {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
                     CreateOrderFail(order);
-                    SendLogMessage("Error while send order. Check it manually on CoinEx!", LogMessageType.Error);
+                    SendLogMessage($"Send Order error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1971,45 +1874,41 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             MyOrderEvent?.Invoke(order);
         }
 
-        public OrderStateType GetOrderStatus(Order order)
-        {
-            Order myOrder = cexGetOrderFromExchange(order.SecurityNameCode, order.NumberMarket);
-
-            if (myOrder == null)
-            {
-                return OrderStateType.None;
-            }
-
-            MyOrderEvent?.Invoke(myOrder);
-
-            if (myOrder.State == OrderStateType.Done || myOrder.State == OrderStateType.Partial)
-            {
-                UpdateTrades(myOrder);
-            }
-
-            return myOrder.State;
-        }
-
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             _rateGateSendOrder.WaitToProceed();
 
             try
             {
-                // https://docs.coinex.com/api/v2/spot/order/http/edit-order
-                Dictionary<string, Object> body = (new CexRequestEditOrder(_marketMode, order, newPrice)).parameters;
-                CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/modify-order", body, true);
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+                parameters.Add("market", order.SecurityNameCode);
+                parameters.Add("order_id", (long)order.NumberMarket.ToDecimal());
+                parameters.Add("market_type", _marketMode);
+                parameters.Add("price", newPrice.ToString(CultureInfo.InvariantCulture).Replace(",", "."));
 
-                if (cexOrder.order_id > 0)
+                string jsonRequest = JsonConvert.SerializeObject(parameters);
+
+                IRestResponse response = CreatePrivateQuery("/spot/modify-order", Method.POST, jsonRequest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    order.Price = newPrice;
-                    order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
-                    MyOrderEvent?.Invoke(order);
-                    SendLogMessage("Order price changed", LogMessageType.Trade);
+                    ResponseRestMessage<SpotOrderResponse> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<SpotOrderResponse>());
+
+                    if (orderResponse.code == "0")
+                    {
+                        //order.Price = newPrice;
+                        //order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
+                        //MyOrderEvent?.Invoke(order);
+                        //SendLogMessage("Order price changed", LogMessageType.Trade);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Order change price send error: {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage("Price change command executed, but price not changed. Not valid price?", LogMessageType.System);
+                    SendLogMessage($"Order change price send error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2021,21 +1920,29 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
-            lock (_lockOrder)
-            {
-                try
-                {
-                    // https://docs.coinex.com/api/v2/spot/order/http/cancel-order
-                    Dictionary<string, Object> body = (new CexRequestCancelOrder(_marketMode, order.NumberMarket, order.SecurityNameCode)).parameters;
-                    CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/cancel-order", body, true);
 
-                    if (cexOrder.order_id > 0)
+            try
+            {
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+                parameters.Add("market_type", _marketMode);
+                parameters.Add("market", order.SecurityNameCode);
+                parameters.Add("order_id", (long)order.NumberMarket.ToDecimal());
+
+                string jsonRequest = JsonConvert.SerializeObject(parameters);
+
+                IRestResponse response = CreatePrivateQuery("/spot/cancel-order", Method.POST, jsonRequest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<SpotOrderResponse> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<SpotOrderResponse>());
+
+                    if (orderResponse.code == "0")
                     {
-                        order.State = OrderStateType.Cancel;
-                        order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
-                        order.TimeCancel = order.TimeCallBack;
-                        MyOrderEvent?.Invoke(order);
-                        SendLogMessage("Order cancelled", LogMessageType.Trade);
+                        //order.State = OrderStateType.Cancel;
+                        //order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
+                        //order.TimeCancel = order.TimeCallBack;
+                        //MyOrderEvent?.Invoke(order);
+                        //SendLogMessage("Order cancelled", LogMessageType.Trade);
                         return true;
                     }
                     else
@@ -2044,7 +1951,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                         if (state == OrderStateType.None)
                         {
-                            SendLogMessage($"Cancel Order Error. Code: {order.NumberUser}.", LogMessageType.Error);
+                            SendLogMessage($"Cancel order error error: {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
                             return false;
                         }
                         else
@@ -2053,77 +1960,151 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         }
                     }
                 }
-                catch (Exception exception)
+                else
                 {
-                    SendLogMessage("Cancel order error. " + exception.ToString(), LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"Cancel order error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
+            catch (Exception exception)
+            {
+                SendLogMessage("Cancel order error. " + exception.ToString(), LogMessageType.Error);
+            }
+
             return false;
         }
 
         public void CancelAllOrders()
         {
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
-            {
-                CancelAllOrdersToSecurity(_subscribedSecurities[i]);
-            }
+
         }
 
         public void CancelAllOrdersToSecurity(Security security)
         {
-            cexCancelAllOrdersToSecurity(security.NameFull);
-        }
-
-        private List<Order> cexGetAllActiveOrders()
-        {
             try
             {
-                //_subscribedSecurities
-                List<CexOrder> cexOrders = new List<CexOrder>();
-                // https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
-                if (_marketMode == CexMarketType.MARGIN.ToString())
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+
+                parameters.Add("market_type", _marketMode);
+                if (security != null)
+                {
+                    parameters.Add("client_id", security);
+                }
+
+                string jsonRequest = JsonConvert.SerializeObject(parameters);
+
+                IRestResponse response = CreatePrivateQuery("/spot/cancel-all-order", Method.POST, jsonRequest);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage($"Cancel all orders to security error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Cancel all orders request error. " + exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void GetAllActivOrders()
+        {
+            List<Order> openOrders = GetAllOpenOrders();
+
+            if (openOrders == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < openOrders.Count; i++)
+            {
+                MyOrderEvent?.Invoke(openOrders[i]);
+            }
+        }
+
+        private List<Order> GetAllOpenOrders()
+        {
+            _rateGateGetOrder.WaitToProceed();
+
+            try
+            {
+
+                string path = $"/spot/pending-order";
+
+                List<Order> orders = new List<Order>();
+
+                if (_marketMode == MarketType.MARGIN.ToString())
                 {
                     for (int i = 0; i < _subscribedSecurities.Count; i++)
                     {
                         _rateGateGetOrder.WaitToProceed();
-                        Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode, _subscribedSecurities[i].Name)).parameters;
-                        List<CexOrder> tmpCexOrders = _restClient.Get<List<CexOrder>>("/spot/pending-order", true, parameters);
-                        if (tmpCexOrders != null && tmpCexOrders.Count > 0)
+
+                        string requestStr = $"{path}?market_type={_marketMode}&market={_subscribedSecurities[i].Name}&limit=1000";
+
+                        IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
+
+                        if (response.StatusCode == HttpStatusCode.OK)
                         {
-                            cexOrders.AddRange(tmpCexOrders);
+                            ResponseRestMessage<List<SpotOrderResponse>> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<SpotOrderResponse>>());
+
+                            if (orderResponse.code == "0")
+                            {
+                                for (int j = 0; j < orderResponse.data.Count; j++)
+                                {
+                                    SpotOrderResponse item = orderResponse.data[j];
+
+                                    Order order = GetOrderOsEngineFromOrder(item);
+                                    orders.Add(order);
+                                }
+                            }
+                            else
+                            {
+                                SendLogMessage($"Get All Open Orders error: {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage($"Get All Open Orders error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                         }
                     }
                 }
                 else
                 {
-                    Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode)).parameters;
-                    cexOrders = _restClient.Get<List<CexOrder>>("/spot/pending-order", true, parameters);
-                }
+                    string requestStr = $"{path}?market_type={_marketMode}&limit=1000";
 
-                if (cexOrders == null || cexOrders.Count == 0)
-                {
-                    return null;
-                }
+                    IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
 
-                List<Order> orders = new List<Order>();
-
-                for (int i = 0; i < cexOrders.Count; i++)
-                {
-                    if (string.IsNullOrEmpty(cexOrders[i].client_id))
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        SendLogMessage("Non OS Engine order with id:" + cexOrders[i].order_id + ". Skipped.", LogMessageType.System);
-                        continue;
+                        ResponseRestMessage<List<SpotOrderResponse>> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<SpotOrderResponse>>());
+
+                        if (orderResponse.code == "0")
+                        {
+                            for (int i = 0; i < orderResponse.data.Count; i++)
+                            {
+                                SpotOrderResponse item = orderResponse.data[i];
+
+                                Order order = GetOrderOsEngineFromOrder(item);
+                                orders.Add(order);
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage($"Get All Open Orders error: {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
+                        }
                     }
-
-                    Order order = GetOrderOsEngineFromCexOrder(cexOrders[i]);
-
-                    if (order.NumberUser == 0)
+                    else
                     {
-                        continue;
+                        SendLogMessage($"Get All Open Orders error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                     }
-                    order.PortfolioNumber = getPortfolioName(order.SecurityNameCode);
-
-                    orders.Add(order);
                 }
 
                 return orders;
@@ -2136,33 +2117,142 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             return null;
         }
 
-        private Order cexGetOrderFromExchange(string market, string orderId)
+        public OrderStateType GetOrderStatus(Order order)
+        {
+            List<Order> orderFromExchange = GetAllOpenOrders();
+
+            if (orderFromExchange == null
+                || orderFromExchange.Count == 0)
+            {
+                orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberUser.ToString());
+            }
+
+            if (orderFromExchange == null
+               || orderFromExchange.Count == 0)
+            {
+                return OrderStateType.None;
+            }
+
+            Order orderOnMarket = null;
+
+            for (int i = 0; i < orderFromExchange.Count; i++)
+            {
+                Order curOder = orderFromExchange[i];
+
+                if (order.NumberUser != 0
+                    && curOder.NumberUser != 0
+                    && curOder.NumberUser == order.NumberUser)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+
+                if (string.IsNullOrEmpty(order.NumberMarket) == false
+                    && order.NumberMarket == curOder.NumberMarket)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+            }
+
+            if (orderOnMarket == null)
+            {
+                return OrderStateType.None;
+            }
+
+            if (orderOnMarket != null &&
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+
+            if (orderOnMarket.State == OrderStateType.Done
+                || orderOnMarket.State == OrderStateType.Partial)
+            {
+                GetTradesForOrder(orderOnMarket.SecurityNameCode, orderOnMarket.NumberMarket);
+            }
+            return orderOnMarket.State;
+        }
+
+        private List<Order> GetOrderFromExchange(string securityName, string numberUser)
         {
             _rateGateGetOrder.WaitToProceed();
 
-            if (string.IsNullOrEmpty(orderId))
-            {
-                SendLogMessage("Market order ID is empty", LogMessageType.Connect);
-                return null;
-            }
-
             try
             {
-                // https://docs.coinex.com/api/v2/spot/order/http/get-order-status
-                Dictionary<string, Object> parameters = (new CexRequestOrderStatus(orderId, market)).parameters;
-                CexOrder cexOrder = _restClient.Get<CexOrder>("/spot/order-status", true, parameters);
 
-                if (!string.IsNullOrEmpty(cexOrder.client_id))
+                string path = $"/spot/finished-order";
+
+                List<Order> orders = new List<Order>();
+
+                if (_marketMode == MarketType.MARGIN.ToString())
                 {
-                    Order order = GetOrderOsEngineFromCexOrder(cexOrder);
-                    order.PortfolioNumber = getPortfolioName(order.SecurityNameCode);
-                    return order;
+                    for (int i = 0; i < _subscribedSecurities.Count; i++)
+                    {
+                        _rateGateGetOrder.WaitToProceed();
+
+                        string requestStr = $"{path}?market_type={_marketMode}&market={_subscribedSecurities[i].Name}&limit=1000";
+
+                        IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
+
+                        if (response.StatusCode == HttpStatusCode.OK)
+                        {
+                            ResponseRestMessage<List<SpotOrderResponse>> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<SpotOrderResponse>>());
+
+                            if (orderResponse.code == "0")
+                            {
+                                for (int j = 0; j < orderResponse.data.Count; j++)
+                                {
+                                    SpotOrderResponse item = orderResponse.data[j];
+
+                                    Order order = GetOrderOsEngineFromOrder(item);
+                                    orders.Add(order);
+                                }
+                            }
+                            else
+                            {
+                                SendLogMessage($"Get order request error: {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage($"Get order request error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                        }
+                    }
                 }
                 else
                 {
-                    SendLogMessage("Order not found or non OS Engine Order. User Order Id: " + orderId + " Order Id: " + cexOrder.order_id, LogMessageType.System);
-                    return null;
+                    string requestStr = $"{path}?market_type={_marketMode}&limit=1000";
+
+                    IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        ResponseRestMessage<List<SpotOrderResponse>> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<SpotOrderResponse>>());
+
+                        if (orderResponse.code == "0")
+                        {
+                            for (int i = 0; i < orderResponse.data.Count; i++)
+                            {
+                                SpotOrderResponse item = orderResponse.data[i];
+
+                                Order order = GetOrderOsEngineFromOrder(item);
+                                orders.Add(order);
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage($"Get order request error: {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Get order request error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    }
                 }
+
+                return orders;
+
             }
             catch (Exception exception)
             {
@@ -2172,44 +2262,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             return null;
         }
 
-        public void cexCancelAllOrdersToSecurity(string security)
-        {
-            lock (_lockOrder)
-            {
-                try
-                {
-                    // https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
-                    Dictionary<string, Object> body = (new CexRequestCancelAllOrders(_marketMode, security)).parameters;
-                    Object result = _restClient.Post<Object>("/spot/cancel-all-order", body, true);
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("Cancel all orders request error. " + exception.ToString(), LogMessageType.Error);
-                }
-            }
-        }
-
-        private void UpdateTrades(Order order)
-        {
-            if (string.IsNullOrEmpty(order.NumberMarket))
-            {
-                SendLogMessage("UpdateTrades: Empty NumberMarket", LogMessageType.System);
-                return;
-            }
-            List<MyTrade> trades = GetTradesForOrder(order.NumberMarket, order.SecurityNameCode);
-
-            if (trades == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < trades.Count; i++)
-            {
-                MyTradeEvent?.Invoke(trades[i]);
-            }
-        }
-
-        private Order GetOrderOsEngineFromCexOrder(CexOrder cexOrder)
+        private Order GetOrderOsEngineFromOrder(SpotOrderResponse cexOrder)
         {
             Order order = new Order();
 
@@ -2221,48 +2274,37 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             order.VolumeExecute = cexOrder.filled_amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
 
             order.Price = cexOrder.price.ToString().ToDecimal();
-            if (cexOrder.type == CexOrderType.LIMIT.ToString())
-            {
-                order.TypeOrder = OrderPriceType.Limit;
-            }
-            else if (cexOrder.type == CexOrderType.MARKET.ToString())
-            {
-                order.TypeOrder = OrderPriceType.Market;
-            }
+            order.TypeOrder = cexOrder.type == "limit" ? OrderPriceType.Limit : OrderPriceType.Market;
 
             order.ServerType = ServerType.CoinExSpot;
-
             order.NumberMarket = cexOrder.order_id.ToString();
-
-            order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
-            order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.created_at);
-
-            order.Side = (cexOrder.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
-
+            order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.updated_at.ToDecimal());
+            order.TimeCreate = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.created_at.ToDecimal());
+            order.Side = cexOrder.side == "buy" ? Side.Buy : Side.Sell;
 
             // Order placed successfully (unfilled/partially filled)
             order.State = OrderStateType.None;
             if (!string.IsNullOrEmpty(cexOrder.status))
             {
-                if (cexOrder.status == CexOrderStatus.OPEN.ToString())
+                if (cexOrder.status == "open")
                 {
                     order.State = OrderStateType.Active;
                 }
-                else if (cexOrder.status == CexOrderStatus.PART_FILLED.ToString())
+                else if (cexOrder.status == "part_filled")
                 {
                     order.State = OrderStateType.Partial;
                 }
-                else if (cexOrder.status == CexOrderStatus.FILLED.ToString())
+                else if (cexOrder.status == "filled")
                 {
                     order.State = OrderStateType.Done;
                     order.TimeDone = order.TimeCallBack;
                 }
-                else if (cexOrder.status == CexOrderStatus.PART_CANCELED.ToString())
+                else if (cexOrder.status == "part_canceled")
                 {
                     order.State = OrderStateType.Cancel;
                     order.TimeCancel = order.TimeCallBack;
                 }
-                else if (cexOrder.status == CexOrderStatus.CANCELED.ToString())
+                else if (cexOrder.status == "canceled")
                 {
                     order.State = OrderStateType.Cancel;
                     order.TimeCancel = order.TimeCallBack;
@@ -2274,45 +2316,60 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
             else
             {
-                if (cexOrder.unfilled_amount.ToString().ToDecimal() > 0)
+                if (cexOrder.unfilled_amount.ToDecimal() > 0)
                 {
                     order.State = cexOrder.amount == cexOrder.unfilled_amount ? OrderStateType.Active : OrderStateType.Partial;
+                }
+                else if (cexOrder.filled_amount.ToDecimal() > 0)
+                {
+                    order.State = cexOrder.amount == cexOrder.filled_amount ? OrderStateType.Done : OrderStateType.Partial;
                 }
             }
 
             return order;
         }
 
-        private List<MyTrade> GetTradesForOrder(string orderId, string market)
+        private List<MyTrade> GetTradesForOrder(string securityName, string numberMarket)
         {
             _rateGateOrdersHistory.WaitToProceed();
 
             try
             {
-                // https://docs.coinex.com/api/v2/spot/deal/http/list-user-order-deals#http-request
-                Dictionary<string, Object> parameters = (new CexRequestOrderDeals(_marketMode, orderId, market)).parameters;
-                List<CexOrderTransaction> cexTrades = _restClient.Get<List<CexOrderTransaction>>("/spot/order-deals", true, parameters);
+                string path = $"/spot/order-deals";
+                string requestStr = $"{path}?market={securityName}&order_id={(long)numberMarket.ToDecimal()}&market_type={_marketMode}&limit=100";
 
-                if (cexTrades != null)
+                IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
+
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    List<MyTrade> trades = new List<MyTrade>();
+                    ResponseRestMessage<List<MyTradeSpotResponse>> orderResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<MyTradeSpotResponse>>());
 
-                    for (int i = 0; i < cexTrades.Count; i++)
+                    if (orderResponse.code == "0")
                     {
-                        CexOrderTransaction cexTrade = cexTrades[i];
-                        MyTrade trade = new MyTrade();
-                        trade.NumberOrderParent = cexTrade.order_id.ToString();
-                        trade.NumberTrade = cexTrade.deal_id.ToString();
-                        trade.SecurityNameCode = string.IsNullOrEmpty(cexTrade.margin_market) ? cexTrade.market : cexTrade.margin_market;
-                        trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexTrade.created_at);
-                        trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
-                        trade.Price = cexTrade.price.ToString().ToDecimal();
-                        trade.Volume = cexTrade.amount.ToString().ToDecimal();
-                        trade.NumberOrderParent = orderId; // Patch CEX API error
-                        trades.Add(trade);
-                    }
+                        for (int i = 0; i < orderResponse.data.Count; i++)
+                        {
+                            MyTradeSpotResponse cexTrade = orderResponse.data[i];
 
-                    return trades;
+                            MyTrade myTrade = new MyTrade();
+                            myTrade.NumberOrderParent = cexTrade.order_id.ToString();
+                            myTrade.NumberTrade = cexTrade.deal_id.ToString();
+                            myTrade.SecurityNameCode = string.IsNullOrEmpty(cexTrade.margin_market) ? cexTrade.market : cexTrade.margin_market;
+                            myTrade.Time = TimeManager.GetDateTimeFromTimeStamp((long)cexTrade.created_at.ToDecimal());
+                            myTrade.Side = cexTrade.side == "buy" ? Side.Buy : Side.Sell;
+                            myTrade.Price = cexTrade.price.ToString().ToDecimal();
+                            myTrade.Volume = cexTrade.amount.ToString().ToDecimal();
+
+                            MyTradeEvent(myTrade);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Order trade error: {orderResponse.code} || msg: {orderResponse.message}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Order trade error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2414,25 +2471,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         #endregion
     }
 
-    #region 15 Signer
-
-    public static class Signer
+    public enum MarketType
     {
-        public static string Sign(string message, string secret)
-        {
-            using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret)))
-            {
-                byte[] r = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
-                return BitConverter.ToString(r).Replace("-", "").ToLower();
-            }
-        }
-
-        public static string RestSign(string method, string path, string body, long timestamp, string secret)
-        {
-            string message = method + path + body + timestamp.ToString();
-            return Sign(message, secret);
-        }
+        SPOT,
+        MARGIN
     }
-
-    #endregion
 }
