@@ -111,6 +111,9 @@ namespace OsEngine.Market.Servers.QuikLua
             worker4.CurrentCulture = new CultureInfo("ru-RU");
             worker4.Start();
 
+            Thread worker5 = new Thread(ThreadPing);
+            worker5.CurrentCulture = new CultureInfo("ru-RU");
+            worker5.Start();
         }
 
         public void Connect(WebProxy proxy)
@@ -173,8 +176,6 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-
-
         public void Dispose()
         {
             try
@@ -208,6 +209,20 @@ namespace OsEngine.Market.Servers.QuikLua
                 subscribedSecurities = new List<Security>();
                 _clientCode = null;
                 QuikLua = null;
+
+                if (_myTradesQueue != null) _myTradesQueue.Clear();
+                if (_mdQueue != null) _mdQueue.Clear();
+                if (_ordersQueue != null) _ordersQueue.Clear();
+                if (_portfolios != null) _portfolios.Clear();
+                if (_sentOrders != null) _sentOrders.Clear();
+                if (_trades != null) _trades.Clear();
+                if (_securities != null) _securities.Clear();
+                if (_myTradesFromQuik != null) _myTradesFromQuik.Clear();
+
+                _lastTimePingMarketDepth = DateTime.MinValue;
+                _lastTimePingMyOrders = DateTime.MinValue;
+                _lastTimePingPortfoios = DateTime.MinValue;
+                _lastTimePingTrades = DateTime.MinValue;
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
@@ -581,6 +596,8 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             while (true)
             {
+                _lastTimePingPortfoios = DateTime.Now;
+
                 try
                 {
                     if (MainWindow.ProccesIsWorked == false)
@@ -1102,6 +1119,8 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             while (true)
             {
+                _lastTimePingTrades = DateTime.Now;
+
                 try
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1137,6 +1156,8 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             while (true)
             {
+                _lastTimePingMarketDepth = DateTime.Now;
+
                 try
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1171,8 +1192,11 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             while (true)
             {
+                _lastTimePingMyOrders = DateTime.Now;
+
                 try
                 {
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
@@ -1187,7 +1211,6 @@ namespace OsEngine.Market.Servers.QuikLua
                         {
                             UpdateMyOrders(orders);
                         }
-
                     }
                     else if (_myTradesQueue.IsEmpty == false)
                     {
@@ -1433,12 +1456,12 @@ namespace OsEngine.Market.Servers.QuikLua
                     MyTrade trade = new MyTrade();
                     trade.NumberTrade = qTrade.TradeNum.ToString();
                     trade.SecurityNameCode = qTrade.SecCode + "+" + qTrade.ClassCode;
-                    trade.NumberOrderParent = qTrade.OrderNum.ToString();
                     trade.Price = Convert.ToDecimal(qTrade.Price);
                     trade.Volume = qTrade.Quantity;
                     trade.Time = new DateTime(qTrade.QuikDateTime.year, qTrade.QuikDateTime.month,
                         qTrade.QuikDateTime.day, qTrade.QuikDateTime.hour,
                         qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec, qTrade.QuikDateTime.ms);
+                    trade.NumberOrderParent = qTrade.OrderNum.ToString() + "+" + qTrade.TransID.ToString();
 
                     if (qTrade.Flags.ToString().Contains("IsSell"))
                     {
@@ -1478,8 +1501,9 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     Order order = new Order();
                     order.NumberUser = Convert.ToInt32(qOrder.TransID);
-                    order.NumberMarket = qOrder.OrderNum.ToString(new CultureInfo("ru-RU"));
-                    order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(qOrder.LuaTimeStamp);
+                    order.TimeCallBack = new DateTime(qOrder.Datetime.year, qOrder.Datetime.month,
+                        qOrder.Datetime.day, qOrder.Datetime.hour,
+                        qOrder.Datetime.min, qOrder.Datetime.sec, qOrder.Datetime.ms);
                     order.SecurityNameCode = qOrder.SecCode + "+" + qOrder.ClassCode;
                     order.SecurityClassCode = order.SecurityNameCode.Split('+')[1];
                     order.Price = qOrder.Price;
@@ -1523,6 +1547,8 @@ namespace OsEngine.Market.Servers.QuikLua
                         order.State = OrderStateType.Cancel;
                         order.TimeCancel = order.TimeCallBack;
                     }
+
+                    order.NumberMarket = qOrder.OrderNum.ToString() + "+" + order.NumberUser.ToString();
 
                     if (qOrder.Operation == Operation.Buy)
                     {
@@ -1668,7 +1694,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     if (_sentOrders != null && _sentOrders.Count > 0)
                     {
-                        for (int i = _sentOrders.Count - 1; i >= 0; i--) // цикл в обратном порядке для безопасного удаления элемента. 
+                        for (int i = _sentOrders.Count - 1; i >= 0; i--)
                         {
                             if (_sentOrders[i].NumberUser == transReply.TransID)
                             {
@@ -1692,7 +1718,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 if (_sentOrders != null && _sentOrders.Count > 0)
                 {
-                    for (int i = 0; i < _sentOrders.Count; i++)
+                    for (int i = _sentOrders.Count - 1; i >= 0; i--)
                     {
                         if (_sentOrders[i].NumberUser == transReply.TransID)
                         {
@@ -1717,7 +1743,58 @@ namespace OsEngine.Market.Servers.QuikLua
 
         #endregion
 
-        #region 8 Trade
+        #region 8 Thread ping
+
+        private DateTime _lastTimePingMyOrders = DateTime.MinValue;
+
+        private DateTime _lastTimePingMarketDepth = DateTime.MinValue;
+
+        private DateTime _lastTimePingTrades = DateTime.MinValue;
+
+        private DateTime _lastTimePingPortfoios = DateTime.MinValue;
+
+        private void ThreadPing()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (_lastTimePingMyOrders != DateTime.MinValue && _lastTimePingMyOrders.AddMinutes(1) < DateTime.Now)
+                    {
+                        SendLogMessage($"Поток обработки собственных ордеров и трейдов не отвечает. Переподключение коннектора...", LogMessageType.System);
+                        Dispose();
+                    }
+                    else if (_lastTimePingMarketDepth != DateTime.MinValue && _lastTimePingMarketDepth.AddMinutes(1) < DateTime.Now)
+                    {
+                        SendLogMessage($"Поток обработки стакана не отвечает. Переподключение коннектора...", LogMessageType.System);
+                        Dispose();
+                    }
+                    else if (_lastTimePingPortfoios != DateTime.MinValue && _lastTimePingPortfoios.AddMinutes(1) < DateTime.Now)
+                    {
+                        SendLogMessage($"Поток обработки портфеля не отвечает. Переподключение коннектора...", LogMessageType.System);
+                        Dispose();
+                    }
+                    else if (_lastTimePingTrades != DateTime.MinValue && _lastTimePingTrades.AddMinutes(1) < DateTime.Now)
+                    {
+                        SendLogMessage($"Поток обработки трейдов не отвечает. Переподключение коннектора...", LogMessageType.System);
+                        Dispose();
+                    }
+                    else
+                    {
+                        Thread.Sleep(60000);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        #endregion
+
+        #region 9 Trade
 
         private string _clientCode;
 
@@ -1802,13 +1879,15 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
                 else
                 {
-                    qOrder.OrderNum = Convert.ToInt64(order.NumberMarket);
+                    string numberMarket = order.NumberMarket.Split('+')[0];
+                    qOrder.OrderNum = Convert.ToInt64(numberMarket);
                 }
 
                 lock (_serverLocker)
                 {
                     long res = QuikLua.Orders.KillOrder(qOrder).Result;
                 }
+
                 return true;
             }
             catch (Exception error)
@@ -1822,14 +1901,14 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                List<QuikSharp.DataStructures.Transaction.Order> foundOrder =
+                List<QuikSharp.DataStructures.Transaction.Order> foundOrders =
                 QuikLua.Orders.GetOrders().Result;
 
-                if (foundOrder != null && foundOrder.Count > 0)
+                if (foundOrders != null && foundOrders.Count > 0)
                 {
-                    for (int i = 0; i < foundOrder.Count; i++)
+                    for (int i = 0; i < foundOrders.Count; i++)
                     {
-                        EventsOnOnOrder(foundOrder[i]);
+                        EventsOnOnOrder(foundOrders[i]);
                     }
                 }
             }
@@ -1847,7 +1926,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 if (order.NumberMarket != null && order.NumberMarket != "")
                 {
-                    foundOrder = QuikLua.Orders.GetOrder(order.SecurityNameCode.Split('+')[1], Convert.ToInt64(order.NumberMarket)).Result;
+                    string numberMarket = order.NumberMarket.Split('+')[0];
+                    foundOrder = QuikLua.Orders.GetOrder(order.SecurityNameCode.Split('+')[1], Convert.ToInt64(numberMarket)).Result;
                 }
                 else
                 {
@@ -1864,7 +1944,6 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
 
                     order.NumberUser = Convert.ToInt32(foundOrder.TransID);
-                    order.NumberMarket = foundOrder.OrderNum.ToString(new CultureInfo("ru-RU"));
                     order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(foundOrder.LuaTimeStamp);
                     order.SecurityNameCode = foundOrder.SecCode + "+" + foundOrder.ClassCode;
                     order.SecurityClassCode = order.SecurityNameCode.Split('+')[1];
@@ -1923,6 +2002,8 @@ namespace OsEngine.Market.Servers.QuikLua
                         order.Side = Side.Sell;
                     }
 
+                    order.NumberMarket = foundOrder.OrderNum.ToString() + "+" + order.NumberUser.ToString();
+
                     if (MyOrderEvent != null)
                     {
                         MyOrderEvent(order);
@@ -1930,7 +2011,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     if (needTrade)
                     {
-                        var quikTrades = QuikLua.Trading.GetTrades_by_OdrerNumber(Convert.ToInt64(order.NumberMarket)).Result;
+                        string numberMarket = order.NumberMarket.Split('+')[0];
+                        var quikTrades = QuikLua.Trading.GetTrades_by_OdrerNumber(Convert.ToInt64(numberMarket)).Result;
 
                         if (quikTrades != null)
                         {
@@ -1940,12 +2022,14 @@ namespace OsEngine.Market.Servers.QuikLua
                                 MyTrade trade = new MyTrade();
                                 trade.NumberTrade = quikTrade.TradeNum.ToString();
                                 trade.SecurityNameCode = quikTrade.SecCode + "+" + quikTrade.ClassCode;
-                                trade.NumberOrderParent = quikTrade.OrderNum.ToString();
                                 trade.Price = Convert.ToDecimal(quikTrade.Price);
                                 trade.Volume = quikTrade.Quantity;
                                 trade.Time = new DateTime(quikTrade.QuikDateTime.year, quikTrade.QuikDateTime.month,
                                     quikTrade.QuikDateTime.day, quikTrade.QuikDateTime.hour,
                                     quikTrade.QuikDateTime.min, quikTrade.QuikDateTime.sec, quikTrade.QuikDateTime.ms);
+                                trade.NumberOrderParent = quikTrade.OrderNum.ToString() + "+" + quikTrade.TransID.ToString();
+
+                                if (order.NumberMarket != trade.NumberOrderParent) continue;
 
                                 if (quikTrade.Flags.ToString().Contains("IsSell"))
                                 {
@@ -2001,7 +2085,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         #endregion
 
-        #region 9 Helpers
+        #region 10 Helpers
 
         /// <summary>
         /// Проверяем какие классы выбраны то и грузим
@@ -2131,7 +2215,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         #endregion
 
-        #region 10 Log
+        #region 11 Log
 
         /// <summary>
         /// add a new log message
