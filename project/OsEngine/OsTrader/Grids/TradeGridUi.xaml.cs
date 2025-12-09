@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -1907,6 +1908,18 @@ namespace OsEngine.OsTrader.Grids
 
                 if(needToSave == true)
                 {
+                    if(TradeGrid.GridCreator.Lines.Count > 0)
+                    {// Сортируем
+                        TradeGrid.GridCreator.Lines
+                          = TradeGrid.GridCreator.Lines.OrderBy(x => x.PriceEnter).ToList();
+
+                        if (TradeGrid.GridCreator.GridSide == Side.Buy)
+                        {
+                            TradeGrid.GridCreator.Lines.Reverse();
+                        }
+                        RePaintGridTable();
+                    }
+
                     TradeGrid.Save();
                 }
             }
@@ -2363,7 +2376,6 @@ namespace OsEngine.OsTrader.Grids
                 // ignore
             }
         }
-
 
         private void CheckBoxSingleActivationMode_Checked(object sender, RoutedEventArgs e)
         {
