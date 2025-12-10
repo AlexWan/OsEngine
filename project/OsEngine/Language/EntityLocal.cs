@@ -397,7 +397,7 @@ namespace OsEngine.Language
 
         public string ColumnPortfolio5 => OsLocalization.ConvertToLocString(
             "Eng:Unrealized Pnl_" +
-            "Ru:Не закрытая прибыль_");
+            "Ru:Незакрытая прибыль_");
 
         public string ColumnPortfolio6 => OsLocalization.ConvertToLocString(
             "Eng:Security_" +
