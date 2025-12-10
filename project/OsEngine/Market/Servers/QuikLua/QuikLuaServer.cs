@@ -216,7 +216,6 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (_portfolios != null) _portfolios.Clear();
                 if (_sentOrders != null) _sentOrders.Clear();
                 if (_trades != null) _trades.Clear();
-                if (_securities != null) _securities.Clear();
                 if (_myTradesFromQuik != null) _myTradesFromQuik.Clear();
 
                 _lastTimePingMarketDepth = DateTime.MinValue;
