@@ -141,6 +141,13 @@ namespace OsEngine.OsData
             {
                 SecuritiesLoad.Clear();
             }
+
+            if (Dublicator != null)
+            {
+                Dublicator = null;
+
+                IsThereDublicate = false;
+            }
         }
 
         private bool _isDeleted = false;
@@ -387,6 +394,10 @@ namespace OsEngine.OsData
             _lqdtDataServer.StartServer();
         }
 
+        public SetDublicator Dublicator { get; set; }
+
+        public bool IsThereDublicate { get; set; }
+
         #endregion
 
         #region Data loading
@@ -394,6 +405,8 @@ namespace OsEngine.OsData
         public List<SecurityToLoad> SecuritiesLoad;
 
         private IServer _myServer;
+
+        public IServer MyServer { get { return _myServer; } }
 
         private async void WorkerArea()
         {
@@ -470,6 +483,23 @@ namespace OsEngine.OsData
                 else
                 {
                    SecuritiesLoad[i].Process(_myServer);
+                }
+            }
+
+            if (IsThereDublicate && Dublicator != null && Dublicator.Regime == "On")
+            {
+                if (Dublicator.TimeLastCheckSet.Add(Dublicator.UpdatePeriod) < DateTime.Now)
+                {
+                    DateTime timeLastCheck = Directory.GetLastWriteTime("Data\\" + SetName);
+
+                    if (timeLastCheck > Dublicator.TimeWriteOriginalSet)
+                    {
+                        Dublicator.UpdateDublicate(SetName);
+
+                        Dublicator.TimeWriteOriginalSet = timeLastCheck;
+                    }
+
+                    Dublicator.TimeLastCheckSet = DateTime.Now;
                 }
             }
         }
@@ -3406,5 +3436,80 @@ namespace OsEngine.OsData
         public Candle LastCandle;
 
         public int CandlesCount;
+    }
+
+    public class SetDublicator
+    {
+        public string Regime { get; set; }
+
+        public string PathForDublicate { get; set; }
+
+        public TimeSpan UpdatePeriod { get; set; }
+
+        public DateTime TimeWriteOriginalSet { get; set; }
+
+        public DateTime TimeLastCheckSet { get; set; } = DateTime.MinValue;
+
+        public void SaveDublicateSettings(string pathSettings)
+        {
+            string result = "";
+
+            result += Regime + "%";
+            result += PathForDublicate + "%";
+            result += UpdatePeriod.Minutes + "%";
+            result += TimeWriteOriginalSet.ToString(CultureInfo.InvariantCulture);
+
+            try
+            {
+                File.WriteAllText(pathSettings, result);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        public void LoadDublicateSettings(string pathSettings)
+        {
+            try
+            {
+                string settings = File.ReadAllText(pathSettings);
+
+                if (!string.IsNullOrEmpty(settings))
+                {
+                    string[] setParts = settings.Split('%');
+
+                    Regime = setParts[0];
+                    PathForDublicate = setParts[1];
+                    UpdatePeriod = new TimeSpan(0, Convert.ToInt32(setParts[2]), 0);
+                    TimeWriteOriginalSet = Convert.ToDateTime(setParts[3], CultureInfo.InvariantCulture);
+                }
+
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        public void UpdateDublicate(string setName)
+        {
+            try
+            {
+                string sourcePath = "Data\\" + setName;
+                string destinationPath = PathForDublicate + "\\" + setName;
+
+                if (Directory.Exists(destinationPath))
+                {
+                    Directory.Delete(destinationPath, true);
+                }
+
+                Microsoft.VisualBasic.FileIO.FileSystem.CopyDirectory(sourcePath, destinationPath, true);
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
     }
 }

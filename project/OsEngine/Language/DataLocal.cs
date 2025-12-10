@@ -339,5 +339,57 @@ namespace OsEngine.Language
         public string Label78 => OsLocalization.ConvertToLocString(
           "Eng:Deleting data based on a condition_" +
           "Ru:Удаление данных по условию_");
+
+        public string Label79 => OsLocalization.ConvertToLocString(
+          "Eng:Copy_" +
+          "Ru:Дублировать_");
+
+        public string Label80 => OsLocalization.ConvertToLocString(
+          "Eng:Choose folder_" +
+          "Ru:Выбрать папку_");
+
+        public string Label81 => OsLocalization.ConvertToLocString(
+          "Eng:Current folder name for set dublication_" +
+          "Ru:Текущая папка для дублирования сета_");
+
+        public string Label82 => OsLocalization.ConvertToLocString(
+          "Eng:Dublicate Now_" +
+          "Ru:Дублировать сейчас_");
+
+        public string Label83 => OsLocalization.ConvertToLocString(
+          "Eng:Every_" +
+          "Ru:Каждые_");
+
+        public string Label84 => OsLocalization.ConvertToLocString(
+          "Eng:minutes_" +
+          "Ru:минут_");
+
+        public string Label85 => OsLocalization.ConvertToLocString(
+          "Eng:Select a folder for set duplication_" +
+          "Ru:Выберите папку для дублирования сета_");
+
+        public string Label86 => OsLocalization.ConvertToLocString(
+          "Eng:Set duplication_" +
+          "Ru:Дублирование сета_");
+
+        public string Label87 => OsLocalization.ConvertToLocString(
+          "Eng:Success_" +
+          "Ru:Успешно_");
+
+        public string Label88 => OsLocalization.ConvertToLocString(
+          "Eng:First turn On the connector!_" +
+          "Ru:Сначала включите коннектор!_");
+
+        public string Label89 => OsLocalization.ConvertToLocString(
+          "Eng:First, turn on the On mode in the set!_" +
+          "Ru:Сначала установите сет в режим On!_");
+
+        public string Label90 => OsLocalization.ConvertToLocString(
+          "Eng:Copying failed_" +
+          "Ru:Копирование не удалось_");
+
+        public string Label91 => OsLocalization.ConvertToLocString(
+          "Eng:There is no path to duplicate the set_" +
+          "Ru:Отсутствует путь для дублирования сета_");
     }
 }

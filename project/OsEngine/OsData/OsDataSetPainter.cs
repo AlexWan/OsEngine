@@ -371,13 +371,6 @@ namespace OsEngine.OsData
 
                     if (isRowWithManageButtons)
                     {
-
-                    }
-                }
-                else if (columnIndex == 8)
-                { // cut
-                    if (isRowWithManageButtons)
-                    {
                         // временно кнопка настройки
                         try
                         {
@@ -402,8 +395,8 @@ namespace OsEngine.OsData
                         }
                     }
                 }
-                else if (columnIndex == 9)
-                { // copying
+                else if (columnIndex == 8)
+                { // cut
                     if (isRowWithManageButtons)
                     {
                         // временно кнопка удалить
@@ -435,6 +428,20 @@ namespace OsEngine.OsData
                         {
                             SendNewLogMessage(error.ToString(), LogMessageType.Error);
                         }
+                    }
+                }
+                else if (columnIndex == 9)
+                { // copying
+
+                    // временно кнопака обрезать
+                    if (isRowWithManageButtons)
+                    {
+                        if (_set.SecuritiesLoad.Count > 0)
+                        {
+                            DataPrunerUi ui = new DataPrunerUi(_set, this);
+                            ui.Show();
+                            return;
+                        }
 
                     }
                 }
@@ -459,11 +466,11 @@ namespace OsEngine.OsData
                     if (isRowWithManageButtons)
                     { // update set
 
-                        // временно кнопка обрезать
+                        // временно кнопка дублировать
 
                         if (_set.SecuritiesLoad.Count > 0)
                         {
-                            DataPrunerUi ui = new DataPrunerUi(_set, this);
+                            SetDuplicationUi ui = new SetDuplicationUi(_set);
                             ui.Show();
                             return;
                         }
@@ -798,25 +805,25 @@ namespace OsEngine.OsData
                 rows[0].Cells.Add(new DataGridViewTextBoxCell() { Value = "" });
             }
 
-            for (int i = 0; i <= 7; i++)
+            for (int i = 0; i <= 6; i++)
             {
                 rows[1].Cells.Add(new DataGridViewTextBoxCell() { Value = "" });
             }
 
-            for (int i = 8; i <= 11; i++)
+            for (int i = 7; i <= 11; i++)
             {
                 DataGridViewButtonCell buttonCell = new DataGridViewButtonCell();
 
                 switch (i)
                 {
-                    case 8:
+                    case 7:
                         buttonCell.Value = OsLocalization.Data.Label61; break; //Настройки
-                    case 9:
+                    case 8:
                         buttonCell.Value = OsLocalization.Data.Label8; break; // удалить
-                    case 10:
+                    case 9:
                         buttonCell.Value = OsLocalization.Data.Label73; break; // "Обрезать"
-                    //case 9:
-                    //    buttonCell.Value = "Дублировать"; break;
+                    case 10:
+                        buttonCell.Value = OsLocalization.Data.Label79; break;
                     //case 10:
                     //    buttonCell.Value = "Обновление"; break;
                     case 11:
