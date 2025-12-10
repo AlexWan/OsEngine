@@ -66,7 +66,7 @@ namespace OsEngine.Robots.AlgoStart
             // non trade periods
             _tradePeriodsSettings = new NonTradePeriods(name);
 
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 5, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
             _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
             _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
 
