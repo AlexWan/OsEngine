@@ -960,7 +960,7 @@ namespace OsEngine.OsTrader.Grids
 
             // 5 попытка смены режима если блокировано по времени или по дням
 
-            if (baseRegime == TradeGridRegime.On)
+            if (baseRegime != TradeGridRegime.Off)
             {
                 DateTime serverTime = Tab.TimeServerCurrent;
 

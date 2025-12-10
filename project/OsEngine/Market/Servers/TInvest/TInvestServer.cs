@@ -68,8 +68,6 @@ namespace OsEngine.Market.Servers.TInvest
 
         public TInvestServerRealization()
         {
-            ServerTime = DateTime.UtcNow;
-
             Thread worker = new Thread(ConnectionCheckThread);
             worker.Name = "CheckAliveTInvest";
             worker.Start();
