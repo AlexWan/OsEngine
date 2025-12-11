@@ -815,7 +815,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
                 }
 
-                if (portfolioEx.IsFutures != "")
+                if (portfolioEx != null && portfolioEx.IsFutures != "")
                 {
                     PositionOnBoard position = new PositionOnBoard();
 
