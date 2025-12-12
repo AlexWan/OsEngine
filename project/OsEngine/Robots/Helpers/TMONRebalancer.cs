@@ -304,11 +304,11 @@ namespace OsEngine.Robots
             {
                 if (_tab.PositionOpenLong.Count > 0)
                 {
-                    _tab.BuyAtMarketToPosition(_tab.PositionOpenLong[0], volume);
+                    _tab.BuyAtLimitToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume);
                 }
                 else
                 {
-                    _tab.BuyAtMarket(volume);
+                    _tab.BuyAtLimit(volume, _tab.PriceBestAsk);
                 }
             }
             else if (_tab.PositionOpenLong.Count > 0
