@@ -1029,7 +1029,38 @@ namespace OsEngine.Entity
 
             result.Append(Number + "#");
 
-            result.Append(Comment + "#");
+            // Comment and profit/stop signals
+
+            string commentString = "";
+   
+            if (Comment != null)
+            {
+                Comment = Comment.RemoveExcessFromSecurityName().Replace("#","").Replace("^", "");
+            }
+
+            commentString += Comment + "^";
+
+            if (SignalTypeStop != null)
+            {
+                SignalTypeStop = SignalTypeStop.RemoveExcessFromSecurityName().Replace("#", "").Replace("^", "");
+                commentString += SignalTypeStop + "^";
+            }
+            else
+            {
+                commentString += "^";
+            }
+
+            if (SignalTypeProfit != null)
+            {
+                SignalTypeProfit = SignalTypeProfit.RemoveExcessFromSecurityName().Replace("#", "").Replace("^", "");
+                commentString += SignalTypeProfit + "^";
+            }
+            else
+            {
+                commentString += "^";
+            }
+
+            result.Append(commentString + "#");
 
             result.Append(StopOrderIsActive + "#");
             result.Append(StopOrderPrice + "#");
@@ -1044,7 +1075,19 @@ namespace OsEngine.Entity
             result.Append(PortfolioValueOnOpenPosition + "#");
 
             result.Append(ProfitOrderRedLine + "#");
+
+            if(SignalTypeOpen != null)
+            {
+                SignalTypeOpen = SignalTypeOpen.RemoveExcessFromSecurityName().Replace("#", "").Replace("^", "");
+            }
+
             result.Append(SignalTypeOpen + "#");
+
+            if (SignalTypeClose != null)
+            {
+                SignalTypeClose = SignalTypeClose.RemoveExcessFromSecurityName().Replace("#", "").Replace("^", "");
+            }
+
             result.Append(SignalTypeClose + "#");
 
             result.Append(CommissionValue + "#");
@@ -1104,7 +1147,25 @@ namespace OsEngine.Entity
             }
 
             Number = Convert.ToInt32(arraySave[6]);
-            Comment = arraySave[7];
+
+            string commentsString = arraySave[7];
+
+            if(string.IsNullOrEmpty(commentsString) == false)
+            {
+                string[] comments = commentsString.Split('^');
+                if(comments.Length >= 1)
+                {
+                    Comment = comments[0];
+                }
+                if (comments.Length >= 2)
+                {
+                    SignalTypeStop = comments[1];
+                }
+                if (comments.Length >= 3)
+                {
+                    SignalTypeProfit = comments[2];
+                }
+            }
 
             StopOrderIsActive = Convert.ToBoolean(arraySave[8]);
             StopOrderPrice = arraySave[9].ToDecimal();
