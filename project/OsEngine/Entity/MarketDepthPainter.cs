@@ -685,7 +685,15 @@ namespace OsEngine.Entity
                 }
                 if (_marketDepthTable.InvokeRequired)
                 {
-                    _marketDepthTable.Invoke(new Action<decimal, decimal>(PaintBidAsk), bid, ask);
+                    try
+                    {
+                        _marketDepthTable.Invoke(new Action<decimal, decimal>(PaintBidAsk), bid, ask);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                    
                     return;
                 }
 

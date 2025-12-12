@@ -58,7 +58,6 @@ namespace OsEngine.OsData
             Closed += SetDuplicationUi_Closed;
         }
 
-
         private void SetDuplicationUi_Closed(object sender, EventArgs e)
         {
             try
