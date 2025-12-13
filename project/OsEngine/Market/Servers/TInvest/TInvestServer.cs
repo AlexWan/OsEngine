@@ -1265,7 +1265,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     decimal valuePortfolio = GetValue(posMoney);
 
-                    newPos.ValueCurrent = valuePortfolio - futuresAndOptionsGO - spotShortValue;
+                    newPos.ValueCurrent = valuePortfolio -  spotShortValue;
                 }
                 else
                 {
