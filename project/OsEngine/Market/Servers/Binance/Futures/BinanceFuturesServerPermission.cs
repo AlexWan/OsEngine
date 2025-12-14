@@ -303,7 +303,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             get { return false; }
         }
 
-        public decimal Leverage_StandartValue
+        public decimal Leverage_StandardValue
         {
             get { return 10; }
         }

@@ -104,7 +104,7 @@ namespace OsEngine.Market.Servers
 
         bool Leverage_IsSupports { get; }
 
-        decimal Leverage_StandartValue { get; }
+        decimal Leverage_StandardValue { get; }
 
         string[] Leverage_SupportClasses { get; }
 

@@ -66,7 +66,7 @@ namespace OsEngine.Entity
             {
                 IServerPermission serverPermission = ServerMaster.GetServerPermission(_server.ServerType);
 
-                if (!decimal.TryParse(serverPermission.Leverage_StandartValue.ToString().Replace(",", "."), out _defaultLeverage))
+                if (!decimal.TryParse(serverPermission.Leverage_StandardValue.ToString().Replace(",", "."), out _defaultLeverage))
                 {
                     _defaultLeverage = 1;
                 }

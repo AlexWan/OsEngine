@@ -298,7 +298,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             get { return false; }
         }
 
-        public decimal Leverage_StandartValue
+        public decimal Leverage_StandardValue
         {
             get { return 10; }
         }

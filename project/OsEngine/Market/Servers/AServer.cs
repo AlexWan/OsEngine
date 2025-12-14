@@ -4618,7 +4618,7 @@ namespace OsEngine.Market.Servers
 
             if (leverage == 0)
             {
-                leverage = ServerPermission.Leverage_StandartValue;
+                leverage = ServerPermission.Leverage_StandardValue;
             }
 
             return leverage;
@@ -4658,7 +4658,7 @@ namespace OsEngine.Market.Servers
 
                                 if (!decimal.TryParse(split[2].Replace(",", "."), out leverage))
                                 {
-                                    leverage = ServerPermission.Leverage_StandartValue;
+                                    leverage = ServerPermission.Leverage_StandardValue;
                                 }
 
                                 int index = _securities.FindIndex(x => x.Name == split[0] && x.NameClass == split[1]);

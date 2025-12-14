@@ -284,7 +284,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             get { return false; }
         }
 
-        public decimal Leverage_StandartValue
+        public decimal Leverage_StandardValue
         {
             get { return 10; }
         }

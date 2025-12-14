@@ -314,7 +314,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             get { return true; }
         }
 
-        public decimal Leverage_StandartValue
+        public decimal Leverage_StandardValue
         {
             get { return 10; }
         }
