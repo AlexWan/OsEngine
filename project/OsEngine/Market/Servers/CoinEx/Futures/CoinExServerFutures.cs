@@ -178,25 +178,15 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         #region 3 Securities
 
+        private List<Security> _securities;
+
         public void GetSecurities()
         {
-            UpdateSecurity();
-
-            if (_securities.Count > 0)
+            if (_securities == null)
             {
-                SendLogMessage("Securities loaded. Count: " + _securities.Count, LogMessageType.System);
-
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent.Invoke(_securities);
-                }
+                _securities = new List<Security>();
             }
-        }
 
-        private List<Security> _securities = new List<Security>();
-
-        private void UpdateSecurity()
-        {
             try
             {
                 RestRequest requestRest = new RestRequest("/futures/market", Method.GET);
@@ -235,6 +225,16 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                             security.VolumeStep = security.DecimalsVolume.GetValueByDecimals();
 
                             _securities.Add(security);
+                        }
+
+                        if (_securities.Count > 0)
+                        {
+                            SendLogMessage("Securities loaded. Count: " + _securities.Count, LogMessageType.System);
+
+                            if (SecurityEvent != null)
+                            {
+                                SecurityEvent.Invoke(_securities);
+                            }
                         }
                     }
                     else
