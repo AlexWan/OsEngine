@@ -741,7 +741,10 @@ namespace OsEngine.Market.Servers.AstsBridge
                             {
                                 if (NewTradeEvent != null)
                                 {
-                                    NewTradeEvent(trades);
+                                    for(int i = 0;i < trades.Count;i++)
+                                    {
+                                        NewTradeEvent(trades[i]);
+                                    }
                                 }
                             }
                         }
@@ -1427,7 +1430,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// called at the time of the appearance of new trades on instrument
         /// вызывается в момет появления новых трейдов по инструменту
         /// </summary>
-        public event Action<List<Trade>> NewTradeEvent;
+        public event Action<Trade> NewTradeEvent;
 
         /// <summary>
         /// all trade table changed

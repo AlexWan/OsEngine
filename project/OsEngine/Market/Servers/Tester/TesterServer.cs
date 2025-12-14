@@ -4525,7 +4525,6 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-
             ServerTime = tradesNew[tradesNew.Count - 1].Time;
 
             if (NewTradeEvent != null)
@@ -4544,9 +4543,14 @@ namespace OsEngine.Market.Servers.Tester
                             trades = _allTrades[i];
                         }
 
-                        NewTradeEvent(trades);
+
                         break;
                     }
+                }
+
+                for(int i = 0;i < tradesNew.Count;i++)
+                {
+                    NewTradeEvent(tradesNew[i]);
                 }
             }
             if (NewBidAskIncomeEvent != null)
@@ -4572,7 +4576,7 @@ namespace OsEngine.Market.Servers.Tester
             return null;
         }
 
-        public event Action<List<Trade>> NewTradeEvent;
+        public event Action<Trade> NewTradeEvent;
 
         #endregion
 

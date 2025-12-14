@@ -188,7 +188,7 @@ namespace OsEngine.Market.Servers
         /// new tick
         /// новый тик
         /// </summary>
-        event Action<List<Trade>> NewTradeEvent;
+        event Action<Trade> NewTradeEvent;
 
         /// <summary>
         /// new additional market data

@@ -290,18 +290,6 @@ namespace OsEngine.Market.Servers.Optimizer
                             _candleSeriesTesterActivate = null;
                         }
 
-                        if (_allTrades != null &&
-                            _allTrades.Length > 0)
-                        {
-                            for (int i = 0; i < _allTrades.Length; i++)
-                            {
-                                _allTrades[i].Clear();
-                                _allTrades[i] = null;
-                            }
-
-                            _allTrades = null;
-                        }
-
                         if (_myTrades != null)
                         {
                             _myTrades.Clear();
@@ -1765,6 +1753,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return _securities;
             }
         }
+
         private List<Security> _securities = new List<Security>();
 
         public Security GetSecurityForName(string securityName, string securityClass)
@@ -2075,55 +2064,6 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            List<Trade> fullTradesArrayInServer = null;
-
-            if (_allTrades == null)
-            {
-                _allTrades = new List<Trade>[1];
-                _allTrades[0] = new List<Trade>(tradesNew);
-                fullTradesArrayInServer = tradesNew;
-            }
-            else
-            {// sort trades by storages / сортируем сделки по хранилищам
-
-                for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
-                {
-                    Trade trade = tradesNew[indTrade];
-
-                    bool isSave = false;
-
-                    for (int i = 0; i < _allTrades.Length; i++)
-                    {
-                        if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
-                            _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode &&
-                            _allTrades[i][0].TimeFrameInTester == trade.TimeFrameInTester)
-                        { // if there is already storage for this instrument, save / если для этого инструметна уже есть хранилище, сохраняем и всё
-                            isSave = true;
-                            if (_allTrades[i][0].Time > trade.Time)
-                            {
-                                break;
-                            }
-                            _allTrades[i].Add(trade);
-                            fullTradesArrayInServer = _allTrades[i];
-                            break;
-                        }
-                    }
-
-                    if (isSave == false)
-                    { // there is no storage for instrument / хранилища для инструмента нет
-                        List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
-                        for (int i = 0; i < _allTrades.Length; i++)
-                        {
-                            allTradesNew[i] = _allTrades[i];
-                        }
-                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                        allTradesNew[allTradesNew.Length - 1].Add(trade);
-                        _allTrades = allTradesNew;
-                        fullTradesArrayInServer = allTradesNew[allTradesNew.Length - 1];
-                    }
-                }
-            }
-
             if (tradesNew.Count == 0)
             {
                 return;
@@ -2133,7 +2073,17 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (NewTradeEvent != null)
             {
-                NewTradeEvent(fullTradesArrayInServer);
+                for (int i = 0; i < tradesNew.Count; i++)
+                {
+                    Trade trade = tradesNew[i];
+
+                    if(trade == null)
+                    {
+                        continue;
+                    }
+
+                    NewTradeEvent(trade);
+                }
             }
 
             if (maxCount != 0 && TestingProgressChangeEvent != null && _lastTimeCountChange.AddMilliseconds(300) < DateTime.Now)
@@ -2148,9 +2098,6 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        public List<Trade>[] AllTrades { get { return _allTrades; } }
-        private List<Trade>[] _allTrades;
-
         private void TesterServer_NeedToCheckOrders()
         {
             CheckOrders();
@@ -2158,18 +2105,18 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public List<Trade> GetAllTradesToSecurity(Security security)
         {
-            for (int i = 0; _allTrades != null && i < _allTrades.Length; i++)
-            {
-                if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
-                    _allTrades[i][0].SecurityNameCode == security.Name)
-                {
-                    return _allTrades[i];
-                }
-            }
             return null;
         }
 
-        public event Action<List<Trade>> NewTradeEvent;
+        public List<Trade>[] AllTrades
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public event Action<Trade> NewTradeEvent;
 
         #endregion
 

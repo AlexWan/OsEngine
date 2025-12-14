@@ -2009,7 +2009,10 @@ namespace OsEngine.OsData
 
             series.IsStarted = true;
 
-            series.SetNewTicks(trades);
+            for(int i = 0;i < trades.Count;i++)
+            {
+                series.SetNewTicks(trades[i]);
+            }
 
             return series.CandlesAll;
         }

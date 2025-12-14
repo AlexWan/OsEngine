@@ -1349,54 +1349,27 @@ namespace OsEngine.Market.Servers
                     if (!_tradesToSend.IsEmpty)
                     {
                         workDone = true;
-                        List<Trade> trades;
+                        Trade trades;
 
                         if (_tradesToSend.TryDequeue(out trades))
                         {
-                            List<List<Trade>> list = new List<List<Trade>>();
-                            list.Add(trades);
-
-                            while (_tradesToSend.Count != 0)
+                            if (_isNonTradingPeriodNow)
                             {
-                                List<Trade> newTrades = null;
-
-                                if (_tradesToSend.TryDequeue(out newTrades))
-                                {
-                                    bool isInArray = false;
-
-                                    for (int i = 0; i < list.Count; i++)
-                                    {
-                                        if (list[i][0].SecurityNameCode == newTrades[0].SecurityNameCode)
-                                        {
-                                            list[i] = newTrades;
-                                            isInArray = true;
-                                        }
-                                    }
-
-                                    if (isInArray == false)
-                                    {
-                                        list.Add(newTrades);
-                                    }
-                                }
+                                continue;
                             }
 
-                            for (int i = 0; i < list.Count; i++)
+                            if (NewTradeEvent != null)
                             {
-                                if (_isNonTradingPeriodNow) break;
+                                NewTradeEvent(trades);
+                            }
 
-                                if (_needToCheckDataFeedOnDisconnect != null
-                                    && _needToCheckDataFeedOnDisconnect.Value)
-                                {
-                                    SecurityFlowTime tradeTime = new SecurityFlowTime();
-                                    tradeTime.SecurityName = list[i][0].SecurityNameCode;
-                                    tradeTime.LastTimeTrade = DateTime.Now;
-                                    _securitiesFeedFlow.Enqueue(tradeTime);
-                                }
-
-                                if (NewTradeEvent != null)
-                                {
-                                    NewTradeEvent(list[i]);
-                                }
+                            if (_needToCheckDataFeedOnDisconnect != null
+                                && _needToCheckDataFeedOnDisconnect.Value)
+                            {
+                                SecurityFlowTime tradeTime = new SecurityFlowTime();
+                                tradeTime.SecurityName = trades.SecurityNameCode;
+                                tradeTime.LastTimeTrade = DateTime.Now;
+                                _securitiesFeedFlow.Enqueue(tradeTime);
                             }
 
                             if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
@@ -1782,7 +1755,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// queue of ticks
         /// </summary>
-        private ConcurrentQueue<List<Trade>> _tradesToSend = new ConcurrentQueue<List<Trade>>();
+        private ConcurrentQueue<Trade> _tradesToSend = new ConcurrentQueue<Trade>();
 
         /// <summary>
         /// queue of new or updated portfolios
@@ -3369,9 +3342,9 @@ namespace OsEngine.Market.Servers
                             myList = allTradesNew[allTradesNew.Length - 1];
                             _allTrades = allTradesNew;
                         }
-
-                        _tradesToSend.Enqueue(myList);
                     }
+
+                    _tradesToSend.Enqueue(trade);
                 }
             }
             catch (Exception error)
@@ -3423,7 +3396,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// new trade event
         /// </summary>
-        public event Action<List<Trade>> NewTradeEvent;
+        public event Action<Trade> NewTradeEvent;
 
         #endregion
 

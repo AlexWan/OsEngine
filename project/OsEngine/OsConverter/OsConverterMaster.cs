@@ -236,7 +236,10 @@ namespace OsEngine.OsConverter
                 StartProgram.IsOsConverter);
             series.IsStarted = true;
 
-            series.SetNewTicks(trades);
+            for(int i = 0;i < trades.Count;i++)
+            {
+                series.SetNewTicks(trades[i]);
+            }
 
             List<Candle> candles = series.CandlesAll;
 

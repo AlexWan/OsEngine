@@ -603,7 +603,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// A new tick appeared in the server. Inbound event
         /// </summary>
-        private void server_NewTradeEvent(List<Trade> trades)
+        private void server_NewTradeEvent(Trade trade)
         {
             try
             {
@@ -620,9 +620,7 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if (trades == null ||
-                    trades.Count == 0 ||
-                    trades[0] == null)
+                if (trade == null)
                 {
                     return;
                 }
@@ -632,7 +630,7 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                string secCode = trades[0].SecurityNameCode;
+                string secCode = trade.SecurityNameCode;
 
                 try
                 {
@@ -647,7 +645,7 @@ namespace OsEngine.Entity
                         }
                         if (_activeSeriesBasedOnTrades[i].Security.Name == secCode)
                         {
-                            _activeSeriesBasedOnTrades[i].SetNewTicks(trades);
+                            _activeSeriesBasedOnTrades[i].SetNewTicks(trade);
                         }
                     }
                 }

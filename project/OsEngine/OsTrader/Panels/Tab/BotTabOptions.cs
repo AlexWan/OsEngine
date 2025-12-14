@@ -114,7 +114,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         // Market Data Events
         public event Action<MarketDepth, BotTabSimple> NewMarketDepthEvent;
-        public event Action<List<Trade>, BotTabSimple> NewTickEvent;
+        public event Action<Trade, BotTabSimple> NewTickEvent;
         public event Action<MyTrade, BotTabSimple> NewMyTradeEvent;
         public event Action<OptionMarketData, BotTabSimple> NewOptionsDataEvent;
 
@@ -1398,7 +1398,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 NewMarketDepthEvent?.Invoke(marketDepth, tab);
                 Connector_GlassChangeEvent(marketDepth);
             };
-            tab.Connector.TickChangeEvent += (List<Trade> trades) =>
+            tab.Connector.TickChangeEvent += (Trade trades) =>
             {
                 NewTickEvent?.Invoke(trades, tab);
                 Connector_TickChangeEvent(trades);
@@ -1470,19 +1470,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void Connector_TickChangeEvent(List<Trade> trades)
+        private void Connector_TickChangeEvent(Trade trades)
         {
             if (_isDisposed)
             {
                 return;
             }
 
-            if (trades == null || trades.Count == 0)
+            if (trades == null )
             {
                 return;
             }
 
-            var trade = trades[trades.Count - 1];
+            var trade = trades;
 
             if (trade == null)
             {

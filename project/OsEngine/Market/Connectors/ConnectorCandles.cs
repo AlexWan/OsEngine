@@ -1507,39 +1507,26 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// incoming trades
         /// </summary>
-        private void ConnectorBot_NewTradeEvent(List<Trade> tradesList)
+        private void ConnectorBot_NewTradeEvent(Trade trade)
         {
-            try
+            if (_securityName == null
+                || trade == null)
             {
-                if (_securityName == null
-                    || tradesList == null
-                    || tradesList.Count == 0)
+                return;
+            }
+            else
+            {
+                if (trade.SecurityNameCode != _securityName)
                 {
                     return;
                 }
-                else
-                {
-                    int count = tradesList.Count - 1;
-
-                    if (tradesList[count] == null ||
-                        tradesList[count].SecurityNameCode != _securityName)
-                    {
-                        return;
-                    }
-                }
-            }
-            catch
-            {
-                // it's hard to catch the error here. Who will understand what is wrong - well done 
-                // ошибка здесь трудноуловимая. Кто понял что не так - молодец
-                return;
             }
 
             try
             {
                 if (TickChangeEvent != null && EventsIsOn == true)
                 {
-                    TickChangeEvent(tradesList);
+                    TickChangeEvent(trade);
                 }
             }
             catch (Exception error)
@@ -2145,7 +2132,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// new trade in the trades feed
         /// </summary>
-        public event Action<List<Trade>> TickChangeEvent;
+        public event Action<Trade> TickChangeEvent;
 
         /// <summary>
         /// bid or ask is changed

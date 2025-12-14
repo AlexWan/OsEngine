@@ -534,7 +534,7 @@ namespace OsEngine.OsData
         public event Action<CandleSeries> NewCandleIncomeEvent;
         public event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
         public event Action<MarketDepth> NewMarketDepthEvent;
-        public event Action<List<Trade>> NewTradeEvent;
+        public event Action<Trade> NewTradeEvent;
         public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
         public event Action<Funding> NewFundingEvent;
         public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
