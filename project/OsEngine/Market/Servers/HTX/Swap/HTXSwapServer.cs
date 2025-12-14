@@ -195,6 +195,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             _subscribedSecurities.Clear();
             _securitiesName.Clear();
+            _listSecurities = new List<Security>();
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
@@ -489,9 +490,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         continue;
                     }
 
-                    if (Portfolios == null)
+                    if (_portfolioIsStarted == false)
                     {
-                        GetNewPortfolio();
+                        Thread.Sleep(1000);
+                        continue;
                     }
 
                     if (_usdtSwapValue)
@@ -2229,7 +2231,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 myTrade.Price = response.trade[i].trade_price.ToDecimal();
                 myTrade.SecurityNameCode = response.contract_code;
                 myTrade.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
-                myTrade.Volume = response.trade[i].trade_volume.ToDecimal() * GetVolume(myTrade.SecurityNameCode); 
+                myTrade.Volume = response.trade[i].trade_volume.ToDecimal() * GetVolume(myTrade.SecurityNameCode);
 
                 MyTradeEvent(myTrade);
             }
@@ -2670,6 +2672,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private decimal GetVolume(string securityName)
         {
+            if (_listSecurities == null)
+            {
+                return 1;
+            }
+
             decimal minVolume = 1;
 
             for (int i = 0; i < _listSecurities.Count; i++)
