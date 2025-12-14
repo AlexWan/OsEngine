@@ -779,6 +779,8 @@ namespace OsEngine.Market.Servers.OKXData
         public event Action<Funding> FundingUpdateEvent { add { } remove { } }
         public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
     }
 }

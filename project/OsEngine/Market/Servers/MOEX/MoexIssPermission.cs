@@ -252,6 +252,18 @@ namespace OsEngine.Market.Servers.MOEX
             get { return null; }
         }
 
+        public bool Leverage_IsSupports
+        {
+            get { return false; }
+        }
+
+        public decimal Leverage_StandartValue
+        {
+            get { return 10; }
+        }
+
+        public string[] Leverage_SupportClasses { get; }
+
         #endregion
     }
 }

@@ -102,6 +102,12 @@ namespace OsEngine.Market.Servers
 
         string[] IpAddressServer { get; }
 
+        bool Leverage_IsSupports { get; }
+
+        decimal Leverage_StandartValue { get; }
+
+        string[] Leverage_SupportClasses { get; }
+
         #endregion
     }
 

@@ -2813,6 +2813,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 12 Log

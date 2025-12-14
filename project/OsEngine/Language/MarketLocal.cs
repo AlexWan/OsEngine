@@ -1890,5 +1890,12 @@ namespace OsEngine.Language
            "Eng:Telegram authorization_" +
            "Ru:Telegram авторизация_");
 
+        public string LeverageButton => OsLocalization.ConvertToLocString(
+           "Eng:Set leverage_" +
+           "Ru:Настроить обеспечение_");
+
+        public string LeverageButtonCommit => OsLocalization.ConvertToLocString(
+           "Eng:The button opens the leverage settings window for instruments._" +
+           "Ru:Кнопка открывает окно настроек плеча по инструментам._");
     }
 }

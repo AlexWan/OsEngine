@@ -3163,6 +3163,8 @@ namespace OsEngine.Market.Servers.Alor
             return dateTime;
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

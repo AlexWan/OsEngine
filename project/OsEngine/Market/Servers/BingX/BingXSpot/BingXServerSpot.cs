@@ -2283,6 +2283,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 12 Log

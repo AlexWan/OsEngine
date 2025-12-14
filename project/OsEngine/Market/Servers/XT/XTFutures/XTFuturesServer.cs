@@ -2817,6 +2817,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     return null;
                 }
             }
+            public void SetLeverage(Security security, decimal leverage) { }
 
             #endregion
 

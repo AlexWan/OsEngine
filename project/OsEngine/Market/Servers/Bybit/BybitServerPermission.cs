@@ -301,6 +301,33 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public bool Leverage_IsSupports
+        {
+            get { return true; }
+        }
+
+        public decimal Leverage_StandartValue
+        {
+            get { return 10; }
+        }
+
+        public string[] Leverage_SupportClasses
+        {
+            get
+            {
+                string[] listClasses = new string[]
+                {
+                    "LinearPerpetual",
+                    "LinearPerpetual_PERP",
+                    "InversePerpetual",
+                    "LinearFutures",
+                    "InverseFutures"
+                };
+
+                return listClasses;
+            }
+        }
+
         #endregion
     }
 }

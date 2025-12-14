@@ -2603,6 +2603,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

@@ -38,7 +38,6 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterEnum("Margin Mode", MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterBoolean("Hedge Mode", true);
             ServerParameters[4].ValueChange += BybitServer_ValueChange;
-            CreateParameterString("Leverage", "");
             CreateParameterBoolean("Extended Data", false);
             CreateParameterBoolean("Use Options", false);
 
@@ -140,9 +139,7 @@ namespace OsEngine.Market.Servers.Bybit
                 httpClientHandler = null;
                 httpClient = null;
 
-                _leverage = ((ServerParameterString)ServerParameters[5]).Value.Replace(",", ".");
-
-                if (((ServerParameterBool)ServerParameters[6]).Value == true)
+                if (((ServerParameterBool)ServerParameters[5]).Value == true)
                 {
                     _extendedMarketData = true;
                 }
@@ -151,7 +148,7 @@ namespace OsEngine.Market.Servers.Bybit
                     _extendedMarketData = false;
                 }
 
-                if (((ServerParameterBool)ServerParameters[7]).Value == true)
+                if (((ServerParameterBool)ServerParameters[6]).Value == true)
                 {
                     _useOptions = true;
                 }
@@ -416,8 +413,6 @@ namespace OsEngine.Market.Servers.Bybit
                 SetPositionMode();
             }
         }
-
-        private string _leverage;
 
         private bool _extendedMarketData;
 
@@ -2100,8 +2095,6 @@ namespace OsEngine.Market.Servers.Bybit
                             GetFundingData(security.Name.Replace(".P", ""));
                         }
                     }
-
-                    SetLeverage(security);
                 }
                 else if (security.Name.EndsWith(".I") && security.SecurityType != SecurityType.Option)
                 {
@@ -4827,23 +4820,42 @@ namespace OsEngine.Market.Servers.Bybit
             return BitConverter.ToString(signature).Replace("-", "").ToLower();
         }
 
-        private void SetLeverage(Security security)
+        public void SetLeverage(Security security, decimal leverage)
         {
             try
             {
-                if (_leverage == "")
+                string response = null;
+
+                if (security.SecurityType == SecurityType.Futures)
+                {
+                    string category = Category.linear.ToString();
+
+                    if (security.Name.EndsWith(".I"))
+                    {
+                        category = Category.inverse.ToString();
+                    }
+
+                    Dictionary<string, object> parameters = new Dictionary<string, object>();
+                    parameters.Clear();
+                    parameters["category"] = category;
+                    parameters["symbol"] = security.Name.Split(".")[0];
+                    parameters["buyLeverage"] = leverage.ToString();
+                    parameters["sellLeverage"] = leverage.ToString();
+
+                    response = CreatePrivateQuery(parameters, HttpMethod.Post, "/v5/position/set-leverage");
+                }
+
+                if (response == null)
                 {
                     return;
                 }
 
-                Dictionary<string, object> parametrs = new Dictionary<string, object>();
-                parametrs.Clear();
-                parametrs["category"] = Category.linear.ToString();
-                parametrs["symbol"] = security.Name.Split(".")[0];
-                parametrs["buyLeverage"] = _leverage;
-                parametrs["sellLeverage"] = _leverage;
+                ResponseRestMessageList<string> jsonResponce = JsonConvert.DeserializeObject<ResponseRestMessageList<string>>(response);
 
-                CreatePrivateQuery(parametrs, HttpMethod.Post, "/v5/position/set-leverage");
+                if (jsonResponce.retMsg != "OK")
+                {
+                    SendLogMessage($"SetLeverage: {jsonResponce.retMsg}", LogMessageType.Error);
+                }
             }
             catch (Exception ex)
             {

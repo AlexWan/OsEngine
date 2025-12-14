@@ -2086,6 +2086,8 @@ namespace OsEngine.Market.Servers.Pionex
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 12 Log

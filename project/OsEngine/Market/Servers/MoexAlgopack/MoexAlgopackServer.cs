@@ -1065,7 +1065,9 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
                 return null;
             }
-            
+
+            public void SetLeverage(Security security, decimal leverage) { }
+
             #endregion
 
             #region 9 Log

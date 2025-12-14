@@ -885,6 +885,8 @@ namespace OsEngine.Market.Servers.BitGetData
         public event Action<Funding> FundingUpdateEvent { add { } remove { } }
         public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
     }
 }

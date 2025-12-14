@@ -2653,6 +2653,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             return SignHMACSHA256(preHash, "e5b87448-971c-4d2b-b5e8-80b51e9d9bd7");
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

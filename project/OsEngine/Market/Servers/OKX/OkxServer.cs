@@ -3411,6 +3411,8 @@ namespace OsEngine.Market.Servers.OKX
             return _client.GetAsync(url).Result;
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

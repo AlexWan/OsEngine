@@ -3301,6 +3301,8 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             return context;
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 11 Log

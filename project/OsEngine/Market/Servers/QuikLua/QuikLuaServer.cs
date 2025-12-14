@@ -2212,6 +2212,8 @@ namespace OsEngine.Market.Servers.QuikLua
             return DateTime.Now < lastWriteTime.AddHours(1);
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 11 Log

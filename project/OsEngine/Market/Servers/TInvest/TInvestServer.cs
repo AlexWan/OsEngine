@@ -4208,6 +4208,8 @@ namespace OsEngine.Market.Servers.TInvest
             return bigDecimal;
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 11 Log

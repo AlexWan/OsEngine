@@ -2740,6 +2740,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             return result.ToString();
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

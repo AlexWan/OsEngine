@@ -2177,6 +2177,8 @@ namespace OsEngine.Market.Servers.BitMart
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

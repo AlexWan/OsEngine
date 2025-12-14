@@ -3011,6 +3011,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

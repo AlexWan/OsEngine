@@ -542,6 +542,19 @@ namespace OsEngine.OsData
         public event Action<MyTrade> NewMyTradeEvent;
         public event Action<Order> CancelOrderFailEvent;
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public decimal GetLeverage(Security security)
+        {
+            return 0;
+        }
+
+        public void SetLeverage(Security security, decimal leverage)
+        {
+
+        }
+
+        List<SecurityLeverageData> IServer.ListLeverageData => null;
+
         #endregion
     }
 
