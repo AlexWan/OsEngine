@@ -77,9 +77,6 @@ namespace OsEngine.Entity
 
         public void SetMarketDepthFromBinaryFile(DataBinaryReader dr, decimal priceStep, double volumeStep, long lastMilliseconds)
         {
-            lastMilliseconds = dr.ReadGrowing(lastMilliseconds);
-            Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
-
             int n = (int)dr.ReadLeb128();
 
             for (int i = 0; i < n; i++)
