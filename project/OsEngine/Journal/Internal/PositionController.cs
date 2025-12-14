@@ -865,7 +865,8 @@ namespace OsEngine.Journal.Internal
 
         private void TrySaveStopLimits()
         {
-            if (_startProgram == StartProgram.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer
+                || _startProgram == StartProgram.IsTester)
             {
                 return;
             }
