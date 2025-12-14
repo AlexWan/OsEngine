@@ -4033,7 +4033,9 @@ namespace OsEngine.Market.Servers.Tester
 
                 // start security for unloading / запускаем бумагу на выгрузку
 
-                if (TypeTesterData != TesterDataType.Candle &&
+                if ((TypeTesterData == TesterDataType.TickOnlyReadyCandle
+                    || TypeTesterData == TesterDataType.TickAllCandleState)
+                    &&
                     timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.Tick)
                 {
                     if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == securityName &&
@@ -4060,7 +4062,8 @@ namespace OsEngine.Market.Servers.Tester
                         }
                     }
                 }
-                else if (TypeTesterData != TesterDataType.Candle && timeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+                else if (TypeTesterData == TesterDataType.MarketDepthAllCandleState
+                    || TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
                 {
                     if (_candleSeriesTesterActivate == null) return null;
 
@@ -4080,7 +4083,8 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         SecurityTester securityTester = SecuritiesTester[i];
 
-                        if (securityTester.Security.Name == securityName && securityTester.DataType == SecurityTesterDataType.MarketDepth)
+                        if (securityTester.Security.Name == securityName 
+                            && securityTester.DataType == SecurityTesterDataType.MarketDepth)
                         {
                             _candleSeriesTesterActivate.Add(securityTester);
                         }

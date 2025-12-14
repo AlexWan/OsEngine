@@ -173,9 +173,9 @@ namespace OsEngine.Market.Connectors
                 _saveTradesInCandles = CheckBoxSaveTradeArrayInCandle.IsChecked.Value;
             };
 
-            ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick);
-            ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
-            ComboBoxCandleMarketDataType.SelectedItem = SourcesCreator.CandleMarketDataType;
+            ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick.ToString());
+            ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth.ToString());
+            ComboBoxCandleMarketDataType.SelectedItem = SourcesCreator.CandleMarketDataType.ToString();
             ComboBoxCandleMarketDataType.SelectionChanged += ComboBoxCandleMarketDataType_SelectionChanged;
 
             if (SourcesCreator.CandleMarketDataType == CandleMarketDataType.MarketDepth)

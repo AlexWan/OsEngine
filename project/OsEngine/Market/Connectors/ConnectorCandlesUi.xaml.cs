@@ -130,9 +130,9 @@ namespace OsEngine.Market.Connectors
                 CheckBoxSaveTradeArrayInCandle.IsChecked = _connectorBot.SaveTradesInCandles;
                 CheckBoxSaveTradeArrayInCandle.Click += CheckBoxSaveTradeArrayInCandle_Click;
 
-                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick);
-                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
-                ComboBoxCandleMarketDataType.SelectedItem = _connectorBot.CandleMarketDataType;
+                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick.ToString());
+                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth.ToString());
+                ComboBoxCandleMarketDataType.SelectedItem = _connectorBot.CandleMarketDataType.ToString();
                 ComboBoxCandleMarketDataType.SelectionChanged += ComboBoxCandleMarketDataType_SelectionChanged;
 
                 if (_connectorBot.CandleMarketDataType == CandleMarketDataType.MarketDepth)

@@ -115,9 +115,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 CheckBoxSaveTradeArrayInCandle.IsChecked = _screener.SaveTradesInCandles;
                 CheckBoxSaveTradeArrayInCandle.Click += CheckBoxSaveTradeArrayInCandle_Click;
 
-                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick);
-                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
-                ComboBoxCandleMarketDataType.SelectedItem = _screener.CandleMarketDataType;
+                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick.ToString());
+                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth.ToString());
+                ComboBoxCandleMarketDataType.SelectedItem = _screener.CandleMarketDataType.ToString();
                 ComboBoxCandleMarketDataType.SelectionChanged += ComboBoxCandleMarketDataType_SelectionChanged;
 
                 if (_screener.CandleMarketDataType == CandleMarketDataType.MarketDepth)
