@@ -943,17 +943,34 @@ namespace OsEngine.Market.Servers.Tester
                 }
                 else if (security.DataType == SecurityTesterDataType.MarketDepth)
                 {
-                    if (order.MySecurityInTester.LastMarketDepth.Time.Day != ServerTime.Day)
+                    // test using market data (Tick, MarketDepth) / тест с использованием рыночных данных (Тики, стакан)
+
+                    if (order.MySecurityInTester.LastMarketDepth == null)
                     {
-                        security = GetMySecurity(order);
-                        order.MySecurityInTester = security;
+                        List<Trade> lastTrades = security.LastTradeSeries;
+
+                        if (lastTrades != null
+                            && lastTrades.Count != 0
+                            && CheckOrdersInTickTest(order, lastTrades[lastTrades.Count - 1], false, security.IsNewDayTrade))
+                        {
+                            i--;
+                            break;
+                        }
                     }
-
-                    MarketDepth depth = security.LastMarketDepth;
-
-                    if (CheckOrdersInMarketDepthTest(order, depth))
+                    else
                     {
-                        i--;
+                        if (order.MySecurityInTester.LastMarketDepth.Time.Day != ServerTime.Day)
+                        {
+                            security = GetMySecurity(order);
+                            order.MySecurityInTester = security;
+                        }
+
+                        MarketDepth depth = security.LastMarketDepth;
+
+                        if (CheckOrdersInMarketDepthTest(order, depth))
+                        {
+                            i--;
+                        }
                     }
                 }
             }
@@ -1402,6 +1419,12 @@ namespace OsEngine.Market.Servers.Tester
                 return false;
             }
 
+            if ((lastMarketDepth.Asks == null || (lastMarketDepth.Asks != null && lastMarketDepth.Asks.Count == 0)) ||
+                 (lastMarketDepth.Bids == null || (lastMarketDepth.Bids != null && lastMarketDepth.Bids.Count == 0)))
+            {
+                return false;
+            }
+
             decimal sellBestPrice = lastMarketDepth.Asks[0].Price.ToDecimal();
             decimal buyBestPrice = lastMarketDepth.Bids[0].Price.ToDecimal();
 
@@ -1788,7 +1811,7 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     SecurityTester testerSecurity = _candleSeriesTesterActivate[i];
 
-                    if (testerSecurity.Security.Name == order.SecurityNameCode && ServerTime.Day == testerSecurity.TimeStart.Day &&
+                    if (testerSecurity.Security.Name == order.SecurityNameCode &&
                              (testerSecurity.LastCandle != null
                              || testerSecurity.LastTradeSeries != null
                              || testerSecurity.LastMarketDepth != null))
@@ -3513,6 +3536,10 @@ namespace OsEngine.Market.Servers.Tester
                 // begin / начало
                 // end / конец
 
+                SecurityTester securityTester = new SecurityTester();
+
+                string fileType = "";
+
                 using (FileStream fs = File.OpenRead(files[i]))
                 {
                     try
@@ -3524,139 +3551,138 @@ namespace OsEngine.Market.Servers.Tester
                             continue;
                         }
 
-                        security.Add(new SecurityTester());
-                        security[security.Count - 1].FileAddress = files[i];
-                        security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
-                        security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
-                        security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
-                        security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
-                        security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
-
                         string fileName = files[i].Split('\\')[files[i].Split('\\').Length - 1];
                         string name = string.Join(".", fileName.Split('.').Reverse().Skip(3).Reverse());
 
-                        security[security.Count - 1].Security = new Security();
-                        security[security.Count - 1].Security.Name = name;
-                        security[security.Count - 1].Security.Lot = 1;
-                        security[security.Count - 1].Security.NameClass = "TestClass";
-                        security[security.Count - 1].Security.MarginBuy = 1;
-                        security[security.Count - 1].Security.MarginSell = 1;
-                        security[security.Count - 1].Security.PriceStepCost = 1;
-                        security[security.Count - 1].Security.PriceStep = 1;
+                        string[] parts = fileName.Split('.');
+                        fileType = parts[parts.Length - 2];
 
-                        DataBinaryReader dataReader = new DataBinaryReader(stream);
+                        securityTester.FileAddress = files[i];
+                        securityTester.FileAddresses.Add(files[i]);
 
-                        int version = stream.ReadByte();
-                        long lastMilliseconds = 0;
+                        securityTester.Security = new Security();
+                        securityTester.Security.Name = name;
+                        securityTester.Security.Lot = 1;
+                        securityTester.Security.NameClass = "TestClass";
+                        securityTester.Security.MarginBuy = 1;
+                        securityTester.Security.MarginSell = 1;
+                        securityTester.Security.PriceStepCost = 1;
+                        securityTester.Security.PriceStep = 1;
+                        securityTester.DataType = SecurityTesterDataType.MarketDepth;
 
-                        switch (version)
+                        string securityName = "";
+
+                        if (fileType == "Quotes")
                         {
-                            case 4:
+                            DataBinaryReader dataReader = new DataBinaryReader(stream);
+                            long lastMilliseconds = 0;
 
-                                string appName = dataReader.ReadString();
-                                string comment = dataReader.ReadString();
+                            if (ReadFileHeader(stream, dataReader, ref securityTester, ref lastMilliseconds) == false) continue;
 
-                                if (comment != "")
-                                {
-                                    string[] volumeSplit = comment.Split(':');
+                            int streamCount = dataReader.ReadByte();
+                            if (streamCount != 1) continue;
 
-                                    decimal volumeStep = 1;
+                            StreamType streamType = (StreamType)dataReader.ReadByte();
+                            if (streamType != StreamType.Quotes) continue;
 
-                                    if (volumeSplit.Length == 2)
-                                    {
-                                        if (volumeSplit[0] == "VolumeStep")
-                                        {
-                                            string normalized = volumeSplit[1].Replace(',', '.');
-                                            if (decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out volumeStep))
-                                            {
-                                                security[security.Count - 1].Security.VolumeStep = volumeStep;
-                                            }
-                                        }
-                                    }
-                                }
+                            securityName = dataReader.ReadString();
 
-                                if (security[security.Count - 1].Security.VolumeStep == 0)
-                                    security[security.Count - 1].Security.VolumeStep = 1;
+                            if (GetPriceStep(ref securityTester, securityName) == false) continue;
 
-                                DateTime time = new DateTime(dataReader.ReadInt64(), DateTimeKind.Utc);
-                                lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(time);
-
-                                int streamCount = dataReader.ReadByte();
-
-                                if (streamCount == 0)
-                                {
-                                    security.Remove(security[security.Count - 1]);
-                                    continue;
-                                }
-
-                                StreamType streamType = (StreamType)dataReader.ReadByte();
-
-                                if (streamType != StreamType.Quotes)
-                                {
-                                    security.Remove(security[security.Count - 1]);
-                                    continue;
-                                }
-
-                                string securityName = dataReader.ReadString();
-
-                                string[] step = securityName.Split(':');
-
-                                double priceStep = 1;
-                                if (step.Length == 5)
-                                {
-                                    if (double.TryParse(step[4].Replace(',', '.'), NumberStyles.Float, NumberFormatInfo.InvariantInfo, out priceStep))
-                                    {
-                                        security[security.Count - 1].Security.PriceStep = (decimal)priceStep;
-                                        security[security.Count - 1].Security.PriceStepCost = (decimal)priceStep;
-                                    }
-                                    else
-                                    {
-                                        security.Remove(security[security.Count - 1]);
-                                        continue;
-                                    }
-                                }
-                                else
-                                {
-                                    security.Remove(security[security.Count - 1]);
-                                    continue;
-                                }
-
-                                break;
-
-                            default:
-                                ServerMaster.SendNewLogMessage("Unsupported file version (" + version + ")", LogMessageType.Error);
-                                security.Remove(security[security.Count - 1]);
-                                continue;
+                            ReadQuotesFile(dataReader, ref securityTester, ref lastMilliseconds);
                         }
-
-                        MarketDepth marketDepth = new MarketDepth();
-                        marketDepth.SetMarketDepthFromBinaryFile(dataReader, security[^1].Security.PriceStep, (double)security[^1].Security.VolumeStep, lastMilliseconds);
-                        lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(marketDepth.Time);
-
-                        security[security.Count - 1].TimeStart = marketDepth.Time;
-                        security[security.Count - 1].DataType = SecurityTesterDataType.MarketDepth;
-
-                        try
+                        else if (fileType == "Deals")
                         {
-                            while (true)
-                            {
-                                marketDepth.SetMarketDepthFromBinaryFile(dataReader, security[^1].Security.PriceStep, (double)security[^1].Security.VolumeStep, lastMilliseconds);
-                                lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(marketDepth.Time);
-                            }
-                        }
-                        catch (EndOfStreamException)
-                        {
-                            //ignore
-                        }
+                            DataBinaryReader dataReader = new DataBinaryReader(stream);
+                            DealsStream dealsStream = new DealsStream();
+                            long lastMilliseconds = 0;
 
-                        DateTime lastDateTime = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
-                        security[security.Count - 1].TimeEnd = lastDateTime;
-                        security[security.Count - 1].Security.Expiration = lastDateTime;
+                            if (ReadFileHeader(stream, dataReader, ref securityTester, ref lastMilliseconds) == false) continue;
+
+                            int streamCount = dataReader.ReadByte();
+                            if (streamCount != 1) continue;
+
+                            StreamType streamType = (StreamType)dataReader.ReadByte();
+                            if (streamType != StreamType.Deals) continue;
+
+                            securityName = dataReader.ReadString();
+
+                            if (GetPriceStep(ref securityTester, securityName) == false) continue;
+
+                            ReadDealsFile(dealsStream, dataReader, ref securityTester, ref lastMilliseconds);
+                        }
+                        else if (fileType == "QuotesDeals")
+                        {
+                            DataBinaryReader dataReader = new DataBinaryReader(stream);
+                            DealsStream dealsStream = new DealsStream();
+                            long lastMilliseconds = 0;
+
+                            if (ReadFileHeader(stream, dataReader, ref securityTester, ref lastMilliseconds) == false) continue;
+
+                            int streamCount = dataReader.ReadByte();
+                            if (streamCount != 2) continue;
+
+                            StreamType streamType = (StreamType)dataReader.ReadByte();
+                            if (streamType != StreamType.Quotes) continue;
+
+                            securityName = dataReader.ReadString();
+                            if (GetPriceStep(ref securityTester, securityName) == false) continue;
+
+                            StreamType streamType2 = (StreamType)dataReader.ReadByte();
+                            if (streamType2 != StreamType.Deals) continue;
+                            securityName = dataReader.ReadString();
+                            if (GetPriceStep(ref securityTester, securityName) == false) continue;
+
+                            ReadQuotesDealsFile(dealsStream, dataReader, ref securityTester, ref lastMilliseconds);
+                        }
+                        else continue;
                     }
                     catch
                     {
-                        security.Remove(security[security.Count - 1]);
+                        continue;
                     }
+                }
+
+                bool inArray = false;
+                for (int i2 = 0; i2 < security.Count; i2++)
+                {
+                    SecurityTester securityInArray = security[i2];
+                    if (securityInArray.Security.Name == securityTester.Security.Name)
+                    {
+                        securityInArray.FileAddresses.Add(securityTester.FileAddress);
+
+                        if (securityInArray.TimeStart > securityTester.TimeStart)
+                        {
+                            securityInArray.TimeStart = securityTester.TimeStart;
+                        }
+
+                        if (securityInArray.TimeEnd < securityTester.TimeEnd)
+                        {
+                            securityInArray.TimeEnd = securityTester.TimeEnd;
+                        }
+
+                        inArray = true;
+                        break;
+                    }
+                }
+
+                if (inArray == false)
+                {
+                    securityTester.NewCandleEvent += TesterServer_NewCandleEvent;
+                    securityTester.LogMessageEvent += TesterServer_LogMessageEvent;
+                    securityTester.NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
+                    securityTester.NeedToCheckOrders += TesterServer_NeedToCheckOrders;
+
+                    if (fileType == "QuotesDeals")
+                    {
+                        securityTester.NewMarketDepthTradeEvent += TesterServer_NewTradesFromMarketDeprhEvent;
+                    }
+                    else if (fileType == "Deals")
+                    {
+                        securityTester.NewTradesEvent += TesterServer_NewTradesEvent;
+                    }
+
+                    security.Add(securityTester);
                 }
             }
 
@@ -3720,6 +3746,176 @@ namespace OsEngine.Market.Servers.Tester
             {
                 TestingNewSecurityEvent();
             }
+        }
+
+        private bool ReadFileHeader(Stream stream, DataBinaryReader dataReader, ref SecurityTester securityTester, ref long lastMilliseconds)
+        {
+            int version = stream.ReadByte();
+
+            if (version != 4) return false;
+
+            string appName = dataReader.ReadString();
+            string comment = dataReader.ReadString();
+
+            if (comment != "")
+            {
+                string[] volumeSplit = comment.Split(':');
+
+                decimal volumeStep = 1;
+
+                if (volumeSplit.Length == 2)
+                {
+                    if (volumeSplit[0] == "VolumeStep")
+                    {
+                        string normalized = volumeSplit[1].Replace(',', '.');
+                        if (decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out volumeStep))
+                        {
+                            securityTester.Security.VolumeStep = volumeStep;
+                        }
+                    }
+                }
+            }
+
+            if (securityTester.Security.VolumeStep == 0)
+                securityTester.Security.VolumeStep = 1;
+
+            DateTime time = new DateTime(dataReader.ReadInt64(), DateTimeKind.Utc);
+            lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(time);
+
+            return true;
+        }
+
+        private bool GetPriceStep(ref SecurityTester securityTester, string securityName)
+        {
+            string[] step = securityName.Split(':');
+
+            double priceStep = 1;
+            if (step.Length == 5)
+            {
+                if (double.TryParse(step[4].Replace(',', '.'), NumberStyles.Float, NumberFormatInfo.InvariantInfo, out priceStep))
+                {
+                    securityTester.Security.PriceStep = (decimal)priceStep;
+                    securityTester.Security.PriceStepCost = (decimal)priceStep;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private void ReadDealsFile(DealsStream dealsStream, DataBinaryReader binaryReader, ref SecurityTester security, ref long lastMilliseconds)
+        {
+            lastMilliseconds = binaryReader.ReadGrowing(lastMilliseconds);
+            DateTime frameTime = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+            Trade trade = dealsStream.Read(binaryReader, security.Security.PriceStep, security.Security.VolumeStep);
+
+            security.TimeStart = frameTime;
+            security.DataType = SecurityTesterDataType.MarketDepth;
+
+            try
+            {
+                while (true)
+                {
+                    lastMilliseconds = binaryReader.ReadGrowing(lastMilliseconds);
+                    frameTime = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+                    dealsStream.Read(binaryReader, security.Security.PriceStep, security.Security.VolumeStep);
+                }
+            }
+            catch
+            {
+                //ignore
+            }
+
+            security.TimeEnd = frameTime;
+            security.Security.Expiration = frameTime;
+        }
+
+        private void ReadQuotesFile(DataBinaryReader dataReader, ref SecurityTester security, ref long lastMilliseconds)
+        {
+            MarketDepth marketDepth = new MarketDepth();
+
+            lastMilliseconds = dataReader.ReadGrowing(lastMilliseconds);
+            marketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+            marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, (double)security.Security.VolumeStep, lastMilliseconds);
+
+            security.TimeStart = marketDepth.Time;
+            security.DataType = SecurityTesterDataType.MarketDepth;
+
+            try
+            {
+                while (true)
+                {
+                    lastMilliseconds = dataReader.ReadGrowing(lastMilliseconds);
+                    marketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+
+                    marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, (double)security.Security.VolumeStep, lastMilliseconds);
+                    lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(marketDepth.Time);
+                }
+            }
+            catch (EndOfStreamException)
+            {
+                //ignore
+            }
+
+            DateTime lastDateTime = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+            security.TimeEnd = lastDateTime;
+            security.Security.Expiration = lastDateTime;
+        }
+
+        private void ReadQuotesDealsFile(DealsStream dealsStream, DataBinaryReader dataReader, ref SecurityTester security, ref long lastMilliseconds)
+        {
+            try
+            {
+                lastMilliseconds = dataReader.ReadGrowing(lastMilliseconds);
+                byte type = dataReader.ReadByte();
+
+                MarketDepth marketDepth = new MarketDepth();
+                Trade trade = new Trade();
+
+                if (type == 0)
+                {
+                    marketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+                    marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, (double)security.Security.VolumeStep, lastMilliseconds);
+                }
+                else if (type == 1)
+                {
+                    trade = dealsStream.Read(dataReader, security.Security.PriceStep, security.Security.VolumeStep);
+                }
+
+                security.TimeStart = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+
+                while (true)
+                {
+                    lastMilliseconds = dataReader.ReadGrowing(lastMilliseconds);
+                    type = dataReader.ReadByte();
+
+                    if (type == 0)
+                    {
+                        marketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+                        marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, (double)security.Security.VolumeStep, lastMilliseconds);
+                    }
+                    else if (type == 1)
+                    {
+                        trade = dealsStream.Read(dataReader, security.Security.PriceStep, security.Security.VolumeStep);
+                        trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+                    }
+                }
+            }
+            catch (EndOfStreamException)
+            {
+                // ignore
+            }
+
+            DateTime lastDateTime = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+            security.TimeEnd = lastDateTime;
+            security.Security.Expiration = lastDateTime;
         }
 
         private bool CheckPrefix(Stream stream, byte[] buffer, byte[] prefix)
@@ -3829,12 +4025,6 @@ namespace OsEngine.Market.Servers.Tester
 
                 // find security / находим бумагу
 
-                if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
-                    TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
-                {
-                    timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.MarketDepth;
-                }
-
                 if (TypeTesterData == TesterDataType.TickAllCandleState ||
                     TypeTesterData == TesterDataType.TickOnlyReadyCandle)
                 {
@@ -3856,6 +4046,13 @@ namespace OsEngine.Market.Servers.Tester
                             _candleSeriesTesterActivate.Add(
                                     SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                            tester.DataType == SecurityTesterDataType.Tick));
+                        }
+                        else if (SecuritiesTester != null && SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
+                            tester.DataType == SecurityTesterDataType.MarketDepth) != null)
+                        {
+                            _candleSeriesTesterActivate.Add(
+                                    SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
+                                           tester.DataType == SecurityTesterDataType.MarketDepth));
                         }
                         else
                         { // there is nothing to run the series / нечем запускать серию
@@ -4440,12 +4637,85 @@ namespace OsEngine.Market.Servers.Tester
 
         #region Market depth 
 
+        private void TesterServer_NewTradesFromMarketDeprhEvent(Trade newTrade)
+        {
+            if (_dataIsActive == false)
+            {
+                _dataIsActive = true;
+            }
+
+            if (_allTrades == null)
+            {
+                _allTrades = new List<Trade>[1];
+                _allTrades[0] = new List<Trade>{newTrade};
+            }
+            else
+            {// sort trades by storages / сортируем сделки по хранилищам
+                bool isSave = false;
+                for (int i = 0; i < _allTrades.Length; i++)
+                {
+                    if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
+                        _allTrades[i][0].SecurityNameCode == newTrade.SecurityNameCode &&
+                        _allTrades[i][0].TimeFrameInTester == newTrade.TimeFrameInTester)
+                    { // if there is already a storage for this instrument, save it/ если для этого инструметна уже есть хранилище, сохраняем и всё
+                        isSave = true;
+                        if (_allTrades[i][0].Time > newTrade.Time)
+                        {
+                            break;
+                        }
+                        _allTrades[i].Add(newTrade);
+                        break;
+                    }
+                }
+                if (isSave == false)
+                { // there is no storage for instrument / хранилища для инструмента нет
+                    List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
+                    for (int i = 0; i < _allTrades.Length; i++)
+                    {
+                        allTradesNew[i] = _allTrades[i];
+                    }
+                    allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
+                    allTradesNew[allTradesNew.Length - 1].Add(newTrade);
+                    _allTrades = allTradesNew;
+                }
+            }
+
+            if (_typeTesterData != TesterDataType.TickAllCandleState &&
+                _typeTesterData != TesterDataType.TickOnlyReadyCandle &&
+                _typeTesterData != TesterDataType.MarketDepthAllCandleState &&
+                _typeTesterData != TesterDataType.MarketDepthOnlyReadyCandle)
+            {
+                for (int i = 0; i < _allTrades.Length; i++)
+                {
+                    List<Trade> curTrades = _allTrades[i];
+
+                    if (curTrades != null &&
+                        curTrades.Count > 100)
+                    {
+                        curTrades = curTrades.GetRange(curTrades.Count - 100, 100);
+                        _allTrades[i] = curTrades;
+                    }
+                }
+            }
+
+            ServerTime = newTrade.Time;
+
+            if (NewTradeEvent != null)
+            {
+                NewTradeEvent(newTrade);
+            }
+        }
+
         void TesterServer_NewMarketDepthEvent(MarketDepth marketDepth)
         {
             if (_dataIsActive == false)
             {
                 _dataIsActive = true;
             }
+
+            if (marketDepth == null) return;
+
+            ServerTime = marketDepth.Time;
 
             if (NewMarketDepthEvent != null)
             {
@@ -4454,8 +4724,6 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         public event Action<MarketDepth> NewMarketDepthEvent;
-
-        public event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
 
         #endregion
 
@@ -4543,16 +4811,16 @@ namespace OsEngine.Market.Servers.Tester
                             trades = _allTrades[i];
                         }
 
-
                         break;
                     }
                 }
 
-                for(int i = 0;i < tradesNew.Count;i++)
+                for (int i = 0; i < tradesNew.Count; i++)
                 {
                     NewTradeEvent(tradesNew[i]);
                 }
             }
+
             if (NewBidAskIncomeEvent != null)
             {
                 NewBidAskIncomeEvent((decimal)tradesNew[tradesNew.Count - 1].Price, (decimal)tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
@@ -4577,6 +4845,8 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         public event Action<Trade> NewTradeEvent;
+
+        public event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
 
         #endregion
 
@@ -4613,160 +4883,7 @@ namespace OsEngine.Market.Servers.Tester
     /// </summary>
     public class SecurityTester
     {
-        public Security Security;
-
-        public string FileAddress;
-
-        public DateTime TimeStart;
-
-        public DateTime TimeEnd;
-
-        public SecurityTesterDataType DataType;
-
-        public TimeSpan TimeFrameSpan;
-
-        public TimeFrame TimeFrame
-        {
-            get { return _timeFrame; }
-            set
-            {
-                if (value == _timeFrame)
-                {
-                    return;
-                }
-                _timeFrame = value;
-
-                if (value == TimeFrame.Sec1)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 0, 1);
-                }
-                else if (value == TimeFrame.Sec2)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 0, 2);
-                }
-                else if (value == TimeFrame.Sec5)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 0, 5);
-                }
-                else if (value == TimeFrame.Sec10)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 0, 10);
-                }
-                else if (value == TimeFrame.Sec15)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 0, 15);
-                }
-                else if (value == TimeFrame.Sec20)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 0, 20);
-                }
-                else if (value == TimeFrame.Sec30)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 0, 30);
-                }
-                else if (value == TimeFrame.Min1)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 1, 0);
-                }
-                else if (value == TimeFrame.Min2)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 2, 0);
-                }
-                else if (value == TimeFrame.Min3)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 3, 0);
-                }
-                else if (value == TimeFrame.Min5)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 5, 0);
-                }
-                else if (value == TimeFrame.Min10)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 10, 0);
-                }
-                else if (value == TimeFrame.Min15)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 15, 0);
-                }
-                else if (value == TimeFrame.Min20)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 20, 0);
-                }
-                else if (value == TimeFrame.Min30)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 30, 0);
-                }
-                else if (value == TimeFrame.Min45)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 0, 45, 0);
-                }
-                else if (value == TimeFrame.Hour1)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 1, 0, 0);
-                }
-                else if (value == TimeFrame.Hour2)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 2, 0, 0);
-                }
-                else if (value == TimeFrame.Hour4)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 4, 0, 0);
-                }
-                else if (value == TimeFrame.Day)
-                {
-                    TimeFrameSpan = new TimeSpan(0, 24, 0, 0);
-                }
-            }
-        }
-        TimeFrame _timeFrame;
-
-        // data upload management
-
-        public bool IsActive;
-
-        private StreamReader _reader;
-
-        DataBinaryReader _dataBinaryReader;
-
-        Stream _stream;
-
-        public void Clear()
-        {
-            try
-            {
-                OffStream();
-
-                _reader = new StreamReader(FileAddress);
-                LastCandle = null;
-                LastTrade = null;
-                LastMarketDepth = null;
-                _tradesId = 0;
-            }
-            catch (Exception errror)
-            {
-                SendLogMessage(errror.ToString());
-            }
-        }
-
-        public void Load(DateTime now)
-        {
-            if (IsActive == false)
-            {
-                return;
-            }
-            if (DataType == SecurityTesterDataType.Tick)
-            {
-                CheckTrades(now);
-            }
-            else if (DataType == SecurityTesterDataType.Candle)
-            {
-                CheckCandles(now);
-            }
-            else if (DataType == SecurityTesterDataType.MarketDepth)
-            {
-                CheckMarketDepth(now);
-            }
-        }
+        #region Candles
 
         // parsing candle files
 
@@ -4928,9 +5045,9 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<Candle, string, TimeSpan> NewCandleEvent;
 
-        public event Action<MarketDepth> NewMarketDepthEvent;
+        #endregion
 
-        // parsing tick files
+        #region Tick
 
         public Trade LastTrade;
 
@@ -4943,6 +5060,10 @@ namespace OsEngine.Market.Servers.Tester
         public bool IsNewDayTrade;
 
         public DateTime LastTradeTime;
+
+        public event Action<List<Trade>> NewTradesEvent;
+
+        public event Action NeedToCheckOrders;
 
         private void CheckTrades(DateTime now)
         {
@@ -5040,116 +5161,497 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        public event Action<List<Trade>> NewTradesEvent;
+        #endregion
 
-        public event Action NeedToCheckOrders;
+        #region MarketDepth
 
-        // parsing market depths
+        public event Action<Trade> NewMarketDepthTradeEvent;
+
+        public event Action<MarketDepth> NewMarketDepthEvent;
 
         public MarketDepth LastMarketDepth;
 
         private long _lastMilliseconds = 0;
 
+        private bool _isFirstFrame = true;
+
+        private string CurrentStreamType;
+
+        private DateTime LastDateTime = DateTime.MinValue;
+
         private void CheckMarketDepth(DateTime now)
         {
-            if (now > TimeEnd || now < TimeStart)
+            if (now > TimeEnd)
             {
-                OffStream();
+                OffStreamMarketDepth();
+
+                return;
+            }
+            else if (now < TimeStart)
+            {
+                OffStreamMarketDepth();
 
                 return;
             }
 
-            if (_stream == null)
+            if (LastDateTime == DateTime.MinValue || LastDateTime.Date != now.Date)
             {
-                OffStream();
+                OffStreamMarketDepth();
 
-                byte[] prefix = Encoding.UTF8.GetBytes("QScalp History Data");
-                FileStream fs = File.OpenRead(FileAddress);
-                _stream = GetDataStream(fs, prefix);
-                _dataBinaryReader = new DataBinaryReader(_stream);
-            }
+                if (FileAddresses.Count == 0) return;
 
-            if (LastMarketDepth != null && LastMarketDepth.Time > now)
-            {
-                return;
-            }
-            else if (LastMarketDepth != null && LastMarketDepth.Time == now)
-            {
-                if (NewMarketDepthEvent != null)
+                string marketDepthFile = FindFileForDate(now);
+
+                if (marketDepthFile == null) return;
+
+                if (CurrentStreamType == "Quotes")
                 {
-                    NewMarketDepthEvent(LastMarketDepth);
+                    LastMarketDepth = null;
+
+                    CreateMarketDepthStreams(marketDepthFile);
+                    ReadFirstFrameMarketDepth(now);
+                }
+                else if (CurrentStreamType == "Deals")
+                {
+                    LastTrade = null;
+
+                    CreateMarketDepthStreams(marketDepthFile);
+                    ReadFirstFrameTick(now);
+                }
+                else if (CurrentStreamType == "QuotesDeals")
+                {
+                    LastMarketDepth = null;
+                    LastTrade = null;
+
+                    CreateMarketDepthStreams(marketDepthFile);
+                    ReadFirstFrameQuotesDeals(now);
+                }
+                else return;
+            }
+            else
+            {
+                if (CurrentStreamType == "Quotes")
+                {
+                    ReadQuotesFile(now);
+                }
+                else if (CurrentStreamType == "Deals")
+                {
+                    ReadDealsFile(now);
+                }
+                else if (CurrentStreamType == "QuotesDeals")
+                {
+                    ReadQuotesDealsFile(now);
+                }
+                else return;
+            }
+        }
+
+        private string FindFileForDate(DateTime targetDate)
+        {
+            for (int i = 0; i < FileAddresses.Count; i++)
+            {
+                string file = FileAddresses[i];
+                string[] parts = file.Split('.');
+
+                if (parts.Length < 3) continue;
+
+                string dateString = parts[parts.Length - 3];
+                string currentFileType = parts[parts.Length - 2];
+
+                if (currentFileType == "Quotes")
+                {
+                    CurrentStreamType = "Quotes";
+                }
+                else if (currentFileType == "Deals")
+                {
+                    CurrentStreamType = "Deals";
+                }
+                else if (currentFileType == "QuotesDeals")
+                {
+                    CurrentStreamType = "QuotesDeals";
+                }
+                else continue;
+
+                if (DateTime.TryParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fileDate))
+                {
+                    if (fileDate == targetDate.Date)
+                    {
+
+                        return file;
+                    }
                 }
             }
 
-            // if download the first second / качаем первую секунду если 
+            return null;
+        }
 
-            if (LastMarketDepth == null)
+        private void CreateMarketDepthStreams(string filePath)
+        {
+            OffStreamMarketDepth();
+            InitializeStream(filePath, out _streamMarketDepth, out _binaryReaderMarketDepth);
+
+            _dealsStream = new DealsStream();
+        }
+
+        private void InitializeStream(string filePath, out Stream dataStream, out DataBinaryReader reader)
+        {
+            dataStream = null;
+            reader = null;
+
+            byte[] prefix = Encoding.UTF8.GetBytes("QScalp History Data");
+            FileStream fs = File.OpenRead(filePath);
+            dataStream = GetDataStream(fs, prefix);
+
+            if (dataStream != null)
             {
-                LastMarketDepth = new MarketDepth();
+                reader = new DataBinaryReader(dataStream);
+            }
+        }
 
-                int version = _stream.ReadByte();
-                switch (version)
+        private void ReadFirstFrameQuotesDeals(DateTime now)
+        {
+            if (!ReadStreamHeader(_binaryReaderMarketDepth, ref _lastMilliseconds)) return;
+
+            int streamCount = _binaryReaderMarketDepth.ReadByte();
+
+            if (streamCount != 2) return;
+
+            StreamType streamType = (StreamType)_binaryReaderMarketDepth.ReadByte();
+            if (streamType != StreamType.Quotes) return;
+            string securityName = _binaryReaderMarketDepth.ReadString();
+            streamType = (StreamType)_binaryReaderMarketDepth.ReadByte();
+            if (streamType != StreamType.Deals) return;
+            securityName = _binaryReaderMarketDepth.ReadString();
+
+            LastTradeSeries = new List<Trade>();
+            LastMarketDepth = new MarketDepth();
+
+            ReadQuotesDealsFile(now);
+        }
+
+        private void ReadFirstFrameTick(DateTime now)
+        {
+            if (!ReadStreamHeader(_binaryReaderMarketDepth, ref _lastMilliseconds)) return;
+
+            int streamCount = _binaryReaderMarketDepth.ReadByte();
+            if (streamCount != 1) return;
+
+            StreamType streamType = (StreamType)_binaryReaderMarketDepth.ReadByte();
+            if (streamType != StreamType.Deals) return;
+            string securityName = _binaryReaderMarketDepth.ReadString();
+
+            LastTradeSeries = new List<Trade>();
+
+            ReadDealsFile(now);
+        }
+
+        private void ReadFirstFrameMarketDepth(DateTime now)
+        {
+            if (!ReadStreamHeader(_binaryReaderMarketDepth, ref _lastMilliseconds)) return;
+
+            int streamCount = _binaryReaderMarketDepth.ReadByte();
+            if (streamCount != 1) return;
+
+            StreamType streamType = (StreamType)_binaryReaderMarketDepth.ReadByte();
+            if (streamType != StreamType.Quotes) return;
+            string securityName = _binaryReaderMarketDepth.ReadString();
+
+            LastMarketDepth = new MarketDepth();
+
+            ReadQuotesFile(now);
+        }
+
+        private bool ReadStreamHeader(DataBinaryReader reader, ref long lastTimeStamp)
+        {
+            int version = reader.BaseStream.ReadByte();
+            if (version != 4) return false;
+
+            string appName = reader.ReadString();
+            string comment = reader.ReadString();
+            ParseVolumeStepFromComment(comment);
+
+            DateTime time = new DateTime(reader.ReadInt64(), DateTimeKind.Utc);
+            lastTimeStamp = TimeManager.GetTimeStampMillisecondsFromStartTime(time);
+
+            return true;
+        }
+
+        private void ParseVolumeStepFromComment(string comment)
+        {
+            if (string.IsNullOrEmpty(comment))
+            {
+                if (Security.VolumeStep == 0) Security.VolumeStep = 1;
+                return;
+            }
+
+            string[] volumeSplit = comment.Split(':');
+            if (volumeSplit.Length == 2 && volumeSplit[0] == "VolumeStep")
+            {
+                string normalized = volumeSplit[1].Replace(',', '.');
+                if (decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal volumeStep))
                 {
-                    case 4:
+                    Security.VolumeStep = volumeStep;
+                }
+            }
 
-                        string appName = _dataBinaryReader.ReadString();
-                        string comment = _dataBinaryReader.ReadString();
+            if (Security.VolumeStep == 0) Security.VolumeStep = 1;
+        }
 
-                        if (comment != "")
+        private void ReadDealsFile(DateTime now)
+        {
+            try
+            {
+                List<Trade> lastTradesSeries = new List<Trade>();
+
+                while (true)
+                {
+                    if (_dealsStream == null || _binaryReaderMarketDepth == null)
+                    {
+                        return;
+                    }
+
+                    Trade trade = new Trade();
+
+                    if (_isFirstFrame && LastTrade != null && LastTrade.Time <= now)
+                    {
+                        lastTradesSeries.Add(LastTrade);
+                    }
+                    else if (LastTrade != null && LastTrade.Time > now)
+                    {
+                        return;
+                    }
+                    else if (LastTrade != null && LastTrade.Time == now)
+                    {
+                        lastTradesSeries.Add(LastTrade);
+                        LastTradeSeries = lastTradesSeries;
+                        NewTradesEvent(lastTradesSeries);
+                        this.NeedToCheckOrders();
+
+                        lastTradesSeries = new List<Trade>();
+                    }
+
+                    _lastMilliseconds = _binaryReaderMarketDepth.ReadGrowing(_lastMilliseconds);
+
+                    trade = _dealsStream.Read(_binaryReaderMarketDepth, Security.PriceStep, Security.VolumeStep);
+                    trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
+                    trade.SecurityNameCode = Security.Name;
+                    trade.IdInTester = ++_tradesId;
+
+                    LastTrade = trade;
+                    LastDateTime = trade.Time;
+                    LastTradeTime = trade.Time;
+
+                    if (_isFirstFrame)
+                    {
+                        if (trade.Time <= now)
                         {
-                            string[] volumeSplit = comment.Split(':');
-
-                            decimal volumeStep = 1;
-                            if (volumeSplit.Length == 2)
+                            continue;
+                        }
+                        else
+                        {
+                            if (NewTradesEvent != null && lastTradesSeries.Count > 0)
                             {
-                                if (volumeSplit[0] == "VolumeStep")
+                                LastTradeSeries = lastTradesSeries;
+                                NewTradesEvent(lastTradesSeries);
+                                this.NeedToCheckOrders();
+
+                                _isFirstFrame = false;
+                            }
+
+                            break;
+                        }
+                    }
+
+                    if (trade.Time == now)
+                    {
+                        continue;
+                    }
+                }
+            }
+            catch (EndOfStreamException)
+            {
+                OffStreamMarketDepth();
+            }
+        }
+
+        private void ReadQuotesDealsFile(DateTime now)
+        {
+            try
+            {
+                List<Trade> lastTradesSeries = new List<Trade>();
+
+                while (true)
+                {
+                    if (_dealsStream == null || _binaryReaderMarketDepth == null)
+                    {
+                        return;
+                    }
+
+                    if (_isFirstFrame && LastTrade != null && LastTrade.Time <= now)
+                    {
+                        lastTradesSeries.Add(LastTrade);
+                    }
+                    else if (LastTrade != null && LastTrade.Time > now)
+                    {
+                        return;
+                    }
+                    else if (LastTrade != null && LastTrade.Time == now)
+                    {
+                        lastTradesSeries.Add(LastTrade);
+                        LastTradeSeries = lastTradesSeries;
+                        NewMarketDepthTradeEvent(LastTrade);
+                        this.NeedToCheckOrders();
+
+                        lastTradesSeries = new List<Trade>();
+                    }
+
+                    if (LastMarketDepth.Time > now)
+                    {
+                        return;
+                    }
+                    else if (LastMarketDepth.Time == now)
+                    {
+                        if (NewMarketDepthEvent != null)
+                        {
+                            NewMarketDepthEvent(LastMarketDepth);
+                            this.NeedToCheckOrders();
+                        }
+                    }
+
+                    _lastMilliseconds = _binaryReaderMarketDepth.ReadGrowing(_lastMilliseconds);
+                    byte streamType = _binaryReaderMarketDepth.ReadByte();
+
+                    if (streamType == 0)
+                    {
+                        LastMarketDepth.SetMarketDepthFromBinaryFile(_binaryReaderMarketDepth, Security.PriceStep, (double)Security.VolumeStep, _lastMilliseconds);
+                        LastMarketDepth.SecurityNameCode = Security.Name;
+                        LastMarketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
+                        LastDateTime = LastMarketDepth.Time;
+
+                        if (_isFirstFrame)
+                        {
+                            if (LastMarketDepth.Time <= now)
+                            {
+                                if (NewMarketDepthEvent != null)
                                 {
-                                    string normalized = volumeSplit[1].Replace(',', '.');
-                                    if (decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out volumeStep))
-                                    {
-                                        Security.VolumeStep = volumeStep;
-                                    }
+                                    NewMarketDepthEvent(LastMarketDepth);
+
+                                    this.NeedToCheckOrders();
                                 }
+
+                                continue;
+                            }
+                            else
+                            {
+                                _isFirstFrame = false;
                             }
                         }
 
-                        if (Security.VolumeStep == 0)
-                            Security.VolumeStep = 1;
-
-                        DateTime time = new DateTime(_dataBinaryReader.ReadInt64(), DateTimeKind.Utc);
-
-                        _lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(time);
-                        int streamCount = _dataBinaryReader.ReadByte();
-
-                        if (streamCount == 0) return;
-
-                        StreamType streamType = (StreamType)_dataBinaryReader.ReadByte();
-
-                        if (streamType != StreamType.Quotes) return;
-
-                        string securityName = _dataBinaryReader.ReadString();
-
-                        LastMarketDepth.SetMarketDepthFromBinaryFile(_dataBinaryReader, Security.PriceStep, (double)Security.VolumeStep, _lastMilliseconds);
-                        _lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(LastMarketDepth.Time);
-                        LastMarketDepth.SecurityNameCode = Security.Name;
+                        if (LastMarketDepth.Time != now)
+                        {
+                            return;
+                        }
 
                         if (NewMarketDepthEvent != null)
                         {
                             NewMarketDepthEvent(LastMarketDepth);
+
+                            this.NeedToCheckOrders();
+                        }
+                    }
+                    else if (streamType == 1)
+                    {
+                        Trade trade = new Trade();
+
+                        trade = _dealsStream.Read(_binaryReaderMarketDepth, Security.PriceStep, Security.VolumeStep);
+                        trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
+                        trade.SecurityNameCode = Security.Name;
+                        trade.IdInTester = ++_tradesId;
+
+                        LastTrade = trade;
+                        LastTradeTime = trade.Time;
+
+                        if (_isFirstFrame)
+                        {
+                            if (trade.Time <= now)
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                if (NewTradesEvent != null && lastTradesSeries.Count > 0)
+                                {
+                                    for (int i = 0; i < lastTradesSeries.Count; i++)
+                                    {
+                                        LastTradeSeries = lastTradesSeries;
+                                        NewMarketDepthTradeEvent(lastTradesSeries[i]);
+                                        this.NeedToCheckOrders();
+                                    }
+
+                                    _isFirstFrame = false;
+                                }
+
+                                break;
+                            }
                         }
 
-                        break;
-                    default: return;
+                        if (trade.Time == now)
+                        {
+                            continue;
+                        }
+                    }
                 }
             }
+            catch (EndOfStreamException)
+            {
+                OffStreamMarketDepth();
+            }
+        }
 
+        private void ReadQuotesFile(DateTime now)
+        {
             try
             {
-                while (LastMarketDepth.Time <= now)
+                while (true)
                 {
-                    LastMarketDepth.SetMarketDepthFromBinaryFile(_dataBinaryReader, Security.PriceStep, (double)Security.VolumeStep, _lastMilliseconds);
+                    if (_dealsStream == null || _binaryReaderMarketDepth == null) return;
+
+                    if (LastMarketDepth == null) return;
+
+                    if (LastMarketDepth.Time > now)
+                    {
+                        return;
+                    }
+                    else if (LastMarketDepth.Time == now)
+                    {
+                        if (NewMarketDepthEvent != null)
+                        {
+                            NewMarketDepthEvent(LastMarketDepth);
+                        }
+                    }
+
+                    _lastMilliseconds = _binaryReaderMarketDepth.ReadGrowing(_lastMilliseconds);
+                    LastMarketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
+                    LastDateTime = LastMarketDepth.Time;
+
+                    LastMarketDepth.SetMarketDepthFromBinaryFile(_binaryReaderMarketDepth, Security.PriceStep, (double)Security.VolumeStep, _lastMilliseconds);
                     _lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(LastMarketDepth.Time);
                     LastMarketDepth.SecurityNameCode = Security.Name;
+
+                    if (_isFirstFrame)
+                    {
+                        if (LastMarketDepth.Time < now)
+                        {
+                            if (NewMarketDepthEvent != null)
+                            {
+                                NewMarketDepthEvent(LastMarketDepth);
+                            }
+
+                            _isFirstFrame = false;
+
+                            continue;
+                        }
+                    }
 
                     if (LastMarketDepth.Time != now)
                     {
@@ -5159,31 +5661,34 @@ namespace OsEngine.Market.Servers.Tester
                     if (NewMarketDepthEvent != null)
                     {
                         NewMarketDepthEvent(LastMarketDepth);
-                    }
 
-                    break;
+                        this.NeedToCheckOrders();
+                    }
                 }
             }
             catch (EndOfStreamException)
             {
-                OffStream();
+                OffStreamMarketDepth();
             }
         }
 
-        private void OffStream()
+        private void OffStreamMarketDepth()
         {
-            if (_stream != null)
+            if (_streamMarketDepth != null)
             {
-                _stream.Dispose();
-                _stream.Close();
-                _stream = null;
+                _streamMarketDepth.Dispose();
+                _streamMarketDepth = null;
             }
 
-            if (_dataBinaryReader != null)
+            if (_binaryReaderMarketDepth != null)
             {
-                _dataBinaryReader.Dispose();
-                _dataBinaryReader.Close();
-                _dataBinaryReader = null;
+                _binaryReaderMarketDepth.Dispose();
+                _binaryReaderMarketDepth = null;
+            }
+
+            if (_dealsStream != null)
+            {
+                _dealsStream = null;
             }
         }
 
@@ -5243,7 +5748,177 @@ namespace OsEngine.Market.Servers.Tester
             return true;
         }
 
-        // logging
+        #endregion
+
+        #region Fields
+
+        public string FileAddress;
+
+        public Security Security;
+
+        public List<string> FileAddresses = new List<string>();
+
+        public DateTime TimeStart;
+
+        public DateTime TimeEnd;
+
+        public SecurityTesterDataType DataType;
+
+        public TimeSpan TimeFrameSpan;
+
+        public TimeFrame TimeFrame
+        {
+            get { return _timeFrame; }
+            set
+            {
+                if (value == _timeFrame)
+                {
+                    return;
+                }
+                _timeFrame = value;
+
+                if (value == TimeFrame.Sec1)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 1);
+                }
+                else if (value == TimeFrame.Sec2)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 2);
+                }
+                else if (value == TimeFrame.Sec5)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 5);
+                }
+                else if (value == TimeFrame.Sec10)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 10);
+                }
+                else if (value == TimeFrame.Sec15)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 15);
+                }
+                else if (value == TimeFrame.Sec20)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 20);
+                }
+                else if (value == TimeFrame.Sec30)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 30);
+                }
+                else if (value == TimeFrame.Min1)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 1, 0);
+                }
+                else if (value == TimeFrame.Min2)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 2, 0);
+                }
+                else if (value == TimeFrame.Min3)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 3, 0);
+                }
+                else if (value == TimeFrame.Min5)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 5, 0);
+                }
+                else if (value == TimeFrame.Min10)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 10, 0);
+                }
+                else if (value == TimeFrame.Min15)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 15, 0);
+                }
+                else if (value == TimeFrame.Min20)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 20, 0);
+                }
+                else if (value == TimeFrame.Min30)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 30, 0);
+                }
+                else if (value == TimeFrame.Min45)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 45, 0);
+                }
+                else if (value == TimeFrame.Hour1)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 1, 0, 0);
+                }
+                else if (value == TimeFrame.Hour2)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 2, 0, 0);
+                }
+                else if (value == TimeFrame.Hour4)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 4, 0, 0);
+                }
+                else if (value == TimeFrame.Day)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 24, 0, 0);
+                }
+            }
+        }
+
+        TimeFrame _timeFrame;
+
+        #endregion
+
+        #region Data upload management
+
+        public bool IsActive;
+
+        private StreamReader _reader;
+
+        private DealsStream _dealsStream;
+
+        private DataBinaryReader _binaryReaderMarketDepth;
+
+        private Stream _streamMarketDepth;
+
+        public void Clear()
+        {
+            try
+            {
+                OffStreamMarketDepth();
+
+                _reader = new StreamReader(FileAddress);
+                LastDateTime = DateTime.MinValue;
+                LastCandle = null;
+                LastTrade = null;
+                LastMarketDepth = null;
+                _isFirstFrame = true;
+                _tradesId = 0;
+            }
+            catch (Exception errror)
+            {
+                SendLogMessage(errror.ToString());
+            }
+        }
+
+        public void Load(DateTime now)
+        {
+            if (IsActive == false)
+            {
+                return;
+            }
+            if (DataType == SecurityTesterDataType.Tick)
+            {
+                CheckTrades(now);
+            }
+            else if (DataType == SecurityTesterDataType.Candle)
+            {
+                CheckCandles(now);
+            }
+            else if (DataType == SecurityTesterDataType.MarketDepth)
+            {
+                CheckMarketDepth(now);
+            }
+        }
+
+        #endregion
+
+        #region Log
 
         private void SendLogMessage(string message)
         {
@@ -5254,6 +5929,8 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         public event Action<string> LogMessageEvent;
+
+        #endregion
 
     }
 
