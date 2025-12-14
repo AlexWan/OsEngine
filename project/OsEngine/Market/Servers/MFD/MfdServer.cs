@@ -582,6 +582,8 @@ namespace OsEngine.Market.Servers.MFD
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
     }
 }

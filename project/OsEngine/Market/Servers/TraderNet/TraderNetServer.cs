@@ -1804,6 +1804,8 @@ namespace OsEngine.Market.Servers.TraderNet
             return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

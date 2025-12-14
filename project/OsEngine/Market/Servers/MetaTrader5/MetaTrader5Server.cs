@@ -2171,6 +2171,8 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent { add { } remove { } }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
     }
 }

@@ -137,6 +137,24 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<List<Security>> SecuritiesChangeEvent;
 
+        /// <summary>
+        /// List of instruments with leverage
+        /// Список инструментов с уровнями плечей
+        /// </summary>
+        List<SecurityLeverageData> ListLeverageData { get; }
+
+        /// <summary>
+        /// get leverage value for instrument
+        /// получить значение плеча по инструменту
+        /// </summary>
+        decimal GetLeverage(Security security);
+
+        /// <summary>
+        /// set leverage value for instrument
+        /// установить значение плеча по инструменту
+        /// </summary>
+        void SetLeverage(Security security, decimal leverage);
+
         #endregion
 
         #region Data subscription

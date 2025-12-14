@@ -2127,6 +2127,8 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion 11
 
         #region 12 Log

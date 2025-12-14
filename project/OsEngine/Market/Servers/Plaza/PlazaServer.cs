@@ -3311,6 +3311,8 @@ namespace OsEngine.Market.Servers.Plaza
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
     }
 }

@@ -4879,6 +4879,18 @@ namespace OsEngine.Market.Servers.Tester
         public event Action<Funding> NewFundingEvent { add { } remove { } }
         public event Action<SecurityVolumes> NewVolume24hUpdateEvent { add { } remove { } }
 
+        public decimal GetLeverage(Security security)
+        {
+            return 0;
+        }
+
+        public void SetLeverage(Security security, decimal leverage)
+        {
+
+        }
+
+        List<SecurityLeverageData> IServer.ListLeverageData => null;
+
         #endregion
     }
 

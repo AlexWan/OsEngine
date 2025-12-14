@@ -1,0 +1,17 @@
+﻿<Window x:Class="OsEngine.Entity.SetLeverageUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Securities" Height="700" Width="800" MinWidth="400" MinHeight="300" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Rectangle Margin="5"/>
+        <WindowsFormsHost Name="HostLeverage" Margin="5,49,5,5"/>
+        <ComboBox Name="ComboBoxClass" HorizontalAlignment="Left" Margin="132,25,0,0" VerticalAlignment="Top" Width="179"/>
+        <Label Name="LabelClass" Content="Class" HorizontalAlignment="Left" Margin="21,25,0,0" VerticalAlignment="Top" Width="81"/>
+        <TextBox Name="TextBoxSearchLeverage" HorizontalAlignment="Left" Margin="355,25,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="164"/>
+        <Button Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="496,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="355,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Label Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="415,5,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="430,5,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="449,5,0,0" VerticalAlignment="Top" Height="20"/>        
+    </Grid>
+</Window>

@@ -2471,6 +2471,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

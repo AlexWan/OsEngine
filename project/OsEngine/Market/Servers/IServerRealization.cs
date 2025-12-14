@@ -79,6 +79,11 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<List<Security>> SecurityEvent;
 
+        /// <summary>
+        /// Set leverage on security
+        /// </summary>
+        void SetLeverage(Security security, decimal leverage);
+
         #endregion
 
         #region Portfolios

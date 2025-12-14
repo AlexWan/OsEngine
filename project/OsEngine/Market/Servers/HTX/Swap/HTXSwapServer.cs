@@ -3345,6 +3345,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
             return JsonConvert.SerializeObject(auth);
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

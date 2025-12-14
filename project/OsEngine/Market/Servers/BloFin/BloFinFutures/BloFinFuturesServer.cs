@@ -2247,6 +2247,8 @@ namespace OsEngine.Market.Servers.BloFin
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion 12
 
         #region 13 Log

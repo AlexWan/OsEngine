@@ -4533,6 +4533,8 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             return context;
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 11 Log

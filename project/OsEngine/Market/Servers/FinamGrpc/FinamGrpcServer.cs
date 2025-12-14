@@ -2060,6 +2060,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
             };
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 12 Log

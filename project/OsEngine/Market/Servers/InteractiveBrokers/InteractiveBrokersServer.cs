@@ -1305,6 +1305,8 @@ contract =>
             return null;
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region Log

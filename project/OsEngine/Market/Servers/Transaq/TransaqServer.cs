@@ -3263,6 +3263,8 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 12 Helpers

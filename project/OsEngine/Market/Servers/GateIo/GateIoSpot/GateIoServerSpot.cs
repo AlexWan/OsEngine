@@ -2147,6 +2147,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 return hash;
             }
         }
+        public void SetLeverage(Security security, decimal leverage) { }
 
         #endregion
 

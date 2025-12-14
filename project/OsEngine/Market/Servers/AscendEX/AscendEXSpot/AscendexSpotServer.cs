@@ -2539,6 +2539,8 @@ namespace OsEngine.Market.Servers.AscendexSpot
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

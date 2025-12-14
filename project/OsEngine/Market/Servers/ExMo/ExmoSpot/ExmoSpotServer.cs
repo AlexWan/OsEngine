@@ -2156,6 +2156,8 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
             return (sbinary).ToLowerInvariant();
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

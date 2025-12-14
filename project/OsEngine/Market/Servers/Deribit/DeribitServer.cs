@@ -1790,6 +1790,8 @@ namespace OsEngine.Market.Servers.Deribit
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

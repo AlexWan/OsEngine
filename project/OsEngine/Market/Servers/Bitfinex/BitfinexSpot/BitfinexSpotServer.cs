@@ -3153,6 +3153,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 return BitConverter.ToString(output).Replace("-", "").ToLower();
             }
         }
+        public void SetLeverage(Security security, decimal leverage) { }
 
         #endregion
 

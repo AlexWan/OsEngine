@@ -3288,6 +3288,8 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         #endregion
 
         #region 13 Log

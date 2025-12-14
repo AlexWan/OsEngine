@@ -2532,6 +2532,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 return signature;
             }
 
+            public void SetLeverage(Security security, decimal leverage) { }
+
             #endregion
 
             #region 13 Log

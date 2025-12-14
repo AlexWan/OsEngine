@@ -274,6 +274,18 @@
             get { return false; }
         }
 
+        public bool Leverage_IsSupports
+        {
+            get { return false; }
+        }
+
+        public decimal Leverage_StandartValue
+        {
+            get { return 10; }
+        }
+
+        public string[] Leverage_SupportClasses { get; }
+
         #endregion
     }
 }

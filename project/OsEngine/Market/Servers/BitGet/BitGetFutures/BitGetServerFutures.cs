@@ -3455,6 +3455,48 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        public void SetLeverage(Security security, decimal leverage)
+        {
+            Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+
+            jsonContent.Add("symbol", security.Name);
+            jsonContent.Add("productType", security.NameClass);
+            jsonContent.Add("marginCoin", security.NameClass.Split("-")[0]);
+            jsonContent.Add("leverage", leverage.ToString());
+
+            string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+            IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-leverage", Method.POST, null, jsonRequest);
+
+            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            {
+                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
+
+                if (stateResponse.code.Equals("00000") == true)
+                {
+                    // ignore
+                }
+                else
+                {
+                    SendLogMessage($"SetLeverage - Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+            else
+            {
+                if (responseMessage.Content.Contains("\"sign signature error\"")
+                    || responseMessage.Content.Contains("\"Apikey does not exist\"")
+                    || responseMessage.Content.Contains("\"apikey/password is incorrect\"")
+                    || responseMessage.Content.Contains("\"Request timestamp expired\"")
+                    || responseMessage.Content == "")
+                {
+                    Disconnect();
+                }
+
+                SendLogMessage($"SetLeverage - Http State Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+            }
+        }
+
         #endregion
 
         #region 13 Log

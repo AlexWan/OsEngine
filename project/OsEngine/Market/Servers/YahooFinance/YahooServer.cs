@@ -496,6 +496,8 @@ namespace OsEngine.Market.Servers.YahooFinance
             return null;
         }
 
+        public void SetLeverage(Security security, decimal leverage) { }
+
         public event Action<News> NewsEvent { add { } remove { } }
 
         public event Action<Order> MyOrderEvent { add { } remove { } }
