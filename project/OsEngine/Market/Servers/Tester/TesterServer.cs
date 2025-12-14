@@ -5511,7 +5511,7 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         return;
                     }
-                    else if (LastTrade != null && LastTrade.Time == now)
+                    else if (NewMarketDepthTradeEvent != null && LastTrade != null && LastTrade.Time == now)
                     {
                         lastTradesSeries.Add(LastTrade);
                         LastTradeSeries = lastTradesSeries;
@@ -5586,6 +5586,7 @@ namespace OsEngine.Market.Servers.Tester
 
                         LastTrade = trade;
                         LastTradeTime = trade.Time;
+                        LastDateTime = trade.Time;
 
                         if (_isFirstFrame)
                         {
@@ -5595,7 +5596,7 @@ namespace OsEngine.Market.Servers.Tester
                             }
                             else
                             {
-                                if (NewTradesEvent != null && lastTradesSeries.Count > 0)
+                                if (NewMarketDepthTradeEvent != null && lastTradesSeries.Count > 0)
                                 {
                                     for (int i = 0; i < lastTradesSeries.Count; i++)
                                     {
@@ -5609,11 +5610,6 @@ namespace OsEngine.Market.Servers.Tester
 
                                 break;
                             }
-                        }
-
-                        if (trade.Time == now)
-                        {
-                            continue;
                         }
                     }
                 }

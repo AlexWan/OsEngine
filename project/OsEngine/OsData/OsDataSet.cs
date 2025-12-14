@@ -466,13 +466,13 @@ namespace OsEngine.OsData
                     return;
                 }
 
-                 if (SecuritiesLoad[i].SecClass == "LQDT")
+                if (SecuritiesLoad[i].SecClass == "LQDT")
                 {
                     if (_lqdtDataServer == null)
                     {
                         CreateLqdtServer(SecuritiesLoad[i].SecExchange);
 
-                        if(!_lqdtDataServer.IsRatesDownloaded)
+                        if (!_lqdtDataServer.IsRatesDownloaded)
                         {
                             _lqdtDataServer = null;
                             return;
@@ -483,7 +483,7 @@ namespace OsEngine.OsData
                 }
                 else
                 {
-                   SecuritiesLoad[i].Process(_myServer);
+                    SecuritiesLoad[i].Process(_myServer);
                 }
             }
 
@@ -2010,7 +2010,7 @@ namespace OsEngine.OsData
 
             series.IsStarted = true;
 
-            for(int i = 0;i < trades.Count;i++)
+            for (int i = 0; i < trades.Count; i++)
             {
                 series.SetNewTicks(trades[i]);
             }
@@ -2383,6 +2383,14 @@ namespace OsEngine.OsData
                 catch (Exception ex)
                 {
                     SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+
+                    _lastMarketDepth = null;
+                    _lastTrade = null;
+                    _lastMarketDepthPrice = 0;
+                    _lastTradePrice = 0;
+                    _lastTimeStamp = 0;
+
+                    OffStream();
                 }
             }
         }
@@ -2449,6 +2457,8 @@ namespace OsEngine.OsData
             for (int i = 0; i < oldAsks.Count && i < _depth; i++)
             {
                 MarketDepthLevel ask = oldAsks[i];
+                if (ask == null) continue;
+
                 oldAsksDict[ask.Price] = ask.Ask;
             }
 
@@ -2456,12 +2466,15 @@ namespace OsEngine.OsData
             for (int i = 0; i < newAsks.Count && i < _depth; i++)
             {
                 MarketDepthLevel ask = newAsks[i];
+                if (ask == null) continue;
+
                 newAsksDict[ask.Price] = ask.Ask;
             }
 
             for (int i = 0; i < oldAsks.Count && i < _depth; i++)
             {
                 MarketDepthLevel oldAsk = oldAsks[i];
+                if (oldAsk == null) continue;
 
                 if (!newAsksDict.ContainsKey(oldAsk.Price))
                 {
@@ -2476,6 +2489,7 @@ namespace OsEngine.OsData
             for (int i = 0; i < newAsks.Count && i < _depth; i++)
             {
                 MarketDepthLevel newAsk = newAsks[i];
+                if (newAsk == null) continue;
 
                 if (oldAsksDict.TryGetValue(newAsk.Price, out double oldVolume))
                 {
@@ -2505,6 +2519,8 @@ namespace OsEngine.OsData
             for (int i = 0; i < oldBids.Count && i < _depth; i++)
             {
                 MarketDepthLevel bid = oldBids[i];
+                if (bid == null) continue;
+
                 oldBidsDict[bid.Price] = bid.Bid;
             }
 
@@ -2512,12 +2528,15 @@ namespace OsEngine.OsData
             for (int i = 0; i < newBids.Count && i < _depth; i++)
             {
                 MarketDepthLevel bid = newBids[i];
+                if (bid == null) continue;
+
                 newBidsDict[bid.Price] = bid.Bid;
             }
 
             for (int i = 0; i < oldBids.Count && i < _depth; i++)
             {
                 MarketDepthLevel oldBid = oldBids[i];
+                if (oldBid == null) continue;
 
                 if (!newBidsDict.ContainsKey(oldBid.Price))
                 {
@@ -2532,6 +2551,7 @@ namespace OsEngine.OsData
             for (int i = 0; i < newBids.Count && i < _depth; i++)
             {
                 MarketDepthLevel newBid = newBids[i];
+                if (newBid == null) continue;
 
                 if (oldBidsDict.TryGetValue(newBid.Price, out double oldVolume))
                 {
