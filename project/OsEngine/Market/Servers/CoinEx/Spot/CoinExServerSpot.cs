@@ -1571,7 +1571,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 order.SecurityNameCode = cexOrder.market;
                 order.Volume = cexOrder.amount.ToDecimal();
-                order.VolumeExecute = cexOrder.filled_amount.ToDecimal(); 
+                order.VolumeExecute = cexOrder.filled_amount.ToDecimal();
 
                 if (cexOrder.type == "limit")
                 {
@@ -2281,14 +2281,14 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             order.SecurityNameCode = cexOrder.market;
             order.SecurityClassCode = cexOrder.market.Substring(cexOrder.ccy?.Length ?? cexOrder.market.Length - 3); // Fix for Futures (no Currency info)
-            order.Volume = cexOrder.amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
-            order.VolumeExecute = cexOrder.filled_amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
+            order.Volume = cexOrder.amount.ToDecimal(); // FIX Разобраться с названием параметра!
+            order.VolumeExecute = cexOrder.filled_amount.ToDecimal(); // FIX Разобраться с названием параметра!
 
-            order.Price = cexOrder.price.ToString().ToDecimal();
+            order.Price = cexOrder.price.ToDecimal();
             order.TypeOrder = cexOrder.type == "limit" ? OrderPriceType.Limit : OrderPriceType.Market;
 
             order.ServerType = ServerType.CoinExSpot;
-            order.NumberMarket = cexOrder.order_id.ToString();
+            order.NumberMarket = cexOrder.order_id;
             order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.updated_at.ToDecimal());
             order.TimeCreate = TimeManager.GetDateTimeFromTimeStamp((long)cexOrder.created_at.ToDecimal());
             order.PortfolioNumber = getPortfolioName();
@@ -2347,8 +2347,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             try
             {
-                string path = $"/spot/order-deals";
-                string requestStr = $"{path}?market={securityName}&order_id={(long)numberMarket.ToDecimal()}&market_type={_marketMode}&limit=100";
+                string path = $"/spot/user-deals";
+                string requestStr = $"{path}?market={securityName}&market_type={_marketMode}";
 
                 IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
 
@@ -2361,6 +2361,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         for (int i = 0; i < orderResponse.data.Count; i++)
                         {
                             MyTradeSpotResponse cexTrade = orderResponse.data[i];
+
+                            if (cexTrade.order_id != numberMarket)
+                            {
+                                continue;
+                            }
 
                             MyTrade myTrade = new MyTrade();
                             myTrade.NumberOrderParent = cexTrade.order_id;
