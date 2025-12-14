@@ -2541,7 +2541,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     }
 
                                     SendLogMessage($"Пришел ордер, orders_log. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
-                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.Error);
+                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
                                     if (MyOrderEvent != null)
                                     {
@@ -2616,7 +2616,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     }
 
                                     SendLogMessage($"Пришел ордер, Msg179. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
-                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.Error);
+                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
                                     if (MyOrderEvent != null)
                                     {
@@ -2691,7 +2691,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     }
 
                                     SendLogMessage($"Пришел ордер, Msg177. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
-                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.Error);
+                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
                                     if (MyOrderEvent != null)
                                     {
@@ -2751,7 +2751,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     }
 
                                     SendLogMessage($"Пришел ордер, Msg176. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
-                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.Error);
+                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
                                     if (MyOrderEvent != null)
                                     {
@@ -2919,7 +2919,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     }
 
                                     SendLogMessage($"Пришел ордер, orders. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
-                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.Error);
+                                        $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
                                     if (MyOrderEvent != null)
                                     {
