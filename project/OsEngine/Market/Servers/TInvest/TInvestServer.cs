@@ -3152,6 +3152,16 @@ namespace OsEngine.Market.Servers.TInvest
                             order.NumberUser = _orderNumbers[state.OrderRequestId];
                         }
 
+                        if(state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
+                        {
+                            if(state.OrderId != null
+                                && state.OrderId.Split('-').Length > 3)
+                            { // отсекаем внутренний статус о том что ордер дошёл до торговой системы Т.
+                              // С не настоящим id
+                                continue;
+                            }
+                        }
+
                         order.NumberMarket = state.OrderId;
                         order.SecurityNameCode = security.Name;
                         order.PortfolioNumber = state.AccountId;
