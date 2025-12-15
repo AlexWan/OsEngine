@@ -2079,6 +2079,7 @@ namespace OsEngine.Market.Servers.Transaq
                 else
                 {
                     order.NumberUser = result.TransactionId;
+                    order.NumberMarket = null;
                     order.Price = newPrice;
                 }
 
@@ -2715,6 +2716,39 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (order.Orderno == "0")
                 {
+                    if(order.Status == "cancelled" ||
+                         order.Status == "expired" ||
+                         order.Status == "disabled" ||
+                         order.Status == "removed")
+                    {
+                        Order failOrder = new Order();
+
+                        if (order.Status == "removed"
+                        && string.IsNullOrEmpty(order.Result) == false)
+                        {
+                            SendLogMessage(order.Result, LogMessageType.Error);
+                        }
+
+                        if (_activeOrders.Count > 0)
+                        {
+                            for (int j = 0; j < _activeOrders.Count; j++)
+                            {
+                                if (_activeOrders[j].NumberMarket == failOrder.NumberMarket)
+                                {
+                                    _activeOrders.Remove(_activeOrders[j]);
+                                    break;
+                                }
+                            }
+                        }
+
+                        failOrder.NumberUser = Convert.ToInt32(order.Transactionid);
+                        failOrder.NumberMarket = order.Orderno;
+                        failOrder.TimeCallBack = order.Time != null ? DateTime.Parse(order.Time) : ServerTime;
+                        failOrder.State = OrderStateType.Cancel;
+
+                        MyOrderEvent?.Invoke(failOrder);
+                    }
+
                     continue;
                 }
 
@@ -2800,6 +2834,7 @@ namespace OsEngine.Market.Servers.Transaq
                             if (_activeOrders[j].NumberMarket == newOrder.NumberMarket)
                             {
                                 _activeOrders.Remove(_activeOrders[j]);
+                                break;
                             }
                         }
                     }
@@ -2815,6 +2850,7 @@ namespace OsEngine.Market.Servers.Transaq
                             if (_activeOrders[j].NumberMarket == newOrder.NumberMarket)
                             {
                                 _activeOrders.Remove(_activeOrders[j]);
+                                break;
                             }
                         }
                     }
