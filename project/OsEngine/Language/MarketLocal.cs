@@ -1269,8 +1269,9 @@ namespace OsEngine.Language
           "Eng:Trading mode on the Moscow Stock Exchange. Affects the display of the portfolio, accounts and positions_" +
           "Ru:Режим торгов на Московской бирже. Влияет на отображение портфеля, счетов и позиций_");
 
-
-
+        public string Label309 => OsLocalization.ConvertToLocString(
+          "Eng:Full logging of user's orders and trades. Records all the statuses of orders and trades that came from the exchange._" +
+          "Ru:Полное логирование ордеров и трейдов пользователя. Записывает все статусы ордеров и трейдов, которые пришли с биржи._");
 
 
 
@@ -1861,6 +1862,10 @@ namespace OsEngine.Language
         public string UseOther => OsLocalization.ConvertToLocString(
             "Eng:Other_" +
             "Ru:Другое_");
+
+        public string FullLogConnector => OsLocalization.ConvertToLocString(
+            "Eng:Full logging of user's orders and trades_" +
+            "Ru:Полное логирование ордеров и трейдов пользователя_");
 
         public string UseSecInfoUpdates => OsLocalization.ConvertToLocString(
             "Eng:Use sec info updates_" +
