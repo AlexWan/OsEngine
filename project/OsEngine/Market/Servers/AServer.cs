@@ -213,7 +213,9 @@ namespace OsEngine.Market.Servers
                 task.Start();
 
                 Task.Run(() => HighPriorityDataThreadArea());
+
                 Task.Run(() => MediumPriorityDataThreadArea());
+
                 Task.Run(() => LowPriorityDataThreadArea());
 
                 Task task3 = new Task(MyTradesBeepThread);
@@ -1076,11 +1078,13 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// the place where connection is controlled. look at data streams
         /// </summary>
-        private void PrimeThreadArea()
+        private async void PrimeThreadArea()
         {
             while (true)
             {
-                Thread.Sleep(1000);
+
+                await Task.Delay(1000);
+
                 try
                 {
                     if (ServerRealization == null)
@@ -1191,18 +1195,19 @@ namespace OsEngine.Market.Servers
 
                     DeleteCandleManager();
 
-                    Thread.Sleep(5000);
-                    // reconnect / переподключаемся
+                    await Task.Delay(5000);
 
-                    Task task = new Task(PrimeThreadArea);
-                    task.Start();
-
-                    if (NeedToReconnectEvent != null)
+                    try
                     {
-                        NeedToReconnectEvent();
+                        if (NeedToReconnectEvent != null)
+                        {
+                            NeedToReconnectEvent();
+                        }
                     }
-
-                    return;
+                    catch (Exception ex)
+                    {
+                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                 }
             }
         }
@@ -1230,12 +1235,19 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void DeleteCandleManager()
         {
-            if (_candleManager != null)
+            try
             {
-                _candleManager.CandleUpdateEvent -= _candleManager_CandleUpdateEvent;
-                _candleManager.LogMessageEvent -= SendLogMessage;
-                _candleManager.Dispose();
-                _candleManager = null;
+                if (_candleManager != null)
+                {
+                    _candleManager.CandleUpdateEvent -= _candleManager_CandleUpdateEvent;
+                    _candleManager.LogMessageEvent -= SendLogMessage;
+                    _candleManager.Dispose();
+                    _candleManager = null;
+                }
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
