@@ -73,23 +73,33 @@ namespace OsEngine.Entity
         /// </summary>
         public string SecurityNameCode;
 
-        public int LastBinaryPrice = 0;
+        public long LastBinaryPrice = 0;
 
-        public void SetMarketDepthFromBinaryFile(DataBinaryReader dr, decimal priceStep, double volumeStep, long lastMilliseconds)
+        public void SetMarketDepthFromBinaryFile(DataBinaryReader dr, decimal priceStep, decimal volumeStep, long lastMilliseconds)
         {
-            int n = (int)dr.ReadLeb128();
+            long count = dr.ReadLeb128();
 
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < count; i++)
             {
-                LastBinaryPrice += (int)dr.ReadLeb128();
-                double volume = (int)dr.ReadLeb128() * volumeStep;
+                LastBinaryPrice += dr.ReadLeb128();
 
-                if (volume == 0)
+                int priceScale = BitConverter.GetBytes(decimal.GetBits(priceStep)[3])[2];
+                decimal priceDecimal = (decimal)LastBinaryPrice * priceStep;
+                priceDecimal = Math.Round(priceDecimal, priceScale);
+                double normalPrice = (double)priceDecimal;
+
+                long volumeRaw = dr.ReadLeb128();
+                int volumeScale = BitConverter.GetBytes(decimal.GetBits(volumeStep)[3])[2];
+                decimal volumeDecimal = (decimal)volumeRaw * volumeStep;
+                volumeDecimal = Math.Round(volumeDecimal, volumeScale);
+                double normalvolume = (double)volumeDecimal;
+
+                if (normalvolume == 0)
                 {
                     bool isDelete = false;
                     for (int i2 = Bids.Count - 1; i2 >= 0; i2--)
                     {
-                        if (Bids[i2].Price == LastBinaryPrice * (double)priceStep)
+                        if (Bids[i2].Price == normalPrice)
                         {
                             Bids.Remove(Bids[i2]);
                             isDelete = true;
@@ -101,14 +111,14 @@ namespace OsEngine.Entity
 
                     for (int i2 = Asks.Count - 1; i2 >= 0; i2--)
                     {
-                        if (Asks[i2].Price == LastBinaryPrice * (double)priceStep)
+                        if (Asks[i2].Price == normalPrice)
                         {
                             Asks.Remove(Asks[i2]);
                             break;
                         }
                     }
                 }
-                else if (volume > 0)
+                else if (normalvolume > 0)
                 {
                     bool inArray = false;
 
@@ -116,61 +126,59 @@ namespace OsEngine.Entity
                     {
                         for (int i2 = 0; i2 < Asks.Count; i2++)
                         {
-                            if (Asks[i2].Price == LastBinaryPrice * (double)priceStep)
+                            if (Asks[i2].Price == normalPrice)
                             {
-                                Asks[i2].Ask = volume * volumeStep;
+                                Asks[i2].Ask = normalvolume;
                                 inArray = true;
                                 break;
                             }
                         }
 
+                        if (inArray) continue;
+
                         for (int i2 = Bids.Count - 1; i2 >= 0; i2--)
                         {
-                            if (Bids[i2].Price == LastBinaryPrice * (double)priceStep)
+                            if (Bids[i2].Price == normalPrice)
                             {
                                 Bids.Remove(Bids[i2]);
-                                break;
                             }
                         }
                     }
 
-                    if (inArray) continue;
-
                     MarketDepthLevel newAsk = new MarketDepthLevel();
-                    newAsk.Price = LastBinaryPrice * (double)priceStep;
-                    newAsk.Ask = volume * volumeStep;
+                    newAsk.Price = normalPrice;
+                    newAsk.Ask = normalvolume;
                     Asks.Add(newAsk);
                 }
-                else if (volume < 0)
+                else if (normalvolume < 0)
                 {
                     bool inArray = false;
                     if (Bids.Count > 0)
                     {
                         for (int i2 = 0; i2 < Bids.Count; i2++)
                         {
-                            if (Bids[i2].Price == LastBinaryPrice * (double)priceStep)
+                            if (Bids[i2].Price == normalPrice)
                             {
-                                Bids[i2].Bid = -(volume * volumeStep);
+                                Bids[i2].Bid = -normalvolume;
                                 inArray = true;
                                 break;
                             }
                         }
 
+                        if (inArray) continue;
+
                         for (int i2 = Asks.Count - 1; i2 >= 0; i2--)
                         {
-                            if (Asks[i2].Price == LastBinaryPrice * (double)priceStep)
+                            if (Asks[i2].Price == normalPrice)
                             {
                                 Asks.Remove(Asks[i2]);
-                                break;
                             }
                         }
                     }
 
-                    if (inArray) continue;
-
                     MarketDepthLevel newBid = new MarketDepthLevel();
-                    newBid.Price = LastBinaryPrice * (double)priceStep;
-                    newBid.Bid = -(volume * volumeStep);
+                    newBid.Price = normalPrice;
+                    newBid.Bid = -normalvolume;
                     Bids.Add(newBid);
                 }
             }
@@ -189,7 +197,7 @@ namespace OsEngine.Entity
             Time = DateTimeParseHelper.ParseFromTwoStrings(save[0], save[1]);
 
             Time = Time.AddMilliseconds(Convert.ToInt32(save[2]));
-            
+
             string[] bids = save[3].Split('*');
 
             Asks = new List<MarketDepthLevel>();
@@ -239,7 +247,7 @@ namespace OsEngine.Entity
             result += Time.ToString("yyyyMMdd_HHmmss") + "_";
 
 
-            result += Time.Millisecond + "_"; 
+            result += Time.Millisecond + "_";
 
             for (int i = 0; i < Asks.Count && i < depth; i++)
             {
@@ -263,6 +271,7 @@ namespace OsEngine.Entity
             MarketDepth newDepth = new MarketDepth();
             newDepth.Time = Time;
             newDepth.SecurityNameCode = SecurityNameCode;
+
             newDepth.Asks = new List<MarketDepthLevel>();
 
             for (int i = 0; Asks != null && i < Asks.Count; i++)
@@ -271,7 +280,6 @@ namespace OsEngine.Entity
                 newDepth.Asks[i].Ask = Asks[i].Ask;
                 newDepth.Asks[i].Price = Asks[i].Price;
             }
-
 
             newDepth.Bids = new List<MarketDepthLevel>();
 

@@ -3843,7 +3843,7 @@ namespace OsEngine.Market.Servers.Tester
 
             lastMilliseconds = dataReader.ReadGrowing(lastMilliseconds);
             marketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
-            marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, (double)security.Security.VolumeStep, lastMilliseconds);
+            marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, security.Security.VolumeStep, lastMilliseconds);
 
             security.TimeStart = marketDepth.Time;
             security.DataType = SecurityTesterDataType.MarketDepth;
@@ -3855,7 +3855,7 @@ namespace OsEngine.Market.Servers.Tester
                     lastMilliseconds = dataReader.ReadGrowing(lastMilliseconds);
                     marketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
 
-                    marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, (double)security.Security.VolumeStep, lastMilliseconds);
+                    marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, security.Security.VolumeStep, lastMilliseconds);
                     lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(marketDepth.Time);
                 }
             }
@@ -3882,7 +3882,7 @@ namespace OsEngine.Market.Servers.Tester
                 if (type == 0)
                 {
                     marketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
-                    marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, (double)security.Security.VolumeStep, lastMilliseconds);
+                    marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, security.Security.VolumeStep, lastMilliseconds);
                 }
                 else if (type == 1)
                 {
@@ -3899,12 +3899,13 @@ namespace OsEngine.Market.Servers.Tester
                     if (type == 0)
                     {
                         marketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
-                        marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, (double)security.Security.VolumeStep, lastMilliseconds);
+                        marketDepth.SetMarketDepthFromBinaryFile(dataReader, security.Security.PriceStep, security.Security.VolumeStep, lastMilliseconds);
                     }
                     else if (type == 1)
                     {
                         trade = dealsStream.Read(dataReader, security.Security.PriceStep, security.Security.VolumeStep);
-                        trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+                        if (trade.Time == DateTime.MinValue)
+                            trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
                     }
                 }
             }
@@ -4083,7 +4084,7 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         SecurityTester securityTester = SecuritiesTester[i];
 
-                        if (securityTester.Security.Name == securityName 
+                        if (securityTester.Security.Name == securityName
                             && securityTester.DataType == SecurityTesterDataType.MarketDepth)
                         {
                             _candleSeriesTesterActivate.Add(securityTester);
@@ -4651,7 +4652,7 @@ namespace OsEngine.Market.Servers.Tester
             if (_allTrades == null)
             {
                 _allTrades = new List<Trade>[1];
-                _allTrades[0] = new List<Trade>{newTrade};
+                _allTrades[0] = new List<Trade> { newTrade };
             }
             else
             {// sort trades by storages / сортируем сделки по хранилищам
@@ -5306,7 +5307,10 @@ namespace OsEngine.Market.Servers.Tester
             OffStreamMarketDepth();
             InitializeStream(filePath, out _streamMarketDepth, out _binaryReaderMarketDepth);
 
-            _dealsStream = new DealsStream();
+            if (_dealsStream == null)
+            {
+                _dealsStream = new DealsStream();
+            }
         }
 
         private void InitializeStream(string filePath, out Stream dataStream, out DataBinaryReader reader)
@@ -5449,7 +5453,8 @@ namespace OsEngine.Market.Servers.Tester
                     _lastMilliseconds = _binaryReaderMarketDepth.ReadGrowing(_lastMilliseconds);
 
                     trade = _dealsStream.Read(_binaryReaderMarketDepth, Security.PriceStep, Security.VolumeStep);
-                    trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
+                    if (trade.Time == DateTime.MinValue)
+                        trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
                     trade.SecurityNameCode = Security.Name;
                     trade.IdInTester = ++_tradesId;
 
@@ -5488,6 +5493,10 @@ namespace OsEngine.Market.Servers.Tester
             {
                 OffStreamMarketDepth();
             }
+            catch (Exception)
+            {
+                return;
+            }
         }
 
         private void ReadQuotesDealsFile(DateTime now)
@@ -5503,9 +5512,15 @@ namespace OsEngine.Market.Servers.Tester
                         return;
                     }
 
+                    if (LastDateTime > now)
+                    {
+                        return;
+                    }
+
                     if (_isFirstFrame && LastTrade != null && LastTrade.Time <= now)
                     {
                         lastTradesSeries.Add(LastTrade);
+                        LastTrade = null;
                     }
                     else if (LastTrade != null && LastTrade.Time > now)
                     {
@@ -5521,11 +5536,11 @@ namespace OsEngine.Market.Servers.Tester
                         lastTradesSeries = new List<Trade>();
                     }
 
-                    if (LastMarketDepth.Time > now)
+                    if (LastMarketDepth != null && LastMarketDepth.Time > now)
                     {
                         return;
                     }
-                    else if (LastMarketDepth.Time == now)
+                    else if (LastMarketDepth != null && LastMarketDepth.Time == now)
                     {
                         if (NewMarketDepthEvent != null)
                         {
@@ -5539,10 +5554,11 @@ namespace OsEngine.Market.Servers.Tester
 
                     if (streamType == 0)
                     {
-                        LastMarketDepth.SetMarketDepthFromBinaryFile(_binaryReaderMarketDepth, Security.PriceStep, (double)Security.VolumeStep, _lastMilliseconds);
+                        LastMarketDepth.SetMarketDepthFromBinaryFile(_binaryReaderMarketDepth, Security.PriceStep, Security.VolumeStep, _lastMilliseconds);
                         LastMarketDepth.SecurityNameCode = Security.Name;
                         LastMarketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
-                        LastDateTime = LastMarketDepth.Time;
+
+                        LastDateTime = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
 
                         if (_isFirstFrame)
                         {
@@ -5585,8 +5601,8 @@ namespace OsEngine.Market.Servers.Tester
                         trade.IdInTester = ++_tradesId;
 
                         LastTrade = trade;
+                        LastDateTime = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
                         LastTradeTime = trade.Time;
-                        LastDateTime = trade.Time;
 
                         if (_isFirstFrame)
                         {
@@ -5618,6 +5634,10 @@ namespace OsEngine.Market.Servers.Tester
             {
                 OffStreamMarketDepth();
             }
+            catch (Exception)
+            {
+                return;
+            }
         }
 
         private void ReadQuotesFile(DateTime now)
@@ -5646,7 +5666,7 @@ namespace OsEngine.Market.Servers.Tester
                     LastMarketDepth.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
                     LastDateTime = LastMarketDepth.Time;
 
-                    LastMarketDepth.SetMarketDepthFromBinaryFile(_binaryReaderMarketDepth, Security.PriceStep, (double)Security.VolumeStep, _lastMilliseconds);
+                    LastMarketDepth.SetMarketDepthFromBinaryFile(_binaryReaderMarketDepth, Security.PriceStep, Security.VolumeStep, _lastMilliseconds);
                     _lastMilliseconds = TimeManager.GetTimeStampMillisecondsFromStartTime(LastMarketDepth.Time);
                     LastMarketDepth.SecurityNameCode = Security.Name;
 
@@ -5682,6 +5702,10 @@ namespace OsEngine.Market.Servers.Tester
             {
                 OffStreamMarketDepth();
             }
+            catch (Exception)
+            {
+                return;
+            }
         }
 
         private void OffStreamMarketDepth()
@@ -5696,11 +5720,6 @@ namespace OsEngine.Market.Servers.Tester
             {
                 _binaryReaderMarketDepth.Dispose();
                 _binaryReaderMarketDepth = null;
-            }
-
-            if (_dealsStream != null)
-            {
-                _dealsStream = null;
             }
         }
 
@@ -5895,6 +5914,7 @@ namespace OsEngine.Market.Servers.Tester
                 OffStreamMarketDepth();
 
                 _reader = new StreamReader(FileAddress);
+                _dealsStream = null;
                 LastDateTime = DateTime.MinValue;
                 LastCandle = null;
                 LastTrade = null;
