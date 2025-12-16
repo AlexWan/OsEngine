@@ -1867,6 +1867,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.Lots = Security.Lot;
                 newDeal.PriceStepCost = Security.PriceStepCost;
                 newDeal.PriceStep = Security.PriceStep;
+                newDeal.MarginBuy = Security.MarginBuy;
+                newDeal.MarginSell = Security.MarginSell;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -1954,6 +1956,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.Lots = Security.Lot;
                 newDeal.PriceStepCost = Security.PriceStepCost;
                 newDeal.PriceStep = Security.PriceStep;
+                newDeal.MarginBuy = Security.MarginBuy;
+                newDeal.MarginSell = Security.MarginSell;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -2930,6 +2934,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.Lots = Security.Lot;
                 newDeal.PriceStepCost = Security.PriceStepCost;
                 newDeal.PriceStep = Security.PriceStep;
+                newDeal.MarginBuy = Security.MarginBuy;
+                newDeal.MarginSell = Security.MarginSell;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -3025,6 +3031,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.Lots = Security.Lot;
                 newDeal.PriceStepCost = Security.PriceStepCost;
                 newDeal.PriceStep = Security.PriceStep;
+                newDeal.MarginBuy = Security.MarginBuy;
+                newDeal.MarginSell = Security.MarginSell;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {

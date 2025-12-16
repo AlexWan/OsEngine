@@ -1069,8 +1069,10 @@ namespace OsEngine.Entity
             result.Append(ProfitOrderIsActive + "#");
             result.Append(ProfitOrderPrice + "#");
 
-            result.Append(Lots + "#");
+            result.Append(Lots + "^" + MarginBuy + "^" + MarginSell + "#");
+
             result.Append(PriceStepCost + "#");
+
             result.Append(PriceStep + "#");
             result.Append(PortfolioValueOnOpenPosition + "#");
 
@@ -1174,7 +1176,19 @@ namespace OsEngine.Entity
             ProfitOrderIsActive = Convert.ToBoolean(arraySave[11]);
             ProfitOrderPrice = arraySave[12].ToDecimal();
 
-            Lots = arraySave[13].ToDecimal();
+            string[] lotsAndMarginArray = arraySave[13].Split('^');
+
+            Lots = lotsAndMarginArray[0].ToDecimal();
+
+            if(lotsAndMarginArray.Length >=2)
+            {
+                MarginBuy = lotsAndMarginArray[1].ToDecimal();
+            }
+            if (lotsAndMarginArray.Length >= 3)
+            {
+                MarginSell = lotsAndMarginArray[2].ToDecimal();
+            }
+
             PriceStepCost = arraySave[14].ToDecimal();
             PriceStep = arraySave[15].ToDecimal();
             PortfolioValueOnOpenPosition = arraySave[16].ToDecimal();
@@ -1548,7 +1562,6 @@ namespace OsEngine.Entity
                                           volume * ClosePrice * (CommissionValue / 100);
                     }
                 }
-
                 if (CommissionType == CommissionType.OneLotFix)
                 {
                     if (EntryPrice != 0 && ClosePrice == 0)
@@ -1571,14 +1584,24 @@ namespace OsEngine.Entity
         public decimal Lots;
 
         /// <summary>
-        /// Price step cost
+        /// Security price step cost
         /// </summary>
         public decimal PriceStepCost;
 
         /// <summary>
-        /// Price step
+        /// Security price step
         /// </summary>
         public decimal PriceStep;
+
+        /// <summary>
+        /// Security margin buy
+        /// </summary>
+        public decimal MarginBuy;
+
+        /// <summary>
+        /// Security margin sell
+        /// </summary>
+        public decimal MarginSell;
 
         /// <summary>
         /// Portfolio size at the time of opening the portfolio

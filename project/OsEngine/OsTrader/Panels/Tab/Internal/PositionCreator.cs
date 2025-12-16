@@ -39,6 +39,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newDeal.Lots = security.Lot;
             newDeal.PriceStepCost = security.PriceStepCost;
             newDeal.PriceStep = security.PriceStep;
+            newDeal.MarginBuy = security.MarginBuy;
+            newDeal.MarginSell = security.MarginSell;
 
             if(startProgram == StartProgram.IsOsTrader)
             {
