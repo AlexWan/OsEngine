@@ -4,7 +4,7 @@
         Title="Securities" Height="700" Width="800" MinWidth="400" MinHeight="300" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5"/>
-        <WindowsFormsHost Name="HostLeverage" Margin="5,49,5,5"/>
+        <WindowsFormsHost Name="HostLeverage" Margin="5,49,5,40"/>
         <ComboBox Name="ComboBoxClass" HorizontalAlignment="Left" Margin="132,25,0,0" VerticalAlignment="Top" Width="179"/>
         <Label Name="LabelClass" Content="Class" HorizontalAlignment="Left" Margin="21,25,0,0" VerticalAlignment="Top" Width="81"/>
         <TextBox Name="TextBoxSearchLeverage" HorizontalAlignment="Left" Margin="355,25,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="164"/>
@@ -12,6 +12,9 @@
         <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="355,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
         <Label Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="415,5,0,0" VerticalAlignment="Top" Height="20"/>
         <Label Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="430,5,0,0" VerticalAlignment="Top" Height="20"/>
-        <Label Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="449,5,0,0" VerticalAlignment="Top" Height="20"/>        
+        <Label Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="449,5,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label Name="LabelLeverage" Content="Leverage" HorizontalAlignment="Left" Margin="550,25,0,0" VerticalAlignment="Top" Width="65"/>
+        <TextBox Name="TextBoxLeverage" HorizontalAlignment="Left" Margin="620,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40"/>
+        <Button Name="ButtonLoad" Content="Load from file" HorizontalAlignment="Center" Margin="0,0,0,10" VerticalAlignment="Bottom" Width="150" Height="20"/>
     </Grid>
 </Window>

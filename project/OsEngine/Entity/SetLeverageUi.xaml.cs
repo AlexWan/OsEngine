@@ -1,11 +1,16 @@
-﻿using OsEngine.Language;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
@@ -16,11 +21,16 @@ namespace OsEngine.Entity
     public partial class SetLeverageUi : Window
     {
         private IServer _server;
+
         private IServerRealization _serverRealization;
-        private ConcurrentQueue<SecurityLeverageData> _queueLeverage = new();
+
+        string _serverNameUnique;
+
         private decimal _defaultLeverage;
 
-        public SetLeverageUi(IServer server, IServerRealization serverRealization)
+        public event Action<SecurityLeverageData> SecurityLeverageDataEvent;
+
+        public SetLeverageUi(IServer server, IServerRealization serverRealization, string serverNameUnique)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -28,8 +38,15 @@ namespace OsEngine.Entity
 
             _server = server;
             _serverRealization = serverRealization;
+            _serverNameUnique = serverNameUnique;
                         
             GetDefaultLeverageParameters();
+
+            TextBoxLeverage.Text = _defaultLeverage.ToString();
+            TextBoxLeverage.TextChanged += TextBoxLeverage_TextChanged;
+
+            ButtonLoad.Content = OsLocalization.Entity.ButtonLoad;
+            ButtonLoad.Click += ButtonLoad_Click;
 
             UpdateClassComboBox();
             ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
@@ -53,11 +70,6 @@ namespace OsEngine.Entity
             TextBoxSearchLeverage.KeyDown += TextBoxSearchLeverage_KeyDown;
             ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
             ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
-
-            Thread worker = new Thread(ThreadSetLeverage);
-            worker.Start();
-
-            var ser = ServerMaster.GetServers();
         }
 
         private void GetDefaultLeverageParameters()
@@ -79,6 +91,8 @@ namespace OsEngine.Entity
 
         private void SetLeverageUi_Closed(object sender, EventArgs e)
         {
+            this.Closed -= SetLeverageUi_Closed;
+
             TextBoxSearchLeverage.MouseEnter -= TextBoxSearchLeverage_MouseEnter;
             TextBoxSearchLeverage.TextChanged -= TextBoxSearchLeverage_TextChanged;
             TextBoxSearchLeverage.MouseLeave -= TextBoxSearchLeverage_MouseLeave;
@@ -86,59 +100,53 @@ namespace OsEngine.Entity
             TextBoxSearchLeverage.KeyDown -= TextBoxSearchLeverage_KeyDown;
             ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
             ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+            TextBoxLeverage.TextChanged -= TextBoxLeverage_TextChanged;
+            ButtonLoad.Click -= ButtonLoad_Click;
 
-            _queueLeverage.Clear();
             _dgv.Rows.Clear();
             _dgv.CellValueChanged -= _dgv_CellValueChanged;
             _dgv.DataError -= _dgv_DataError;
+            _dgv.CellClick -= _dgv_CellClick;
             _dgv = null;
             HostLeverage.Child = null;
             _server = null;
             _serverRealization = null;
         }
 
-        private void ThreadSetLeverage()
+        private void TextBoxLeverage_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            while (true)
+            try
             {
-                try
+                decimal.TryParse(TextBoxLeverage.Text.ToString().Replace(".", ","), out _defaultLeverage);
+
+                for (int i = 1; i < _dgv.Rows.Count; i++)
                 {
-                    if(_serverRealization == null)
-                    {
-                        return;
-                    }
-
-                    if(_serverRealization.ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
-                    if (_queueLeverage == null ||
-                         _queueLeverage.Count == 0)
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
-                    SecurityLeverageData data = null;
-
-                    if (!_queueLeverage.TryDequeue(out data))
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    _server.SetLeverage(data.Security, data.Leverage);
-
-                    Thread.Sleep(200);
-                }
-                catch (Exception ex)
-                {
-                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                    _dgv.Rows[i].Cells[6].Value = _defaultLeverage;
                 }
             }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
+
+        private void ButtonLoad_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_dgv == null)
+                {
+                    return;
+                }
+
+                LoadLeverageFromFile();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
 
         private DataGridView _dgv;
 
@@ -151,6 +159,7 @@ namespace OsEngine.Entity
                 _dgv.Dock = DockStyle.Fill;
                 _dgv.ScrollBars = ScrollBars.Both;
                 _dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+                _dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
               
                 _dgv.ColumnCount = 7;
                 _dgv.RowCount = 0;
@@ -162,6 +171,9 @@ namespace OsEngine.Entity
                 _dgv.Columns[4].HeaderText = OsLocalization.Entity.SecuritiesColumn11; // Class
                 _dgv.Columns[5].HeaderText = OsLocalization.Entity.SecuritiesColumn2; // Type
                 _dgv.Columns[6].HeaderText = OsLocalization.Entity.LeverageColumn; // Leverage
+
+                DataGridViewButtonColumn button = new();
+                _dgv.Columns.Add(button);
 
                 foreach (DataGridViewColumn column in _dgv.Columns)
                 {
@@ -177,9 +189,75 @@ namespace OsEngine.Entity
 
                 _dgv.CellValueChanged += _dgv_CellValueChanged;
                 _dgv.DataError += _dgv_DataError;
+                _dgv.CellClick += _dgv_CellClick;
             }
             catch
             {                
+            }
+        }
+
+        private void _dgv_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {                
+                if (e.RowIndex > 0 && e.ColumnIndex == 7)
+                {
+                    decimal leverage = _defaultLeverage;
+
+                    if (!decimal.TryParse(_dgv.Rows[e.RowIndex].Cells[6].Value.ToString().Replace(".", ","), out leverage))
+                    {
+                        _dgv.Rows[e.RowIndex].Cells[6].Value = _defaultLeverage;
+                        leverage = _defaultLeverage;
+                    }
+
+                    for (int i = 0; i < _server.Securities.Count; i++)
+                    {
+                        Security sec = _server.Securities[i];
+
+                        if (sec.Name == _dgv.Rows[e.RowIndex].Cells[1].Value.ToString() &&
+                            sec.NameClass == _dgv.Rows[e.RowIndex].Cells[4].Value.ToString())
+                        {
+                            SecurityLeverageData data = new();
+                            data.Security = sec;
+                            data.Leverage = leverage;
+
+                            SecurityLeverageDataEvent(data);
+                        }
+                    }
+                }
+
+                if (e.RowIndex == 0 && e.ColumnIndex == 7)
+                {
+                    for (int i = 1; i < _dgv.Rows.Count; i++)
+                    {
+                        string name = _dgv.Rows[i].Cells[1].Value.ToString();
+                        string nameClass = _dgv.Rows[i].Cells[4].Value.ToString();
+
+                        decimal leverage = _defaultLeverage;
+
+                        if (!decimal.TryParse(_dgv.Rows[i].Cells[6].Value.ToString().Replace(".", ","), out leverage))
+                        {
+                            leverage = _defaultLeverage;
+                        }
+
+                        int index = _server.Securities.FindIndex(x => x.Name == name && x.NameClass == nameClass);
+
+                        if (index < 0)
+                        {
+                            continue;
+                        }
+
+                        SecurityLeverageData data = new();
+                        data.Security = _server.Securities[index];
+                        data.Leverage = leverage;
+
+                        SecurityLeverageDataEvent(data);
+                    }
+                }               
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -195,26 +273,11 @@ namespace OsEngine.Entity
                 if (e.ColumnIndex == 6 && e.RowIndex >= 0)
                 {                    
                     decimal leverage = _defaultLeverage;
-                    if (!decimal.TryParse(_dgv.Rows[e.RowIndex].Cells[6].Value.ToString().Replace(",", "."), out leverage))
+                    if (!decimal.TryParse(_dgv.Rows[e.RowIndex].Cells[6].Value.ToString().Replace(".", ","), out leverage))
                     {
                         _dgv.Rows[e.RowIndex].Cells[6].Value = _defaultLeverage;
                         return;
-                    }
-
-                    for (int i = 0; i < _server.Securities.Count; i++)
-                    {
-                        Security sec = _server.Securities[i];
-
-                        if (sec.Name == _dgv.Rows[e.RowIndex].Cells[1].Value.ToString() &&
-                            sec.NameClass == _dgv.Rows[e.RowIndex].Cells[4].Value.ToString())
-                        {
-                            SecurityLeverageData data = new();
-                            data.Security = sec;
-                            data.Leverage = leverage;
-
-                            _queueLeverage.Enqueue(data);                 
-                        }                       
-                    }
+                    }                    
                 }                
             }
             catch (Exception ex)
@@ -254,6 +317,20 @@ namespace OsEngine.Entity
 
                 List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
+                DataGridViewRow row = new DataGridViewRow();
+
+                for (int i = 0; i < 7; i++)
+                {
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                    row.Cells[i].Value = "";
+                    row.ReadOnly = true;
+                }
+
+                row.Cells.Add(new DataGridViewButtonCell());
+                row.Cells[7].Value = OsLocalization.ConvertToLocString("Eng:All accept_Ru:Принять всё_");
+
+                rows.Add(row);
+
                 for (int i = 0; i < _server.ListLeverageData.Count; i++)
                 {
                     SecurityLeverageData curSec = _server.ListLeverageData[i];
@@ -286,6 +363,9 @@ namespace OsEngine.Entity
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[6].Value = curSec.Leverage;
+
+                    nRow.Cells.Add(new DataGridViewButtonCell());
+                    nRow.Cells[7].Value = OsLocalization.Entity.ButtonAccept;
 
                     rows.Add(nRow);
                 }
@@ -387,6 +467,75 @@ namespace OsEngine.Entity
                 {
                     ComboBoxClass.SelectedItem = classes[1];
                 }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void LoadLeverageFromFile()
+        {
+            try
+            {
+                List<SecurityLeverageData> listLeverageFromFile = new ();
+
+                string fileName = _serverNameUnique + "_SecuritiesLeverage";
+
+                string filePath = @"Engine\ServerDopSettings\" + fileName + ".txt";
+
+                if (!File.Exists(filePath))
+                {
+                    return;
+                }
+
+                using (StreamReader reader = new StreamReader(filePath))
+                {
+                    string line;
+
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (!string.IsNullOrEmpty(line))
+                        {
+                            string[] split = line.Split('|');
+
+                            decimal leverage = 0;
+
+                            if (!decimal.TryParse(split[2].Replace(",", "."), out leverage))
+                            {
+                                leverage = _defaultLeverage;
+                            }
+
+                            int index = _server.Securities.FindIndex(x => x.Name == split[0] && x.NameClass == split[1]);
+
+                            if (index >= 0)
+                            {
+                                SecurityLeverageData list = new();
+                                list.Security = _server.Securities[index];
+                                list.Leverage = leverage;
+
+                                listLeverageFromFile.Add(list);
+                            }
+                        }
+                    }
+                    reader.Close();
+                }                
+
+                for (int i = 1; i < _dgv.Rows.Count; i++)
+                {
+                    string name = _dgv.Rows[i].Cells[1].Value.ToString();
+                    string nameClass = _dgv.Rows[i].Cells[4].Value.ToString();
+
+                    int index = listLeverageFromFile.FindIndex(x => x.Security.Name == name && x.Security.NameClass == nameClass);
+
+                    if (index < 0)
+                    {
+                        continue;
+                    }
+
+                    _dgv.Rows[i].Cells[6].Value = listLeverageFromFile[index].Leverage;
+                }
+
             }
             catch (Exception ex)
             {

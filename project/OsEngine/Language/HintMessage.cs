@@ -66,5 +66,9 @@ namespace OsEngine.Language
         public string HintMessageError5 => OsLocalization.ConvertToLocString(
             "Eng:The saving process was interrupted. One of the fields contains an invalid value: _" +
             "Ru:Процесс сохранения прерван. В одном из полей не допустимое значение: _");
+
+        public string HintMessageLeverageButton => OsLocalization.ConvertToLocString(
+            "Eng:Connect the Сonnector to the exchange and wait for the instruments to connect. The window will then become available._" +
+            "Ru:Сначала подключите коннектор к бирже и дождитесь подключения инструментов. Потом окно станет доступным._");
     }
 }
