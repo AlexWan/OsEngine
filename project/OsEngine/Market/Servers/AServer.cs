@@ -1127,12 +1127,17 @@ namespace OsEngine.Market.Servers
 
                         LastStartServerTime = DateTime.Now;
 
-                        NeedToReconnectEvent?.Invoke();
-
+                        if(NeedToReconnectEvent != null)
+                        {
+                            Thread worker = new Thread(SendReconnectEvent);
+                            worker.Start();
+                        }
+                       
                         continue;
                     }
 
-                    if (ServerRealization.ServerStatus == ServerConnectStatus.Connect && _serverStatusNeed == ServerConnectStatus.Disconnect)
+                    if (ServerRealization.ServerStatus == ServerConnectStatus.Connect 
+                        && _serverStatusNeed == ServerConnectStatus.Disconnect)
                     {
                         SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
                         ServerRealization.Dispose();
@@ -1162,7 +1167,10 @@ namespace OsEngine.Market.Servers
                     if (_securities == null || Securities.Count == 0)
                     {
                         ServerRealization.GetSecurities();
+                        
                     }
+
+                    //throw new Exception("");
 
                     GetNonTradePeriod();
 
@@ -1195,19 +1203,15 @@ namespace OsEngine.Market.Servers
 
                     DeleteCandleManager();
 
-                    await Task.Delay(5000);
+                    await Task.Delay(2000);
 
-                    try
+                    if (NeedToReconnectEvent != null)
                     {
-                        if (NeedToReconnectEvent != null)
-                        {
-                            NeedToReconnectEvent();
-                        }
+                        Thread worker = new Thread(SendReconnectEvent);
+                        worker.Start();
                     }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage(ex.ToString(), LogMessageType.Error);
-                    }
+
+                    await Task.Delay(3000);
                 }
             }
         }
@@ -1248,6 +1252,21 @@ namespace OsEngine.Market.Servers
             catch(Exception ex)
             {
                 SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
+        private void SendReconnectEvent()
+        {
+            try
+            {
+                if (NeedToReconnectEvent != null)
+                {
+                    NeedToReconnectEvent();
+                }
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

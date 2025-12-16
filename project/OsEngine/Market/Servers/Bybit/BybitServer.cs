@@ -276,19 +276,16 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    lock (_httpClientLocker)
-                    {
-                        httpClient?.Dispose();
-                        httpClientHandler?.Dispose();
-                    }
-
-                    httpClient = null;
-                    httpClientHandler = null;
+                    httpClient?.Dispose();
+                    httpClientHandler?.Dispose();
                 }
                 catch (Exception ex)
                 {
                     SendLogMessage(ex.Message, LogMessageType.Error);
                 }
+
+                httpClient = null;
+                httpClientHandler = null;
             }
             catch
             {
