@@ -821,30 +821,6 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private decimal GetVolumeStepByVolumeDecimals(int volumeDecimals)
-        {
-            if (volumeDecimals == 0)
-            {
-                return 1;
-            }
-
-            string result = "0.";
-
-            for (int i = 0; i < volumeDecimals; i++)
-            {
-                if (i + 1 == volumeDecimals)
-                {
-                    result += "1";
-                }
-                else
-                {
-                    result += "0";
-                }
-            }
-
-            return result.ToDecimal();
-        }
-
         #endregion 3
 
         #region 4 Portfolios
@@ -1287,7 +1263,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         #region 5 Data
 
-        private RateGate _rateGateGetCandleHistory = new RateGate(5, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(50));
         private string _rateGateGetCandleHistoryLocker = "_rateGateGetCandleHistoryLocker";
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
@@ -1297,12 +1273,11 @@ namespace OsEngine.Market.Servers.Bybit
                 return new List<Candle>(); // no option history
             }
 
-            lock (_rateGateGetCandleHistoryLocker)
-            {
-                _rateGateGetCandleHistory.WaitToProceed();
-            }
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime endTime = DateTime.UtcNow;
+            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
-            return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, false, DateTime.UtcNow, candleCount);
+            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
         }
 
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, DateTime timeEnd, int CountToLoad)
@@ -1363,6 +1338,11 @@ namespace OsEngine.Market.Servers.Bybit
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            lock (_rateGateGetCandleHistoryLocker)
+            {
+                _rateGateGetCandleHistory.WaitToProceed();
+            }
+
             try
             {
                 if (actualTime < startTime || actualTime > endTime)
@@ -1438,11 +1418,6 @@ namespace OsEngine.Market.Servers.Bybit
             return null;
         }
 
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
-        }
-
         private List<Candle> GetListCandles(string candlesQuery)
         {
             List<Candle> candles = new List<Candle>();
@@ -1506,6 +1481,11 @@ namespace OsEngine.Market.Servers.Bybit
             dictionary.Add(1440, "D");
 
             return dictionary;
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
         }
 
         #endregion 5
@@ -4862,7 +4842,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         #endregion 12
 
-            #region 13 Log
+        #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
