@@ -8,6 +8,7 @@ using OsEngine.Market.Servers.Entity;
 using System.IO;
 using System.Net.Http;
 using System.Net;
+using System.Threading;
 
 namespace OsEngine.Market.Servers.Polygon
 {
@@ -99,7 +100,7 @@ namespace OsEngine.Market.Servers.Polygon
             {               
                 _rateGateFreePlan.WaitToProceed();                
 
-                HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + $"/v3/trades/AAPL?limit=10&apiKey={_apiKey}").Result;
+                HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + $"/v3/reference/dividends?limit=10&apiKey={_apiKey}").Result;
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 RestResponceMessage<ResponceTrades> response = JsonConvert.DeserializeObject<RestResponceMessage<ResponceTrades>>(json);
@@ -176,7 +177,7 @@ namespace OsEngine.Market.Servers.Polygon
 
         private HttpClient _httpClient = new HttpClient();
 
-        private string _baseUrl = "https://api.polygon.io";
+        private string _baseUrl = "https://api.massive.com";
 
         private bool _loadTickers;
 
@@ -326,7 +327,7 @@ namespace OsEngine.Market.Servers.Polygon
             }
             catch (Exception e)
             {
-                SendLogMessage(e.Message, LogMessageType.Error);
+                SendLogMessage("GetSecurityData:" + e.Message, LogMessageType.Error);
             }
         }
 
@@ -496,7 +497,7 @@ namespace OsEngine.Market.Servers.Polygon
 
                 if (response.status == "NOT_AUTHORIZED")
                 {
-                    SendLogMessage(response.message, LogMessageType.Error);
+                    SendLogMessage($"GetCandleDataToSecurity: Don't load data from {fromData} to {toData}. " + response.message, LogMessageType.System);
                     return null;
                 }
 
