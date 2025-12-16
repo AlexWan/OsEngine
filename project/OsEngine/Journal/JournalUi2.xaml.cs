@@ -2391,29 +2391,47 @@ namespace OsEngine.Journal
 
                     if (indexOpen != -1)
                     {
-                        if(pos.Lots != 0)
+                        decimal volumeInPos = pos.MaxVolume * pos.EntryPrice;
+
+                        if(pos.Direction == Side.Buy && pos.MarginBuy != 0)
                         {
-                            volume[indexOpen] += pos.MaxVolume * pos.EntryPrice * pos.Lots;
+                            volumeInPos = pos.MaxVolume * pos.MarginBuy;
                         }
-                        else
+                        if (pos.Direction == Side.Sell && pos.MarginSell != 0)
                         {
-                            volume[indexOpen] += pos.MaxVolume * pos.EntryPrice;
+                            volumeInPos = pos.MaxVolume * pos.MarginSell;
                         }
-                            
+
+                        if (pos.Lots != 0)
+                        {
+                            volumeInPos = volumeInPos * pos.Lots;
+                        }
+
+                        volume[indexOpen] += volumeInPos;
+
                         deposit[indexOpen] = pos.PortfolioValueOnOpenPosition;
                     }
 
                     if (pos.State == PositionStateType.Done
                         && indexClose != -1)
                     {
+                        decimal volumeInPos = pos.MaxVolume * pos.EntryPrice;
+
+                        if (pos.Direction == Side.Buy && pos.MarginBuy != 0)
+                        {
+                            volumeInPos = pos.MaxVolume * pos.MarginBuy;
+                        }
+                        if (pos.Direction == Side.Sell && pos.MarginSell != 0)
+                        {
+                            volumeInPos = pos.MaxVolume * pos.MarginSell;
+                        }
+
                         if (pos.Lots != 0)
                         {
-                            volume[indexClose] -= pos.MaxVolume * pos.EntryPrice * pos.Lots;
+                            volumeInPos = volumeInPos * pos.Lots;
                         }
-                        else
-                        {
-                            volume[indexClose] -= pos.MaxVolume * pos.EntryPrice;
-                        }
+
+                        volume[indexClose] -= volumeInPos;
                         
                         deposit[indexClose] = pos.PortfolioValueOnOpenPosition;
                     }

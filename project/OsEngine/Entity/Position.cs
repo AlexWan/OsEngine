@@ -6,6 +6,8 @@
 using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.TraderNet.Entity;
+using OsEngine.Market.Servers.YahooFinance.Entity;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -373,7 +375,7 @@ namespace OsEngine.Entity
         public string SignalTypeProfit;
 
         /// <summary>
-        /// Maximum volume by position
+        /// Maximum volume by position in QTY
         /// </summary>
         public decimal MaxVolume
         {
