@@ -2062,53 +2062,58 @@ namespace OsEngine.Market.Servers.TInvest
                         _rateGateSubscribe.WaitToProceed();
                     }
 
-                    // 3 Переподписываем поток Стаканов
+                    // 3 Переподписываем поток Стаканов. Ограничение - 100 за раз
 
                     if (_marketDataRequestsOrderBook.Count > 0)
                     {
-                        _rateGateSubscribe.WaitToProceed();
-
-                        MarketDataRequest marketDataRequest = new MarketDataRequest();
-
-                        SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest
+                        for(int i = 0; i < _marketDataRequestsOrderBook.Count; i += 90)
                         {
-                            SubscriptionAction = SubscriptionAction.Subscribe
-                        };
+                            _rateGateSubscribe.WaitToProceed();
 
-                        for (int i = 0; i < _marketDataRequestsOrderBook.Count; i++)
-                        {
-                            subscribeOrderBookRequest.Instruments.Add(_marketDataRequestsOrderBook[i].Instruments[0]);
+                            MarketDataRequest marketDataRequest = new MarketDataRequest();
+
+                            SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest
+                            {
+                                SubscriptionAction = SubscriptionAction.Subscribe
+                            };
+
+                            for (int j = i; j < _marketDataRequestsOrderBook.Count && j < i + 90; j++)
+                            {
+                                subscribeOrderBookRequest.Instruments.Add(_marketDataRequestsOrderBook[j].Instruments[0]);
+                            }
+
+                            marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
+                            _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
                         }
-
-                        marketDataRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
-                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-
                     }
 
-                    // 3 Переподписываем поток Трейдов из ленты сделок
+                    // 3 Переподписываем поток Трейдов из ленты сделок. Ограничение - 100 за раз
 
                     if (_marketDataRequestsTrades.Count > 0)
                     {
-                        _rateGateSubscribe.WaitToProceed();
-                        MarketDataRequest marketDataRequest = new MarketDataRequest();
-
-                        SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest
+                        for (int i = 0; i < _marketDataRequestsTrades.Count; i += 90)
                         {
-                            SubscriptionAction = SubscriptionAction.Subscribe,
-                            TradeSource = _filterOutDealerTrades
-                                ? TradeSourceType.TradeSourceExchange
-                                : TradeSourceType.TradeSourceAll,
-                            WithOpenInterest = true
-                        };
+                            _rateGateSubscribe.WaitToProceed();
+                            MarketDataRequest marketDataRequest = new MarketDataRequest();
 
-                        for (int i = 0; i < _marketDataRequestsTrades.Count; i++)
-                        {
-                            subscribeTradesRequest.Instruments.Add(_marketDataRequestsTrades[i].Instruments[0]);
+                            SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest
+                            {
+                                SubscriptionAction = SubscriptionAction.Subscribe,
+                                TradeSource = _filterOutDealerTrades
+                                    ? TradeSourceType.TradeSourceExchange
+                                    : TradeSourceType.TradeSourceAll,
+                                WithOpenInterest = true
+                            };
+
+                            for (int j = i; j < _marketDataRequestsTrades.Count && j < i + 90; j++)
+                            {
+                                subscribeTradesRequest.Instruments.Add(_marketDataRequestsTrades[j].Instruments[0]);
+                            }
+
+                            marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
+
+                            _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
                         }
-
-                        marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
-
-                        _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
                     }
                 }
             }
