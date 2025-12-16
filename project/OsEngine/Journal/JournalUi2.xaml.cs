@@ -2402,7 +2402,7 @@ namespace OsEngine.Journal
                             volumeInPos = pos.MaxVolume * pos.MarginSell;
                         }
 
-                        if (pos.Lots != 0)
+                        if (pos.Lots != 0 && pos.Lots != 1)
                         {
                             volumeInPos = volumeInPos * pos.Lots;
                         }
@@ -2426,7 +2426,7 @@ namespace OsEngine.Journal
                             volumeInPos = pos.MaxVolume * pos.MarginSell;
                         }
 
-                        if (pos.Lots != 0)
+                        if (pos.Lots != 0 && pos.Lots != 1)
                         {
                             volumeInPos = volumeInPos * pos.Lots;
                         }

@@ -6,8 +6,6 @@
 using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.TraderNet.Entity;
-using OsEngine.Market.Servers.YahooFinance.Entity;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -1556,15 +1554,25 @@ namespace OsEngine.Entity
                 {
                     if (EntryPrice != 0 && ClosePrice == 0)
                     {
-                        commissionTotal = volume * EntryPrice * (CommissionValue / 100);
+                        commissionTotal = volume * EntryPrice;
                     }
                     else if (EntryPrice != 0 && ClosePrice != 0)
                     {
-                        commissionTotal = volume * EntryPrice * (CommissionValue / 100) +
-                                          volume * ClosePrice * (CommissionValue / 100);
+                        commissionTotal = volume * EntryPrice +
+                                          volume * ClosePrice;
                     }
+
+                    if(PriceStep != 0
+                        && PriceStepCost != 0
+                        && PriceStep != PriceStepCost)
+                    {
+                        commissionTotal = (commissionTotal / PriceStep) * PriceStepCost;
+                    }
+
+                    commissionTotal = commissionTotal * (CommissionValue / 100);
+
                 }
-                if (CommissionType == CommissionType.OneLotFix)
+                else if (CommissionType == CommissionType.OneLotFix)
                 {
                     if (EntryPrice != 0 && ClosePrice == 0)
                     {
