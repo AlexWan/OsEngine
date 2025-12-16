@@ -4836,8 +4836,8 @@ namespace OsEngine.Market.Servers.Bybit
                     parameters.Clear();
                     parameters["category"] = category;
                     parameters["symbol"] = security.Name.Split(".")[0];
-                    parameters["buyLeverage"] = leverage.ToString();
-                    parameters["sellLeverage"] = leverage.ToString();
+                    parameters["buyLeverage"] = leverage.ToString().Replace(",", ".");
+                    parameters["sellLeverage"] = leverage.ToString().Replace(",", ".");
 
                     response = CreatePrivateQuery(parameters, HttpMethod.Post, "/v5/position/set-leverage");
                 }
@@ -4851,18 +4851,18 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (jsonResponce.retMsg != "OK")
                 {
-                    SendLogMessage($"SetLeverage: {jsonResponce.retMsg}", LogMessageType.Error);
+                    SendLogMessage($"SetLeverage: {security.Name} - {jsonResponce.retMsg}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage($"SetLeverage: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"SetLeverage: {security.Name} - {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
         #endregion 12
 
-        #region 13 Log
+            #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
 

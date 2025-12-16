@@ -4585,6 +4585,8 @@ namespace OsEngine.Market.Servers
 
         private List<SecurityLeverageData> _listLeverageData = new();
 
+        private ConcurrentQueue<SecurityLeverageData> _queueLeverage = new();
+
         private void GetListLeverageTask()
         {
             try
@@ -4599,14 +4601,35 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    GetListLeverage();
-
-                    if (ListLeverageData.Count > 0)
+                    if (ListLeverageData.Count == 0)
                     {
-                        break;
+                        GetListLeverage();
                     }
 
-                    Thread.Sleep(1000);
+                    if (_serverRealization.ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_queueLeverage == null ||
+                         _queueLeverage.Count == 0)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    SecurityLeverageData data = null;
+
+                    if (!_queueLeverage.TryDequeue(out data))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    SetLeverage(data.Security, data.Leverage);
+
+                    Thread.Sleep(1);
                 }
             }
             catch (Exception ex)
@@ -4818,15 +4841,31 @@ namespace OsEngine.Market.Servers
             {
                 if (_listLeverageData == null || _listLeverageData.Count == 0)
                 {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLeverageButton);
+                    ui.ShowDialog();
+
                     return;
                 }
 
                 if (_leverageUi == null)
                 {
-                    _leverageUi = new SetLeverageUi(this, _serverRealization);
+                    _leverageUi = new SetLeverageUi(this, _serverRealization, ServerNameUnique);
                     _leverageUi.Show();
                     _leverageUi.Closed += _leverageUi_Closed;
+                    _leverageUi.SecurityLeverageDataEvent += _leverageUi_SecurityLeverageDataEvent;
                 }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _leverageUi_SecurityLeverageDataEvent(SecurityLeverageData data)
+        {
+            try
+            {
+                _queueLeverage.Enqueue(data);
             }
             catch (Exception ex)
             {
@@ -4837,6 +4876,7 @@ namespace OsEngine.Market.Servers
         private void _leverageUi_Closed(object sender, EventArgs e)
         {
             _leverageUi.Closed -= _securitiesUi_Closed;
+            _leverageUi.SecurityLeverageDataEvent -= _leverageUi_SecurityLeverageDataEvent;
             _leverageUi = null;
         }
 
