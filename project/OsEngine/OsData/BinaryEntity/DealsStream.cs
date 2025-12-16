@@ -1,5 +1,6 @@
 ﻿using OsEngine.Entity;
 using OsEngine.Market.Servers.Entity;
+using System;
 
 namespace OsEngine.OsData.BinaryEntity
 {
@@ -39,9 +40,13 @@ namespace OsEngine.OsData.BinaryEntity
             trade.Price = lastPrice * priceStep;
             trade.Side = (Side)(flags & DealFlags.Type);
             trade.Volume = lastVolume * volumeStep;
-            trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
 
-            trade.OpenInterest = lastOI;
+            if (lastMilliseconds == 0)
+                trade.Time = DateTime.MinValue;
+            else
+                trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(lastMilliseconds);
+
+                trade.OpenInterest = lastOI;
 
             return trade;
         }
