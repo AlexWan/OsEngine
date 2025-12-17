@@ -363,15 +363,6 @@ namespace OsEngine.OsData
 
                     if (isRowWithManageButtons)
                     {
-
-                    }
-                }
-                else if (columnIndex == 7)
-                { // delete
-
-                    if (isRowWithManageButtons)
-                    {
-                        // временно кнопка настройки
                         try
                         {
                             int rowGridSetsIndex = _masterPainter.GridSets.CurrentCell.RowIndex;
@@ -395,11 +386,11 @@ namespace OsEngine.OsData
                         }
                     }
                 }
-                else if (columnIndex == 8)
-                { // cut
+                else if (columnIndex == 7)
+                {
+                    // delete
                     if (isRowWithManageButtons)
                     {
-                        // временно кнопка удалить
                         try
                         {
                             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label9);
@@ -407,6 +398,7 @@ namespace OsEngine.OsData
 
                             if (ui.UserAcceptAction == false)
                             {
+                                RePaintInterface();
                                 return;
                             }
 
@@ -430,19 +422,28 @@ namespace OsEngine.OsData
                         }
                     }
                 }
-                else if (columnIndex == 9)
-                { // copying
-
-                    // временно кнопака обрезать
-                    if (isRowWithManageButtons)
+                else if (columnIndex == 8)
+                {
+                    // cut
+                    if (isRowWithManageButtons && _set.SecuritiesLoad.Count > 0)
                     {
-                        if (_set.SecuritiesLoad.Count > 0)
-                        {
-                            DataPrunerUi ui = new DataPrunerUi(_set, this);
-                            ui.Show();
-                            return;
-                        }
+                        DataPrunerUi ui = new DataPrunerUi(_set, this);
+                        ui.Show();
 
+                        RePaintInterface();
+                        return;
+                    }
+                }
+                else if (columnIndex == 9)
+                {
+                    // copying
+                    if (isRowWithManageButtons && _set.SecuritiesLoad.Count > 0)
+                    {
+                        SetDuplicationUi ui = new SetDuplicationUi(_set);
+                        ui.Show();
+
+                        RePaintInterface();
+                        return;
                     }
                 }
                 else if (columnIndex == 10)
@@ -463,17 +464,14 @@ namespace OsEngine.OsData
                         isClickOnShowHideSecs = true;
                     }
 
-                    if (isRowWithManageButtons)
-                    { // update set
+                    if (isRowWithManageButtons && _set.SecuritiesLoad.Count > 0)
+                    {
+                        // update set
+                        SetUpdatingUi ui = new SetUpdatingUi(_set);
+                        ui.Show();
 
-                        // временно кнопка дублировать
-
-                        if (_set.SecuritiesLoad.Count > 0)
-                        {
-                            SetDuplicationUi ui = new SetDuplicationUi(_set);
-                            ui.Show();
-                            return;
-                        }
+                        RePaintInterface();
+                        return;
                     }
                     else if (isClickOnShowHideSecs)
                     { // скрыть/раскрыть бумаги
@@ -805,27 +803,27 @@ namespace OsEngine.OsData
                 rows[0].Cells.Add(new DataGridViewTextBoxCell() { Value = "" });
             }
 
-            for (int i = 0; i <= 6; i++)
+            for (int i = 0; i <= 5; i++)
             {
                 rows[1].Cells.Add(new DataGridViewTextBoxCell() { Value = "" });
             }
 
-            for (int i = 7; i <= 11; i++)
+            for (int i = 6; i <= 11; i++)
             {
                 DataGridViewButtonCell buttonCell = new DataGridViewButtonCell();
 
                 switch (i)
                 {
-                    case 7:
+                    case 6:
                         buttonCell.Value = OsLocalization.Data.Label61; break; //Настройки
-                    case 8:
+                    case 7:
                         buttonCell.Value = OsLocalization.Data.Label8; break; // удалить
-                    case 9:
+                    case 8:
                         buttonCell.Value = OsLocalization.Data.Label73; break; // "Обрезать"
+                    case 9:
+                        buttonCell.Value = OsLocalization.Data.Label79; break; // Дублировать
                     case 10:
-                        buttonCell.Value = OsLocalization.Data.Label79; break;
-                    //case 10:
-                    //    buttonCell.Value = "Обновление"; break;
+                        buttonCell.Value = OsLocalization.Data.Label92; break; // Обновление
                     case 11:
                         buttonCell.Value = "+LQDT"; break;
                 }

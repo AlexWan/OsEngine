@@ -149,6 +149,11 @@ namespace OsEngine.OsData
 
                 IsThereDublicate = false;
             }
+
+            if (Updater != null)
+            {
+                Updater = null;
+            }
         }
 
         private bool _isDeleted = false;
@@ -399,6 +404,8 @@ namespace OsEngine.OsData
 
         public bool IsThereDublicate { get; set; }
 
+        public SetUpdater Updater { get; set; }
+
         #endregion
 
         #region Data loading
@@ -501,6 +508,68 @@ namespace OsEngine.OsData
                     }
 
                     Dublicator.TimeLastCheckSet = DateTime.Now;
+                }
+            }
+
+            if (Updater != null && Updater.Regime == "On")
+            {
+                if (!Updater.IsUpdateProcess)
+                {
+                    if (DateTime.Now >= Updater.TimeNextUpdate)
+                    {
+                        if (BaseSettings.TimeEnd < DateTime.Now.Date)
+                        {
+                            BaseSettings.TimeEnd = DateTime.Today;
+                        }
+
+                        BaseSettings.NeedToUpdate = true;
+
+                        if (SecuritiesLoad != null)
+                        {
+                            for (int i = 0; i < SecuritiesLoad.Count; i++)
+                            {
+                                SecuritiesLoad[i].CopySettingsFromParam(BaseSettings);
+                            }
+                        }
+
+                        Save();
+
+                        Updater.IsUpdateProcess = true;
+
+                        Updater.TimeNextUpdate = Updater.TimeNextUpdate.Add(Updater.UpdatePeriod);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < SecuritiesLoad.Count; i++)
+                    {
+                        for (int j = 0; j < SecuritiesLoad[i].SecLoaders.Count; j++)
+                        {
+                            if (SecuritiesLoad[i].SecLoaders[j].Status == SecurityLoadStatus.Loading
+                                || SecuritiesLoad[i].SecLoaders[j].Status == SecurityLoadStatus.Activate)
+                                return;
+
+                            for (int k = 0; k < SecuritiesLoad[i].SecLoaders[j].DataPies.Count; k++)
+                            {
+                                if (SecuritiesLoad[i].SecLoaders[j].DataPies[k].Status == DataPieStatus.InProcess)
+                                    return;
+                            }
+                        }
+                    }
+
+                    BaseSettings.NeedToUpdate = false;
+
+                    if (SecuritiesLoad != null)
+                    {
+                        for (int i = 0; i < SecuritiesLoad.Count; i++)
+                        {
+                            SecuritiesLoad[i].CopySettingsFromParam(BaseSettings);
+                        }
+                    }
+
+                    Save();
+
+                    Updater.IsUpdateProcess = false;
                 }
             }
         }
@@ -3664,5 +3733,20 @@ namespace OsEngine.OsData
                 // ignore
             }
         }
+    }
+
+    public class SetUpdater()
+    {
+        public string Regime { get; set; }
+
+        public string Period { get; set; }
+
+        public int HourUpdate { get; set; }
+
+        public TimeSpan UpdatePeriod { get; set; }
+
+        public DateTime TimeNextUpdate { get; set; }
+
+        public bool IsUpdateProcess { get; set; }
     }
 }
