@@ -406,7 +406,7 @@ namespace OsEngine.OsData
         private void DeleteWrongSecurities(List<SecurityToLoad> wrongSecurities)
         {
             string secList = string.Join(", ", wrongSecurities.ConvertAll(security => security.SecName));
-   
+
             string attentionMsg = $"{OsLocalization.Data.Label76.Split('.')[0]}:\n{secList}\n{OsLocalization.Data.Label76.Split('.')[1]}";
 
             AcceptDialogUi ui = new AcceptDialogUi(attentionMsg);
@@ -419,9 +419,16 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < wrongSecurities.Count; i++)
             {
-                _set.SecuritiesLoad.Remove(wrongSecurities[i]);
+                int index = _set.SecuritiesLoad.IndexOf(wrongSecurities[i]);
+
+                if (index != -1)
+                {
+                    _set.SecuritiesLoad[index].Delete();
+                    _set.SecuritiesLoad.RemoveAt(index);
+                }
             }
 
+            _set.Save();
             _setPainter.RePaintInterface();
 
             Close();
