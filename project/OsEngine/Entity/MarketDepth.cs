@@ -44,10 +44,19 @@ namespace OsEngine.Entity
             get
             {
                 decimal vol = 0;
-                for (int i = 0; Asks != null && i < Asks.Count; i++)
+                
+                try
                 {
-                    vol += Asks[i].Ask.ToDecimal();
+                    for (int i = 0; Asks != null && i < Asks.Count; i++)
+                    {
+                        vol += Asks[i].Ask.ToDecimal();
+                    }
                 }
+                catch
+                {
+                    return vol;
+                }
+
                 return vol;
             }
         }
@@ -60,10 +69,19 @@ namespace OsEngine.Entity
             get
             {
                 decimal vol = 0;
-                for (int i = 0; Bids != null && i < Bids.Count; i++)
+
+                try
                 {
-                    vol += Bids[i].Bid.ToDecimal();
+                    for (int i = 0; Bids != null && i < Bids.Count; i++)
+                    {
+                        vol += Bids[i].Bid.ToDecimal();
+                    }
                 }
+                catch
+                {
+                    return vol;
+                }
+
                 return vol;
             }
         }
