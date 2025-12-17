@@ -3263,21 +3263,14 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                 }
 
-                int _depthDeep = marketDepthDeep;
-
-                if (marketDepthDeep > 20)
+                while (marketDepth.Asks.Count > 25)
                 {
-                    _depthDeep = 20;
+                    marketDepth.Asks.RemoveAt(marketDepth.Asks.Count - 1);
                 }
 
-                while (marketDepth.Asks.Count > _depthDeep)
+                while (marketDepth.Bids.Count > 25)
                 {
-                    marketDepth.Asks.RemoveAt(_depthDeep);
-                }
-
-                while (marketDepth.Bids.Count > _depthDeep)
-                {
-                    marketDepth.Bids.RemoveAt(_depthDeep);
+                    marketDepth.Bids.RemoveAt(marketDepth.Bids.Count - 1);
                 }
 
                 if (marketDepth.Asks.Count == 0)
