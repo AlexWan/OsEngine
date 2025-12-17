@@ -685,14 +685,14 @@ namespace OsEngine.Entity
     public enum OrderTypeTime
     {
         /// <summary>
-        ///  Order will be in the queue until it is withdrawn
-        /// </summary>
-        GTC,
-
-        /// <summary>
         /// Order will be valid for as long as specified in the LifeTime variable
         /// </summary>
         Specified,
+
+        /// <summary>
+        ///  Order will be in the queue until it is withdrawn
+        /// </summary>
+        GTC,
 
         /// <summary>
         /// Order will be throughout the day. 

@@ -497,7 +497,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Order lifetime type
         /// </summary>
-        public OrderTypeTime OrderTypeTime;
+        public OrderTypeTime OrderTypeTime = OrderTypeTime.Specified;
 
         public bool LimitsMakerOnly = false;
 
