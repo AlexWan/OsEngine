@@ -5517,16 +5517,16 @@ namespace OsEngine.Market.Servers.Tester
                         return;
                     }
 
-                    if (_isFirstFrame && LastTrade != null && LastTrade.Time <= now)
+                    if (_isFirstFrame && LastTrade != null && LastTradeTime <= now)
                     {
                         lastTradesSeries.Add(LastTrade);
                         LastTrade = null;
                     }
-                    else if (LastTrade != null && LastTrade.Time > now)
+                    else if (LastTrade != null && LastTradeTime > now)
                     {
                         return;
                     }
-                    else if (NewMarketDepthTradeEvent != null && LastTrade != null && LastTrade.Time == now)
+                    else if (NewMarketDepthTradeEvent != null && LastTrade != null && LastTradeTime == now)
                     {
                         lastTradesSeries.Add(LastTrade);
                         LastTradeSeries = lastTradesSeries;
@@ -5596,17 +5596,16 @@ namespace OsEngine.Market.Servers.Tester
                         Trade trade = new Trade();
 
                         trade = _dealsStream.Read(_binaryReaderMarketDepth, Security.PriceStep, Security.VolumeStep);
-                        trade.Time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
                         trade.SecurityNameCode = Security.Name;
                         trade.IdInTester = ++_tradesId;
 
                         LastTrade = trade;
                         LastDateTime = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
-                        LastTradeTime = trade.Time;
+                        LastTradeTime = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastMilliseconds);
 
                         if (_isFirstFrame)
                         {
-                            if (trade.Time <= now)
+                            if (LastTradeTime <= now)
                             {
                                 continue;
                             }
