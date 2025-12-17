@@ -3139,82 +3139,129 @@ namespace OsEngine.Market.Servers.Bybit
                     marketDepth.Bids.Clear();
                 }
 
-                if (responseDepth.data.a.Length > 1)
+                if (responseDepth.data.a != null
+                    && responseDepth.data.a.Length > 1)
                 {
                     for (int i = 0; i < (responseDepth.data.a.Length / 2); i++)
                     {
                         double.TryParse(responseDepth.data.a[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out double aPrice);
                         double.TryParse(responseDepth.data.a[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out double aAsk);
 
-                        if (marketDepth.Asks.Exists(a => a.Price == aPrice))
+                        int index = -1;
+
+                        for (int j = 0; j < marketDepth.Asks.Count; j++)
                         {
-                            if (aAsk == 0)
+                            if (marketDepth.Asks[j].Price == aPrice)
                             {
-                                marketDepth.Asks.RemoveAll(a => a.Price == aPrice);
+                                index = j;
+                                break;
                             }
-                            else
+                        }
+
+                        if (aAsk == 0)
+                        {
+                            if (index >= 0)
                             {
-                                for (int j = 0; j < marketDepth.Asks.Count; j++)
-                                {
-                                    if (marketDepth.Asks[j].Price == aPrice)
-                                    {
-                                        marketDepth.Asks[j].Ask = aAsk;
-                                        break;
-                                    }
-                                }
+                                marketDepth.Asks.RemoveAt(index);
                             }
                         }
                         else
                         {
-                            MarketDepthLevel marketDepthLevel = new MarketDepthLevel();
-                            marketDepthLevel.Ask = aAsk;
-                            marketDepthLevel.Price = aPrice;
-                            marketDepth.Asks.Add(marketDepthLevel);
-                            marketDepth.Asks.RemoveAll(a => a.Ask == 0);
-                            marketDepth.Bids.RemoveAll(a => a.Price == aPrice && aPrice != 0);
-                            SortAsks(marketDepth.Asks);
+                            if (index >= 0)
+                            {
+                                marketDepth.Asks[index].Ask = aAsk;
+                            }
+                            else
+                            {
+                                marketDepth.Asks.Add(new MarketDepthLevel { Price = aPrice, Ask = aAsk });
+                                marketDepth.Asks.RemoveAll(a => a.Ask == 0);
+                            }
                         }
                     }
+
+                    SortAsks(marketDepth.Asks);
                 }
-                if (responseDepth.data.b.Length > 1)
+
+                if (responseDepth.data.b != null
+                    && responseDepth.data.b.Length > 1)
                 {
                     for (int i = 0; i < (responseDepth.data.b.Length / 2); i++)
                     {
                         double.TryParse(responseDepth.data.b[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out double bPrice);
                         double.TryParse(responseDepth.data.b[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out double bBid);
 
-                        if (marketDepth.Bids.Exists(b => b.Price == bPrice))
+                        int index = -1;
+
+                        for (int j = 0; j < marketDepth.Bids.Count; j++)
                         {
-                            if (bBid == 0)
+                            if (marketDepth.Bids[j].Price == bPrice)
                             {
-                                marketDepth.Bids.RemoveAll(b => b.Price == bPrice);
+                                index = j;
+                                break;
                             }
-                            else
+                        }
+
+                        if (bBid == 0)
+                        {
+                            if (index >= 0)
                             {
-                                for (int j = 0; j < marketDepth.Bids.Count; j++)
-                                {
-                                    if (marketDepth.Bids[j].Price == bPrice)
-                                    {
-                                        marketDepth.Bids[j].Bid = bBid;
-                                        break;
-                                    }
-                                }
+                                marketDepth.Bids.RemoveAt(index);
                             }
                         }
                         else
                         {
-                            MarketDepthLevel marketDepthLevel = new MarketDepthLevel();
-                            marketDepthLevel.Bid = bBid;
-                            marketDepthLevel.Price = bPrice;
-                            marketDepth.Bids.Add(marketDepthLevel);
-                            marketDepth.Bids.RemoveAll(a => a.Bid == 0);
-                            marketDepth.Asks.RemoveAll(a => a.Price == bPrice && bPrice != 0);
-                            SortBids(marketDepth.Bids);
+                            if (index >= 0)
+                            {
+                                marketDepth.Bids[index].Bid = bBid;
+                            }
+                            else
+                            {
+                                marketDepth.Bids.Add(new MarketDepthLevel { Price = bPrice, Bid = bBid });
+                                marketDepth.Bids.RemoveAll(b => b.Bid == 0);
+                            }
+                        }
+                    }
+
+                    SortBids(marketDepth.Bids);
+                }
+
+                marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp((long)responseDepth.ts.ToDecimal());
+
+                for (int i = 0; i < marketDepth.Asks.Count; i++)
+                {
+                    MarketDepthLevel curLevel = marketDepth.Asks[i];
+
+                    for (int j = 0; j < marketDepth.Asks.Count; j++)
+                    {
+                        if (j == i)
+                        {
+                            continue;
+                        }
+
+                        if (curLevel.Price == marketDepth.Asks[j].Price)
+                        {
+                            marketDepth.Asks.RemoveAt(j);
                         }
                     }
                 }
 
-                marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp((long)responseDepth.ts.ToDecimal());
+                for (int i = 0; i < marketDepth.Bids.Count; i++)
+                {
+                    MarketDepthLevel curLevel = marketDepth.Bids[i];
+
+                    for (int j = 0; j < marketDepth.Bids.Count; j++)
+                    {
+                        if (j == i)
+                        {
+                            continue;
+                        }
+
+                        if (curLevel.Price == marketDepth.Bids[j].Price)
+                        {
+                            marketDepth.Bids.RemoveAt(j);
+                        }
+                    }
+                }
 
                 int _depthDeep = marketDepthDeep;
 
