@@ -391,5 +391,33 @@ namespace OsEngine.Language
         public string Label91 => OsLocalization.ConvertToLocString(
           "Eng:There is no path to duplicate the set_" +
           "Ru:Отсутствует путь для дублирования сета_");
+
+        public string Label92 => OsLocalization.ConvertToLocString(
+          "Eng:Update_" +
+          "Ru:Обновление_");
+
+        public string Label93 => OsLocalization.ConvertToLocString(
+          "Eng:Set updating_" +
+          "Ru:Обновление сета_");
+
+        public string Label94 => OsLocalization.ConvertToLocString(
+          "Eng:Update period:_" +
+          "Ru:Период обновления:_");
+
+        public string Label95 => OsLocalization.ConvertToLocString(
+          "Eng:Day_" +
+          "Ru:День_");
+
+        public string Label96 => OsLocalization.ConvertToLocString(
+          "Eng:Hour_" +
+          "Ru:Час_");
+
+        public string Label97 => OsLocalization.ConvertToLocString(
+          "Eng:Update time:_" +
+          "Ru:Время обновления:_");
+
+        public string Label98 => OsLocalization.ConvertToLocString(
+          "Eng:First, you need to enable the set and the source of the data_" +
+          "Ru:Сначала надо включить сет и источник данных_");
     }
 }
