@@ -5,7 +5,6 @@
 
 using OsEngine.Language;
 using OsEngine.Market;
-using OsEngine.Market.Servers;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -74,6 +73,8 @@ namespace OsEngine.OsData
                     _set.Updater.TimeNextUpdate = DateTime.Now.Date.AddHours(DateTime.Now.Hour + 1);
 
                     _set.Updater.Period = "Hour";
+
+                    _set.Updater.SaveUpdateSettings("Data\\" + _set.SetName + @"\\UpdateSettings.txt");
                 }
             }
             catch (Exception ex)
@@ -95,6 +96,8 @@ namespace OsEngine.OsData
                 if (_set != null && _set.Updater != null)
                 {
                     SetDailyPeriod();
+
+                    _set.Updater.SaveUpdateSettings("Data\\" + _set.SetName + @"\\UpdateSettings.txt");
                 }
             }
             catch (Exception ex)
@@ -129,17 +132,6 @@ namespace OsEngine.OsData
 
                 if (selectedValue == "On") // переключились на On
                 {
-                    if (_set.MyServer == null ||
-                        _set.MyServer.ServerStatus != ServerConnectStatus.Connect ||
-                        _set.BaseSettings.Regime == DataSetState.Off)
-                    {
-                        ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label98, Logging.LogMessageType.Error);
-
-                        ComboBoxRegime.SelectedIndex = 0;
-                        Close();
-                        return;
-                    }
-
                     if (_set.Updater != null)
                     {
                         _set.Updater.Regime = "On";
@@ -169,10 +161,13 @@ namespace OsEngine.OsData
                         _set.Updater.Regime = "Off";
                     }
                 }
+
+                _set.Updater.SaveUpdateSettings("Data\\" + _set.SetName + @"\\UpdateSettings.txt");
             }
             catch (Exception ex)
             {
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                ComboBoxRegime.SelectedIndex = 0;
                 _set.Updater = null;
             }
         }
@@ -197,3 +192,4 @@ namespace OsEngine.OsData
         }
     }
 }
+

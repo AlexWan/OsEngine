@@ -5,10 +5,10 @@
 
 using OsEngine.Language;
 using OsEngine.Market;
-using OsEngine.Market.Servers;
 using System;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 
 
@@ -75,11 +75,6 @@ namespace OsEngine.OsData
         {
             try
             {
-                if (!Directory.Exists(_newPathForCopy + "\\" + _set.SetName))
-                {
-                    Directory.CreateDirectory(_newPathForCopy + "\\" + _set.SetName);
-                }
-
                 string fullPath = Path.GetFullPath(_newPathForCopy + "\\" + _set.SetName);
 
                 using (FolderBrowserDialog dialog = new FolderBrowserDialog())
@@ -87,7 +82,6 @@ namespace OsEngine.OsData
                     dialog.SelectedPath = fullPath;
                     dialog.Description = OsLocalization.Data.Label85;
                     dialog.ShowNewFolderButton = true;
-
 
                     if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
@@ -184,29 +178,20 @@ namespace OsEngine.OsData
             return size;
         }
 
-        private void RegimeChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void RegimeChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
                 if (_set == null || _set.IsThereDublicate == false)
                     return;
 
-                if (ComboBoxRegime.Text == "Off") // переключились на On
+                if (!(ComboBoxRegime.SelectedItem is ComboBoxItem selectedItem))
+                    return;
+
+                string selectedValue = selectedItem.Content.ToString();
+
+                if (selectedValue == "On") // переключились на On
                 {
-                    if (_set.BaseSettings.Regime == DataSetState.Off)
-                    {
-                        StatusLabel.Content = OsLocalization.Data.Label89;
-                        ComboBoxRegime.Text = "Off";
-                        return;
-                    }
-
-                    if (_set.MyServer == null || _set.MyServer.ServerStatus != ServerConnectStatus.Connect)
-                    {
-                        StatusLabel.Content = OsLocalization.Data.Label88;
-                        ComboBoxRegime.Text = "Off";
-                        return;
-                    }
-
                     _set.Dublicator.Regime = "On";
 
                     int min = int.Parse(ComboBoxPeriods.Text);
