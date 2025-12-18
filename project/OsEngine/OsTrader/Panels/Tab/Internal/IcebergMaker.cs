@@ -419,14 +419,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public void SetNewOrder(Order order)
         {
-            if (_ordersInSystem == null
-                || _ordersInSystem.State == OrderStateType.Done)
+            if (_ordersInSystem == null)
             {
                 return;
             }
 
-            /*
-            ServerMaster.Log.ProcessMessage(
+            
+           /*ServerMaster.Log.ProcessMessage(
                 "new order state " + order.State
                 + "\nnum user " + order.NumberUser
                 + "\nnum market " + order.NumberMarket, Logging.LogMessageType.Error);*/
