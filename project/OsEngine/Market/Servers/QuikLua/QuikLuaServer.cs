@@ -170,6 +170,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         SendLogMessage($"Терминал Quik выключен. Переподключение...", LogMessageType.System);
                         QuikLua.Service.QuikService.Stop();
                         Dispose();
+                        return;
                     }
 
                     if (ServerStatus != ServerConnectStatus.Connect)
@@ -189,7 +190,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                if (QuikLua != null && QuikLua.Service.IsConnected().Result)
+                if (QuikLua != null)
                 {
                     bool isStoped = QuikLua.Service.QuikService.Stop();
                 }
