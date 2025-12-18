@@ -103,6 +103,20 @@ namespace OsEngine.OsData
 
                     reader.Close();
                 }
+
+                if (File.Exists("Data\\" + SetName + @"\\DublicateSettings.txt"))
+                {
+                    IsThereDublicate = true;
+
+                    Dublicator = new SetDublicator();
+                    Dublicator.LoadDublicateSettings("Data\\" + SetName + @"\\DublicateSettings.txt");
+                }
+
+                if (File.Exists("Data\\" + SetName + @"\\UpdateSettings.txt"))
+                {
+                    Updater = new SetUpdater();
+                    Updater.LoadUpdateSettings("Data\\" + SetName + @"\\UpdateSettings.txt");
+                }
             }
             catch (Exception ex)
             {
@@ -498,13 +512,15 @@ namespace OsEngine.OsData
             {
                 if (Dublicator.TimeLastCheckSet.Add(Dublicator.UpdatePeriod) < DateTime.Now)
                 {
-                    DateTime timeLastCheck = Directory.GetLastWriteTime("Data\\" + SetName);
+                    DateTime timeLastChange = Dublicator.GetLatestFileTime("Data\\" + SetName);
 
-                    if (timeLastCheck > Dublicator.TimeWriteOriginalSet)
+                    if (timeLastChange != DateTime.MinValue && timeLastChange > Dublicator.TimeWriteOriginalSet)
                     {
                         Dublicator.UpdateDublicate(SetName);
 
-                        Dublicator.TimeWriteOriginalSet = timeLastCheck;
+                        Dublicator.TimeWriteOriginalSet = timeLastChange;
+
+                        Dublicator.SaveDublicateSettings("Data\\" + SetName + @"\\DublicateSettings.txt");
                     }
 
                     Dublicator.TimeLastCheckSet = DateTime.Now;
@@ -537,6 +553,8 @@ namespace OsEngine.OsData
                         Updater.IsUpdateProcess = true;
 
                         Updater.TimeNextUpdate = Updater.TimeNextUpdate.Add(Updater.UpdatePeriod);
+
+                        Updater.SaveUpdateSettings("Data\\" + SetName + @"\\UpdateSettings.txt");
                     }
                 }
                 else
@@ -3588,9 +3606,9 @@ namespace OsEngine.OsData
             {
                 File.WriteAllText(pathSettings, result);
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                SendNewLogMessage(ex.Message, LogMessageType.Error);
             }
         }
 
@@ -3609,11 +3627,10 @@ namespace OsEngine.OsData
                     UpdatePeriod = new TimeSpan(0, Convert.ToInt32(setParts[2]), 0);
                     TimeWriteOriginalSet = Convert.ToDateTime(setParts[3], CultureInfo.InvariantCulture);
                 }
-
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ignore
+                SendNewLogMessage(ex.Message, LogMessageType.Error);
             }
         }
 
@@ -3631,11 +3648,70 @@ namespace OsEngine.OsData
 
                 Microsoft.VisualBasic.FileIO.FileSystem.CopyDirectory(sourcePath, destinationPath, true);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ignore
+                SendNewLogMessage(ex.Message, LogMessageType.Error);
             }
         }
+
+        public DateTime GetLatestFileTime(string setPath)
+        {
+            List<DateTime> filesTimes = [];
+
+            DateTime latestTime = DateTime.MinValue;
+
+            try
+            {
+                string[] secFolders = Directory.GetDirectories(setPath);
+
+                for (int i = 0; i < secFolders.Length; i++)
+                {
+                    string securityFolder = secFolders[i];
+
+                    string[] timeFrameFolders = Directory.GetDirectories(securityFolder);
+
+                    for (int j = 0; j < timeFrameFolders.Length; j++)
+                    {
+                        string timeFrameFolder = timeFrameFolders[j];
+
+                        string[] secFiles = Directory.GetFiles(timeFrameFolder, "*.txt");
+
+                        if (secFiles.Length > 0)
+                        {
+                            filesTimes.Add(File.GetLastWriteTime(secFiles[0]));
+                        }
+                    }
+                }
+
+                for (int i = 0; i < filesTimes.Count; i++)
+                {
+                    if (filesTimes[i] > latestTime)
+                        latestTime = filesTimes[i];
+                }
+
+                return latestTime;
+
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.Message, LogMessageType.Error);
+                return latestTime;
+            }
+        }
+
+        public void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (NewLogMessageEvent != null)
+            {
+                NewLogMessageEvent(message, type);
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(message);
+            }
+        }
+
+        public event Action<string, LogMessageType> NewLogMessageEvent;
     }
 
     public class SetUpdater()
@@ -3651,5 +3727,76 @@ namespace OsEngine.OsData
         public DateTime TimeNextUpdate { get; set; }
 
         public bool IsUpdateProcess { get; set; }
+
+        public void SaveUpdateSettings(string pathSettings)
+        {
+            string result = "";
+
+            result += Regime + "%";
+            result += Period + "%";
+            result += HourUpdate + "%";
+            result += TimeNextUpdate.ToString(CultureInfo.InvariantCulture);
+
+            try
+            {
+                File.WriteAllText(pathSettings, result);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        public void LoadUpdateSettings(string pathSettings)
+        {
+            try
+            {
+                string settings = File.ReadAllText(pathSettings);
+
+                if (!string.IsNullOrEmpty(settings))
+                {
+                    string[] setParts = settings.Split('%');
+
+                    Regime = setParts[0];
+                    Period = setParts[1];
+                    HourUpdate = int.Parse(setParts[2]);
+
+                    DateTime timeNextUpdate = Convert.ToDateTime(setParts[3], CultureInfo.InvariantCulture);
+
+                    if (Period == "Day")
+                    {
+                        UpdatePeriod = new TimeSpan(1, 0, 0, 0, 0);
+
+                        TimeNextUpdate = timeNextUpdate < DateTime.Now ? DateTime.Now.Date.AddDays(1).AddHours(HourUpdate) : timeNextUpdate;
+                    }
+                    else
+                    {
+                        UpdatePeriod = new TimeSpan(1, 0, 0);
+
+                        TimeNextUpdate = DateTime.Now.Date.AddHours(DateTime.Now.Hour + 1);
+                    }
+
+                    IsUpdateProcess = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        public void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (NewLogMessageEvent != null)
+            {
+                NewLogMessageEvent(message, type);
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(message);
+            }
+        }
+
+        public event Action<string, LogMessageType> NewLogMessageEvent;
     }
 }
