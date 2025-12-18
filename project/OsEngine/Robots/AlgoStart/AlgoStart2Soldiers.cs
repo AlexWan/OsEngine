@@ -463,10 +463,15 @@ namespace OsEngine.Robots.AlgoStart
             {
                 Position pos = openPositions[i];
 
-                if (pos.State != PositionStateType.Open)
+                if (StartProgram == StartProgram.IsTester
+                    || StartProgram == StartProgram.IsOsOptimizer)
                 {
-                    continue;
+                    if (pos.State != PositionStateType.Open)
+                    {
+                        return;
+                    }
                 }
+
                 if (pos.StopOrderPrice == 0)
                 {
                     int firstPatternIndex = tab.CandlesAll.Count;

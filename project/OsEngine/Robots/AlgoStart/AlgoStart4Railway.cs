@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.Language;
+using OsEngine.Market.Servers.TraderNet.Entity;
 
 /* Description
 Trading robot for osengine
@@ -236,13 +237,13 @@ namespace OsEngine.Robots.AlgoStart
         // Logic close position
         private void LogicClosePosition(List<Candle> candles, BotTabSimple tab, Position position)
         {
-            if (position.State != PositionStateType.Open
-                          ||
-                          (position.CloseOrders != null
-                          && position.CloseOrders.Count > 0)
-                          )
+            if (StartProgram == StartProgram.IsTester
+                || StartProgram == StartProgram.IsOsOptimizer)
             {
-                return;
+                if (position.State != PositionStateType.Open)
+                {
+                    return;
+                }
             }
 
             Aindicator zigZag = (Aindicator)tab.Indicators[0];

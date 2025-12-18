@@ -242,9 +242,13 @@ namespace OsEngine.Robots.AlgoStart
             {
                 Position pos = positions[0];
 
-                if (pos.State != PositionStateType.Open)
+                if (StartProgram == StartProgram.IsTester
+                    || StartProgram == StartProgram.IsOsOptimizer)
                 {
-                    return;
+                    if (pos.State != PositionStateType.Open)
+                    {
+                        return;
+                    }
                 }
 
                 Aindicator priceChannel = (Aindicator)tab.Indicators[0];
