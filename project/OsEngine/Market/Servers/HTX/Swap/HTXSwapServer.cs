@@ -464,6 +464,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             if (_usdtSwapValue)
             {
+                GetAccountInfo();
                 CreateQueryPortfolioUsdt(true);
             }
             else
@@ -526,6 +527,53 @@ namespace OsEngine.Market.Servers.HTX.Swap
             Portfolios.Add(portfolioInitial);
 
             PortfolioEvent(Portfolios);
+        }
+
+        private void GetAccountInfo()
+        {
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v3/swap_switch_account_type");
+
+                Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+                jsonContent.Add("account_type", "2");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.POST);
+                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRest<object> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRest<object>());
+
+                    if (response.code != "200")
+                    {
+                        if (response.msg.Contains("Incorrect Access key [Access key错误]")
+                            || response.msg.Contains("Verification failure [校验失败]"))
+                        {
+                            Disconnect();
+                        }
+
+                        SendLogMessage($"AccountInfo error. Code: {response.code} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    if (responseMessage.Content.Contains("Incorrect Access key [Access key"))
+                    {
+                        Disconnect();
+                    }
+
+                    SendLogMessage($"AccountInfo error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void CreateQueryPortfolioCoin(bool IsUpdateValueBegin)
