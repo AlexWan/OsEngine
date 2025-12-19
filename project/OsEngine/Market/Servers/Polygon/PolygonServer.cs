@@ -100,7 +100,7 @@ namespace OsEngine.Market.Servers.Polygon
             {               
                 _rateGateFreePlan.WaitToProceed();                
 
-                HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + $"/v3/reference/dividends?limit=10&apiKey={_apiKey}").Result;
+                HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + $"/v2/snapshot/locale/us/markets/stocks/tickers/AAPL?apiKey={_apiKey}").Result;
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 RestResponceMessage<ResponceTrades> response = JsonConvert.DeserializeObject<RestResponceMessage<ResponceTrades>>(json);
