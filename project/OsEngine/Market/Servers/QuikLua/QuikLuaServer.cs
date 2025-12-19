@@ -1715,7 +1715,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 if (_fullLog)
                 {
-                    SendLogMessage($"Пришел трейд. Security: {trade.SecurityNameCode}, OrderNumber: {trade.NumberOrderParent}, NumberTrade: {trade.NumberTrade}, Price: {trade.Price}, " +
+                    SendLogMessage($"Пришел трейд. Security: {trade.SecurityNameCode}, OrderNumber: {trade.NumberOrderParent}, TransId: {qTrade.TransID}, NumberTrade: {trade.NumberTrade}, Price: {trade.Price}, " +
                         $"Volume: {trade.Volume}, Time: {trade.Time}, Side: {trade.Side}", LogMessageType.System);
                 }
 
@@ -2267,6 +2267,13 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     order.NumberMarket = foundOrder.OrderNum.ToString() + "+" + order.NumberUser.ToString();
 
+                    if (_fullLog)
+                    {
+                        SendLogMessage($"GetOrderStatus. Запрошен ордер. Security: {order.SecurityNameCode}, NumberMarket: {order.NumberMarket}, " +
+                            $"TransId: {order.NumberUser}, State: {order.State}, Price: {order.Price}, Volume: {order.Volume}, VolumeExecute: {order.VolumeExecute}," +
+                            $" Time: {order.TimeCallBack}, Side: {order.Side}", LogMessageType.System);
+                    }
+
                     if (MyOrderEvent != null)
                     {
                         MyOrderEvent(order);
@@ -2305,6 +2312,13 @@ namespace OsEngine.Market.Servers.QuikLua
 
                                 trade.MicroSeconds = quikTrade.QuikDateTime.mcs;
 
+                                if (_fullLog)
+                                {
+                                    SendLogMessage($"GetOrderStatus. Запрошен трейд. Security: {trade.SecurityNameCode}, OrderNumber: {trade.NumberOrderParent}, " +
+                                        $"TransId: {quikTrade.TransID}, NumberTrade: {trade.NumberTrade}, Price: {trade.Price}, Volume: {trade.Volume}, " +
+                                        $"Time: {trade.Time}, Side: {trade.Side}", LogMessageType.System);
+                                }
+
                                 if (MyTradeEvent != null)
                                 {
                                     MyTradeEvent(trade);
@@ -2315,7 +2329,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
                 else
                 {
-                    SendLogMessage($"The order was not found. NumberUser - {order.NumberUser}", LogMessageType.System);
+                    SendLogMessage($"GetOrderStatus. The order was not found. NumberUser - {order.NumberUser}", LogMessageType.System);
                 }
             }
             catch (Exception e)
