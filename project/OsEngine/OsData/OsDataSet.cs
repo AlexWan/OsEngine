@@ -2449,6 +2449,13 @@ namespace OsEngine.OsData
             {
                 List<QuoteChange> changes = new List<QuoteChange>();
 
+                if(md.Asks.Count == 0 || md.Bids.Count == 0 ||
+                    (md.Asks.Count > 0 && md.Bids.Count > 0 &&
+                    md.Asks[0].Price < md.Bids[0].Price))
+                {
+                    return;
+                }
+
                 if (ProcessAsksChanges(_lastMarketDepth.Asks, md.Asks, ref changes) == false) return;
                 if (ProcessBidsChanges(_lastMarketDepth.Bids, md.Bids, ref changes) == false) return;
 
