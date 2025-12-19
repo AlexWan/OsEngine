@@ -4587,17 +4587,17 @@ namespace OsEngine.Market.Servers
 
         private ConcurrentQueue<SecurityLeverageData> _queueLeverage = new();
 
-        private void GetListLeverageTask()
-        {
-            try
+        private async void GetListLeverageTask()
+        {            
+            while (true)
             {
-                while (true)
+                try
                 {
                     if (ListLeverageData == null
                         || _securities == null
                         || _securities.Count == 0)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                         continue;
                     }
 
@@ -4608,14 +4608,14 @@ namespace OsEngine.Market.Servers
 
                     if (_serverRealization.ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                         continue;
                     }
 
                     if (_queueLeverage == null ||
                          _queueLeverage.Count == 0)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                         continue;
                     }
 
@@ -4623,19 +4623,20 @@ namespace OsEngine.Market.Servers
 
                     if (!_queueLeverage.TryDequeue(out data))
                     {
-                        Thread.Sleep(1);
+                        await Task.Delay(1);
                         continue;
                     }
 
                     SetLeverage(data.Security, data.Leverage);
 
-                    Thread.Sleep(1);
+                    await Task.Delay(1);
                 }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    await Task.Delay(5000);
+                }
+            }            
         }
 
         private void GetListLeverage()
