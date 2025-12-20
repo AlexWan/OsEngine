@@ -566,33 +566,33 @@ namespace OsEngine.Robots.Grids
         {
             grid.NonTradePeriods.NonTradePeriod1Regime = TradeGridRegime.CloseForced;
 
-            grid.NonTradePeriods.Settings.TradeInMonday = _tradeInMonday.ValueBool;
-            grid.NonTradePeriods.Settings.TradeInTuesday = _tradeInTuesday.ValueBool;
-            grid.NonTradePeriods.Settings.TradeInWednesday = _tradeInWednesday.ValueBool;
-            grid.NonTradePeriods.Settings.TradeInThursday = _tradeInThursday.ValueBool;
-            grid.NonTradePeriods.Settings.TradeInFriday = _tradeInFriday.ValueBool;
-            grid.NonTradePeriods.Settings.TradeInSaturday = _tradeInSaturday.ValueBool;
-            grid.NonTradePeriods.Settings.TradeInSunday = _tradeInSunday.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInMonday = _tradeInMonday.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInTuesday = _tradeInTuesday.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInWednesday = _tradeInWednesday.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInThursday = _tradeInThursday.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInFriday = _tradeInFriday.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInSaturday = _tradeInSaturday.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInSunday = _tradeInSunday.ValueBool;
           
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod1OnOff = _nonTradePeriod1OnOff.ValueBool;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod1Start = _nonTradePeriod1Start.Value;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod1End = _nonTradePeriod1End.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1OnOff = _nonTradePeriod1OnOff.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1Start = _nonTradePeriod1Start.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1End = _nonTradePeriod1End.Value;
 
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod2OnOff = _nonTradePeriod2OnOff.ValueBool;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod2Start = _nonTradePeriod2Start.Value;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod2End = _nonTradePeriod2End.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod2OnOff = _nonTradePeriod2OnOff.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod2Start = _nonTradePeriod2Start.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod2End = _nonTradePeriod2End.Value;
 
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod3OnOff = _nonTradePeriod3OnOff.ValueBool;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod3Start = _nonTradePeriod3Start.Value;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod3End = _nonTradePeriod3End.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod3OnOff = _nonTradePeriod3OnOff.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod3Start = _nonTradePeriod3Start.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod3End = _nonTradePeriod3End.Value;
 
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod4OnOff = _nonTradePeriod4OnOff.ValueBool;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod4Start = _nonTradePeriod4Start.Value;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod4End = _nonTradePeriod4End.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod4OnOff = _nonTradePeriod4OnOff.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod4Start = _nonTradePeriod4Start.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod4End = _nonTradePeriod4End.Value;
 
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod5OnOff = _nonTradePeriod5OnOff.ValueBool;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod5Start = _nonTradePeriod5Start.Value;
-            grid.NonTradePeriods.Settings.NonTradePeriodGeneral.NonTradePeriod5End = _nonTradePeriod5End.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod5OnOff = _nonTradePeriod5OnOff.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod5Start = _nonTradePeriod5Start.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod5End = _nonTradePeriod5End.Value;
         }
 
         #endregion

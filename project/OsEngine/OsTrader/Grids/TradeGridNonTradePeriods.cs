@@ -16,22 +16,34 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridNonTradePeriods(string name)
         {
-            Settings = new NonTradePeriods(name);
+            SettingsPeriod1 = new NonTradePeriods(name);
+
+            SettingsPeriod2 = new NonTradePeriods(name + "2");
         }
 
-        public NonTradePeriods Settings;
+        public NonTradePeriods SettingsPeriod1;
 
-        public void ShowDialog()
+        public NonTradePeriods SettingsPeriod2;
+
+        public void ShowDialogPeriod1()
         {
-            Settings.ShowDialog();
+            SettingsPeriod1.ShowDialog();
+        }
+
+        public void ShowDialogPeriod2()
+        {
+            SettingsPeriod2.ShowDialog();
         }
 
         public void Delete()
         {
-            Settings.Delete();
+            SettingsPeriod1.Delete();
+            SettingsPeriod2.Delete();
         }
 
         public TradeGridRegime NonTradePeriod1Regime = TradeGridRegime.Off;
+
+        public TradeGridRegime NonTradePeriod2Regime = TradeGridRegime.Off;
 
         public string GetSaveString()
         {
@@ -39,7 +51,7 @@ namespace OsEngine.OsTrader.Grids
 
             result += NonTradePeriod1Regime + "@";
 
-            result += "@";
+            result += NonTradePeriod2Regime + "@";
             result += "@";
             result += "@";
             result += "@";
@@ -54,6 +66,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 string[] values = value.Split('@');
                 Enum.TryParse(values[0], out NonTradePeriod1Regime);
+                Enum.TryParse(values[1], out NonTradePeriod2Regime);
             }
             catch (Exception e)
             {
@@ -67,9 +80,14 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridRegime GetNonTradePeriodsRegime(DateTime curTime)
         {
-            if(Settings.CanTradeThisTime(curTime) == false)
+            if(SettingsPeriod1.CanTradeThisTime(curTime) == false)
             {
                 return NonTradePeriod1Regime;
+            }
+
+            if (SettingsPeriod2.CanTradeThisTime(curTime) == false)
+            {
+                return NonTradePeriod2Regime;
             }
 
             return TradeGridRegime.On;

@@ -180,12 +180,16 @@
         <TabControl Name="TabControlSecond" Grid.Column="1">
             <TabItem Name="TabItemNonTradePeriods" Header="Other settings">
                 <Grid >
-                    <Label Name="LabelNoTradePeriod1Regime" Content="Regime" HorizontalAlignment="Left" Margin="14,10,0,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelNoTradePeriod1Regime" Content="Regime 1" HorizontalAlignment="Left" Margin="14,10,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxNonTradePeriod1Regime" Margin="202,10,10,0" VerticalAlignment="Top"/>
-                    <Button Name="ButtonSetNonTradePeriods" Content="Set periods" Margin="203,38,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods_Click"/>
+                    <Button Name="ButtonSetNonTradePeriods" Content="Set periods 1" Margin="196,38,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods_Click"/>
 
-                    <ComboBox Name="ComboBoxOpenOrdersMakerOnly" Margin="202,95,10,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelOpenOrdersMakerOnly" Content="Open orders maker only" HorizontalAlignment="Left" Margin="14,95,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxOpenOrdersMakerOnly" Margin="202,157,10,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelOpenOrdersMakerOnly" Content="Open orders maker only" HorizontalAlignment="Left" Margin="14,157,0,0" VerticalAlignment="Top"/>
+                   
+                    <Label Name="LabelNoTradePeriod2Regime" Content="Regime 2" HorizontalAlignment="Left" Margin="14,81,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxNonTradePeriod2Regime" Margin="202,81,10,0" VerticalAlignment="Top"/>
+                    <Button Name="ButtonSetNonTradePeriods2" Content="Set periods 2" Margin="196,109,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods2_Click"/>
 
                 </Grid>
             </TabItem>

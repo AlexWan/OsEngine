@@ -119,6 +119,13 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxNonTradePeriod1Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod1Regime.ToString();
             ComboBoxNonTradePeriod1Regime.SelectionChanged += ComboBoxNonTradePeriod1Regime_SelectionChanged;
 
+            ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
+            ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxNonTradePeriod2Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod2Regime.ToString();
+            ComboBoxNonTradePeriod2Regime.SelectionChanged += ComboBoxNonTradePeriod2Regime_SelectionChanged;
+
             ComboBoxOpenOrdersMakerOnly.Items.Add(true.ToString());
             ComboBoxOpenOrdersMakerOnly.Items.Add(false.ToString());
             ComboBoxOpenOrdersMakerOnly.SelectedItem = tradeGrid.OpenOrdersMakerOnly.ToString();
@@ -429,8 +436,12 @@ namespace OsEngine.OsTrader.Grids
 
 
             // trade days 
-            LabelNoTradePeriod1Regime.Content = OsLocalization.Trader.Label506;
-            ButtonSetNonTradePeriods.Content = OsLocalization.Trader.Label632;
+            LabelNoTradePeriod1Regime.Content = OsLocalization.Trader.Label506 + " #1";
+            ButtonSetNonTradePeriods.Content = OsLocalization.Trader.Label632 + " #1";
+
+            LabelNoTradePeriod2Regime.Content = OsLocalization.Trader.Label506 + " #2";
+            ButtonSetNonTradePeriods2.Content = OsLocalization.Trader.Label632 + " #2";
+
             LabelOpenOrdersMakerOnly.Content = OsLocalization.Trader.Label635;
 
             // stop grid by event
@@ -2413,7 +2424,26 @@ namespace OsEngine.OsTrader.Grids
 
         private void ButtonSetNonTradePeriods_Click(object sender, RoutedEventArgs e)
         {
-            TradeGrid.NonTradePeriods.ShowDialog();
+            try
+            {
+                TradeGrid.NonTradePeriods.ShowDialogPeriod1();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ButtonSetNonTradePeriods2_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.NonTradePeriods.ShowDialogPeriod2();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ComboBoxNonTradePeriod1Regime_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -2421,6 +2451,19 @@ namespace OsEngine.OsTrader.Grids
             try
             {
                 Enum.TryParse(ComboBoxNonTradePeriod1Regime.SelectedItem.ToString(), out TradeGrid.NonTradePeriods.NonTradePeriod1Regime);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxNonTradePeriod2Regime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxNonTradePeriod2Regime.SelectedItem.ToString(), out TradeGrid.NonTradePeriods.NonTradePeriod2Regime);
                 TradeGrid.Save();
             }
             catch (Exception ex)
@@ -2779,7 +2822,7 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        #endregion
 
+        #endregion
     }
 }
