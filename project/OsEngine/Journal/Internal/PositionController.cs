@@ -362,6 +362,10 @@ namespace OsEngine.Journal.Internal
             }
             catch (Exception error)
             {
+                if(error.ToString().Contains("cannot access"))
+                {
+                    return;
+                }
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
