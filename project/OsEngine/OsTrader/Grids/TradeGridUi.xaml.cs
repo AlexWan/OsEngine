@@ -1588,43 +1588,43 @@ namespace OsEngine.OsTrader.Grids
 
                 DataGridViewColumn newColumn0 = new DataGridViewColumn();
                 newColumn0.CellTemplate = cellParam0;
-                newColumn0.HeaderText = "#";
+                newColumn0.HeaderText = "#";                          // 0 номер
                 _gridDataGrid.Columns.Add(newColumn0);
                 newColumn0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn1 = new DataGridViewColumn();
                 newColumn1.CellTemplate = cellParam0;
-                newColumn1.HeaderText = OsLocalization.Trader.Label20;
+                newColumn1.HeaderText = OsLocalization.Trader.Label20; // 1 позиции
                 _gridDataGrid.Columns.Add(newColumn1);
                 newColumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn2 = new DataGridViewColumn();
                 newColumn2.CellTemplate = cellParam0;
-                newColumn2.HeaderText = OsLocalization.Trader.Label400;
+                newColumn2.HeaderText = OsLocalization.Trader.Label400; // 2 цена входа
                 _gridDataGrid.Columns.Add(newColumn2);
                 newColumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn3 = new DataGridViewColumn();
                 newColumn3.CellTemplate = cellParam0;
-                newColumn3.HeaderText = OsLocalization.Trader.Label401;
+                newColumn3.HeaderText = OsLocalization.Trader.Label401; // 3 цена выхода
                 _gridDataGrid.Columns.Add(newColumn3);
                 newColumn3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn4 = new DataGridViewColumn();
                 newColumn4.CellTemplate = cellParam0;
-                newColumn4.HeaderText = OsLocalization.Trader.Label491;
+                newColumn4.HeaderText = OsLocalization.Trader.Label491; // 4 Объём
                 _gridDataGrid.Columns.Add(newColumn4);
                 newColumn4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn5 = new DataGridViewColumn();
                 newColumn5.CellTemplate = cellParam0;
-                newColumn5.HeaderText = OsLocalization.Trader.Label403;
+                newColumn5.HeaderText = OsLocalization.Trader.Label403; // 5 Открытый объём
                 _gridDataGrid.Columns.Add(newColumn5);
                 newColumn5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn6 = new DataGridViewColumn();
                 newColumn6.CellTemplate = cellParam0;
-                newColumn6.HeaderText = OsLocalization.Trader.Label485;
+                newColumn6.HeaderText = OsLocalization.Trader.Label485; // 6 Направление
                 _gridDataGrid.Columns.Add(newColumn6);
                 newColumn6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -1795,6 +1795,23 @@ namespace OsEngine.OsTrader.Grids
                 {
                     return;
                 }
+
+                // обновление хедеров
+
+                string allVolumeHeader = OsLocalization.Trader.Label491 + "\n" + TradeGrid.AllVolumeInLines.ToStringWithNoEndZero();
+                string openVolumeHeader = OsLocalization.Trader.Label403 + "\n" + TradeGrid.OpenVolumeByLines.ToStringWithNoEndZero();
+
+                if(_gridDataGrid.Columns[4].HeaderText != allVolumeHeader)
+                {
+                    _gridDataGrid.Columns[4].HeaderText = allVolumeHeader;
+                }
+                if (_gridDataGrid.Columns[5].HeaderText != openVolumeHeader)
+                {
+                    _gridDataGrid.Columns[5].HeaderText = openVolumeHeader;
+                }
+
+
+                // обновление строк в таблице
 
                 for (int i = 0; i < lines.Count; i++)
                 {
