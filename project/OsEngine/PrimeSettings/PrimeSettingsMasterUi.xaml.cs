@@ -62,6 +62,7 @@ namespace OsEngine.PrimeSettings
             ComboBoxMemoryCleanUp.Items.Add(MemoryCleanerRegime.Disable.ToString());
             ComboBoxMemoryCleanUp.Items.Add(MemoryCleanerRegime.At5Minutes.ToString());
             ComboBoxMemoryCleanUp.Items.Add(MemoryCleanerRegime.At30Minutes.ToString());
+            ComboBoxMemoryCleanUp.Items.Add(MemoryCleanerRegime.AtDay.ToString());
             ComboBoxMemoryCleanUp.SelectedItem = PrimeSettingsMaster.MemoryCleanerRegime.ToString();
             ComboBoxMemoryCleanUp.SelectionChanged += ComboBoxMemoryCleanUp_SelectionChanged;
 

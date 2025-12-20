@@ -56,6 +56,13 @@ namespace OsEngine.OsTrader.MemoryRH
 
                         CleanUpSystem();
                     }
+                    else if (_maxTimeWithNoCleaning == 1440
+                        && DateTime.Now.Date != _lastStartTime.Date)
+                    {// 3 третий запуск. Раз в день. Делаем в 12 часов ночи, при смене дня
+                        _lastStartTime = DateTime.Now;
+
+                        CleanUpSystem();
+                    }
                 }
                 catch(Exception e)
                 {

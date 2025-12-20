@@ -97,6 +97,11 @@ namespace OsEngine.OsTrader
                     _memoryCleaner = new MemoryCleaner(30);
                     _memoryCleaner.LogMessageEvent += SendNewLogMessage;
                 }
+                else if (PrimeSettingsMaster.MemoryCleanerRegime == MemoryCleanerRegime.AtDay)
+                {
+                    _memoryCleaner = new MemoryCleaner(1440);
+                    _memoryCleaner.LogMessageEvent += SendNewLogMessage;
+                }
             }
 
             //ServerMaster.LogMessageEvent += SendNewLogMessage;

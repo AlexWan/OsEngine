@@ -205,6 +205,7 @@ namespace OsEngine.PrimeSettings
     {
         Disable,
         At5Minutes,
-        At30Minutes
+        At30Minutes,
+        AtDay
     }
 }
