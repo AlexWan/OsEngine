@@ -32,8 +32,11 @@ namespace OsEngine.Robots
         private StrategyParameterString _regimeParameter;
         private StrategyParameterDecimal _minBalance;
         private StrategyParameterDecimal _allowedSpreadSize;
+        private StrategyParameterInt _icebergCount;
+
         private StrategyParameterTimeOfDay _timeToBuy;
         private StrategyParameterTimeOfDay _timeToSell;
+
         private StrategyParameterCheckBox _tradeMonday;
         private StrategyParameterCheckBox _tradeTuesday;
         private StrategyParameterCheckBox _tradeWednesday;
@@ -50,8 +53,9 @@ namespace OsEngine.Robots
             _tab = TabsSimple[0];
 
             _regimeParameter = CreateParameter("Regime", "Off", new[] { "Off", "RebalancingTwiceADay", "RebalancingOnceADay", "OnlyClose" });
-
             _minBalance = CreateParameter("Minimum balance", 5000m, 5000m, 5000m, 5000m);
+
+            _icebergCount = CreateParameter("Iceberg count", 1, 1, 50, 1);
             _allowedSpreadSize = CreateParameter("Allowed spread size(%)", 0.01m, 0.01m, 0.01m, 0.01m);
 
             _timeToBuy = CreateParameterTimeOfDay("Time to buy", 23, 0, 0, 0);
@@ -292,8 +296,9 @@ namespace OsEngine.Robots
                 return;
             }
 
-            decimal volume = Math.Abs(balance - _minBalance.ValueDecimal);
-            volume = GetVolume(volume);
+            decimal freeBalance = Math.Abs(balance - Math.Max(_minBalance.ValueDecimal, 500));
+
+            decimal volume = GetVolume(freeBalance);
 
             if (volume <= 0)
             {
@@ -302,13 +307,27 @@ namespace OsEngine.Robots
 
             if (balance > _minBalance.ValueDecimal)
             {
-                if (_tab.PositionOpenLong.Count > 0)
+                if (_icebergCount.ValueInt <= 1)
                 {
-                    _tab.BuyAtLimitToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume);
+                    if (_tab.PositionOpenLong.Count > 0)
+                    {
+                        _tab.BuyAtLimitToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume);
+                    }
+                    else
+                    {
+                        _tab.BuyAtLimit(volume, _tab.PriceBestAsk);
+                    }
                 }
                 else
                 {
-                    _tab.BuyAtLimit(volume, _tab.PriceBestAsk);
+                    if (_tab.PositionOpenLong.Count > 0)
+                    {
+                        _tab.BuyAtIcebergToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume, _icebergCount.ValueInt);
+                    }
+                    else
+                    {
+                        _tab.BuyAtIceberg(volume, _tab.PriceBestAsk, _icebergCount.ValueInt);
+                    }
                 }
             }
             else if (_tab.PositionOpenLong.Count > 0
