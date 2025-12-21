@@ -1191,7 +1191,9 @@ namespace OsEngine.Market.Servers
                         return;
                     }
 
-                    if ((ServerRealization.ServerStatus != ServerConnectStatus.Connect)
+                    if ((ServerRealization.ServerStatus != ServerConnectStatus.Connect
+                        || ServerStatus != ServerConnectStatus.Connect)
+
                         && _serverStatusNeed == ServerConnectStatus.Connect &&
                        LastStartServerTime.AddSeconds(100) < DateTime.Now)
                     {
