@@ -21,6 +21,7 @@ namespace OsEngine.Market.Servers
         /// <param name="server"> server for saving candles </param>
         public ServerCandleStorage(AServer server)
         {
+            _server = server;
 
             if (!Directory.Exists(@"Data"))
             {
@@ -34,6 +35,8 @@ namespace OsEngine.Market.Servers
             saver.IsBackground = false;
             saver.Start();
         }
+
+        private AServer _server;
 
         /// <summary>
         /// directory for saving data
@@ -135,6 +138,12 @@ namespace OsEngine.Market.Servers
 
                     if (MainWindow.ProccesIsWorked == false)
                     {
+                        return;
+                    }
+
+                    if(_server.IsDeleted == true)
+                    {
+                        _server = null;
                         return;
                     }
 

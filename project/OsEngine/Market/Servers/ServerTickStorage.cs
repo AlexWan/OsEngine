@@ -43,7 +43,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// Serviced connection
         /// </summary>
-        private IServer _server;
+        private AServer _server;
 
         /// <summary>
         /// shows whether need to save trades
@@ -104,11 +104,18 @@ namespace OsEngine.Market.Servers
             {
                 Directory.CreateDirectory(_pathName);
             }
+
             while (true)
             {
                 try
                 {
                     Thread.Sleep(15000);
+
+                    if(_server.IsDeleted == true)
+                    {
+                        _server = null;
+                        return;
+                    }
 
                     if (_server.ServerStatus != ServerConnectStatus.Connect)
                     {

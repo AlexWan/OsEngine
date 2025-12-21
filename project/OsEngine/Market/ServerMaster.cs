@@ -914,8 +914,8 @@ namespace OsEngine.Market
                                 }
 
                                 serverCurrent.StopServer();
-                                serverCurrent.Delete();
 
+                                serverCurrent.Delete();
                                 _servers.RemoveAt(i);
 
                                 if (ServerDeleteEvent != null)

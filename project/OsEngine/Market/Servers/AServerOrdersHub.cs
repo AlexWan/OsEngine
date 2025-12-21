@@ -138,6 +138,12 @@ namespace OsEngine.Market.Servers
                         return;
                     }
 
+                    if(_server.IsDeleted == true)
+                    {
+                        _server = null;
+                        return;
+                    }
+
                     // 1 проверяем не надо ли запросить список активных ордеров после переподключения
                     
                     if(_canQueryOrdersAfterReconnect)

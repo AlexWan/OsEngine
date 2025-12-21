@@ -66,6 +66,7 @@ namespace OsEngine.OsTrader.Grids
             if (StartProgram == StartProgram.IsOsTrader)
             {
                 Thread worker = new Thread(ThreadWorkerPlace);
+                worker.Name = "GridThread." + tab.TabName;
                 worker.Start();
 
                 RegimeLogicEntry = TradeGridLogicEntryRegime.OncePerSecond;
@@ -682,11 +683,6 @@ namespace OsEngine.OsTrader.Grids
                         return;
                     }
 
-                    if(Tab == null)
-                    {
-                        return;
-                    }
-
                     if(RegimeLogicEntry == TradeGridLogicEntryRegime.OncePerSecond)
                     {
                         Process();
@@ -700,6 +696,7 @@ namespace OsEngine.OsTrader.Grids
                 }
                 catch(Exception e)
                 {
+                    Thread.Sleep(1000);
                     SendNewLogMessage(e.ToString(),LogMessageType.Error);
                 }
             }
