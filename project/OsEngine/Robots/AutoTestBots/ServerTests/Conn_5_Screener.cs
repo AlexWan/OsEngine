@@ -20,6 +20,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public string TimeFrame = "";
 
+        public int MinutesToTest;
+
         public IServerPermission Permission;
 
         public override void Process()
@@ -271,7 +273,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             StartScreener(securitiesToStart, myPortfolio, myTimeFrame);
 
-            // ожидаем всех данных от скринера. Максимум 10 минут
+            // ожидаем всех данных от скринера.
 
             DateTime timeStart = DateTime.Now;
 
@@ -279,7 +281,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 Thread.Sleep(1000);
 
-                if (timeStart.AddMinutes(10) < DateTime.Now)
+                if (timeStart.AddMinutes(MinutesToTest) < DateTime.Now)
                 {
                     this.SetNewServiceInfo("End by time awaiting");
                     break;
