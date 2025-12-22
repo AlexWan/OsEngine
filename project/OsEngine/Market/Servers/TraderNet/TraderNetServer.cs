@@ -41,6 +41,11 @@ namespace OsEngine.Market.Servers.TraderNet
             threadMessageReader.IsBackground = true;
             threadMessageReader.Name = "MessageReader";
             threadMessageReader.Start();
+
+            /*Thread threadUpdateSubscribe = new Thread(ThreadUpdateSubscribe);
+            threadUpdateSubscribe.IsBackground = true;
+            threadUpdateSubscribe.Name = "ThreadUpdateSubscribe";
+            threadUpdateSubscribe.Start();*/
         }
 
         public void Connect(WebProxy proxy)
@@ -320,9 +325,9 @@ namespace OsEngine.Market.Servers.TraderNet
                     newSecurity.PriceStep = item.step_price.ToDecimal();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
-                    newSecurity.MinTradeAmount = item.quotes.x_lot.ToDecimal();
+                    newSecurity.MinTradeAmount = item.lot_size_q.ToDecimal();
                     newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
-                    newSecurity.VolumeStep = item.quotes.x_lot.ToDecimal();
+                    newSecurity.VolumeStep = item.lot_size_q.ToDecimal();
 
                     _securities.Add(newSecurity);
                 }
@@ -802,7 +807,6 @@ namespace OsEngine.Market.Servers.TraderNet
                                 
                 _webSocket.SendAsync("[\"portfolio\"]");
                 _webSocket.SendAsync("[\"orders\"]");
-
             }
             catch (Exception ex)
             {
@@ -848,7 +852,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 string quotesResponse = $"[\"quotes\", {GetStringFromList(_subscribedSecurities)}]";
                 string orderbookResponse = $"[\"orderBook\", {GetStringFromList(_subscribedSecurities)}]";
-
+                
                 _webSocket.SendAsync(quotesResponse);
                 _webSocket.SendAsync(orderbookResponse);
             }
@@ -875,6 +879,30 @@ namespace OsEngine.Market.Servers.TraderNet
                 }
             }
             return strFromList;
+        }
+
+        private bool _portfolioReceived = false;
+
+        private void ThreadUpdateSubscribe(object obj)
+        {
+            /*while (true)
+            {
+                try
+                {
+                    if (_securities == null)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (this.GetPortfolios)
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }*/
         }
 
         public bool SubscribeNews()
