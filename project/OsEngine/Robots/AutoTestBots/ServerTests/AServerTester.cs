@@ -37,7 +37,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             StrategyParameterButton buttonDataTest1 = CreateParameterButton("Start test data 1", "D1");
             buttonDataTest1.UserClickOnButtonEvent += ButtonDataTest1_UserClickOnButtonEvent;
-            D1_SecurityName = CreateParameter("Sec name data test 1", "ADAUSDT","D1");
+            D1_SecurityName = CreateParameter("Sec name data test 1", "ADAUSDT", "D1");
             D1_SecurityClass = CreateParameter("Sec class data test 1", "Futures", "D1");
             D1_StartDate = CreateParameter("Base date for data request test 1", DateTime.Now.ToString(), "D1");
 
@@ -85,6 +85,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             buttonConnectionTest5.UserClickOnButtonEvent += ButtonConnectionTest5_UserClickOnButtonEvent;
             C5_SecuritiesClass = CreateParameter("Sec class connection test 5", "Futures", "C5");
             C5_SecuritiesCount = CreateParameter("Sec count connection test 5", 15, 1, 150, 1, "C5");
+            C5_SecuritiesMinutesToTest = CreateParameter("Screneer tester work time minutes C5", 5, 5, 5, 1, "C5");
 
             StrategyParameterButton buttonConnectionTest5_ShowScreener = CreateParameterButton("Show screener. test connection 5", "C5");
             buttonConnectionTest5_ShowScreener.UserClickOnButtonEvent += ButtonConnectionTest5_ShowScreener_UserClickOnButtonEvent;
@@ -255,6 +256,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString C5_SecuritiesClass;
         StrategyParameterInt C5_SecuritiesCount;
         StrategyParameterString C5_TimeFrame;
+        StrategyParameterInt C5_SecuritiesMinutesToTest;
 
         StrategyParameterString O1_SecurityName;
         StrategyParameterString O1_SecurityClass;
@@ -427,7 +429,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonSecTests_UserClickOnButtonEvent()
         {
-            if(_threadIsWork == true)
+            if (_threadIsWork == true)
             {
                 return;
             }
@@ -505,16 +507,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonConnectionTest5_ShowScreener_UserClickOnButtonEvent()
         {
-           if(_testers == null ||
-                _testers.Count == 0)
+            if (_testers == null ||
+                 _testers.Count == 0)
             {
-                SendNewLogMessage("No test in array",LogMessageType.Error);
+                SendNewLogMessage("No test in array", LogMessageType.Error);
                 return;
             }
 
             AServerTester test = _testers[0];
 
-            if(test.GetType().Name != "Conn_5_Screener")
+            if (test.GetType().Name != "Conn_5_Screener")
             {
                 SendNewLogMessage("We need to run a test first. Conn_5_Screener", LogMessageType.Error);
                 return;
@@ -883,6 +885,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     else if (CurTestType == ServerTestType.Conn_5)
                     {
                         Conn_5_Screener tester = new Conn_5_Screener();
+                        tester.MinutesToTest = C5_SecuritiesMinutesToTest.ValueInt;
                         tester.SecuritiesClass = C5_SecuritiesClass.ValueString;
                         tester.SecuritiesCount = C5_SecuritiesCount.ValueInt;
                         tester.TimeFrame = C5_TimeFrame.ValueString;
@@ -1095,9 +1098,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 SendNewLogMessage("Tests ended", LogMessageType.Error);
                 _threadIsWork = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                 SendNewLogMessage("Tests ended with critical error", LogMessageType.Error);
                 _threadIsWork = false;
             }
@@ -1111,12 +1114,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Tester_TestEndEvent(AServerTester serverTest)
         {
-            lock(_testerLocker)
+            lock (_testerLocker)
             {
                 serverTest.LogMessage -= SendNewLogMessage;
                 serverTest.TestEndEvent -= Tester_TestEndEvent;
 
-                for (int i = 0;i < _testers.Count;i++)
+                for (int i = 0; i < _testers.Count; i++)
                 {
                     string type = _testers[i].GetType().Name;
 
@@ -1192,7 +1195,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 Process();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 SetNewError(e.ToString());
                 TestEnded();
@@ -1216,13 +1219,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 report += "STATUS: FAIL \n";
                 report += "Errors: \n";
 
-                for(int i = 0;i < _errors.Count;i++)
+                for (int i = 0; i < _errors.Count; i++)
                 {
-                    report += (i+1) + "  " +  _errors[i] + "\n";
+                    report += (i + 1) + "  " + _errors[i] + "\n";
                 }
             }
 
-            if(_serviceInfo.Count != 0)
+            if (_serviceInfo.Count != 0)
             {
                 report += "\n SERVICE INFO \n";
 
@@ -1244,7 +1247,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public void SetNewError(string error)
         {
-            for(int i = 0;i < _errors.Count;i++)
+            for (int i = 0; i < _errors.Count; i++)
             {
                 if (_errors[i].Equals(error))
                 {
@@ -1261,7 +1264,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public void TestEnded()
         {
-            if(TestEndEvent != null)
+            if (TestEndEvent != null)
             {
                 TestEndEvent(this);
             }
