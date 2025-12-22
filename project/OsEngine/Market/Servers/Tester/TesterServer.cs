@@ -4959,7 +4959,7 @@ namespace OsEngine.Market.Servers.Tester
                 LastTrade.IdInTester = _tradesId++;
             }
 
-            while (!_reader.EndOfStream &&
+            while (_reader != null && !_reader.EndOfStream &&
                    LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) < now)
             {
                 _lastString = _reader.ReadLine();
@@ -4983,7 +4983,7 @@ namespace OsEngine.Market.Servers.Tester
                 lastTradesSeries.Add(LastTrade);
             }
 
-            while (!_reader.EndOfStream)
+            while (_reader != null && !_reader.EndOfStream)
             {
                 _lastString = _reader.ReadLine();
                 Trade tradeN = new Trade() { SecurityNameCode = Security.Name };
