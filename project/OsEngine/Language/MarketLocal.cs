@@ -1266,6 +1266,9 @@ namespace OsEngine.Language
           "Eng:Full logging of user's orders and trades. Records all the statuses of orders and trades that came from the exchange._" +
           "Ru:Полное логирование ордеров и трейдов пользователя. Записывает все статусы ордеров и трейдов, которые пришли с биржи._");
 
+        public string Label310 => OsLocalization.ConvertToLocString(
+          "Eng:The port of the Quik server to connect to. This port is specified in the config.json in the lua folder_" +
+          "Ru:Порт сервера квик, к которому осуществляется подключение. Данный порт прописан в файле config.json в lua папке_");
 
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(

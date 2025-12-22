@@ -40,6 +40,7 @@ namespace OsEngine.Market.Servers.QuikLua
             CreateParameterString("Client code", null); // 7
             CreateParameterEnum(OsLocalization.Market.Label307, "T0", new List<string> { "T0", "T1", "T2", "NotImplemented" }); // 8
             CreateParameterBoolean(OsLocalization.Market.FullLogConnector, false); // 9
+            CreateParameterInt("Port", 34130); // 10
 
             ServerParameters[0].Comment = OsLocalization.Market.Label107;
             ServerParameters[1].Comment = OsLocalization.Market.Label107;
@@ -51,6 +52,7 @@ namespace OsEngine.Market.Servers.QuikLua
             ServerParameters[7].Comment = OsLocalization.Market.Label121;
             ServerParameters[8].Comment = OsLocalization.Market.Label308;
             ServerParameters[9].Comment = OsLocalization.Market.Label309;
+            ServerParameters[10].Comment = OsLocalization.Market.Label310;
 
             ((ServerParameterBool)ServerParameters[0]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[1]).ValueChange += QuikLuaServer_ParametrValueChange;
@@ -135,13 +137,14 @@ namespace OsEngine.Market.Servers.QuikLua
                     _useOther = (ServerParameterBool)ServerParameters[5];
                     string tradeMode = ((ServerParameterEnum)ServerParameters[8]).Value;
                     _fullLog = ((ServerParameterBool)ServerParameters[9]).Value;
+                    int port = ((ServerParameterInt)ServerParameters[10]).Value;
 
                     if (tradeMode == "T0") _tradeMode = 0;
                     else if (tradeMode == "T1") _tradeMode = 1;
                     else if (tradeMode == "T2") _tradeMode = 2;
                     else if (tradeMode == "NotImplemented") _tradeMode = 3;
 
-                    QuikLua = new Quik(Quik.DefaultPort, new InMemoryStorage());
+                    QuikLua = new Quik(port, new InMemoryStorage());
                     QuikLua.Events.OnConnected += EventsOnOnConnected;
                     QuikLua.Events.OnDisconnected += EventsOnOnDisconnected;
                     QuikLua.Events.OnConnectedToQuik += EventsOnOnConnectedToQuik;
