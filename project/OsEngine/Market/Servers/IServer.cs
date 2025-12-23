@@ -259,6 +259,13 @@ namespace OsEngine.Market.Servers
         List<Trade> GetAllTradesToSecurity(Security security);
 
         /// <summary>
+        /// take historical depths .qsh format
+        /// взять исторические стаканы в формате .qsh
+        /// </summary>
+        List<string> GetQshHistoryFileToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime,
+            bool needToUpdete);
+
+        /// <summary>
         /// all ticks from server
         /// все тики имеющиеся у сервера
         /// </summary>

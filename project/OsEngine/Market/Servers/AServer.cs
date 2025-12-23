@@ -3157,6 +3157,82 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        /// <summary>
+        /// take historical depths .qsh format
+        /// взять исторические стаканы в формате .qsh
+        /// </summary>
+        List<string> IServer.GetQshHistoryFileToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdete)
+        {
+            try
+            {
+                if (Securities == null)
+                {
+                    return null;
+                }
+
+                if (LastStartServerTime != DateTime.MinValue &&
+                    LastStartServerTime.AddSeconds(5) > DateTime.Now)
+                {
+                    return null;
+                }
+
+                if (actualTime == DateTime.MinValue)
+                {
+                    actualTime = startTime;
+                }
+
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return null;
+                }
+
+                Security security = null;
+
+                for (int i = 0; _securities != null && i < _securities.Count; i++)
+                {
+                    if (_securities[i].Name == securityName &&
+                        _securities[i].NameClass == securityClass)
+                    {
+                        security = _securities[i];
+                        break;
+                    }
+                }
+
+                if (security == null)
+                {
+                    for (int i = 0; _securities != null && i < _securities.Count; i++)
+                    {
+                        if (string.IsNullOrEmpty(_securities[i].NameId) == false &&
+                            _securities[i].NameId == securityName)
+                        {
+                            security = _securities[i];
+                            break;
+                        }
+                    }
+                    if (security == null)
+                    {
+                        return null;
+                    }
+                }
+
+                List<string> qshFilesPaths = null;
+
+                lock (_loadDataLocker)
+                {
+                    qshFilesPaths = ServerRealization.GetQshHistoryFileToSecurity(security, startTime, endTime, actualTime);
+                }
+                return qshFilesPaths;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(
+                    "AServer. GetQshHistoryFileToSecurity method error: " + ex.ToString(),
+                    LogMessageType.Error);
+
+                return null;
+            }
+        }
+
         #endregion
 
         #region Market depth

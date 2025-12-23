@@ -162,6 +162,14 @@ namespace OsEngine.Market.Servers
         /// </summary>
         List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime);
 
+        /// <summary>
+        /// take historical depths .qsh format
+        /// </summary>
+        List<string> GetQshHistoryFileToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
         #endregion
 
         #region Work with orders
