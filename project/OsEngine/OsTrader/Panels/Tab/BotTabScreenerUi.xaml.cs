@@ -366,6 +366,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     securities.Add(sec);
                 }
 
+                if(CheckRemoveSecurity(_screener.SecuritiesNames,securities))
+                {
+                    return;
+                }
+
                 _screener.SecuritiesNames = securities;
                 _screener.SaveSettings();
 
@@ -377,6 +382,49 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private bool CheckRemoveSecurity(List<ActivatedSecurity> oldSecurities, List<ActivatedSecurity> newSecurities)
+        {
+            List<ActivatedSecurity> securitiesToRemove = new List<ActivatedSecurity>();
+
+            for(int i = 0;i < oldSecurities.Count;i++)
+            {
+                ActivatedSecurity security = oldSecurities[i];
+
+                if(security.IsOn == false)
+                {
+                    continue;
+                }
+
+                if(newSecurities.Find(s => 
+                s.SecurityName == security.SecurityName
+                && s.IsOn == true) == null)
+                {
+                    securitiesToRemove.Add(security);
+                }
+            }
+
+            if(securitiesToRemove.Count > 0)
+            {
+                string message = OsLocalization.Trader.Label637 + " \n";
+
+                for(int i =0;i < securitiesToRemove.Count;i++)
+                {
+                    message += securitiesToRemove[i].SecurityName + ", ";
+                }
+
+                AcceptDialogUi ui = new AcceptDialogUi(message);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void ComboBoxCandleMarketDataType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)

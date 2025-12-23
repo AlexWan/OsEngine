@@ -2446,5 +2446,9 @@ namespace OsEngine.Language
         public string Label636 => OsLocalization.ConvertToLocString(
          "Eng:Single activation mode_" +
          "Ru:Режим одиночной активации_");
+
+        public string Label637 => OsLocalization.ConvertToLocString(
+         "Eng:Are you sure you want to delete the securities listed below? All data will be lost!_" +
+         "Ru:Вы уверены что хотите удалить бумаги перечисленные ниже? Все данные по ним будут утеряны!_");
     }
 }
