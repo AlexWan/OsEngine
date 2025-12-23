@@ -85,6 +85,7 @@ using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.GateIoData;
 using OsEngine.Market.Servers.BitGetData;
 using OsEngine.Market.Servers.MetaTrader5;
+using OsEngine.Market.Servers.QscalpMarketDepth;
 
 namespace OsEngine.Market
 {
@@ -476,6 +477,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.GateIoData);
                 serverTypes.Add(ServerType.BitGetData);
                 serverTypes.Add(ServerType.MetaTrader5);
+                serverTypes.Add(ServerType.QscalpMarketDepth);
 
                 return serverTypes;
             }
@@ -612,6 +614,11 @@ namespace OsEngine.Market
 
                     SaveMostPopularServers(type);
 
+
+                    if (type == ServerType.QscalpMarketDepth)
+                    {
+                        newServer = new QscalpMarketDepthServer();
+                    }
                     if (type == ServerType.BitGetData)
                     {
                         newServer = new BitGetDataServer();
@@ -1656,6 +1663,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new BitGetDataServerPermission();
                 }
+                else if (type == ServerType.QscalpMarketDepth)
+                {
+                    serverPermission = new QscalpMarketDepthServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -2458,6 +2469,12 @@ namespace OsEngine.Market
         /// downloading historical data from exchange BitGet
         /// скачивание исторических данных с биржи BitGet
         /// </summary>
-        BitGetData
+        BitGetData,
+
+        /// <summary>
+        /// downloading historical depths
+        /// скачивание историческихстаканов в формате qsh
+        /// </summary>
+        QscalpMarketDepth
     }
 }

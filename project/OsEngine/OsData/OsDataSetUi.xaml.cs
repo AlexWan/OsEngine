@@ -67,6 +67,7 @@ namespace OsEngine.OsData
             CheckBoxTfTickIsOn.IsChecked = set.BaseSettings.TfTickIsOn;
             CheckBoxTfDayIsOn.IsChecked = set.BaseSettings.TfDayIsOn;
             CheckBoxTfMarketDepthIsOn.IsChecked = set.BaseSettings.TfMarketDepthIsOn;
+            CheckBoxTfMarketDepthHistIsOn.IsChecked = set.BaseSettings.TfMarketDepthHistIsOn;
 
             List <string> serverTypes = ServerMaster.ActiveServersUniqueNames;
 
@@ -304,6 +305,7 @@ namespace OsEngine.OsData
                 CheckBoxTf30SecondIsOn.IsEnabled = false;
 
                 CheckBoxTfMarketDepthIsOn.IsEnabled = false;
+                CheckBoxTfMarketDepthHistIsOn.IsEnabled = false;
 
                 if (permission == null)
                 {
@@ -328,6 +330,7 @@ namespace OsEngine.OsData
 
                     CheckBoxTfMarketDepthIsOn.IsEnabled = false;
                     CheckBoxTfTickIsOn.IsEnabled = true;
+                    CheckBoxTfMarketDepthHistIsOn.IsEnabled = false;
                 }
                 else
                 {
@@ -352,6 +355,7 @@ namespace OsEngine.OsData
                     UpdComboBoxToPermission(CheckBoxTfMarketDepthIsOn,permission.DataFeedTfMarketDepthCanLoad);
                     UpdComboBoxToPermission(CheckBoxTfTickIsOn,permission.DataFeedTfTickCanLoad);
                     UpdComboBoxToPermission(CheckBoxTfDayIsOn, permission.DataFeedTfDayCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTfMarketDepthHistIsOn, permission.DataFeedTfMarketDepthHistoryCanLoad);
                 }
             }
         }
@@ -420,6 +424,7 @@ namespace OsEngine.OsData
 
             _set.BaseSettings.TfMarketDepthIsOn = CheckBoxTfMarketDepthIsOn.IsChecked.Value;
             _set.BaseSettings.MarketDepthDepth = Convert.ToInt32(ComboBoxMarketDepthDepth.SelectedValue.ToString());
+            _set.BaseSettings.TfMarketDepthHistIsOn = CheckBoxTfMarketDepthHistIsOn.IsChecked.Value;
 
             if (ComboBoxSource.SelectedItem != null)
             {
