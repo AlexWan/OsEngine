@@ -1724,6 +1724,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     security.VolumeStep = 1;
 									security.Expiration = replmsg["last_trade_date"].asDateTime();
                                     security.Exchange = "MOEX";
+                                    security.UsePriceStepCostToCalculateVolume = true;
 
                                     security.PriceStep = Convert.ToDecimal(replmsg["min_step"].asDecimal());
                                     security.PriceStepCost = Convert.ToDecimal(replmsg["step_price"].asDecimal());
