@@ -108,6 +108,8 @@ namespace OsEngine.Market.Servers
 
         string[] Leverage_SupportClasses { get; }
 
+        bool CanChangeOrderMarketNumber { get; }
+
         #endregion
     }
 

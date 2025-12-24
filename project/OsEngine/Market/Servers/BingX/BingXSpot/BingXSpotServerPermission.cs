@@ -293,6 +293,11 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

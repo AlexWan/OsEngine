@@ -264,6 +264,11 @@ namespace OsEngine.Market.Servers.MOEX
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

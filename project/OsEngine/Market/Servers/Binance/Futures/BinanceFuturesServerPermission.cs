@@ -310,6 +310,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

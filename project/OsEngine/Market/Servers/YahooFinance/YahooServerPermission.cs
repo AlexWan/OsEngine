@@ -287,6 +287,11 @@ namespace OsEngine.Market.Servers.YahooFinance
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

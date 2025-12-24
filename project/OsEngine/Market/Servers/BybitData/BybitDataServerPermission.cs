@@ -298,6 +298,11 @@ namespace OsEngine.Market.Servers.BybitData
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

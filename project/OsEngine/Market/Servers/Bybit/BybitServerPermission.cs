@@ -328,6 +328,11 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

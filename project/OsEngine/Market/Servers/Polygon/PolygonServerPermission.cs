@@ -279,6 +279,11 @@ namespace OsEngine.Market.Servers.Polygon
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

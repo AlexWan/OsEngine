@@ -292,6 +292,10 @@ namespace OsEngine.Market.Servers.Mexc
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
         #endregion
     }
 }

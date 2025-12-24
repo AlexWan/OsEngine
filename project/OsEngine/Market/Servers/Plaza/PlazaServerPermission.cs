@@ -279,6 +279,10 @@ namespace OsEngine.Market.Servers.Plaza
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
 
         #endregion
     }

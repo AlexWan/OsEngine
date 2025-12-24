@@ -261,6 +261,11 @@ namespace OsEngine.Market.Servers.Finam
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

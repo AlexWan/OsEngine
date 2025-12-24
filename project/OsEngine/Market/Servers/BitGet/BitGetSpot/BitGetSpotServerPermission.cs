@@ -290,6 +290,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

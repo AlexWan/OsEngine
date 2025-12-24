@@ -286,6 +286,11 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

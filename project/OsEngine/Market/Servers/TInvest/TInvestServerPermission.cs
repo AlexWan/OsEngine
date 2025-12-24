@@ -285,6 +285,10 @@ namespace OsEngine.Market.Servers.TInvest
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return true; }
+        }
 
         #endregion
     }

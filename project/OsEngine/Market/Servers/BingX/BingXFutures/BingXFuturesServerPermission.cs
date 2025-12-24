@@ -305,6 +305,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

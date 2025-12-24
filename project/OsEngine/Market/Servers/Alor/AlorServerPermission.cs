@@ -291,6 +291,10 @@ namespace OsEngine.Market.Servers.Alor
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return true; }
+        }
 
         #endregion
     }

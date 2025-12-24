@@ -286,6 +286,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         }
 
         public string[] Leverage_SupportClasses { get; }
+
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

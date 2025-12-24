@@ -280,6 +280,10 @@ namespace OsEngine.Market.Servers.AscendexSpot
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
 
         #endregion
     }

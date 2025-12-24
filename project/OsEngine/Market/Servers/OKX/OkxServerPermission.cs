@@ -304,6 +304,11 @@ namespace OsEngine.Market.Servers.OKX
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

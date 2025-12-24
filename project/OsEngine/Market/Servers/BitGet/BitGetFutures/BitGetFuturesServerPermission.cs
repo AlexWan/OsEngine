@@ -334,6 +334,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

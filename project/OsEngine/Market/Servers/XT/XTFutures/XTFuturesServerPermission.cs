@@ -301,6 +301,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
 
         #endregion
     }

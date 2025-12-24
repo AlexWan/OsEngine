@@ -308,6 +308,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

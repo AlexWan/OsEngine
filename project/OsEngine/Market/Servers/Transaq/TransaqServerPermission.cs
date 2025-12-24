@@ -289,6 +289,10 @@ namespace OsEngine.Market.Servers.Transaq
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return true; }
+        }
 
         #endregion
     }

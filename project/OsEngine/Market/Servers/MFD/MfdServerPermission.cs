@@ -263,6 +263,11 @@ namespace OsEngine.Market.Servers.MFD
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

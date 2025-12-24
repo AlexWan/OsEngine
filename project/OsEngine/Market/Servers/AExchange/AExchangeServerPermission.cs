@@ -282,6 +282,11 @@ namespace OsEngine.Market.Servers.AE
 
         public string[] Leverage_SupportClasses { get; }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
 
         #endregion
     }
