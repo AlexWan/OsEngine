@@ -3527,7 +3527,8 @@ namespace OsEngine.Market.Servers.Tester
 
             List<SecurityTester> security = new List<SecurityTester>();
 
-            byte[] prefix = Encoding.UTF8.GetBytes("QScalp History Data");
+            string startFile = "";
+            string endFile = "";
 
             for (int i = 0; i < files.Length; i++)
             {
@@ -3536,88 +3537,72 @@ namespace OsEngine.Market.Servers.Tester
                 // begin / начало
                 // end / конец
 
+                string fileName = files[i].Split('\\')[files[i].Split('\\').Length - 1];
+                string[] parts = fileName.Split('.');
+                if (parts.Length < 3) continue;
+                string fileDateTimeString = parts[parts.Length - 3];
+
+                if (DateTime.TryParseExact(fileDateTimeString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime mainFileDate) == false)
+                {
+                    continue;
+                }
+
+                if (startFile == "")
+                {
+                    startFile = files[i];
+                }
+
+                if (endFile == "")
+                {
+                    endFile = files[i];
+                }
+
+                string startFileName = startFile.Split('\\')[startFile.Split('\\').Length - 1];
+                string[] partsStartFileName = startFileName.Split('.');
+                if (partsStartFileName.Length < 3) continue;
+                string startFileDateTimeString = partsStartFileName[partsStartFileName.Length - 3];
+
+                string endFileName = endFile.Split('\\')[endFile.Split('\\').Length - 1];
+                string[] partsEndFileName = endFileName.Split('.');
+                if (partsEndFileName.Length < 3) continue;
+                string endFileDateTimeString = partsEndFileName[partsEndFileName.Length - 3];
+
+                if (DateTime.TryParseExact(endFileDateTimeString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime endFileDateTime) == false)
+                {
+                    continue;
+                }
+
+                if (DateTime.TryParseExact(startFileDateTimeString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime startFileDateTime) == false)
+                {
+                    continue;
+                }
+
+                if (mainFileDate <= startFileDateTime)
+                {
+                    startFile = files[i];
+                }
+                else if (mainFileDate >= endFileDateTime)
+                {
+                    endFile = files[i];
+                }
+                else continue;
+
                 SecurityTester securityTester = new SecurityTester();
 
-                string fileType = "";
+                string name = string.Join(".", fileName.Split('.').Reverse().Skip(3).Reverse());
 
-                using (FileStream fs = File.OpenRead(files[i]))
-                {
-                    try
-                    {
-                        Stream stream = GetDataStream(fs, prefix);
+                securityTester.FileAddress = files[i];
+                securityTester.FileAddresses.Add(files[i]);
 
-                        if (stream == null)
-                        {
-                            continue;
-                        }
-
-                        string fileName = files[i].Split('\\')[files[i].Split('\\').Length - 1];
-                        string name = string.Join(".", fileName.Split('.').Reverse().Skip(3).Reverse());
-
-                        string[] parts = fileName.Split('.');
-                        fileType = parts[parts.Length - 2];
-
-                        securityTester.FileAddress = files[i];
-                        securityTester.FileAddresses.Add(files[i]);
-
-                        securityTester.Security = new Security();
-                        securityTester.Security.Name = name;
-                        securityTester.Security.Lot = 1;
-                        securityTester.Security.NameClass = "TestClass";
-                        securityTester.Security.MarginBuy = 1;
-                        securityTester.Security.MarginSell = 1;
-                        securityTester.Security.PriceStepCost = 1;
-                        securityTester.Security.PriceStep = 1;
-                        securityTester.DataType = SecurityTesterDataType.MarketDepth;
-
-                        string securityName = "";
-
-                        if (fileType == "Quotes")
-                        {
-                            DataBinaryReader dataReader = new DataBinaryReader(stream);
-                            long lastMilliseconds = 0;
-
-                            if (ReadFileHeader(stream, dataReader, ref securityTester, ref lastMilliseconds) == false) continue;
-
-                            int streamCount = dataReader.ReadByte();
-                            if (streamCount != 1) continue;
-
-                            StreamType streamType = (StreamType)dataReader.ReadByte();
-                            if (streamType != StreamType.Quotes) continue;
-
-                            securityName = dataReader.ReadString();
-
-                            if (GetPriceStep(ref securityTester, securityName) == false) continue;
-
-                            ReadQuotesFile(dataReader, ref securityTester, ref lastMilliseconds);
-                        }
-                        else if (fileType == "Deals")
-                        {
-                            DataBinaryReader dataReader = new DataBinaryReader(stream);
-                            DealsStream dealsStream = new DealsStream();
-                            long lastMilliseconds = 0;
-
-                            if (ReadFileHeader(stream, dataReader, ref securityTester, ref lastMilliseconds) == false) continue;
-
-                            int streamCount = dataReader.ReadByte();
-                            if (streamCount != 1) continue;
-
-                            StreamType streamType = (StreamType)dataReader.ReadByte();
-                            if (streamType != StreamType.Deals) continue;
-
-                            securityName = dataReader.ReadString();
-
-                            if (GetPriceStep(ref securityTester, securityName) == false) continue;
-
-                            ReadDealsFile(dealsStream, dataReader, ref securityTester, ref lastMilliseconds);
-                        }
-                        else continue;
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-                }
+                securityTester.Security = new Security();
+                securityTester.Security.Name = name;
+                securityTester.Security.Lot = 1;
+                securityTester.Security.NameClass = "TestClass";
+                securityTester.Security.MarginBuy = 1;
+                securityTester.Security.MarginSell = 1;
+                securityTester.Security.PriceStepCost = 1;
+                securityTester.Security.PriceStep = 1;
+                securityTester.DataType = SecurityTesterDataType.MarketDepth;
 
                 bool inArray = false;
                 for (int i2 = 0; i2 < security.Count; i2++)
@@ -3626,16 +3611,6 @@ namespace OsEngine.Market.Servers.Tester
                     if (securityInArray.Security.Name == securityTester.Security.Name)
                     {
                         securityInArray.FileAddresses.Add(securityTester.FileAddress);
-
-                        if (securityInArray.TimeStart > securityTester.TimeStart)
-                        {
-                            securityInArray.TimeStart = securityTester.TimeStart;
-                        }
-
-                        if (securityInArray.TimeEnd < securityTester.TimeEnd)
-                        {
-                            securityInArray.TimeEnd = securityTester.TimeEnd;
-                        }
 
                         inArray = true;
                         break;
@@ -3651,6 +3626,32 @@ namespace OsEngine.Market.Servers.Tester
                     securityTester.NewTradesEvent += TesterServer_NewTradesEvent;
                     security.Add(securityTester);
                 }
+            }
+
+            for (int i = 0; i < security.Count; i++)
+            {
+                string startfileName = startFile.Split('\\')[startFile.Split('\\').Length - 1];
+                string nameStartFile = string.Join(".", startfileName.Split('.').Reverse().Skip(3).Reverse());
+
+                SecurityTester securityTester = security[i];
+
+                if (nameStartFile == securityTester.Security.Name)
+                {
+                    ReadFile(startFile, ref securityTester);
+                }
+
+                DateTime startTime = securityTester.TimeStart;
+
+                string endFileName = endFile.Split('\\')[endFile.Split('\\').Length - 1];
+                string nameEndFile = string.Join(".", endFileName.Split('.').Reverse().Skip(3).Reverse());
+
+                if (nameEndFile == securityTester.Security.Name)
+                {
+                    ReadFile(endFile, ref securityTester);
+                }
+
+                security[i].TimeStart = startTime;
+                security[i].TimeEnd = securityTester.TimeEnd;
             }
 
             // save securities
@@ -3712,6 +3713,76 @@ namespace OsEngine.Market.Servers.Tester
             if (TestingNewSecurityEvent != null)
             {
                 TestingNewSecurityEvent();
+            }
+        }
+
+        private void ReadFile(string file, ref SecurityTester securityTester)
+        {
+            string fileName = file.Split('\\')[file.Split('\\').Length - 1];
+            string[] parts = fileName.Split('.');
+            if (parts.Length < 3) return;
+            string fileType = parts[parts.Length - 2];
+
+            using (FileStream fs = File.OpenRead(file))
+            {
+                try
+                {
+                    byte[] prefix = Encoding.UTF8.GetBytes("QScalp History Data");
+
+                    Stream stream = GetDataStream(fs, prefix);
+
+                    if (stream == null)
+                    {
+                        return;
+                    }
+
+                    string securityName = "";
+
+                    if (fileType == "Quotes")
+                    {
+                        DataBinaryReader dataReader = new DataBinaryReader(stream);
+                        long lastMilliseconds = 0;
+
+                        if (ReadFileHeader(stream, dataReader, ref securityTester, ref lastMilliseconds) == false) return;
+
+                        int streamCount = dataReader.ReadByte();
+                        if (streamCount != 1) return;
+
+                        StreamType streamType = (StreamType)dataReader.ReadByte();
+                        if (streamType != StreamType.Quotes) return;
+
+                        securityName = dataReader.ReadString();
+
+                        if (GetPriceStep(ref securityTester, securityName) == false) return;
+
+                        ReadQuotesFile(dataReader, ref securityTester, ref lastMilliseconds);
+                    }
+                    else if (fileType == "Deals")
+                    {
+                        DataBinaryReader dataReader = new DataBinaryReader(stream);
+                        DealsStream dealsStream = new DealsStream();
+                        long lastMilliseconds = 0;
+
+                        if (ReadFileHeader(stream, dataReader, ref securityTester, ref lastMilliseconds) == false) return;
+
+                        int streamCount = dataReader.ReadByte();
+                        if (streamCount != 1) return;
+
+                        StreamType streamType = (StreamType)dataReader.ReadByte();
+                        if (streamType != StreamType.Deals) return;
+
+                        securityName = dataReader.ReadString();
+
+                        if (GetPriceStep(ref securityTester, securityName) == false) return;
+
+                        ReadDealsFile(dealsStream, dataReader, ref securityTester, ref lastMilliseconds);
+                    }
+                    else return;
+                }
+                catch
+                {
+                    return;
+                }
             }
         }
 
@@ -4740,7 +4811,7 @@ namespace OsEngine.Market.Servers.Tester
 
         public List<string> GetQshHistoryFileToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdete)
         {
-           return null;
+            return null;
         }
 
         List<SecurityLeverageData> IServer.ListLeverageData => null;
@@ -5049,6 +5120,8 @@ namespace OsEngine.Market.Servers.Tester
 
         private DateTime LastDateTime = DateTime.MinValue;
 
+        private DateTime _currentFileDate = DateTime.MinValue;
+
         private void CheckMarketDepth(DateTime now)
         {
             if (now > TimeEnd)
@@ -5061,6 +5134,11 @@ namespace OsEngine.Market.Servers.Tester
             {
                 OffStreamMarketDepth();
 
+                return;
+            }
+
+            if(_currentFileDate != DateTime.MinValue && _currentFileDate.Date > now.Date)
+            {
                 return;
             }
 
@@ -5130,7 +5208,44 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     if (fileDate == targetDate.Date)
                     {
+                        _currentFileDate = fileDate.Date;
                         return file;
+                    }
+                }
+            }
+
+            int targetIndex = -1;
+            for (int i = 0; i < FileAddresses.Count; i++)
+            {
+                string file = FileAddresses[i];
+                string[] parts = file.Split('.');
+
+                if (parts.Length < 3) continue;
+
+                string dateString = parts[parts.Length - 3];
+                string currentFileType = parts[parts.Length - 2];
+
+                if (currentFileType == "Quotes")
+                {
+                    CurrentStreamType = "Quotes";
+                }
+                else if (currentFileType == "Deals")
+                {
+                    CurrentStreamType = "Deals";
+                }
+                else continue;
+
+                if (DateTime.TryParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fileDate))
+                {
+                    if(targetIndex == i)
+                    {
+                        _currentFileDate = fileDate.Date;
+                        break;
+                    }
+
+                    if (fileDate == LastDateTime.Date)
+                    {
+                        targetIndex = i + 1;
                     }
                 }
             }
