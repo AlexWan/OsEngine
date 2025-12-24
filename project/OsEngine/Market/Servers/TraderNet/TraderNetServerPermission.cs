@@ -66,7 +66,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
         public bool DataFeedTf10MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf15MinuteCanLoad
@@ -76,7 +76,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf1HourCanLoad
@@ -121,10 +121,10 @@ namespace OsEngine.Market.Servers.TraderNet
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = false,
+                TimeFrameSec1IsOn = true,
                 TimeFrameSec2IsOn = false,
                 TimeFrameSec5IsOn = false,
-                TimeFrameSec10IsOn = false,
+                TimeFrameSec10IsOn = true,
                 TimeFrameSec15IsOn = false,
                 TimeFrameSec20IsOn = false,
                 TimeFrameSec30IsOn = false,
@@ -132,10 +132,10 @@ namespace OsEngine.Market.Servers.TraderNet
                 TimeFrameMin2IsOn = false,
                 TimeFrameMin3IsOn = false,
                 TimeFrameMin5IsOn = true,
-                TimeFrameMin10IsOn = false,
+                TimeFrameMin10IsOn = true,
                 TimeFrameMin15IsOn = true,
                 TimeFrameMin20IsOn = false,
-                TimeFrameMin30IsOn = false,
+                TimeFrameMin30IsOn = true,
                 TimeFrameMin45IsOn = false,
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = false,
@@ -292,11 +292,6 @@ namespace OsEngine.Market.Servers.TraderNet
         }
 
         public string[] Leverage_SupportClasses { get; }
-
-        public bool CanChangeOrderMarketNumber
-        {
-            get { return false; }
-        }
 
         #endregion
     }

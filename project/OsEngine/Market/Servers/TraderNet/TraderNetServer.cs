@@ -41,11 +41,6 @@ namespace OsEngine.Market.Servers.TraderNet
             threadMessageReader.IsBackground = true;
             threadMessageReader.Name = "MessageReader";
             threadMessageReader.Start();
-
-            /*Thread threadUpdateSubscribe = new Thread(ThreadUpdateSubscribe);
-            threadUpdateSubscribe.IsBackground = true;
-            threadUpdateSubscribe.Name = "ThreadUpdateSubscribe";
-            threadUpdateSubscribe.Start();*/
         }
 
         public void Connect(WebProxy proxy)
@@ -420,6 +415,20 @@ namespace OsEngine.Market.Servers.TraderNet
 
             List<Candle> allCandles = new List<Candle>();
 
+            int needTf = 0;
+
+            if (tfTotalMinutes == 30)
+            {
+                tfTotalMinutes = 15;
+                needTf = 30;
+            }
+
+            if (tfTotalMinutes == 10)
+            {
+                tfTotalMinutes = 5;
+                needTf = 10;
+            }
+
             DateTime startTimeReq = startTime;
             DateTime endTimeReq = startTimeReq.AddMinutes(tfTotalMinutes * 100000);
 
@@ -428,13 +437,24 @@ namespace OsEngine.Market.Servers.TraderNet
                 endTimeReq = endTime;
             }
 
+            int countReq = 0;
+
             do
             {
                 List<Candle> candles = RequestCandleHistory(security, tfTotalMinutes, startTimeReq, endTimeReq);
 
                 if (candles == null)
                 {
-                    return null;
+                    if (endTimeReq < endTime)
+                    {
+                        startTimeReq = endTimeReq;
+                        endTimeReq = startTimeReq.AddMinutes(tfTotalMinutes * 100000);
+                        continue;
+                    }
+                    else
+                    {
+                        return null;
+                    }                        
                 }
 
                 if (allCandles.Count == 0)
@@ -468,7 +488,21 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 if (allCandles[allCandles.Count - 1].TimeStart < endTime)
                 {
-                    startTimeReq = TimeZoneInfo.ConvertTimeFromUtc(allCandles[allCandles.Count - 1].TimeStart, TimeZoneInfo.Local);
+                    //startTime = TimeZoneInfo.ConvertTimeFromUtc(allCandles[allCandles.Count - 1].TimeStart, TimeZoneInfo.Local);
+                    startTime = allCandles[allCandles.Count - 1].TimeStart.AddMinutes(15);
+
+                    if (startTime == startTimeReq)
+                    {
+                        countReq++;                        
+                    }
+
+                    startTimeReq = startTime;
+
+                    if (countReq >= 3)
+                    {
+                        break;
+                    }
+
                     endTimeReq = startTimeReq.AddMinutes(tfTotalMinutes * 100000);
 
                     if (endTimeReq > endTime)
@@ -491,7 +525,115 @@ namespace OsEngine.Market.Servers.TraderNet
                 }
             }
 
+            if (allCandles.Count > 1)
+            {
+                for (int i = 0; i < allCandles.Count; i++)
+                {
+                    if (allCandles[i].TimeStart.Date > endTime)
+                    {
+                        allCandles.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+
+            if (needTf > 0)
+            {
+                return BuildCandles(allCandles, needTf, tfTotalMinutes);
+            }
+
             return allCandles;
+        }
+
+        private List<Candle> BuildCandles(List<Candle> oldCandles, int needTf, int oldTf)
+        {
+            if (oldCandles == null)
+            {
+                return null;
+            }
+
+            List<Candle> newCandles = new List<Candle>();
+
+            int index = oldCandles.FindIndex(can => can.TimeStart.Minute % needTf == 0);
+
+            int count = needTf / oldTf;
+
+            Candle newCandle = new Candle();
+
+            for (int i = index; i < oldCandles.Count; i++)
+            {
+                if (oldCandles[i].TimeStart.Minute % needTf == 0)
+                {
+                    newCandle = new Candle();
+                    newCandle.TimeStart = oldCandles[i].TimeStart;
+                    newCandle.Open = oldCandles[i].Open;
+                    newCandle.High = oldCandles[i].High;
+                    newCandle.Low = oldCandles[i].Low;                    
+                    newCandle.Close = oldCandles[i].Close;
+                    newCandle.Volume = oldCandles[i].Volume;
+                    newCandle.State = CandleState.Finished;
+
+                    newCandles.Add(newCandle);
+                }
+                else
+                {
+                    if (oldCandles[i].TimeStart.AddMinutes(-oldTf) != oldCandles[i - 1].TimeStart)
+                    {
+                        newCandle = new Candle();
+                        newCandle.TimeStart = oldCandles[i].TimeStart.AddMinutes(-oldTf);
+                        newCandle.Open = oldCandles[i].Open;
+                        newCandle.High = oldCandles[i].High;
+                        newCandle.Low = oldCandles[i].Low;
+                        newCandle.Close = oldCandles[i].Close;
+                        newCandle.Volume = oldCandles[i].Volume;
+                        newCandle.State = CandleState.Finished;
+
+                        newCandles.Add(newCandle);
+                    }
+                    else
+                    {
+                        newCandle = new Candle();
+                        newCandle.Open = newCandles[^1].Open;
+                        newCandle.TimeStart = newCandles[^1].TimeStart;
+                        newCandle.High = oldCandles[i].High > newCandles[^1].High
+                        ? oldCandles[i].High
+                        : newCandles[^1].High;
+
+                        newCandle.Low = oldCandles[i].Low < newCandles[^1].Low
+                            ? oldCandles[i].Low
+                            : newCandles[^1].Low;
+
+                        newCandle.Close = oldCandles[i].Close;
+                        newCandle.Volume = newCandles[^1].Volume + oldCandles[i].Volume;
+                        newCandle.State = CandleState.Finished;
+
+                        newCandles.RemoveAt(newCandles.Count - 1);
+
+                        newCandles.Add(newCandle);
+                    }                        
+                }                
+
+                if (i == oldCandles.Count - 1)
+                {
+                    newCandle = newCandles[^1];
+                    newCandle.State = CandleState.None;
+
+                    newCandles.RemoveAt(newCandles.Count - 1);
+
+                    newCandles.Add(newCandle);
+                }
+            }
+
+            for (int i = 1; newCandles != null && i < newCandles.Count; i++)
+            {
+                if (newCandles[i - 1].TimeStart == newCandles[i].TimeStart)
+                {
+                    newCandles.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            return newCandles;
         }
 
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -511,7 +653,9 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             if (timeFrameMinutes == 1 ||
                 timeFrameMinutes == 5 ||
+                timeFrameMinutes == 10 ||
                 timeFrameMinutes == 15 ||
+                timeFrameMinutes == 30 ||
                 timeFrameMinutes == 60 ||
                 timeFrameMinutes == 1440)
             {
@@ -541,7 +685,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 HttpResponseMessage responseMessage = CreateQuery($"/api/", "POST", null, reqData);
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
-                return ConvertCandles(JsonResponse);
+                return ConvertCandles(JsonResponse, security.NameClass);
             }
             catch (Exception exception)
             {
@@ -550,7 +694,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private List<Candle> ConvertCandles(string JsonResponse)
+        private List<Candle> ConvertCandles(string JsonResponse, string nameClass)
         {
             try
             {
@@ -589,6 +733,8 @@ namespace OsEngine.Market.Servers.TraderNet
                 }
                 enumerator.Reset();
 
+                int timeShift = GetTimeShift(nameClass);
+
                 List<Candle> candles = new List<Candle>();
 
                 for (int i = 0; i < listHloc.Count; i++)
@@ -606,8 +752,8 @@ namespace OsEngine.Market.Servers.TraderNet
                     candle.Open = listHloc[i][2].ToDecimal();
                     candle.Close = listHloc[i][3].ToDecimal();
                     candle.Volume = listVl[i].ToDecimal();
-                    DateTime time = TimeManager.GetDateTimeFromTimeStampSeconds(long.Parse(listSeries[i]));
-                    candle.TimeStart = time.AddHours(3);
+                    DateTime time = TimeManager.GetDateTimeFromTimeStampSeconds(long.Parse(listSeries[i]));                    
+                    candle.TimeStart = time.AddHours(timeShift);
 
                     candles.Add(candle);
                 }
@@ -618,6 +764,16 @@ namespace OsEngine.Market.Servers.TraderNet
                 SendLogMessage($"ConvertCandles: {ex.Message}", LogMessageType.Error);
                 return null;
             }
+        }
+
+        private int GetTimeShift(string nameClass)
+        {
+            if (nameClass == "FIX_Stock")
+            {
+                return 11;
+            }
+
+            return 3;
         }
 
         private bool CheckCandlesToZeroData(List<string> item)
@@ -1140,11 +1296,15 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 GetSnapshotTrades(responseTrade);
 
+                int timeShift = GetTimeShiftToSecurity(responseTrade.c);
+
                 Trade trade = new Trade();
                 trade.SecurityNameCode = responseTrade.c;
                 trade.Price = _listTrades[responseTrade.c].ltp.ToDecimal();
                 trade.Id = responseTrade.rev;
-                DateTime.TryParse(_listTrades[responseTrade.c].ltt, out trade.Time);                
+                DateTime time;
+                DateTime.TryParse(_listTrades[responseTrade.c].ltt, out time);
+                trade.Time = time.AddHours(timeShift);
                 trade.Volume = _listTrades[responseTrade.c].lts.ToDecimal();
                 trade.Side = Side.Buy;
 
@@ -1154,6 +1314,22 @@ namespace OsEngine.Market.Servers.TraderNet
             {
                 SendLogMessage("TraderNet - UpdateTrade: " + ex.Message, LogMessageType.Error);
             }
+        }
+
+        private int GetTimeShiftToSecurity(string name)
+        {
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (_securities[i].Name == name)
+                {
+                    if (_securities[i].NameClass == "FIX_Stock")
+                    {
+                        return 8;
+                    }
+                }
+            }
+
+            return 0;
         }
 
         private void GetSnapshotTrades(ResponseTrade responseTrade)
