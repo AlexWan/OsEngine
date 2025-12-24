@@ -6893,13 +6893,22 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 return;
             }
-            Order orderInJournal = _journal.IsMyOrder(order);
+
+            bool canChangeOrderNum = _connector.IsCanChangeOrderNumberMarket;
+
+            if (order.State != OrderStateType.Active)
+            {
+                canChangeOrderNum = false;
+            }
+
+            Order orderInJournal = _journal.IsMyOrder(order, canChangeOrderNum);
 
             if (orderInJournal == null)
             {
                 return;
             }
-            _journal.SetNewOrder(order);
+
+            _journal.SetNewOrder(order, canChangeOrderNum);
             _icebergMaker.SetNewOrder(order);
 
             if (OrderUpdateEvent != null)
@@ -6919,7 +6928,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            Order orderInJournal = _journal.IsMyOrder(order);
+            Order orderInJournal = _journal.IsMyOrder(order, false);
 
             if (orderInJournal == null)
             {

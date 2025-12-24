@@ -445,7 +445,7 @@ namespace OsEngine.Journal
             }
         }
 
-        public Order IsMyOrder(Order order)
+        public Order IsMyOrder(Order order, bool canChangeOrderNumber)
         {
             // open positions. Look All
 
@@ -478,15 +478,25 @@ namespace OsEngine.Journal
                             continue;
                         }
 
-                        if (openOrder.NumberUser == order.NumberUser
-                         && string.IsNullOrEmpty(openOrder.NumberMarket))
+                        if(canChangeOrderNumber == false)
                         {
-                            return openOrder;
+                            if (openOrder.NumberUser == order.NumberUser
+                             && string.IsNullOrEmpty(openOrder.NumberMarket))
+                            {
+                                return openOrder;
+                            }
+                            else if (openOrder.NumberUser == order.NumberUser
+                              && openOrder.NumberMarket == order.NumberMarket)
+                            {
+                                return openOrder;
+                            }
                         }
-                        else if (openOrder.NumberUser == order.NumberUser
-                          && openOrder.NumberMarket == order.NumberMarket)
+                        else
                         {
-                            return openOrder;
+                            if (openOrder.NumberUser == order.NumberUser)
+                            {
+                                return openOrder;
+                            }
                         }
                     }
 
@@ -501,15 +511,25 @@ namespace OsEngine.Journal
                             continue;
                         }
 
-                        if (closeOrder.NumberUser == order.NumberUser
-                         && string.IsNullOrEmpty(closeOrder.NumberMarket))
+                        if (canChangeOrderNumber == false)
                         {
-                            return closeOrder;
+                            if (closeOrder.NumberUser == order.NumberUser
+                                && string.IsNullOrEmpty(closeOrder.NumberMarket))
+                            {
+                                return closeOrder;
+                            }
+                            else if (closeOrder.NumberUser == order.NumberUser
+                              && closeOrder.NumberMarket == order.NumberMarket)
+                            {
+                                return closeOrder;
+                            }
                         }
-                        else if (closeOrder.NumberUser == order.NumberUser
-                          && closeOrder.NumberMarket == order.NumberMarket)
+                        else
                         {
-                            return closeOrder;
+                            if (closeOrder.NumberUser == order.NumberUser)
+                            {
+                                return closeOrder;
+                            }
                         }
                     }
                 }
@@ -549,15 +569,25 @@ namespace OsEngine.Journal
                         continue;
                     }
 
-                    if (openOrder.NumberUser == order.NumberUser
+                    if (canChangeOrderNumber == false)
+                    {
+                        if (openOrder.NumberUser == order.NumberUser
                     && string.IsNullOrEmpty(openOrder.NumberMarket))
-                    {
-                        return openOrder;
+                        {
+                            return openOrder;
+                        }
+                        else if (openOrder.NumberUser == order.NumberUser
+                          && openOrder.NumberMarket == order.NumberMarket)
+                        {
+                            return openOrder;
+                        }
                     }
-                    else if (openOrder.NumberUser == order.NumberUser
-                      && openOrder.NumberMarket == order.NumberMarket)
+                    else
                     {
-                        return openOrder;
+                        if (openOrder.NumberUser == order.NumberUser)
+                        {
+                            return openOrder;
+                        }
                     }
                 }
 
@@ -572,15 +602,25 @@ namespace OsEngine.Journal
                         continue;
                     }
 
-                    if (closeOrder.NumberUser == order.NumberUser
+                    if (canChangeOrderNumber == false)
+                    {
+                        if (closeOrder.NumberUser == order.NumberUser
                        && string.IsNullOrEmpty(closeOrder.NumberMarket))
-                    {
-                        return closeOrder;
+                        {
+                            return closeOrder;
+                        }
+                        else if (closeOrder.NumberUser == order.NumberUser
+                          && closeOrder.NumberMarket == order.NumberMarket)
+                        {
+                            return closeOrder;
+                        }
                     }
-                    else if (closeOrder.NumberUser == order.NumberUser
-                      && closeOrder.NumberMarket == order.NumberMarket)
+                    else
                     {
-                        return closeOrder;
+                        if (closeOrder.NumberUser == order.NumberUser)
+                        {
+                            return closeOrder;
+                        }
                     }
                 }
             }
@@ -592,7 +632,7 @@ namespace OsEngine.Journal
 
         #region Incoming data reception
 
-        public void SetNewOrder(Order newOrder)
+        public void SetNewOrder(Order newOrder, bool canChangeOrderNumber)
         {
             try
             {
@@ -600,7 +640,7 @@ namespace OsEngine.Journal
                 {
                     return;
                 }
-                _positionController.SetUpdateOrderInPositions(newOrder);
+                _positionController.SetUpdateOrderInPositions(newOrder, canChangeOrderNumber);
             }
             catch (Exception error)
             {

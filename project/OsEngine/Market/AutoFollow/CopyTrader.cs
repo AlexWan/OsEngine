@@ -641,7 +641,7 @@ namespace OsEngine.Market.AutoFollow
                     return;
                 }
 
-                Order orderInJournal = MyJournal.IsMyOrder(order);
+                Order orderInJournal = MyJournal.IsMyOrder(order, false);
 
                 if (orderInJournal == null)
                 {
@@ -666,7 +666,7 @@ namespace OsEngine.Market.AutoFollow
                     }
                 }
 
-                MyJournal.SetNewOrder(order);
+                MyJournal.SetNewOrder(order, false);
             }
             catch (Exception ex)
             {

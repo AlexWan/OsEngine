@@ -383,6 +383,35 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        /// <summary>
+        /// connector is can to change order number
+        /// </summary>
+        public bool IsCanChangeOrderNumberMarket
+        {
+            get
+            {
+                if (ServerType == ServerType.Tester ||
+                     ServerType == ServerType.Optimizer)
+                {
+                    return false;
+                }
+
+                if (ServerType == ServerType.None)
+                {
+                    return false;
+                }
+
+                IServerPermission serverPermission = ServerMaster.GetServerPermission(ServerType);
+
+                if (serverPermission == null)
+                {
+                    return false;
+                }
+
+                return serverPermission.CanChangeOrderMarketNumber;
+            }
+        }
+
         public bool IsNonTradePeriodInConnector
         {
             get
@@ -519,14 +548,14 @@ namespace OsEngine.Market.Connectors
                     return false;
                 }
 
-                IServerPermission serverPermision = ServerMaster.GetServerPermission(ServerType);
+                IServerPermission serverPermission = ServerMaster.GetServerPermission(ServerType);
 
-                if (serverPermision == null)
+                if (serverPermission == null)
                 {
                     return false;
                 }
 
-                return serverPermision.MarketOrdersIsSupport;
+                return serverPermission.MarketOrdersIsSupport;
             }
         }
 
