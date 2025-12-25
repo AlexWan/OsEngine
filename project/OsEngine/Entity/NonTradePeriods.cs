@@ -395,7 +395,7 @@ namespace OsEngine.Entity
             NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 6 };
 
             NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 40 };
-            NonTradePeriod5End = new TimeOfDay() { Hour = 23, Minute = 59 };
+            NonTradePeriod5End = new TimeOfDay() { Hour = 24, Minute = 00 };
         }
 
         public bool NonTradePeriod1OnOff;

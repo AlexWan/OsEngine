@@ -35,12 +35,15 @@
    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
    <Optimize>True</Optimize>
    <DebugType>embedded</DebugType>
+   <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
    <OutputPath>bin\Release\</OutputPath>
    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
    <DebugType>embedded</DebugType>
+   <Optimize>True</Optimize>
+   <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
   </PropertyGroup>
   <Target Name="RemoveSatelliteAssemblies" AfterTargets="ResolveAssemblyReferences">
     <ItemGroup>
