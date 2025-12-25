@@ -251,6 +251,13 @@ namespace OsEngine.Market.Servers
             bool needToUpdete);
 
         /// <summary>
+        /// take historical depths .qsh format
+        /// взять исторические стаканы в формате .qsh
+        /// </summary>
+        List<string> GetQshHistoryFileToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime,
+            bool needToUpdete);
+
+        /// <summary>
         /// take all trades on the instrument that have in the system
         /// взять все сделки по инстурументу имеющиеся в системе
         /// </summary>

@@ -1620,6 +1620,11 @@ namespace OsEngine.Market.Servers.AstsBridge
             
         }
 
+        public List<string> GetQshHistoryFileToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdete)
+        {
+            return null;
+        }
+
         List<SecurityLeverageData> IServer.ListLeverageData => null;
 
         /// <summary>

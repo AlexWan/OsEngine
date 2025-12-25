@@ -15,16 +15,17 @@
         <CheckBox Name="CheckBoxTf15SecondIsOn" Content="15 sec" HorizontalAlignment="Left" Margin="24,159,0,0" VerticalAlignment="Top" />
         <CheckBox Name="CheckBoxTf20SecondIsOn" Content="20 sec" HorizontalAlignment="Left" Margin="24,180,0,0" VerticalAlignment="Top" />
         <CheckBox Name="CheckBoxTf30SecondIsOn" Content="30 sec" HorizontalAlignment="Left" Margin="24,200,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTf1MinuteIsOn" Content="1 min" HorizontalAlignment="Left" Margin="146,75,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTf2MinuteIsOn" Content="2 min" HorizontalAlignment="Left" Margin="146,96,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTf5MinuteIsOn" Content="5 min" HorizontalAlignment="Left" Margin="146,117,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTf10MinuteIsOn" Content="10 min" HorizontalAlignment="Left" Margin="146,138,0,0" VerticalAlignment="Top"/>
-        <CheckBox Name="CheckBoxTf15MinuteIsOn" Content="15 min" HorizontalAlignment="Left" Margin="146,159,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTf30MinuteIsOn" Content="30 min" HorizontalAlignment="Left" Margin="146,180,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTf1HourIsOn" Content="1 hour" HorizontalAlignment="Left" Margin="146,200,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTf2HourIsOn" Content="2 hour" HorizontalAlignment="Left" Margin="258,75,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTfTickIsOn" Content="trades"  HorizontalAlignment="Left" Margin="258,138,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTfMarketDepthIsOn" Content="market depth"  HorizontalAlignment="Left" Margin="258,159,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTf1MinuteIsOn" Content="1 min" HorizontalAlignment="Left" Margin="120,75,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTf2MinuteIsOn" Content="2 min" HorizontalAlignment="Left" Margin="120,96,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTf5MinuteIsOn" Content="5 min" HorizontalAlignment="Left" Margin="120,117,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTf10MinuteIsOn" Content="10 min" HorizontalAlignment="Left" Margin="120,138,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxTf15MinuteIsOn" Content="15 min" HorizontalAlignment="Left" Margin="120,159,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTf30MinuteIsOn" Content="30 min" HorizontalAlignment="Left" Margin="120,180,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTf1HourIsOn" Content="1 hour" HorizontalAlignment="Left" Margin="120,200,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTf2HourIsOn" Content="2 hour" HorizontalAlignment="Left" Margin="215,75,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTfTickIsOn" Content="trades"  HorizontalAlignment="Left" Margin="215,138,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTfMarketDepthIsOn" Content="market depth on-line"  HorizontalAlignment="Left" Margin="215,159,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTfMarketDepthHistIsOn" Content="market depth history"  HorizontalAlignment="Left" Margin="215,180,0,0" VerticalAlignment="Top" />
         <WindowsFormsHost Name="HostSecurities" Margin="358,46,7,0" Height="190" VerticalAlignment="Top"/>
         <Label Name="Label16" Content="Securities" HorizontalAlignment="Left" Margin="358,16,0,0" VerticalAlignment="Top" />
         <Rectangle Margin="5,244,5,10"/>
@@ -36,12 +37,12 @@
         <Label Name="Label20" Content="Regime" HorizontalAlignment="Left" Margin="305,253,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonAddSecurity" Content="+"  Margin="0,13,62,0" FontWeight="Bold" FontSize="15" FontFamily="Stencil" Click="ButtonAddSecurity_Click" HorizontalAlignment="Right" Width="30" Height="28" VerticalAlignment="Top"/>
         <Button Name="ButtonDelSecurity" Content="-"  Margin="0,13,10,0" VerticalAlignment="Top" Height="28" FontSize="15" FontWeight="Bold" FontFamily="Stencil" Click="ButtonDelSecurity_Click" HorizontalAlignment="Right" Width="30"/>
-        <ComboBox Name="ComboBoxMarketDepthDepth" HorizontalAlignment="Left" Margin="269,190,0,0" VerticalAlignment="Top" Width="83" Height="20"/>
-        <Label Name="Label17" Content="Depth" HorizontalAlignment="Left" Margin="215,187,0,0" VerticalAlignment="Top" />
+        <ComboBox Name="ComboBoxMarketDepthDepth" HorizontalAlignment="Left" Margin="269,205,0,0" VerticalAlignment="Top" Width="83" Height="20"/>
+        <Label Name="Label17" Content="Depth" HorizontalAlignment="Left" Margin="215,205,0,0" VerticalAlignment="Top" />
         <CheckBox Name="CheckBoxNeedToUpDate" Content="Auto update" Margin="305,298,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
         <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,29" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
-        <CheckBox Name="CheckBoxTf4HourIsOn" Content="4 hour" HorizontalAlignment="Left" Margin="258,96,0,0" VerticalAlignment="Top" />
-        <CheckBox Name="CheckBoxTfDayIsOn" Content="day" HorizontalAlignment="Left" Margin="258,117,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTf4HourIsOn" Content="4 hour" HorizontalAlignment="Left" Margin="215,96,0,0" VerticalAlignment="Top" />
+        <CheckBox Name="CheckBoxTfDayIsOn" Content="day" HorizontalAlignment="Left" Margin="215,117,0,0" VerticalAlignment="Top" />
         <Rectangle Name="StopUsePanelOne" HorizontalAlignment="Left" Height="155" Margin="17,75,0,0" Stroke="Black" VerticalAlignment="Top" Width="339" Opacity="0.5" StrokeThickness="0"/>
         <Rectangle Name="StopUsePanelTwo" HorizontalAlignment="Left" Height="26" Margin="297,298,0,0" Stroke="Black" VerticalAlignment="Top" Width="125" Opacity="0.5" StrokeThickness="0"/>
     </Grid>

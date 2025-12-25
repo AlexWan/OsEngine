@@ -46,6 +46,12 @@ namespace OsEngine.Market.Servers
 
         bool DataFeedTfMarketDepthCanLoad { get; }
 
+        bool DataFeedTfMarketDepthHistoryCanLoad
+        {
+            get { return false; }
+
+        }
+
         #endregion
 
         #region Trade Permissions

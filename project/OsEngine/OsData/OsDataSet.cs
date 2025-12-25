@@ -699,6 +699,7 @@ namespace OsEngine.OsData
             SettingsToLoadSecurities.TimeEnd = param.TimeEnd;
             SettingsToLoadSecurities.MarketDepthDepth = param.MarketDepthDepth;
             SettingsToLoadSecurities.NeedToUpdate = param.NeedToUpdate;
+            SettingsToLoadSecurities.TfMarketDepthHistIsOn = param.TfMarketDepthHistIsOn;
 
             ActivateLoaders();
 
@@ -982,7 +983,7 @@ namespace OsEngine.OsData
                 TryDeleteLoader(TimeFrame.Tick);
             }
 
-            if (SettingsToLoadSecurities.TfMarketDepthIsOn)
+            if (SettingsToLoadSecurities.TfMarketDepthIsOn || SettingsToLoadSecurities.TfMarketDepthHistIsOn)
             {
                 TryCreateLoader(TimeFrame.MarketDepth);
             }
@@ -1033,6 +1034,12 @@ namespace OsEngine.OsData
             loader.TimeStart = SettingsToLoadSecurities.TimeStart;
             loader.TimeEnd = SettingsToLoadSecurities.TimeEnd;
             loader.NewLogMessageEvent += SendNewLogMessage;
+
+            if (frame == TimeFrame.MarketDepth)
+            {
+                loader.MDType = SettingsToLoadSecurities.TfMarketDepthHistIsOn ? MarketDepthsLoaderType.History : MarketDepthsLoaderType.OnLine;
+            }
+
             loader.CreateDataPies();
 
             SecLoaders.Add(loader);
@@ -1060,7 +1067,7 @@ namespace OsEngine.OsData
             {
                 if (SettingsToLoadSecurities.Regime == DataSetState.Off)
                 {
-                    if (SecLoaders[i].TimeFrame == TimeFrame.MarketDepth)
+                    if (SecLoaders[i].TimeFrame == TimeFrame.MarketDepth && SettingsToLoadSecurities.TfMarketDepthIsOn)
                     {
                         SecLoaders[i].Process(server, SettingsToLoadSecurities);
                     }
@@ -1248,6 +1255,8 @@ namespace OsEngine.OsData
 
         public DateTime TimeEndInReal;
 
+        public MarketDepthsLoaderType MDType { get; set; }
+
         public void CheckTimeInSets()
         {
             if (_isDeleted)
@@ -1373,6 +1382,10 @@ namespace OsEngine.OsData
                 {
                     ProcessTrades(server, param, true);
                 }
+                else if (TimeFrame == TimeFrame.MarketDepth && param.TfMarketDepthHistIsOn)
+                {
+                    ProcessMarketDepthHistory(server, param);
+                }
                 else if (TimeFrame == TimeFrame.MarketDepth)
                 {
                     ProcessMarketDepth(param);
@@ -1406,7 +1419,8 @@ namespace OsEngine.OsData
             {
                 return;
             }
-            if (TimeFrame == TimeFrame.MarketDepth)
+
+            if (TimeFrame == TimeFrame.MarketDepth && MDType == MarketDepthsLoaderType.OnLine)
             {
                 Status = SecurityLoadStatus.Loading;
                 return;
@@ -1447,6 +1461,12 @@ namespace OsEngine.OsData
                 {
                     interval = new TimeSpan(0, 0, 0, 0);
                 }
+            }
+
+            // QSH стаканы рубим по 10 дней
+            if (TimeFrame == TimeFrame.MarketDepth && MDType == MarketDepthsLoaderType.History)
+            {
+                interval = new TimeSpan(10, 0, 0, 0);
             }
 
             // 1 минутки рубим на месяца
@@ -1503,7 +1523,7 @@ namespace OsEngine.OsData
                 {
                     newPie.UpDateStatus();
                 }
-                else if (TimeFrame == TimeFrame.MarketDepth)
+                else if (TimeFrame == TimeFrame.MarketDepth && MDType == MarketDepthsLoaderType.OnLine)
                 {
                     // делаем ничего
                 }
@@ -1514,7 +1534,8 @@ namespace OsEngine.OsData
 
                 newCandleDataPies.Add(newPie);
 
-                if (TimeFrame == TimeFrame.Tick)
+                if (TimeFrame == TimeFrame.Tick
+                    || TimeFrame == TimeFrame.MarketDepth && MDType == MarketDepthsLoaderType.History)
                 {
                     timeStart = timeNow.AddDays(1);
                 }
@@ -2053,6 +2074,174 @@ namespace OsEngine.OsData
 
         #endregion
 
+        #region Market Depth History
+
+        private void ProcessMarketDepthHistory(IServer server, SettingsToLoadSecurity param)
+        {
+            if (_isDeleted)
+            {
+                return;
+            }
+
+            // пробуем создавать куски данных нужные для выгрузки
+
+            if (DataPies == null
+                || DataPies.Count == 0)
+            {
+                CreateDataPies();
+                Status = SecurityLoadStatus.Activate;
+                return;
+            }
+
+            if (DataPies.Count == 0)
+            {
+                return;
+            }
+
+            // загружаем эти куски из источника
+
+            Status = SecurityLoadStatus.Loading;
+
+            for (int i = 0; i < DataPies.Count; i++)
+            {
+                if (_isDeleted) { return; }
+
+                if (DataPies[i].Status == DataPieStatus.Load &&
+                   i + 1 != DataPies.Count)
+                {
+                    continue;
+                }
+
+                if (DataPies[i].Status == DataPieStatus.Load &&
+                    i + 1 == DataPies.Count &&
+                   param.NeedToUpdate == false)
+                {
+                    continue;
+                }
+
+                if (DataPies[i].CountTriesToLoadSet >= 2 &&
+                    i + 1 != DataPies.Count)
+                {
+                    continue;
+                }
+
+                if (DataPies[i].CountTriesToLoadSet >= 2 &&
+                   i + 1 == DataPies.Count &&
+                   param.NeedToUpdate == false)
+                {
+                    continue;
+                }
+
+                if (param.Regime == DataSetState.Off)
+                {
+                    return;
+                }
+
+                DataPies[i].CountTriesToLoadSet = DataPies[i].CountTriesToLoadSet + 1;
+
+                LoadMarketDepthHistoryFromServer(DataPies[i], server);
+
+                if (_isDeleted) { return; }
+
+                if (DataPies[i].Status == DataPieStatus.Load)
+                {
+                    CheckTimeInSets();
+                }
+            }
+
+            Status = SecurityLoadStatus.Load;
+        }
+
+        private void LoadMarketDepthHistoryFromServer(DataPie pie, IServer server)
+        {
+            if (_isDeleted)
+            {
+                return;
+            }
+
+            SendNewLogMessage("Try load sec: " + SecName + " , tf: " + TimeFrame +
+               " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToShortDateString(), LogMessageType.System);
+
+
+            List<string> marketDepthFiles = server.GetQshHistoryFileToSecurity(SecName, SecClass, pie.Start, pie.End, pie.Start, false);
+
+            if (marketDepthFiles == null ||
+                marketDepthFiles.Count == 0)
+            {
+                SendNewLogMessage("Error. No candles. sec: " + SecName + " , tf: " + TimeFrame +
+                   " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToString(), LogMessageType.System);
+
+                return;
+            }
+
+            (DateTime earlyFileDate, DateTime lateFileDate) = CheckMDTimeInSet(marketDepthFiles);
+
+            pie.SaveMarketDepthInfoPieInTempFile(earlyFileDate, lateFileDate, marketDepthFiles.Count);
+
+            pie.UpDateStatus();
+
+            SendNewLogMessage("Depths Load Successfully. sec: " + SecName + " , tf: " + TimeFrame +
+             " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToString(), LogMessageType.System);
+
+
+            for (int i = 0; i < marketDepthFiles.Count; i++)
+            {
+                MoveFile(marketDepthFiles[i], _pathMyTfFolder);
+            }
+
+            pie.Status = DataPieStatus.Load;
+        }
+
+        private void MoveFile(string sourceFilePath, string destinationFolder)
+        {
+            try
+            {
+                string fileName = Path.GetFileName(sourceFilePath);
+                string destinationPath = Path.Combine(destinationFolder, fileName);
+
+                File.Move(sourceFilePath, destinationPath, true);
+
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private (DateTime earlyFileDate, DateTime lateFileDate) CheckMDTimeInSet(IEnumerable<string> qshFilesPaths)
+        {
+            DateTime earlyFileDate = DateTime.MaxValue;
+            DateTime lateFileDate = DateTime.MinValue;
+
+            try
+            {
+                IEnumerator<string> filesEnumerator = qshFilesPaths.GetEnumerator();
+
+                while (filesEnumerator.MoveNext())
+                {
+                    string fileName = Path.GetFileName(filesEnumerator.Current);
+                    string datePart = fileName.Split('.')[^3];
+
+                    DateTime fileDate = DateTime.ParseExact(datePart, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                    if (fileDate < earlyFileDate)
+                        earlyFileDate = fileDate;
+
+                    if (fileDate > lateFileDate)
+                        lateFileDate = fileDate;
+                }
+
+                return (earlyFileDate, lateFileDate);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                return (earlyFileDate, lateFileDate);
+            }
+        }
+
+        #endregion
+
         #region Candle with time frame less than minute
 
         private void ProcessCandlesLessMinute(IServer server, SettingsToLoadSecurity param)
@@ -2449,7 +2638,7 @@ namespace OsEngine.OsData
             {
                 List<QuoteChange> changes = new List<QuoteChange>();
 
-                if(md.Asks.Count == 0 || md.Bids.Count == 0 ||
+                if (md.Asks.Count == 0 || md.Bids.Count == 0 ||
                     (md.Asks.Count > 0 && md.Bids.Count > 0 &&
                     md.Asks[0].Price < md.Bids[0].Price))
                 {
@@ -2498,7 +2687,7 @@ namespace OsEngine.OsData
             }
 
             int diffOldAsk = 0;
-            if(oldAsks.Count > _depth)
+            if (oldAsks.Count > _depth)
                 diffOldAsk = oldAsks.Count - _depth;
 
             if (oldAsksDict.Count != oldAsks.Count - diffOldAsk) return false;
@@ -2957,7 +3146,7 @@ namespace OsEngine.OsData
             TimeStart = DateTime.Now.AddDays(-5);
             TimeEnd = DateTime.Now.AddDays(5);
             MarketDepthDepth = 5;
-
+            TfMarketDepthHistIsOn = false;
         }
 
         public void Load(string saveStr)
@@ -3017,6 +3206,15 @@ namespace OsEngine.OsData
             {
                 // ignore
             }
+
+            if (saveArray.Length > 26 && saveArray[26] != "")
+            {
+                TfMarketDepthHistIsOn = Convert.ToBoolean(saveArray[26]);
+            }
+            else
+            {
+                TfMarketDepthHistIsOn = false;
+            }
         }
 
         public string GetSaveStr()
@@ -3052,6 +3250,7 @@ namespace OsEngine.OsData
             result += NeedToUpdate + "%";
             result += TfDayIsOn + "%";
             result += SourceName + "%";
+            result += TfMarketDepthHistIsOn + "%";
 
             return result;
         }
@@ -3082,6 +3281,7 @@ namespace OsEngine.OsData
         public bool TfDayIsOn;
         public bool TfTickIsOn;
         public bool TfMarketDepthIsOn;
+        public bool TfMarketDepthHistIsOn;
         public int MarketDepthDepth;
         public bool NeedToUpdate;
     }
@@ -3147,7 +3347,9 @@ namespace OsEngine.OsData
 
             if (_pathMyTempPieInTfFolder.Contains("Tick") == false
                 &&
-                _pathMyTempPieInTfFolder.Contains("Sec") == false)
+                _pathMyTempPieInTfFolder.Contains("Sec") == false
+                &&
+                _pathMyTempPieInTfFolder.Contains("MarketDepth") == false)
             {
                 CandlesInfo = LoadCandlesPieStatus();
             }
@@ -3163,6 +3365,19 @@ namespace OsEngine.OsData
                 TradesInfo = LoadTradesPieStatus();
             }
 
+            MarkeDepthPieStatusInfo markeDepthPieStatusInfo = null;
+
+            if ((CandlesInfo == null
+               || CandlesInfo.FirstCandle == null)
+               &&
+               (TradesInfo == null
+               || TradesInfo.FirstTrade == null)
+               &&
+                _pathMyTempPieInTfFolder != "MarketDepth")
+            {
+                markeDepthPieStatusInfo = LoadMDPieStatus();
+            }
+
             DateTime start = DateTime.MinValue;
 
             if (CandlesInfo != null && CandlesInfo.FirstCandle != null)
@@ -3173,6 +3388,11 @@ namespace OsEngine.OsData
             if (TradesInfo != null && TradesInfo.FirstTrade != null)
             {
                 start = TradesInfo.FirstTrade.Time;
+            }
+
+            if (markeDepthPieStatusInfo != null && markeDepthPieStatusInfo.FirstFileDate != DateTime.MinValue)
+            {
+                start = markeDepthPieStatusInfo.FirstFileDate;
             }
 
             StartFact = start;
@@ -3191,10 +3411,15 @@ namespace OsEngine.OsData
                 end = TradesInfo.LastTrade.Time;
             }
 
+            if (markeDepthPieStatusInfo != null && markeDepthPieStatusInfo.LastFileDate != DateTime.MinValue)
+            {
+                end = markeDepthPieStatusInfo.LastFileDate;
+            }
+
             EndFact = end;
 
             if (CandlesInfo == null &&
-                TradesInfo == null)
+                TradesInfo == null && markeDepthPieStatusInfo == null)
             {
                 ObjectCount = 0;
             }
@@ -3207,6 +3432,11 @@ namespace OsEngine.OsData
             if (TradesInfo != null)
             {
                 ObjectCount = TradesInfo.TradesCount;
+            }
+
+            if (markeDepthPieStatusInfo != null)
+            {
+                ObjectCount = markeDepthPieStatusInfo.QshFilesCount;
             }
         }
 
@@ -3545,6 +3775,67 @@ namespace OsEngine.OsData
         }
 
         #endregion
+
+        #region QshMarketDepth
+
+        public MarkeDepthPieStatusInfo LoadMDPieStatus()
+        {
+            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + TempFileName;
+
+            if (File.Exists(pathToTempFile) == false)
+            {
+                return null;
+            }
+
+            MarkeDepthPieStatusInfo info = new MarkeDepthPieStatusInfo();
+
+            try
+            {
+                string piePeriod = File.ReadAllText(pathToTempFile);
+
+                if (!string.IsNullOrEmpty(piePeriod))
+                {
+                    string[] datesStr = piePeriod.Split('#');
+
+                    info.FirstFileDate = DateTime.ParseExact(datesStr[0], "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    info.LastFileDate = DateTime.ParseExact(datesStr[1], "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                    info.QshFilesCount = int.Parse(datesStr[2]);
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            if (info.FirstFileDate != DateTime.MinValue)
+            {
+                Status = DataPieStatus.Load;
+            }
+
+            return info;
+        }
+
+        public void SaveMarketDepthInfoPieInTempFile(DateTime realStart, DateTime realEnd, int qshFilesCount)
+        {
+            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + TempFileName;
+
+            try
+            {
+                string start = realStart.ToString("yyyy-MM-dd");
+                string end = realEnd.ToString("yyyy-MM-dd");
+
+                string pieInfo = string.Join('#', [start, end, qshFilesCount]);
+
+                File.WriteAllText(pathToTempFile, pieInfo);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
     }
 
     public enum SecurityLoadStatus
@@ -3586,6 +3877,15 @@ namespace OsEngine.OsData
         public Candle LastCandle;
 
         public int CandlesCount;
+    }
+
+    public class MarkeDepthPieStatusInfo
+    {
+        public DateTime FirstFileDate;
+
+        public DateTime LastFileDate;
+
+        public int QshFilesCount;
     }
 
     public class SetDublicator
@@ -3805,5 +4105,12 @@ namespace OsEngine.OsData
         }
 
         public event Action<string, LogMessageType> NewLogMessageEvent;
+    }
+
+    public enum MarketDepthsLoaderType
+    {
+        None,
+        OnLine,
+        History
     }
 }
