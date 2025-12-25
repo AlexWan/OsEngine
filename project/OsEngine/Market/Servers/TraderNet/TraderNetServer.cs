@@ -664,7 +664,7 @@ namespace OsEngine.Market.Servers.TraderNet
             return false;
         }
 
-        private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(3000));
+        private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(700));
 
         private List<Candle> RequestCandleHistory(Security security, int interval, DateTime startTime, DateTime endTime)
         {
