@@ -7314,6 +7314,10 @@ ContextMenuStrip menu)
 
                 for (int i = 0; chartSeries != null && i < chartSeries.Count; i++)
                 {
+                    if(chartSeries[i] == null)
+                    {
+                        continue;
+                    }
                     if (chartSeries[i].ChartArea == areaName)
                     {
                         seriesOnArea.Add(chartSeries[i]);

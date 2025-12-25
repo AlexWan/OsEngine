@@ -33,7 +33,7 @@
    <OutputPath>bin\Debug\</OutputPath>
    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-   <Optimize>True</Optimize>
+   <Optimize>False</Optimize>
    <DebugType>embedded</DebugType>
    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
   </PropertyGroup>
@@ -42,7 +42,7 @@
    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
    <DebugType>embedded</DebugType>
-   <Optimize>True</Optimize>
+   <Optimize>False</Optimize>
    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
   </PropertyGroup>
   <Target Name="RemoveSatelliteAssemblies" AfterTargets="ResolveAssemblyReferences">
