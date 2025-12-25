@@ -126,6 +126,12 @@ namespace OsEngine.Robots
                         continue;
                     }
 
+                    if (!CheckSpread())
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
                     if (_regimeParameter.ValueString == "OnlyClose")
                     {
                         ClosePositions();
@@ -271,11 +277,6 @@ namespace OsEngine.Robots
                     return;
                 }
 
-                if (!CheckSpread())
-                {
-                    return;
-                }
-
                 if (_tab.Connector.MyServer.ServerType != ServerType.TInvest
                  || _tab.Security.Name != "TMON@")
                 {
@@ -344,11 +345,6 @@ namespace OsEngine.Robots
 
         private void ClosePositions()
         {
-            if (!CheckSpread())
-            {
-                return;
-            }
-
             if (_tab.PositionsOpenAll.Count > 0)
             {
                 for (int i = 0; i < _tab.PositionsOpenAll.Count; i++)
