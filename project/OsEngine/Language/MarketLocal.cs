@@ -1270,6 +1270,10 @@ namespace OsEngine.Language
           "Eng:The port of the Quik server to connect to. This port is specified in the config.json in the lua folder_" +
           "Ru:Порт сервера квик, к которому осуществляется подключение. Данный порт прописан в файле config.json в lua папке_");
 
+        public string Label311 => OsLocalization.ConvertToLocString(
+          "Eng:If true, then the portfolio loads only signed securities. If false, the portfolio is loaded for all available securities. Some brokers have instruments with the same name, which may cause the portfolio to load incorrectly. In such cases, the true setting is recommended._" +
+          "Ru:Если true, то позиции по бумагам будут подгружаться только из тех бумаг, на которые подписаны роботы. Если false, то портфель подгружается по всем доступным бумагам. Некоторые брокеры имеют инструменты с одинаковым названием, из за этого портфель может неправильно подгружаться, для таких случаев рекомендуется настройка true_");
+
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
@@ -1862,6 +1866,10 @@ namespace OsEngine.Language
         public string FullLogConnector => OsLocalization.ConvertToLocString(
             "Eng:Full logging of user's orders and trades_" +
             "Ru:Полное логирование ордеров и трейдов пользователя_");
+
+        public string PortfolioOnlyBots => OsLocalization.ConvertToLocString(
+            "Eng:Bot only portfolio_" +
+            "Ru:Портфель только из роботов_");
 
         public string UseSecInfoUpdates => OsLocalization.ConvertToLocString(
             "Eng:Use sec info updates_" +
