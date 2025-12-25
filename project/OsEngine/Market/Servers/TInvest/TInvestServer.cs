@@ -3233,6 +3233,20 @@ namespace OsEngine.Market.Servers.TInvest
                             }
                         }
 
+                       /* SendLogMessage("New order state. Security: " + order.SecurityNameCode
+                            + "\n NumberUser: " + order.NumberUser
+                            + "\n State: " + order.State
+                            + "\n NumberMarket: " + order.NumberMarket, LogMessageType.System);*/
+
+                        if (IsCancelOrderInClearing(order))
+                        {   // это у нас отзыв ордера в клиринг вечерний. Фьючерсная площадка
+                            // после этого ордера должны будут восстановиться
+                           /* SendLogMessage("Ордер пропущен в клиринг. Security: " + order.SecurityNameCode
+                              + "\n NumberUser: " + order.NumberUser
+                              + "\n NumberMarket: " + order.NumberMarket, LogMessageType.System);*/
+                            continue;
+                        }
+
                         if (order.State == OrderStateType.Done ||
                             order.State == OrderStateType.Fail ||
                             order.State == OrderStateType.Cancel)
@@ -3325,6 +3339,35 @@ namespace OsEngine.Market.Servers.TInvest
                     Thread.Sleep(5000);
                 }
             }
+        }
+
+        private bool IsCancelOrderInClearing(Order order)
+        {
+            if(order.State != OrderStateType.Cancel)
+            {
+                return false;
+            }
+
+            DateTime time = DateTime.Now.ToUniversalTime().AddHours(3);
+
+            if(time.DayOfWeek == DayOfWeek.Sunday
+                || time.DayOfWeek == DayOfWeek.Saturday)
+            {
+                return false;
+            }
+
+            if(time.Hour == 18 
+                && time.Minute >= 50)
+            {
+                return true;
+            }
+            else if(time.Hour == 19 
+                && time.Minute < 4)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private DateTime _lastErrorMessageOnReconnectTime;

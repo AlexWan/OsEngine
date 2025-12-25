@@ -2059,6 +2059,12 @@ namespace OsEngine.Market.Servers.Alor
                 }
             }
 
+            if (IsCancelOrderInClearing(order))
+            {   // это у нас отзыв ордера в клиринг вечерний. Фьючерсная площадка
+                // после этого ордера должны будут восстановиться
+                 return;
+            }
+
             if (MyOrderEvent != null)
             {
                 MyOrderEvent(order);
@@ -2104,6 +2110,35 @@ namespace OsEngine.Market.Servers.Alor
                     }
                 }
             }
+        }
+
+        private bool IsCancelOrderInClearing(Order order)
+        {
+            if (order.State != OrderStateType.Cancel)
+            {
+                return false;
+            }
+
+            DateTime time = DateTime.Now.ToUniversalTime().AddHours(3);
+
+            if (time.DayOfWeek == DayOfWeek.Sunday
+                || time.DayOfWeek == DayOfWeek.Saturday)
+            {
+                return false;
+            }
+
+            if (time.Hour == 18
+                && time.Minute >= 50)
+            {
+                return true;
+            }
+            else if (time.Hour == 19
+                && time.Minute < 4)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool TryGenerateFakeMyTradeToOrderBySpread(Order order)
