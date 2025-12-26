@@ -97,7 +97,7 @@ namespace OsEngine.Robots
 
         private void _rebalanceNowButton_UserClickOnButtonEvent()
         {
-            _botClosePositionToday = true;
+            _botClosePositionToday = false;
             Task.Run(RebalanceLogic);
         }
 
