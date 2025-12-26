@@ -240,7 +240,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                     newSecurity.DecimalsVolume = contractSize.ToString().DecimalsCount();
                     newSecurity.Lot = 1;
-                    newSecurity.PriceStep = item.price_tick.ToDecimal();
+                    newSecurity.PriceStep = item.price_tick.Replace(',', '.').TrimEnd('0').TrimEnd('.').ToDecimal();
                     newSecurity.Decimals = item.price_tick.DecimalsCount();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
@@ -278,7 +278,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 if (!JsonResponse.Contains("error"))
                 {
                     ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(JsonResponse);
-                    decimal contractSize = response.data[0].contract_size.ToDecimal();
+                    decimal contractSize = response.data[0].contract_size.Replace(',', '.').TrimEnd('0').TrimEnd('.').ToDecimal();
 
                     return contractSize;
                 }
