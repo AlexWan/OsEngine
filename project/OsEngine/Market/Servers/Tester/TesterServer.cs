@@ -5711,6 +5711,8 @@ namespace OsEngine.Market.Servers.Tester
                 _dealsStream = null;
                 LastDateTime = DateTime.MinValue;
                 LastCandle = null;
+                CurrentStreamType = "";
+                _currentFileDate = DateTime.MinValue;
                 LastTrade = null;
                 LastMarketDepth = null;
                 _isFirstFrame = true;
