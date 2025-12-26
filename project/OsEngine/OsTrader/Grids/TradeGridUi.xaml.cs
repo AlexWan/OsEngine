@@ -131,6 +131,8 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxOpenOrdersMakerOnly.SelectedItem = tradeGrid.OpenOrdersMakerOnly.ToString();
             ComboBoxOpenOrdersMakerOnly.SelectionChanged += ComboBoxOpenOrdersMakerOnly_SelectionChanged;
 
+            LabelNonTradePeriod1IsActive.Visibility = Visibility.Hidden;
+            LabelNonTradePeriod2IsActive.Visibility = Visibility.Hidden;
 
             // stop grid by event
 
@@ -443,6 +445,9 @@ namespace OsEngine.OsTrader.Grids
             ButtonSetNonTradePeriods2.Content = OsLocalization.Trader.Label632 + " #2";
 
             LabelOpenOrdersMakerOnly.Content = OsLocalization.Trader.Label635;
+
+            LabelNonTradePeriod1IsActive.Content = OsLocalization.Trader.Label638; 
+            LabelNonTradePeriod2IsActive.Content = OsLocalization.Trader.Label638;
 
             // stop grid by event
             CheckBoxStopGridByMoveUpIsOn.Content = OsLocalization.Trader.Label481;
@@ -1807,6 +1812,38 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
+                // обновление статусов неторговых периодов
+
+                if(TradeGrid.Tab.IsConnected == true
+                    && TradeGrid.Tab.IsReadyToTrade == true
+                    && TradeGrid.Tab.TimeServerCurrent != DateTime.MinValue)
+                {
+                    bool canTradeRegime1IsOn = TradeGrid.NonTradePeriods.SettingsPeriod1.CanTradeThisTime(TradeGrid.Tab.TimeServerCurrent);
+                    bool canTradeRegime2IsOn = TradeGrid.NonTradePeriods.SettingsPeriod2.CanTradeThisTime(TradeGrid.Tab.TimeServerCurrent);
+
+                    if(canTradeRegime1IsOn == true
+                        && LabelNonTradePeriod1IsActive.Visibility == Visibility.Visible)
+                    {
+                        LabelNonTradePeriod1IsActive.Visibility = Visibility.Hidden;
+                    }
+                    else if(canTradeRegime1IsOn == false 
+                        && LabelNonTradePeriod1IsActive.Visibility == Visibility.Hidden)
+                    {
+                        LabelNonTradePeriod1IsActive.Visibility = Visibility.Visible;
+                    }
+
+                    if (canTradeRegime2IsOn == true
+                        && LabelNonTradePeriod2IsActive.Visibility == Visibility.Visible)
+                    {
+                        LabelNonTradePeriod2IsActive.Visibility = Visibility.Hidden;
+                    }
+                    else if (canTradeRegime2IsOn == false
+                        && LabelNonTradePeriod2IsActive.Visibility == Visibility.Hidden)
+                    {
+                        LabelNonTradePeriod2IsActive.Visibility = Visibility.Visible;
+                    }
+                }
+                
                 // обновление хедеров
 
                 string allVolumeHeader = OsLocalization.Trader.Label491 + "\n" + TradeGrid.AllVolumeInLines.ToStringWithNoEndZero();

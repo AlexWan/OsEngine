@@ -2450,5 +2450,9 @@ namespace OsEngine.Language
         public string Label637 => OsLocalization.ConvertToLocString(
          "Eng:Are you sure you want to delete the securities listed below? All data will be lost!_" +
          "Ru:Вы уверены что хотите удалить бумаги перечисленные ниже? Все данные по ним будут утеряны!_");
+
+        public string Label638 => OsLocalization.ConvertToLocString(
+         "Eng:Active >_" +
+         "Ru:Активен >_");
     }
 }
