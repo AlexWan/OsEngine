@@ -42,6 +42,7 @@ namespace OsEngine.Market.Servers.QuikLua
             CreateParameterBoolean(OsLocalization.Market.FullLogConnector, false); // 9
             CreateParameterInt("Port", 34130); // 10
             CreateParameterBoolean(OsLocalization.Market.PortfolioOnlyBots, false); // 11
+            CreateParameterString(OsLocalization.Market.PortfolioSeparator, "+"); // 12
 
             ServerParameters[0].Comment = OsLocalization.Market.Label107;
             ServerParameters[1].Comment = OsLocalization.Market.Label107;
@@ -55,6 +56,7 @@ namespace OsEngine.Market.Servers.QuikLua
             ServerParameters[9].Comment = OsLocalization.Market.Label309;
             ServerParameters[10].Comment = OsLocalization.Market.Label310;
             ServerParameters[11].Comment = OsLocalization.Market.Label311;
+            ServerParameters[12].Comment = OsLocalization.Market.Label312;
 
             ((ServerParameterBool)ServerParameters[0]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[1]).ValueChange += QuikLuaServer_ParametrValueChange;
@@ -141,6 +143,14 @@ namespace OsEngine.Market.Servers.QuikLua
                     _fullLog = ((ServerParameterBool)ServerParameters[9]).Value;
                     int port = ((ServerParameterInt)ServerParameters[10]).Value;
                     _isOnlyBotsPortfolio = ((ServerParameterBool)ServerParameters[11]).Value;
+                    
+                    string portfolioSeparatorString = ((ServerParameterString)ServerParameters[12]).Value;
+                    if (portfolioSeparatorString.Length == 0)
+                        _portfolioSeparator = "+";
+                    else if (portfolioSeparatorString.Length == 1)
+                        _portfolioSeparator = portfolioSeparatorString;
+                    else if (portfolioSeparatorString.Length > 1)
+                        _portfolioSeparator = portfolioSeparatorString.ToCharArray()[0].ToString();
 
                     if (tradeMode == "T0") _tradeMode = 0;
                     else if (tradeMode == "T1") _tradeMode = 1;
@@ -310,6 +320,8 @@ namespace OsEngine.Market.Servers.QuikLua
         public bool _changeClassUse = false;
 
         private bool _isOnlyBotsPortfolio;
+
+        private string _portfolioSeparator;
 
         private bool _fullLog;
 
@@ -706,7 +718,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     portfolio.ServerType = ServerType.QuikLua;
                     portfolio.UnrealizedPnl = futuresLimits[i].VarMargin.ToString().Replace('.', _separator).ToDecimal();
 
-                    portfolio.Number = futuresLimits[i].TrdAccId + "+" + futuresLimits[i].FirmId;
+                    portfolio.Number = futuresLimits[i].TrdAccId + _portfolioSeparator + futuresLimits[i].FirmId;
 
                     portfolio.ValueBegin = futuresLimits[i].CbpPrevLimit.ToString().Replace('.', _separator).ToDecimal();
                     portfolio.ValueCurrent = futuresLimits[i].CbpLimit.ToString().Replace('.', _separator).ToDecimal();
@@ -822,7 +834,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         {
                             Portfolio myPortfolio = new Portfolio();
 
-                            myPortfolio.Number = accaunts[i].TrdaccId + "+" + _clientCodes[i3];
+                            myPortfolio.Number = accaunts[i].TrdaccId + _portfolioSeparator + _clientCodes[i3];
                             myPortfolio.ServerType = ServerType.QuikLua;
 
                             PortfolioInfoEx qPortfolio = QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, _clientCodes[i3], _tradeMode).Result;
@@ -912,8 +924,8 @@ namespace OsEngine.Market.Servers.QuikLua
                         {
                             if (_portfolios == null) continue;
 
-                            Portfolio needPortf = _portfolios.Find(p => p.Number.Split('+')[0] == depoLimitEx.TrdAccId &&
-                                p.Number.Split('+')[1] == depoLimitEx.ClientCode);
+                            Portfolio needPortf = _portfolios.Find(p => p.Number.Split(_portfolioSeparator)[0] == depoLimitEx.TrdAccId &&
+                                p.Number.Split(_portfolioSeparator)[1] == depoLimitEx.ClientCode);
 
                             if (needPortf == null) continue;
 
@@ -964,7 +976,7 @@ namespace OsEngine.Market.Servers.QuikLua
                             for (int i = 0; _portfolios != null && i < _portfolios.Count; i++)
                             {
                                 Portfolio portfolio = _portfolios[i];
-                                if (moneyLimitEx.ClientCode == portfolio.Number.Split('+')[1])
+                                if (moneyLimitEx.ClientCode == portfolio.Number.Split(_portfolioSeparator)[1])
                                 {
                                     PortfolioInfoEx qPortfolio = QuikLua.Trading.GetPortfolioInfoEx(moneyLimitEx.FirmId, moneyLimitEx.ClientCode, _tradeMode).Result;
 
@@ -1037,8 +1049,8 @@ namespace OsEngine.Market.Servers.QuikLua
                         {
                             if (_portfolios == null) continue;
 
-                            Portfolio needPortf = _portfolios.Find(p => p.Number.Split('+')[0] == futuresLimits.TrdAccId &&
-                            p.Number.Split('+')[1] == futuresLimits.FirmId);
+                            Portfolio needPortf = _portfolios.Find(p => p.Number.Split(_portfolioSeparator)[0] == futuresLimits.TrdAccId &&
+                            p.Number.Split(_portfolioSeparator)[1] == futuresLimits.FirmId);
 
                             if (needPortf == null) continue;
 
@@ -1061,8 +1073,8 @@ namespace OsEngine.Market.Servers.QuikLua
                         {
                             if (_portfolios == null) continue;
 
-                            Portfolio portfolio = _portfolios.Find(p => p.Number.Split('+')[0] == futuresClientHolding.trdAccId &&
-                            p.Number.Split('+')[1] == futuresClientHolding.firmId);
+                            Portfolio portfolio = _portfolios.Find(p => p.Number.Split(_portfolioSeparator)[0] == futuresClientHolding.trdAccId &&
+                            p.Number.Split(_portfolioSeparator)[1] == futuresClientHolding.firmId);
 
                             if (portfolio == null) continue;
                             else if (_securities == null) continue;
@@ -1132,8 +1144,8 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     DepoLimitEx pos = spotPos[i];
 
-                    if (needPortf.Number.Split('+')[0] != pos.TrdAccId ||
-                        needPortf.Number.Split('+')[1] != pos.ClientCode) continue;
+                    if (needPortf.Number.Split(_portfolioSeparator)[0] != pos.TrdAccId ||
+                        needPortf.Number.Split(_portfolioSeparator)[1] != pos.ClientCode) continue;
                     else if (_securities == null) continue;
 
                     Security sec = null;
@@ -1820,7 +1832,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 order.Price = qOrder.Price;
                 order.Volume = qOrder.Quantity;
                 order.VolumeExecute = qOrder.Quantity - qOrder.Balance;
-                order.PortfolioNumber = qOrder.Account + "+" + qOrder.ClientCode;
+                order.PortfolioNumber = qOrder.Account + _portfolioSeparator + qOrder.ClientCode;
                 order.TypeOrder = qOrder.Flags.ToString().Contains("IsLimit")
                     ? OrderPriceType.Limit
                     : OrderPriceType.Market;
@@ -2029,7 +2041,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 order.State = OrderStateType.Fail;
                 order.SecurityNameCode = transReply.SecCode;
                 order.SecurityClassCode = transReply.ClassCode;
-                order.PortfolioNumber = transReply.Account + "+" + transReply.ClientCode;
+                order.PortfolioNumber = transReply.Account + _portfolioSeparator + transReply.ClientCode;
                 order.Price = transReply.Price.ToString().ToDecimal();
                 order.Volume = transReply.Quantity.ToString().ToDecimal();
                 order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(transReply.LuaTimeStamp);
@@ -2130,9 +2142,9 @@ namespace OsEngine.Market.Servers.QuikLua
                 QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
 
                 qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
-                qOrder.Account = order.PortfolioNumber.Split('+')[0];
+                qOrder.Account = order.PortfolioNumber.Split(_portfolioSeparator)[0];
 
-                qOrder.ClientCode = order.PortfolioNumber.Split('+')[1];
+                qOrder.ClientCode = order.PortfolioNumber.Split(_portfolioSeparator)[1];
                 qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
                 qOrder.Quantity = Convert.ToInt32(order.Volume);
                 qOrder.Operation = order.Side == Side.Buy ? Operation.Buy : Operation.Sell;
@@ -2144,7 +2156,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
                 else if (((ServerParameterBool)ServerParameters[6]).Value == true)
                 {
-                    qOrder.Comment = order.PortfolioNumber.Split('+')[0] + "//" + order.NumberUser.ToString();
+                    qOrder.Comment = order.PortfolioNumber.Split(_portfolioSeparator)[1] + "//" + order.NumberUser.ToString();
                 }
 
                 lock (_serverLocker)
@@ -2271,7 +2283,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     order.Price = foundOrder.Price;
                     order.Volume = foundOrder.Quantity;
                     order.VolumeExecute = foundOrder.Quantity - foundOrder.Balance;
-                    order.PortfolioNumber = foundOrder.Account + "+" + foundOrder.ClientCode;
+                    order.PortfolioNumber = foundOrder.Account + _portfolioSeparator + foundOrder.ClientCode;
                     order.TypeOrder = foundOrder.Flags.ToString().Contains("IsLimit")
                         ? OrderPriceType.Limit
                         : OrderPriceType.Market;
