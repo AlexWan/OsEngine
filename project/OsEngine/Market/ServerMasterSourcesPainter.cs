@@ -226,10 +226,14 @@ namespace OsEngine.Market
                     DataGridViewRow row1 = new DataGridViewRow();
                     row1.Cells.Add(new DataGridViewTextBoxCell());
 
+                    bool isInNonTradePeriod = false;
+
                     if (servers[i].GetType().BaseType.Name == "AServer")
                     {
                         AServer serv = (AServer)servers[i];
                         row1.Cells[0].Value = serv.ServerNameAndPrefix;
+
+                        isInNonTradePeriod = serv.IsNonTradePeriod;
                     }
                     else
                     {
@@ -237,7 +241,15 @@ namespace OsEngine.Market
                     }
 
                     row1.Cells.Add(new DataGridViewTextBoxCell());
-                    row1.Cells[1].Value = servers[i].ServerStatus;
+
+                    if(isInNonTradePeriod == false)
+                    {
+                        row1.Cells[1].Value = servers[i].ServerStatus;
+                    }
+                    else
+                    {
+                        row1.Cells[1].Value = servers[i].ServerStatus + " Non-trade period!";
+                    }
 
                     bool isAttached = false;
 
@@ -263,11 +275,24 @@ namespace OsEngine.Market
 
                     serverTypes.Remove(serverTypes.Find(s => s == servers[i].ServerType));
 
-                    if (servers[i].ServerStatus == ServerConnectStatus.Connect)
+                    if (servers[i].ServerStatus == ServerConnectStatus.Connect
+                        && isInNonTradePeriod == false)
                     {
                         DataGridViewCellStyle style = new DataGridViewCellStyle();
                         style.BackColor = Color.MediumSeaGreen;
                         style.SelectionBackColor = Color.Green;
+                        style.ForeColor = Color.Black;
+                        style.SelectionForeColor = Color.Black;
+
+                        row1.Cells[1].Style = style;
+                        row1.Cells[0].Style = style;
+                    }
+                    else if (servers[i].ServerStatus == ServerConnectStatus.Connect
+                    && isInNonTradePeriod == true)
+                    {
+                        DataGridViewCellStyle style = new DataGridViewCellStyle();
+                        style.BackColor = Color.Orange;
+                        style.SelectionBackColor = Color.Orange;
                         style.ForeColor = Color.Black;
                         style.SelectionForeColor = Color.Black;
 

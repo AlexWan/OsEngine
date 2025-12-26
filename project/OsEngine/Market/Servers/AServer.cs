@@ -4778,11 +4778,27 @@ namespace OsEngine.Market.Servers
 
                 if (!_nonTradePeriods.CanTradeThisTime(DateTime.Now))
                 {
-                    _isNonTradingPeriodNow = true;
+                    if(_isNonTradingPeriodNow != true)
+                    {
+                        _isNonTradingPeriodNow = true;
+
+                        if (ConnectStatusChangeEvent != null)
+                        {
+                            ConnectStatusChangeEvent(_serverConnectStatus.ToString());
+                        }
+                    }
                 }
                 else
                 {
-                    _isNonTradingPeriodNow = false;
+                    if (_isNonTradingPeriodNow != false)
+                    {
+                        _isNonTradingPeriodNow = false;
+
+                        if (ConnectStatusChangeEvent != null)
+                        {
+                            ConnectStatusChangeEvent(_serverConnectStatus.ToString());
+                        }
+                    }
                 }
             }
             catch (Exception ex)

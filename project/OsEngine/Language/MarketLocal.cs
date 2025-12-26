@@ -1278,6 +1278,9 @@ namespace OsEngine.Language
           "Eng:Account and client code separator in the portfolio. The portfolio consists of a trading account and a client code. A special symbol is used for separation. For the L01-00000F00 account, the separator is a - sign. In this parameter, you need to put a sign other than the one used in the trading account, for example +. The result should be a portfolio L01-00000F00+11111 (11111 is the client's code). If you specify more than one character in the parameter, only the first one will be used._" +
           "Ru:Разделитель счета и клиентского кода в портфеле. Портфель состоит из торгового счета и клиентского кода. Для разделения используется специальный символ. Для счета L01-00000F00 разделитель знак -. В данном параметре нужно ставить знак отличный от того, что используется в торговом счете, например +. В итоге должен получиться портфель L01-00000F00+11111 (11111 это код клиента). Если прописать в параметре больше одного символа, то будет использоваться только первый._");
 
+        public string Label313 => OsLocalization.ConvertToLocString(
+          "Eng:Important! No trading periods!_" +
+          "Ru:ВАЖНО! Неторговые периоды!_");
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +

@@ -83,7 +83,7 @@ namespace OsEngine.Market.Servers
                 worker.Start();
             }
 
-            Title = OsLocalization.Market.TitleAServerParametrUi + _server.ServerType;
+            UpDateTitle();
 
             this.Activate();
             this.Focus();
@@ -91,6 +91,44 @@ namespace OsEngine.Market.Servers
             this.Closed += AServerParameterUi_Closed;
 
             ServerMaster.ServerDeleteEvent += ServerMaster_ServerDeleteEvent;
+        }
+
+        private void UpDateTitle()
+        {
+            try
+            {
+                if (HostPreConfiguredConnections.Dispatcher.CheckAccess() == false)
+                {
+                    HostPreConfiguredConnections.Dispatcher.Invoke(new Action(UpDateTitle));
+                    return;
+                }
+
+                string title = OsLocalization.Market.TitleAServerParametrUi + _server.ServerType;
+
+                bool haveNoTradePeriodsConnection = false;
+
+                for(int i = 0;i < _serversArray.Count;i++)
+                {
+                    if (_serversArray[i].IsNonTradePeriod == true)
+                    {
+                        haveNoTradePeriodsConnection = true;
+                    }
+                }
+
+                if(haveNoTradePeriodsConnection == true)
+                {
+                    title += " " + OsLocalization.Market.Label313;
+                }
+
+                if(title != Title)
+                {
+                    Title = title;
+                }
+            }
+            catch(Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void AServerParameterUi_Closed(object sender, EventArgs e)
@@ -593,6 +631,11 @@ namespace OsEngine.Market.Servers
                 {
                     string curState = _serversArray[i].ServerStatus.ToString();
 
+                    if (_serversArray[i].IsNonTradePeriod)
+                    {
+                        curState += " Non-trade period!";
+                    }
+
                     string stateInTable = null;
 
                     if (_gridConnections.Rows[i].Cells[3].Value != null)
@@ -606,10 +649,18 @@ namespace OsEngine.Market.Servers
                     }
 
                     if (_serversArray[i].ServerStatus == ServerConnectStatus.Connect &&
-                        _gridConnections.Rows[i].Cells[3].Style.ForeColor != Color.Green)
+                        _gridConnections.Rows[i].Cells[3].Style.ForeColor != Color.Green
+                        && _serversArray[i].IsNonTradePeriod == false)
                     { // заливаем зелёным
                         _gridConnections.Rows[i].Cells[3].Style.ForeColor = Color.Green;
                         _gridConnections.Rows[i].Cells[3].Style.SelectionForeColor = Color.Green;
+                    }
+                    if (_serversArray[i].ServerStatus == ServerConnectStatus.Connect &&
+                        _gridConnections.Rows[i].Cells[3].Style.ForeColor != Color.Orange
+                        && _serversArray[i].IsNonTradePeriod == true)
+                    { // заливаем зелёным
+                        _gridConnections.Rows[i].Cells[3].Style.ForeColor = Color.Orange;
+                        _gridConnections.Rows[i].Cells[3].Style.SelectionForeColor = Color.Orange;
                     }
                     else if (_serversArray[i].ServerStatus == ServerConnectStatus.Disconnect
                         && _gridConnections.Rows[i].Cells[3].Style.ForeColor != Color.Red)
@@ -618,6 +669,8 @@ namespace OsEngine.Market.Servers
                         _gridConnections.Rows[i].Cells[3].Style.SelectionForeColor = Color.Red;
                     }
                 }
+
+                UpDateTitle();
             }
             catch (Exception ex)
             {
