@@ -810,7 +810,8 @@ namespace OsEngine.Market
                             myOrder.NumberMarket = order.NumberMarket;
                         }
 
-                        if (order.Price != 0)
+                        if (order.Price != 0
+                            && myOrder.Price == 0)
                         {
                             myOrder.Price = order.Price;
                         }
@@ -825,14 +826,10 @@ namespace OsEngine.Market
                             myOrder.PortfolioNumber = order.PortfolioNumber;
                         }
 
-                        if (order.Volume != 0)
+                        if (myOrder.Volume == 0 
+                            && order.Volume != 0)
                         {
                             myOrder.Volume = order.Volume;
-                        }
-
-                        if (order.VolumeExecute != 0)
-                        {
-                            myOrder.VolumeExecute = order.VolumeExecute;
                         }
 
                         if (order.State != OrderStateType.None)

@@ -127,7 +127,10 @@ namespace OsEngine.Entity
                 }
 
             }
-            set { _volumeExecute = value; }
+            set 
+            { 
+                _volumeExecute = value; 
+            }
         }
         private decimal _volumeExecute;
         private bool _volumeExecuteChange;
