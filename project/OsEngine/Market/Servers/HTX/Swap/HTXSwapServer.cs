@@ -413,13 +413,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newSecurity.SecurityType = SecurityType.Futures;
                                 newSecurity.DecimalsVolume = item.contract_size.DecimalsCount();
                                 newSecurity.Lot = 1; //item.contract_size.ToDecimal();
-                                newSecurity.PriceStep = item.price_tick.ToDecimal();
+                                newSecurity.PriceStep = item.price_tick.Replace(',', '.').TrimEnd('0').TrimEnd('.').ToDecimal();
                                 newSecurity.Decimals = item.price_tick.DecimalsCount();
                                 newSecurity.PriceStepCost = newSecurity.PriceStep;
                                 newSecurity.State = SecurityStateType.Activ;
-                                newSecurity.MinTradeAmount = item.contract_size.ToDecimal();
+                                newSecurity.MinTradeAmount = item.contract_size.Replace(',', '.').TrimEnd('0').TrimEnd('.').ToDecimal();
                                 newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
-                                newSecurity.VolumeStep = item.contract_size.ToDecimal();
+                                newSecurity.VolumeStep = item.contract_size.Replace(',', '.').TrimEnd('0').TrimEnd('.').ToDecimal();
 
                                 _listSecurities.Add(newSecurity);
                             }
