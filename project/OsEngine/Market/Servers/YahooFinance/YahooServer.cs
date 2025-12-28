@@ -129,6 +129,20 @@ namespace OsEngine.Market.Servers.YahooFinance
                             {
                                 Security security = new Security();
                                 security.Name = split[1];
+
+                                if (security.Name.Contains('$') || security.Name.Contains('.'))
+                                {
+                                    continue;
+                                }
+
+                                if (security.Name == "CON" ||
+                                    security.Name == "PRN" ||
+                                    security.Name == "AUX" ||
+                                    security.Name == "NUL")
+                                {
+                                    security.Name += "_";
+                                }
+
                                 security.NameFull = split[2];
 
                                 if (security.NameFull.Contains("ETF"))
@@ -351,14 +365,22 @@ namespace OsEngine.Market.Servers.YahooFinance
             }           
         }
 
-        private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(10));
 
         private List<Candle> RequestCandleHistory(string security, string resolution, long fromTimeStamp, long toTimeStamp)
         {
-            _rgCandleData.WaitToProceed(100);
+            _rgCandleData.WaitToProceed();
 
             try
             {
+                if (security == "CON_" ||
+                    security == "PRN_" ||
+                    security == "AUX_" ||
+                    security == "NUL_")
+                {
+                    security = security.Split('_')[0];
+                }
+
                 string queryParam = $"{security}?";
                 queryParam += $"symbol={security}&";
                 queryParam += $"interval={resolution}&";
@@ -375,7 +397,7 @@ namespace OsEngine.Market.Servers.YahooFinance
                 }
                 else
                 {
-                    SendLogMessage($"RequestCandleHistory: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
+                    SendLogMessage($"RequestCandleHistory: {security} {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
