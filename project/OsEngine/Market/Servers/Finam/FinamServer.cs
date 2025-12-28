@@ -229,7 +229,11 @@ namespace OsEngine.Market.Servers.Finam
 
             string[] unavailableSecurities = arraySets[9].Split(':');
 
+            string[] moexForeignSecurities = arraySets[10].Split(':');
+
             HashSet<string> unavailableSecHashSet = new HashSet<string>(unavailableSecurities);
+
+            HashSet<string> foreignSecHashSet = new HashSet<string>(moexForeignSecurities);
 
             _finamSecurities = new List<FinamSecurity>();
 
@@ -273,7 +277,6 @@ namespace OsEngine.Market.Servers.Finam
                     {
                         finamSecurity.Code = "DANDI.MINIFUT";
                     }
-
                 }
 
                 if (Convert.ToInt32(arrayMarkets[i]) == 200)
@@ -282,7 +285,14 @@ namespace OsEngine.Market.Servers.Finam
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 1)
                 {
-                    finamSecurity.Market = "МосБиржа акции";
+                    if(foreignSecHashSet.Contains(finamSecurity.Id))
+                    {
+                        finamSecurity.Market = "Мосбиржа иностранные акции";
+                    }
+                    else
+                    {
+                        finamSecurity.Market = "МосБиржа акции";
+                    }
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 14)
                 {
