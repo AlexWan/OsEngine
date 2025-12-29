@@ -1,19 +1,21 @@
 ﻿using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.TraderNet.Entity;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.TraderNet.Entity;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
-using System.Collections;
 
 namespace OsEngine.Market.Servers.TraderNet
 {
@@ -26,6 +28,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
+            CreateParameterEnum(OsLocalization.ConvertToLocString("Eng:Portfolio currency_Ru:Валюта портфеля_"), "RUR", new List<string> { "RUR", "USD" });
         }
     }
 
@@ -41,12 +44,18 @@ namespace OsEngine.Market.Servers.TraderNet
             threadMessageReader.IsBackground = true;
             threadMessageReader.Name = "MessageReader";
             threadMessageReader.Start();
+
+            Thread threadUpdateSubscribe = new Thread(ThreadUpdatePortfolio);
+            threadUpdateSubscribe.IsBackground = true;
+            threadUpdateSubscribe.Name = "ThreadUpdatePortfolio";
+            threadUpdateSubscribe.Start();
         }
 
         public void Connect(WebProxy proxy)
         {
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            _portfolioCurrency = ((ServerParameterEnum)ServerParameters[2]).Value;
 
             if (string.IsNullOrEmpty(_publicKey) ||
                 string.IsNullOrEmpty(_secretKey))
@@ -153,6 +162,8 @@ namespace OsEngine.Market.Servers.TraderNet
         private Dictionary<string, List<ListMdTiker>> _listMD = new Dictionary<string, List<ListMdTiker>>();
 
         private Dictionary<string, ListTrades> _listTrades = new Dictionary<string, ListTrades>();
+
+        private string _portfolioCurrency;
 
         #endregion
 
@@ -309,8 +320,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     Security newSecurity = new Security();
 
                     newSecurity.Exchange = ServerType.TraderNet.ToString();
-                    newSecurity.DecimalsVolume = item.lot_size_q.DecimalsCount();
-                    newSecurity.Lot = item.lot_size_q.ToDecimal();
+                    newSecurity.DecimalsVolume = item.lot_size_q.DecimalsCount();                    
                     newSecurity.Name = item.ticker;
                     newSecurity.NameFull = item.ticker;
                     newSecurity.NameId = item.instr_id;
@@ -323,6 +333,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     newSecurity.MinTradeAmount = item.lot_size_q.ToDecimal();
                     newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
                     newSecurity.VolumeStep = item.lot_size_q.ToDecimal();
+                    newSecurity.Lot = Math.Round(item.lot_size_q.ToDecimal(), newSecurity.DecimalsVolume);
 
                     _securities.Add(newSecurity);
                 }
@@ -372,9 +383,129 @@ namespace OsEngine.Market.Servers.TraderNet
         #region 4 Portfolios
 
         public void GetPortfolios()
-        {
+        {            
         }
-              
+
+        private void ThreadUpdatePortfolio()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    UpdatePortfolio();
+                    Thread.Sleep(5000);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        private void UpdatePortfolio()
+        {
+            try
+            {
+                RequestSecurity reqData = new RequestSecurity();
+                reqData.q = new RequestSecurity.Q();
+                reqData.q.cmd = "getPositionJson";
+                reqData.q.@params = new RequestSecurity.Params();
+
+                HttpResponseMessage responseMessage = CreateQuery("/api/", "POST", null, reqData);
+                string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+
+                if (jsonResponse != null)
+                {
+                    ConvertJsonPortfolio(jsonResponse);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ConvertJsonPortfolio(string jsonResponse)
+        {
+            RestResponsePortfolio response = JsonConvert.DeserializeObject<RestResponsePortfolio>(jsonResponse);
+
+            if (response == null)
+            {
+                return;
+            }
+
+            if (response.result == null)
+            {
+                return;
+            }
+
+            decimal valueCurrent = 0;
+
+            List<AccRest> accRests = response.result.ps.acc;
+
+            decimal kurs = 0;
+
+            if (_portfolioCurrency == "USD")
+            {
+                int index = accRests.FindIndex(x => x.curr == "USD");
+
+                if (index != -1)
+                {
+                    decimal.TryParse(accRests[index].currval, NumberStyles.Any, CultureInfo.InvariantCulture, out kurs);
+                }
+            }
+
+            for (int i = 0; i < accRests.Count; i++)
+            {
+                decimal.TryParse(accRests[i].s, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal balance);
+                decimal.TryParse(accRests[i].currval, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal currval);
+
+                valueCurrent += balance * currval;
+            }
+
+            List<PosRest> posRest = response.result.ps.pos;
+
+            if (posRest.Count > 0)
+            {
+                for (int i = 0; i < posRest.Count; i++)
+                {
+                    decimal.TryParse(posRest[i].open_bal, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal open_bal);
+                    decimal.TryParse(posRest[i].currval, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal currval);
+
+                    valueCurrent += open_bal * currval;
+                }
+            }
+
+            if (_portfolioCurrency == "USD" && kurs != 0)
+            {
+                valueCurrent = valueCurrent / kurs;
+            }
+
+            Portfolio portfolio = new Portfolio();
+            portfolio.Number = "TraderNet";
+            portfolio.ValueCurrent = Math.Round(valueCurrent, 2);
+
+            if (_boolSetPortfolioValueBegin)
+            {
+                _boolSetPortfolioValueBegin = false;
+                _portfolioValueBegin = portfolio.ValueCurrent;
+            }
+
+            portfolio.ValueBegin = _portfolioValueBegin;
+
+            PortfolioEvent(new List<Portfolio> { portfolio });
+        }
+
+        private bool _boolSetPortfolioValueBegin = true;
+
+        private decimal _portfolioValueBegin;
+
         private bool _portfolioIsStarted = false;
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -555,6 +686,11 @@ namespace OsEngine.Market.Servers.TraderNet
             List<Candle> newCandles = new List<Candle>();
 
             int index = oldCandles.FindIndex(can => can.TimeStart.Minute % needTf == 0);
+
+            if (index == -1)
+            {
+                return null;
+            }
 
             int count = needTf / oldTf;
 
@@ -1161,8 +1297,8 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 Portfolio portfolio = new Portfolio();
                 portfolio.Number = "TraderNet";
-                portfolio.ValueBegin = 1;
-                portfolio.ValueCurrent = 1;
+                portfolio.ValueBegin = _portfolioValueBegin;
+                portfolio.ValueCurrent = 0;
 
                 if (positions.acc.Count > 0)
                 {
@@ -1517,7 +1653,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1551,7 +1687,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
 
             return false;
@@ -1604,7 +1740,15 @@ namespace OsEngine.Market.Servers.TraderNet
                 {
                     ResponseOrders item = response.result.orders.order[i];
 
-                    Int32.TryParse(item.userOrderId.Split(':')[1], out int number);
+                    string[] strNumber = item.userOrderId.Split(':');
+
+                    if (strNumber.Length < 2)
+                    {
+                        SendLogMessage($"GetOrderStatus: Incorrect UserOrderID {item.userOrderId}", LogMessageType.Error);
+                        continue;
+                    }
+
+                    Int32.TryParse(strNumber[1], out int number);
 
                     if (number != order.NumberUser)
                     {
@@ -1642,7 +1786,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
             catch (Exception ex)
             {
-                SendLogMessage($"GetOrderStatus: {ex.Message}", LogMessageType.Error);
+                SendLogMessage($"GetOrderStatus: {ex}", LogMessageType.Error);
             }
 
             return OrderStateType.None;

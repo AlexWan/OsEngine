@@ -67,4 +67,33 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public List<ResponseOrders> order;       
     }
 
+    public class RestResponsePortfolio
+    {
+        public ResultPortfolio result;
+    }
+
+    public class ResultPortfolio
+    {
+        public Ps ps;
+    }
+
+    public class Ps
+    {
+        public List<AccRest> acc;
+        public List<PosRest> pos;
+    }
+
+    public class AccRest
+    {
+        public string currval;
+        public string curr;
+        public string s;
+    }
+
+    public class PosRest
+    {
+        public string open_bal;
+        public string curr;
+        public string currval;
+    }        
 }
