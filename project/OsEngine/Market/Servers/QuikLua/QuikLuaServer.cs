@@ -143,7 +143,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     _fullLog = ((ServerParameterBool)ServerParameters[9]).Value;
                     int port = ((ServerParameterInt)ServerParameters[10]).Value;
                     _isOnlyBotsPortfolio = ((ServerParameterBool)ServerParameters[11]).Value;
-                    
+
                     string portfolioSeparatorString = ((ServerParameterString)ServerParameters[12]).Value;
                     if (portfolioSeparatorString.Length == 0)
                         _portfolioSeparator = "+";
@@ -1119,6 +1119,14 @@ namespace OsEngine.Market.Servers.QuikLua
                             }
                         }
 
+                        if (_needRequestPositions == false)
+                        {
+                            if (PortfolioEvent != null)
+                            {
+                                PortfolioEvent(_portfolios);
+                            }
+                        }
+
                         Thread.Sleep(1000);
                     }
                     else
@@ -1202,11 +1210,6 @@ namespace OsEngine.Market.Servers.QuikLua
                     needPortf.SetNewPosition(positionRub);
 
                     break;
-                }
-
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
                 }
             }
             catch (Exception error)
