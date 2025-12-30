@@ -92,7 +92,7 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
 
     public class PosRest
     {
-        public string open_bal;
+        public string mkt_price;
         public string curr;
         public string currval;
     }        
