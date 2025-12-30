@@ -475,10 +475,10 @@ namespace OsEngine.Market.Servers.TraderNet
             {
                 for (int i = 0; i < posRest.Count; i++)
                 {
-                    decimal.TryParse(posRest[i].open_bal, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal open_bal);
+                    decimal.TryParse(posRest[i].mkt_price, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal mkt_price);
                     decimal.TryParse(posRest[i].currval, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal currval);
 
-                    valueCurrent += open_bal * currval;
+                    valueCurrent += mkt_price * currval;
                 }
             }
 
@@ -1630,6 +1630,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 paramsDict.Add("order_type_id", order.TypeOrder == OrderPriceType.Market ? "1" : "2");
                 paramsDict.Add("qty", order.Volume.ToString());
                 paramsDict.Add("limit_price", order.Price.ToString().Replace(",", "."));
+                paramsDict.Add("expiration_id", "3");
                 paramsDict.Add("user_order_id", order.NumberUser.ToString());
 
                 data.Add("apiKey", _publicKey);
