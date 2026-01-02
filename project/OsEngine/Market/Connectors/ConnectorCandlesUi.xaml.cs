@@ -114,7 +114,7 @@ namespace OsEngine.Market.Connectors
                 }
                 else
                 {
-                    LoadPortfolioOnBox();
+                    LoadPortfolioOnBox(true);
                 }
 
                 LoadClassOnBox();
@@ -518,7 +518,7 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                LoadPortfolioOnBox();
+                LoadPortfolioOnBox(true);
                 LoadClassOnBox();
                 LoadSecurityOnBox();
                 UpdateSearchResults();
@@ -547,7 +547,7 @@ namespace OsEngine.Market.Connectors
                 {
                     return;
                 }
-                LoadPortfolioOnBox();
+                LoadPortfolioOnBox(false);
             }
             catch (Exception ex)
             {
@@ -576,7 +576,7 @@ namespace OsEngine.Market.Connectors
             LoadSecurityOnBox();
         }
 
-        private void LoadPortfolioOnBox()
+        private void LoadPortfolioOnBox(bool hard)
         {
             try
             {
@@ -596,9 +596,42 @@ namespace OsEngine.Market.Connectors
 
                 if (!ComboBoxClass.CheckAccess())
                 {
-                    ComboBoxClass.Dispatcher.Invoke(LoadPortfolioOnBox);
+                    ComboBoxClass.Dispatcher.Invoke(new Action<bool>(LoadPortfolioOnBox),hard);
                     return;
                 }
+
+                // 1 проверяем, что список портфелей обновился. Если нет - выходим из метода
+
+                if(hard == false)
+                {
+                    List<string> portfoliosInComboBox = new List<string>();
+
+                    for (int i = 0; i < ComboBoxPortfolio.Items.Count; i++)
+                    {
+                        portfoliosInComboBox.Add(ComboBoxPortfolio.Items[i].ToString());
+                    }
+
+                    List<Portfolio> portfoliosInServer = server.Portfolios;
+
+                    bool haveMistPortfolio = false;
+
+                    for (int i = 0; portfoliosInServer != null && i < portfoliosInServer.Count; i++)
+                    {
+                        string currentPort = portfoliosInServer[i].Number.ToString();
+
+                        if (portfoliosInComboBox.Find(p => p == currentPort) == null)
+                        {
+                            haveMistPortfolio = true;
+                        }
+                    }
+
+                    if (haveMistPortfolio == false)
+                    {
+                        return;
+                    }
+                }
+
+                // 2 устанавливаем новый список порфелей в комбо-бокс
 
                 string curPortfolio = null;
 
