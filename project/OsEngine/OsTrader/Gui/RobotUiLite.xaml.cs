@@ -11,17 +11,13 @@ using OsEngine.Market.SupportTable;
 using OsEngine.OsTrader.Gui.BlockInterface;
 using OsEngine.OsTrader.ServerAvailability;
 using OsEngine.OsTrader.SystemAnalyze;
-using System;
 using System.Windows;
 
 namespace OsEngine.OsTrader.Gui
 {
-    /// <summary>
-    /// Логика взаимодействия для RobotUiLight.xaml
-    /// </summary>
-    public partial class RobotUiLight : Window
+    public partial class RobotUiLite : Window
     {
-        public RobotUiLight()
+        public RobotUiLite()
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -90,7 +86,7 @@ namespace OsEngine.OsTrader.Gui
             Instance = this;            
         }
 
-        public static RobotUiLight Instance;
+        public static RobotUiLite Instance;
 
         private ServerMasterOrdersPainter _ordersPainter;
 

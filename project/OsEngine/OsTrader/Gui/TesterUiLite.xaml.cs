@@ -11,12 +11,9 @@ using OsEngine.Layout;
 
 namespace OsEngine.OsTrader.Gui
 {
-    /// <summary>
-    /// Логика взаимодействия для TesterUiLight.xaml
-    /// </summary>
-    public partial class TesterUiLight : Window
+    public partial class TesterUiLite : Window
     {
-        public TesterUiLight()
+        public TesterUiLite()
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -63,7 +60,7 @@ namespace OsEngine.OsTrader.Gui
             _ordersPainter = ServerMaster._ordersStorage;
         }
 
-        public static TesterUiLight Instance;
+        public static TesterUiLite Instance;
 
         private ServerMasterOrdersPainter _ordersPainter;
 
