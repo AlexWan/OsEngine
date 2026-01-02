@@ -553,7 +553,7 @@ namespace OsEngine.Market.Servers.Finam
         public void GetPortfolios()
         {
             Portfolio newPortfolio = new Portfolio();
-            newPortfolio.Number = "Finam Virtual Portfolio";
+            newPortfolio.Number = "FinamVirtual";
             newPortfolio.ValueCurrent = 1;
             _myPortfolios.Add(newPortfolio);
 

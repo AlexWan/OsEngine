@@ -40,9 +40,9 @@ namespace OsEngine.Language
             "Eng:Tester_"+
             "Ru:Тестер");
 
-        public string OsTesterLightName => OsLocalization.ConvertToLocString(
-            "Eng:Tester Light_" +
-            "Ru:Тестер. Light");
+        public string OsTesterLiteName => OsLocalization.ConvertToLocString(
+            "Eng:Tester Lite_" +
+            "Ru:Тестер. Lite");
 
         public string OsOptimizerName => OsLocalization.ConvertToLocString(
             "Eng:Optimizer_"+
@@ -56,9 +56,9 @@ namespace OsEngine.Language
             "Eng:Bot Station_"+
             "Ru:Роботы");
 
-        public string OsBotStationLightName => OsLocalization.ConvertToLocString(
-            "Eng:Bot Station Light_" +
-            "Ru:Роботы. Light");
+        public string OsBotStationLiteName => OsLocalization.ConvertToLocString(
+            "Eng:Bot Station Lite_" +
+            "Ru:Роботы. Lite");
 
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:Your operating system does not match the operating parameters of the terminal. Need to use a minimum of Windows 7_" +

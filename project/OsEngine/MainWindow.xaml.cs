@@ -311,8 +311,8 @@ namespace OsEngine
             ButtonRobot.Content = OsLocalization.MainWindow.OsBotStationName;
             ButtonCandleConverter.Content = OsLocalization.MainWindow.OsCandleConverter;
 
-            ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLightName;
-            ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLightName;
+            ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLiteName;
+            ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLiteName;
 
             if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
             {

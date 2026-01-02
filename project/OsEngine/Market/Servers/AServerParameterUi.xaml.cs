@@ -319,6 +319,11 @@ namespace OsEngine.Market.Servers
                 int row = e.RowIndex;
                 int column = e.ColumnIndex;
 
+                if(row == -1)
+                {
+                    return;
+                }
+
                 if (row > -1 &&
                     row < _gridConnections.Rows.Count - 1)
                 {

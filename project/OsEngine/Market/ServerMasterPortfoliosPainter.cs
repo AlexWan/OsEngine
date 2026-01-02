@@ -101,6 +101,7 @@ namespace OsEngine.Market
                     {
                         continue;
                     }
+
                     servers[i].PortfoliosChangeEvent -= _server_PortfoliosChangeEvent;
                     servers[i].PortfoliosChangeEvent += _server_PortfoliosChangeEvent;
 
@@ -313,7 +314,14 @@ namespace OsEngine.Market
                 {
                     try
                     {
-                        PaintPortfolio(_portfolios[i]);
+                        Portfolio portfolio = _portfolios[i];
+
+                        if(portfolio.Number == "FinamVirtual")
+                        {
+                            continue;
+                        }
+
+                        PaintPortfolio(portfolio);
                     }
                     catch
                     {
@@ -547,6 +555,11 @@ namespace OsEngine.Market
                         if (currentServerName.Split('_').Length == 3)
                         {
                             currentServerName = currentServerName.Split('_')[0] + "_" + currentServerName.Split('_')[1];
+                        }
+
+                        if(currentServerName == "FinamServer")
+                        {
+                            return;
                         }
 
                         Portfolio portf = _portfolios.Find(
