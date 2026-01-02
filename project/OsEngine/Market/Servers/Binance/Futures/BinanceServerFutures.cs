@@ -2978,81 +2978,103 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private Order GetActualOrderQuery(Order oldOrder)
         {
-            string endPoint = "/" + type_str_selector + "/v1/allOrders";
-
-            var param = new Dictionary<string, string>();
-            param.Add("symbol=", oldOrder.SecurityNameCode.ToUpper());
-            //param.Add("&recvWindow=" , "100");
-            //param.Add("&limit=", GetNonce());
-            param.Add("&limit=", "500");
-            //"symbol={symbol.ToUpper()}&recvWindow={recvWindow}"
-
-            var res = CreateQuery(Method.GET, endPoint, param, true);
-
-            if (res == null)
+            try
             {
-                return null;
-            }
+                string endPoint = "/" + type_str_selector + "/v1/allOrders";
 
-            List<HistoryOrderReport> allOrders =
-                JsonConvert.DeserializeAnonymousType(res, new List<HistoryOrderReport>());
+                var param = new Dictionary<string, string>();
+                param.Add("symbol=", oldOrder.SecurityNameCode.ToUpper());
+                //param.Add("&recvWindow=" , "100");
+                //param.Add("&limit=", GetNonce());
+                param.Add("&limit=", "500");
+                //"symbol={symbol.ToUpper()}&recvWindow={recvWindow}"
 
-            HistoryOrderReport orderOnBoard = null;
+                string res = CreateQuery(Method.GET, endPoint, param, true);
 
-            for (int i = 0; i < allOrders.Count; i++)
-            {
-                if (string.IsNullOrEmpty(allOrders[i].clientOrderId))
+                if (string.IsNullOrEmpty(res))
                 {
-                    continue;
+                    return null;
                 }
 
-                if (allOrders[i].clientOrderId.Replace("x-gnrPHWyE", "") == oldOrder.NumberUser.ToString())
-                {
-                    orderOnBoard = allOrders[i];
-                    break;
-                }
-            }
+                List<HistoryOrderReport> allOrders =
+                    JsonConvert.DeserializeAnonymousType(res, new List<HistoryOrderReport>());
 
-            if (orderOnBoard == null)
+                HistoryOrderReport orderOnBoard = null;
+
+                for (int i = 0; allOrders != null && i < allOrders.Count; i++)
+                {
+                    if (allOrders[i] == null)
+                    {
+                        continue;
+                    }
+
+                    if (string.IsNullOrEmpty(allOrders[i].clientOrderId) == false)
+                    {
+                        try
+                        {
+                            if (allOrders[i].clientOrderId.Replace("x-gnrPHWyE", "") == oldOrder.NumberUser.ToString())
+                            {
+                                orderOnBoard = allOrders[i];
+                                break;
+                            }
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+                if (orderOnBoard == null)
+                {
+                    return null;
+                }
+
+                Order newOrder = new Order();
+                newOrder.NumberMarket = orderOnBoard.orderId;
+                newOrder.NumberUser = oldOrder.NumberUser;
+                newOrder.SecurityNameCode = oldOrder.SecurityNameCode;
+                // newOrder.State = OrderStateType.Cancel;
+
+                newOrder.Volume = oldOrder.Volume;
+                newOrder.VolumeExecute = oldOrder.VolumeExecute;
+                newOrder.Price = oldOrder.Price;
+                newOrder.TypeOrder = oldOrder.TypeOrder;
+
+                newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orderOnBoard.time));
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orderOnBoard.updateTime));
+
+                newOrder.ServerType = ServerType.BinanceFutures;
+                newOrder.PortfolioNumber = oldOrder.PortfolioNumber;
+
+                newOrder.Side = oldOrder.Side;
+
+                if (orderOnBoard.status == "NEW" ||
+                    orderOnBoard.status == "PARTIALLY_FILLED")
+                { // order is active. Do nothing
+                    newOrder.State = OrderStateType.Active;
+                }
+                else if (orderOnBoard.status == "FILLED")
+                {
+                    newOrder.State = OrderStateType.Done;
+                }
+                else
+                {
+                    newOrder.State = OrderStateType.Cancel;
+                    newOrder.TimeCancel = newOrder.TimeCallBack;
+                }
+
+                return newOrder;
+            }
+            catch (Exception exception)
             {
+                SendLogMessage(exception.Message, LogMessageType.Error);
                 return null;
             }
-
-            Order newOrder = new Order();
-            newOrder.NumberMarket = orderOnBoard.orderId;
-            newOrder.NumberUser = oldOrder.NumberUser;
-            newOrder.SecurityNameCode = oldOrder.SecurityNameCode;
-            // newOrder.State = OrderStateType.Cancel;
-
-            newOrder.Volume = oldOrder.Volume;
-            newOrder.VolumeExecute = oldOrder.VolumeExecute;
-            newOrder.Price = oldOrder.Price;
-            newOrder.TypeOrder = oldOrder.TypeOrder;
-
-            newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orderOnBoard.time));
-            newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orderOnBoard.updateTime));
-
-            newOrder.ServerType = ServerType.BinanceFutures;
-            newOrder.PortfolioNumber = oldOrder.PortfolioNumber;
-
-            newOrder.Side = oldOrder.Side;
-
-            if (orderOnBoard.status == "NEW" ||
-                orderOnBoard.status == "PARTIALLY_FILLED")
-            { // order is active. Do nothing
-                newOrder.State = OrderStateType.Active;
-            }
-            else if (orderOnBoard.status == "FILLED")
-            {
-                newOrder.State = OrderStateType.Done;
-            }
-            else
-            {
-                newOrder.State = OrderStateType.Cancel;
-                newOrder.TimeCancel = newOrder.TimeCallBack;
-            }
-
-            return newOrder;
         }
 
         public List<Order> GetActiveOrders(int startIndex, int count)
