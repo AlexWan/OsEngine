@@ -192,6 +192,7 @@
                     <ComboBox Name="ComboBoxNonTradePeriod2Regime" Margin="202,81,10,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonSetNonTradePeriods2" Content="Set periods 2" Margin="196,109,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods2_Click"/>
                     <Label Name="LabelNonTradePeriod2IsActive" Content="Active >>" HorizontalAlignment="Left" Margin="127,111,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#FF12FFE5"/>
+                    <Button Name="ButtonPosts" Content="Posts" Margin="196,0,12,10" VerticalAlignment="Bottom" Height="25" Foreground="#FF12D6AB"/>
 
                 </Grid>
             </TabItem>

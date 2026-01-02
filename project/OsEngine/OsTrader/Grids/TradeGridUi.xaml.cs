@@ -4,8 +4,10 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Instructions;
 using OsEngine.Language;
 using OsEngine.Layout;
+using OsEngine.Market;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -133,6 +135,17 @@ namespace OsEngine.OsTrader.Grids
 
             LabelNonTradePeriod1IsActive.Visibility = Visibility.Hidden;
             LabelNonTradePeriod2IsActive.Visibility = Visibility.Hidden;
+
+            if(InteractiveInstructions.Grids.AllInstructionsInClass == null
+                || InteractiveInstructions.Grids.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPosts.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                ButtonPosts.Content = OsLocalization.Trader.Label639;
+                ButtonPosts.Click += ButtonPosts_Click;
+            }
 
             // stop grid by event
 
@@ -2457,7 +2470,7 @@ namespace OsEngine.OsTrader.Grids
 
         #endregion
 
-        #region Non trade periods
+        #region Non trade periods tab
 
         private void ButtonSetNonTradePeriods_Click(object sender, RoutedEventArgs e)
         {
@@ -2520,6 +2533,44 @@ namespace OsEngine.OsTrader.Grids
             {
                 TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
+        }
+
+        #endregion
+
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ButtonPosts_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if(_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.Grids.AllInstructionsInClass, InteractiveInstructions.Grids.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if(_instructionsUi.WindowState == WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            } 
+            catch(Exception ex) 
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            _instructionsUi.Closed -= _instructionsUi_Closed;
+            _instructionsUi = null;
         }
 
         #endregion

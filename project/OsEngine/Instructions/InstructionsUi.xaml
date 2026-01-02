@@ -1,0 +1,18 @@
+﻿<Window x:Class="OsEngine.Instructions.InstructionsUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Instructions"
+        mc:Ignorable="d"
+        Title="Instructions" Height="350" Width="600" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+    <Grid Name="GridPrime">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="100*"/>
+            <RowDefinition Height="263*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Name="TextBlockDesctiption" TextAlignment="Center" VerticalAlignment="Center" Margin="10,10,10,10" TextWrapping="Wrap" Text="Description text" Foreground="#FFBBB5B5" FontSize="15" />
+        <WindowsFormsHost Name="HostLinks" Grid.Row="1" Margin="5,5,5,5"/>
+
+    </Grid>
+</Window>
