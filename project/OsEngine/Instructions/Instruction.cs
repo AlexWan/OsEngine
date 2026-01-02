@@ -4,6 +4,9 @@
 */
 
 using OsEngine.Language;
+using OsEngine.Market;
+using System.Diagnostics;
+using System;
 using static OsEngine.Language.OsLocalization;
 
 namespace OsEngine.Instructions
@@ -55,6 +58,25 @@ namespace OsEngine.Instructions
                 }
 
                 return "";
+            }
+        }
+
+        public void ShowLinkInBrowser()
+        {
+            try
+            {
+                string link = PostLink;
+
+                if (string.IsNullOrEmpty(link))
+                {
+                    return;
+                }
+
+                Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
             }
         }
     }
