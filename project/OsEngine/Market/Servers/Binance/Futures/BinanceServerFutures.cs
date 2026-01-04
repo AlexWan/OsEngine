@@ -2470,8 +2470,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         {
                             MarketDepthEvent(needDepth);
                         }
-
-                        MarketDepthEvent(needDepth.GetCopy());
                     }
                 }
             }
