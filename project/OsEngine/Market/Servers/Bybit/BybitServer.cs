@@ -2567,11 +2567,11 @@ namespace OsEngine.Market.Servers.Bybit
                         {
                             if (category == Category.spot)
                             {
-                                _concurrentQueueMessageOrderBookSpot?.Enqueue(_message);
+                                _concurrentQueueMessageOrderBookSpot?.Enqueue(message);
                             }
                             else if (category == Category.linear)
                             {
-                                _concurrentQueueMessageOrderBookLinear.Enqueue(_message);
+                                _concurrentQueueMessageOrderBookLinear.Enqueue(message);
                             }
                             else if (category == Category.inverse)
                             {
@@ -2893,14 +2893,12 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    string message = _message.Replace("}.SPOT", "}");
+                    ResponseWebSocketMessage<ResponseOrderBook> response =
+                       JsonConvert.DeserializeAnonymousType(_message, new ResponseWebSocketMessage<ResponseOrderBook>());
 
-                    ResponseWebSocketMessage<object> response =
-                        JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+                    UpdateOrderBook(response, category);
 
-                    UpdateOrderBook(message, response, category);
-
-                    while (_concurrentQueueMessageOrderBookSpot?.Count > 10000)
+                    while (_concurrentQueueMessageOrderBookSpot?.Count > 50000)
                     {
                         _concurrentQueueMessageOrderBookSpot.TryDequeue(out _message);
                     }
@@ -2942,14 +2940,12 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    string message = _message.Replace("}.INVERSE", "}");
+                    ResponseWebSocketMessage<ResponseOrderBook> response =
+                        JsonConvert.DeserializeAnonymousType(_message, new ResponseWebSocketMessage<ResponseOrderBook>());
 
-                    ResponseWebSocketMessage<object> response =
-                        JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+                    UpdateOrderBook(response, category);
 
-                    UpdateOrderBook(message, response, category);
-
-                    while (_concurrentQueueMessageOrderBookInverse?.Count > 10000)
+                    while (_concurrentQueueMessageOrderBookInverse?.Count > 50000)
                     {
                         _concurrentQueueMessageOrderBookInverse.TryDequeue(out _message);
                     }
@@ -2991,12 +2987,12 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    ResponseWebSocketMessage<object> response =
-                        JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+                    ResponseWebSocketMessage<ResponseOrderBook> response =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrderBook>());
 
-                    UpdateOrderBook(message, response, category);
+                    UpdateOrderBook(response, category);
 
-                    while (_concurrentQueueMessageOrderBookLinear.Count > 10000)
+                    while (_concurrentQueueMessageOrderBookLinear.Count > 50000)
                     {
                         _concurrentQueueMessageOrderBookLinear.TryDequeue(out message);
                     }
@@ -3038,12 +3034,12 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    ResponseWebSocketMessage<object> response =
-                        JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+                    ResponseWebSocketMessage<ResponseOrderBook> response =
+                        JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrderBook>());
 
-                    UpdateOrderBook(message, response, category);
+                    UpdateOrderBook( response, category);
 
-                    while (_concurrentQueueMessageOrderBookOption.Count > 10000)
+                    while (_concurrentQueueMessageOrderBookOption.Count > 50000)
                     {
                         _concurrentQueueMessageOrderBookOption.TryDequeue(out message);
                     }
@@ -3056,33 +3052,21 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-
         private ConcurrentQueue<string> _concurrentQueueMessageOrderBookSpot;
-
         private ConcurrentQueue<string> _concurrentQueueMessageOrderBookLinear;
-
         private ConcurrentQueue<string> _concurrentQueueMessageOrderBookInverse;
-
         private ConcurrentQueue<string> _concurrentQueueMessageOrderBookOption;
 
         private Dictionary<string, MarketDepth> _listMarketDepthSpot = new Dictionary<string, MarketDepth>();
-
         private Dictionary<string, MarketDepth> _listMarketDepthLinear = new Dictionary<string, MarketDepth>();
-
         private Dictionary<string, MarketDepth> _listMarketDepthInverse = new Dictionary<string, MarketDepth>();
-
         private Dictionary<string, MarketDepth> _listMarketDepthOption = new Dictionary<string, MarketDepth>();
 
-        private void UpdateOrderBook(string message, ResponseWebSocketMessage<object> response, Category category)
+        private void UpdateOrderBook(ResponseWebSocketMessage<ResponseOrderBook> responseDepth, Category category)
         {
             try
             {
-                CultureInfo cultureInfo = new CultureInfo("en-US");
-
-                ResponseWebSocketMessage<ResponseOrderBook> responseDepth =
-                                  JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrderBook>());
-
-                string[] topic = response.topic.Split('.');
+                string[] topic = responseDepth.topic.Split('.');
                 string sec = topic[2];
 
                 if (category == Category.linear)
@@ -3133,7 +3117,7 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                 }
 
-                if (response.type == "snapshot")
+                if (responseDepth.type == "snapshot")
                 {
                     marketDepth.Asks.Clear();
                     marketDepth.Bids.Clear();
@@ -3144,8 +3128,8 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     for (int i = 0; i < (responseDepth.data.a.Length / 2); i++)
                     {
-                        double.TryParse(responseDepth.data.a[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out double aPrice);
-                        double.TryParse(responseDepth.data.a[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out double aAsk);
+                        double aPrice = responseDepth.data.a[i, 0].ToDouble();
+                        double aAsk = responseDepth.data.a[i, 1].ToDouble();
 
                         int index = -1;
 
@@ -3187,8 +3171,8 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     for (int i = 0; i < (responseDepth.data.b.Length / 2); i++)
                     {
-                        double.TryParse(responseDepth.data.b[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out double bPrice);
-                        double.TryParse(responseDepth.data.b[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out double bBid);
+                        double bPrice = responseDepth.data.b[i, 0].ToDouble();
+                        double bBid = responseDepth.data.b[i, 1].ToDouble();
 
                         int index = -1;
 

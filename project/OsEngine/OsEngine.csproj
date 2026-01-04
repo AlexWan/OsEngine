@@ -34,14 +34,14 @@
    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
    <Optimize>False</Optimize>
-   <DebugType>embedded</DebugType>
+   <DebugType>full</DebugType>
    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
    <OutputPath>bin\Release\</OutputPath>
    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-   <DebugType>embedded</DebugType>
+   <DebugType>full</DebugType>
    <Optimize>False</Optimize>
    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
   </PropertyGroup>
