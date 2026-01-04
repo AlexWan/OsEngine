@@ -79,6 +79,46 @@ namespace OsEngine.Market.Servers.OKX
             Thread thread = new Thread(CheckAliveWebSocket);
             thread.Name = "CheckAliveWebSocket";
             thread.Start();
+
+            Thread threadMessageReaderMarketDepthSpot = new Thread(() => ThreadMessageReaderMarketDepthSpot());
+            threadMessageReaderMarketDepthSpot.IsBackground = true;
+            threadMessageReaderMarketDepthSpot.Name = "ThreadOkxMessageReaderMarketDepthSpot";
+            threadMessageReaderMarketDepthSpot.Start();
+
+            Thread threadMessageReaderMarketDepthSwap = new Thread(() => ThreadMessageReaderMarketDepthSwap());
+            threadMessageReaderMarketDepthSwap.IsBackground = true;
+            threadMessageReaderMarketDepthSwap.Name = "ThreadOkxMessageReaderMarketDepthSwap";
+            threadMessageReaderMarketDepthSwap.Start();
+
+            Thread threadMessageReaderMarketDepthFutures = new Thread(() => ThreadMessageReaderMarketDepthFutures());
+            threadMessageReaderMarketDepthFutures.IsBackground = true;
+            threadMessageReaderMarketDepthFutures.Name = "ThreadOkxMessageReaderMarketDepthFutures";
+            threadMessageReaderMarketDepthFutures.Start();
+
+            Thread threadMessageReaderMarketDepthOption = new Thread(() => ThreadMessageReaderMarketDepthOption());
+            threadMessageReaderMarketDepthOption.IsBackground = true;
+            threadMessageReaderMarketDepthOption.Name = "ThreadOkxMessageReaderMarketDepthOption";
+            threadMessageReaderMarketDepthOption.Start();
+
+            Thread threadMessageReaderTradesSpot = new Thread(() => ThreadMessageReaderTradesSpot());
+            threadMessageReaderTradesSpot.IsBackground = true;
+            threadMessageReaderTradesSpot.Name = "ThreadOkxMessageReaderTradesSpot";
+            threadMessageReaderTradesSpot.Start();
+
+            Thread threadMessageReaderTradesSwap = new Thread(() => ThreadMessageReaderTradesSwap());
+            threadMessageReaderTradesSwap.IsBackground = true;
+            threadMessageReaderTradesSwap.Name = "ThreadOkxMessageReaderTradesSwap";
+            threadMessageReaderTradesSwap.Start();
+
+            Thread threadMessageReaderTradesFutures = new Thread(() => ThreadMessageReaderTradesFutures());
+            threadMessageReaderTradesFutures.IsBackground = true;
+            threadMessageReaderTradesFutures.Name = "ThreadOkxMessageReaderTradesFutures";
+            threadMessageReaderTradesFutures.Start();
+
+            Thread threadMessageReaderTradesOption = new Thread(() => ThreadMessageReaderTradesOption());
+            threadMessageReaderTradesOption.IsBackground = true;
+            threadMessageReaderTradesOption.Name = "ThreadOkxMessageReaderTradesOption";
+            threadMessageReaderTradesOption.Start();
         }
 
         private WebProxy _myProxy;
@@ -175,8 +215,16 @@ namespace OsEngine.Market.Servers.OKX
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+            _fIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+            _fIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+            _queueMessageMarketDepthSpot = new ConcurrentQueue<string>();
+            _queueMessageMarketDepthSwap = new ConcurrentQueue<string>();
+            _queueMessageMarketDepthFutures = new ConcurrentQueue<string>();
+            _queueMessageMarketDepthOption = new ConcurrentQueue<string>();
+            _queueMessageTradesSpot = new ConcurrentQueue<string>();
+            _queueMessageTradesSwap = new ConcurrentQueue<string>();
+            _queueMessageTradesFutures = new ConcurrentQueue<string>();
+            _queueMessageTradesOption = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -262,7 +310,7 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                SecurityResponse securityResponseFutures = GetFuturesSecurities();
+                SecurityResponse securityResponseFutures = GetSwapSecurities();
                 SecurityResponse securityResponseSpot = GetSpotSecurities();
                 securityResponseFutures.data.AddRange(securityResponseSpot.data);
 
@@ -294,7 +342,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private SecurityResponse GetFuturesSecurities()
+        private SecurityResponse GetSwapSecurities()
         {
             try
             {
@@ -482,9 +530,12 @@ namespace OsEngine.Market.Servers.OKX
 
                 SecurityType securityType = SecurityType.CurrencyPair;
 
-                if (item.instType.Equals("SWAP") || item.instType.Equals("FUTURES"))
+                if (item.instType.Equals("SWAP")
+                    || item.instType.Equals("FUTURES"))
                 {
                     securityType = SecurityType.Futures;
+
+
                 }
                 else if (item.instType.Equals("OPTION"))
                 {
@@ -521,17 +572,13 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (securityType == SecurityType.Futures)
                 {
-                    if (item.instId.Contains("-USD-"))
+                    if (item.ctType == "linear")
                     {
-                        security.NameClass = "SWAP_USD";
+                        security.NameClass = $"Linear_{item.instType}_{item.settleCcy}";
                     }
-                    else if (item.instId.Contains("-USDT-"))
+                    else if (item.ctType == "inverse")
                     {
-                        security.NameClass = "Futures_USDT";
-                    }
-                    else
-                    {
-                        security.NameClass = "SWAP_" + item.settleCcy;
+                        security.NameClass = $"Inverse_{item.instType}_{item.ctValCcy}";
                     }
 
                     security.NameId = item.instId + "_" + item.ctVal.ToDecimal();
@@ -1047,9 +1094,9 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                if (FIFOListWebSocketPublicMessage == null)
+                if (_fIFOListWebSocketPublicMessage == null)
                 {
-                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                    _fIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                 }
 
                 _webSocketPublic.Add(CreateNewPublicSocket());
@@ -1350,12 +1397,12 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                if (FIFOListWebSocketPublicMessage == null)
+                if (_fIFOListWebSocketPublicMessage == null)
                 {
                     return;
                 }
 
-                FIFOListWebSocketPublicMessage.Enqueue(e.Data);
+                _fIFOListWebSocketPublicMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -1451,15 +1498,15 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (e.Data.Contains("error"))
                 {
-                    SendLogMessage("Error received from server: "+ e.Data.ToString(), LogMessageType.Error);
+                    SendLogMessage("Error received from server: " + e.Data.ToString(), LogMessageType.Error);
                 }
 
-                if (FIFOListWebSocketPrivateMessage == null)
+                if (_fIFOListWebSocketPrivateMessage == null)
                 {
                     return;
                 }
 
-                FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
+                _fIFOListWebSocketPrivateMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -1841,9 +1888,25 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 10 WebSocket parsing the messages
 
-        private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> _fIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
 
-        private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> _fIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageMarketDepthSpot = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageMarketDepthSwap = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageMarketDepthFutures = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageMarketDepthOption = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageTradesSpot = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageTradesSwap = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageTradesFutures = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageTradesOption = new ConcurrentQueue<string>();
 
         private void MessageReaderPublic()
         {
@@ -1859,7 +1922,7 @@ namespace OsEngine.Market.Servers.OKX
                         continue;
                     }
 
-                    if (FIFOListWebSocketPublicMessage.IsEmpty)
+                    if (_fIFOListWebSocketPublicMessage.IsEmpty)
                     {
                         Thread.Sleep(1);
                         continue;
@@ -1867,7 +1930,7 @@ namespace OsEngine.Market.Servers.OKX
 
                     string message = null;
 
-                    FIFOListWebSocketPublicMessage.TryDequeue(out message);
+                    _fIFOListWebSocketPublicMessage.TryDequeue(out message);
 
                     if (message == null)
                     {
@@ -1885,13 +1948,57 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         if (action.arg.channel.Equals("books5"))
                         {
-                            UpdateMarketDepth(message);
+                            if (action.arg.instId.EndsWith("SWAP"))
+                            {
+                                _queueMessageMarketDepthSwap.Enqueue(message);
+                            }
+                            else if (action.arg.instId.EndsWith("P")
+                                || action.arg.instId.EndsWith("C"))
+                            {
+                                _queueMessageMarketDepthOption.Enqueue(message);
+                            }
+                            else
+                            {
+                                bool endsWithDigit = Char.IsDigit(action.arg.instId[action.arg.instId.Length - 1]);
+
+                                if (endsWithDigit)
+                                {
+                                    _queueMessageMarketDepthFutures.Enqueue(message);
+                                }
+                                else
+                                {
+                                    _queueMessageMarketDepthSpot.Enqueue(message);
+                                }
+                            }
+
                             continue;
                         }
 
                         if (action.arg.channel.Equals("trades"))
                         {
-                            UpdateTrades(message);
+                            if (action.arg.instId.EndsWith("SWAP"))
+                            {
+                                _queueMessageTradesSwap.Enqueue(message);
+                            }
+                            else if (action.arg.instId.EndsWith("P")
+                                || action.arg.instId.EndsWith("C"))
+                            {
+                                _queueMessageTradesOption.Enqueue(message);
+                            }
+                            else
+                            {
+                                bool endsWithDigit = Char.IsDigit(action.arg.instId[action.arg.instId.Length - 1]);
+
+                                if (endsWithDigit)
+                                {
+                                    _queueMessageTradesFutures.Enqueue(message);
+                                }
+                                else
+                                {
+                                    _queueMessageTradesSpot.Enqueue(message);
+                                }
+                            }
+
                             continue;
                         }
 
@@ -1955,7 +2062,7 @@ namespace OsEngine.Market.Servers.OKX
                         continue;
                     }
 
-                    if (FIFOListWebSocketPrivateMessage.IsEmpty)
+                    if (_fIFOListWebSocketPrivateMessage.IsEmpty)
                     {
                         Thread.Sleep(1);
                         continue;
@@ -1963,7 +2070,7 @@ namespace OsEngine.Market.Servers.OKX
 
                     string message = null;
 
-                    FIFOListWebSocketPrivateMessage.TryDequeue(out message);
+                    _fIFOListWebSocketPrivateMessage.TryDequeue(out message);
 
                     if (message == null)
                     {
@@ -2153,6 +2260,322 @@ namespace OsEngine.Market.Servers.OKX
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private void ThreadMessageReaderTradesOption()
+        {
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                }
+
+                try
+                {
+                    if (_queueMessageTradesOption == null
+                        || _queueMessageTradesOption.IsEmpty
+                        || _queueMessageTradesOption.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message;
+
+                    if (!_queueMessageTradesOption.TryDequeue(out message))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    UpdateTrades(message);
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderTradesFutures()
+        {
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                }
+
+                try
+                {
+                    if (_queueMessageTradesFutures == null
+                        || _queueMessageTradesFutures.IsEmpty
+                        || _queueMessageTradesFutures.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message;
+
+                    if (!_queueMessageTradesFutures.TryDequeue(out message))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    UpdateTrades(message);
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderTradesSwap()
+        {
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                }
+
+                try
+                {
+                    if (_queueMessageTradesSwap == null
+                        || _queueMessageTradesSwap.IsEmpty
+                        || _queueMessageTradesSwap.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message;
+
+                    if (!_queueMessageTradesSwap.TryDequeue(out message))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    UpdateTrades(message);
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderTradesSpot()
+        {
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                }
+
+                try
+                {
+                    if (_queueMessageTradesSpot == null
+                        || _queueMessageTradesSpot.IsEmpty
+                        || _queueMessageTradesSpot.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message;
+
+                    if (!_queueMessageTradesSpot.TryDequeue(out message))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    UpdateTrades(message);
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderMarketDepthOption()
+        {
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                }
+
+                try
+                {
+                    if (_queueMessageMarketDepthOption == null
+                        || _queueMessageMarketDepthOption.IsEmpty
+                        || _queueMessageMarketDepthOption.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message;
+
+                    if (!_queueMessageMarketDepthOption.TryDequeue(out message))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    UpdateMarketDepth(message);
+
+                    while (_queueMessageMarketDepthOption?.Count > 50000)
+                    {
+                        _queueMessageMarketDepthOption.TryDequeue(out message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderMarketDepthFutures()
+        {
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                }
+
+                try
+                {
+                    if (_queueMessageMarketDepthFutures == null
+                        || _queueMessageMarketDepthFutures.IsEmpty
+                        || _queueMessageMarketDepthFutures.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message;
+
+                    if (!_queueMessageMarketDepthFutures.TryDequeue(out message))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    UpdateMarketDepth(message);
+
+                    while (_queueMessageMarketDepthFutures?.Count > 50000)
+                    {
+                        _queueMessageMarketDepthFutures.TryDequeue(out message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderMarketDepthSwap()
+        {
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                }
+
+                try
+                {
+                    if (_queueMessageMarketDepthSwap == null
+                        || _queueMessageMarketDepthSwap.IsEmpty
+                        || _queueMessageMarketDepthSwap.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message;
+
+                    if (!_queueMessageMarketDepthSwap.TryDequeue(out message))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    UpdateMarketDepth(message);
+
+                    while (_queueMessageMarketDepthSwap?.Count > 50000)
+                    {
+                        _queueMessageMarketDepthSwap.TryDequeue(out message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderMarketDepthSpot()
+        {
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                }
+
+                try
+                {
+                    if (_queueMessageMarketDepthSpot == null
+                        || _queueMessageMarketDepthSpot.IsEmpty
+                        || _queueMessageMarketDepthSpot.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message;
+
+                    if (!_queueMessageMarketDepthSpot.TryDequeue(out message))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    UpdateMarketDepth(message);
+
+                    while (_queueMessageMarketDepthSpot?.Count > 50000)
+                    {
+                        _queueMessageMarketDepthSpot.TryDequeue(out message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
             }
         }
 
