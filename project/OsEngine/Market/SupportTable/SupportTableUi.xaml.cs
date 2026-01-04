@@ -374,7 +374,7 @@ namespace OsEngine.Market.SupportTable
             {
                 pref = "\\Images\\Connections\\Support\\No.png";
             }
-            else if (typeSup == SupportServerType.Standart)
+            else if (typeSup == SupportServerType.Standard)
             {
                 pref = "\\Images\\Connections\\Support\\Standart.png";
             }

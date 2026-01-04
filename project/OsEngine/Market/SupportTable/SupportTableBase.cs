@@ -226,16 +226,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(bitGet);
 
-            SupportConnection bingx = new SupportConnection()
-            {
-                ServerType = ServerType.BingXSpot,
-                SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\bingx.png",
-                LingSiteUrl = "https://bingx.com/invite/OQLHEXTU",
-                Discount = 30
-            };
-            supportList.Add(bingx);
-
             SupportConnection okx = new SupportConnection()
             {
                 ServerType = ServerType.OKX,
@@ -255,6 +245,16 @@ namespace OsEngine.Market.SupportTable
                 Discount = 20
             };
             supportList.Add(kuCoinSpot);
+
+            SupportConnection bloFin = new SupportConnection()
+            {
+                ServerType = ServerType.BloFinFutures,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\BloFin.png",
+                LingSiteUrl = "https://partner.blofin.com/d/IHJBujb",
+                Discount = 20
+            };
+            supportList.Add(bloFin);
 
             SupportConnection huobi = new SupportConnection()
             {
@@ -286,7 +286,7 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(gateIo);
 
-            SupportConnection deribit = new SupportConnection()
+           /* SupportConnection deribit = new SupportConnection()
             {
                 ServerType = ServerType.Deribit,
                 SupportType = SupportServerType.Prime,
@@ -294,12 +294,12 @@ namespace OsEngine.Market.SupportTable
                 LingSiteUrl = "https://www.deribit.com/?reg=18571.8844",
                 Discount = 10
             };
-            supportList.Add(deribit);
+            supportList.Add(deribit);*/
 
             SupportConnection xt = new SupportConnection()
             {
                 ServerType = ServerType.XTSpot,
-                SupportType = SupportServerType.Prime,
+                SupportType = SupportServerType.Standard,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\XT.png",
                 LingSiteUrl = "https://www.xt.com/ru/accounts/register?ref=QA3TMX",
                 Discount = 30
@@ -309,7 +309,7 @@ namespace OsEngine.Market.SupportTable
             SupportConnection askend = new SupportConnection()
             {
                 ServerType = ServerType.AscendexSpot,
-                SupportType = SupportServerType.Prime,
+                SupportType = SupportServerType.Standard,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\Ascend.png",
                 LingSiteUrl = "https://ascendex.com/register?inviteCode=BPEFZZW8Q",
                 Discount = 25
@@ -319,7 +319,7 @@ namespace OsEngine.Market.SupportTable
             SupportConnection pionex = new SupportConnection()
             {
                 ServerType = ServerType.PionexSpot,
-                SupportType = SupportServerType.Prime,
+                SupportType = SupportServerType.Standard,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\pionex.png",
                 LingSiteUrl = "https://www.pionex.com/ru/signUp?r=0z11LpNQfus",
                 Discount = 10
@@ -329,7 +329,7 @@ namespace OsEngine.Market.SupportTable
             SupportConnection woo = new SupportConnection()
             {
                 ServerType = ServerType.Woo,
-                SupportType = SupportServerType.Prime,
+                SupportType = SupportServerType.Standard,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\Woox.png",
                 LingSiteUrl = "https://x.woo.org/register?ref=QMXPT8MR",
                 Discount = 5
@@ -339,7 +339,7 @@ namespace OsEngine.Market.SupportTable
             SupportConnection coinEx = new SupportConnection()
             {
                 ServerType = ServerType.CoinExSpot,
-                SupportType = SupportServerType.Prime,
+                SupportType = SupportServerType.Standard,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\CoinEx.png",
                 LingSiteUrl = "https://www.coinex.com/register?rc=3hscg",
                 Discount = 5
@@ -349,7 +349,7 @@ namespace OsEngine.Market.SupportTable
             SupportConnection bitMart = new SupportConnection()
             {
                 ServerType = ServerType.BitMartSpot,
-                SupportType = SupportServerType.Prime,
+                SupportType = SupportServerType.Standard,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\BitMartSpot.png",
                 LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en", 
                 Discount = 40
@@ -359,22 +359,22 @@ namespace OsEngine.Market.SupportTable
             SupportConnection bitMartFutures = new SupportConnection()
             {
                 ServerType = ServerType.BitMartFutures,
-                SupportType = SupportServerType.Prime,
+                SupportType = SupportServerType.Standard,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\BitMartFutures.png",
                 LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en",
                 Discount = 30
             };
             supportList.Add(bitMartFutures);
 
-            SupportConnection bloFin = new SupportConnection()
+            SupportConnection bingx = new SupportConnection()
             {
-                ServerType = ServerType.BloFinFutures,
-                SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\BloFin.png",
-                LingSiteUrl = "https://partner.blofin.com/d/IHJBujb",
-                Discount = 20
+                ServerType = ServerType.BingXSpot,
+                SupportType = SupportServerType.No,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\bingx.png",
+                LingSiteUrl = "https://bingx.com/invite/OQLHEXTU",
+                Discount = 30
             };
-            supportList.Add(bloFin);
+            supportList.Add(bingx);
 
             SupportConnection exMo = new SupportConnection()
             {
@@ -407,7 +407,7 @@ namespace OsEngine.Market.SupportTable
     {
         Prime,
 
-        Standart,
+        Standard,
 
         No
     }
