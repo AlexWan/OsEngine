@@ -14,6 +14,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -3163,7 +3164,7 @@ namespace OsEngine.Market.Servers.Bybit
                         }
                     }
 
-                    SortAsks(marketDepth.Asks);
+                    marketDepth.Asks = marketDepth.Asks.OrderBy(a => a.Price).ToList();
                 }
 
                 if (responseDepth.data.b != null
@@ -3206,7 +3207,7 @@ namespace OsEngine.Market.Servers.Bybit
                         }
                     }
 
-                    SortBids(marketDepth.Bids);
+                    marketDepth.Bids = marketDepth.Bids.OrderByDescending(b => b.Price).ToList();
                 }
 
                 marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp((long)responseDepth.ts.ToDecimal());
@@ -3291,44 +3292,6 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
-        }
-
-        protected void SortBids(List<MarketDepthLevel> levels)
-        {
-            levels.Sort((a, b) =>
-            {
-                if (a.Price > b.Price)
-                {
-                    return -1;
-                }
-                else if (a.Price < b.Price)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return 0;
-                }
-            });
-        }
-
-        protected void SortAsks(List<MarketDepthLevel> levels)
-        {
-            levels.Sort((a, b) =>
-            {
-                if (a.Price > b.Price)
-                {
-                    return 1;
-                }
-                else if (a.Price < b.Price)
-                {
-                    return -1;
-                }
-                else
-                {
-                    return 0;
-                }
-            });
         }
 
         private DateTime _lastMdTime = DateTime.MinValue;
