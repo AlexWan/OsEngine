@@ -2034,7 +2034,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             try
             {
-
                 if (myDepth.data.asks == null || myDepth.data.asks.Count == 0 ||
                     myDepth.data.bids == null || myDepth.data.bids.Count == 0)
                 {
@@ -2045,11 +2044,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 MarketDepth needDepth = null;
 
-                for (int i = 0; i < _depths.Count; i++)
+                foreach (MarketDepth depth in _depths)
                 {
-                    if (_depths[i].SecurityNameCode == secName)
+                    if (depth.SecurityNameCode == secName)
                     {
-                        needDepth = _depths[i];
+                        needDepth = depth;
                         break;
                     }
                 }
@@ -2068,12 +2067,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     ascs.Add(new MarketDepthLevel()
                     {
-                        Ask =
-                            myDepth.data.asks[i][1].ToString().ToDouble()
-                        ,
-                        Price =
-                            myDepth.data.asks[i][0].ToString().ToDouble()
-
+                        Ask = myDepth.data.asks[i][1].ToString().ToDouble(),
+                        Price = myDepth.data.asks[i][0].ToString().ToDouble()
                     });
                 }
 
@@ -2081,11 +2076,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Bid =
-                            myDepth.data.bids[i][1].ToString().ToDouble()
-                        ,
-                        Price =
-                            myDepth.data.bids[i][0].ToString().ToDouble()
+                        Bid = myDepth.data.bids[i][1].ToString().ToDouble(),
+                        Price = myDepth.data.bids[i][0].ToString().ToDouble()
                     });
                 }
 
