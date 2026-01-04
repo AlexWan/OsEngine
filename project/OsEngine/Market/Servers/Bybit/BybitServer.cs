@@ -42,6 +42,8 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterBoolean("Extended Data", false);
             CreateParameterBoolean("Use Options", false);
 
+            realization.UseFullMarketDepth = this._needToUseFullMarketDepth;
+
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
             ServerParameters[2].Comment = OsLocalization.Market.Label248;
@@ -316,12 +318,12 @@ namespace OsEngine.Market.Servers.Bybit
             SubscribeSecurityInverse.Clear();
             SubscribedSecurityOption.Clear();
             _subscribedOptionTradeBaseCoins.Clear();
-
+     
             concurrentQueueMessagePublicWebSocket = new ConcurrentQueue<string>();
-            _concurrentQueueMessageOrderBookSpot = new ConcurrentQueue<string>();
-            _concurrentQueueMessageOrderBookLinear = new ConcurrentQueue<string>();
-            _concurrentQueueMessageOrderBookInverse = new ConcurrentQueue<string>();
-            _concurrentQueueMessageOrderBookOption = new ConcurrentQueue<string>();
+            _concurrentQueueMessageOrderBookSpot = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
+            _concurrentQueueMessageOrderBookLinear = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
+            _concurrentQueueMessageOrderBookInverse = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
+            _concurrentQueueMessageOrderBookOption = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
             concurrentQueueMessagePrivateWebSocket = new ConcurrentQueue<string>();
             _concurrentQueueTickersLinear = new ConcurrentQueue<string>();
             _concurrentQueueTickersInverse = new ConcurrentQueue<string>();
@@ -1518,10 +1520,10 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (_concurrentQueueMessageOrderBookSpot == null)
                 {
-                    _concurrentQueueMessageOrderBookSpot = new ConcurrentQueue<string>();
-                    _concurrentQueueMessageOrderBookLinear = new ConcurrentQueue<string>();
-                    _concurrentQueueMessageOrderBookInverse = new ConcurrentQueue<string>();
-                    _concurrentQueueMessageOrderBookOption = new ConcurrentQueue<string>();
+                    _concurrentQueueMessageOrderBookSpot = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
+                    _concurrentQueueMessageOrderBookLinear = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
+                    _concurrentQueueMessageOrderBookInverse = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
+                    _concurrentQueueMessageOrderBookOption = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
                 }
 
                 _webSocketPublicSpot.Add(CreateNewSpotPublicSocket());
@@ -2493,6 +2495,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         #region 10 WebSocket parsing the messages
 
+        public ServerParameterBool UseFullMarketDepth;
+
         private void ThreadPublicMessageReader()
         {
             while (true)
@@ -2538,73 +2542,68 @@ namespace OsEngine.Market.Servers.Bybit
                         message = _message.Replace("}.OPTION", "}");
                     }
 
-                    ResponseWebSocketMessage<object> response =
-                     JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
-
-                    if (response.topic != null)
+                    if(message.StartsWith("{\"topic\":\"orderbook"))
                     {
-                        if (response.topic.Contains("publicTrade"))
-                        {
-                            if (category == Category.spot)
-                            {
-                                _concurrentQueueTradesSpot.Enqueue(message);
-                            }
-                            else if (category == Category.linear)
-                            {
-                                _concurrentQueueTradesLinear.Enqueue(message);
-                            }
-                            else if (category == Category.inverse)
-                            {
-                                _concurrentQueueTradesInverse.Enqueue(message);
-                            }
-                            else if (category == Category.option)
-                            {
-                                _concurrentQueueTradesOption.Enqueue(message);
-                            }
+                        ResponseWebSocketMessage<ResponseOrderBook> md =
+                             JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrderBook>());
 
-                            continue;
+                        if (category == Category.spot)
+                        {
+                            _concurrentQueueMessageOrderBookSpot?.Enqueue(md);
                         }
-                        else if (response.topic.Contains("orderbook"))
+                        else if (category == Category.linear)
                         {
-                            if (category == Category.spot)
-                            {
-                                _concurrentQueueMessageOrderBookSpot?.Enqueue(message);
-                            }
-                            else if (category == Category.linear)
-                            {
-                                _concurrentQueueMessageOrderBookLinear.Enqueue(message);
-                            }
-                            else if (category == Category.inverse)
-                            {
-                                _concurrentQueueMessageOrderBookInverse.Enqueue(message);
-                            }
-                            else if (category == Category.option)
-                            {
-                                _concurrentQueueMessageOrderBookOption.Enqueue(message);
-                            }
-
-                            continue;
+                            _concurrentQueueMessageOrderBookLinear.Enqueue(md);
                         }
-                        else if (response.topic.Contains("tickers"))
+                        else if (category == Category.inverse)
                         {
-                            if (category == Category.linear)
-                            {
-                                _concurrentQueueTickersLinear.Enqueue(_message);
-                            }
-                            else if (category == Category.inverse)
-                            {
-                                _concurrentQueueTickersInverse.Enqueue(message);
-                            }
-                            else if (category == Category.spot)
-                            {
-                                _concurrentQueueTickersSpot.Enqueue(message);
-                            }
-                            else if (category == Category.option)
-                            {
-                                _concurrentQueueTickersOption.Enqueue(message);
-                            }
+                            _concurrentQueueMessageOrderBookInverse.Enqueue(md);
+                        }
+                        else if (category == Category.option)
+                        {
+                            _concurrentQueueMessageOrderBookOption.Enqueue(md);
+                        }
 
-                            continue;
+                        continue;
+                    }
+                    else if (message.StartsWith("{\"topic\":\"publicTrade"))
+                    {
+                        if (category == Category.spot)
+                        {
+                            _concurrentQueueTradesSpot.Enqueue(message);
+                        }
+                        else if (category == Category.linear)
+                        {
+                            _concurrentQueueTradesLinear.Enqueue(message);
+                        }
+                        else if (category == Category.inverse)
+                        {
+                            _concurrentQueueTradesInverse.Enqueue(message);
+                        }
+                        else if (category == Category.option)
+                        {
+                            _concurrentQueueTradesOption.Enqueue(message);
+                        }
+
+                        continue;
+                    }
+                    else if (message.StartsWith("{\"topic\":\"tickers"))
+                    {
+                        if (category == Category.linear)
+                        {
+                            _concurrentQueueTickersLinear.Enqueue(_message);
+                        }
+                        else if (category == Category.inverse)
+                        {
+                            _concurrentQueueTickersInverse.Enqueue(message);
+                        }
+                        else if (category == Category.spot)
+                        {
+                            _concurrentQueueTickersSpot.Enqueue(message);
+                        }
+                        else if (category == Category.option)
+                        {
+                            _concurrentQueueTickersOption.Enqueue(message);
                         }
 
                         continue;
@@ -2886,22 +2885,19 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    string _message;
+                    ResponseWebSocketMessage<ResponseOrderBook> message;
 
-                    if (!_concurrentQueueMessageOrderBookSpot.TryDequeue(out _message))
+                    if (!_concurrentQueueMessageOrderBookSpot.TryDequeue(out message))
                     {
                         Thread.Sleep(1);
                         continue;
                     }
 
-                    ResponseWebSocketMessage<ResponseOrderBook> response =
-                       JsonConvert.DeserializeAnonymousType(_message, new ResponseWebSocketMessage<ResponseOrderBook>());
-
-                    UpdateOrderBook(response, category);
+                    UpdateOrderBook(message, category);
 
                     while (_concurrentQueueMessageOrderBookSpot?.Count > 50000)
                     {
-                        _concurrentQueueMessageOrderBookSpot.TryDequeue(out _message);
+                        _concurrentQueueMessageOrderBookSpot.TryDequeue(out message);
                     }
                 }
                 catch (Exception ex)
@@ -2933,22 +2929,19 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    string _message;
+                    ResponseWebSocketMessage<ResponseOrderBook> message;
 
-                    if (!_concurrentQueueMessageOrderBookInverse.TryDequeue(out _message))
+                    if (!_concurrentQueueMessageOrderBookInverse.TryDequeue(out message))
                     {
                         Thread.Sleep(1);
                         continue;
                     }
 
-                    ResponseWebSocketMessage<ResponseOrderBook> response =
-                        JsonConvert.DeserializeAnonymousType(_message, new ResponseWebSocketMessage<ResponseOrderBook>());
-
-                    UpdateOrderBook(response, category);
+                    UpdateOrderBook(message, category);
 
                     while (_concurrentQueueMessageOrderBookInverse?.Count > 50000)
                     {
-                        _concurrentQueueMessageOrderBookInverse.TryDequeue(out _message);
+                        _concurrentQueueMessageOrderBookInverse.TryDequeue(out message);
                     }
                 }
                 catch (Exception ex)
@@ -2980,7 +2973,7 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    string message;
+                    ResponseWebSocketMessage<ResponseOrderBook> message;
 
                     if (!_concurrentQueueMessageOrderBookLinear.TryDequeue(out message))
                     {
@@ -2988,10 +2981,7 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    ResponseWebSocketMessage<ResponseOrderBook> response =
-                    JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrderBook>());
-
-                    UpdateOrderBook(response, category);
+                    UpdateOrderBook(message, category);
 
                     while (_concurrentQueueMessageOrderBookLinear.Count > 50000)
                     {
@@ -3027,7 +3017,7 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    string message;
+                    ResponseWebSocketMessage<ResponseOrderBook> message;
 
                     if (!_concurrentQueueMessageOrderBookOption.TryDequeue(out message))
                     {
@@ -3035,10 +3025,7 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    ResponseWebSocketMessage<ResponseOrderBook> response =
-                        JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrderBook>());
-
-                    UpdateOrderBook( response, category);
+                    UpdateOrderBook(message, category);
 
                     while (_concurrentQueueMessageOrderBookOption.Count > 50000)
                     {
@@ -3053,10 +3040,10 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private ConcurrentQueue<string> _concurrentQueueMessageOrderBookSpot;
-        private ConcurrentQueue<string> _concurrentQueueMessageOrderBookLinear;
-        private ConcurrentQueue<string> _concurrentQueueMessageOrderBookInverse;
-        private ConcurrentQueue<string> _concurrentQueueMessageOrderBookOption;
+        private ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>> _concurrentQueueMessageOrderBookSpot;
+        private ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>> _concurrentQueueMessageOrderBookLinear;
+        private ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>> _concurrentQueueMessageOrderBookInverse;
+        private ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>> _concurrentQueueMessageOrderBookOption;
 
         private Dictionary<string, MarketDepth> _listMarketDepthSpot = new Dictionary<string, MarketDepth>();
         private Dictionary<string, MarketDepth> _listMarketDepthLinear = new Dictionary<string, MarketDepth>();
@@ -3218,11 +3205,6 @@ namespace OsEngine.Market.Servers.Bybit
 
                     for (int j = i + 1; j < marketDepth.Asks.Count; j++)
                     {
-                        if (j == i)
-                        {
-                            continue;
-                        }
-
                         if (curLevel.Price == marketDepth.Asks[j].Price)
                         {
                             marketDepth.Asks.RemoveAt(j);
@@ -3237,27 +3219,12 @@ namespace OsEngine.Market.Servers.Bybit
 
                     for (int j = i + 1; j < marketDepth.Bids.Count; j++)
                     {
-                        if (j == i)
-                        {
-                            continue;
-                        }
-
                         if (curLevel.Price == marketDepth.Bids[j].Price)
                         {
                             marketDepth.Bids.RemoveAt(j);
                             j--;
                         }
                     }
-                }
-
-                while (marketDepth.Asks.Count > 25)
-                {
-                    marketDepth.Asks.RemoveAt(marketDepth.Asks.Count - 1);
-                }
-
-                while (marketDepth.Bids.Count > 25)
-                {
-                    marketDepth.Bids.RemoveAt(marketDepth.Bids.Count - 1);
                 }
 
                 if (marketDepth.Asks.Count == 0)
@@ -3283,7 +3250,14 @@ namespace OsEngine.Market.Servers.Bybit
                     && _concurrentQueueMessageOrderBookInverse?.Count < 500
                     && _concurrentQueueMessageOrderBookOption?.Count < 500)
                 {
-                    MarketDepthEvent?.Invoke(marketDepth.GetCopy());
+                    if(UseFullMarketDepth.Value == true)
+                    {
+                        MarketDepthEvent?.Invoke(marketDepth.GetCopy());
+                    }
+                    else
+                    {
+                        MarketDepthEvent?.Invoke(marketDepth.GetCopy(1));
+                    }
                 }
                 else
                 {

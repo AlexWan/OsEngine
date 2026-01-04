@@ -2123,6 +2123,18 @@ namespace OsEngine.Market.Servers
             ServerRealization.GetSecurities();
         }
 
+        private Dictionary<string, Security> _securitiesDictionary = new Dictionary<string, Security>();
+
+        private void ReloadSecuritiesDictionary()
+        {
+            _securitiesDictionary.Clear();
+            
+            for(int i = 0;i < _securities.Count;i++)
+            {
+                _securitiesDictionary.Add(_securities[i].Name, _securities[i]);
+            }
+        }
+
         /// <summary>
         /// often used securities. optimizes access to securities
         /// </summary>
@@ -2160,12 +2172,23 @@ namespace OsEngine.Market.Servers
                 }
             }
 
-            for (int i = 0; i < _securities.Count; i++)
+            try
             {
-                if (_securities[i].Name == securityName)
+                if(_securitiesDictionary.Count != _securities.Count)
                 {
-                    return _securities[i];
+                    ReloadSecuritiesDictionary();
                 }
+
+                Security mySecurity = null;
+
+                if (_securitiesDictionary.TryGetValue(securityName, out mySecurity))
+                {
+                    return mySecurity;
+                }
+            }
+            catch
+            {
+                // ignore
             }
 
             return null;
@@ -3247,10 +3270,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private string _depthsArrayLocker = "depthsLocker";
 
-        /// <summary>
-        /// last bid and ask values by securities
-        /// </summary>
-        private List<BidAskSender> _lastBidAskValues = new List<BidAskSender>();
+        private Dictionary<string, BidAskSender> _lastBidAskValuesDictionary = new Dictionary<string, BidAskSender>();
 
         /// <summary>
         /// new depth event
@@ -3364,41 +3384,19 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            for (int i = 0; i < _lastBidAskValues.Count; i++)
+            BidAskSender newSender = null;
+
+            if (!_lastBidAskValuesDictionary.TryGetValue(sec.Name, out newSender))
             {
-                if (_lastBidAskValues[i].Security.Name == sec.Name)
-                {
-                    if (_lastBidAskValues[i].Bid == bestBid &&
-                        _lastBidAskValues[i].Ask == bestAsk)
-                    {
-                        return;
-                    }
-                }
+                newSender = new BidAskSender();
+                newSender.Security = sec;
+                _lastBidAskValuesDictionary.Add(sec.Name, newSender);
             }
 
-            BidAskSender newSender = new BidAskSender();
             newSender.Bid = bestBid;
             newSender.Ask = bestAsk;
-            newSender.Security = sec;
 
             _bidAskToSend.Enqueue(newSender);
-
-            bool isInArray = false;
-
-            for (int i = 0; i < _lastBidAskValues.Count; i++)
-            {
-                if (_lastBidAskValues[i].Security.Name == sec.Name)
-                {
-                    _lastBidAskValues[i] = newSender;
-                    isInArray = true;
-                    break;
-                }
-            }
-
-            if (isInArray == false)
-            {
-                _lastBidAskValues.Add(newSender);
-            }
         }
 
         /// <summary>

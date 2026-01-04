@@ -824,6 +824,11 @@ namespace OsEngine.Market.Servers
                 int row = e.RowIndex;
                 int col = e.ColumnIndex;
 
+                if(row < 0 || col < 0)
+                {
+                    return;
+                }
+
                 if (col != 3)
                 {
                     return;

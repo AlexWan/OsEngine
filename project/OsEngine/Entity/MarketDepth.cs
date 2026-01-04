@@ -284,28 +284,51 @@ namespace OsEngine.Entity
         /// <summary>
         /// Take a "deep" copy of the market depth
         /// </summary>
-        public MarketDepth GetCopy()
+        public MarketDepth GetCopy(int levelsCount = 100)
         {
             MarketDepth newDepth = new MarketDepth();
             newDepth.Time = Time;
             newDepth.SecurityNameCode = SecurityNameCode;
 
-            newDepth.Asks = new List<MarketDepthLevel>();
-
-            for (int i = 0; Asks != null && i < Asks.Count; i++)
+            if(levelsCount == 100)
             {
-                newDepth.Asks.Add(new MarketDepthLevel());
-                newDepth.Asks[i].Ask = Asks[i].Ask;
-                newDepth.Asks[i].Price = Asks[i].Price;
+                newDepth.Asks = new List<MarketDepthLevel>();
+
+                for (int i = 0; Asks != null && i < Asks.Count; i++)
+                {
+                    newDepth.Asks.Add(new MarketDepthLevel());
+                    newDepth.Asks[i].Ask = Asks[i].Ask;
+                    newDepth.Asks[i].Price = Asks[i].Price;
+                }
+
+                newDepth.Bids = new List<MarketDepthLevel>();
+
+                for (int i = 0; Bids != null && i < Bids.Count; i++)
+                {
+                    newDepth.Bids.Add(new MarketDepthLevel());
+                    newDepth.Bids[i].Bid = Bids[i].Bid;
+                    newDepth.Bids[i].Price = Bids[i].Price;
+                }
             }
-
-            newDepth.Bids = new List<MarketDepthLevel>();
-
-            for (int i = 0; Bids != null && i < Bids.Count; i++)
+            else
             {
-                newDepth.Bids.Add(new MarketDepthLevel());
-                newDepth.Bids[i].Bid = Bids[i].Bid;
-                newDepth.Bids[i].Price = Bids[i].Price;
+                newDepth.Asks = new List<MarketDepthLevel>();
+
+                for (int i = 0; Asks != null && i < Asks.Count && i < levelsCount; i++)
+                {
+                    newDepth.Asks.Add(new MarketDepthLevel());
+                    newDepth.Asks[i].Ask = Asks[i].Ask;
+                    newDepth.Asks[i].Price = Asks[i].Price;
+                }
+
+                newDepth.Bids = new List<MarketDepthLevel>();
+
+                for (int i = 0; Bids != null && i < Bids.Count && i < levelsCount; i++)
+                {
+                    newDepth.Bids.Add(new MarketDepthLevel());
+                    newDepth.Bids[i].Bid = Bids[i].Bid;
+                    newDepth.Bids[i].Price = Bids[i].Price;
+                }
             }
 
             return newDepth;
