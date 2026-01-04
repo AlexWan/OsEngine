@@ -706,6 +706,7 @@ namespace OsEngine.Market.Servers.Optimizer
                         Candle candle3 = new Candle();
                         candle3.SetCandleFromString(lastString);
                         security[security.Count - 1].TimeEnd = candle3.TimeStart;
+                        security[security.Count - 1].Security.Expiration = candle3.TimeStart;
                         continue;
                     }
                     catch (Exception)
@@ -937,6 +938,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     Trade trade2 = new Trade();
                     trade2.SetTradeFromString(lastString2);
                     security[security.Count - 1].TimeEnd = trade2.Time;
+                    security[security.Count - 1].Security.Expiration = trade2.Time;
                 }
                 catch (Exception)
                 {
