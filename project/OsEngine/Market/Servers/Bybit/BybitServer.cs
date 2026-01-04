@@ -3216,7 +3216,7 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     MarketDepthLevel curLevel = marketDepth.Asks[i];
 
-                    for (int j = 0; j < marketDepth.Asks.Count; j++)
+                    for (int j = i + 1; j < marketDepth.Asks.Count; j++)
                     {
                         if (j == i)
                         {
@@ -3226,6 +3226,7 @@ namespace OsEngine.Market.Servers.Bybit
                         if (curLevel.Price == marketDepth.Asks[j].Price)
                         {
                             marketDepth.Asks.RemoveAt(j);
+                            j--;
                         }
                     }
                 }
@@ -3234,7 +3235,7 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     MarketDepthLevel curLevel = marketDepth.Bids[i];
 
-                    for (int j = 0; j < marketDepth.Bids.Count; j++)
+                    for (int j = i + 1; j < marketDepth.Bids.Count; j++)
                     {
                         if (j == i)
                         {
@@ -3244,6 +3245,7 @@ namespace OsEngine.Market.Servers.Bybit
                         if (curLevel.Price == marketDepth.Bids[j].Price)
                         {
                             marketDepth.Bids.RemoveAt(j);
+                            j--;
                         }
                     }
                 }
