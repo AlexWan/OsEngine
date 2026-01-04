@@ -2406,11 +2406,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     MarketDepth needDepth = null;
 
-                    for (int i = 0; i < _depths.Count; i++)
+                    foreach (MarketDepth depth in _depths)
                     {
-                        if (_depths[i].SecurityNameCode == secName)
+                        if (depth.SecurityNameCode == secName)
                         {
-                            needDepth = _depths[i];
+                            needDepth = depth;
                             break;
                         }
                     }
@@ -2429,12 +2429,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     {
                         ascs.Add(new MarketDepthLevel()
                         {
-                            Ask =
-                                myDepth.data.a[i][1].ToString().ToDouble()
-                            ,
-                            Price =
-                                myDepth.data.a[i][0].ToString().ToDouble()
-
+                            Ask = myDepth.data.a[i][1].ToString().ToDouble(),
+                            Price = myDepth.data.a[i][0].ToString().ToDouble()
                         });
                     }
 
@@ -2442,18 +2438,15 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     {
                         bids.Add(new MarketDepthLevel()
                         {
-                            Bid =
-                                myDepth.data.b[i][1].ToString().ToDouble()
-                            ,
-                            Price =
-                                myDepth.data.b[i][0].ToString().ToDouble()
+                            Bid = myDepth.data.b[i][1].ToString().ToDouble(),
+                            Price = myDepth.data.b[i][0].ToString().ToDouble()
                         });
                     }
 
                     needDepth.Asks = ascs;
                     needDepth.Bids = bids;
 
-                    needDepth.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myDepth.data.T));
+                    needDepth.Time = new DateTime(1970, 1, 1).AddMilliseconds(myDepth.data.T.ToDouble());
 
                     if (needDepth.Time == DateTime.MinValue)
                     {
