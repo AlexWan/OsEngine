@@ -86,6 +86,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             threadExtendedData.IsBackground = true;
             threadExtendedData.Name = "ThreadBitGetFuturesExtendedData";
             threadExtendedData.Start();
+
+            Thread threadMarketDepthParsing = new Thread(ThreadMarketDepthParsing);
+            threadMarketDepthParsing.IsBackground = true;
+            threadMarketDepthParsing.Name = "ThreadMarketDepthParsing";
+            threadMarketDepthParsing.Start();
+
+            Thread threadTradesParsing = new Thread(ThreadTradesParsing);
+            threadTradesParsing.IsBackground = true;
+            threadTradesParsing.Name = "ThreadTradesParsing";
+            threadTradesParsing.Start();
         }
 
         private WebProxy _myProxy;
@@ -193,6 +203,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+            _queueMarketDepths = new ConcurrentQueue<string>();
+            _queueTrades = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -1862,6 +1874,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
 
+        private ConcurrentQueue<string> _queueMarketDepths = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueTrades = new ConcurrentQueue<string>();
+
         private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
         private void MessageReaderPublic()
@@ -1931,13 +1947,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         {
                             if (action.arg.channel.Equals("books15"))
                             {
-                                UpdateDepth(message);
+                                _queueMarketDepths.Enqueue(message);
                                 continue;
                             }
 
                             if (action.arg.channel.Equals("trade"))
                             {
-                                UpdateTrade(message);
+                                _queueTrades.Enqueue(message);
                                 continue;
                             }
 
@@ -1948,6 +1964,95 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             }
                         }
                     }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(3000);
+                }
+            }
+        }
+
+        private void ThreadMarketDepthParsing()
+        {
+            Thread.Sleep(5000);
+
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_queueMarketDepths.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message = null;
+
+                    _queueMarketDepths.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    MarketDepth marketDepth = UpdateDepth(message);
+
+                    if (marketDepth == null) continue;
+
+                    if (_queueMarketDepths.Count < 1000)
+                    {
+                        MarketDepthEvent(marketDepth.GetCopy());
+                    }
+                    else
+                    {
+                        MarketDepthEvent(marketDepth);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(3000);
+                }
+            }
+        }
+
+        private void ThreadTradesParsing()
+        {
+            Thread.Sleep(5000);
+
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_queueTrades.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message = null;
+
+                    _queueTrades.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    UpdateTrade(message);
                 }
                 catch (Exception exception)
                 {
@@ -2396,7 +2501,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             return 0;
         }
 
-        private void UpdateDepth(string message)
+        private MarketDepth UpdateDepth(string message)
         {
             try
             {
@@ -2404,12 +2509,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (responseDepth.data == null)
                 {
-                    return;
+                    return null;
                 }
 
                 if (responseDepth.data[0].asks.Count == 0 && responseDepth.data[0].bids.Count == 0)
                 {
-                    return;
+                    return null;
                 }
 
                 MarketDepth marketDepth = new MarketDepth();
@@ -2421,8 +2526,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 for (int i = 0; i < responseDepth.data[0].asks.Count; i++)
                 {
-                    double ask = responseDepth.data[0].asks[i][1].ToString().ToDouble();
-                    double price = responseDepth.data[0].asks[i][0].ToString().ToDouble();
+                    List<string> askList = responseDepth.data[0].asks[i];
+
+                    double ask = askList[1].ToDouble();
+                    double price = askList[0].ToDouble();
 
                     if (ask == 0 ||
                         price == 0)
@@ -2438,8 +2545,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 for (int i = 0; i < responseDepth.data[0].bids.Count; i++)
                 {
-                    double bid = responseDepth.data[0].bids[i][1].ToString().ToDouble();
-                    double price = responseDepth.data[0].bids[i][0].ToString().ToDouble();
+                    List<string> bidList = responseDepth.data[0].bids[i];
+
+                    double bid = bidList[1].ToDouble();
+                    double price = bidList[0].ToDouble();
 
                     if (bid == 0 ||
                         price == 0)
@@ -2470,11 +2579,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 _lastTimeMd = marketDepth.Time;
 
-                MarketDepthEvent(marketDepth);
+                return marketDepth;
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
             }
         }
 
