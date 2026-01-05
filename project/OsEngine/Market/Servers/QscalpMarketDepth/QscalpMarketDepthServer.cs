@@ -118,6 +118,8 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

@@ -84,6 +84,8 @@ namespace OsEngine.Market.Servers
                         _serverRealization.Dispose();
                     }
 
+                    _serverRealization.IsCompletelyDeleted = true;
+
                     //_serverRealization = null;
                 }
             }

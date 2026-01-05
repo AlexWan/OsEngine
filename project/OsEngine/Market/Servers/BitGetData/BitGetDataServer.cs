@@ -106,6 +106,8 @@ namespace OsEngine.Market.Servers.BitGetData
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

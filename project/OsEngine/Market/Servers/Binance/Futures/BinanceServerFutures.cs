@@ -76,24 +76,24 @@ namespace OsEngine.Market.Servers.Binance.Futures
             worker1.Start();
 
             Thread worker2 = new Thread(KeepaliveUserDataStream);
-            worker2.IsBackground = true;
             worker2.Name = "BinanceFutThread_KeepaliveUserDataStream";
             worker2.Start();
 
-            Thread worker3 = new Thread(ConverterPublicMessages);
-            worker3.IsBackground = true;
+            Thread worker3 = new Thread(ConverterPublicMessagesAll);
             worker3.Name = "BinanceFutThread_ConverterPublicMessages";
             worker3.Start();
 
             Thread worker4 = new Thread(ConverterUserData);
-            worker4.IsBackground = true;
             worker4.Name = "BinanceFutThread_ConverterUserData";
             worker4.Start();
 
-            Thread threadExtendedData = new Thread(ThreadExtendedData);
-            threadExtendedData.IsBackground = true;
-            threadExtendedData.Name = "ThreadBinanceFuturesExtendedData";
-            threadExtendedData.Start();
+            Thread worker5 = new Thread(ThreadExtendedData);
+            worker5.Name = "BinanceFutThread_ExtendedData";
+            worker5.Start();
+
+            Thread worker6 = new Thread(ConverterPublicMessagesMarketDepths);
+            worker6.Name = "BinanceFutThread_MarketDepthParse";
+            worker6.Start();
         }
 
         private WebProxy _myProxy;
@@ -196,9 +196,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             _subscribedSecurities.Clear();
             _securities = new List<Security>();
-            _depths.Clear();
             _queuePrivateMessages = new ConcurrentQueue<BinanceUserMessage>();
-            _queuePublicMessages = new ConcurrentQueue<string>();
+            _queuePublicMessagesAll = new ConcurrentQueue<string>();
+            _queuePublicMessagesMarketDepths = new ConcurrentQueue<string>();
         }
 
         public ServerType ServerType
@@ -215,6 +215,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public event Action DisconnectEvent;
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+
+        public bool IsCompletelyDeleted { get; set; }
 
         #endregion
 
@@ -489,6 +491,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 try
                 {
                     Thread.Sleep(30000);
+
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
 
                     if (this.ServerStatus == ServerConnectStatus.Disconnect)
                     {
@@ -1494,7 +1501,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private ConcurrentQueue<BinanceUserMessage> _queuePrivateMessages = new ConcurrentQueue<BinanceUserMessage>();
 
-        private ConcurrentQueue<string> _queuePublicMessages = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> _queuePublicMessagesAll = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queuePublicMessagesMarketDepths = new ConcurrentQueue<string>();
 
         private void _socketClient_Opened(object sender, EventArgs e)
         {
@@ -1579,8 +1588,14 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 return;
             }
-
-            _queuePublicMessages.Enqueue(e.Data);
+            if (e.Data.Contains("\"depthUpdate\""))
+            {
+                _queuePublicMessagesMarketDepths.Enqueue(e.Data);
+            }
+            else
+            {
+                _queuePublicMessagesAll.Enqueue(e.Data);
+            }     
         }
 
         #endregion
@@ -1596,6 +1611,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 try
                 {
                     Thread.Sleep(10000);
+
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
 
                     if (_listenKey == "")
                     {
@@ -1765,13 +1785,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             while (true)
             {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(3000);
+                    }
+
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (_subscribedSecurities != null
                     && _subscribedSecurities.Count > 0
                     && _extendedMarketData)
@@ -1853,28 +1878,27 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         #region 10 WebSocket parsing the messages
 
-        public void ConverterPublicMessages()
+        public void ConverterPublicMessagesAll()
         {
             while (true)
             {
                 try
                 {
-                    if (_queuePublicMessages.IsEmpty)
+                    if (_queuePublicMessagesAll.IsEmpty)
                     {
+                        if(IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
                         Thread.Sleep(1);
                     }
                     else
                     {
                         string mes;
 
-                        if (_queuePublicMessages.TryDequeue(out mes))
+                        if (_queuePublicMessagesAll.TryDequeue(out mes))
                         {
-                            if (mes.Contains("\"depthUpdate\""))
-                            {
-                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponseFutures());
-                                UpdateMarketDepth(quotes);
-                            }
-                            else if (mes.Contains("\"e\":\"trade\""))
+                            if (mes.Contains("\"e\":\"trade\""))
                             {
                                 var quotes = JsonConvert.DeserializeAnonymousType(mes, new TradeResponse());
 
@@ -1912,6 +1936,39 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
+        public void ConverterPublicMessagesMarketDepths()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (_queuePublicMessagesMarketDepths.IsEmpty)
+                    {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+                        Thread.Sleep(1);
+                    }
+                    else
+                    {
+                        string mes;
+
+                        if (_queuePublicMessagesMarketDepths.TryDequeue(out mes))
+                        {
+                            var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponseFutures());
+                            UpdateMarketDepth(quotes);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
         public void ConverterUserData()
         {
             while (true)
@@ -1920,6 +1977,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     if (_queuePrivateMessages.IsEmpty == true)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
                         Thread.Sleep(1);
                     }
                     else
@@ -2386,84 +2447,58 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return 0;
         }
 
-        private List<MarketDepth> _depths = new List<MarketDepth>();
-
         private readonly object _depthLocker = new object();
 
         private void UpdateMarketDepth(DepthResponseFutures myDepth)
         {
             try
             {
-                lock (_depthLocker)
+
+                if (myDepth.data.a == null || myDepth.data.a.Count == 0 ||
+                    myDepth.data.b == null || myDepth.data.b.Count == 0)
                 {
-                    if (myDepth.data.a == null || myDepth.data.a.Count == 0 ||
-                        myDepth.data.b == null || myDepth.data.b.Count == 0)
+                    return;
+                }
+
+                string secName = myDepth.stream.Split('@')[0].ToUpper();
+
+                MarketDepth needDepth = new MarketDepth();
+                needDepth.SecurityNameCode = secName;
+
+                List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
+                List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+                for (int i = 0; i < myDepth.data.a.Count; i++)
+                {
+                    ascs.Add(new MarketDepthLevel()
                     {
-                        return;
-                    }
+                        Ask = myDepth.data.a[i][1].ToString().ToDouble(),
+                        Price = myDepth.data.a[i][0].ToString().ToDouble()
+                    });
+                }
 
-                    string secName = myDepth.stream.Split('@')[0].ToUpper();
-
-                    MarketDepth needDepth = null;
-
-                    foreach (MarketDepth depth in _depths)
+                for (int i = 0; i < myDepth.data.b.Count; i++)
+                {
+                    bids.Add(new MarketDepthLevel()
                     {
-                        if (depth.SecurityNameCode == secName)
-                        {
-                            needDepth = depth;
-                            break;
-                        }
-                    }
+                        Bid = myDepth.data.b[i][1].ToString().ToDouble(),
+                        Price = myDepth.data.b[i][0].ToString().ToDouble()
+                    });
+                }
 
-                    if (needDepth == null)
-                    {
-                        needDepth = new MarketDepth();
-                        needDepth.SecurityNameCode = secName;
-                        _depths.Add(needDepth);
-                    }
+                needDepth.Asks = ascs;
+                needDepth.Bids = bids;
 
-                    List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
-                    List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+                needDepth.Time = new DateTime(1970, 1, 1).AddMilliseconds(myDepth.data.T.ToDouble());
 
-                    for (int i = 0; i < myDepth.data.a.Count; i++)
-                    {
-                        ascs.Add(new MarketDepthLevel()
-                        {
-                            Ask = myDepth.data.a[i][1].ToString().ToDouble(),
-                            Price = myDepth.data.a[i][0].ToString().ToDouble()
-                        });
-                    }
+                if (needDepth.Time == DateTime.MinValue)
+                {
+                    return;
+                }
 
-                    for (int i = 0; i < myDepth.data.b.Count; i++)
-                    {
-                        bids.Add(new MarketDepthLevel()
-                        {
-                            Bid = myDepth.data.b[i][1].ToString().ToDouble(),
-                            Price = myDepth.data.b[i][0].ToString().ToDouble()
-                        });
-                    }
-
-                    needDepth.Asks = ascs;
-                    needDepth.Bids = bids;
-
-                    needDepth.Time = new DateTime(1970, 1, 1).AddMilliseconds(myDepth.data.T.ToDouble());
-
-                    if (needDepth.Time == DateTime.MinValue)
-                    {
-                        return;
-                    }
-
-                    if (MarketDepthEvent != null)
-                    {
-                        if (_queuePublicMessages.Count < 1000)
-                        {
-                            MarketDepthEvent(needDepth.GetCopy());
-                        }
-                        else
-                        {
-                            MarketDepthEvent(needDepth);
-                        }
-                    }
+                if (MarketDepthEvent != null)
+                {
+                    MarketDepthEvent(needDepth);
                 }
             }
             catch (Exception error)

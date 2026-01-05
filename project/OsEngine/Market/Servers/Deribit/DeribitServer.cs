@@ -169,6 +169,8 @@ namespace OsEngine.Market.Servers.Deribit
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

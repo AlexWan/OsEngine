@@ -228,6 +228,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

@@ -253,6 +253,8 @@ namespace OsEngine.Market.Servers.OKX
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

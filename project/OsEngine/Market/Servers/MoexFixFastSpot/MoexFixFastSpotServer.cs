@@ -259,6 +259,8 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             }
         }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         public DateTime ServerTime { get; set; }
 
         public ServerType ServerType => ServerType.MoexFixFastSpot;

@@ -524,6 +524,8 @@ namespace OsEngine.Market.Servers.Atp
             }
         }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

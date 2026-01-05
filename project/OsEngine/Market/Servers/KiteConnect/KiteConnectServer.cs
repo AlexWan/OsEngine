@@ -209,6 +209,8 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion 1
 
         #region 2 Properties

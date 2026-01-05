@@ -375,6 +375,8 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion 1
 
         #region 2 Properties

@@ -199,6 +199,8 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region Fields

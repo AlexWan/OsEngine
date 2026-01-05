@@ -37,8 +37,10 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         public DateTime ServerTime { get; set; }
 
- // requests
- // запросы
+        public bool IsCompletelyDeleted { get; set; }
+
+        // requests
+        // запросы
 
         private NinjaTraderClient _client;
 

@@ -738,6 +738,11 @@ namespace OsEngine.Market
                 int rowInd = e.RowIndex;
                 int colInd = e.ColumnIndex;
 
+                if(rowInd < 0 || colInd < 0)
+                {
+                    return;
+                }
+
                 if (colInd != 11)
                 {
                     return;

@@ -158,6 +158,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             get { return ServerType.CoinExFutures; }
         }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

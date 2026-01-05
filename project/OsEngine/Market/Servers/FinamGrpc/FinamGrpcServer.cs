@@ -171,6 +171,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public List<IServerParameter> ServerParameters { get; set; }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

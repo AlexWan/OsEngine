@@ -132,6 +132,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region Properties

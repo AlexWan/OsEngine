@@ -147,6 +147,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             get { return ServerType.CoinExSpot; }
         }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

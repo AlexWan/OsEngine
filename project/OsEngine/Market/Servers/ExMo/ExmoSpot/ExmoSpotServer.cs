@@ -132,6 +132,8 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

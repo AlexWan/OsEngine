@@ -365,6 +365,8 @@ namespace OsEngine.Market.Servers.Plaza
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties, Connection strings

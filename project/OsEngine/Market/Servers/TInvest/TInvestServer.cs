@@ -396,6 +396,8 @@ namespace OsEngine.Market.Servers.TInvest
 
         public event Action DisconnectEvent;
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Properties

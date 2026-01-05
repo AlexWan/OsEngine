@@ -103,6 +103,8 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+            public bool IsCompletelyDeleted { get; set; }
+
             #endregion
 
             #region 2 Properties

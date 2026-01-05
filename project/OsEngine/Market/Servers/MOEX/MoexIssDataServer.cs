@@ -73,6 +73,8 @@ namespace OsEngine.Market.Servers.MOEX
 
         public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
+        public bool IsCompletelyDeleted { get; set; }
+
         #endregion
 
         #region 2 Securities

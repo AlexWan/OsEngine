@@ -51,6 +51,11 @@ namespace OsEngine.Market.Servers
         void Dispose();
 
         /// <summary>
+        /// Connector object has been completely deleted
+        /// </summary>
+        bool IsCompletelyDeleted { get; set; }
+
+        /// <summary>
         /// API connection established
         /// </summary>
         event Action ConnectEvent;
