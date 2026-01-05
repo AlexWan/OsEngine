@@ -4056,11 +4056,15 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     if (_candleSeriesTesterActivate == null) return null;
 
+                    TimeSpan time = GetTimeFrameInSpan(timeFrameBuilder.TimeFrame);
+
                     for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
                     {
                         SecurityTester securityTester = _candleSeriesTesterActivate[i];
 
-                        if (securityTester.Security.Name == securityName && securityTester.DataType == SecurityTesterDataType.MarketDepth)
+                        if (securityTester.Security.Name == securityName && 
+                            securityTester.DataType == SecurityTesterDataType.MarketDepth &&
+                            securityTester.TimeFrameSpan == time)
                         {
                             return null;
                         }
