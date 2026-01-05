@@ -67,12 +67,10 @@ namespace OsEngine.Market.Servers.OKX
             ServerStatus = ServerConnectStatus.Disconnect;
 
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
-            threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Name = "MessageReaderPublic";
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
-            threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
             threadMessageReaderPrivate.Start();
 
@@ -80,43 +78,35 @@ namespace OsEngine.Market.Servers.OKX
             thread.Name = "CheckAliveWebSocket";
             thread.Start();
 
-            Thread threadMessageReaderMarketDepthSpot = new Thread(() => ThreadMessageReaderMarketDepthSpot());
-            threadMessageReaderMarketDepthSpot.IsBackground = true;
+            Thread threadMessageReaderMarketDepthSpot = new Thread(ThreadMessageReaderMarketDepthSpot);
             threadMessageReaderMarketDepthSpot.Name = "ThreadOkxMessageReaderMarketDepthSpot";
             threadMessageReaderMarketDepthSpot.Start();
 
-            Thread threadMessageReaderMarketDepthSwap = new Thread(() => ThreadMessageReaderMarketDepthSwap());
-            threadMessageReaderMarketDepthSwap.IsBackground = true;
+            Thread threadMessageReaderMarketDepthSwap = new Thread(ThreadMessageReaderMarketDepthSwap);
             threadMessageReaderMarketDepthSwap.Name = "ThreadOkxMessageReaderMarketDepthSwap";
             threadMessageReaderMarketDepthSwap.Start();
 
-            Thread threadMessageReaderMarketDepthFutures = new Thread(() => ThreadMessageReaderMarketDepthFutures());
-            threadMessageReaderMarketDepthFutures.IsBackground = true;
+            Thread threadMessageReaderMarketDepthFutures = new Thread(ThreadMessageReaderMarketDepthFutures);
             threadMessageReaderMarketDepthFutures.Name = "ThreadOkxMessageReaderMarketDepthFutures";
             threadMessageReaderMarketDepthFutures.Start();
 
-            Thread threadMessageReaderMarketDepthOption = new Thread(() => ThreadMessageReaderMarketDepthOption());
-            threadMessageReaderMarketDepthOption.IsBackground = true;
+            Thread threadMessageReaderMarketDepthOption = new Thread(ThreadMessageReaderMarketDepthOption);
             threadMessageReaderMarketDepthOption.Name = "ThreadOkxMessageReaderMarketDepthOption";
             threadMessageReaderMarketDepthOption.Start();
 
-            Thread threadMessageReaderTradesSpot = new Thread(() => ThreadMessageReaderTradesSpot());
-            threadMessageReaderTradesSpot.IsBackground = true;
+            Thread threadMessageReaderTradesSpot = new Thread(ThreadMessageReaderTradesSpot);
             threadMessageReaderTradesSpot.Name = "ThreadOkxMessageReaderTradesSpot";
             threadMessageReaderTradesSpot.Start();
 
-            Thread threadMessageReaderTradesSwap = new Thread(() => ThreadMessageReaderTradesSwap());
-            threadMessageReaderTradesSwap.IsBackground = true;
+            Thread threadMessageReaderTradesSwap = new Thread(ThreadMessageReaderTradesSwap);
             threadMessageReaderTradesSwap.Name = "ThreadOkxMessageReaderTradesSwap";
             threadMessageReaderTradesSwap.Start();
 
-            Thread threadMessageReaderTradesFutures = new Thread(() => ThreadMessageReaderTradesFutures());
-            threadMessageReaderTradesFutures.IsBackground = true;
+            Thread threadMessageReaderTradesFutures = new Thread(ThreadMessageReaderTradesFutures);
             threadMessageReaderTradesFutures.Name = "ThreadOkxMessageReaderTradesFutures";
             threadMessageReaderTradesFutures.Start();
 
-            Thread threadMessageReaderTradesOption = new Thread(() => ThreadMessageReaderTradesOption());
-            threadMessageReaderTradesOption.IsBackground = true;
+            Thread threadMessageReaderTradesOption = new Thread(ThreadMessageReaderTradesOption);
             threadMessageReaderTradesOption.Name = "ThreadOkxMessageReaderTradesOption";
             threadMessageReaderTradesOption.Start();
         }
@@ -1557,6 +1547,11 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     Thread.Sleep(20000);
 
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         continue;
@@ -1912,135 +1907,133 @@ namespace OsEngine.Market.Servers.OKX
 
         private void MessageReaderPublic()
         {
-            Thread.Sleep(5000);
-
             while (true)
             {
                 try
                 {
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
                     if (_fIFOListWebSocketPublicMessage.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
-                    }
-
-                    string message = null;
-
-                    _fIFOListWebSocketPublicMessage.TryDequeue(out message);
-
-                    if (message == null)
-                    {
-                        continue;
-                    }
-
-                    ResponseWsMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<object>());
-
-                    if (action.@event != null && action.@event.Contains("subscribe"))
-                    {
-                        //ignore
-                        //SendLogMessage("[WS Public] Got subscribe msg: " + action.msg, LogMessageType.System);
-                    }
-                    else if (action.arg != null)
-                    {
-                        if (action.arg.channel.Equals("books5"))
-                        {
-                            if (action.arg.instId.EndsWith("SWAP"))
-                            {
-                                _queueMessageMarketDepthSwap.Enqueue(message);
-                            }
-                            else if (action.arg.instId.EndsWith("P")
-                                || action.arg.instId.EndsWith("C"))
-                            {
-                                _queueMessageMarketDepthOption.Enqueue(message);
-                            }
-                            else
-                            {
-                                bool endsWithDigit = Char.IsDigit(action.arg.instId[action.arg.instId.Length - 1]);
-
-                                if (endsWithDigit)
-                                {
-                                    _queueMessageMarketDepthFutures.Enqueue(message);
-                                }
-                                else
-                                {
-                                    _queueMessageMarketDepthSpot.Enqueue(message);
-                                }
-                            }
-
-                            continue;
-                        }
-
-                        if (action.arg.channel.Equals("trades"))
-                        {
-                            if (action.arg.instId.EndsWith("SWAP"))
-                            {
-                                _queueMessageTradesSwap.Enqueue(message);
-                            }
-                            else if (action.arg.instId.EndsWith("P")
-                                || action.arg.instId.EndsWith("C"))
-                            {
-                                _queueMessageTradesOption.Enqueue(message);
-                            }
-                            else
-                            {
-                                bool endsWithDigit = Char.IsDigit(action.arg.instId[action.arg.instId.Length - 1]);
-
-                                if (endsWithDigit)
-                                {
-                                    _queueMessageTradesFutures.Enqueue(message);
-                                }
-                                else
-                                {
-                                    _queueMessageTradesSpot.Enqueue(message);
-                                }
-                            }
-
-                            continue;
-                        }
-
-                        if (action.arg.channel.Equals("opt-summary"))
-                        {
-                            UpdateOptionSummary(message);
-                            continue;
-                        }
-
-                        if (action.arg.channel.Equals("open-interest"))
-                        {
-                            UpdateOpenInterest(message);
-                            continue;
-                        }
-
-                        if (action.arg.channel.Equals("funding-rate"))
-                        {
-                            UpdateFundingRate(message);
-                            continue;
-                        }
-
-                        if (action.arg.channel.Equals("tickers"))
-                        {
-                            UpdateTickers(message);
-                            continue;
-                        }
-
-                        if (action.arg.channel.Equals("mark-price"))
-                        {
-                            UpdateMarkPrice(message);
-                            continue;
-                        }
                     }
                     else
                     {
-                        if (action.@event != null && action.@event.Equals("error"))
+                        string message = null;
+
+                        _fIFOListWebSocketPublicMessage.TryDequeue(out message);
+
+                        if (message == null)
                         {
-                            SendLogMessage("[WS Public] Got error msg: " + action.msg, LogMessageType.Error);
+                            continue;
                         }
-                    }
+
+                        ResponseWsMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<object>());
+
+                        if (action.@event != null && action.@event.Contains("subscribe"))
+                        {
+                            //ignore
+                            //SendLogMessage("[WS Public] Got subscribe msg: " + action.msg, LogMessageType.System);
+                        }
+                        else if (action.arg != null)
+                        {
+                            if (action.arg.channel.Equals("books5"))
+                            {
+                                if (action.arg.instId.EndsWith("SWAP"))
+                                {
+                                    _queueMessageMarketDepthSwap.Enqueue(message);
+                                }
+                                else if (action.arg.instId.EndsWith("P")
+                                    || action.arg.instId.EndsWith("C"))
+                                {
+                                    _queueMessageMarketDepthOption.Enqueue(message);
+                                }
+                                else
+                                {
+                                    bool endsWithDigit = Char.IsDigit(action.arg.instId[action.arg.instId.Length - 1]);
+
+                                    if (endsWithDigit)
+                                    {
+                                        _queueMessageMarketDepthFutures.Enqueue(message);
+                                    }
+                                    else
+                                    {
+                                        _queueMessageMarketDepthSpot.Enqueue(message);
+                                    }
+                                }
+
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("trades"))
+                            {
+                                if (action.arg.instId.EndsWith("SWAP"))
+                                {
+                                    _queueMessageTradesSwap.Enqueue(message);
+                                }
+                                else if (action.arg.instId.EndsWith("P")
+                                    || action.arg.instId.EndsWith("C"))
+                                {
+                                    _queueMessageTradesOption.Enqueue(message);
+                                }
+                                else
+                                {
+                                    bool endsWithDigit = Char.IsDigit(action.arg.instId[action.arg.instId.Length - 1]);
+
+                                    if (endsWithDigit)
+                                    {
+                                        _queueMessageTradesFutures.Enqueue(message);
+                                    }
+                                    else
+                                    {
+                                        _queueMessageTradesSpot.Enqueue(message);
+                                    }
+                                }
+
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("opt-summary"))
+                            {
+                                UpdateOptionSummary(message);
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("open-interest"))
+                            {
+                                UpdateOpenInterest(message);
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("funding-rate"))
+                            {
+                                UpdateFundingRate(message);
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("tickers"))
+                            {
+                                UpdateTickers(message);
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("mark-price"))
+                            {
+                                UpdateMarkPrice(message);
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            if (action.@event != null && action.@event.Equals("error"))
+                            {
+                                SendLogMessage("[WS Public] Got error msg: " + action.msg, LogMessageType.Error);
+                            }
+                        }
+                    }   
                 }
                 catch (Exception exception)
                 {
@@ -2052,55 +2045,60 @@ namespace OsEngine.Market.Servers.OKX
 
         private void MessageReaderPrivate()
         {
-            Thread.Sleep(5000);
-
             while (true)
             {
                 try
                 {
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
                     if (_fIFOListWebSocketPrivateMessage.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message = null;
-
-                    _fIFOListWebSocketPrivateMessage.TryDequeue(out message);
-
-                    if (message == null)
+                    else
                     {
-                        continue;
-                    }
+                        string message = null;
 
-                    ResponseWsMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<object>());
+                        _fIFOListWebSocketPrivateMessage.TryDequeue(out message);
 
-                    if (action.arg != null)
-                    {
-                        if (action.arg.channel.Equals("account"))
+                        if (message == null)
                         {
-                            UpdateAccount(message);
                             continue;
                         }
 
-                        if (action.arg.channel.Equals("positions"))
-                        {
-                            UpdatePositions(message);
-                            continue;
-                        }
+                        ResponseWsMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<object>());
 
-                        if (action.arg.channel.Equals("orders"))
+                        if (action.arg != null)
                         {
-                            UpdateOrder(message);
-                            continue;
+                            if (action.arg.channel.Equals("account"))
+                            {
+                                UpdateAccount(message);
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("positions"))
+                            {
+                                UpdatePositions(message);
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("orders"))
+                            {
+                                UpdateOrder(message);
+                                continue;
+                            }
                         }
-                    }
+                        else
+                        {
+                            if (action.@event != null && action.@event.Equals("error"))
+                            {
+                                SendLogMessage("[WS Private] Got error msg: " + action.msg, LogMessageType.Error);
+                            }
+                        }
+                    }   
                 }
                 catch (Exception exception)
                 {
@@ -2181,7 +2179,7 @@ namespace OsEngine.Market.Servers.OKX
                     SendLogMessage("OKX ERROR. NO POSITIONS IN REQUEST.", LogMessageType.Error);
                 }
 
-                PortfolioEvent(Portfolios);
+                PortfolioEvent?.Invoke(Portfolios);
             }
             catch (Exception ex)
             {
@@ -2257,7 +2255,7 @@ namespace OsEngine.Market.Servers.OKX
                     portfolio.SetNewPosition(pos);
                 }
 
-                PortfolioEvent(Portfolios);
+                PortfolioEvent?.Invoke(Portfolios);
             }
             catch (Exception ex)
             {
@@ -2269,30 +2267,26 @@ namespace OsEngine.Market.Servers.OKX
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_queueMessageTradesOption == null
-                        || _queueMessageTradesOption.IsEmpty
-                        || _queueMessageTradesOption.Count == 0)
+                    if (_queueMessageTradesOption.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    if (!_queueMessageTradesOption.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        string message;
 
-                    UpdateTrades(message);
+                        if (_queueMessageTradesOption.TryDequeue(out message))
+                        {
+                            UpdateTrades(message);
+                        }
+                    }     
                 }
                 catch (Exception ex)
                 {
@@ -2306,30 +2300,26 @@ namespace OsEngine.Market.Servers.OKX
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_queueMessageTradesFutures == null
-                        || _queueMessageTradesFutures.IsEmpty
-                        || _queueMessageTradesFutures.Count == 0)
+                    if (_queueMessageTradesFutures.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    if (!_queueMessageTradesFutures.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        string message;
 
-                    UpdateTrades(message);
+                        if (_queueMessageTradesFutures.TryDequeue(out message))
+                        {
+                            UpdateTrades(message);
+                        }
+                    }      
                 }
                 catch (Exception ex)
                 {
@@ -2343,30 +2333,26 @@ namespace OsEngine.Market.Servers.OKX
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_queueMessageTradesSwap == null
-                        || _queueMessageTradesSwap.IsEmpty
-                        || _queueMessageTradesSwap.Count == 0)
+                    if (_queueMessageTradesSwap.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    if (!_queueMessageTradesSwap.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        string message;
 
-                    UpdateTrades(message);
+                        if (_queueMessageTradesSwap.TryDequeue(out message))
+                        {
+                            UpdateTrades(message);
+                        } 
+                    }     
                 }
                 catch (Exception ex)
                 {
@@ -2380,30 +2366,26 @@ namespace OsEngine.Market.Servers.OKX
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_queueMessageTradesSpot == null
-                        || _queueMessageTradesSpot.IsEmpty
-                        || _queueMessageTradesSpot.Count == 0)
+                    if (_queueMessageTradesSpot.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    if (!_queueMessageTradesSpot.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        string message;
 
-                    UpdateTrades(message);
+                        if (_queueMessageTradesSpot.TryDequeue(out message))
+                        {
+                            UpdateTrades(message);
+                        } 
+                    }    
                 }
                 catch (Exception ex)
                 {
@@ -2417,34 +2399,25 @@ namespace OsEngine.Market.Servers.OKX
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_queueMessageMarketDepthOption == null
-                        || _queueMessageMarketDepthOption.IsEmpty
-                        || _queueMessageMarketDepthOption.Count == 0)
+                    if (_queueMessageMarketDepthOption.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    if (!_queueMessageMarketDepthOption.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        string message;
 
-                    UpdateMarketDepth(message);
-
-                    while (_queueMessageMarketDepthOption?.Count > 50000)
-                    {
-                        _queueMessageMarketDepthOption.TryDequeue(out message);
+                        if (_queueMessageMarketDepthOption.TryDequeue(out message))
+                        {
+                            UpdateMarketDepth(message);
+                        }  
                     }
                 }
                 catch (Exception ex)
@@ -2459,34 +2432,25 @@ namespace OsEngine.Market.Servers.OKX
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_queueMessageMarketDepthFutures == null
-                        || _queueMessageMarketDepthFutures.IsEmpty
-                        || _queueMessageMarketDepthFutures.Count == 0)
+                    if (_queueMessageMarketDepthFutures.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    if (!_queueMessageMarketDepthFutures.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        string message;
 
-                    UpdateMarketDepth(message);
-
-                    while (_queueMessageMarketDepthFutures?.Count > 50000)
-                    {
-                        _queueMessageMarketDepthFutures.TryDequeue(out message);
+                        if (_queueMessageMarketDepthFutures.TryDequeue(out message))
+                        {
+                            UpdateMarketDepth(message);
+                        } 
                     }
                 }
                 catch (Exception ex)
@@ -2501,34 +2465,25 @@ namespace OsEngine.Market.Servers.OKX
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_queueMessageMarketDepthSwap == null
-                        || _queueMessageMarketDepthSwap.IsEmpty
-                        || _queueMessageMarketDepthSwap.Count == 0)
+                    if (_queueMessageMarketDepthSwap.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    if (!_queueMessageMarketDepthSwap.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        string message;
 
-                    UpdateMarketDepth(message);
-
-                    while (_queueMessageMarketDepthSwap?.Count > 50000)
-                    {
-                        _queueMessageMarketDepthSwap.TryDequeue(out message);
+                        if (_queueMessageMarketDepthSwap.TryDequeue(out message))
+                        {
+                            UpdateMarketDepth(message);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -2543,34 +2498,25 @@ namespace OsEngine.Market.Servers.OKX
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_queueMessageMarketDepthSpot == null
-                        || _queueMessageMarketDepthSpot.IsEmpty
-                        || _queueMessageMarketDepthSpot.Count == 0)
+                    if (_queueMessageMarketDepthSpot.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    if (!_queueMessageMarketDepthSpot.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        string message;
 
-                    UpdateMarketDepth(message);
-
-                    while (_queueMessageMarketDepthSpot?.Count > 50000)
-                    {
-                        _queueMessageMarketDepthSpot.TryDequeue(out message);
+                        if (_queueMessageMarketDepthSpot.TryDequeue(out message))
+                        {
+                            UpdateMarketDepth(message);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -2652,7 +2598,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 _lastTimeMd = marketDepth.Time;
 
-                MarketDepthEvent(marketDepth);
+                MarketDepthEvent?.Invoke(marketDepth);
 
             }
             catch (Exception error)
@@ -2814,7 +2760,7 @@ namespace OsEngine.Market.Servers.OKX
 
                         myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
 
-                        MyTradeEvent(myTrade);
+                        MyTradeEvent?.Invoke(myTrade);
                     }
                 }
             }
