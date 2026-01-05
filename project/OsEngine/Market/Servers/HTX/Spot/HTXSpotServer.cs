@@ -49,24 +49,28 @@ namespace OsEngine.Market.Servers.HTX.Spot
             ServerStatus = ServerConnectStatus.Disconnect;
 
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
-            threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Name = "MessageReaderPublic";
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
-            threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
             threadMessageReaderPrivate.Start();
 
             Thread threadUpdatePortfolio = new Thread(ThreadUpdatePortfolio);
-            threadUpdatePortfolio.IsBackground = true;
             threadUpdatePortfolio.Name = "ThreadUpdatePortfolio";
             threadUpdatePortfolio.Start();
 
             Thread threadCheckAliveWebSocket = new Thread(CheckAliveWebSocket);
-            threadCheckAliveWebSocket.IsBackground = true;
             threadCheckAliveWebSocket.Name = "CheckAliveWebSocketHTXSpot";
             threadCheckAliveWebSocket.Start();
+
+            Thread threadMessageReaderMarketDepth = new Thread(ThreadMessageReaderMarketDepth);
+            threadMessageReaderMarketDepth.Name = "ThreadHtxSpotMessageReaderMarketDepth";
+            threadMessageReaderMarketDepth.Start();
+
+            Thread threadMessageReaderTrades = new Thread(ThreadMessageReaderTrades);
+            threadMessageReaderTrades.Name = "ThreadHtxSpotMessageReaderTrades";
+            threadMessageReaderTrades.Start();
         }
 
         public DateTime ServerTime { get; set; }
@@ -99,7 +103,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     _privateUriBuilder = new PrivateUrlBuilder(_accessKey, _secretKey, _baseUrl);
                     _signer = new Signer(_secretKey);
@@ -136,6 +140,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
             _subscribedSecurities.Clear();
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+            _queueMessageMarketDepth = new ConcurrentQueue<string>();
+            _queueMessageTrades = new ConcurrentQueue<string>();
+
             Disconnect();
         }
 
@@ -246,7 +253,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             }
                         }
 
-                        SecurityEvent(securities);
+                        SecurityEvent?.Invoke(securities);
                     }
                     else
                     {
@@ -274,6 +281,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public List<Portfolio> Portfolios;
 
+        private bool _portfolioIsStarted = false;
+
         public void GetPortfolios()
         {
             if (Portfolios == null)
@@ -283,6 +292,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             CreatePositions(true);
             GetUSDTMasterPortfolio(true);
+
+            _portfolioIsStarted = true;
         }
 
         private void ThreadUpdatePortfolio()
@@ -293,14 +304,19 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     Thread.Sleep(15000);
 
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        Thread.Sleep(2000);
                         continue;
                     }
 
-                    if (Portfolios == null)
+                    if (_portfolioIsStarted == false)
                     {
+                        Thread.Sleep(1000);
                         continue;
                     }
 
@@ -348,7 +364,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             Portfolios.Add(portfolio);
                         }
 
-                        PortfolioEvent(Portfolios);
+                        PortfolioEvent?.Invoke(Portfolios);
                     }
                     else
                     {
@@ -467,7 +483,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     }
                 }
 
-                PortfolioEvent(Portfolios);
+                PortfolioEvent?.Invoke(Portfolios);
             }
             catch (Exception exception)
             {
@@ -1178,9 +1194,13 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     Thread.Sleep(10000);
 
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        Thread.Sleep(1000);
                         continue;
                     }
 
@@ -1438,37 +1458,36 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private ConcurrentQueue<string> _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
+        private ConcurrentQueue<string> _queueMessageMarketDepth = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageTrades = new ConcurrentQueue<string>();
+
         private void MessageReaderPublic()
         {
-            Thread.Sleep(1000);
-
             while (true)
             {
                 try
                 {
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(2000);
-                        continue;
-                    }
-
                     if (_FIFOListWebSocketPublicMessage.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    _FIFOListWebSocketPublicMessage.TryDequeue(out message);
-
-                    if (message == null)
+                    else
                     {
-                        continue;
-                    }
+                        string message;
 
-                    try
-                    {
+                        _FIFOListWebSocketPublicMessage.TryDequeue(out message);
+
+                        if (message == null)
+                        {
+                            continue;
+                        }
+
                         if (message.Contains("ping"))
                         {
                             CreatePingMessageWebSocketPublic(message);
@@ -1479,21 +1498,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
                         {
                             continue;
                         }
-                        //if (message.Contains("kline"))
-                        //{
-                        //    _allCandleSeries = message;
-                        //    continue;
-                        //}
 
                         if (message.Contains("mbp"))
                         {
-                            UpdateDepth(message);
+                            _queueMessageMarketDepth.Enqueue(message);
                             continue;
                         }
 
                         if (message.Contains("trade.detail"))
                         {
-                            UpdateTrade(message);
+                            _queueMessageTrades.Enqueue(message);
                             continue;
                         }
 
@@ -1508,12 +1522,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             SendLogMessage("Message public str: \n" + message, LogMessageType.Error);
                         }
                     }
-                    catch (Exception exception)
-                    {
-                        SendLogMessage(exception.ToString(), LogMessageType.Error);
-                        SendLogMessage("message str: \n" + message, LogMessageType.Error);
-                        Thread.Sleep(5000);
-                    }
                 }
                 catch (Exception exception)
                 {
@@ -1525,35 +1533,30 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void MessageReaderPrivate()
         {
-            Thread.Sleep(1000);
-
             while (true)
             {
                 try
                 {
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(2000);
-                        continue;
-                    }
-
                     if (_FIFOListWebSocketPrivateMessage.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    _FIFOListWebSocketPrivateMessage.TryDequeue(out message);
-
-                    if (message == null)
+                    else
                     {
-                        continue;
-                    }
+                        string message;
 
-                    try
-                    {
+                        _FIFOListWebSocketPrivateMessage.TryDequeue(out message);
+
+                        if (message == null)
+                        {
+                            continue;
+                        }
+
                         if (message.Contains("ping"))
                         {
                             CreatePingMessageWebSocketPrivate(message);
@@ -1586,17 +1589,77 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             SendLogMessage("Message private str: \n" + message, LogMessageType.Error);
                         }
                     }
-                    catch (Exception exception)
-                    {
-                        SendLogMessage(exception.ToString(), LogMessageType.Error);
-                        SendLogMessage("Message str: \n" + message, LogMessageType.Error);
-                        Thread.Sleep(5000);
-                    }
                 }
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderTrades()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (_queueMessageTrades.IsEmpty)
+                    {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
+                        Thread.Sleep(1);
+                    }
+                    else
+                    {
+                        string message;
+
+                        if (_queueMessageTrades.TryDequeue(out message))
+                        {
+                            UpdateTrade(message);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderMarketDepth()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (_queueMessageMarketDepth.IsEmpty)
+                    {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
+                        Thread.Sleep(1);
+                    }
+                    else
+                    {
+                        string message;
+
+                        if (_queueMessageMarketDepth.TryDequeue(out message))
+                        {
+                            UpdateDepth(message);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
                 }
             }
         }
@@ -1629,7 +1692,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     trade.Volume = item[i].amount.ToDecimal();
                     trade.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
 
-                    NewTradesEvent(trade);
+                    NewTradesEvent?.Invoke(trade);
                 }
             }
             catch (Exception ex)
@@ -1669,8 +1732,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             try
             {
-                //Thread.Sleep(1);
-
                 ResponseWebSocketMessage<ResponseDepth> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseDepth>());
                 ResponseDepth item = response.tick;
 
@@ -1749,7 +1810,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 _lastMdTime = marketDepth.Time;
 
-                MarketDepthEvent(marketDepth);
+                MarketDepthEvent?.Invoke(marketDepth);
             }
             catch (Exception ex)
             {
@@ -1838,7 +1899,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                     newOrder.PortfolioNumber = $"HTX_{source}_{item.accountId}_Portfolio";
 
-                    MyOrderEvent(newOrder);
+                    MyOrderEvent?.Invoke(newOrder);
                 }
             }
             catch (Exception ex)
@@ -1935,7 +1996,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                     newOrder.PortfolioNumber = $"HTX_{source}_{item.accountId}_Portfolio";
 
-                    MyOrderEvent(newOrder);
+                    MyOrderEvent?.Invoke(newOrder);
                 }
             }
             catch (Exception ex)
