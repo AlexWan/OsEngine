@@ -103,6 +103,11 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
+                if(_server == null)
+                {
+                    return;
+                }
+                
                 string title = OsLocalization.Market.TitleAServerParametrUi + _server.ServerType;
 
                 bool haveNoTradePeriodsConnection = false;
