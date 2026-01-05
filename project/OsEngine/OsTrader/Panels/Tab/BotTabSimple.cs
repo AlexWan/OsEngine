@@ -7030,6 +7030,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if(_positionsAwaitSendInEventsQueue.IsEmpty == true)
+                {
+                    return;
+                }
+
                 // 1 разбираем очередь
                 while (_positionsAwaitSendInEventsQueue.IsEmpty == false)
                 {

@@ -1635,7 +1635,7 @@ namespace OsEngine.Market.Servers.Mexc
 
                 myTrade.Volume = item.quantity.ToDecimal();
 
-                MyTradeEvent(myTrade);
+                MyTradeEvent?.Invoke(myTrade);
             }
             catch (Exception ex)
             {

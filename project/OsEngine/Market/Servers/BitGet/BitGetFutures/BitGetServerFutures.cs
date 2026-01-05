@@ -2021,11 +2021,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                     if (marketDepth == null) continue;
 
-                    if (_queueMarketDepths.Count < 1000)
-                    {
-                        MarketDepthEvent(marketDepth.GetCopy());
-                    }
-                    else
+                    if(MarketDepthEvent != null)
                     {
                         MarketDepthEvent(marketDepth);
                     }
