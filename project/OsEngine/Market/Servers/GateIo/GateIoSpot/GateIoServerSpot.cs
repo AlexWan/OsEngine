@@ -57,6 +57,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             _messageReaderThread.IsBackground = true;
             _messageReaderThread.Name = "MessageReaderGateIo";
             _messageReaderThread.Start();
+
+            Thread threadMarketDepthParsing = new Thread(ThreadMarketDepthParsing);
+            threadMarketDepthParsing.IsBackground = true;
+            threadMarketDepthParsing.Name = "ThreadMarketDepthParsingGateIoSpot";
+            threadMarketDepthParsing.Start();
+
+            Thread threadTradesParsing = new Thread(ThreadTradesParsing);
+            threadTradesParsing.IsBackground = true;
+            threadTradesParsing.Name = "ThreadTradesParsingGateIoSpot";
+            threadTradesParsing.Start();
         }
 
         public DateTime ServerTime { get; set; }
@@ -154,6 +164,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
 
             _fifoListWebSocketMessage = new ConcurrentQueue<string>();
+            _queueTrades = new ConcurrentQueue<string>();
+            _queueMarketDepths = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -538,7 +550,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
         }
 
-        private RateGate _rateGateData = new RateGate(2, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateData = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         private List<Candle> RequestCandleHistory(string security, string interval, int fromTimeStamp, int toTimeStamp)
         {
@@ -973,6 +985,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         _timeLastSendPing = DateTime.Now;
@@ -1251,6 +1268,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private ConcurrentQueue<string> _fifoListWebSocketMessage = new ConcurrentQueue<string>();
 
+        private ConcurrentQueue<string> _queueMarketDepths = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueTrades = new ConcurrentQueue<string>();
+
         private void MessageReader()
         {
             Thread.Sleep(1000);
@@ -1259,6 +1280,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(2000);
@@ -1271,42 +1297,32 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                     }
                     if (_fifoListWebSocketMessage.TryDequeue(out string message))
                     {
-                        ResponseWebsocketMessage<object> responseWebsocketMessage;
-
-                        try
+                        if (message.Contains("spot.order_book") && message.Contains("update"))
                         {
-                            responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<object>());
-                        }
-                        catch
-                        {
+                            _queueMarketDepths.Enqueue(message);
                             continue;
                         }
-
-                        if (responseWebsocketMessage.channel.Equals("spot.usertrades") && responseWebsocketMessage.Event.Equals("update"))
+                        else if (message.Contains("spot.trades") && message.Contains("update"))
+                        {
+                            _queueTrades.Enqueue(message);
+                            continue;
+                        }
+                        else if (message.Contains("spot.usertrades") && message.Contains("update"))
                         {
                             UpdateMyTrade(message);
                             continue;
                         }
-                        else if (responseWebsocketMessage.channel.Equals("spot.orders") && responseWebsocketMessage.Event.Equals("update"))
+                        else if (message.Contains("spot.orders") && message.Contains("update"))
                         {
                             UpdateOrder(message);
+                            continue;
                         }
-                        else if (responseWebsocketMessage.channel.Equals("spot.balances") && responseWebsocketMessage.Event.Equals("update"))
+                        else if (message.Contains("spot.balances") && message.Contains("update"))
                         {
                             UpdatePortfolio(message);
                             continue;
                         }
-                        else if (responseWebsocketMessage.channel.Equals("spot.order_book") && responseWebsocketMessage.Event.Equals("update"))
-                        {
-                            UpdateDepth(message);
-                            continue;
-                        }
-                        else if (responseWebsocketMessage.channel.Equals("spot.trades") && responseWebsocketMessage.Event.Equals("update"))
-                        {
-                            UpdateTrade(message);
-                            continue;
-                        }
-                        else if (responseWebsocketMessage.channel.Equals("spot.tickers") && responseWebsocketMessage.Event.Equals("update"))
+                        else if (message.Contains("spot.tickers") && message.Contains("update"))
                         {
                             UpdateTickers(message);
                             continue;
@@ -1317,6 +1333,94 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 {
                     Thread.Sleep(5000);
                     SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMarketDepthParsing()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_queueMarketDepths.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message = null;
+
+                    _queueMarketDepths.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    MarketDepth marketDepth = UpdateDepth(message);
+
+                    if (marketDepth == null) continue;
+
+                    MarketDepthEvent?.Invoke(marketDepth);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadTradesParsing()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_queueTrades.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message = null;
+
+                    _queueTrades.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    UpdateTrade(message);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
@@ -1336,7 +1440,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 trade.Volume = responseTrades.result.amount.ToDecimal();
                 trade.Side = responseTrades.result.side.Equals("sell") ? Side.Sell : Side.Buy;
 
-                NewTradesEvent(trade);
+                NewTradesEvent?.Invoke(trade);
             }
             catch (Exception exception)
             {
@@ -1373,7 +1477,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private readonly Dictionary<string, MarketDepth> _allDepths = new Dictionary<string, MarketDepth>();
 
-        private void UpdateDepth(string message)
+        private MarketDepth UpdateDepth(string message)
         {
             try
             {
@@ -1417,11 +1521,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                 _allDepths[depth.SecurityNameCode] = depth;
 
-                MarketDepthEvent(depth);
+                return depth;
             }
             catch (Exception exception)
             {
                 SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+                return null;
             }
         }
 
