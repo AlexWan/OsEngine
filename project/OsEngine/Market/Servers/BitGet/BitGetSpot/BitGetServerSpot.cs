@@ -52,16 +52,26 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
             threadMessageReaderPublic.IsBackground = true;
-            threadMessageReaderPublic.Name = "MessageReaderPublic";
+            threadMessageReaderPublic.Name = "BitGetSpotMessageReaderPublic";
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
             threadMessageReaderPrivate.IsBackground = true;
-            threadMessageReaderPrivate.Name = "MessageReaderPrivate";
+            threadMessageReaderPrivate.Name = "BitGetSpotMessageReaderPrivate";
             threadMessageReaderPrivate.Start();
 
+            Thread threadMarketDepthParsing = new Thread(ThreadMarketDepthParsing);
+            threadMarketDepthParsing.IsBackground = true;
+            threadMarketDepthParsing.Name = "BitGetSpotThreadMarketDepthParsing";
+            threadMarketDepthParsing.Start();
+
+            Thread threadTradesParsing = new Thread(ThreadTradesParsing);
+            threadTradesParsing.IsBackground = true;
+            threadTradesParsing.Name = "BitGetSpotThreadTradesParsing";
+            threadTradesParsing.Start();
+
             Thread thread = new Thread(CheckAliveWebSocket);
-            thread.Name = "CheckAliveWebSocket";
+            thread.Name = "BitGetSpotCheckAliveWebSocket";
             thread.Start();
         }
 
@@ -1196,6 +1206,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     Thread.Sleep(25000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1422,6 +1437,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
 
+        private ConcurrentQueue<string> _queueMarketDepths = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueTrades = new ConcurrentQueue<string>();
+
         private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
         private void MessageReaderPublic()
@@ -1432,6 +1451,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
@@ -1453,59 +1477,142 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         continue;
                     }
 
-                    ResponseWebSocketMessageSubscribe SubscribeState = null;
-
-                    try
+                    if (message.Contains("books15"))
                     {
-                        SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
-                    }
-                    catch (Exception error)
-                    {
-                        SendLogMessage("Error in message reader: " + error.ToString(), LogMessageType.Error);
-                        SendLogMessage("message str: \n" + message, LogMessageType.Error);
+                        _queueMarketDepths.Enqueue(message);
                         continue;
                     }
-
-                    if (SubscribeState.code != null)
+                    else if (message.Contains("trade"))
                     {
-                        if (SubscribeState.code.Equals("0") == false)
-                        {
-                            SendLogMessage("WebSocket listener error", LogMessageType.Error);
-                            SendLogMessage(SubscribeState.code + "\n" +
-                                SubscribeState.msg, LogMessageType.Error);
-
-                            if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
-                            { // if there are problems with the web socket startup, you need to restart it
-                                ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
-                            }
-                        }
-
+                        _queueTrades.Enqueue(message);
+                        continue;
+                    }
+                    else if (message.Contains("ticker"))
+                    {
+                        UpdateTicker(message);
                         continue;
                     }
                     else
                     {
-                        ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
+                        ResponseWebSocketMessageSubscribe SubscribeState = null;
 
-                        if (action.arg != null)
+                        try
                         {
-                            if (action.arg.channel.Equals("books15"))
+                            SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
+                        }
+                        catch (Exception error)
+                        {
+                            SendLogMessage("Error in message reader: " + error.ToString(), LogMessageType.Error);
+                            SendLogMessage("message str: \n" + message, LogMessageType.Error);
+                            continue;
+                        }
+
+                        if (SubscribeState.code != null)
+                        {
+                            if (SubscribeState.code.Equals("0") == false)
                             {
-                                UpdateDepth(message);
-                                continue;
+                                SendLogMessage("WebSocket listener error", LogMessageType.Error);
+                                SendLogMessage(SubscribeState.code + "\n" +
+                                    SubscribeState.msg, LogMessageType.Error);
+
+                                if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
+                                { // if there are problems with the web socket startup, you need to restart it
+                                    ServerStatus = ServerConnectStatus.Disconnect;
+                                    DisconnectEvent();
+                                }
                             }
-                            if (action.arg.channel.Equals("trade"))
-                            {
-                                UpdateTrade(message);
-                                continue;
-                            }
-                            if (action.arg.channel.Equals("ticker"))
-                            {
-                                UpdateTicker(message);
-                                continue;
-                            }
+
+                            continue;
                         }
                     }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(3000);
+                }
+            }
+        }
+
+        private void ThreadTradesParsing()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_queueTrades.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message = null;
+
+                    _queueTrades.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    UpdateTrade(message);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(3000);
+                }
+            }
+        }
+
+        private void ThreadMarketDepthParsing()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_queueMarketDepths.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message = null;
+
+                    _queueMarketDepths.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    MarketDepth marketDepth = UpdateDepth(message);
+
+                    if (marketDepth == null) continue;
+
+                    MarketDepthEvent(marketDepth);
                 }
                 catch (Exception exception)
                 {
@@ -1523,6 +1630,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
@@ -1824,7 +1936,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
-        private void UpdateDepth(string message)
+        private MarketDepth UpdateDepth(string message)
         {
             try
             {
@@ -1832,12 +1944,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 if (responseDepth.data == null)
                 {
-                    return;
+                    return null;
                 }
 
                 if (responseDepth.data[0].asks.Count == 0 && responseDepth.data[0].bids.Count == 0)
                 {
-                    return;
+                    return null;
                 }
 
                 MarketDepth marketDepth = new MarketDepth();
@@ -1898,11 +2010,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 _lastTimeMd = marketDepth.Time;
 
-                MarketDepthEvent(marketDepth);
+                return marketDepth;
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
             }
         }
 
