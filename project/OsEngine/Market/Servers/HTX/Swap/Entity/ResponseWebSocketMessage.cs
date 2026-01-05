@@ -81,38 +81,38 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
 
     public class ResponseChannelTrades
     {
-        public Tick tick { get; set; }
-
+        public TradesTick tick { get; set; }
         public string ch { get; set; }
+    }
 
-        public class Tick
-        {
-            public List<Data> data { get; set; }
-        }
+    public class TradesTick
+    {
+        public List<TradesData> data { get; set; }
+    }
 
-        public class Data
-        {
-            public string ts { get; set; }
-            public string id { get; set; }
-            public string price { get; set; }
-            public string amount { get; set; }
-            public string direction { get; set; }
-        }
+    public class TradesData
+    {
+        public string ts { get; set; }
+        public string id { get; set; }
+        public string price { get; set; }
+        public string amount { get; set; }
+        public string direction { get; set; }
     }
 
     public class ResponseChannelBook
     {
         public string ch { get; set; }
         public string ts { get; set; }
-        public Tick tick { get; set; }
+        public BooksTick tick { get; set; }
 
-        public class Tick
-        {
-            public List<List<string>> asks { get; set; }
-            public List<List<string>> bids { get; set; }
-            public string ts { get; set; }
+    }
 
-        }
+    public class BooksTick
+    {
+        public string id { get; set; }
+        public List<List<string>> asks { get; set; }
+        public List<List<string>> bids { get; set; }
+        public string ts { get; set; }
     }
 
     public class ResponseChannelUpdateOrder
