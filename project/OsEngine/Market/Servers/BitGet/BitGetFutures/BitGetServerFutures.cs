@@ -409,6 +409,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             while (true)
             {
+                if (IsCompletelyDeleted == true)
+                {
+                    return;
+                }
+
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     Thread.Sleep(3000);
@@ -1549,6 +1554,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     Thread.Sleep(25000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1890,6 +1900,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+                    
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
@@ -1911,59 +1926,52 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    ResponseWebSocketMessageSubscribe SubscribeState = null;
-
-                    try
+                    if (message.Contains("books15"))
                     {
-                        SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
-                    }
-                    catch (Exception error)
-                    {
-                        SendLogMessage("Error in message reader: " + error.ToString(), LogMessageType.Error);
-                        SendLogMessage("message str: \n" + message, LogMessageType.Error);
+                        _queueMarketDepths.Enqueue(message);
                         continue;
                     }
-
-                    if (SubscribeState.code != null)
+                    else if (message.Contains("trade"))
                     {
-                        if (SubscribeState.code.Equals("0") == false)
-                        {
-                            SendLogMessage("WebSocket listener error", LogMessageType.Error);
-                            SendLogMessage(SubscribeState.code + "\n" +
-                                SubscribeState.msg, LogMessageType.Error);
-
-                            if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
-                            { // if there are problems with the web socket startup, you need to restart it
-                                ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
-                            }
-                        }
-
+                        _queueTrades.Enqueue(message);
+                        continue;
+                    }
+                    else if (message.Contains("ticker"))
+                    {
+                        UpdateTicker(message);
                         continue;
                     }
                     else
                     {
-                        ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
+                        ResponseWebSocketMessageSubscribe SubscribeState = null;
 
-                        if (action.arg != null)
+                        try
                         {
-                            if (action.arg.channel.Equals("books15"))
+                            SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
+                        }
+                        catch (Exception error)
+                        {
+                            SendLogMessage("Error in message reader: " + error.ToString(), LogMessageType.Error);
+                            SendLogMessage("message str: \n" + message, LogMessageType.Error);
+                            continue;
+                        }
+
+                        if (SubscribeState.code != null)
+                        {
+                            if (SubscribeState.code.Equals("0") == false)
                             {
-                                _queueMarketDepths.Enqueue(message);
-                                continue;
+                                SendLogMessage("WebSocket listener error", LogMessageType.Error);
+                                SendLogMessage(SubscribeState.code + "\n" +
+                                    SubscribeState.msg, LogMessageType.Error);
+
+                                if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
+                                { // if there are problems with the web socket startup, you need to restart it
+                                    ServerStatus = ServerConnectStatus.Disconnect;
+                                    DisconnectEvent();
+                                }
                             }
 
-                            if (action.arg.channel.Equals("trade"))
-                            {
-                                _queueTrades.Enqueue(message);
-                                continue;
-                            }
-
-                            if (action.arg.channel.Equals("ticker"))
-                            {
-                                UpdateTicker(message);
-                                continue;
-                            }
+                            continue;
                         }
                     }
                 }
@@ -1983,6 +1991,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
@@ -2033,6 +2046,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
@@ -2072,6 +2090,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
@@ -3405,6 +3428,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             while (true)
             {
+                if (IsCompletelyDeleted == true)
+                {
+                    return;
+                }
+
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     Thread.Sleep(3000);
