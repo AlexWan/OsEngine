@@ -17,10 +17,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using TL;
 
 
 namespace OsEngine.Market.Servers.GateIo.GateIoFutures
@@ -88,6 +90,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             threadPortfolioRequester.IsBackground = true;
             threadPortfolioRequester.Name = "PortfolioRequester";
             threadPortfolioRequester.Start();
+
+            Thread threadTradesParsing = new Thread(ThreadTradesParsing);
+            threadTradesParsing.IsBackground = true;
+            threadTradesParsing.Name = "ThreadGateIoFuturesTradesParsing";
+            threadTradesParsing.Start();
+
+            Thread threadMarketDepthParsing = new Thread(ThreadMarketDepthParsing);
+            threadMarketDepthParsing.IsBackground = true;
+            threadMarketDepthParsing.Name = "ThreadGateIoMarketDepthParsing";
+            threadMarketDepthParsing.Start();
         }
 
         public DateTime ServerTime { get; set; }
@@ -243,6 +255,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+            _queueMarketDepths = new ConcurrentQueue<string>();
+            _queueTrades = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -400,6 +414,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(2000);
@@ -629,7 +648,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             return null;
         }
 
-        private RateGate _rateGateData = new RateGate(2, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateData = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         private List<Trade> GetTickDataFrom(string security, long startTimeStamp)
         {
@@ -726,6 +745,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            _rateGateData.WaitToProceed();
+
             startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
             endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
             actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
@@ -873,7 +894,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private List<Candle> RequestCandleHistory(string security, string interval, int fromTimeStamp, int toTimeStamp)
         {
-            _rateGateData.WaitToProceed();
 
             try
             {
@@ -1337,6 +1357,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     Thread.Sleep(20000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1742,6 +1767,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
 
+        private ConcurrentQueue<string> _queueMarketDepths = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueTrades = new ConcurrentQueue<string>();
+
         private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
         private void MessageReaderPublic()
@@ -1752,6 +1781,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
@@ -1766,41 +1800,43 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                     if (FIFOListWebSocketPublicMessage.TryDequeue(out string message))
                     {
-                        ResponseWebsocketMessage<object> responseWebsocketMessage;
-
-                        try
+                        if (message.Contains("futures.order_book") && message.Contains("all"))
                         {
-                            responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<object>());
-                        }
-                        catch
-                        {
+                            _queueMarketDepths.Enqueue(message);
                             continue;
                         }
-
-                        if (responseWebsocketMessage.error != null)
+                        else if (message.Contains("futures.trades") && message.Contains("update"))
                         {
-                            SendLogMessage("WebSocket Public message " + responseWebsocketMessage.error, LogMessageType.Error);
-                        }
-
-                        if (responseWebsocketMessage.channel.Equals("futures.order_book") && responseWebsocketMessage.Event.Equals("all"))
-                        {
-                            UpdateDepth(message);
+                            _queueTrades.Enqueue(message);
                             continue;
                         }
-                        else if (responseWebsocketMessage.channel.Equals("futures.trades") && responseWebsocketMessage.Event.Equals("update"))
-                        {
-                            UpdateTrade(message);
-                            continue;
-                        }
-                        else if (responseWebsocketMessage.channel.Equals("futures.contract_stats") && responseWebsocketMessage.Event.Equals("update"))
+                        else if (message.Contains("futures.contract_stats") && message.Contains("update"))
                         {
                             UpdateStats(message);
                             continue;
                         }
-                        else if (responseWebsocketMessage.channel.Equals("futures.tickers") && responseWebsocketMessage.Event.Equals("update"))
+                        else if (message.Contains("futures.tickers") && message.Contains("update"))
                         {
                             UpdateTickers(message);
                             continue;
+                        }
+                        else
+                        {
+                            ResponseWebsocketMessage<object> responseWebsocketMessage;
+
+                            try
+                            {
+                                responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<object>());
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+
+                            if (responseWebsocketMessage.error != null)
+                            {
+                                SendLogMessage("WebSocket Public message " + responseWebsocketMessage.error, LogMessageType.Error);
+                            }
                         }
                     }
                 }
@@ -1808,6 +1844,94 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 {
                     Thread.Sleep(5000);
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadTradesParsing()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_queueTrades.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message = null;
+
+                    _queueTrades.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    UpdateTrade(message);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadMarketDepthParsing()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_queueMarketDepths.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message = null;
+
+                    _queueMarketDepths.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    MarketDepth marketDepth = UpdateDepth(message);
+
+                    if (marketDepth == null) continue;
+
+                    MarketDepthEvent?.Invoke(marketDepth);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
@@ -1820,6 +1944,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
@@ -1898,7 +2027,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         newTrade.OpenInterest = GetOpenInterest(newTrade.SecurityNameCode);
                     }
 
-                    NewTradesEvent(newTrade);
+                    NewTradesEvent?.Invoke(newTrade);
                 }
             }
             catch (Exception error)
@@ -1999,12 +2128,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private readonly Dictionary<string, MarketDepth> _allDepths = new Dictionary<string, MarketDepth>();
 
-        private void UpdateDepth(string message)
+        private MarketDepth UpdateDepth(string message)
         {
             try
             {
-                ResponseWebsocketMessage<MdResponse> responseDepths
-               = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<MdResponse>());
+                ResponseWebsocketMessage<MdResponse> responseDepths = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<MdResponse>());
 
                 MarketDepth depth = new MarketDepth();
                 depth.SecurityNameCode = responseDepths.result.contract;
@@ -2044,11 +2172,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                 _allDepths[depth.SecurityNameCode] = depth;
 
-                MarketDepthEvent(depth);
+                return depth;
             }
             catch (Exception error)
             {
                 SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+                return null;
             }
         }
 
