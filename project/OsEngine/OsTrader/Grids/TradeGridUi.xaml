@@ -165,14 +165,15 @@
                     <TextBox Name="TextBoxTrailingUpStep" Margin="164,35,12,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <Label Name="LabelTrailingUpLimit" Content="Limit" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTrailingUpLimit" Margin="164,63,12,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <CheckBox Name="CheckBoxTrailingUpCanMoveExitOrder" Content="Can move exit orders" HorizontalAlignment="Center" Margin="0,91,0,0" VerticalAlignment="Top" Width="316"/>
+                    <CheckBox Name="CheckBoxTrailingUpCanMoveExitOrder" Content="Can move exit orders" HorizontalAlignment="Left" Margin="11,91,0,0" VerticalAlignment="Top" Width="316"/>
 
                     <CheckBox Name="CheckBoxTrailingDownIsOn" Content="Trailing Down" HorizontalAlignment="Left" Margin="11,145,0,0" VerticalAlignment="Top" Width="316"/>
                     <Label Name="LabelTrailingDownStep" Content="Step" HorizontalAlignment="Left" Margin="11,173,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTrailingDownStep" Margin="164,173,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <Label Name="LabelTrailingDownLimit" Content="Limit" HorizontalAlignment="Left" Margin="11,201,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTrailingDownLimit" Margin="164,201,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <CheckBox Name="CheckBoxTrailingDownCanMoveExitOrder" Content="Can move exit orders" HorizontalAlignment="Center" Margin="0,229,0,0" VerticalAlignment="Top" Width="316"/>
+                    <CheckBox Name="CheckBoxTrailingDownCanMoveExitOrder" Content="Can move exit orders" HorizontalAlignment="Left" Margin="11,229,0,0" VerticalAlignment="Top" Width="316"/>
+                    <Button Name="ButtonTrailUpInstruction" Content="???" Margin="0,0,12,10" VerticalAlignment="Bottom" Height="25" Foreground="#FF12D6AB" HorizontalAlignment="Right" Width="57" Click="ButtonTrailUpInstruction_Click"/>
 
                 </Grid>
             </TabItem>

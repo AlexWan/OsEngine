@@ -140,6 +140,7 @@ namespace OsEngine.OsTrader.Grids
                 || InteractiveInstructions.Grids.AllInstructionsInClass.Count == 0)
             {
                 ButtonPosts.Visibility = Visibility.Hidden;
+                ButtonTrailUpInstruction.Visibility = Visibility.Hidden;
             }
             else
             {
@@ -2571,6 +2572,11 @@ namespace OsEngine.OsTrader.Grids
         {
             _instructionsUi.Closed -= _instructionsUi_Closed;
             _instructionsUi = null;
+        }
+
+        private void ButtonTrailUpInstruction_Click(object sender, RoutedEventArgs e)
+        {
+            InteractiveInstructions.Grids.Link6.ShowLinkInBrowser();
         }
 
         #endregion
