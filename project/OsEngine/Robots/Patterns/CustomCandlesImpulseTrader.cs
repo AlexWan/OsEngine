@@ -141,9 +141,12 @@ namespace OsEngine.Robots.Patterns
 
                 if (isLongSignal)
                 {
+                    string signal =
+                    candles[candles.Count - 1].TimeStart.ToString("MMddyyyy HHmmss");
+
                     decimal lastPrice = candles[candles.Count - 1].Close;
-                    _tab.BuyAtLimit(GetVolume(_tab), lastPrice + lastPrice * (_slippage.ValueDecimal / 100), 
-                        candles[candles.Count-1].TimeStart.ToString(CultureInfo.InvariantCulture));
+                    _tab.BuyAtLimit(GetVolume(_tab), lastPrice + lastPrice * (_slippage.ValueDecimal / 100),
+                        signal);
                 }
             }
 
@@ -172,9 +175,12 @@ namespace OsEngine.Robots.Patterns
 
                 if (isShortSignal)
                 {
+                    string signal = 
+                        candles[candles.Count - 1].TimeStart.ToString("MMddyyyy HHmmss");
+
                     decimal lastPrice = candles[candles.Count - 1].Close;
                     _tab.SellAtLimit(GetVolume(_tab), lastPrice - lastPrice * (_slippage.ValueDecimal / 100), 
-                        candles[candles.Count - 1].TimeStart.ToString(CultureInfo.InvariantCulture));
+                       signal );
                 }
             }
         }
@@ -193,7 +199,7 @@ namespace OsEngine.Robots.Patterns
                 return;
             }
 
-            DateTime timeOpenPosition = Convert.ToDateTime(position.SignalTypeOpen, CultureInfo.InvariantCulture);
+            DateTime timeOpenPosition = DateTime.ParseExact(position.SignalTypeOpen, "MMddyyyy HHmmss",CultureInfo.InvariantCulture);
 
             int endCandlesFromOpenPosition = 0;
 
