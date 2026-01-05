@@ -1048,6 +1048,7 @@ namespace OsEngine.OsTrader.Grids
 
             TryFindPositionsInJournalAfterReconnect();
             TryDeleteOpeningFailPositions();
+            TryDeleteDonePositions();
 
             // 2 удаляем ордера стоящие не на своём месте
 
@@ -1073,6 +1074,12 @@ namespace OsEngine.OsTrader.Grids
 
                     // 3 проверяем выставлены ли закрытия
                     TrySetStopAndProfit();
+
+                    // 4 проверяем лимитки за закрытие по профиту
+                    if(StopAndProfit.ProfitRegime == OnOffRegime.On)
+                    {
+                        TrySetLimitProfit();
+                    }
                 }
                 else if(_firstStopIsActivate == true)
                 {
@@ -1199,6 +1206,112 @@ namespace OsEngine.OsTrader.Grids
             {
                 _firstStopIsActivate = true;
                 _firstStopActivateTime = Tab.TimeServerCurrent;
+            }
+        }
+
+        private void TrySetLimitProfit()
+        {
+            // 1 проверяем отзыв не правильных лимиток
+
+            int countRejectOrders  = TryCancelWrongCloseProfitOrders();
+
+            if (countRejectOrders > 0)
+            {
+                _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
+                return;
+            }
+
+            // 2 выставляем лимитки 
+
+            TrySetClosingProfitOrders(Tab.PriceBestAsk);
+
+        }
+
+        private int TryCancelWrongCloseProfitOrders()
+        {
+            List<TradeGridLine> lines = GetLinesWithClosingOrdersFact();
+
+            int cancelledOrders = 0;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+
+                if (line.Position == null
+                    || line.Position.CloseActive == false)
+                {
+                    continue;
+                }
+
+                Order order = lines[i].Position.CloseOrders[^1];
+
+                if (order.NumberMarket != null
+                    && order.LastCancelTryLocalTime.AddSeconds(5) < DateTime.Now)
+                {
+                    if(order.Price != line.Position.ProfitOrderPrice
+                        || order.Volume - order.VolumeExecute != line.Position.OpenVolume)
+                    {
+                        Tab.CloseOrder(order);
+                        cancelledOrders++;
+                    }
+                }
+            }
+           
+            return cancelledOrders;
+        }
+
+        private void TrySetClosingProfitOrders(decimal lastPrice)
+        {
+            List<TradeGridLine> linesOpenPoses = GetLinesWithOpenPosition();
+
+            for (int i = 0; i < linesOpenPoses.Count; i++)
+            {
+                Position pos = linesOpenPoses[i].Position;
+                TradeGridLine line = linesOpenPoses[i];
+
+                if (pos.CloseActive == true)
+                {
+                    continue;
+                }
+
+                if(pos.ProfitOrderPrice == 0)
+                {
+                    continue;
+                }
+
+                decimal volume = pos.OpenVolume;
+
+                if (CheckMicroVolumes == true
+                    && Tab.CanTradeThisVolume(volume) == false)
+                {
+                    continue;
+                }
+
+                if (Tab.Security.PriceLimitHigh != 0
+                 && Tab.Security.PriceLimitLow != 0)
+                {
+                    if (line.PriceExit > Tab.Security.PriceLimitHigh
+                        || line.PriceExit < Tab.Security.PriceLimitLow)
+                    {
+                        continue;
+                    }
+                }
+
+                if (Tab.StartProgram == StartProgram.IsOsTrader
+                    && MaxDistanceToOrdersPercent != 0
+                    && lastPrice != 0)
+                {
+                    decimal maxPriceUp = lastPrice + lastPrice * (MaxDistanceToOrdersPercent / 100);
+                    decimal minPriceDown = lastPrice - lastPrice * (MaxDistanceToOrdersPercent / 100);
+
+                    if (line.PriceExit > maxPriceUp
+                     || line.PriceExit < minPriceDown)
+                    {
+                        continue;
+                    }
+                }
+
+                Tab.CloseAtLimitUnsafe(pos, pos.ProfitOrderPrice, volume);
             }
         }
 
