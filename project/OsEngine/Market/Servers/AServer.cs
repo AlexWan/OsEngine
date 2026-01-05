@@ -3379,17 +3379,17 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            Security sec = GetSecurityForName(newMarketDepth.SecurityNameCode, "");
-
-            if (sec == null)
-            {
-                return;
-            }
-
             BidAskSender newSender = null;
 
-            if (!_lastBidAskValuesDictionary.TryGetValue(sec.Name, out newSender))
+            if (!_lastBidAskValuesDictionary.TryGetValue(newMarketDepth.SecurityNameCode, out newSender))
             {
+                Security sec = GetSecurityForName(newMarketDepth.SecurityNameCode, "");
+
+                if (sec == null)
+                {
+                    return;
+                }
+
                 newSender = new BidAskSender();
                 newSender.Security = sec;
                 _lastBidAskValuesDictionary.Add(sec.Name, newSender);
