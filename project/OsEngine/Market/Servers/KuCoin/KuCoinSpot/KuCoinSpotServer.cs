@@ -932,6 +932,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     Thread.Sleep(10000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1146,6 +1151,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         Thread.Sleep(1000);
@@ -1293,6 +1303,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         Thread.Sleep(1000);

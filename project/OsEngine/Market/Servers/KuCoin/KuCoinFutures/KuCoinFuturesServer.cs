@@ -389,6 +389,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             while (true)
             {
+                if (IsCompletelyDeleted == true)
+                {
+                    return;
+                }
+
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     Thread.Sleep(3000);
@@ -1198,6 +1203,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     Thread.Sleep(10000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1443,6 +1453,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             while (true)
             {
+                if (IsCompletelyDeleted == true)
+                {
+                    return;
+                }
+
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     Thread.Sleep(3000);
@@ -1587,6 +1602,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(2000);
@@ -1741,6 +1761,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(2000);
