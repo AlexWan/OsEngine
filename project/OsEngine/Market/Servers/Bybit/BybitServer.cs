@@ -3247,23 +3247,13 @@ namespace OsEngine.Market.Servers.Bybit
 
                 _lastMdTime = marketDepth.Time;
 
-                if (_concurrentQueueMessageOrderBookLinear?.Count < 500
-                    && _concurrentQueueMessageOrderBookSpot?.Count < 500
-                    && _concurrentQueueMessageOrderBookInverse?.Count < 500
-                    && _concurrentQueueMessageOrderBookOption?.Count < 500)
+                if (UseFullMarketDepth.Value == true)
                 {
-                    if(UseFullMarketDepth.Value == true)
-                    {
-                        MarketDepthEvent?.Invoke(marketDepth.GetCopy());
-                    }
-                    else
-                    {
-                        MarketDepthEvent?.Invoke(marketDepth.GetCopy(1));
-                    }
+                    MarketDepthEvent?.Invoke(marketDepth.GetCopy());
                 }
                 else
                 {
-                    MarketDepthEvent?.Invoke(marketDepth);
+                    MarketDepthEvent?.Invoke(marketDepth.GetCopy(1));
                 }
             }
             catch (Exception ex)

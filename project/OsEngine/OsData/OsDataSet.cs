@@ -2550,21 +2550,15 @@ namespace OsEngine.OsData
                         {
                             if (md != null)
                             {
-                                MarketDepth marketDepth = null;
-                                try
-                                {
-                                    marketDepth = md.GetCopy();
-                                }
-                                catch
-                                {
-                                    continue;
-                                }
+                                MarketDepth marketDepth = md;
 
                                 if (marketDepth == null) continue;
 
                                 _filePath = _pathSecurityFolder + "\\" + SecName.RemoveExcessFromSecurityName() + "." + DateTime.UtcNow.ToString("yyyy-MM-dd") + ".Quotes" + ".qsh";
 
-                                if (File.Exists(_filePath) == false)
+                                bool fileExist = File.Exists(_filePath);
+
+                                if (fileExist == false)
                                 {
                                     _lastMarketDepth = null;
                                     _lastMarketDepthPrice = 0;
@@ -2573,7 +2567,8 @@ namespace OsEngine.OsData
                                     OffStream();
                                     CreateStream();
                                 }
-                                else if (_lastMarketDepth == null && File.Exists(_filePath))
+                                else if (_lastMarketDepth == null 
+                                    && fileExist == true)
                                 {
                                     OffStream();
                                     ReadBinaryFile();
