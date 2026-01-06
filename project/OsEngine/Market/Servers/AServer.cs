@@ -2127,16 +2127,6 @@ namespace OsEngine.Market.Servers
 
         private Dictionary<string, Security> _securitiesDictionary = new Dictionary<string, Security>();
 
-        private void ReloadSecuritiesDictionary()
-        {
-            _securitiesDictionary.Clear();
-            
-            for(int i = 0;i < _securities.Count;i++)
-            {
-                _securitiesDictionary.Add(_securities[i].Name, _securities[i]);
-            }
-        }
-
         /// <summary>
         /// often used securities. optimizes access to securities
         /// </summary>
@@ -2176,11 +2166,6 @@ namespace OsEngine.Market.Servers
 
             try
             {
-                if(_securitiesDictionary.Count != _securities.Count)
-                {
-                    ReloadSecuritiesDictionary();
-                }
-
                 Security mySecurity = null;
 
                 if (_securitiesDictionary.TryGetValue(securityName, out mySecurity))
@@ -2275,6 +2260,13 @@ namespace OsEngine.Market.Servers
                         {
                             _securities.Add(securities[i]);
                         }
+
+                        Security mySecurity;
+
+                        if (_securitiesDictionary.TryGetValue(securities[i].Name, out mySecurity) == false)
+                        {
+                            _securitiesDictionary.Add(securities[i].Name, securities[i]);
+                        }
                     }
                     else
                     {
@@ -2363,6 +2355,7 @@ namespace OsEngine.Market.Servers
                             securities[j].PriceLimitHigh = curSaveSec.PriceLimitHigh;
                             securities[j].PriceLimitLow = curSaveSec.PriceLimitLow;
                             securities[j].MarginBuy = curSaveSec.MarginBuy;
+                            securities[j].MarginSell = curSaveSec.MarginSell;
                             securities[j].Strike = curSaveSec.Strike;
 
                             break;

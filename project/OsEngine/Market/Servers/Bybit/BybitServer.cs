@@ -2513,7 +2513,8 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    if (concurrentQueueMessagePublicWebSocket.IsEmpty)
+                    if (concurrentQueueMessagePublicWebSocket == null 
+                        || concurrentQueueMessagePublicWebSocket.IsEmpty)
                     {
                         if (IsCompletelyDeleted == true)
                         {
@@ -2654,7 +2655,8 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    if (concurrentQueueMessagePrivateWebSocket.IsEmpty)
+                    if (concurrentQueueMessagePrivateWebSocket == null 
+                        || concurrentQueueMessagePrivateWebSocket.IsEmpty)
                     {
                         if (IsCompletelyDeleted == true)
                         {
@@ -2872,7 +2874,8 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    if (_concurrentQueueMessageOrderBookSpot.IsEmpty)
+                    if (_concurrentQueueMessageOrderBookSpot == null 
+                        || _concurrentQueueMessageOrderBookSpot.IsEmpty)
                     {
                         if (IsCompletelyDeleted == true)
                         {
@@ -2915,7 +2918,8 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    if (_concurrentQueueMessageOrderBookInverse.IsEmpty)
+                    if (_concurrentQueueMessageOrderBookInverse == null 
+                        || _concurrentQueueMessageOrderBookInverse.IsEmpty)
                     {
                         if (IsCompletelyDeleted == true)
                         {
@@ -2958,7 +2962,8 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    if (_concurrentQueueMessageOrderBookLinear.IsEmpty)
+                    if (_concurrentQueueMessageOrderBookLinear == null 
+                        || _concurrentQueueMessageOrderBookLinear.IsEmpty)
                     {
                         if (IsCompletelyDeleted == true)
                         {
@@ -3001,7 +3006,8 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    if (_concurrentQueueMessageOrderBookOption.IsEmpty)
+                    if (_concurrentQueueMessageOrderBookOption == null 
+                        || _concurrentQueueMessageOrderBookOption.IsEmpty)
                     {
                         if (IsCompletelyDeleted == true)
                         {
