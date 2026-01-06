@@ -1595,7 +1595,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             else
             {
                 _queuePublicMessagesAll.Enqueue(e.Data);
-            }     
+            }
         }
 
         #endregion
@@ -1886,7 +1886,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     if (_queuePublicMessagesAll.IsEmpty)
                     {
-                        if(IsCompletelyDeleted == true)
+                        if (IsCompletelyDeleted == true)
                         {
                             return;
                         }
@@ -2496,6 +2496,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     return;
                 }
 
+                if (needDepth.Time <= _lastTimeMd)
+                {
+                    needDepth.Time = _lastTimeMd.AddTicks(1);
+                }
+
+                _lastTimeMd = needDepth.Time;
+
                 if (MarketDepthEvent != null)
                 {
                     MarketDepthEvent(needDepth);
@@ -2506,6 +2513,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private DateTime _lastTimeMd = DateTime.MinValue;
 
         private void UpdateFunding(PublicMarketDataResponse<PublicMarketDataFunding> response)
         {
