@@ -63,37 +63,30 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             ServerStatus = ServerConnectStatus.Disconnect;
 
             Thread threadForPublicMessages = new Thread(PublicMessageReader);
-            threadForPublicMessages.IsBackground = true;
             threadForPublicMessages.Name = "PublicMessageReaderKuCoin";
             threadForPublicMessages.Start();
 
             Thread threadForPrivateMessages = new Thread(PrivateMessageReader);
-            threadForPrivateMessages.IsBackground = true;
             threadForPrivateMessages.Name = "PrivateMessageReaderKuCoin";
             threadForPrivateMessages.Start();
 
             Thread threadCheckAliveWebSocket = new Thread(CheckAliveWebSocket);
-            threadCheckAliveWebSocket.IsBackground = true;
             threadCheckAliveWebSocket.Name = "CheckAliveWebSocketKuCoinFutures";
             threadCheckAliveWebSocket.Start();
 
             Thread threadGetPortfolios = new Thread(ThreadGetPortfolios);
-            threadGetPortfolios.IsBackground = true;
             threadGetPortfolios.Name = "ThreadKuCoinFuturesPortfolios";
             threadGetPortfolios.Start();
 
             Thread threadExtendedData = new Thread(ThreadExtendedData);
-            threadExtendedData.IsBackground = true;
             threadExtendedData.Name = "ThreadKuCoinFuturesExtendedData";
             threadExtendedData.Start();
 
             Thread threadMarketDepthParsing = new Thread(ThreadMarketDepthParsing);
-            threadMarketDepthParsing.IsBackground = true;
             threadMarketDepthParsing.Name = "ThreadKuCoinFuturesMarketDepthParsing";
             threadMarketDepthParsing.Start();
 
             Thread threadTradesParsing = new Thread(ThreadTradesParsing);
-            threadTradesParsing.IsBackground = true;
             threadTradesParsing.Name = "ThreadKuCoinFuturesTradesParsing";
             threadTradesParsing.Start();
         }
@@ -357,7 +350,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                             }
                         }
 
-                        SecurityEvent(_securities);
+                        SecurityEvent?.Invoke(_securities);
                     }
                     else
                     {
@@ -385,8 +378,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private void ThreadGetPortfolios()
         {
-            Thread.Sleep(10000);
-
             while (true)
             {
                 if (IsCompletelyDeleted == true)
@@ -396,7 +387,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
-                    Thread.Sleep(3000);
                     continue;
                 }
 
@@ -433,7 +423,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 Portfolios.Add(portfolioInitial);
 
-                PortfolioEvent(Portfolios);
+                PortfolioEvent?.Invoke(Portfolios);
             }
 
             for (int i = 0; i < _listCurrency.Count; i++)
@@ -477,7 +467,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                         }
 
                         portfolio.SetNewPosition(pos);
-                        PortfolioEvent(Portfolios);
+
+                        PortfolioEvent?.Invoke(Portfolios);
                     }
                     else
                     {
@@ -540,7 +531,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                             portfolio.SetNewPosition(pos);
                         }
 
-                        PortfolioEvent(Portfolios);
+                        PortfolioEvent?.Invoke(Portfolios);
                     }
                     else
                     {
@@ -1212,7 +1203,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        Thread.Sleep(1000);
                         continue;
                     }
 
@@ -1460,7 +1450,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    Thread.Sleep(3000);
                     continue;
                 }
 
@@ -1596,62 +1585,55 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private void PublicMessageReader()
         {
-            Thread.Sleep(1000);
-
             while (true)
             {
                 try
                 {
-                    if (IsCompletelyDeleted == true)
-                    {
-                        return;
-                    }
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(2000);
-                        continue;
-                    }
-
                     if (_webSocketPublicMessages.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    _webSocketPublicMessages.TryDequeue(out message);
-
-                    if (message == null)
+                    else
                     {
-                        continue;
-                    }
+                        string message;
 
-                    if (message.Equals("pong"))
-                    {
-                        continue;
-                    }
-                    else if (message.Contains("welcome") == false)
-                    {
-                        if (message.Contains("level2"))
+                        _webSocketPublicMessages.TryDequeue(out message);
+
+                        if (message == null)
                         {
-                            _queueMarketDepths.Enqueue(message);
+                            continue;
                         }
-                        else if (message.Contains("match"))
-                        {
-                            _queueTrades.Enqueue(message);
-                        }
-                        else
-                        {
-                            ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
 
-                            if (action.subject != null && action.type != "welcome")
+                        if (message.Equals("pong"))
+                        {
+                            continue;
+                        }
+                        else if (message.Contains("welcome") == false)
+                        {
+                            if (message.Contains("level2"))
                             {
-                                if (action.subject.Equals("funding.rate"))
+                                _queueMarketDepths.Enqueue(message);
+                            }
+                            else if (message.Contains("match"))
+                            {
+                                _queueTrades.Enqueue(message);
+                            }
+                            else
+                            {
+                                ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
+
+                                if (action.subject != null && action.type != "welcome")
                                 {
-                                    UpdateFundingRate(message);
-                                    continue;
+                                    if (action.subject.Equals("funding.rate"))
+                                    {
+                                        UpdateFundingRate(message);
+                                        continue;
+                                    }
                                 }
                             }
                         }
@@ -1671,33 +1653,28 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 try
                 {
-                    if (IsCompletelyDeleted == true)
-                    {
-                        return;
-                    }
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
                     if (_queueTrades.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message = null;
-
-                    _queueTrades.TryDequeue(out message);
-
-                    if (message == null)
+                    else
                     {
-                        continue;
-                    }
+                        string message = null;
 
-                    UpdateTrade(message);
+                        _queueTrades.TryDequeue(out message);
+
+                        if (message == null)
+                        {
+                            continue;
+                        }
+
+                        UpdateTrade(message);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -1713,37 +1690,32 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 try
                 {
-                    if (IsCompletelyDeleted == true)
-                    {
-                        return;
-                    }
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
                     if (_queueMarketDepths.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message = null;
-
-                    _queueMarketDepths.TryDequeue(out message);
-
-                    if (message == null)
+                    else
                     {
-                        continue;
+                        string message = null;
+
+                        _queueMarketDepths.TryDequeue(out message);
+
+                        if (message == null)
+                        {
+                            continue;
+                        }
+
+                        MarketDepth marketDepth = UpdateDepth(message);
+
+                        if (marketDepth == null) continue;
+
+                        MarketDepthEvent?.Invoke(marketDepth);
                     }
-
-                    MarketDepth marketDepth = UpdateDepth(message);
-
-                    if (marketDepth == null) continue;
-
-                    MarketDepthEvent?.Invoke(marketDepth);
                 }
                 catch (Exception exception)
                 {
@@ -1755,69 +1727,62 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private void PrivateMessageReader()
         {
-            Thread.Sleep(1000);
-
             while (true)
             {
                 try
                 {
-                    if (IsCompletelyDeleted == true)
-                    {
-                        return;
-                    }
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(2000);
-                        continue;
-                    }
-
                     if (_webSocketPrivateMessages.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message;
-
-                    _webSocketPrivateMessages.TryDequeue(out message);
-
-                    if (message == null)
+                    else
                     {
-                        continue;
-                    }
+                        string message;
 
-                    if (message.Equals("pong"))
-                    {
-                        continue;
-                    }
+                        _webSocketPrivateMessages.TryDequeue(out message);
 
-                    ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
-
-                    if (action.subject != null && action.type != "welcome")
-                    {
-                        if (action.subject.Equals("orderChange"))
+                        if (message == null)
                         {
-                            UpdateOrder(message);
                             continue;
                         }
 
-                        if (action.subject.Equals("symbolOrderChange"))
+                        if (message.Equals("pong"))
                         {
-                            UpdateOrder(message);
                             continue;
                         }
 
-                        if (action.subject.Equals("position.change"))
-                        {
-                            UpdatePosition(message);
-                            continue;
-                        }
+                        ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
 
-                        if (action.subject.Equals("walletBalance.change"))
+                        if (action.subject != null && action.type != "welcome")
                         {
-                            UpdatePortfolio(message);
-                            continue;
+                            if (action.subject.Equals("orderChange"))
+                            {
+                                UpdateOrder(message);
+                                continue;
+                            }
+
+                            if (action.subject.Equals("symbolOrderChange"))
+                            {
+                                UpdateOrder(message);
+                                continue;
+                            }
+
+                            if (action.subject.Equals("position.change"))
+                            {
+                                UpdatePosition(message);
+                                continue;
+                            }
+
+                            if (action.subject.Equals("walletBalance.change"))
+                            {
+                                UpdatePortfolio(message);
+                                continue;
+                            }
                         }
                     }
                 }
@@ -1929,6 +1894,18 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.data.timestamp));
 
+                if (marketDepth.Time == DateTime.MinValue)
+                {
+                    return null;
+                }
+
+                if (marketDepth.Time <= _lastTimeMd)
+                {
+                    marketDepth.Time = _lastTimeMd.AddTicks(1);
+                }
+
+                _lastTimeMd = marketDepth.Time;
+
                 return marketDepth;
             }
             catch (Exception ex)
@@ -1937,6 +1914,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 return null;
             }
         }
+
+        private DateTime _lastTimeMd = DateTime.MinValue;
 
         private void UpdatePortfolio(string message)
         {
@@ -1953,7 +1932,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 pos.ValueCurrent = Portfolio.data.availableBalance.ToDecimal();
 
                 portfolio.SetNewPosition(pos);
-                PortfolioEvent(Portfolios);
+
+                PortfolioEvent?.Invoke(Portfolios);
             }
             catch (Exception ex)
             {
@@ -1990,7 +1970,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 pos.ValueCurrent = data.currentQty.ToDecimal() * GetVolume(data.symbol);
                 portfolio.SetNewPosition(pos);
-                PortfolioEvent(Portfolios);
+
+                PortfolioEvent?.Invoke(Portfolios);
             }
             catch (Exception ex)
             {
@@ -2069,10 +2050,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
                     myTrade.Volume = item.matchSize.ToDecimal() * GetVolume(item.symbol);
 
-                    MyTradeEvent(myTrade);
+                    MyTradeEvent?.Invoke(myTrade);
                 }
 
-                MyOrderEvent(newOrder);
+                MyOrderEvent?.Invoke(newOrder);
             }
             catch (Exception ex)
             {
