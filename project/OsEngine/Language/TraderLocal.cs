@@ -2474,5 +2474,9 @@ namespace OsEngine.Language
         public string Label643 => OsLocalization.ConvertToLocString(
          "Eng:Instruction_" +
          "Ru:Инструкции_");
+
+        public string Label644 => OsLocalization.ConvertToLocString(
+         "Eng:Stop trade by profit_" +
+         "Ru:Стоп-торги после профита_");
     }
 }

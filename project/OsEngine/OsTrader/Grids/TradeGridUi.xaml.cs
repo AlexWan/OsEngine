@@ -280,6 +280,10 @@ namespace OsEngine.OsTrader.Grids
             TextBoxProfitValue.Text = tradeGrid.StopAndProfit.ProfitValue.ToString();
             TextBoxProfitValue.TextChanged += TextBoxProfitValue_TextChanged;
 
+            CheckBoxStopByProfit.IsChecked = tradeGrid.StopAndProfit.StopTradingAfterProfit;
+            CheckBoxStopByProfit.Checked += CheckBoxStopByProfit_Checked;
+            CheckBoxStopByProfit.Unchecked += CheckBoxStopByProfit_Checked;
+
             ComboBoxStopRegime.Items.Add(TradeGridRegime.Off.ToString());
             ComboBoxStopRegime.Items.Add(TradeGridRegime.On.ToString());
             ComboBoxStopRegime.SelectedItem = tradeGrid.StopAndProfit.StopRegime.ToString();
@@ -500,6 +504,7 @@ namespace OsEngine.OsTrader.Grids
             LabelProfitRegime.Content = OsLocalization.Trader.Label497;
             LabelProfitValueType.Content = OsLocalization.Trader.Label498;
             LabelProfitValue.Content = OsLocalization.Trader.Label499;
+            CheckBoxStopByProfit.Content = OsLocalization.Trader.Label644;
 
             LabelStopRegime.Content = OsLocalization.Trader.Label500;
             LabelStopValueType.Content = OsLocalization.Trader.Label498;
@@ -1155,6 +1160,19 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 TradeGrid.StopAndProfit.ProfitValue = TextBoxProfitValue.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxStopByProfit_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.StopAndProfit.StopTradingAfterProfit = CheckBoxStopByProfit.IsChecked.Value;
                 TradeGrid.Save();
             }
             catch

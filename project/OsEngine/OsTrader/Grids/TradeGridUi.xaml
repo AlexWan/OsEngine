@@ -206,23 +206,24 @@
                     <ComboBox Name="ComboBoxProfitValueType" Margin="143,33,14,0" VerticalAlignment="Top"/>
                     <Label Name="LabelProfitValue" Content="Value" HorizontalAlignment="Left" Margin="10,56,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxProfitValue" Margin="143,56,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxStopByProfit" Content="Stop trade by profit" HorizontalAlignment="Left" Margin="143,84,0,0" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelStopRegime" Content="Stop-Loss regime" HorizontalAlignment="Left" Margin="10,96,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxStopRegime" Margin="143,96,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelStopValueType" Content="Value type" HorizontalAlignment="Left" Margin="10,119,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxStopValueType" Margin="143,119,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelStopValue" Content="Value" HorizontalAlignment="Left" Margin="10,142,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopValue" Margin="143,142,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopRegime" Content="Stop-Loss regime" HorizontalAlignment="Left" Margin="10,115,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopRegime" Margin="143,115,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopValueType" Content="Value type" HorizontalAlignment="Left" Margin="10,138,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopValueType" Margin="143,138,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopValue" Content="Value" HorizontalAlignment="Left" Margin="10,161,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopValue" Margin="143,161,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelTrailStopRegime" Content="Trail-Stop regime" HorizontalAlignment="Left" Margin="10,184,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxTrailStopRegime" Margin="143,184,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelTrailStopValueType" Content="Value type" HorizontalAlignment="Left" Margin="10,207,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxTrailStopValueType" Margin="143,207,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelTrailStopValue" Content="Value" HorizontalAlignment="Left" Margin="10,230,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxTrailStopValue" Margin="143,230,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <Label Name="LabelMiddleEntryPrice" Content="Middle entry price" HorizontalAlignment="Left" Margin="10,266,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxMiddleEntryPrice" Margin="178,266,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                </Grid>
+                    <Label Name="LabelTrailStopRegime" Content="Trail-Stop regime" HorizontalAlignment="Left" Margin="10,203,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxTrailStopRegime" Margin="143,203,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelTrailStopValueType" Content="Value type" HorizontalAlignment="Left" Margin="10,226,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxTrailStopValueType" Margin="143,226,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelTrailStopValue" Content="Value" HorizontalAlignment="Left" Margin="10,249,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxTrailStopValue" Margin="143,249,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <Label Name="LabelMiddleEntryPrice" Content="Middle entry price" HorizontalAlignment="Left" Margin="10,285,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxMiddleEntryPrice" Margin="178,285,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                 </Grid>
             </TabItem>
             <TabItem Name="TabItemError" Header="Error">
                 <Grid >

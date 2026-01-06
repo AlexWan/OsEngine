@@ -32,7 +32,8 @@ namespace OsEngine.OsTrader.Grids
             }
            
             Tab.NewTickEvent += Tab_NewTickEvent;
-            Tab.PositionOpeningSuccesEvent += Tab_PositionOpeningSuccesEvent; 
+            Tab.PositionOpeningSuccesEvent += Tab_PositionOpeningSuccesEvent;
+            Tab.PositionClosingSuccesEvent += Tab_PositionClosingSuccesEvent;
             Tab.PositionStopActivateEvent += Tab_PositionStopActivateEvent;
             Tab.PositionProfitActivateEvent += Tab_PositionProfitActivateEvent;
             Tab.Connector.TestStartEvent += Connector_TestStartEvent;
@@ -249,6 +250,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 Tab.NewTickEvent -= Tab_NewTickEvent;
                 Tab.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
+                Tab.PositionClosingSuccesEvent -= Tab_PositionClosingSuccesEvent;
                 Tab.PositionStopActivateEvent -= Tab_PositionStopActivateEvent;
                 Tab.PositionProfitActivateEvent -= Tab_PositionProfitActivateEvent;
                 Tab.Connector.TestStartEvent -= Connector_TestStartEvent;
@@ -706,6 +708,7 @@ namespace OsEngine.OsTrader.Grids
         {
             if (Regime != TradeGridRegime.Off)
             {
+                
                 bool isInArray = false;
 
                 for(int i = 0;i < GridCreator.Lines.Count;i++)
@@ -725,6 +728,27 @@ namespace OsEngine.OsTrader.Grids
                     _openPositionsBySession++;
                     _needToSave = true;
                 }
+            }
+
+            if(Regime == TradeGridRegime.On)
+            {
+                _firstPositionIsOpen = true;
+            }
+            else
+            {
+                _firstPositionIsOpen = false;
+            }
+        }
+
+        private void Tab_PositionClosingSuccesEvent(Position position)
+        {
+            if (Regime == TradeGridRegime.On)
+            {
+                _firstPositionIsOpen = true;
+            }
+            else
+            {
+                _firstPositionIsOpen = false;
             }
         }
 
@@ -804,6 +828,8 @@ namespace OsEngine.OsTrader.Grids
             if (baseRegime == TradeGridRegime.Off ||
                 baseRegime == TradeGridRegime.OffAndCancelOrders)
             {
+                _firstPositionIsOpen = false;
+
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
                     if (_vacationTime > DateTime.Now)
@@ -1048,8 +1074,7 @@ namespace OsEngine.OsTrader.Grids
 
             TryFindPositionsInJournalAfterReconnect();
             TryDeleteOpeningFailPositions();
-            TryDeleteDonePositions();
-
+            
             // 2 удаляем ордера стоящие не на своём месте
 
             int countRejectOrders = TryRemoveWrongOrders();
@@ -1079,6 +1104,15 @@ namespace OsEngine.OsTrader.Grids
                     if(StopAndProfit.ProfitRegime == OnOffRegime.On)
                     {
                         TrySetLimitProfit();
+
+                        if (StopAndProfit.StopTradingAfterProfit == true)
+                        {
+                            CheckStopTradingAfterProfit();
+                        }
+                        else
+                        {
+                            TryDeleteDonePositions();
+                        }
                     }
                 }
                 else if(_firstStopIsActivate == true)
@@ -1190,6 +1224,8 @@ namespace OsEngine.OsTrader.Grids
         private bool _firstStopIsActivate = false;
 
         private DateTime _firstStopActivateTime;
+
+        private bool _firstPositionIsOpen = false;
 
         private void Tab_PositionProfitActivateEvent(Position obj)
         {
@@ -1312,6 +1348,28 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 Tab.CloseAtLimitUnsafe(pos, pos.ProfitOrderPrice, volume);
+            }
+        }
+
+        private void CheckStopTradingAfterProfit()
+        {
+            List<TradeGridLine> linesOpenPoses = GetLinesWithOpenPosition();
+
+            // И если линий с открытыми позами нет - переключаемся в CloseForced
+
+            if(linesOpenPoses == null
+                || linesOpenPoses.Count == 0)
+            {
+                if(_firstPositionIsOpen == true)
+                {
+                    Regime = TradeGridRegime.CloseForced;
+
+                    string message = "Grid is stop by Profit. \n";
+                    message += "Stop trading" + "\n";
+                    message += "New regime: CloseForced";
+
+                    SendNewLogMessage(message, LogMessageType.Signal);
+                }
             }
         }
 

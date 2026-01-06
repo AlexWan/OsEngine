@@ -18,6 +18,7 @@ namespace OsEngine.OsTrader.Grids
         public OnOffRegime ProfitRegime = OnOffRegime.Off;
         public TradeGridValueType ProfitValueType = TradeGridValueType.Percent;
         public decimal ProfitValue = 1.5m;
+        public bool StopTradingAfterProfit = true;
 
         public OnOffRegime StopRegime = OnOffRegime.Off;
         public TradeGridValueType StopValueType = TradeGridValueType.Percent;
@@ -40,6 +41,7 @@ namespace OsEngine.OsTrader.Grids
             result += TrailStopRegime + "@";
             result += TrailStopValueType + "@";
             result += TrailStopValue + "@";
+            result += StopTradingAfterProfit + "@";
             result += "@";
             result += "@";
             result += "@";
@@ -66,6 +68,11 @@ namespace OsEngine.OsTrader.Grids
                 Enum.TryParse(values[6], out TrailStopRegime);
                 Enum.TryParse(values[7], out TrailStopValueType);
                 TrailStopValue = values[8].ToDecimal();
+
+                if(string.IsNullOrEmpty(values[9]) == false)
+                {
+                    StopTradingAfterProfit = Convert.ToBoolean(values[9]);
+                }
             }
             catch (Exception e)
             {
