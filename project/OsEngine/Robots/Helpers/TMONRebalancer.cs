@@ -272,81 +272,88 @@ namespace OsEngine.Robots
 
         private void RebalanceLogic()
         {
-            if (_tab.Portfolio == null)
+            try
             {
-                return;
-            }
-
-            if (StartProgram == StartProgram.IsOsTrader)
-            {
-                if (_tab.Portfolio.PositionOnBoard == null)
+                if (_tab.Portfolio == null)
                 {
                     return;
                 }
 
-                if (_tab.Connector.MyServer.ServerType != ServerType.TInvest
-                 || _tab.Security.Name != "TMON@")
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
-                    SendNewLogMessage(OsLocalization.ConvertToLocString(
-                               "En:The robot is only intended for rebalancing TMON with the T-Investments broker and for testing._" +
-                               "Ru:Робот предназначен только для ребалансировки TMON у брокера Т-Инвестиции и для запуска в тестере_")
-                               , Logging.LogMessageType.Error);
-                    Thread.Sleep(10000);
+                    if (_tab.Portfolio.PositionOnBoard == null)
+                    {
+                        return;
+                    }
+
+                    if (_tab.Connector.MyServer.ServerType != ServerType.TInvest
+                     || _tab.Security.Name != "TMON@")
+                    {
+                        SendNewLogMessage(OsLocalization.ConvertToLocString(
+                                   "En:The robot is only intended for rebalancing TMON with the T-Investments broker and for testing._" +
+                                   "Ru:Робот предназначен только для ребалансировки TMON у брокера Т-Инвестиции и для запуска в тестере_")
+                                   , Logging.LogMessageType.Error);
+                        Thread.Sleep(10000);
+                        return;
+                    }
+
+                }
+
+                decimal balance = GetPortfolioValue();
+
+                if (balance == 0)
+                {
                     return;
                 }
 
-            }
+                decimal freeBalance = Math.Abs(balance - Math.Max(_minBalance.ValueDecimal, 500));
 
-            decimal balance = GetPortfolioValue();
+                decimal volume = GetVolume(freeBalance);
 
-            if (balance == 0)
-            {
-                return;
-            }
-
-            decimal freeBalance = Math.Abs(balance - Math.Max(_minBalance.ValueDecimal, 500));
-
-            decimal volume = GetVolume(freeBalance);
-
-            if (volume <= 0)
-            {
-                return;
-            }
-
-            if (balance > _minBalance.ValueDecimal)
-            {
-                if (_icebergCount.ValueInt <= 1)
+                if (volume <= 0)
                 {
-                    if (_tab.PositionOpenLong.Count > 0)
+                    return;
+                }
+
+                if (balance > _minBalance.ValueDecimal)
+                {
+                    if (_icebergCount.ValueInt <= 1)
                     {
-                        _tab.BuyAtLimitToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume);
+                        if (_tab.PositionOpenLong.Count > 0)
+                        {
+                            _tab.BuyAtLimitToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume);
+                        }
+                        else
+                        {
+                            _tab.BuyAtLimit(volume, _tab.PriceBestAsk);
+                        }
                     }
                     else
                     {
-                        _tab.BuyAtLimit(volume, _tab.PriceBestAsk);
+                        if (_tab.PositionOpenLong.Count > 0)
+                        {
+                            _tab.BuyAtIcebergToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume, _icebergCount.ValueInt);
+                        }
+                        else
+                        {
+                            _tab.BuyAtIceberg(volume, _tab.PriceBestAsk, _icebergCount.ValueInt);
+                        }
                     }
                 }
-                else
+                else if (_tab.PositionOpenLong.Count > 0
+                    && balance < _minBalance.ValueDecimal)
                 {
-                    if (_tab.PositionOpenLong.Count > 0)
+                    if (volume > _tab.PositionOpenLong[0].OpenVolume)
                     {
-                        _tab.BuyAtIcebergToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume, _icebergCount.ValueInt);
+                        volume = _tab.PositionOpenLong[0].OpenVolume;
                     }
-                    else
-                    {
-                        _tab.BuyAtIceberg(volume, _tab.PriceBestAsk, _icebergCount.ValueInt);
-                    }
+
+                    _tab.CloseAtMarket(_tab.PositionOpenLong[0], volume);
                 }
             }
-            else if (_tab.PositionOpenLong.Count > 0
-                && balance < _minBalance.ValueDecimal)
+            catch(Exception ex)
             {
-                if (volume > _tab.PositionOpenLong[0].OpenVolume)
-                {
-                    volume = _tab.PositionOpenLong[0].OpenVolume;
-                }
-
-                _tab.CloseAtMarket(_tab.PositionOpenLong[0], volume);
+                _tab.SetNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
             }
         }
 
@@ -492,6 +499,12 @@ namespace OsEngine.Robots
         private decimal GetVolume(decimal balance)
         {
             decimal contractPrice = _tab.PriceBestAsk;
+
+            if(contractPrice == 0)
+            {
+                return 0;
+            }
+
             decimal volume = balance / contractPrice;
 
             if (StartProgram == StartProgram.IsOsTrader)
