@@ -2544,6 +2544,7 @@ namespace OsEngine.OsData
                         OffStream();
 
                         await Task.Delay(500);
+                        //Thread.Sleep(500);
                         continue;
                     }
 
@@ -2559,7 +2560,7 @@ namespace OsEngine.OsData
 
                                 if (marketDepth == null) continue;
 
-                                if (_lastFrameDateTime.Date != DateTime.UtcNow.Date)
+                                if (_lastFrameDateTime.Date != marketDepth.Time.Date)
                                 {
                                     _filePath = _pathSecurityFolder + "\\" + SecName.RemoveExcessFromSecurityName() + "." + DateTime.UtcNow.ToString("yyyy-MM-dd") + ".Quotes" + ".qsh";
 
