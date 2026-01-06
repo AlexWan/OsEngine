@@ -5,6 +5,14 @@
 
 namespace OsEngine.Market.Servers.Alor.Json
 {
+    public class QuotesAlorFullMessage
+    {
+        public string guid;
+
+        public QuotesAlor data;
+
+    }
+
     public class QuotesAlor
     {
         public string id;
