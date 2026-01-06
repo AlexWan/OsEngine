@@ -2501,6 +2501,7 @@ namespace OsEngine.OsData
 
                 long diff = timeStamp - lastTimeStamp;
                 lastTimeStamp = timeStamp;
+                _lastFrameDateTime = time;
 
                 writer.WriteGrowing(diff);
             }
@@ -2554,7 +2555,8 @@ namespace OsEngine.OsData
 
                                 if (marketDepth == null) continue;
 
-                                _filePath = _pathSecurityFolder + "\\" + SecName.RemoveExcessFromSecurityName() + "." + DateTime.UtcNow.ToString("yyyy-MM-dd") + ".Quotes" + ".qsh";
+                                if (_lastFrameDateTime.Date != DateTime.UtcNow)
+                                    _filePath = _pathSecurityFolder + "\\" + SecName.RemoveExcessFromSecurityName() + "." + DateTime.UtcNow.ToString("yyyy-MM-dd") + ".Quotes" + ".qsh";
 
                                 bool fileExist = File.Exists(_filePath);
 
@@ -2567,7 +2569,7 @@ namespace OsEngine.OsData
                                     OffStream();
                                     CreateStream();
                                 }
-                                else if (_lastMarketDepth == null 
+                                else if (_lastMarketDepth == null
                                     && fileExist == true)
                                 {
                                     OffStream();
@@ -3059,6 +3061,8 @@ namespace OsEngine.OsData
         private long _lastMarketDepthPrice;
 
         private long _lastTimeStamp;
+
+        private DateTime _lastFrameDateTime;
 
         private readonly byte[] _prefix = Encoding.UTF8.GetBytes("QScalp History Data");
 
