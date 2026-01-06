@@ -1952,7 +1952,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 continue;
                             }
                         }
-                    }   
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -1996,7 +1996,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         {
                             MarketDepthEvent(marketDepth);
                         }
-                    }     
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -2033,7 +2033,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         }
 
                         UpdateTrade(message);
-                    }     
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -2122,7 +2122,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 }
                             }
                         }
-                    }    
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -2546,14 +2546,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.data[0].ts));
 
-                if (marketDepth.Time < _lastTimeMd)
+                if (marketDepth.Time == DateTime.MinValue)
                 {
-                    marketDepth.Time = _lastTimeMd;
+                    return null;
                 }
-                else if (marketDepth.Time == _lastTimeMd)
+
+                if (marketDepth.Time <= _lastTimeMd)
                 {
-                    _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
-                    marketDepth.Time = _lastTimeMd;
+                    marketDepth.Time = _lastTimeMd.AddTicks(1);
                 }
 
                 _lastTimeMd = marketDepth.Time;
