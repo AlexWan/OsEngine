@@ -65,62 +65,56 @@ namespace OsEngine.Market.Servers.Bybit
 
         #region 1 Constructor, Status, Connection
 
-        public event Action ConnectEvent;
-
-        public event Action DisconnectEvent;
-
-        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
-
         public BybitServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
             supported_intervals = CreateIntervalDictionary();
 
-            Thread threadPrivateMessageReader = new Thread(() => ThreadPrivateMessageReader());
+            Thread threadPrivateMessageReader = new Thread(ThreadPrivateMessageReader);
             threadPrivateMessageReader.Name = "ThreadBybitPrivateMessageReader";
             threadPrivateMessageReader.Start();
 
-            Thread threadPublicMessageReader = new Thread(() => ThreadPublicMessageReader());
+            Thread threadPublicMessageReader = new Thread(ThreadPublicMessageReader);
             threadPublicMessageReader.Name = "ThreadBybitPublicMessageReader";
             threadPublicMessageReader.Start();
 
-            Thread threadMessageReaderOrderBookSpot = new Thread(() => ThreadMessageReaderOrderBookSpot());
+            Thread threadMessageReaderOrderBookSpot = new Thread(ThreadMessageReaderOrderBookSpot);
             threadMessageReaderOrderBookSpot.Name = "ThreadBybitMessageReaderOrderBookSpot";
             threadMessageReaderOrderBookSpot.Start();
 
-            Thread threadMessageReaderOrderBookLinear = new Thread(() => ThreadMessageReaderOrderBookLinear());
+            Thread threadMessageReaderOrderBookLinear = new Thread(ThreadMessageReaderOrderBookLinear);
             threadMessageReaderOrderBookLinear.Name = "ThreadBybitMessageReaderOrderBookLinear";
             threadMessageReaderOrderBookLinear.Start();
 
-            Thread threadMessageReaderTradesSpot = new Thread(() => ThreadMessageReaderTradesSpot());
+            Thread threadMessageReaderTradesSpot = new Thread(ThreadMessageReaderTradesSpot);
             threadMessageReaderTradesSpot.Name = "ThreadBybitMessageReaderTradesSpot";
             threadMessageReaderTradesSpot.Start();
 
-            Thread threadMessageReaderTradesLinear = new Thread(() => ThreadMessageReaderTradesLinear());
+            Thread threadMessageReaderTradesLinear = new Thread(ThreadMessageReaderTradesLinear);
             threadMessageReaderTradesLinear.Name = "ThreadBybitMessageReaderTradesLinear";
             threadMessageReaderTradesLinear.Start();
 
-            Thread threadGetPortfolios = new Thread(() => ThreadGetPortfolios());
+            Thread threadGetPortfolios = new Thread(ThreadGetPortfolios);
             threadGetPortfolios.Name = "ThreadBybitGetPortfolios";
             threadGetPortfolios.Start();
 
-            Thread threadCheckAlivePublicWebSocket = new Thread(() => ThreadCheckAliveWebSocketThread());
+            Thread threadCheckAlivePublicWebSocket = new Thread(ThreadCheckAliveWebSocketThread);
             threadCheckAlivePublicWebSocket.Name = "ThreadBybitCheckAliveWebSocketThread";
             threadCheckAlivePublicWebSocket.Start();
 
-            Thread threadMessageReaderOrderBookInverse = new Thread(() => ThreadMessageReaderOrderBookInverse());
+            Thread threadMessageReaderOrderBookInverse = new Thread(ThreadMessageReaderOrderBookInverse);
             threadMessageReaderOrderBookInverse.Name = "ThreadBybitMessageReaderOrderBookInverse";
             threadMessageReaderOrderBookInverse.Start();
 
-            Thread threadMessageReaderTradesInverse = new Thread(() => ThreadMessageReaderTradesInverse());
+            Thread threadMessageReaderTradesInverse = new Thread(ThreadMessageReaderTradesInverse);
             threadMessageReaderTradesInverse.Name = "ThreadBybitMessageReaderTradesInverse";
             threadMessageReaderTradesInverse.Start();
 
-            Thread threadMessageReaderTradesOption = new Thread(() => ThreadMessageReaderTradesOption());
+            Thread threadMessageReaderTradesOption = new Thread(ThreadMessageReaderTradesOption);
             threadMessageReaderTradesOption.Name = "ThreadBybitMessageReaderTradesOption";
             threadMessageReaderTradesOption.Start();
 
-            Thread threadMessageReaderOrderBookOption = new Thread(() => ThreadMessageReaderOrderBookOption());
+            Thread threadMessageReaderOrderBookOption = new Thread(ThreadMessageReaderOrderBookOption);
             threadMessageReaderOrderBookOption.Name = "ThreadBybitMessageReaderOrderBookOption";
             threadMessageReaderOrderBookOption.Start();
         }
@@ -318,7 +312,7 @@ namespace OsEngine.Market.Servers.Bybit
             SubscribeSecurityInverse.Clear();
             SubscribedSecurityOption.Clear();
             _subscribedOptionTradeBaseCoins.Clear();
-     
+
             concurrentQueueMessagePublicWebSocket = new ConcurrentQueue<string>();
             _concurrentQueueMessageOrderBookSpot = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
             _concurrentQueueMessageOrderBookLinear = new ConcurrentQueue<ResponseWebSocketMessage<ResponseOrderBook>>();
@@ -376,6 +370,12 @@ namespace OsEngine.Market.Servers.Bybit
         }
 
         public bool IsCompletelyDeleted { get; set; }
+
+        public event Action ConnectEvent;
+
+        public event Action DisconnectEvent;
+
+        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
 
         #endregion 1
 
@@ -571,8 +571,6 @@ namespace OsEngine.Market.Servers.Bybit
         #endregion 2
 
         #region 3 Securities
-
-        public event Action<List<Security>> SecurityEvent;
 
         private List<Security> _securities;
 
@@ -826,19 +824,23 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public event Action<List<Security>> SecurityEvent;
+
         #endregion 3
 
         #region 4 Portfolios
 
         private void ThreadGetPortfolios()
         {
-            Thread.Sleep(20000);
-
             while (true)
             {
+                if (IsCompletelyDeleted == true)
+                {
+                    return;
+                }
+
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
-                    Thread.Sleep(3000);
                     continue;
                 }
 
@@ -1269,6 +1271,7 @@ namespace OsEngine.Market.Servers.Bybit
         #region 5 Data
 
         private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(50));
+
         private string _rateGateGetCandleHistoryLocker = "_rateGateGetCandleHistoryLocker";
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
@@ -1865,6 +1868,11 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
                     Thread.Sleep(19000); // https://bybit-exchange.github.io/docs/v5/ws/connect#ip-limits To avoid network or program issues, we recommend that you send the ping heartbeat packet every 20 seconds to maintain the WebSocket connection.
 
                     if (ServerStatus != ServerConnectStatus.Connect)
@@ -2503,134 +2511,133 @@ namespace OsEngine.Market.Servers.Bybit
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                    continue;
-                }
-
                 try
                 {
-                    if (concurrentQueueMessagePublicWebSocket == null ||
-                        concurrentQueueMessagePublicWebSocket.Count == 0)
+                    if (concurrentQueueMessagePublicWebSocket.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    if (!concurrentQueueMessagePublicWebSocket.TryDequeue(out string _message))
+                    else
                     {
-                        continue;
-                    }
-
-                    Category category = Category.linear;
-                    string message = _message;
-
-                    if (_message.EndsWith(".SPOT"))
-                    {
-                        category = Category.spot;
-                        message = _message.Replace("}.SPOT", "}");
-                    }
-
-                    if (_message.EndsWith(".INVERSE"))
-                    {
-                        category = Category.inverse;
-                        message = _message.Replace("}.INVERSE", "}");
-                    }
-
-                    if (_message.EndsWith(".OPTION"))
-                    {
-                        category = Category.option;
-                        message = _message.Replace("}.OPTION", "}");
-                    }
-
-                    if(message.StartsWith("{\"topic\":\"orderbook"))
-                    {
-                        ResponseWebSocketMessage<ResponseOrderBook> md =
-                             JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrderBook>());
-
-                        if (category == Category.spot)
+                        if (!concurrentQueueMessagePublicWebSocket.TryDequeue(out string _message))
                         {
-                            _concurrentQueueMessageOrderBookSpot?.Enqueue(md);
-                        }
-                        else if (category == Category.linear)
-                        {
-                            _concurrentQueueMessageOrderBookLinear.Enqueue(md);
-                        }
-                        else if (category == Category.inverse)
-                        {
-                            _concurrentQueueMessageOrderBookInverse.Enqueue(md);
-                        }
-                        else if (category == Category.option)
-                        {
-                            _concurrentQueueMessageOrderBookOption.Enqueue(md);
+                            continue;
                         }
 
-                        continue;
-                    }
-                    else if (message.StartsWith("{\"topic\":\"publicTrade"))
-                    {
-                        if (category == Category.spot)
+                        Category category = Category.linear;
+                        string message = _message;
+
+                        if (_message.EndsWith(".SPOT"))
                         {
-                            _concurrentQueueTradesSpot.Enqueue(message);
-                        }
-                        else if (category == Category.linear)
-                        {
-                            _concurrentQueueTradesLinear.Enqueue(message);
-                        }
-                        else if (category == Category.inverse)
-                        {
-                            _concurrentQueueTradesInverse.Enqueue(message);
-                        }
-                        else if (category == Category.option)
-                        {
-                            _concurrentQueueTradesOption.Enqueue(message);
+                            category = Category.spot;
+                            message = _message.Replace("}.SPOT", "}");
                         }
 
-                        continue;
-                    }
-                    else if (message.StartsWith("{\"topic\":\"tickers"))
-                    {
-                        if (category == Category.linear)
+                        if (_message.EndsWith(".INVERSE"))
                         {
-                            _concurrentQueueTickersLinear.Enqueue(_message);
-                        }
-                        else if (category == Category.inverse)
-                        {
-                            _concurrentQueueTickersInverse.Enqueue(message);
-                        }
-                        else if (category == Category.spot)
-                        {
-                            _concurrentQueueTickersSpot.Enqueue(message);
-                        }
-                        else if (category == Category.option)
-                        {
-                            _concurrentQueueTickersOption.Enqueue(message);
+                            category = Category.inverse;
+                            message = _message.Replace("}.INVERSE", "}");
                         }
 
-                        continue;
-                    }
-
-                    SubscribeMessage subscribeMessage =
-                       JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
-
-                    if (subscribeMessage.op == "pong")
-                    {
-                        continue;
-                    }
-
-                    if (subscribeMessage.op != null)
-                    {
-                        if (subscribeMessage.success == "false")
+                        if (_message.EndsWith(".OPTION"))
                         {
-                            if (subscribeMessage.ret_msg.Contains("already"))
+                            category = Category.option;
+                            message = _message.Replace("}.OPTION", "}");
+                        }
+
+                        if (message.StartsWith("{\"topic\":\"orderbook"))
+                        {
+                            ResponseWebSocketMessage<ResponseOrderBook> md =
+                                 JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrderBook>());
+
+                            if (category == Category.spot)
                             {
-                                continue;
+                                _concurrentQueueMessageOrderBookSpot?.Enqueue(md);
                             }
-                            SendLogMessage("WebSocket Error: " + subscribeMessage.ret_msg, LogMessageType.Error);
+                            else if (category == Category.linear)
+                            {
+                                _concurrentQueueMessageOrderBookLinear.Enqueue(md);
+                            }
+                            else if (category == Category.inverse)
+                            {
+                                _concurrentQueueMessageOrderBookInverse.Enqueue(md);
+                            }
+                            else if (category == Category.option)
+                            {
+                                _concurrentQueueMessageOrderBookOption.Enqueue(md);
+                            }
+
+                            continue;
+                        }
+                        else if (message.StartsWith("{\"topic\":\"publicTrade"))
+                        {
+                            if (category == Category.spot)
+                            {
+                                _concurrentQueueTradesSpot.Enqueue(message);
+                            }
+                            else if (category == Category.linear)
+                            {
+                                _concurrentQueueTradesLinear.Enqueue(message);
+                            }
+                            else if (category == Category.inverse)
+                            {
+                                _concurrentQueueTradesInverse.Enqueue(message);
+                            }
+                            else if (category == Category.option)
+                            {
+                                _concurrentQueueTradesOption.Enqueue(message);
+                            }
+
+                            continue;
+                        }
+                        else if (message.StartsWith("{\"topic\":\"tickers"))
+                        {
+                            if (category == Category.linear)
+                            {
+                                _concurrentQueueTickersLinear.Enqueue(_message);
+                            }
+                            else if (category == Category.inverse)
+                            {
+                                _concurrentQueueTickersInverse.Enqueue(message);
+                            }
+                            else if (category == Category.spot)
+                            {
+                                _concurrentQueueTickersSpot.Enqueue(message);
+                            }
+                            else if (category == Category.option)
+                            {
+                                _concurrentQueueTickersOption.Enqueue(message);
+                            }
+
+                            continue;
                         }
 
-                        continue;
+                        SubscribeMessage subscribeMessage =
+                           JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
+
+                        if (subscribeMessage.op == "pong")
+                        {
+                            continue;
+                        }
+
+                        if (subscribeMessage.op != null)
+                        {
+                            if (subscribeMessage.success == "false")
+                            {
+                                if (subscribeMessage.ret_msg.Contains("already"))
+                                {
+                                    continue;
+                                }
+                                SendLogMessage("WebSocket Error: " + subscribeMessage.ret_msg, LogMessageType.Error);
+                            }
+
+                            continue;
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -2645,56 +2652,47 @@ namespace OsEngine.Market.Servers.Bybit
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(5000);
-                    continue;
-                }
-
                 try
                 {
-                    if (concurrentQueueMessagePrivateWebSocket == null
-                       || concurrentQueueMessagePrivateWebSocket.IsEmpty
-                       || concurrentQueueMessagePrivateWebSocket.Count == 0)
+                    if (concurrentQueueMessagePrivateWebSocket.IsEmpty)
                     {
-                        try
-                        {
-                            Thread.Sleep(1);
-                        }
-                        catch
+                        if (IsCompletelyDeleted == true)
                         {
                             return;
                         }
-                        continue;
+
+                        Thread.Sleep(1);
                     }
-
-                    if (!concurrentQueueMessagePrivateWebSocket.TryDequeue(out string message))
+                    else
                     {
-                        continue;
-                    }
-
-                    SubscribeMessage subscribeMessage =
-                      JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
-
-                    if (subscribeMessage.op == "pong")
-                    {
-                        continue;
-                    }
-
-                    ResponseWebSocketMessage<object> response =
-                      JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
-
-                    if (response.topic != null)
-                    {
-                        if (response.topic.Contains("execution"))
+                        if (!concurrentQueueMessagePrivateWebSocket.TryDequeue(out string message))
                         {
-                            UpdateMyTrade(message);
                             continue;
                         }
-                        else if (response.topic.Contains("order"))
+
+                        SubscribeMessage subscribeMessage =
+                          JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
+
+                        if (subscribeMessage.op == "pong")
                         {
-                            UpdateOrder(message);
                             continue;
+                        }
+
+                        ResponseWebSocketMessage<object> response =
+                          JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+
+                        if (response.topic != null)
+                        {
+                            if (response.topic.Contains("execution"))
+                            {
+                                UpdateMyTrade(message);
+                                continue;
+                            }
+                            else if (response.topic.Contains("order"))
+                            {
+                                UpdateOrder(message);
+                                continue;
+                            }
                         }
                     }
                 }
@@ -2872,34 +2870,33 @@ namespace OsEngine.Market.Servers.Bybit
 
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_concurrentQueueMessageOrderBookSpot == null
-                        || _concurrentQueueMessageOrderBookSpot.IsEmpty
-                        || _concurrentQueueMessageOrderBookSpot.Count == 0)
+                    if (_concurrentQueueMessageOrderBookSpot.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    ResponseWebSocketMessage<ResponseOrderBook> message;
-
-                    if (!_concurrentQueueMessageOrderBookSpot.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        ResponseWebSocketMessage<ResponseOrderBook> message;
 
-                    UpdateOrderBook(message, category);
+                        if (!_concurrentQueueMessageOrderBookSpot.TryDequeue(out message))
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
 
-                    while (_concurrentQueueMessageOrderBookSpot?.Count > 50000)
-                    {
-                        _concurrentQueueMessageOrderBookSpot.TryDequeue(out message);
+                        UpdateOrderBook(message, category);
+
+                        while (_concurrentQueueMessageOrderBookSpot?.Count > 50000)
+                        {
+                            _concurrentQueueMessageOrderBookSpot.TryDequeue(out message);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -2916,34 +2913,33 @@ namespace OsEngine.Market.Servers.Bybit
 
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_concurrentQueueMessageOrderBookInverse == null
-                        || _concurrentQueueMessageOrderBookInverse.IsEmpty
-                        || _concurrentQueueMessageOrderBookInverse.Count == 0)
+                    if (_concurrentQueueMessageOrderBookInverse.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    ResponseWebSocketMessage<ResponseOrderBook> message;
-
-                    if (!_concurrentQueueMessageOrderBookInverse.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        ResponseWebSocketMessage<ResponseOrderBook> message;
 
-                    UpdateOrderBook(message, category);
+                        if (!_concurrentQueueMessageOrderBookInverse.TryDequeue(out message))
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
 
-                    while (_concurrentQueueMessageOrderBookInverse?.Count > 50000)
-                    {
-                        _concurrentQueueMessageOrderBookInverse.TryDequeue(out message);
+                        UpdateOrderBook(message, category);
+
+                        while (_concurrentQueueMessageOrderBookInverse?.Count > 50000)
+                        {
+                            _concurrentQueueMessageOrderBookInverse.TryDequeue(out message);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -2960,34 +2956,33 @@ namespace OsEngine.Market.Servers.Bybit
 
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_concurrentQueueMessageOrderBookLinear == null
-                        || _concurrentQueueMessageOrderBookLinear.IsEmpty
-                        || _concurrentQueueMessageOrderBookLinear.Count == 0)
+                    if (_concurrentQueueMessageOrderBookLinear.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    ResponseWebSocketMessage<ResponseOrderBook> message;
-
-                    if (!_concurrentQueueMessageOrderBookLinear.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        ResponseWebSocketMessage<ResponseOrderBook> message;
 
-                    UpdateOrderBook(message, category);
+                        if (!_concurrentQueueMessageOrderBookLinear.TryDequeue(out message))
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
 
-                    while (_concurrentQueueMessageOrderBookLinear.Count > 50000)
-                    {
-                        _concurrentQueueMessageOrderBookLinear.TryDequeue(out message);
+                        UpdateOrderBook(message, category);
+
+                        while (_concurrentQueueMessageOrderBookLinear.Count > 50000)
+                        {
+                            _concurrentQueueMessageOrderBookLinear.TryDequeue(out message);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -3004,34 +2999,33 @@ namespace OsEngine.Market.Servers.Bybit
 
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
-                    if (_concurrentQueueMessageOrderBookOption == null
-                        || _concurrentQueueMessageOrderBookOption.IsEmpty
-                        || _concurrentQueueMessageOrderBookOption.Count == 0)
+                    if (_concurrentQueueMessageOrderBookOption.IsEmpty)
                     {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    ResponseWebSocketMessage<ResponseOrderBook> message;
-
-                    if (!_concurrentQueueMessageOrderBookOption.TryDequeue(out message))
+                    else
                     {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                        ResponseWebSocketMessage<ResponseOrderBook> message;
 
-                    UpdateOrderBook(message, category);
+                        if (!_concurrentQueueMessageOrderBookOption.TryDequeue(out message))
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
 
-                    while (_concurrentQueueMessageOrderBookOption.Count > 50000)
-                    {
-                        _concurrentQueueMessageOrderBookOption.TryDequeue(out message);
+                        UpdateOrderBook(message, category);
+
+                        while (_concurrentQueueMessageOrderBookOption.Count > 50000)
+                        {
+                            _concurrentQueueMessageOrderBookOption.TryDequeue(out message);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -3280,13 +3274,18 @@ namespace OsEngine.Market.Servers.Bybit
 
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
+                    if (_concurrentQueueTradesSpot.IsEmpty)
+                    {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
+                        Thread.Sleep(1);
+                    }
+
                     if (_concurrentQueueTradesSpot != null
                         && _concurrentQueueTradesSpot.IsEmpty == false)
                     {
@@ -3322,13 +3321,18 @@ namespace OsEngine.Market.Servers.Bybit
 
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
+                    if (_concurrentQueueTradesLinear.IsEmpty)
+                    {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
+                        Thread.Sleep(1);
+                    }
+
                     if (_concurrentQueueTradesLinear != null
                         && _concurrentQueueTradesLinear.IsEmpty == false)
                     {
@@ -3364,13 +3368,18 @@ namespace OsEngine.Market.Servers.Bybit
 
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
+                    if (_concurrentQueueTradesInverse.IsEmpty)
+                    {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
+                        Thread.Sleep(1);
+                    }
+
                     if (_concurrentQueueTradesInverse != null
                        && _concurrentQueueTradesInverse.IsEmpty == false)
                     {
@@ -3406,13 +3415,18 @@ namespace OsEngine.Market.Servers.Bybit
 
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    Thread.Sleep(3000);
-                }
-
                 try
                 {
+                    if (_concurrentQueueTradesOption.IsEmpty)
+                    {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
+                        Thread.Sleep(1);
+                    }
+
                     if (_concurrentQueueTradesOption != null
                        && _concurrentQueueTradesOption.IsEmpty == false)
                     {
