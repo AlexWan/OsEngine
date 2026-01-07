@@ -59,19 +59,24 @@ namespace OsEngine.Market.Servers.BloFin
             ServerStatus = ServerConnectStatus.Disconnect;
 
             Thread threadCheckAliveWebSocket = new Thread(CheckAliveWebSocket);
-            threadCheckAliveWebSocket.IsBackground = true;
             threadCheckAliveWebSocket.Name = "CheckAliveWebSocketBloFinFutures";
             threadCheckAliveWebSocket.Start();
 
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
-            threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Name = "MessageReaderPublic";
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
-            threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
             threadMessageReaderPrivate.Start();
+
+            Thread threadMessageReaderMarketDepth = new Thread(ThreadMessageReaderMarketDepth);
+            threadMessageReaderMarketDepth.Name = "ThreadBlofinFuturesMessageReaderMarketDepth";
+            threadMessageReaderMarketDepth.Start();
+
+            Thread threadMessageReaderTrades = new Thread(ThreadMessageReaderTrades);
+            threadMessageReaderTrades.Name = "ThreadBlofinFuturesMessageReaderTrades";
+            threadMessageReaderTrades.Start();
         }
 
         public void Connect(WebProxy proxy = null)
@@ -107,10 +112,9 @@ namespace OsEngine.Market.Servers.BloFin
                     return;
                 }
 
-                CreateWebSocketConnection();
-                CheckActivationSockets();
+                CreatePublicWebSocketConnect();
+                CreatePrivateWebSocketConnect();
                 SetMarginMode();
-                //SetPositionMode();
             }
             catch (Exception ex)
             {
@@ -131,8 +135,10 @@ namespace OsEngine.Market.Servers.BloFin
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+            _fIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+            _fIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+            _queueMessageMarketDepth = new ConcurrentQueue<string>();
+            _queueMessageTrades = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -347,7 +353,7 @@ namespace OsEngine.Market.Servers.BloFin
                             _securities.Add(newSecurity);
                         }
 
-                        SecurityEvent(_securities);
+                        SecurityEvent?.Invoke(_securities);
                     }
                     else
                     {
@@ -637,42 +643,141 @@ namespace OsEngine.Market.Servers.BloFin
 
         #region 6 WebSocket creation
 
+        private List<WebSocket> _webSocketPublic = new List<WebSocket>();
+
         private WebSocket _webSocketPrivate;
 
-        private WebSocket _webSocketPublic;
-
-        private void CreateWebSocketConnection()
+        private void CreatePublicWebSocketConnect()
         {
-            _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
+            try
+            {
+                if (_fIFOListWebSocketPublicMessage == null)
+                {
+                    _fIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                }
 
-            /*_webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.Tls12;*/
-
-            _webSocketPrivate.EmitOnPing = true;
-            _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
-            _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
-            _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-            _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
-            _webSocketPrivate.ConnectAsync();
-
-            _webSocketPublic = new WebSocket(_webSocketUrlPublic);
-            /*_webSocketPublic.SslConfiguration.EnabledSslProtocols
-               = System.Security.Authentication.SslProtocols.Tls12;*/
-            _webSocketPublic.EmitOnPing = true;
-
-            _webSocketPublic.OnOpen += _webSocketPublic_OnOpen;
-            _webSocketPublic.OnMessage += _webSocketPublic_OnMessage;
-            _webSocketPublic.OnError += _webSocketPublic_OnError;
-            _webSocketPublic.OnClose += _webSocketPublic_OnClose;
-            _webSocketPublic.ConnectAsync();
+                _webSocketPublic.Add(CreateNewPublicSocket());
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
         }
 
-        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsKuCoinFutures";
-
-        private void CheckActivationSockets()
+        private WebSocket CreateNewPublicSocket()
         {
-            lock (_lockerCheckActivateionSockets)
+            try
             {
+                WebSocket webSocketPublicNew = new WebSocket(_webSocketUrlPublic);
+
+                //if (_myProxy != null)
+                //{
+                //    webSocketPublicNew.SetProxy(_myProxy);
+                //}
+
+                webSocketPublicNew.EmitOnPing = true;
+                webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
+                webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
+                webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
+                webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
+                webSocketPublicNew.ConnectAsync();
+
+                return webSocketPublicNew;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private void CreatePrivateWebSocketConnect()
+        {
+            try
+            {
+                if (_webSocketPrivate != null)
+                {
+                    return;
+                }
+
+                _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
+
+                //if (_myProxy != null)
+                //{
+                //    _webSocketPrivate.SetProxy(_myProxy);
+                //}
+
+                _webSocketPrivate.EmitOnPing = true;
+                _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
+                _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
+                _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
+                _webSocketPrivate.OnError += _webSocketPrivate_OnError;
+                _webSocketPrivate.ConnectAsync();
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void DeleteWebSocketConnection()
+        {
+            if (_webSocketPublic != null)
+            {
+                try
+                {
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
+                        webSocketPublic.OnMessage -= WebSocketPublicNew_OnMessage;
+                        webSocketPublic.OnError -= WebSocketPublicNew_OnError;
+                        webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
+
+                        if (webSocketPublic.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.CloseAsync();
+                        }
+
+                        webSocketPublic = null;
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                _webSocketPublic.Clear();
+            }
+
+            if (_webSocketPrivate != null)
+            {
+                try
+                {
+                    _webSocketPrivate.EmitOnPing = true;
+                    _webSocketPrivate.OnOpen -= _webSocketPrivate_OnOpen;
+                    _webSocketPrivate.OnClose -= _webSocketPrivate_OnClose;
+                    _webSocketPrivate.OnMessage -= _webSocketPrivate_OnMessage;
+                    _webSocketPrivate.OnError -= _webSocketPrivate_OnError;
+                    _webSocketPrivate.CloseAsync();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                _webSocketPrivate = null;
+            }
+        }
+
+        private string _socketActivateLocker = "socketAcvateLocker";
+
+        private void CheckSocketsActivate()
+        {
+            lock (_socketActivateLocker)
+            {
+
                 if (_webSocketPrivate == null
                     || _webSocketPrivate.ReadyState != WebSocketState.Open)
                 {
@@ -680,8 +785,16 @@ namespace OsEngine.Market.Servers.BloFin
                     return;
                 }
 
-                if (_webSocketPublic == null
-                    || _webSocketPublic.ReadyState != WebSocketState.Open)
+                if (_webSocketPublic.Count == 0)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                WebSocket webSocketPublic = _webSocketPublic[0];
+
+                if (webSocketPublic == null
+                    || webSocketPublic?.ReadyState != WebSocketState.Open)
                 {
                     Disconnect();
                     return;
@@ -698,45 +811,6 @@ namespace OsEngine.Market.Servers.BloFin
 
                     SetPositionMode();
                 }
-            }
-        }
-
-        private void DeleteWebSocketConnection()
-        {
-            if (_webSocketPublic != null)
-            {
-                try
-                {
-                    _webSocketPublic.OnOpen -= _webSocketPublic_OnOpen;
-                    _webSocketPublic.OnMessage -= _webSocketPublic_OnMessage;
-                    _webSocketPublic.OnError -= _webSocketPublic_OnError;
-                    _webSocketPublic.OnClose -= _webSocketPublic_OnClose;
-                    _webSocketPublic.CloseAsync();
-                }
-                catch
-                {
-                    // ignore
-                }
-
-                _webSocketPublic = null;
-            }
-
-            if (_webSocketPrivate != null)
-            {
-                try
-                {
-                    _webSocketPrivate.OnOpen -= _webSocketPrivate_OnOpen;
-                    _webSocketPrivate.OnMessage -= _webSocketPrivate_OnMessage;
-                    _webSocketPrivate.OnError -= _webSocketPrivate_OnError;
-                    _webSocketPrivate.OnClose -= _webSocketPrivate_OnClose;
-                    _webSocketPrivate.CloseAsync();
-                }
-                catch
-                {
-                    // ignore
-                }
-
-                _webSocketPrivate = null;
             }
         }
 
@@ -760,6 +834,103 @@ namespace OsEngine.Market.Servers.BloFin
         #endregion
 
         #region 7 WebSocket events
+
+        private void WebSocketPublicNew_OnClose(object sender, CloseEventArgs e)
+        {
+            try
+            {
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void WebSocketPublicNew_OnError(object sender, ErrorEventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the BloFinFutures WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void WebSocketPublicNew_OnMessage(object sender, MessageEventArgs e)
+        {
+            try
+            {
+                if (e == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(e.Data))
+                {
+                    return;
+                }
+
+                if (e.Data.Contains("pong"))
+                { // pong message
+                    return;
+                }
+
+                if (_fIFOListWebSocketPublicMessage == null)
+                {
+                    return;
+                }
+
+                _fIFOListWebSocketPublicMessage.Enqueue(e.Data);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void WebSocketPublicNew_OnOpen(object sender, EventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    CheckSocketsActivate();
+                    SendLogMessage("BloFinFutures WebSocket Public connection open", LogMessageType.System);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
 
         private void _webSocketPrivate_OnClose(object sender, CloseEventArgs e)
         {
@@ -835,12 +1006,12 @@ namespace OsEngine.Market.Servers.BloFin
                     return;
                 }
 
-                if (FIFOListWebSocketPrivateMessage == null)
+                if (_fIFOListWebSocketPrivateMessage == null)
                 {
                     return;
                 }
 
-                FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
+                _fIFOListWebSocketPrivateMessage.Enqueue(e.Data);
             }
             catch (Exception ex)
             {
@@ -853,105 +1024,8 @@ namespace OsEngine.Market.Servers.BloFin
             try
             {
                 CreateAuthMessageWebSockets();
-                CheckActivationSockets();
+                CheckSocketsActivate();
                 SendLogMessage("BloFinFutures WebSocket Private connection open", LogMessageType.System);
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
-        private void _webSocketPublic_OnClose(object sender, CloseEventArgs e)
-        {
-            try
-            {
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                    message += OsLocalization.Market.Message102;
-
-                    SendLogMessage(message, LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void _webSocketPublic_OnError(object sender, ErrorEventArgs e)
-        {
-            try
-            {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    return;
-                }
-
-                if (e.Exception != null)
-                {
-                    string message = e.Exception.ToString();
-
-                    if (message.Contains("The remote party closed the WebSocket connection"))
-                    {
-                        // ignore
-                    }
-                    else
-                    {
-                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void _webSocketPublic_OnMessage(object sender, MessageEventArgs e)
-        {
-            try
-            {
-                if (e == null)
-                {
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(e.Data))
-                {
-                    return;
-                }
-
-                if (e.Data.Contains("pong"))
-                { // pong message
-                    return;
-                }
-
-                if (FIFOListWebSocketPublicMessage == null)
-                {
-                    return;
-                }
-
-                FIFOListWebSocketPublicMessage.Enqueue(e.Data);
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
-        private void _webSocketPublic_OnOpen(object sender, EventArgs e)
-        {
-            try
-            {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    CheckActivationSockets();
-                    SendLogMessage("BloFinFutures WebSocket Public connection open", LogMessageType.System);
-                }
             }
             catch (Exception ex)
             {
@@ -969,28 +1043,38 @@ namespace OsEngine.Market.Servers.BloFin
             {
                 try
                 {
-                    Thread.Sleep(10000);
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    Thread.Sleep(15000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        Thread.Sleep(1000);
                         continue;
                     }
 
-                    if (_webSocketPrivate != null && _webSocketPrivate.ReadyState == WebSocketState.Open ||
-                        _webSocketPrivate.ReadyState == WebSocketState.Connecting)
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        _webSocketPrivate.SendAsync($"ping");
-                    }
-                    else
-                    {
-                        Disconnect();
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        if (webSocketPublic != null
+                            && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.SendAsync("ping");
+                        }
+                        else
+                        {
+                            Disconnect();
+                        }
                     }
 
-                    if (_webSocketPublic != null && _webSocketPublic.ReadyState == WebSocketState.Open ||
-                        _webSocketPublic.ReadyState == WebSocketState.Connecting)
+                    if (_webSocketPrivate != null &&
+                        (_webSocketPrivate.ReadyState == WebSocketState.Open ||
+                        _webSocketPrivate.ReadyState == WebSocketState.Connecting))
                     {
-                        _webSocketPublic.SendAsync($"ping");
+                        _webSocketPrivate.SendAsync("ping");
                     }
                     else
                     {
@@ -1009,7 +1093,7 @@ namespace OsEngine.Market.Servers.BloFin
 
         #region 9 Security subscribe
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(1000));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         private List<Security> _subscribedSecutiries = new List<Security>();
 
@@ -1037,8 +1121,44 @@ namespace OsEngine.Market.Servers.BloFin
 
                 _subscribedSecutiries.Add(security);
 
-                _webSocketPublic?.SendAsync($"{{\"op\":\"subscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
-                _webSocketPublic?.SendAsync($"{{\"op\":\"subscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");
+                if (_webSocketPublic.Count == 0)
+                {
+                    return;
+                }
+
+                WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+                if (webSocketPublic.ReadyState == WebSocketState.Open
+                    && _subscribedSecutiries.Count != 0
+                    && _subscribedSecutiries.Count % 30 == 0)
+                {
+                    // creating a new socket
+                    WebSocket newSocket = CreateNewPublicSocket();
+
+                    DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                    while (newSocket.ReadyState != WebSocketState.Open)
+                    {
+                        Thread.Sleep(1000);
+
+                        if (timeEnd < DateTime.Now)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (newSocket.ReadyState == WebSocketState.Open)
+                    {
+                        _webSocketPublic.Add(newSocket);
+                        webSocketPublic = newSocket;
+                    }
+                }
+
+                if (webSocketPublic != null)
+                {
+                    webSocketPublic?.SendAsync($"{{\"op\":\"subscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
+                    webSocketPublic?.SendAsync($"{{\"op\":\"subscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");
+                }
             }
             catch (Exception ex)
             {
@@ -1062,23 +1182,41 @@ namespace OsEngine.Market.Servers.BloFin
 
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic != null
-                && _webSocketPublic.ReadyState == WebSocketState.Open)
+            try
             {
-                try
+                if (_webSocketPublic.Count != 0
+                    && _webSocketPublic != null)
                 {
-                    for (int i = 0; i < _subscribedSecutiries.Count; i++)
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        Security security = _subscribedSecutiries[i];
+                        WebSocket webSocketPublic = _webSocketPublic[i];
 
-                        _webSocketPublic.SendAsync($"{{\"op\":\"unsubscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
-                        _webSocketPublic.SendAsync($"{{\"op\":\"unsubscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");
+                        try
+                        {
+                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                            {
+                                if (_subscribedSecutiries != null)
+                                {
+                                    for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
+                                    {
+                                        Security security = _subscribedSecutiries[i2];
+
+                                        webSocketPublic.SendAsync($"{{\"op\":\"unsubscribe\",\"args\":[{{\"channel\":\"books5\",\"instId\":\"{security.Name}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\":\"unsubscribe\",\"args\":[{{ \"channel\":\"trades\",\"instId\":\"{security.Name}\"}}]}}");
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
                     }
                 }
-                catch
-                {
-                    // ignore
-                }
+            }
+            catch
+            {
+                // ignore
             }
 
             if (_webSocketPrivate != null
@@ -1108,60 +1246,55 @@ namespace OsEngine.Market.Servers.BloFin
 
         #region 10 WebSocket parsing the messages
 
-        private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> _fIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
 
-        private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> _fIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageMarketDepth = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _queueMessageTrades = new ConcurrentQueue<string>();
 
         private void MessageReaderPublic()
         {
-            Thread.Sleep(5000);
-
             while (true)
             {
                 try
                 {
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    if (_fIFOListWebSocketPublicMessage.IsEmpty)
                     {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
 
-                    if (FIFOListWebSocketPublicMessage.IsEmpty)
-                    {
                         Thread.Sleep(1);
-                        continue;
-                    }
-
-                    string message = null;
-
-                    FIFOListWebSocketPublicMessage.TryDequeue(out message);
-
-                    if (message == null)
-                    {
-                        continue;
-                    }
-
-                    ResponseWebSocketMessage<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
-
-                    if (action.arg != null)
-                    {
-                        if (action.arg.channel.Equals("books5"))
-                        {
-                            UpdateMarketDepth(message);
-                            continue;
-                        }
-
-                        if (action.arg.channel.Equals("trades"))
-                        {
-                            UpdateTrades(message);
-                            continue;
-                        }
                     }
                     else
                     {
-                        if (action.Event != null && action.Event.Equals("error"))
+                        string message = null;
+
+                        _fIFOListWebSocketPublicMessage.TryDequeue(out message);
+
+                        if (message == null)
                         {
-                            SendLogMessage("[WS Public] Got error msg: " + action.msg, LogMessageType.Error);
+                            continue;
+                        }
+
+                        if (message.Contains("subscribe"))
+                        {
+                            continue;
+                        }
+                        else if (message.Contains("books5"))
+                        {
+                            _queueMessageMarketDepth.Enqueue(message);
+                        }
+                        else if (message.Contains("trades"))
+                        {
+                            _queueMessageTrades.Enqueue(message);
+                        }
+                        else if (message.Contains("error"))
+                        {
+                            SendLogMessage("[WS Public] Got error msg: " + message, LogMessageType.Error);
                         }
                     }
                 }
@@ -1175,58 +1308,52 @@ namespace OsEngine.Market.Servers.BloFin
 
         private void MessageReaderPrivate()
         {
-            Thread.Sleep(5000);
-
             while (true)
             {
                 try
                 {
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    if (_fIFOListWebSocketPrivateMessage.IsEmpty)
                     {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
 
-                    if (FIFOListWebSocketPrivateMessage.IsEmpty)
-                    {
                         Thread.Sleep(1);
-                        continue;
                     }
-
-                    string message = null;
-
-                    FIFOListWebSocketPrivateMessage.TryDequeue(out message);
-
-                    if (message == null)
+                    else
                     {
-                        continue;
-                    }
+                        string message = null;
 
-                    ResponseWebSocketMessage<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+                        _fIFOListWebSocketPrivateMessage.TryDequeue(out message);
 
-                    if (action.arg != null)
-                    {
-                        if (action.arg.channel.Equals("account"))
+                        if (message == null)
+                        {
+                            continue;
+                        }
+
+                        if (message.Contains("subscribe"))
+                        {
+                            continue;
+                        }
+                        else if (message.Contains("account"))
                         {
                             UpdateAccount(message);
                             continue;
                         }
-                        if (action.arg.channel.Equals("positions"))
+                        else if (message.Contains("positions"))
                         {
                             UpdatePositions(message);
                             continue;
                         }
-                        if (action.arg.channel.Equals("orders"))
+                        else if (message.Contains("orders"))
                         {
                             UpdateOrder(message);
                             continue;
                         }
-                    }
-                    else
-                    {
-                        if (action.Event != null && action.Event.Equals("error"))
+                        else if (message.Contains("error"))
                         {
-                            SendLogMessage("[WS Private] Got error msg: " + action.msg, LogMessageType.Error);
+                            SendLogMessage("[WS Private] Got error msg: " + message, LogMessageType.Error);
                         }
                     }
                 }
@@ -1234,6 +1361,72 @@ namespace OsEngine.Market.Servers.BloFin
                 {
                     SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
                     Thread.Sleep(3000);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderTrades()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (_queueMessageTrades.IsEmpty)
+                    {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
+                        Thread.Sleep(1);
+                    }
+                    else
+                    {
+                        string message;
+
+                        if (_queueMessageTrades.TryDequeue(out message))
+                        {
+                            UpdateTrades(message);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ThreadMessageReaderMarketDepth()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (_queueMessageMarketDepth.IsEmpty)
+                    {
+                        if (IsCompletelyDeleted == true)
+                        {
+                            return;
+                        }
+
+                        Thread.Sleep(1);
+                    }
+                    else
+                    {
+                        string message;
+
+                        if (_queueMessageMarketDepth.TryDequeue(out message))
+                        {
+                            UpdateMarketDepth(message);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
                 }
             }
         }
@@ -1307,7 +1500,7 @@ namespace OsEngine.Market.Servers.BloFin
 
                 _lastTimeMd = marketDepth.Time;
 
-                MarketDepthEvent(marketDepth);
+                MarketDepthEvent?.Invoke(marketDepth);
 
             }
             catch (Exception ex)
@@ -1560,7 +1753,7 @@ namespace OsEngine.Market.Servers.BloFin
                     }
                 }
 
-                PortfolioEvent(Portfolios);
+                PortfolioEvent?.Invoke(Portfolios);
             }
             catch (Exception ex)
             {
@@ -1631,7 +1824,7 @@ namespace OsEngine.Market.Servers.BloFin
                     portfolio.SetNewPosition(portf);
                 }
 
-                PortfolioEvent(Portfolios);
+                PortfolioEvent?.Invoke(Portfolios);
             }
             catch (Exception ex)
             {
@@ -2127,7 +2320,7 @@ namespace OsEngine.Market.Servers.BloFin
                             newTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
                             newTrade.Volume = item.fillSize.ToDecimal() * GetVolume(item.instId);
 
-                            MyTradeEvent(newTrade);
+                            MyTradeEvent?.Invoke(newTrade);
                         }
                     }
                     else
