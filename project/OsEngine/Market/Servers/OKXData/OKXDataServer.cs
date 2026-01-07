@@ -560,10 +560,12 @@ namespace OsEngine.Market.Servers.OKXData
                         string csvFilePath = GetSCVFileFromArchive(zipArchivePath);
 
                         trades.AddRange(ParseCsvFileToTrades(csvFilePath, security.Name));
+
+                        SendLogMessage($"Load data. File: " + path, LogMessageType.System);
                     }
                     else
                     {
-                        return null;
+                        SendLogMessage($"No data. File: " + path, LogMessageType.System);
                     }
 
                     startLoop = startLoop.AddDays(1);
