@@ -1800,7 +1800,6 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-
         private void CheckWrongCloseOrders()
         {
             if(Tab.StartProgram != StartProgram.IsOsTrader)
@@ -1921,11 +1920,29 @@ namespace OsEngine.OsTrader.Grids
 
                 if (curLineNeed.Side == Side.Buy)
                 {
-                    newPosition = Tab.BuyAtLimit(volume, curLineNeed.PriceEnter);
+                    decimal price = curLineNeed.PriceEnter;
+
+                    if(OpenOrdersMakerOnly == false
+                        && Tab.Security.PriceLimitHigh != 0
+                        && price >= Tab.Security.PriceLimitHigh)
+                    {
+                        price = Tab.Security.PriceLimitHigh - (Tab.Security.PriceStep*10);
+                    }
+
+                    newPosition = Tab.BuyAtLimit(volume, price);
                 }
                 else if (curLineNeed.Side == Side.Sell)
                 {
-                    newPosition = Tab.SellAtLimit(volume, curLineNeed.PriceEnter);
+                    decimal price = curLineNeed.PriceEnter;
+
+                    if (OpenOrdersMakerOnly == false
+                        && Tab.Security.PriceLimitLow != 0
+                        && price <= Tab.Security.PriceLimitLow)
+                    {
+                        price = Tab.Security.PriceLimitLow + (Tab.Security.PriceStep * 10);
+                    }
+
+                    newPosition = Tab.SellAtLimit(volume, price);
                 }
 
                 if (newPosition != null)
@@ -2550,8 +2567,23 @@ namespace OsEngine.OsTrader.Grids
                     if(Tab.Security.PriceLimitHigh != 0 
                         && Tab.Security.PriceLimitLow != 0)
                     {
-                        if(curLine.PriceEnter > Tab.Security.PriceLimitHigh 
-                            || curLine.PriceEnter <  Tab.Security.PriceLimitLow)
+                        if(OpenOrdersMakerOnly == true
+                            &&
+                            (curLine.PriceEnter > Tab.Security.PriceLimitHigh 
+                            || curLine.PriceEnter <  Tab.Security.PriceLimitLow))
+                        {
+                            continue;
+                        }
+
+                        if(OpenOrdersMakerOnly == false 
+                            && curLine.Side == Side.Buy
+                            && curLine.PriceEnter < Tab.Security.PriceLimitLow)
+                        {
+                            continue;
+                        }
+                        if (OpenOrdersMakerOnly == false
+                            && curLine.Side == Side.Sell
+                            && curLine.PriceEnter > Tab.Security.PriceLimitHigh)
                         {
                             continue;
                         }

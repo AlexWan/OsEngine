@@ -7,7 +7,6 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
-using OsEngine.OsTrader.Panels.Tab;
 using System;
 
 namespace OsEngine.OsTrader.Grids
@@ -28,15 +27,11 @@ namespace OsEngine.OsTrader.Grids
 
         public bool FailOpenOrdersReactionIsOn = true;
 
-        public TradeGridRegime FailOpenOrdersReaction = TradeGridRegime.Off;
-
         public int FailOpenOrdersCountToReaction = 10;
 
         public int FailOpenOrdersCountFact;
 
         public bool FailCancelOrdersReactionIsOn = true;
-
-        public TradeGridRegime FailCancelOrdersReaction = TradeGridRegime.Off;
 
         public int FailCancelOrdersCountToReaction = 10;
 
@@ -51,10 +46,10 @@ namespace OsEngine.OsTrader.Grids
             string result = "";
 
             result += FailOpenOrdersReactionIsOn + "@";
-            result += FailOpenOrdersReaction + "@";
+            result += "@";
             result += FailOpenOrdersCountToReaction + "@";
 
-            result += FailCancelOrdersReaction + "@";
+            result += "@";
             result += FailCancelOrdersCountToReaction + "@";
             result += FailCancelOrdersReactionIsOn + "@";
 
@@ -77,9 +72,9 @@ namespace OsEngine.OsTrader.Grids
                 string[] values = value.Split('@');
 
                 FailOpenOrdersReactionIsOn = Convert.ToBoolean(values[0]);
-                Enum.TryParse(values[1], out FailOpenOrdersReaction);
+                //Enum.TryParse(values[1], out FailOpenOrdersReaction);
                 FailOpenOrdersCountToReaction = Convert.ToInt32(values[2]);
-                Enum.TryParse(values[3], out FailCancelOrdersReaction);
+                //Enum.TryParse(values[3], out FailCancelOrdersReaction);
                 FailCancelOrdersCountToReaction = Convert.ToInt32(values[4]);
                 FailCancelOrdersReactionIsOn = Convert.ToBoolean(values[5]);
 
@@ -181,10 +176,10 @@ namespace OsEngine.OsTrader.Grids
                 {
                     string message = "ERROR on open orders. \n";
                     message += "Errors count: " + FailOpenOrdersCountFact.ToString() + "\n";
-                    message += "New regime: " + FailOpenOrdersReaction ;
+                    message += "New regime: Off";
                     SendNewLogMessage(message, LogMessageType.Error);
 
-                    return FailOpenOrdersReaction;
+                    return TradeGridRegime.Off;
                 }
             }
 
@@ -194,10 +189,10 @@ namespace OsEngine.OsTrader.Grids
                 {
                     string message = "ERROR on cancel orders. \n";
                     message += "Errors count: " + FailCancelOrdersCountFact.ToString() + "\n";
-                    message += "New regime: " + FailCancelOrdersReaction;
+                    message += "New regime: Off";
                     SendNewLogMessage(message, LogMessageType.Error);
 
-                    return FailCancelOrdersReaction;
+                    return TradeGridRegime.Off;
                 }
             }
 

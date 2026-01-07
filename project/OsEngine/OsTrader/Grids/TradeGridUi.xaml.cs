@@ -346,11 +346,6 @@ namespace OsEngine.OsTrader.Grids
             CheckBoxFailOpenOrdersReactionIsOn.IsChecked = tradeGrid.ErrorsReaction.FailOpenOrdersReactionIsOn;
             CheckBoxFailOpenOrdersReactionIsOn.Checked += CheckBoxFailOpenOrdersReactionIsOn_Checked;
             CheckBoxFailOpenOrdersReactionIsOn.Unchecked += CheckBoxFailOpenOrdersReactionIsOn_Checked;
-            ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.Off.ToString());
-            ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
-            ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
-            ComboBoxFailOpenOrdersReaction.SelectedItem = tradeGrid.ErrorsReaction.FailOpenOrdersReaction.ToString();
-            ComboBoxFailOpenOrdersReaction.SelectionChanged += ComboBoxFailOpenOrdersReaction_SelectionChanged;
             TextBoxFailOpenOrdersCountToReaction.Text = tradeGrid.ErrorsReaction.FailOpenOrdersCountToReaction.ToString();
             TextBoxFailOpenOrdersCountToReaction.TextChanged += TextBoxFailOpenOrdersCountToReaction_TextChanged;
             TextBoxFailOpenOrdersCountFact.Text = tradeGrid.ErrorsReaction.FailOpenOrdersCountFact.ToString();
@@ -358,11 +353,6 @@ namespace OsEngine.OsTrader.Grids
             CheckBoxFailCancelOrdersReactionIsOn.IsChecked = tradeGrid.ErrorsReaction.FailCancelOrdersReactionIsOn;
             CheckBoxFailCancelOrdersReactionIsOn.Checked += CheckBoxFailCancelOrdersReactionIsOn_Checked;
             CheckBoxFailCancelOrdersReactionIsOn.Unchecked += CheckBoxFailCancelOrdersReactionIsOn_Checked;
-            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.Off.ToString());
-            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
-            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
-            ComboBoxFailCancelOrdersReaction.SelectedItem = tradeGrid.ErrorsReaction.FailCancelOrdersReaction.ToString();
-            ComboBoxFailCancelOrdersReaction.SelectionChanged += ComboBoxFailCancelOrdersReaction_SelectionChanged;
             TextBoxFailCancelOrdersCountToReaction.Text = tradeGrid.ErrorsReaction.FailCancelOrdersCountToReaction.ToString();
             TextBoxFailCancelOrdersCountToReaction.TextChanged += TextBoxFailCancelOrdersCountToReaction_TextChanged;
             TextBoxFailCancelOrdersCountFact.Text = tradeGrid.ErrorsReaction.FailCancelOrdersCountFact.ToString();
@@ -532,12 +522,10 @@ namespace OsEngine.OsTrader.Grids
             // errors
 
             CheckBoxFailOpenOrdersReactionIsOn.Content = OsLocalization.Trader.Label538; 
-            LabelFailOpenOrdersReaction.Content = OsLocalization.Trader.Label99;
             LabelFailOpenOrdersCountToReaction.Content = OsLocalization.Trader.Label539;
             LabelFailOpenOrdersCountFact.Content = OsLocalization.Trader.Label540;
 
             CheckBoxFailCancelOrdersReactionIsOn.Content = OsLocalization.Trader.Label541;
-            LabelFailCancelOrdersReaction.Content = OsLocalization.Trader.Label99;
             LabelFailCancelOrdersCountToReaction.Content = OsLocalization.Trader.Label542;
             LabelFailCancelOrdersCountFact.Content = OsLocalization.Trader.Label543;
 
@@ -702,11 +690,9 @@ namespace OsEngine.OsTrader.Grids
 
                 CheckBoxFailOpenOrdersReactionIsOn.Checked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
                 CheckBoxFailOpenOrdersReactionIsOn.Unchecked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
-                ComboBoxFailOpenOrdersReaction.SelectionChanged -= ComboBoxFailOpenOrdersReaction_SelectionChanged;
                 TextBoxFailOpenOrdersCountToReaction.TextChanged -= TextBoxFailOpenOrdersCountToReaction_TextChanged;
                 CheckBoxFailCancelOrdersReactionIsOn.Checked -= CheckBoxFailCancelOrdersReactionIsOn_Checked;
                 CheckBoxFailCancelOrdersReactionIsOn.Unchecked -= CheckBoxFailCancelOrdersReactionIsOn_Checked;
-                ComboBoxFailCancelOrdersReaction.SelectionChanged -= ComboBoxFailCancelOrdersReaction_SelectionChanged;
                 TextBoxFailCancelOrdersCountToReaction.TextChanged -= TextBoxFailCancelOrdersCountToReaction_TextChanged;
 
                 CheckBoxTrailingUpIsOn.Checked -= CheckBoxTrailingUpIsOn_Checked;
@@ -802,19 +788,6 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        private void ComboBoxFailOpenOrdersReaction_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            try
-            {
-                Enum.TryParse(ComboBoxFailOpenOrdersReaction.SelectedItem.ToString(), out TradeGrid.ErrorsReaction.FailOpenOrdersReaction);
-                TradeGrid.Save();
-            }
-            catch (Exception ex)
-            {
-                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
         private void TextBoxFailOpenOrdersCountToReaction_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -843,19 +816,6 @@ namespace OsEngine.OsTrader.Grids
             catch
             {
                 // ignore
-            }
-        }
-
-        private void ComboBoxFailCancelOrdersReaction_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            try
-            {
-                Enum.TryParse(ComboBoxFailCancelOrdersReaction.SelectedItem.ToString(), out TradeGrid.ErrorsReaction.FailCancelOrdersReaction);
-                TradeGrid.Save();
-            }
-            catch (Exception ex)
-            {
-                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
