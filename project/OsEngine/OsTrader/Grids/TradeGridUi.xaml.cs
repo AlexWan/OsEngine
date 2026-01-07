@@ -347,7 +347,6 @@ namespace OsEngine.OsTrader.Grids
             CheckBoxFailOpenOrdersReactionIsOn.Checked += CheckBoxFailOpenOrdersReactionIsOn_Checked;
             CheckBoxFailOpenOrdersReactionIsOn.Unchecked += CheckBoxFailOpenOrdersReactionIsOn_Checked;
             ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.Off.ToString());
-            ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.On.ToString());
             ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
             ComboBoxFailOpenOrdersReaction.SelectedItem = tradeGrid.ErrorsReaction.FailOpenOrdersReaction.ToString();
@@ -360,8 +359,7 @@ namespace OsEngine.OsTrader.Grids
             CheckBoxFailCancelOrdersReactionIsOn.Checked += CheckBoxFailCancelOrdersReactionIsOn_Checked;
             CheckBoxFailCancelOrdersReactionIsOn.Unchecked += CheckBoxFailCancelOrdersReactionIsOn_Checked;
             ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.Off.ToString());
-            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.On.ToString());
-            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.CloseForced.ToString()); 
+            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
             ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
             ComboBoxFailCancelOrdersReaction.SelectedItem = tradeGrid.ErrorsReaction.FailCancelOrdersReaction.ToString();
             ComboBoxFailCancelOrdersReaction.SelectionChanged += ComboBoxFailCancelOrdersReaction_SelectionChanged;
