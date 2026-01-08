@@ -9,7 +9,6 @@ using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.HTX.Entity;
 using OsEngine.Market.Servers.HTX.Swap.Entity;
 using RestSharp;
 using System;
@@ -17,8 +16,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+
 
 
 namespace OsEngine.Market.Servers.HTX.Swap
@@ -94,8 +95,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public DateTime ServerTime { get; set; }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy)
         {
+            _myProxy = proxy;
             _accessKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
@@ -150,6 +154,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 string url = $"https://{_baseUrl}/api/v1/timestamp";
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
@@ -159,9 +169,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     if (response.status == "ok")
                     {
-                        _privateUriBuilder = new PrivateUrlBuilder(_accessKey, _secretKey, _baseUrl);
-                        _signer = new Signer(_secretKey);
-
                         CreatePublicWebSocketConnect();
                         CreatePrivateWebSocketConnect();
                     }
@@ -251,10 +258,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private int _limitCandles = 1990;
 
-        private PrivateUrlBuilder _privateUriBuilder;
-
-        private Signer _signer;
-
         private string _pathWsPublic;
 
         private string _pathRest;
@@ -341,21 +344,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     jsonContent.Add("position_mode", "single_side");
                 }
 
-                string url = null;
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                IRestResponse responseMessage = null;
 
                 if (_marginMode == "isolated")
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_switch_position_mode");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_switch_position_mode", Method.POST, jsonRequest);
                 }
                 else
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_switch_position_mode");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_cross_switch_position_mode", Method.POST, jsonRequest);
                 }
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
-                IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -393,6 +393,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 string url = $"https://{_baseUrl}{_pathRest}/v1/swap_contract_info";
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
@@ -542,15 +548,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             try
             {
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v3/swap_switch_account_type");
-
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
                 jsonContent.Add("account_type", "2");
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
-                IRestResponse responseMessage = client.Execute(request);
+                IRestResponse responseMessage = CreatePrivateQuery($"{_pathRest}/v3/swap_switch_account_type", Method.POST, jsonRequest);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -589,11 +591,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             try
             {
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_account_info");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                IRestResponse responseMessage = client.Execute(request);
+                IRestResponse responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_account_info", Method.POST);
 
                 if (!responseMessage.Content.Contains("error"))
                 {
@@ -657,11 +655,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             try
             {
-                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v3/unified_account_info");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                IRestResponse responseMessage = client.Execute(request);
+                IRestResponse responseMessage = CreatePrivateQuery($"{_pathRest}/v3/unified_account_info", Method.POST);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -776,11 +770,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
-                string JsonResponse = responseMessage.Content;
 
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    ResponseTrades responseTrade = JsonConvert.DeserializeObject<ResponseTrades>(JsonResponse);
+                    ResponseTrades responseTrade = JsonConvert.DeserializeObject<ResponseTrades>(responseMessage.Content);
 
                     if (responseTrade == null)
                     {
@@ -801,7 +794,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -817,9 +810,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         #region 5 Data
 
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return null;
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime endTime = DateTime.UtcNow;
+            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
+
+            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
@@ -977,6 +974,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 string url = $"https://{_baseUrl}{_pathCandles}/market/history/kline?{queryParam}";
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
@@ -1040,14 +1043,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
             return false;
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
-            DateTime endTime = DateTime.UtcNow;
-            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
-
-            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
+            return null;
         }
+
 
         #endregion
 
@@ -1080,10 +1080,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 WebSocket webSocketPublicNew = new WebSocket($"wss://{_baseUrl}{_pathWsPublic}");
 
-                //if (_myProxy != null)
-                //{
-                //    webSocketPublicNew.SetProxy(_myProxy);
-                //}
+                if (_myProxy != null)
+                {
+                    webSocketPublicNew.SetProxy(_myProxy);
+                }
 
                 webSocketPublicNew.EmitOnPing = true;
                 webSocketPublicNew.OnOpen += webSocketPublic_OnOpen;
@@ -1111,6 +1111,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
 
                 _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_pathWsPrivate}");
+
+                if (_myProxy != null)
+                {
+                    _webSocketPrivate.SetProxy(_myProxy);
+                }
+
                 _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += webSocketPrivate_OnError;
@@ -1404,7 +1410,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
         {
             try
             {
-                string authRequest = BuildSign(DateTime.UtcNow);
+                string authRequest = BuildSign();
                 _webSocketPrivate.SendAsync(authRequest);
 
                 SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
@@ -1583,6 +1589,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 string url = $"https://{_baseUrl}{_pathRest}/v1/swap_historical_funding_rate?{queryParam}";
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
@@ -1823,6 +1835,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 {
                     string url = $"https://{_baseUrl}{_pathRest}/v1/swap_open_interest?contract_code={_subscribedSecurities[i]}";
                     RestClient client = new RestClient(url);
+
+                    if (_myProxy != null)
+                    {
+                        client.Proxy = _myProxy;
+                    }
+
                     RestRequest request = new RestRequest(Method.GET);
                     IRestResponse responseMessage = client.Execute(request);
 
@@ -2739,21 +2757,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 jsonContent.Add("channel_code", "AAe2ccbd47");
 
-                string url = null;
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                IRestResponse responseMessage = null;
 
                 if (_marginMode == "isolated")
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_order", Method.POST, jsonRequest);
                 }
                 else
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_order");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_cross_order", Method.POST, jsonRequest);
                 }
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
-                IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2828,21 +2843,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("order_id", order.NumberMarket);
                 jsonContent.Add("contract_code", order.SecurityNameCode);
 
-                string url = null;
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                IRestResponse responseMessage = null;
 
                 if (_marginMode == "isolated")
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cancel");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_cancel", Method.POST, jsonRequest);
                 }
                 else
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_cancel");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_cross_cancel", Method.POST, jsonRequest);
                 }
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
-                IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2909,22 +2921,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
                 jsonContent.Add("contract_code", security.Name);
 
-                string url = null;
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                IRestResponse responseMessage = null;
 
                 if (_marginMode == "isolated")
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cancelall");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_cancelall", Method.POST, jsonRequest);
                 }
                 else
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_cancelall");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_cross_cancelall", Method.POST, jsonRequest);
                 }
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
-                IRestResponse responseMessage = client.Execute(request);
-
             }
             catch (Exception e)
             {
@@ -2988,21 +2996,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("page_index", pageIndex.ToString());
                 jsonContent.Add("page_size", "20");
 
-                string url = null;
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                IRestResponse responseMessage = null;
 
                 if (_marginMode == "isolated")
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_openorders");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_openorders", Method.POST, jsonRequest);
                 }
                 else
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_openorders");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_cross_openorders", Method.POST, jsonRequest);
                 }
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
-                IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -3205,21 +3210,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     jsonContent.Add("client_order_id", numberUser);
                 }
 
-                string url = null;
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                IRestResponse responseMessage = null;
 
                 if (_marginMode == "isolated")
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order_info");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_order_info", Method.POST, jsonRequest);
                 }
                 else
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_order_info");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_cross_order_info", Method.POST, jsonRequest);
                 }
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
-                IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -3294,22 +3296,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("order_id", orderId);
                 //jsonContent.Add("created_at", TimeManager.GetTimeStampMilliSecondsToDateTime(createdOrderTime));
 
-                string url = null;
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                IRestResponse responseMessage = null;
 
                 if (_marginMode == "isolated")
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order_detail");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_order_detail", Method.POST, jsonRequest);
                 }
                 else
                 {
-                    url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cross_order_detail");
+                    responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_cross_order_detail", Method.POST, jsonRequest);
                 }
-
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
-                IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -3412,6 +3410,96 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         #region 12 Queries
 
+        private IRestResponse CreatePrivateQuery(string path, Method method, string body = null)
+        {
+            string strDateTime = DateTime.UtcNow.ToString("s");
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>
+            {
+                { "AccessKeyId", Uri.EscapeDataString(_accessKey) },
+                { "SignatureMethod", Uri.EscapeDataString("HmacSHA256") },
+                { "SignatureVersion", Uri.EscapeDataString("2") },
+                { "Timestamp", Uri.EscapeDataString(strDateTime) }
+            };
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var kvp in parameters)
+            {
+                sb.Append('&').Append(kvp.Key).Append('=').Append(kvp.Value);
+            }
+
+            string param = sb.ToString().Substring(1);
+
+            string stringToSign = $"{method.ToString().ToUpper()}\n{_baseUrl}\n{path}\n{param}";
+
+            string signature = GenerateSignature(stringToSign);
+
+            string url = $"https://{_baseUrl}{path}?{param}&Signature={Uri.EscapeDataString(signature)}";
+
+
+            RestClient client = new RestClient(url);
+
+            if (_myProxy != null)
+            {
+                client.Proxy = _myProxy;
+            }
+
+            RestRequest request = new RestRequest(method);
+            request.AddParameter("application/json", body, ParameterType.RequestBody);
+
+            IRestResponse response = client.Execute(request);
+
+            return response;
+        }
+
+        public string BuildSign()
+        {
+            string strDateTime = DateTime.UtcNow.ToString("s");
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>
+            {
+                { "AccessKeyId", Uri.EscapeDataString(_accessKey) },
+                { "SignatureMethod", Uri.EscapeDataString("HmacSHA256") },
+                { "SignatureVersion", Uri.EscapeDataString("2") },
+                { "Timestamp", Uri.EscapeDataString(strDateTime) }
+            };
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var kvp in parameters)
+            {
+                sb.Append('&').Append(kvp.Key).Append('=').Append(kvp.Value);
+            }
+
+            string param = sb.ToString().Substring(1);
+
+            string stringToSign = $"GET\n{_baseUrl}\n{_pathWsPrivate}\n{param}";
+
+            string signature = GenerateSignature(stringToSign);
+
+            WebSocketAuthenticationRequestFutures auth = new WebSocketAuthenticationRequestFutures();
+            auth.AccessKeyId = _accessKey;
+            auth.Signature = signature;
+            auth.Timestamp = strDateTime;
+
+            return JsonConvert.SerializeObject(auth);
+        }
+
+        private string GenerateSignature(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+
+            byte[] inputBuffer = Encoding.UTF8.GetBytes(input);
+            byte[] keyBuffer = Encoding.UTF8.GetBytes(_secretKey);
+            byte[] hashedBuffer = new HMACSHA256(keyBuffer).ComputeHash(inputBuffer);
+
+            return Convert.ToBase64String(hashedBuffer);
+        }
+
         public static string Decompress(byte[] input)
         {
             using (GZipStream stream = new GZipStream(new System.IO.MemoryStream(input), CompressionMode.Decompress))
@@ -3434,26 +3522,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     return Encoding.UTF8.GetString(memory.ToArray());
                 }
             }
-        }
-
-        public string BuildSign(DateTime utcDateTime)
-        {
-            string strDateTime = utcDateTime.ToString("s");
-
-            GetRequest request = new GetRequest();
-            request.AddParam("AccessKeyId", _accessKey);
-            request.AddParam("SignatureMethod", "HmacSHA256");
-            request.AddParam("SignatureVersion", "2");
-            request.AddParam("Timestamp", strDateTime);
-
-            string signature = _signer.Sign("GET", _baseUrl, _pathWsPrivate, request.BuildParams());
-
-            WebSocketAuthenticationRequestFutures auth = new WebSocketAuthenticationRequestFutures();
-            auth.AccessKeyId = _accessKey;
-            auth.Signature = signature;
-            auth.Timestamp = strDateTime;
-
-            return JsonConvert.SerializeObject(auth);
         }
 
         public void SetLeverage(Security security, decimal leverage) { }
