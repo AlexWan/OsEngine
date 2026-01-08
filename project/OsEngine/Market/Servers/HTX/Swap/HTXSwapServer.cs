@@ -768,6 +768,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 string url = $"https://{_baseUrl}/market/trade?symbol={security}";
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
