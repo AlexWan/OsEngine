@@ -166,8 +166,8 @@ namespace OsEngine.Market.Servers.HTX.Futures
             get
             {
                 string[] values = new string[]
-                {                    
-                   
+                {
+
                 };
 
                 return values;
@@ -222,12 +222,12 @@ namespace OsEngine.Market.Servers.HTX.Futures
             get { return null; }
         }
 
-        public int CheckDataFeedLogic_NoDataMinutesToDisconnect 
-        { 
-            get 
-            { 
-                return 10; 
-            } 
+        public int CheckDataFeedLogic_NoDataMinutesToDisconnect
+        {
+            get
+            {
+                return 10;
+            }
         }
 
         public bool IsSupports_MultipleInstances
@@ -237,7 +237,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         public bool IsSupports_ProxyFor_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsSupports_AsyncOrderSending
