@@ -9,7 +9,6 @@ using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.HTX.Entity;
 using OsEngine.Market.Servers.HTX.Spot.Entity;
 using RestSharp;
 using System;
@@ -17,6 +16,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 
@@ -75,8 +75,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public DateTime ServerTime { get; set; }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy)
         {
+            _myProxy = proxy;
             _accessKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
@@ -100,14 +103,17 @@ namespace OsEngine.Market.Servers.HTX.Spot
             {
                 string url = $"https://{_baseUrl}/v2/market-status";
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    _privateUriBuilder = new PrivateUrlBuilder(_accessKey, _secretKey, _baseUrl);
-                    _signer = new Signer(_secretKey);
-
                     CreatePublicWebSocketConnect();
                     CreatePrivateWebSocketConnect();
                 }
@@ -138,6 +144,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
 
             _subscribedSecurities.Clear();
+
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
             _queueMessageMarketDepth = new ConcurrentQueue<string>();
@@ -192,10 +199,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private int _limitCandles = 2000;
 
-        private PrivateUrlBuilder _privateUriBuilder;
-
-        private Signer _signer;
-
         private bool _extendedMarketData;
 
         #endregion
@@ -208,10 +211,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
             {
                 string url = $"https://{_baseUrl}/v1/settings/common/market-symbols";
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseRestMessage<List<ResponseSecurities>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<ResponseSecurities>>());
 
@@ -333,19 +342,18 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void GetNewPortfolio()
         {
+            if (Portfolios == null)
+            {
+                Portfolios = new List<Portfolio>();
+            }
+
             _rateGatePortfolio.WaitToProceed();
 
             try
             {
-                Portfolios = new List<Portfolio>();
+                IRestResponse responseMessage = CreatePrivateQuery("/v1/account/accounts", Method.GET);
 
-                string url = _privateUriBuilder.Build("GET", "/v1/account/accounts");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);
-                IRestResponse responseMessage = client.Execute(request);
-
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseRestMessage<List<ResponsePortfolios>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<ResponsePortfolios>>());
 
@@ -406,15 +414,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     string type = portfolio.Number.Split('_')[1];
                     string id = portfolio.Number.Split('_')[2]; ;
 
-                    string url = _privateUriBuilder.Build("GET", $"/v1/account/accounts/{id}/balance");
+                    IRestResponse responseMessage = CreatePrivateQuery($"/v1/account/accounts/{id}/balance", Method.GET);
 
-                    RestClient client = new RestClient(url);
-                    RestRequest request = new RestRequest(Method.GET);
-                    IRestResponse responseMessage = client.Execute(request);
-
-                    string JsonResponse = responseMessage.Content;
-
-                    if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                    if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
                         ResponseRestMessage<ResponsePositions> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<ResponsePositions>());
 
@@ -479,7 +481,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             Disconnect();
                         }
 
-                        SendLogMessage($"Positions error. Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                        SendLogMessage($"Positions error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
                     }
                 }
 
@@ -504,15 +506,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             try
             {
-                string url = _privateUriBuilder.Build("GET", "/v2/account/valuation");
+                IRestResponse responseMessage = CreatePrivateQuery("/v2/account/valuation", Method.GET);
 
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);
-                IRestResponse responseMessage = client.Execute(request);
-
-                string JsonResponse = responseMessage.Content;
-
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseRestMessage<ResponseAccountValuation> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<ResponseAccountValuation>());
 
@@ -554,7 +550,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
                 else
                 {
-                    SendLogMessage($"Master Portfolio error. Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                    SendLogMessage($"Master Portfolio error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -569,9 +565,13 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         #region 5 Data
 
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return null;
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime endTime = DateTime.UtcNow;
+            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
+
+            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
@@ -731,10 +731,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 string url = $"https://{_baseUrl}/market/history/kline?{queryParam}";
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseRestMessage<List<ResponseCandles>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<ResponseCandles>>());
 
@@ -806,13 +812,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
             return false;
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
-            DateTime endTime = DateTime.UtcNow;
-            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
-
-            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
+            return null;
         }
 
         #endregion
@@ -846,10 +848,10 @@ namespace OsEngine.Market.Servers.HTX.Spot
             {
                 WebSocket webSocketPublicNew = new WebSocket(_webSocketUrlPublic);
 
-                //if (_myProxy != null)
-                //{
-                //    webSocketPublicNew.SetProxy(_myProxy);
-                //}
+                if (_myProxy != null)
+                {
+                    webSocketPublicNew.SetProxy(_myProxy);
+                }
 
                 webSocketPublicNew.EmitOnPing = true;
                 webSocketPublicNew.OnOpen += webSocketPublic_OnOpen;
@@ -877,6 +879,12 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
 
                 _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
+
+                if (_myProxy != null)
+                {
+                    _webSocketPrivate.SetProxy(_myProxy);
+                }
+
                 _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += webSocketPrivate_OnError;
@@ -1170,7 +1178,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             try
             {
-                string authRequest = BuildSign(DateTime.UtcNow);
+                string authRequest = BuildSign();
                 _webSocketPrivate.SendAsync(authRequest);
 
                 SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
@@ -1345,8 +1353,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void CreatePingMessageWebSocketPublic(string message)
         {
-            ResponsePing response = JsonConvert.DeserializeObject<ResponsePing>(message);
-
             if (_webSocketPublic == null)
             {
                 return;
@@ -1362,6 +1368,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                         if (webSocketPublic != null
                         && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
+                            ResponsePing response = JsonConvert.DeserializeObject<ResponsePing>(message);
                             webSocketPublic.SendAsync($"{{\"pong\": \"{response.ping}\"}}");
                         }
                     }
@@ -1375,14 +1382,13 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void CreatePingMessageWebSocketPrivate(string message)
         {
-            ResponsePingPrivate response = JsonConvert.DeserializeObject<ResponsePingPrivate>(message);
-
             if (_webSocketPrivate == null)
             {
                 return;
             }
             else
             {
+                ResponsePingPrivate response = JsonConvert.DeserializeObject<ResponsePingPrivate>(message);
                 _webSocketPrivate.SendAsync($"{{ \"action\": \"pong\", \"data\": {{ \"ts\": {response.data.ts} }} }}");
             }
         }
@@ -2093,12 +2099,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 jsonContent.Add("source", source_portfolio);
                 jsonContent.Add("client-order-id", "AAe2ccbd47" + order.NumberUser.ToString());
 
-                string url = _privateUriBuilder.Build("POST", $"/v1/order/orders/place");
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
-                IRestResponse responseMessage = client.Execute(request);
+                IRestResponse responseMessage = CreatePrivateQuery("/v1/order/orders/place", Method.POST, jsonRequest);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2119,7 +2122,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     SendLogMessage("Order Fail. Status: " + responseMessage.StatusCode + "  " + order.SecurityNameCode + ", " + responseMessage.Content, LogMessageType.Error);
                     CreateOrderFail(order);
                 }
-
             }
             catch (Exception exception)
             {
@@ -2157,11 +2159,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             try
             {
-                string url = _privateUriBuilder.Build("POST", $"/v1/order/orders/{order.NumberMarket}/submitcancel");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);
-                IRestResponse responseMessage = client.Execute(request);
+                IRestResponse responseMessage = CreatePrivateQuery($"/v1/order/orders/{order.NumberMarket}/submitcancel", Method.POST);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2248,18 +2246,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             try
             {
-                string url = _privateUriBuilder.Build("GET", $"/v1/order/openOrders");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);
-                IRestResponse responseMessage = client.Execute(request);
-
-                List<Order> orders = new List<Order>();
+                IRestResponse responseMessage = CreatePrivateQuery("/v1/order/openOrders", Method.GET);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseRestMessage<List<ResponseAllOrders>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<ResponseAllOrders>>());
                     List<ResponseAllOrders> item = response.data;
+
+                    List<Order> orders = new List<Order>();
 
                     if (response.status == "ok")
                     {
@@ -2393,8 +2387,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
         }
 
-
-
         private List<Order> _activeOrdersCash = new List<Order>();
         private List<Order> _historicalOrdersCash = new List<Order>();
         private DateTime _timeOrdersCashCreate;
@@ -2479,11 +2471,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             try
             {
-                string url = _privateUriBuilder.Build("GET", $"/v1/order/orders/{numberMarket}");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);
-                IRestResponse responseMessage = client.Execute(request);
+                IRestResponse responseMessage = CreatePrivateQuery($"/v1/order/orders/{numberMarket}", Method.GET);
 
                 ResponseMessageGetOrder response = JsonConvert.DeserializeObject<ResponseMessageGetOrder>(responseMessage.Content);
 
@@ -2562,11 +2550,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             try
             {
-                string url = _privateUriBuilder.Build("GET", $"/v1/order/orders/{orderId}/matchresults");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);
-                IRestResponse responseMessage = client.Execute(request);
+                IRestResponse responseMessage = CreatePrivateQuery($"/v1/order/orders/{orderId}/matchresults", Method.GET);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2703,18 +2687,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             try
             {
-                string url = _privateUriBuilder.Build("GET", $"/v1/order/history");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);
-                IRestResponse responseMessage = client.Execute(request);
-
-                List<Order> orders = new List<Order>();
+                IRestResponse responseMessage = CreatePrivateQuery("/v1/order/history", Method.GET);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseRestMessage<List<ResponseAllOrders>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<ResponseAllOrders>>());
                     List<ResponseAllOrders> item = response.data;
+
+                    List<Order> orders = new List<Order>();
 
                     if (response.status == "ok")
                     {
@@ -2845,12 +2825,102 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
                 return;
             }
-
         }
 
         #endregion
 
         #region 12 Queries
+
+        private IRestResponse CreatePrivateQuery(string path, Method method, string body = null)
+        {
+            string strDateTime = DateTime.UtcNow.ToString("s");
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>
+            {
+                { "AccessKeyId", Uri.EscapeDataString(_accessKey) },
+                { "SignatureMethod", Uri.EscapeDataString("HmacSHA256") },
+                { "SignatureVersion", Uri.EscapeDataString("2") },
+                { "Timestamp", Uri.EscapeDataString(strDateTime) }
+            };
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var kvp in parameters)
+            {
+                sb.Append('&').Append(kvp.Key).Append('=').Append(kvp.Value);
+            }
+
+            string param = sb.ToString().Substring(1);
+
+            string stringToSign = $"{method.ToString().ToUpper()}\n{_baseUrl}\n{path}\n{param}";
+
+            string signature = GenerateSignature(stringToSign);
+
+            string url = $"https://{_baseUrl}{path}?{param}&Signature={Uri.EscapeDataString(signature)}";
+
+
+            RestClient client = new RestClient(url);
+
+            if (_myProxy != null)
+            {
+                client.Proxy = _myProxy;
+            }
+
+            RestRequest request = new RestRequest(method);
+            request.AddParameter("application/json", body, ParameterType.RequestBody);
+
+            IRestResponse response = client.Execute(request);
+
+            return response;
+        }
+
+        public string BuildSign()
+        {
+            string strDateTime = DateTime.UtcNow.ToString("s");
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>
+            {
+                { "accessKey", Uri.EscapeDataString(_accessKey) },
+                { "signatureMethod", Uri.EscapeDataString("HmacSHA256") },
+                { "signatureVersion", Uri.EscapeDataString("2.1") },
+                { "timestamp", Uri.EscapeDataString(strDateTime) }
+            };
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var kvp in parameters)
+            {
+                sb.Append('&').Append(kvp.Key).Append('=').Append(kvp.Value);
+            }
+
+            string param = sb.ToString().Substring(1);
+
+            string stringToSign = $"GET\n{_baseUrl}\n/ws/v2\n{param}";
+
+            string signature = GenerateSignature(stringToSign);
+
+            WebSocketAuthenticationRequestV2 auth = new WebSocketAuthenticationRequestV2();
+            auth.@params = new WebSocketAuthenticationRequestV2.Params();
+            auth.@params.accessKey = _accessKey;
+            auth.@params.signature = signature;
+            auth.@params.timestamp = strDateTime;
+
+            return JsonConvert.SerializeObject(auth);
+        }
+
+        private string GenerateSignature(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+
+            byte[] inputBuffer = Encoding.UTF8.GetBytes(input);
+            byte[] keyBuffer = Encoding.UTF8.GetBytes(_secretKey);
+            byte[] hashedBuffer = new HMACSHA256(keyBuffer).ComputeHash(inputBuffer);
+
+            return Convert.ToBase64String(hashedBuffer);
+        }
 
         public static string Decompress(byte[] input)
         {
@@ -2875,27 +2945,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     return Encoding.UTF8.GetString(memory.ToArray());
                 }
             }
-        }
-
-        public string BuildSign(DateTime utcDateTime)
-        {
-            string strDateTime = utcDateTime.ToString("s");
-
-            GetRequest request = new GetRequest();
-            request.AddParam("accessKey", _accessKey);
-            request.AddParam("signatureMethod", "HmacSHA256");
-            request.AddParam("signatureVersion", "2.1");
-            request.AddParam("timestamp", strDateTime);
-
-            string signature = _signer.Sign("GET", _baseUrl, "/ws/v2", request.BuildParams());
-
-            WebSocketAuthenticationRequestV2 auth = new WebSocketAuthenticationRequestV2();
-            auth.@params = new WebSocketAuthenticationRequestV2.Params();
-            auth.@params.accessKey = _accessKey;
-            auth.@params.signature = signature;
-            auth.@params.timestamp = strDateTime;
-
-            return JsonConvert.SerializeObject(auth);
         }
 
         public void SetLeverage(Security security, decimal leverage) { }
