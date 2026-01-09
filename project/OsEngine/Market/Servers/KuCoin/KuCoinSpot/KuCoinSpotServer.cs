@@ -51,33 +51,31 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             ServerStatus = ServerConnectStatus.Disconnect;
 
             Thread threadForPublicMessages = new Thread(PublicMessageReader);
-            threadForPublicMessages.IsBackground = true;
             threadForPublicMessages.Name = "PublicMessageReaderKuCoin";
             threadForPublicMessages.Start();
 
             Thread threadForPrivateMessages = new Thread(PrivateMessageReader);
-            threadForPrivateMessages.IsBackground = true;
             threadForPrivateMessages.Name = "PrivateMessageReaderKuCoin";
             threadForPrivateMessages.Start();
 
             Thread threadCheckAliveWebSocket = new Thread(CheckAliveWebSocket);
-            threadCheckAliveWebSocket.IsBackground = true;
             threadCheckAliveWebSocket.Name = "CheckAliveWebSocketKuCoinSpot";
             threadCheckAliveWebSocket.Start();
 
             Thread threadMarketDepthParsing = new Thread(ThreadMarketDepthParsing);
-            threadMarketDepthParsing.IsBackground = true;
             threadMarketDepthParsing.Name = "ThreadKuCoinSpotMarketDepthParsing";
             threadMarketDepthParsing.Start();
 
             Thread threadTradesParsing = new Thread(ThreadTradesParsing);
-            threadTradesParsing.IsBackground = true;
             threadTradesParsing.Name = "ThreadKuCoinSpotTradesParsing";
             threadTradesParsing.Start();
         }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy)
         {
+            _myProxy = proxy;
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
@@ -103,7 +101,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             try
             {
                 RestRequest requestRest = new RestRequest("/api/v1/timestamp", Method.GET);
-                IRestResponse responseMessage = new RestClient(_baseUrl).Execute(requestRest);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse responseMessage = client.Execute(requestRest);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -112,7 +117,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     _webSocketPrivateMessages = new ConcurrentQueue<string>();
                     CreatePublicWebSocketConnect();
                     CreatePrivateWebSocketConnect();
-                    // CheckActivationSockets();
                 }
                 else
                 {
@@ -205,7 +209,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 string requestStr = $"/api/v2/symbols";
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-                IRestResponse responseMessage = new RestClient(_baseUrl).Execute(requestRest);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse responseMessage = client.Execute(requestRest);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -447,7 +458,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 string requestStr = $"/api/v1/market/candles?symbol={nameSec}&type={stringInterval}&startAt={TimeManager.GetTimeStampSecondsToDateTime(timeFrom)}&endAt={TimeManager.GetTimeStampSecondsToDateTime(timeTo)}";
 
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-                IRestResponse responseMessage = new RestClient(_baseUrl).Execute(requestRest);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse responseMessage = client.Execute(requestRest);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -605,6 +623,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
                 WebSocket webSocketPublicNew = new WebSocket(_webSocketPublicUrl);
 
+                if (_myProxy != null)
+                {
+                    webSocketPublicNew.SetProxy(_myProxy);
+                }
+
                 webSocketPublicNew.EmitOnPing = true;
                 webSocketPublicNew.OnOpen += _webSocketPublic_OnOpen;
                 webSocketPublicNew.OnMessage += _webSocketPublic_OnMessage;
@@ -641,6 +664,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 // set dynamic server address ws
                 _webSocketPrivateUrl = wsResponse.data.instanceServers[0].endpoint + "?token=" + wsResponse.data.token;
                 _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
+
+                if (_myProxy != null)
+                {
+                    _webSocketPrivate.SetProxy(_myProxy);
+                }
+
                 _webSocketPrivate.EmitOnPing = true;
                 _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
                 _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
@@ -2195,7 +2224,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     requestRest.AddParameter("application/json", body, ParameterType.RequestBody);
                 }
 
-                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 return response;
             }
@@ -2226,7 +2262,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     requestRest.AddParameter("application/json", body, ParameterType.RequestBody);
                 }
 
-                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 return response;
             }
