@@ -20,8 +20,6 @@ using System.Collections.Generic;
 
 */
 
-
-
 namespace OsEngine.Robots.FuturesStart
 {
     [Bot("FuturesStart1ThreeBollingers")]

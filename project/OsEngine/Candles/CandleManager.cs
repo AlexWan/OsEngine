@@ -572,6 +572,15 @@ namespace OsEngine.Entity
                 return;
             }
 
+            if (_lastTimeFromServer != DateTime.MinValue
+                && _lastTimeFromServer.Minute == dateTime.Minute
+                && _lastTimeFromServer.Second == dateTime.Second)
+            {
+                return;
+            }
+
+            _lastTimeFromServer = dateTime;
+
             try
             {
                 for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
@@ -599,6 +608,8 @@ namespace OsEngine.Entity
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private DateTime _lastTimeFromServer;
 
         /// <summary>
         /// A new tick appeared in the server. Inbound event
@@ -637,15 +648,17 @@ namespace OsEngine.Entity
                     for (int i = 0; _activeSeriesBasedOnTrades != null &&
                         i < _activeSeriesBasedOnTrades.Count; i++)
                     {
-                        if (_activeSeriesBasedOnTrades[i] == null ||
-                            _activeSeriesBasedOnTrades[i].Security == null ||
-                            _activeSeriesBasedOnTrades[i].TimeFrameBuilder.CandleSeriesRealization == null)
+                        CandleSeries series = _activeSeriesBasedOnTrades[i];
+
+                        if (series == null ||
+                            series.Security == null ||
+                            series.TimeFrameBuilder.CandleSeriesRealization == null)
                         {
                             continue;
                         }
-                        if (_activeSeriesBasedOnTrades[i].Security.Name == secCode)
+                        if (series.Security.Name == secCode)
                         {
-                            _activeSeriesBasedOnTrades[i].SetNewTicks(trade);
+                            series.SetNewTicks(trade);
                         }
                     }
                 }
@@ -690,15 +703,17 @@ namespace OsEngine.Entity
 
                 for (int i = 0; i < _activeSeriesBasedOnMd.Count; i++)
                 {
-                    if (_activeSeriesBasedOnMd[i] == null ||
-                        _activeSeriesBasedOnMd[i].Security == null)
+                    CandleSeries series = _activeSeriesBasedOnMd[i];
+
+                    if (series == null ||
+                        series.Security == null)
                     {
                         continue;
                     }
 
-                    if (_activeSeriesBasedOnMd[i].Security.Name == marketDepth.SecurityNameCode)
+                    if (series.Security.Name == marketDepth.SecurityNameCode)
                     {
-                        _activeSeriesBasedOnMd[i].SetNewMarketDepth(marketDepth);
+                        series.SetNewMarketDepth(marketDepth);
                     }
                 }
             }

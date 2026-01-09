@@ -103,7 +103,7 @@ namespace OsEngine.Robots.Screeners
 
         // trade logic
 
-        private List<CheckMoveTime> _checkMoveTimes = new List<CheckMoveTime>();
+        private Dictionary<string, CheckMoveTime> _checkMoveTimes = new Dictionary<string, CheckMoveTime>();
 
         // Opening logic
         private void _tabScreener_NewTickEvent(Trade newTrade, BotTabSimple tab)
@@ -113,7 +113,7 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
-            if (_tabScreener.PositionsOpenAll.Count >= _maxPositions.ValueInt)
+            if(tab.IsConnected == false)
             {
                 return;
             }
@@ -125,22 +125,11 @@ namespace OsEngine.Robots.Screeners
 
             CheckMoveTime myTime = null;
 
-            for(int i = 0;i < _checkMoveTimes.Count;i++)
-            {
-                if (_checkMoveTimes[i].SecName == tab.Connector.SecurityName 
-                    && _checkMoveTimes[i].SecClass == tab.Connector.SecurityClass)
-                {
-                    myTime = _checkMoveTimes[i]; 
-                    break;
-                }
-            }
-
-            if(myTime == null)
+            if (_checkMoveTimes.TryGetValue(tab.Connector.SecurityName, out myTime) == false)
             {
                 myTime = new CheckMoveTime();
-                myTime.SecClass = tab.Connector.SecurityClass;
                 myTime.SecName = tab.Connector.SecurityName;
-                _checkMoveTimes.Add(myTime);
+                _checkMoveTimes.Add(tab.Connector.SecurityName, myTime);
             }
 
             if(myTime.LastCheckTime.AddSeconds(_secondsToAnalyze.ValueInt) >= newTrade.Time)
@@ -150,9 +139,19 @@ namespace OsEngine.Robots.Screeners
 
             myTime.LastCheckTime = newTrade.Time;
 
+            if (_tabScreener.PositionsOpenAll.Count >= _maxPositions.ValueInt)
+            {
+                return;
+            }
+
             decimal startPrice = decimal.MaxValue;
 
             List<Trade> trades = tab.Trades;
+
+            if(tab.Trades == null)
+            {
+                return;
+            }
 
             int secondsCount = 0;
             int secondNow = newTrade.Time.Second;
@@ -303,8 +302,6 @@ namespace OsEngine.Robots.Screeners
     public class CheckMoveTime
     {
         public string SecName;
-
-        public string SecClass;
 
         public DateTime LastCheckTime;
     }

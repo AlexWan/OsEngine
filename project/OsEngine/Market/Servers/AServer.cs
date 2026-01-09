@@ -309,9 +309,7 @@ namespace OsEngine.Market.Servers
                 task4.Start();
 
                 Task.Run(() => HighPriorityDataThreadArea());
-
                 Task.Run(() => MediumPriorityDataThreadArea());
-
                 Task.Run(() => LowPriorityDataThreadArea());
 
                 _serverIsCreated = true;
@@ -1461,7 +1459,8 @@ namespace OsEngine.Market.Servers
                         {
                             return;
                         }
-                        await Task.Delay(1);
+                        Thread.Sleep(1);
+                        //await Task.Delay(1);
                     }
                 }
                 catch (Exception error)
@@ -1670,6 +1669,7 @@ namespace OsEngine.Market.Servers
                         {
                             return;
                         }
+                       
                         await Task.Delay(1);
                     }
                 }
@@ -1876,6 +1876,7 @@ namespace OsEngine.Market.Servers
                         {
                             return;
                         }
+                   
                         await Task.Delay(1);
                     }
                 }
@@ -3494,6 +3495,9 @@ namespace OsEngine.Market.Servers
 
                 lock (_newTradesLocker)
                 {
+                    _tradesToSend.Enqueue(trade);
+
+
                     // save / сохраняем
                     if (_allTrades == null)
                     {
@@ -3558,8 +3562,6 @@ namespace OsEngine.Market.Servers
                             _allTrades = allTradesNew;
                         }
                     }
-
-                    _tradesToSend.Enqueue(trade);
                 }
             }
             catch (Exception error)

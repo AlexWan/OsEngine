@@ -1434,8 +1434,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (security == null ||
-                    security.Name != _securityName)
+                if (security.Name != _securityName)
                 {
                     return;
                 }
@@ -1475,39 +1474,34 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// incoming depth
         /// </summary>
-        private void ConnectorBot_NewMarketDepthEvent(MarketDepth glass)
+        private void ConnectorBot_NewMarketDepthEvent(MarketDepth marketDepth)
         {
             try
             {
-                if (_securityName == null)
-                {
-                    return;
-                }
-
-                if (_securityName != glass.SecurityNameCode)
+                if (_securityName != marketDepth.SecurityNameCode)
                 {
                     return;
                 }
 
                 if (GlassChangeEvent != null && EventsIsOn == true)
                 {
-                    GlassChangeEvent(glass);
+                    GlassChangeEvent(marketDepth);
                 }
 
                 decimal bestBid = 0;
 
-                if (glass.Bids != null &&
-                     glass.Bids.Count > 0)
+                if (marketDepth.Bids != null &&
+                     marketDepth.Bids.Count > 0)
                 {
-                    bestBid = glass.Bids[0].Price.ToDecimal();
+                    bestBid = marketDepth.Bids[0].Price.ToDecimal();
                 }
 
                 decimal bestAsk = 0;
 
-                if (glass.Asks != null &&
-                    glass.Asks.Count > 0)
+                if (marketDepth.Asks != null &&
+                    marketDepth.Asks.Count > 0)
                 {
-                    bestAsk = glass.Asks[0].Price.ToDecimal();
+                    bestAsk = marketDepth.Asks[0].Price.ToDecimal();
                 }
 
                 if (EmulatorIsOn)
@@ -1538,17 +1532,9 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         private void ConnectorBot_NewTradeEvent(Trade trade)
         {
-            if (_securityName == null
-                || trade == null)
+            if (trade.SecurityNameCode != _securityName)
             {
                 return;
-            }
-            else
-            {
-                if (trade.SecurityNameCode != _securityName)
-                {
-                    return;
-                }
             }
 
             try
@@ -1564,6 +1550,8 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        DateTime _lastTimeFromServer;
+
         /// <summary>
         /// incoming server time
         /// </summary>
@@ -1571,6 +1559,15 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                if (_lastTimeFromServer != DateTime.MinValue
+                    && _lastTimeFromServer.Minute == time.Minute
+                    && _lastTimeFromServer.Second == time.Second)
+                {
+                    return;
+                }
+
+                _lastTimeFromServer = time;
+
                 if (TimeChangeEvent != null && EventsIsOn == true)
                 {
                     TimeChangeEvent(time);

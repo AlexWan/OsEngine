@@ -5863,11 +5863,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _lastClosingSurplusTime = DateTime.Now;
 
-            if (PositionsAll == null)
-            {
-                return;
-            }
-
             if (ServerStatus != ServerConnectStatus.Connect ||
                 Security == null ||
                 Portfolio == null)
@@ -6791,7 +6786,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             _lastTradeQty = trade.Volume;
             _lastTradePrice = trade.Price;
 
-            if (StartProgram == StartProgram.IsOsTrader)
+            if (StartProgram == StartProgram.IsOsTrader
+                && PositionsOpenAll.Count != 0)
             {
                 CheckSurplusPositions();
             }
@@ -6992,7 +6988,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 try
                 {
-                    Thread.Sleep(10);
+                    Thread.Sleep(100);
 
                     if (MainWindow.ProccesIsWorked == false)
                     {
