@@ -12,6 +12,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 
+
 namespace OsEngine.Market.Servers.OKXData
 {
     public class OKXDataServer : AServer
@@ -32,9 +33,9 @@ namespace OsEngine.Market.Servers.OKXData
         {
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            if (!Directory.Exists(@"Data\Temp\OKXDataTempFiles\"))
+            if (!Directory.Exists(_tempDirectory))
             {
-                Directory.CreateDirectory(@"Data\Temp\OKXDataTempFiles\");
+                Directory.CreateDirectory(_tempDirectory);
             }
         }
 
@@ -63,10 +64,32 @@ namespace OsEngine.Market.Servers.OKXData
 
         public void Dispose()
         {
+            CleanTempFiles();
+
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
+            }
+        }
+
+        private void CleanTempFiles()
+        {
+            try
+            {
+                string[] files = Directory.GetFiles(_tempDirectory);
+
+                if (files.Length > 0)
+                {
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        File.Delete(files[i]);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error cleaning temp files: {ex.Message}", LogMessageType.Error);
             }
         }
 
@@ -98,6 +121,8 @@ namespace OsEngine.Market.Servers.OKXData
         private string _baseUrl = "https://www.okx.com";
 
         public RateGate _rateGateCandles = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        private string _tempDirectory = @"Data\Temp\OKXDataTempFiles\";
 
         #endregion
 
@@ -541,7 +566,7 @@ namespace OsEngine.Market.Servers.OKXData
 
             try
             {
-                // https://www.okx.com/cdn/okex/traderecords/aggtrades/daily/20250120/TRUMP-USDT-SWAP-aggtrades-2025-01-20.zip
+                // https://static.okx.com/cdn/okex/traderecords/trades/daily/20250410/ETC-USDT-SWAP-trades-2025-04-10.zip
 
                 DateTime startLoop = startTime;
 
@@ -551,7 +576,7 @@ namespace OsEngine.Market.Servers.OKXData
 
                     string date2 = startLoop.ToString("yyyy-MM-dd");
 
-                    string path = $"{_baseUrl}/cdn/okex/traderecords/aggtrades/daily/{date1}/{security.Name}-aggtrades-{date2}.zip";
+                    string path = $"https://static.okx.com/cdn/okex/traderecords/trades/daily/{date1}/{security.Name}-trades-{date2}.zip";
 
                     string zipArchivePath = DownloadZipArchive(path);
 
@@ -581,48 +606,54 @@ namespace OsEngine.Market.Servers.OKXData
             catch (Exception error)
             {
                 SendLogMessage($"Trades data downloading error: {error}", LogMessageType.Error);
+                CleanTempFiles();
                 return null;
             }
         }
 
         private List<Trade> ParseCsvFileToTrades(string csvFilePath, string secName)
         {
-            List<Trade> trades = new List<Trade>();
-
             string[] lines = File.ReadAllLines(csvFilePath);
 
-            for (int i = 0; i < lines.Length; i++)
-            {
-                if (char.IsLetter(lines[i][0]))
-                    continue;
+            List<Trade> trades = new List<Trade>(lines.Length - 1);
 
-                string[] tradeParts = lines[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
+            CultureInfo culture = CultureInfo.InvariantCulture;
+
+            Span<int> commas = new int[5];
+
+            for (int i = 1; i < lines.Length; i++)
+            {
+                ReadOnlySpan<char> line = lines[i].AsSpan();
+
+                // instrument_name/trade_id/side/price/size/created_time
+                // ETC-USDT-SWAP,156678173,sell,14.21,0.19,1744214402712
+
+                int commaCount = 0;
+
+                for (int j = 0; j < line.Length && commaCount < 5; j++)
+                {
+                    if (line[j] == ',')
+                    {
+                        commas[commaCount++] = j;
+                    }
+                }
+
+                if (commaCount < 5) continue;
 
                 Trade trade = new Trade();
 
-                // trade_id/side/size/price/created_time
-                // 56666271,buy,2.0,0.8726,1751348199680
-
-                trade.Id = tradeParts[0];
-                trade.Side = tradeParts[1] == "buy" ? Side.Buy : Side.Sell;
-                trade.Volume = Math.Abs(tradeParts[2].ToDecimal());
-                trade.Price = tradeParts[3].ToDecimal();
-                trade.Time = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(tradeParts[4])).DateTime;
+                trade.Id = line.Slice(commas[0] + 1, commas[1] - commas[0] - 1).ToString();
+                trade.Side = line[commas[1] + 1] == 'b' ? Side.Buy : Side.Sell;
+                trade.Price = decimal.Parse(line.Slice(commas[2] + 1, commas[3] - commas[2] - 1), NumberStyles.Any, culture);
+                trade.Volume = Math.Abs(decimal.Parse(line.Slice(commas[3] + 1, commas[4] - commas[3] - 1), NumberStyles.Any, culture));
+                trade.Time = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(line.Slice(commas[4] + 1))).DateTime;
                 trade.MicroSeconds = 0;
                 trade.SecurityNameCode = secName;
 
                 trades.Add(trade);
             }
 
-            string[] files = Directory.GetFiles(@"Data\Temp\OKXDataTempFiles\");
-
-            if (files.Length > 0)
-            {
-                for (int i = 0; i < files.Length; i++)
-                {
-                    File.Delete(files[i]);
-                }
-            }
+            CleanTempFiles();
 
             return trades;
         }
@@ -631,7 +662,7 @@ namespace OsEngine.Market.Servers.OKXData
         {
             try
             {
-                string tempZipPath = @"Data\Temp\OKXDataTempFiles\" + Path.GetRandomFileName();
+                string tempZipPath = _tempDirectory + Path.GetRandomFileName();
 
                 using (HttpResponseMessage response = _httpClient.GetAsync(path).GetAwaiter().GetResult())
                 {
@@ -656,7 +687,7 @@ namespace OsEngine.Market.Servers.OKXData
 
         private string GetSCVFileFromArchive(string tempZipPath)
         {
-            string extractPath = @"Data\Temp\OKXDataTempFiles\";
+            string extractPath = _tempDirectory;
 
             SafeExtractZip(tempZipPath, extractPath);
 
@@ -700,11 +731,6 @@ namespace OsEngine.Market.Servers.OKXData
             }
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            return null;
-        }
-
         #endregion
 
         #region 6 Log
@@ -719,60 +745,29 @@ namespace OsEngine.Market.Servers.OKXData
 
         #region 7 Unused methods
 
-        public void Subscribe(Security security)
-        {
+        public void Subscribe(Security security) { }
 
-        }
+        public void SendOrder(Order order) { }
 
-        public void SendOrder(Order order)
-        {
+        public void CancelAllOrders() { }
 
-        }
+        public void CancelAllOrdersToSecurity(Security security) { }
 
-        public void CancelAllOrders()
-        {
+        public bool CancelOrder(Order order) { return false; }
 
-        }
+        public void ChangeOrderPrice(Order order, decimal newPrice) { }
 
-        public void CancelAllOrdersToSecurity(Security security)
-        {
+        public void GetAllActivOrders() { }
 
-        }
+        public OrderStateType GetOrderStatus(Order order) { return OrderStateType.None; }
 
-        public bool CancelOrder(Order order)
-        {
-            return false;
-        }
+        public bool SubscribeNews() { return false; }
 
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
+        public List<Order> GetActiveOrders(int startIndex, int count) { return null; }
 
-        }
+        public List<Order> GetHistoricalOrders(int startIndex, int count) { return null; }
 
-        public void GetAllActivOrders()
-        {
-
-        }
-
-        public List<Order> GetActiveOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public List<Order> GetHistoricalOrders(int startIndex, int count)
-        {
-            return null;
-        }
-
-        public OrderStateType GetOrderStatus(Order order)
-        {
-            return OrderStateType.None;
-        }
-
-        public bool SubscribeNews()
-        {
-            return false;
-        }
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount) { return null; }
 
         public event Action<News> NewsEvent { add { } remove { } }
         public event Action<MarketDepth> MarketDepthEvent { add { } remove { } }
