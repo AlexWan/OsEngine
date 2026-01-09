@@ -841,6 +841,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
+                    Thread.Sleep(3000);
                     continue;
                 }
 
