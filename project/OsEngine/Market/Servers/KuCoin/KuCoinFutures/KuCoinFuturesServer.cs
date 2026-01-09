@@ -397,19 +397,19 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             while (true)
             {
-                if (IsCompletelyDeleted == true)
-                {
-                    return;
-                }
-
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    continue;
-                }
-
                 try
                 {
                     Thread.Sleep(15000);
+
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        continue;
+                    }
 
                     for (int i = 0; i < _listCurrency.Count; i++)
                     {

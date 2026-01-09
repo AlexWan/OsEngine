@@ -400,12 +400,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private void PortfolioRequester()
         {
-            Thread.Sleep(5000);
-
             while (true)
             {
                 try
                 {
+                    Thread.Sleep(3000);
+
                     if (IsCompletelyDeleted == true)
                     {
                         return;
@@ -415,8 +415,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     {
                         continue;
                     }
-
-                    Thread.Sleep(3000);
 
                     GetPortfolios();
                 }
