@@ -21,7 +21,7 @@ namespace OsEngine.OsTrader.Grids
 
         public decimal AutoStartPrice;
 
-        public OnOffRegime RebuildGridRegime;
+        public GridAutoStartShiftFirstPriceRegime RebuildGridRegime;
 
         public decimal ShiftFirstPrice;
 
@@ -220,6 +220,60 @@ namespace OsEngine.OsTrader.Grids
             return result;
         }
 
+        public void ShiftGridOnNewPrice(decimal newPrice, TradeGrid grid)
+        {
+            List<TradeGridLine> lines = grid.GridCreator.Lines;
+
+            if (lines == null 
+                || lines.Count == 0)
+            {
+                return;
+            }
+
+            decimal maxEntryPriceInGrid = decimal.MinValue;
+            decimal minEntryPriceInGrid = decimal.MaxValue;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+
+                if(line.PriceEnter > maxEntryPriceInGrid)
+                {
+                    maxEntryPriceInGrid = line.PriceEnter;
+                }
+
+                if(line.PriceEnter <  minEntryPriceInGrid)
+                {
+                    minEntryPriceInGrid = line.PriceEnter;
+                }
+            }
+
+            if(maxEntryPriceInGrid == 0 
+                || minEntryPriceInGrid == 0)
+            {
+                return;
+            }
+
+            decimal shift = 0;
+
+            if (lines[0].Side == Side.Buy)
+            {
+                shift = newPrice - maxEntryPriceInGrid;
+            }
+            else if (lines[0].Side == Side.Sell)
+            {
+                shift = newPrice - minEntryPriceInGrid;
+            }
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+                line.CanReplaceExitOrder = true;
+                line.PriceEnter += shift;
+                line.PriceExit += shift;
+            }
+        }
+
         #endregion
 
         #region Log
@@ -247,5 +301,12 @@ namespace OsEngine.OsTrader.Grids
         Off,
         HigherOrEqual,
         LowerOrEqual
+    }
+
+    public enum GridAutoStartShiftFirstPriceRegime
+    {
+        Off,
+        On_FullRebuild,
+        On_ShiftOnNewPrice
     }
 }

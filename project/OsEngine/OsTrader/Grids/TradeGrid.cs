@@ -915,14 +915,26 @@ namespace OsEngine.OsTrader.Grids
 
                 if (AutoStarter.HaveEventToStart(this))
                 {
-                    if(AutoStarter.RebuildGridRegime == OnOffRegime.On)
-                    {// пересобираем сетку
+                    if (AutoStarter.RebuildGridRegime == GridAutoStartShiftFirstPriceRegime.On_FullRebuild)
+                    {// пересобираем сетку полностью
                         decimal newPriceStart = AutoStarter.GetNewGridPriceStart(this);
-                        
-                        if(newPriceStart != 0)
+
+                        if (newPriceStart != 0)
                         {
                             GridCreator.FirstPrice = newPriceStart;
                             GridCreator.CreateNewGrid(Tab, GridType);
+                            Save();
+                            FullRePaintGrid();
+                        }
+                    }
+                    else if (AutoStarter.RebuildGridRegime == GridAutoStartShiftFirstPriceRegime.On_ShiftOnNewPrice)
+                    {// просто сдвигаем сетку на новую цену
+
+                        decimal newPriceStart = AutoStarter.GetNewGridPriceStart(this);
+
+                        if (newPriceStart != 0)
+                        {
+                            AutoStarter.ShiftGridOnNewPrice(newPriceStart, this);
                             Save();
                             FullRePaintGrid();
                         }

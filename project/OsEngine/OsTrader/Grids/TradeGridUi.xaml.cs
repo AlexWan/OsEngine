@@ -320,8 +320,9 @@ namespace OsEngine.OsTrader.Grids
             TextBoxAutoStartPrice.Text = tradeGrid.AutoStarter.AutoStartPrice.ToString();
             TextBoxAutoStartPrice.TextChanged += TextBoxAutoStartPrice_TextChanged;
 
-            ComboBoxRebuildGridRegime.Items.Add(OnOffRegime.Off.ToString());
-            ComboBoxRebuildGridRegime.Items.Add(OnOffRegime.On.ToString());
+            ComboBoxRebuildGridRegime.Items.Add(GridAutoStartShiftFirstPriceRegime.Off.ToString());
+            ComboBoxRebuildGridRegime.Items.Add(GridAutoStartShiftFirstPriceRegime.On_FullRebuild.ToString());
+            ComboBoxRebuildGridRegime.Items.Add(GridAutoStartShiftFirstPriceRegime.On_ShiftOnNewPrice.ToString());
             ComboBoxRebuildGridRegime.SelectedItem = tradeGrid.AutoStarter.RebuildGridRegime.ToString();
             ComboBoxRebuildGridRegime.SelectionChanged += ComboBoxRebuildGridRegime_SelectionChanged;
             TextBoxShiftFirstPrice.Text = tradeGrid.AutoStarter.ShiftFirstPrice.ToString();
