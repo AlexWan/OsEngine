@@ -1459,8 +1459,8 @@ namespace OsEngine.Market.Servers
                         {
                             return;
                         }
-                        Thread.Sleep(1);
-                        //await Task.Delay(1);
+
+                        await Task.Delay(1);
                     }
                 }
                 catch (Exception error)
