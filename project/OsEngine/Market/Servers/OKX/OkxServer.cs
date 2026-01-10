@@ -510,10 +510,17 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private List<Security> _securities = new List<Security>();
+        private Dictionary<string, Security> _securitiesDict = new Dictionary<string, Security>();
 
         private void UpdatePairs(SecurityResponse securityResponse)
         {
+            if (_securitiesDict == null)
+            {
+                _securitiesDict = new Dictionary<string, Security>();
+            }
+
+            List<Security> securities = new List<Security>();
+
             for (int i = 0; i < securityResponse.data.Count; i++)
             {
                 SecurityResponseItem item = securityResponse.data[i];
@@ -602,7 +609,7 @@ namespace OsEngine.Market.Servers.OKX
                     string baseName = item.uly + "T"; // example: BTC-USD -> BTC-USDT
 
                     // 1. Find all futures that are true quarterly futures (expire on last Friday of Mar, Jun, Sep, Dec)
-                    var quarterlyFutures = _securities
+                    var quarterlyFutures = securities
                         .Where(s => s.SecurityType == SecurityType.Futures &&
                                     s.Name.StartsWith(baseName) &&
                                     s.Expiration != DateTime.MinValue &&
@@ -663,12 +670,17 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 security.State = SecurityStateType.Activ;
-                _securities.Add(security);
+                securities.Add(security);
+            }
+
+            foreach (Security sec in securities)
+            {
+                _securitiesDict[sec.Name] = sec;
             }
 
             if (SecurityEvent != null)
             {
-                SecurityEvent(_securities);
+                SecurityEvent(securities);
             }
         }
 
@@ -3223,12 +3235,9 @@ namespace OsEngine.Market.Servers.OKX
         {
             decimal minVolume = 1;
 
-            for (int i = 0; i < _securities.Count; i++)
+            if (_securitiesDict.TryGetValue(securityName, out Security sec))
             {
-                if (_securities[i].Name == securityName)
-                {
-                    minVolume = _securities[i].NameId.Split('_')[1].ToDecimal();
-                }
+                minVolume = sec.NameId.Split('_')[1].ToDecimal();
             }
 
             if (minVolume <= 0)

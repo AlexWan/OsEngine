@@ -205,7 +205,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             _subscribedSecurities.Clear();
             _securitiesName.Clear();
-            _listSecurities = new List<Security>();
 
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
@@ -376,15 +375,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         #region 3 Securities
 
-        private List<Security> _listSecurities;
+        private Dictionary<string, Security> _securitiesDict = new Dictionary<string, Security>();
 
-        private RateGate _rateGateSecurities = new RateGate(240, TimeSpan.FromMilliseconds(3000));
+        private RateGate _rateGateSecurities = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         public void GetSecurities()
         {
-            if (_listSecurities == null)
+            if (_securitiesDict == null)
             {
-                _listSecurities = new List<Security>();
+                _securitiesDict = new Dictionary<string, Security>();
             }
 
             _rateGateSecurities.WaitToProceed();
@@ -408,6 +407,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     if (response.status == "ok")
                     {
+                        List<Security> securities = new List<Security>();
+
                         for (int i = 0; i < response.data.Count; i++)
                         {
                             SecuritiesInfo item = response.data[i];
@@ -432,11 +433,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
                                 newSecurity.VolumeStep = item.contract_size.Replace(',', '.').TrimEnd('0').TrimEnd('.').ToDecimal();
 
-                                _listSecurities.Add(newSecurity);
+                                securities.Add(newSecurity);
                             }
                         }
 
-                        SecurityEvent(_listSecurities);
+                        foreach (Security sec in securities)
+                        {
+                            _securitiesDict[sec.Name] = sec;
+                        }
+
+                        SecurityEvent(securities);
                     }
                     else
                     {
@@ -2804,19 +2810,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private decimal GetVolume(string securityName)
         {
-            if (_listSecurities == null)
-            {
-                return 1;
-            }
-
             decimal minVolume = 1;
 
-            for (int i = 0; i < _listSecurities.Count; i++)
+            if (_securitiesDict.TryGetValue(securityName, out Security sec))
             {
-                if (_listSecurities[i].Name == securityName)
-                {
-                    minVolume = _listSecurities[i].MinTradeAmount;
-                }
+                minVolume = sec.MinTradeAmount;
             }
 
             if (minVolume <= 0)

@@ -222,6 +222,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             _rateGateSecurities.WaitToProceed();
 
+            if (_securitiesDict == null)
+            {
+                _securitiesDict = new Dictionary<string, Security>();
+            }
+
             try
             {
                 RestRequest requestRest = new RestRequest("/spot/currency_pairs", Method.GET);
