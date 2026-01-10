@@ -79,10 +79,13 @@ namespace OsEngine.Market.Servers.BloFin
             threadMessageReaderTrades.Start();
         }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy = null)
         {
             try
             {
+                _myProxy = proxy;
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 _passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
@@ -315,7 +318,14 @@ namespace OsEngine.Market.Servers.BloFin
 
                 string requestStr = $"/api/v1/market/instruments";
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -399,16 +409,6 @@ namespace OsEngine.Market.Servers.BloFin
 
         #region 5 Data
 
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
-        }
-
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return GetCandleData(security, timeFrameBuilder, startTime, endTime, actualTime, true);
-        }
-
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
@@ -416,6 +416,11 @@ namespace OsEngine.Market.Servers.BloFin
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
             return GetCandleData(security, timeFrameBuilder, startTime, endTime, endTime, false);
+        }
+
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return GetCandleData(security, timeFrameBuilder, startTime, endTime, actualTime, true);
         }
 
         private List<Candle> GetCandleData(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool isOsData)
@@ -529,7 +534,14 @@ namespace OsEngine.Market.Servers.BloFin
                 string requestStr = $"{path}?instId={security.Name}&bar={interval}&limit={limitCandles}";
 
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -646,6 +658,11 @@ namespace OsEngine.Market.Servers.BloFin
             return String.Empty;
         }
 
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
         #endregion 5
 
         #region 6 WebSocket creation
@@ -677,10 +694,10 @@ namespace OsEngine.Market.Servers.BloFin
             {
                 WebSocket webSocketPublicNew = new WebSocket(_webSocketUrlPublic);
 
-                //if (_myProxy != null)
-                //{
-                //    webSocketPublicNew.SetProxy(_myProxy);
-                //}
+                if (_myProxy != null)
+                {
+                    webSocketPublicNew.SetProxy(_myProxy);
+                }
 
                 webSocketPublicNew.EmitOnPing = true;
                 webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
@@ -709,10 +726,10 @@ namespace OsEngine.Market.Servers.BloFin
 
                 _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
 
-                //if (_myProxy != null)
-                //{
-                //    _webSocketPrivate.SetProxy(_myProxy);
-                //}
+                if (_myProxy != null)
+                {
+                    _webSocketPrivate.SetProxy(_myProxy);
+                }
 
                 _webSocketPrivate.EmitOnPing = true;
                 _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
@@ -2374,7 +2391,14 @@ namespace OsEngine.Market.Servers.BloFin
                 requestRest.AddHeader("ACCESS-PASSPHRASE", _passphrase);
                 requestRest.AddParameter("application/json", body, ParameterType.RequestBody);
 
-                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 return response;
             }

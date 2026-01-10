@@ -248,7 +248,7 @@ namespace OsEngine.Market.Servers.BloFin
 
         public bool IsSupports_ProxyFor_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsSupports_AsyncOrderSending
