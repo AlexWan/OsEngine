@@ -151,7 +151,7 @@ namespace OsEngine.Market.Servers.MOEX
 
             List<Security> newSecurities = new List<Security>();
 
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < 8; i++)
             {
                 newSecurities.AddRange(GetFuturesForOneYear(futName, idEnding, DateTime.Now.Year - i - 2000));
             }
