@@ -18,6 +18,8 @@ using System.Linq;
 
 Трендовушка на пробое боллинджера. С фильтром по стадии волатильности и стадии отклонения фьючерса от базы.
 
+Рассчитана на рынок фьючерсов на акции MOEX
+
 Индикаторы
 Bollinger
 VolatilityAverageTwice
@@ -44,8 +46,8 @@ VolatilityAverageTwice
 
 namespace OsEngine.Robots.FuturesStart
 {
-    [Bot("FuturesStart1BollingerVolaContango")]
-    public class FuturesStart1BollingerVolaContango : BotPanel
+    [Bot("FuturesStart1Bollinger")]
+    public class FuturesStart1Bollinger : BotPanel
     {
         BotTabSimple _base1;
         BotTabScreener _futs1;
@@ -98,9 +100,19 @@ namespace OsEngine.Robots.FuturesStart
         private StrategyParameterInt _volatilityFilterLenSlow;
         private StrategyParameterInt _volatilityStageToTrade;
 
-        private StrategyParameterBool _contangoFilterIsOn;
+        private StrategyParameterString _contangoFilterRegime;
         private StrategyParameterInt _contangoStageToTradeLong;
         private StrategyParameterInt _contangoStageToTradeShort;
+        private StrategyParameterDecimal _contangoCoefficient1;
+        private StrategyParameterDecimal _contangoCoefficient2;
+        private StrategyParameterDecimal _contangoCoefficient3;
+        private StrategyParameterDecimal _contangoCoefficient4;
+        private StrategyParameterDecimal _contangoCoefficient5;
+        private StrategyParameterDecimal _contangoCoefficient6;
+        private StrategyParameterDecimal _contangoCoefficient7;
+        private StrategyParameterDecimal _contangoCoefficient8;
+        private StrategyParameterDecimal _contangoCoefficient9;
+        private StrategyParameterDecimal _contangoCoefficient10;
 
         // Trade periods
         private NonTradePeriods _tradePeriodsSettings;
@@ -110,7 +122,7 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsSettings.ShowDialog();
         }
 
-        public FuturesStart1BollingerVolaContango(string name, StartProgram startProgram) : base(name, startProgram)
+        public FuturesStart1Bollinger(string name, StartProgram startProgram) : base(name, startProgram)
         {
             // non trade periods
             _tradePeriodsSettings = new NonTradePeriods(name);
@@ -133,32 +145,46 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsSettings.Load();
 
             // Basic settings
-            _regime = CreateParameter("Regime base", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
+            _regime = CreateParameter("Regime base", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" }, "Base");
 
-            _icebergCount = CreateParameter("Iceberg orders count", 1, 1, 3, 1);
-            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
+            _icebergCount = CreateParameter("Iceberg orders count", 1, 1, 3, 1, "Base");
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
+            _bollingerLength = CreateParameter("Bollinger Length", 180, 20, 300, 10, "Base");
+            _bollingerDeviation = CreateParameter("Bollinger deviation", 0.8m, 1, 4, 0.1m, "Base");
+
             // GetVolume settings
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 10, 1.0m, 50, 4);
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 10, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
-            // Indicator settings
-            _smaFilterIsOn = CreateParameter("Sma filter is on", true);
-            _smaFilterLen = CreateParameter("Sma filter Length", 100, 100, 300, 10);
-            _bollingerLength = CreateParameter("Bollinger Length", 180, 20, 300, 10);
-            _bollingerDeviation = CreateParameter("Bollinger deviation", 2.4m, 1, 4, 0.1m);
+            // filters
+            _smaFilterIsOn = CreateParameter("Sma filter is on", true, "Filters");
+            _smaFilterLen = CreateParameter("Sma filter Length", 100, 100, 300, 10, "Filters");
 
-            _volatilityFilterIsOn = CreateParameter("Volatility filter is on", true);
-            _volatilityFilterLenSlow = CreateParameter("Volatility filter slow Length", 70, 5, 300, 10);
-            _volatilityFilterLenFast = CreateParameter("Volatility filter fast Length", 10, 5, 300, 10);
+            _volatilityFilterIsOn = CreateParameter("Volatility filter is on", true, "Filters");
+            _volatilityFilterLenSlow = CreateParameter("Volatility filter slow Length", 70, 5, 300, 10, "Filters");
+            _volatilityFilterLenFast = CreateParameter("Volatility filter fast Length", 10, 5, 300, 10, "Filters");
+            _volatilityStageToTrade = CreateParameter("Volatility stage to trade", 2, 1, 2, 1, "Filters");
 
-            _volatilityStageToTrade = CreateParameter("Volatility stage to trade", 1, 1, 2, 1);
+            _contangoFilterRegime = CreateParameter("Contango filter regime", "On_MOEXStocksAuto", new[] { "Off", "On_MOEXStocksAuto", "On_Manual" }, "Contango");
+            _contangoStageToTradeLong = CreateParameter("Contango stage to trade Long", 1, 1, 2, 1, "Contango");
+            _contangoStageToTradeShort = CreateParameter("Contango stage to trade Short", 2, 1, 2, 1, "Contango");
 
-            _contangoFilterIsOn = CreateParameter("Contango filter is on", true);
-            _contangoStageToTradeLong = CreateParameter("Contango stage to trade Long", 1, 1, 2, 1);
-            _contangoStageToTradeShort = CreateParameter("Contango stage to trade Short", 2, 1, 2, 1);
+            _contangoCoefficient1 = CreateParameter("Manual coeff 1", 1, 1.0m, 50, 4, "Contango");
+            _contangoCoefficient2 = CreateParameter("Manual coeff 2", 1, 1.0m, 50, 4, "Contango");
+            _contangoCoefficient3 = CreateParameter("Manual coeff 3", 1, 1.0m, 50, 4, "Contango");
+            _contangoCoefficient4 = CreateParameter("Manual coeff 4", 1, 1.0m, 50, 4, "Contango");
+            _contangoCoefficient5 = CreateParameter("Manual coeff 5", 1, 1.0m, 50, 4, "Contango");
+            _contangoCoefficient6 = CreateParameter("Manual coeff 6", 1, 1.0m, 50, 4, "Contango");
+            _contangoCoefficient7 = CreateParameter("Manual coeff 7", 1, 1.0m, 50, 4, "Contango");
+            _contangoCoefficient8 = CreateParameter("Manual coeff 8", 1, 1.0m, 50, 4, "Contango");
+            _contangoCoefficient9 = CreateParameter("Manual coeff 9", 1, 1.0m, 50, 4, "Contango");
+            _contangoCoefficient10 = CreateParameter("Manual coeff 10", 1, 1.0m, 50, 4, "Contango");
+
+            StrategyParameterButton buttonShowContango = CreateParameterButton("Show contango", "Contango");
+            buttonShowContango.UserClickOnButtonEvent += ButtonShowContango_UserClickOnButtonEvent;
 
             // Source creation
 
@@ -223,6 +249,38 @@ namespace OsEngine.Robots.FuturesStart
             CreateIndicators(_base10, _futs10);
 
             ParametrsChangeByUser += FuturesStartContangoScreener_ParametrsChangeByUser;
+        }
+
+        private void ButtonShowContango_UserClickOnButtonEvent()
+        {
+            try
+            {
+                string message = "";
+
+
+                if(_contangoValues.Count > 0)
+                {
+                    for (int i = 0; i < _contangoValues.Count; i++)
+                    {
+                        message +=
+                            _contangoValues[i].SecurityName
+                            + " Time: " + _contangoValues[i].LastTimeUpdate
+                            + " Value%: " + Math.Round(_contangoValues[i].ContangoPercent, 3)
+                            + "\n";
+                    }
+                }
+                else
+                {
+                    message = "No values contango";
+                }
+
+                SendNewLogMessage(message, Logging.LogMessageType.Error);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+            } 
+            
         }
 
         private void FuturesStartContangoScreener_ParametrsChangeByUser()
@@ -427,7 +485,7 @@ namespace OsEngine.Robots.FuturesStart
                 return;
             }
 
-            if (_contangoFilterIsOn.ValueBool == true)
+            if (_contangoFilterRegime.ValueString != "Off")
             {
                 SetContangoValues(baseSource, futuresSource);
             }
@@ -532,7 +590,7 @@ namespace OsEngine.Robots.FuturesStart
                     }
                 }
 
-                if(_contangoFilterIsOn.ValueBool == true)
+                if(_contangoFilterRegime.ValueString != "Off")
                 {
                     int stageContango = GetContangoStage(futuresSource.Security.Name);
 
@@ -564,14 +622,14 @@ namespace OsEngine.Robots.FuturesStart
                     }
                 }
 
-                if (_contangoFilterIsOn.ValueBool == true)
+                if (_contangoFilterRegime.ValueString != "Off")
                 {
                     int stageContango = GetContangoStage(futuresSource.Security.Name);
 
                     if (stageContango != _contangoStageToTradeShort.ValueInt)
                     {
                         return;
-                    }
+                    } 
                 }
 
                 if (StopEntryByRegimeFilters(futuresSource))
@@ -854,8 +912,71 @@ namespace OsEngine.Robots.FuturesStart
                 _contangoValues.Add(value);
             }
 
-            decimal contangoAbs = (futuresSource.PriceBestBid / baseSource.Security.Lot) - baseSource.PriceBestAsk;
+            decimal coeff = 1;
 
+            if(_contangoFilterRegime.ValueString == "On_MOEXStocksAuto"
+                && baseSource.Security.Name.Contains("MGNT") == false)
+            {
+                for (int i = 0; i < baseSource.Security.Decimals; i++)
+                {
+                    coeff = coeff * 10;
+                }
+            }
+            else if (_contangoFilterRegime.ValueString == "On_Manual") 
+            {
+                if(this.TabsSimple[0].Security != null
+                    && this.TabsSimple[0].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient1.ValueDecimal;
+                }
+                if (this.TabsSimple[1].Security != null
+                    && this.TabsSimple[1].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient2.ValueDecimal;
+                }
+                if (this.TabsSimple[2].Security != null
+                    && this.TabsSimple[2].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient3.ValueDecimal;
+                }
+                if (this.TabsSimple[3].Security != null
+                    && this.TabsSimple[3].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient4.ValueDecimal;
+                }
+                if (this.TabsSimple[4].Security != null
+                    && this.TabsSimple[4].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient5.ValueDecimal;
+                }
+                if (this.TabsSimple[5].Security != null
+                   && this.TabsSimple[5].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient6.ValueDecimal;
+                }
+                if (this.TabsSimple[6].Security != null
+                   && this.TabsSimple[6].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient7.ValueDecimal;
+                }
+                if (this.TabsSimple[7].Security != null
+                    && this.TabsSimple[7].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient8.ValueDecimal;
+                }
+                if (this.TabsSimple[8].Security != null
+                    && this.TabsSimple[8].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient9.ValueDecimal;
+                }
+                if (this.TabsSimple[9].Security != null
+                    && this.TabsSimple[9].Security.Name == baseSource.Security.Name)
+                {
+                    coeff = _contangoCoefficient10.ValueDecimal;
+                }
+            }
+
+            decimal contangoAbs = (futuresSource.PriceBestBid / coeff) - baseSource.PriceBestAsk;
             decimal contangoPercent = contangoAbs / (baseSource.PriceBestAsk / 100);
 
             value.ContangoPercent = contangoPercent;
