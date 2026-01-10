@@ -12,18 +12,40 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 
 /*
 
+Трендовушка на пробое боллинджера. С фильтром по стадии волатильности и стадии отклонения фьючерса от базы.
 
+Индикаторы
+Bollinger
+VolatilityAverageTwice
+
+ВХОД в позицию
+Пересечение верхней или нижней линии боллинджера
+
+Выход из позиции
+Пересечение обратной стороны канала боллинджера
+
+Фильтр на вход. Рэнкинг раздвижек
+Считаем по каждому инструменту раздвижку в %. И делим ренкинг на 2 части. Самые дальние и самые ближние.
+Самые дальние - можно только шорт. Их и так спекулянты перекупили
+Самые ближние - можно только лонг. Их и так спекулянты перепродали
+
+Фильтра на вход. Стадия волатильности
+На выбор 1 или 2 стадии волатильности по VolatilityAverageTwice
+
+Фильтр на вход. Скользящая средняя
+Выше - можно покупать
+Ниже - можно продавать
 
 */
 
 namespace OsEngine.Robots.FuturesStart
 {
-    [Bot("FuturesStart1ThreeBollingers")]
-    public class FuturesStart1ThreeBollingers : BotPanel
+    [Bot("FuturesStart1BollingerVolaContango")]
+    public class FuturesStart1BollingerVolaContango : BotPanel
     {
         BotTabSimple _base1;
         BotTabScreener _futs1;
@@ -58,12 +80,6 @@ namespace OsEngine.Robots.FuturesStart
         // Basic settings
         private StrategyParameterString _regime;
         private StrategyParameterInt _icebergCount;
-        private StrategyParameterString _regimeExit;
-
-        // boost filter
-        private StrategyParameterBool _cointegrationFilterIsOn;
-        private StrategyParameterInt _cointegrationFilterFilterLen;
-        private StrategyParameterDecimal _cointegrationFilterFilterDeviation;
 
         // GetVolume settings
         private StrategyParameterString _volumeType;
@@ -73,8 +89,18 @@ namespace OsEngine.Robots.FuturesStart
         // Indicator settings
         private StrategyParameterInt _bollingerLength;
         private StrategyParameterDecimal _bollingerDeviation;
+
         private StrategyParameterBool _smaFilterIsOn;
         private StrategyParameterInt _smaFilterLen;
+
+        private StrategyParameterBool _volatilityFilterIsOn;
+        private StrategyParameterInt _volatilityFilterLenFast;
+        private StrategyParameterInt _volatilityFilterLenSlow;
+        private StrategyParameterInt _volatilityStageToTrade;
+
+        private StrategyParameterBool _contangoFilterIsOn;
+        private StrategyParameterInt _contangoStageToTradeLong;
+        private StrategyParameterInt _contangoStageToTradeShort;
 
         // Trade periods
         private NonTradePeriods _tradePeriodsSettings;
@@ -84,7 +110,7 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsSettings.ShowDialog();
         }
 
-        public FuturesStart1ThreeBollingers(string name, StartProgram startProgram) : base(name, startProgram)
+        public FuturesStart1BollingerVolaContango(string name, StartProgram startProgram) : base(name, startProgram)
         {
             // non trade periods
             _tradePeriodsSettings = new NonTradePeriods(name);
@@ -98,7 +124,7 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
 
             _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 30 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 24, Minute = 00 };
             _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
 
             _tradePeriodsSettings.TradeInSunday = false;
@@ -108,10 +134,6 @@ namespace OsEngine.Robots.FuturesStart
 
             // Basic settings
             _regime = CreateParameter("Regime base", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
-            _regimeExit = CreateParameter("Regime exit", "Both", new[] { "Both", "BollingerOneSide", "ProfitLoss", "BollingerOppositeSide" });
-            _cointegrationFilterIsOn = CreateParameter("Boost filter is on", true);
-            _cointegrationFilterFilterLen = CreateParameter("Boost filter Len", 50, 50, 300, 10);
-            _cointegrationFilterFilterDeviation = CreateParameter("Boost filter deviation", 1.4m, 1, 4, 0.1m);
 
             _icebergCount = CreateParameter("Iceberg orders count", 1, 1, 3, 1);
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
@@ -124,9 +146,19 @@ namespace OsEngine.Robots.FuturesStart
 
             // Indicator settings
             _smaFilterIsOn = CreateParameter("Sma filter is on", true);
-            _smaFilterLen = CreateParameter("Sma filter Len", 170, 100, 300, 10);
+            _smaFilterLen = CreateParameter("Sma filter Length", 100, 100, 300, 10);
             _bollingerLength = CreateParameter("Bollinger Length", 180, 20, 300, 10);
             _bollingerDeviation = CreateParameter("Bollinger deviation", 2.4m, 1, 4, 0.1m);
+
+            _volatilityFilterIsOn = CreateParameter("Volatility filter is on", true);
+            _volatilityFilterLenSlow = CreateParameter("Volatility filter slow Length", 70, 5, 300, 10);
+            _volatilityFilterLenFast = CreateParameter("Volatility filter fast Length", 10, 5, 300, 10);
+
+            _volatilityStageToTrade = CreateParameter("Volatility stage to trade", 1, 1, 2, 1);
+
+            _contangoFilterIsOn = CreateParameter("Contango filter is on", true);
+            _contangoStageToTradeLong = CreateParameter("Contango stage to trade Long", 1, 1, 2, 1);
+            _contangoStageToTradeShort = CreateParameter("Contango stage to trade Short", 2, 1, 2, 1);
 
             // Source creation
 
@@ -209,43 +241,29 @@ namespace OsEngine.Robots.FuturesStart
 
         private void CreateIndicators(BotTabSimple baseSource, BotTabScreener futuresSource)
         {
-            Aindicator bollingerInd = IndicatorsFactory.CreateIndicatorByName("Bollinger", "Bollinger", false);
-            bollingerInd = (Aindicator)baseSource.CreateCandleIndicator(bollingerInd, "Prime");
-            ((IndicatorParameterInt)bollingerInd.Parameters[0]).ValueInt = _bollingerLength.ValueInt;
-            ((IndicatorParameterDecimal)bollingerInd.Parameters[1]).ValueDecimal = _bollingerDeviation.ValueDecimal;
-            bollingerInd.Save();
-
             futuresSource.CreateCandleIndicator(1, "Bollinger", new List<string>() { 
                 _bollingerLength.ValueInt.ToString(), _bollingerDeviation.ValueDecimal.ToString() }, "Prime");
+
+            futuresSource.CreateCandleIndicator(2, "VolatilityAverageTwice", new List<string>() {
+                "Candle", "Percent", _volatilityFilterLenSlow.ValueInt.ToString(), _volatilityFilterLenFast.ValueInt.ToString()}, "Dop");
         }
 
         private void UpdateSettingsInIndicators(BotTabSimple baseSource, BotTabScreener futuresSource)
         {
-            Aindicator bollingerInd = (Aindicator)baseSource.Indicators[0];
-            bool isChanged = false;
-
-            if(((IndicatorParameterInt)bollingerInd.Parameters[0]).ValueInt != _bollingerLength.ValueInt)
-            {
-                ((IndicatorParameterInt)bollingerInd.Parameters[0]).ValueInt = _bollingerLength.ValueInt;
-                isChanged = true;
-            }
-            if(((IndicatorParameterDecimal)bollingerInd.Parameters[1]).ValueDecimal != _bollingerDeviation.ValueDecimal)
-            {
-                ((IndicatorParameterDecimal)bollingerInd.Parameters[1]).ValueDecimal = _bollingerDeviation.ValueDecimal;
-                isChanged = true;
-            }
-            
-            if(isChanged)
-            {
-                bollingerInd.Save();
-                bollingerInd.Reload();
-            }
-
             futuresSource._indicators[0].Parameters
              = new List<string>()
              {
                  _bollingerLength.ValueInt.ToString(),
                  _bollingerDeviation.ValueDecimal.ToString()
+             };
+
+            futuresSource._indicators[1].Parameters
+             = new List<string>()
+             {
+                 "Candle",
+                 "Percent",
+                 _volatilityFilterLenSlow.ValueInt.ToString(),
+                 _volatilityFilterLenFast.ValueInt.ToString()
              };
 
             futuresSource.UpdateIndicatorsParameters();
@@ -409,6 +427,11 @@ namespace OsEngine.Robots.FuturesStart
                 return;
             }
 
+            if (_contangoFilterIsOn.ValueBool == true)
+            {
+                SetContangoValues(baseSource, futuresSource);
+            }
+
             List<Position> futuresPositions = futuresSource.PositionsOpenAll;
 
             if(futuresPositions.Count > 0)
@@ -482,113 +505,117 @@ namespace OsEngine.Robots.FuturesStart
             List<Candle> baseCandles,
             List<Candle> futuresCandles)
         {
-            /*
-            
-            Шорт:
-            1) Фьючерс над боллинджером
-            2) Спот под боллинджером
-            3) За последний час раздвижка увеличилась
-            4) СМА выше цены спота. Т.е. рынок смотрит вниз
-
-            Лонг:
-            1) Фьючерс под боллинджером
-            2) Спот над боллинджером
-            3) За последний час раздвижка уменьшилась
-            4) СМА ниже цены спота. Т.е. рынок смотрит вверх
-
-            */
-
             // 1 берём по обоим вкладкам боллинджеры
 
-            Aindicator baseBollinger = (Aindicator)baseSource.Indicators[0];
             Aindicator futuresBollinger = (Aindicator)futuresSource.Indicators[0];
 
-            if (baseBollinger.DataSeries[0].Last == 0
-                || futuresBollinger.DataSeries[0].Last == 0)
+            if (futuresBollinger.DataSeries[0].Last == 0)
             {
                 return;
             }
 
-            // 2 считаем положение раздвижки
+            // 2 проверяем условия 
 
-            if (_cointegrationFilterIsOn.ValueBool == true)
-            {
-                decimal baseLastPrice = baseCandles[^1].Close;
-                decimal futuresLastPrice = futuresCandles[^1].Close;
-
-                CointegrationBuilder cointegrationIndicator = new CointegrationBuilder();
-                cointegrationIndicator.CointegrationLookBack = _cointegrationFilterFilterLen.ValueInt;
-                cointegrationIndicator.CointegrationDeviation = _cointegrationFilterFilterDeviation.ValueDecimal;
-                cointegrationIndicator.ReloadCointegration(baseCandles, futuresCandles, false);
-
-                if (cointegrationIndicator.Cointegration == null
-                    || cointegrationIndicator.Cointegration.Count == 0)
-                {
-                    return;
-                }
-
-                if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
-                { // ускорения прямо сейчас не наблюдается
-                    return;
-                }
-
-                PercentBoost boosts = CalculateBoosts(futuresCandles);
-
-                 if (_regime.ValueString != "OnlyLong"
-                    && futuresLastPrice < futuresBollinger.DataSeries[1].Last
-                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up
-                    && boosts.CointegrationLineSideUpPercent >= 80)
-                { // 
-                    futuresSource.BuyAtIcebergMarket(GetVolume(futuresSource), _icebergCount.ValueInt, 1000);
-                }
-                if (_regime.ValueString != "OnlyShort"
-                    && futuresLastPrice > futuresBollinger.DataSeries[0].Last
-                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down
-                    && boosts.CointegrationLineSideDownPercent >= 80)
-                { 
-                    futuresSource.SellAtIcebergMarket(GetVolume(futuresSource), _icebergCount.ValueInt, 1000);
-                }
-            }
-
-            // 3 проверяем условия 
-
-           /* decimal baseLastPrice = baseCandles[^1].Close;
             decimal futuresLastPrice = futuresCandles[^1].Close;
 
             if(_regime.ValueString != "OnlyShort"
-                && baseLastPrice > baseBollinger.DataSeries[0].Last          // база выше верхнего боллинджера
-                && futuresLastPrice < futuresBollinger.DataSeries[1].Last)   // фьючерс ниже нижнего боллинджера
-            {// ШОРТ
+                && futuresLastPrice > futuresBollinger.DataSeries[0].Last)   // фьючерс выше верхнего боллинджера
+            {// Лонг
 
                 if (_smaFilterIsOn.ValueBool == true)
                 {
-                    decimal smaValue = Sma(baseCandles, _smaFilterLen.ValueInt, baseCandles.Count - 1);
+                    decimal smaValue = Sma(futuresCandles, _smaFilterLen.ValueInt, futuresCandles.Count - 1);
 
-                    if (baseLastPrice < smaValue)
+                    if (futuresLastPrice < smaValue)
                     {
                         return;
                     }
                 }
-                futuresSource.SellAtIcebergMarket(GetVolume(futuresSource), _icebergCount.ValueInt, 1000);
-                
-            }
-            else if (_regime.ValueString != "OnlyLong"
-                && baseLastPrice < baseBollinger.DataSeries[1].Last        // база ниже нижнего боллинджера
-                && futuresLastPrice > futuresBollinger.DataSeries[0].Last) // фьючерс выше верхнего боллинджера
-            {// ЛОНГ
-                if (_smaFilterIsOn.ValueBool == true)
-                {
-                    decimal smaValue = Sma(baseCandles, _smaFilterLen.ValueInt, baseCandles.Count - 1);
 
-                    if (baseLastPrice > smaValue)
+                if(_contangoFilterIsOn.ValueBool == true)
+                {
+                    int stageContango = GetContangoStage(futuresSource.Security.Name);
+
+                    if (stageContango != _contangoStageToTradeLong.ValueInt)
                     {
                         return;
                     }
+                }
+
+                if (StopEntryByRegimeFilters(futuresSource))
+                {
+                    return;
                 }
 
                 futuresSource.BuyAtIcebergMarket(GetVolume(futuresSource), _icebergCount.ValueInt, 1000);
-            }*/
+                
+                
+            }
+            else if (_regime.ValueString != "OnlyLong"
+                && futuresLastPrice < futuresBollinger.DataSeries[1].Last) // фьючерс ниже нижнего боллинджера
+            {// Шорт
+                if (_smaFilterIsOn.ValueBool == true)
+                {
+                    decimal smaValue = Sma(futuresCandles, _smaFilterLen.ValueInt, futuresCandles.Count - 1);
 
+                    if (futuresLastPrice > smaValue)
+                    {
+                        return;
+                    }
+                }
+
+                if (_contangoFilterIsOn.ValueBool == true)
+                {
+                    int stageContango = GetContangoStage(futuresSource.Security.Name);
+
+                    if (stageContango != _contangoStageToTradeShort.ValueInt)
+                    {
+                        return;
+                    }
+                }
+
+                if (StopEntryByRegimeFilters(futuresSource))
+                {
+                    return;
+                }
+
+                futuresSource.SellAtIcebergMarket(GetVolume(futuresSource), _icebergCount.ValueInt, 1000);
+            }
+
+        }
+
+        private bool StopEntryByRegimeFilters(BotTabSimple futuresSource)
+        {
+            if (_volatilityFilterIsOn.ValueBool == true
+                   &&
+                   (_volatilityStageToTrade.ValueInt == 1 || _volatilityStageToTrade.ValueInt == 2))
+            {
+                Aindicator volatilityAverage = (Aindicator)futuresSource.Indicators[1];
+
+                decimal slowVolaSma = volatilityAverage.DataSeries[1].Last;
+                decimal fastVola = volatilityAverage.DataSeries[2].Last;
+           
+                if (fastVola != 0
+                    && slowVolaSma != 0)
+                {
+                    int stage = 0;
+                    if (fastVola >= slowVolaSma)
+                    {
+                        stage = 2;
+                    }
+                    else if (fastVola < slowVolaSma)
+                    {
+                        stage = 1;
+                    }
+
+                    if (stage != _volatilityStageToTrade.ValueInt)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void TryClosePositionLogic(
@@ -600,26 +627,22 @@ namespace OsEngine.Robots.FuturesStart
         {
 
             /*
-
             Выход:
-                   1) И спот и фьючерс с одной стороны боллинджера. Подключаемый
-                   2) Фьючерс закрылся с обратной стороны боллинджера. Подключаемый
-                   3) Выходим из позиции по фьючу, если до экспирации меньше или равно 2 торговых дня. По любой цене. 
-
+                   1) Фьючерс закрылся с обратной стороны боллинджера. Подключаемый
+                   2) Выходим из позиции по фьючу, если до экспирации меньше или равно 2 торговых дня. По любой цене. 
             */
+
             if (StartProgram != StartProgram.IsOsTrader)
             {
-                if(pos.State != PositionStateType.Open)
+                if (pos.State != PositionStateType.Open)
                 {// в тестере и оптимизаторе не допускаем спама ордерами
                     return;
                 }
             }
 
-            Aindicator baseBollinger = (Aindicator)baseSource.Indicators[0];
             Aindicator futuresBollinger = (Aindicator)futuresSource.Indicators[0];
 
-            if (baseBollinger.DataSeries[0].Last == 0
-                || futuresBollinger.DataSeries[0].Last == 0)
+            if (futuresBollinger.DataSeries[0].Last == 0)
             {
                 return;
             }
@@ -629,70 +652,27 @@ namespace OsEngine.Robots.FuturesStart
 
             bool needToExit = false;
 
-            if (_regimeExit.ValueString == "Both"
-                || _regimeExit.ValueString == "BollingerOneSide")
-            {
-                if(baseLastPrice > baseBollinger.DataSeries[0].Last          
-                && futuresLastPrice > futuresBollinger.DataSeries[0].Last)
-                {
-                    needToExit = true;
-                }
 
-                if (baseLastPrice < baseBollinger.DataSeries[1].Last
-                  && futuresLastPrice < futuresBollinger.DataSeries[1].Last)
-                {
-                    needToExit = true;
-                }
-            }
-
-            if (_regimeExit.ValueString == "Both"
-                || _regimeExit.ValueString == "BollingerOppositeSide")
-            {
-                if(pos.Direction == Side.Buy
-                    && futuresLastPrice > futuresBollinger.DataSeries[0].Last)
-                {
-                    needToExit = true;
-                }
-
-                if (pos.Direction == Side.Sell
-                    && futuresLastPrice < futuresBollinger.DataSeries[1].Last)
-                {
-                    needToExit = true;
-                }
-            }
-
-            if (_regimeExit.ValueString == "Both"
-              || _regimeExit.ValueString == "ProfitLoss")
-            {
-                if(pos.StopOrderPrice == 0)
-                {
-                    decimal stopPrice = 0;
-                    decimal profitPrice = 0;
-
-                    if (pos.Direction == Side.Buy)
-                    {
-                        stopPrice = pos.EntryPrice - pos.EntryPrice * 0.004m;
-                        profitPrice = pos.EntryPrice + pos.EntryPrice * 0.004m;
-                    }
-                    else if (pos.Direction == Side.Sell)
-                    {
-                        stopPrice = pos.EntryPrice + pos.EntryPrice * 0.004m;
-                        profitPrice = pos.EntryPrice - pos.EntryPrice * 0.004m;
-                    }
-
-                    futuresSource.CloseAtStopMarket(pos, stopPrice);
-                    futuresSource.CloseAtProfitMarket(pos, profitPrice);
-                }
-            }
-
-            double daysByExpiration = (futuresSource.Security.Expiration - futuresCandles[^1].TimeStart).TotalDays;
-
-            if(daysByExpiration < 3)
+            if (pos.Direction == Side.Buy
+                && futuresLastPrice < futuresBollinger.DataSeries[1].Last)
             {
                 needToExit = true;
             }
 
-            if(needToExit == true)
+            if (pos.Direction == Side.Sell
+                && futuresLastPrice > futuresBollinger.DataSeries[0].Last)
+            {
+                needToExit = true;
+            }
+
+            double daysByExpiration = (futuresSource.Security.Expiration - futuresCandles[^1].TimeStart).TotalDays;
+
+            if (daysByExpiration < 3)
+            {
+                needToExit = true;
+            }
+
+            if (needToExit == true)
             {
                 futuresSource.CloseAtIcebergMarket(pos, pos.OpenVolume, _icebergCount.ValueInt, 1000);
             }
@@ -830,128 +810,91 @@ namespace OsEngine.Robots.FuturesStart
             return volume;
         }
 
-        public PercentBoost CalculateBoosts(List<Candle> futuresCandles)
+        #endregion
+
+        #region Contango values
+
+        private List<ContangoValue> _contangoValues = new List<ContangoValue>();
+
+        private void SetContangoValues(BotTabSimple baseSource, BotTabSimple futuresSource)
         {
-            PercentBoost percentBoost = new PercentBoost();
+            ContangoValue value = null;
 
-            if(_base1.IsConnected)
+            for(int i = 0;i < _contangoValues.Count;i++)
             {
-                List<Candle> baseCandles = _base1.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
-            }
-            if (_base2.IsConnected)
-            {
-                List<Candle> baseCandles = _base2.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
-            }
-            if (_base3.IsConnected)
-            {
-                List<Candle> baseCandles = _base3.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
-            }
-            if (_base4.IsConnected)
-            {
-                List<Candle> baseCandles = _base4.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
-            }
-            if (_base5.IsConnected)
-            {
-                List<Candle> baseCandles = _base5.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
-            }
-            if (_base6.IsConnected)
-            {
-                List<Candle> baseCandles = _base6.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
-            }
-            if (_base7.IsConnected)
-            {
-                List<Candle> baseCandles = _base7.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
-            }
-            if (_base8.IsConnected)
-            {
-                List<Candle> baseCandles = _base8.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
-            }
-            if (_base9.IsConnected)
-            {
-                List<Candle> baseCandles = _base9.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
-            }
-            if (_base10.IsConnected)
-            {
-                List<Candle> baseCandles = _base10.CandlesFinishedOnly;
-                GetCointegrationSide(futuresCandles, baseCandles, percentBoost);
+                if (_contangoValues[i].SecurityName == futuresSource.Connector.SecurityName)
+                {
+                    value = _contangoValues[i];
+                    value.LastTimeUpdate = futuresSource.TimeServerCurrent;
+                    break;  
+                }
             }
 
-            decimal commonValue = 0;
-            commonValue += percentBoost.CountUp;
-            commonValue += percentBoost.CountDown;
-            commonValue += percentBoost.CountNo;
-
-            if(commonValue == 0)
+            for (int i = 0; i < _contangoValues.Count; i++)
             {
-                return percentBoost;
+                if (_contangoValues[i].LastTimeUpdate > futuresSource.TimeServerCurrent)
+                {
+                    _contangoValues.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                if (_contangoValues[i].LastTimeUpdate.AddHours(2) < futuresSource.TimeServerCurrent)
+                {
+                    _contangoValues.RemoveAt(i);
+                    i--;
+                    continue;
+                }
             }
 
-            percentBoost.CointegrationLineSideDownPercent = percentBoost.CountDown / (commonValue / 100);
-            percentBoost.CointegrationLineSideUpPercent = percentBoost.CountUp / (commonValue / 100);
-            percentBoost.CointegrationLineSideNonePercent = percentBoost.CountNo / (commonValue / 100);
+            if (value == null)
+            {
+                value = new ContangoValue();
+                value.SecurityName = futuresSource.Connector.SecurityName;
 
-            return percentBoost;
+                _contangoValues.Add(value);
+            }
+
+            decimal contangoAbs = (futuresSource.PriceBestBid / baseSource.Security.Lot) - baseSource.PriceBestAsk;
+
+            decimal contangoPercent = contangoAbs / (baseSource.PriceBestAsk / 100);
+
+            value.ContangoPercent = contangoPercent;
+            value.LastTimeUpdate = futuresSource.TimeServerCurrent;
+
+            _contangoValues = _contangoValues.OrderBy(x => x.ContangoPercent).ToList();
         }
 
-        private void GetCointegrationSide(List<Candle> futuresCandles, List<Candle> baseCandles, PercentBoost percentBoost)
+        private int GetContangoStage(string secName)
         {
-
-            if(baseCandles == null 
-                || baseCandles.Count < 20)
+            for (int i = 0; i < _contangoValues.Count; i++)
             {
-                return;
-            }
-            CointegrationBuilder cointegrationIndicator = new CointegrationBuilder();
-            cointegrationIndicator.CointegrationLookBack = _cointegrationFilterFilterLen.ValueInt;
-            cointegrationIndicator.CointegrationDeviation = _cointegrationFilterFilterDeviation.ValueDecimal;
-            cointegrationIndicator.ReloadCointegration(baseCandles, futuresCandles, false);
-
-            if (cointegrationIndicator.Cointegration == null
-                || cointegrationIndicator.Cointegration.Count == 0)
-            {
-                return;
+                if (_contangoValues[i].SecurityName == secName)
+                {
+                    if(i <= _contangoValues.Count /2)
+                    {
+                        return 1;
+                    }
+                    else
+                    {
+                        return 2;
+                    }
+                }
             }
 
-            if(cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up)
-            {
-                percentBoost.CountUp += 1;
-            }
-            else if(cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down)
-            {
-                percentBoost.CountDown += 1;
-            }
-            else if(cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
-            {
-                percentBoost.CountNo += 1;
-            }
+            return 0;
         }
 
         #endregion
 
     }
 
-    public class PercentBoost
+    public class ContangoValue
     {
-        public decimal CointegrationLineSideDownPercent;
+        public string SecurityName;
 
-        public decimal CointegrationLineSideUpPercent;
+        public decimal ContangoPercent;
 
-        public decimal CointegrationLineSideNonePercent;
-
-        public int CountDown;
-
-        public int CountUp;
-
-        public int CountNo;
+        public DateTime LastTimeUpdate;
 
     }
 }
