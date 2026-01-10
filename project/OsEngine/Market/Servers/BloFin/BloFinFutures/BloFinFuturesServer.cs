@@ -300,13 +300,13 @@ namespace OsEngine.Market.Servers.BloFin
 
         #region 3 Securities
 
-        private List<Security> _securities = new List<Security>();
+        private Dictionary<string, Security> _securitiesDict = new Dictionary<string, Security>();
 
         public void GetSecurities()
         {
-            if (_securities == null)
+            if (_securitiesDict == null)
             {
-                _securities = new List<Security>();
+                _securitiesDict = new Dictionary<string, Security>();
             }
 
             try
@@ -327,6 +327,8 @@ namespace OsEngine.Market.Servers.BloFin
                         {
                             return;
                         }
+
+                        List<Security> securities = new List<Security>();
 
                         for (int i = 0; i < symbols.data.Count; i++)
                         {
@@ -350,10 +352,15 @@ namespace OsEngine.Market.Servers.BloFin
                             newSecurity.DecimalsVolume = (item.minSize.ToDecimal() * item.contractValue.ToDecimal()).ToString().DecimalsCount();
                             newSecurity.VolumeStep = item.minSize.ToDecimal();
 
-                            _securities.Add(newSecurity);
+                            securities.Add(newSecurity);
                         }
 
-                        SecurityEvent?.Invoke(_securities);
+                        foreach (Security sec in securities)
+                        {
+                            _securitiesDict[sec.Name] = sec;
+                        }
+
+                        SecurityEvent?.Invoke(securities);
                     }
                     else
                     {
@@ -1956,12 +1963,9 @@ namespace OsEngine.Market.Servers.BloFin
         {
             decimal minVolume = 1;
 
-            for (int i = 0; i < _securities.Count; i++)
+            if (_securitiesDict.TryGetValue(securityName, out Security sec))
             {
-                if (_securities[i].Name == securityName)
-                {
-                    minVolume = _securities[i].NameId.Split('_')[1].ToDecimal();
-                }
+                minVolume = sec.NameId.Split('_')[1].ToDecimal();
             }
 
             if (minVolume <= 0)

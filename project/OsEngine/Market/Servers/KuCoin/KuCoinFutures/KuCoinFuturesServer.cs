@@ -298,13 +298,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
-        private List<Security> _securities = new List<Security>();
+        private Dictionary<string, Security> _securitiesDict = new Dictionary<string, Security>();
 
         public void GetSecurities()
         {
-            if (_securities == null)
+            if (_securitiesDict == null)
             {
-                _securities = new List<Security>();
+                _securitiesDict = new Dictionary<string, Security>();
             }
 
             _rateGateSecurity.WaitToProceed();
@@ -328,6 +328,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                     if (symbols.code.Equals("200000") == true)
                     {
+                        List<Security> securities = new List<Security>();
+
                         for (int i = 0; i < symbols.data.Count; i++)
                         {
                             ResponseSymbol item = symbols.data[i];
@@ -363,11 +365,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                                 newSecurity.MinTradeAmount = Math.Abs(item.multiplier.ToDecimal());
                                 newSecurity.VolumeStep = Math.Abs(item.multiplier.ToDecimal());
 
-                                _securities.Add(newSecurity);
+                                securities.Add(newSecurity);
                             }
                         }
 
-                        SecurityEvent?.Invoke(_securities);
+                        foreach (Security sec in securities)
+                        {
+                            _securitiesDict[sec.Name] = sec;
+                        }
+
+                        SecurityEvent?.Invoke(securities);
                     }
                     else
                     {
@@ -2257,12 +2264,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             decimal minVolume = 1;
 
-            for (int i = 0; i < _securities.Count; i++)
+            if (_securitiesDict.TryGetValue(securityName, out Security sec))
             {
-                if (_securities[i].Name == securityName)
-                {
-                    minVolume = _securities[i].MinTradeAmount;
-                }
+                minVolume = sec.MinTradeAmount;
             }
 
             if (minVolume <= 0)
