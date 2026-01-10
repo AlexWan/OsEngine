@@ -67,8 +67,11 @@ namespace OsEngine.Market.Servers.Mexc
             threadMessageReaderTrades.Start();
         }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy)
         {
+            _myProxy = proxy;
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
@@ -83,6 +86,12 @@ namespace OsEngine.Market.Servers.Mexc
             try
             {
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/api/v3/time", Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
@@ -183,9 +192,7 @@ namespace OsEngine.Market.Servers.Mexc
 
         #region 3 Securities
 
-        List<string> _activeSecurities = new List<string>();
-
-        private RateGate _rateGateSecurities = new RateGate(50, TimeSpan.FromMilliseconds(10000));
+        private RateGate _rateGateSecurities = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         public void GetSecurities()
         {
@@ -195,6 +202,12 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 RestRequest requestRest = new RestRequest("/api/v3/exchangeInfo", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -294,7 +307,7 @@ namespace OsEngine.Market.Servers.Mexc
 
         private string _portfolioName = "MexcSpot";
 
-        private RateGate _rateGatePortfolio = new RateGate(50, TimeSpan.FromMilliseconds(10000));
+        private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         public void GetPortfolios()
         {
@@ -397,7 +410,6 @@ namespace OsEngine.Market.Servers.Mexc
             return candles;
         }
 
-        //private readonly HashSet<int> _allowedTf = new HashSet<int> {1,5,15,30,60,240,1440,10080};
         private readonly Dictionary<int, string> _allowedTf = new Dictionary<int, string>()
         {
             { 1, "1m"},
@@ -523,6 +535,12 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 RestRequest requestRest = new RestRequest(endPoint, Method.GET);
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -646,6 +664,11 @@ namespace OsEngine.Market.Servers.Mexc
 
                     WebSocket _webSocketPublic = new WebSocket(_ws);
 
+                    if (_myProxy != null)
+                    {
+                        _webSocketPublic.SetProxy(_myProxy);
+                    }
+
                     _webSocketPublic.EmitOnPing = true;
                     _webSocketPublic.OnOpen += _webSocketPublic_OnOpen;
                     _webSocketPublic.OnClose += _webSocketPublic_OnClose;
@@ -682,6 +705,11 @@ namespace OsEngine.Market.Servers.Mexc
                     string uri = _wsPrivate + "?listenKey=" + _listenKey;
 
                     _webSocketPrivate = new WebSocket(uri);
+
+                    if (_myProxy != null)
+                    {
+                        _webSocketPrivate.SetProxy(_myProxy);
+                    }
 
                     _webSocketPrivate.EmitOnPing = true;
                     _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
@@ -1156,9 +1184,11 @@ namespace OsEngine.Market.Servers.Mexc
 
         #region 9 WebSocket Security subscribe
 
-        private RateGate _rateGateSubscribe = new RateGate(30, TimeSpan.FromMilliseconds(1000));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(35));
 
         private List<string> _subscribedSecurities = new List<string>();
+
+        List<string> _activeSecurities = new List<string>();
 
         public void Subscribe(Security security)
         {
@@ -2355,7 +2385,15 @@ namespace OsEngine.Market.Servers.Mexc
 
                 RestRequest request = new RestRequest(url, method);
                 request.AddHeader("X-MEXC-APIKEY", _publicKey);
-                IRestResponse response = new RestClient(_baseUrl).Execute(request);
+
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(request);
 
                 return response;
             }
