@@ -206,15 +206,19 @@ namespace OsEngine.Logging
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
                 items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label27));
-                items[0].Click += Log_MessageServer_Click;
+                items[^1].Click += Log_MessageServer_Click;
 
                 items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label28));
-                items[1].Click += Log_ShowFile_Click;
+                items[^1].Click += Log_ShowFile_Click;
 
                 items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label29));
-                items[2].Click += Log_ShowErrorLog_Click;
+                items[^1].Click += Log_ShowErrorLog_Click;
 
-                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
+                items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label31));
+                items[^1].Click += Log_ClearOldMessages_Click;
+
+                ContextMenuStrip menu = new ContextMenuStrip(); 
+                menu.Items.AddRange(items.ToArray());
 
                 _grid.ContextMenuStrip = menu;
                 _grid.ContextMenuStrip.Show(_grid, new System.Drawing.Point(mouseXPos, mouseYPos));
@@ -227,7 +231,14 @@ namespace OsEngine.Logging
 
         private void Log_ShowErrorLog_Click(object sender, EventArgs e)
         {
-            Log.ShowErrorLogUi();
+            try
+            {
+                Log.ShowErrorLogUi();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         private void Log_ShowFile_Click(object sender, EventArgs e)
@@ -248,15 +259,43 @@ namespace OsEngine.Logging
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(ex.ToString());
+                MessageBox.Show(ex.ToString());
             }
         }
 
         private void Log_MessageServer_Click(object sender, EventArgs e)
         {
-            if (_messageSender != null)
+            try
             {
-                _messageSender.ShowDialog();
+                if (_messageSender != null)
+                {
+                    _messageSender.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void Log_ClearOldMessages_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label314);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                this.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
             }
         }
 

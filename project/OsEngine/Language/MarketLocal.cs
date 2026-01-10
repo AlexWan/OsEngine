@@ -1282,6 +1282,10 @@ namespace OsEngine.Language
           "Eng:Important! No trading periods!_" +
           "Ru:ВАЖНО! Неторговые периоды!_");
 
+        public string Label314 => OsLocalization.ConvertToLocString(
+          "Eng:Are you sure you want to clear the log? Data will be lost!_" +
+          "Ru:Вы уверены что хотите очистить лог? Данные будут потеряны!_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");

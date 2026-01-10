@@ -170,5 +170,9 @@ namespace OsEngine.Language
         public string Label30 => OsLocalization.ConvertToLocString(
             "Eng:All messages will be cleared from memory. Are you sure?_" +
             "Ru:Все сообщения будут очищены из памяти. Вы уверены?_");
+
+        public string Label31 => OsLocalization.ConvertToLocString(
+            "Eng:Clear_" +
+            "Ru:Очистить_");
     }
 }
