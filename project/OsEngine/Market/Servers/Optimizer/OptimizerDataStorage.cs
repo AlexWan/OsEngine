@@ -488,8 +488,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     security[security.Count - 1].Security.Name = name;
                     security[security.Count - 1].Security.Lot = 1;
                     security[security.Count - 1].Security.NameClass = "TestClass";
-                    security[security.Count - 1].Security.MarginBuy = 1;
-                    security[security.Count - 1].Security.MarginSell = 1;
+                    security[security.Count - 1].Security.MarginBuy = 0;
+                    security[security.Count - 1].Security.MarginSell = 0;
                     security[security.Count - 1].Security.PriceStepCost = 1;
                     security[security.Count - 1].Security.PriceStep = 1;
                     // timeframe / тф
@@ -798,8 +798,8 @@ namespace OsEngine.Market.Servers.Optimizer
                 security[security.Count - 1].Security.Name = name;
                 security[security.Count - 1].Security.Lot = 1;
                 security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.MarginBuy = 1;
-                security[security.Count - 1].Security.MarginSell = 1;
+                security[security.Count - 1].Security.MarginBuy = 0;
+                security[security.Count - 1].Security.MarginSell = 0;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
                 // timeframe / тф
@@ -1026,8 +1026,8 @@ namespace OsEngine.Market.Servers.Optimizer
                 security[security.Count - 1].Security.Name = name;
                 security[security.Count - 1].Security.Lot = 1;
                 security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.MarginBuy = 1;
-                security[security.Count - 1].Security.MarginSell = 1;
+                security[security.Count - 1].Security.MarginBuy = 0;
+                security[security.Count - 1].Security.MarginSell = 0;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
                 // timeframe / тф

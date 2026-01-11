@@ -981,6 +981,7 @@ namespace OsEngine.OsOptimizer
         private void CreateTableSources()
         {
             _gridSources = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.AllCells);
+            _gridSources.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridSources.DefaultCellStyle;
@@ -1077,6 +1078,8 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
+            int selectedRow = _gridSources.FirstDisplayedScrollingRowIndex;
+
             _gridSources.Rows.Clear();
 
             if (sources == null)
@@ -1107,6 +1110,12 @@ namespace OsEngine.OsOptimizer
                 }
 
                 _gridSources.Rows.Add(row);
+            }
+
+            if(selectedRow != -1 
+                && selectedRow > _gridSources.Rows.Count)
+            {
+                _gridSources.FirstDisplayedScrollingRowIndex = selectedRow;
             }
         }
 
@@ -2320,7 +2329,9 @@ namespace OsEngine.OsOptimizer
             try
             {
 
-                for (int i_param = 0, i_grid = 0; i_param < _parameters.Count; i_param++, i_grid++)
+                for (int i_param = 0, i_grid = 0; 
+                    i_param < _parameters.Count && i_grid < _gridParameters.Rows.Count; 
+                    i_param++, i_grid++)
                 {
                     IIStrategyParameter parameter = _parameters[i_param];
                     DataGridViewRow row = _gridParameters.Rows[i_grid];
@@ -2491,8 +2502,9 @@ namespace OsEngine.OsOptimizer
                 }
                 _master.SaveStandardParameters();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
                 PaintTableParameters();
             }
         }

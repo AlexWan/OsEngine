@@ -92,14 +92,6 @@ namespace OsEngine.Robots.FuturesStart
         private StrategyParameterInt _bollingerLength;
         private StrategyParameterDecimal _bollingerDeviation;
 
-        private StrategyParameterBool _smaFilterIsOn;
-        private StrategyParameterInt _smaFilterLen;
-
-        private StrategyParameterBool _volatilityFilterIsOn;
-        private StrategyParameterInt _volatilityFilterLenFast;
-        private StrategyParameterInt _volatilityFilterLenSlow;
-        private StrategyParameterInt _volatilityStageToTrade;
-
         private StrategyParameterString _contangoFilterRegime;
         private StrategyParameterInt _contangoStageToTradeLong;
         private StrategyParameterInt _contangoStageToTradeShort;
@@ -151,22 +143,13 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _bollingerLength = CreateParameter("Bollinger Length", 180, 20, 300, 10, "Base");
-            _bollingerDeviation = CreateParameter("Bollinger deviation", 0.8m, 1, 4, 0.1m, "Base");
+            _bollingerLength = CreateParameter("Bollinger Length", 150, 20, 300, 10, "Base");
+            _bollingerDeviation = CreateParameter("Bollinger deviation", 1.7m, 1, 4, 0.1m, "Base");
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
             _volume = CreateParameter("Volume", 10, 1.0m, 50, 4, "Base");
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
-
-            // filters
-            _smaFilterIsOn = CreateParameter("Sma filter is on", true, "Filters");
-            _smaFilterLen = CreateParameter("Sma filter Length", 100, 100, 300, 10, "Filters");
-
-            _volatilityFilterIsOn = CreateParameter("Volatility filter is on", true, "Filters");
-            _volatilityFilterLenSlow = CreateParameter("Volatility filter slow Length", 70, 5, 300, 10, "Filters");
-            _volatilityFilterLenFast = CreateParameter("Volatility filter fast Length", 10, 5, 300, 10, "Filters");
-            _volatilityStageToTrade = CreateParameter("Volatility stage to trade", 2, 1, 2, 1, "Filters");
 
             _contangoFilterRegime = CreateParameter("Contango filter regime", "On_MOEXStocksAuto", new[] { "Off", "On_MOEXStocksAuto", "On_Manual" }, "Contango");
             _contangoStageToTradeLong = CreateParameter("Contango stage to trade Long", 1, 1, 2, 1, "Contango");
@@ -302,8 +285,6 @@ namespace OsEngine.Robots.FuturesStart
             futuresSource.CreateCandleIndicator(1, "Bollinger", new List<string>() { 
                 _bollingerLength.ValueInt.ToString(), _bollingerDeviation.ValueDecimal.ToString() }, "Prime");
 
-            futuresSource.CreateCandleIndicator(2, "VolatilityAverageTwice", new List<string>() {
-                "Candle", "Percent", _volatilityFilterLenSlow.ValueInt.ToString(), _volatilityFilterLenFast.ValueInt.ToString()}, "Dop");
         }
 
         private void UpdateSettingsInIndicators(BotTabSimple baseSource, BotTabScreener futuresSource)
@@ -313,15 +294,6 @@ namespace OsEngine.Robots.FuturesStart
              {
                  _bollingerLength.ValueInt.ToString(),
                  _bollingerDeviation.ValueDecimal.ToString()
-             };
-
-            futuresSource._indicators[1].Parameters
-             = new List<string>()
-             {
-                 "Candle",
-                 "Percent",
-                 _volatilityFilterLenSlow.ValueInt.ToString(),
-                 _volatilityFilterLenFast.ValueInt.ToString()
              };
 
             futuresSource.UpdateIndicatorsParameters();
@@ -580,16 +552,6 @@ namespace OsEngine.Robots.FuturesStart
                 && futuresLastPrice > futuresBollinger.DataSeries[0].Last)   // фьючерс выше верхнего боллинджера
             {// Лонг
 
-                if (_smaFilterIsOn.ValueBool == true)
-                {
-                    decimal smaValue = Sma(futuresCandles, _smaFilterLen.ValueInt, futuresCandles.Count - 1);
-
-                    if (futuresLastPrice < smaValue)
-                    {
-                        return;
-                    }
-                }
-
                 if(_contangoFilterRegime.ValueString != "Off")
                 {
                     int stageContango = GetContangoStage(futuresSource.Security.Name);
@@ -600,11 +562,6 @@ namespace OsEngine.Robots.FuturesStart
                     }
                 }
 
-                if (StopEntryByRegimeFilters(futuresSource))
-                {
-                    return;
-                }
-
                 futuresSource.BuyAtIcebergMarket(GetVolume(futuresSource), _icebergCount.ValueInt, 1000);
                 
                 
@@ -612,15 +569,6 @@ namespace OsEngine.Robots.FuturesStart
             else if (_regime.ValueString != "OnlyLong"
                 && futuresLastPrice < futuresBollinger.DataSeries[1].Last) // фьючерс ниже нижнего боллинджера
             {// Шорт
-                if (_smaFilterIsOn.ValueBool == true)
-                {
-                    decimal smaValue = Sma(futuresCandles, _smaFilterLen.ValueInt, futuresCandles.Count - 1);
-
-                    if (futuresLastPrice > smaValue)
-                    {
-                        return;
-                    }
-                }
 
                 if (_contangoFilterRegime.ValueString != "Off")
                 {
@@ -632,48 +580,9 @@ namespace OsEngine.Robots.FuturesStart
                     } 
                 }
 
-                if (StopEntryByRegimeFilters(futuresSource))
-                {
-                    return;
-                }
-
                 futuresSource.SellAtIcebergMarket(GetVolume(futuresSource), _icebergCount.ValueInt, 1000);
             }
 
-        }
-
-        private bool StopEntryByRegimeFilters(BotTabSimple futuresSource)
-        {
-            if (_volatilityFilterIsOn.ValueBool == true
-                   &&
-                   (_volatilityStageToTrade.ValueInt == 1 || _volatilityStageToTrade.ValueInt == 2))
-            {
-                Aindicator volatilityAverage = (Aindicator)futuresSource.Indicators[1];
-
-                decimal slowVolaSma = volatilityAverage.DataSeries[1].Last;
-                decimal fastVola = volatilityAverage.DataSeries[2].Last;
-           
-                if (fastVola != 0
-                    && slowVolaSma != 0)
-                {
-                    int stage = 0;
-                    if (fastVola >= slowVolaSma)
-                    {
-                        stage = 2;
-                    }
-                    else if (fastVola < slowVolaSma)
-                    {
-                        stage = 1;
-                    }
-
-                    if (stage != _volatilityStageToTrade.ValueInt)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         private void TryClosePositionLogic(
@@ -991,13 +900,17 @@ namespace OsEngine.Robots.FuturesStart
             {
                 if (_contangoValues[i].SecurityName == secName)
                 {
-                    if(i <= _contangoValues.Count /2)
+                    if(i <= _contangoValues.Count /3)
                     {
                         return 1;
                     }
-                    else
+                    else if (i >= _contangoValues.Count / 3)
                     {
                         return 2;
+                    }
+                    else
+                    {
+                        return 0;
                     }
                 }
             }

@@ -2968,8 +2968,8 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].Security.Name = name;
                 security[security.Count - 1].Security.Lot = 1;
                 security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.MarginBuy = 1;
-                security[security.Count - 1].Security.MarginSell = 1;
+                security[security.Count - 1].Security.MarginBuy = 0;
+                security[security.Count - 1].Security.MarginSell = 0;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
                 // timeframe / тф
@@ -3300,8 +3300,8 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].Security.Name = name;
                 security[security.Count - 1].Security.Lot = 1;
                 security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.MarginBuy = 1;
-                security[security.Count - 1].Security.MarginSell = 1;
+                security[security.Count - 1].Security.MarginBuy = 0;
+                security[security.Count - 1].Security.MarginSell = 0;
                 security[security.Count - 1].Security.PriceStepCost = 1;
                 security[security.Count - 1].Security.PriceStep = 1;
                 // timeframe / тф
@@ -3598,8 +3598,8 @@ namespace OsEngine.Market.Servers.Tester
                 securityTester.Security.Name = name;
                 securityTester.Security.Lot = 1;
                 securityTester.Security.NameClass = "TestClass";
-                securityTester.Security.MarginBuy = 1;
-                securityTester.Security.MarginSell = 1;
+                securityTester.Security.MarginBuy = 0;
+                securityTester.Security.MarginSell = 0;
                 securityTester.Security.PriceStepCost = 1;
                 securityTester.Security.PriceStep = 1;
                 securityTester.DataType = SecurityTesterDataType.MarketDepth;

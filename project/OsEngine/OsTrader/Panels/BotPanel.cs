@@ -346,7 +346,8 @@ namespace OsEngine.OsTrader.Panels
             {
                 for (int i = 0; TabsSimple != null && i < TabsSimple.Count; i++)
                 {
-                    if (TabsSimple[i].IsConnected == false)
+                    if (string.IsNullOrEmpty(TabsSimple[i].Connector.SecurityName) == false
+                        && TabsSimple[i].IsConnected == false)
                     {
                         return false;
                     }
@@ -354,7 +355,9 @@ namespace OsEngine.OsTrader.Panels
 
                 for (int i = 0; TabsScreener != null && i < TabsScreener.Count; i++)
                 {
-                    if (TabsScreener[i].IsConnected == false)
+                    if (TabsScreener[i].SecuritiesNames != null 
+                        && TabsScreener[i].SecuritiesNames.Count > 0
+                        && TabsScreener[i].IsConnected == false)
                     {
                         return false;
                     }
@@ -362,14 +365,17 @@ namespace OsEngine.OsTrader.Panels
 
                 for (int i = 0; TabsIndex != null && i < TabsIndex.Count; i++)
                 {
-                    if (TabsIndex[i].IsConnected == false)
+                    if (TabsIndex[i].Tabs != null
+                        && TabsIndex[i].Tabs.Count > 0
+                        && TabsIndex[i].IsConnected == false)
                     {
                         return false;
                     }
                 }
 
-                if (TabsSimple == null &&
-                    TabsIndex == null)
+                if (TabsSimple == null 
+                    && TabsIndex == null
+                    && TabsScreener == null)
                 {
                     return false;
                 }

@@ -365,6 +365,10 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public void GetDataToSecurity(Security security, TimeFrame timeFrame, DateTime timeStart, DateTime timeEnd)
         {
+            if(security == null)
+            {
+                return;
+            }
             DataStorage newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
 
             if (newStorage == null)
@@ -2082,7 +2086,7 @@ namespace OsEngine.Market.Servers.Optimizer
                         continue;
                     }
 
-                    NewTradeEvent(trade);
+                    NewTradeEvent?.Invoke(trade);
                 }
             }
 

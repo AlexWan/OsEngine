@@ -1405,28 +1405,27 @@ namespace OsEngine.OsOptimizer
 
             // проверяем наличие данных в источниках
 
+            bool noDataFull = true;
+            bool noDataInOneSource = false;
+
             for (int i = 0; i < sources.Count; i++)
             {
                 if (sources[i].TabType == BotTabType.Simple)
                 {// BotTabSimple
                     BotTabSimple simple = (BotTabSimple)sources[i];
 
-                    if (string.IsNullOrEmpty(simple.Connector.SecurityName))
+                    if (string.IsNullOrEmpty(simple.Connector.SecurityName) == false)
                     {
-                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
-                        ui.ShowDialog();
-                        SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
-                        if (NeedToMoveUiToEvent != null)
+                        noDataFull = false;
+                        if (HaveSecurityAndTfInStorage(
+                            simple.Connector.SecurityName, simple.Connector.TimeFrame) == false)
                         {
-                            NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);
+                            return false;
                         }
-                        return false;
                     }
-
-                    if (HaveSecurityAndTfInStorage(
-                        simple.Connector.SecurityName, simple.Connector.TimeFrame) == false)
+                    else
                     {
-                        return false;
+                        noDataInOneSource = true;
                     }
                 }
                 else if (sources[i].TabType == BotTabType.Index)
@@ -1436,22 +1435,19 @@ namespace OsEngine.OsOptimizer
                     if (index.Tabs == null ||
                         index.Tabs.Count == 0)
                     {
-                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
-                        ui.ShowDialog();
-                        SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
-                        if (NeedToMoveUiToEvent != null)
-                        {
-                            NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);
-                        }
-                        return false;
+                        noDataInOneSource = true;
                     }
-
-                    for (int i2 = 0; i2 < index.Tabs.Count; i2++)
+                    else
                     {
-                        if (HaveSecurityAndTfInStorage(
-                            index.Tabs[i2].SecurityName, index.Tabs[i2].TimeFrame) == false)
+                        noDataFull = false;
+
+                        for (int i2 = 0; i2 < index.Tabs.Count; i2++)
                         {
-                            return false;
+                            if (HaveSecurityAndTfInStorage(
+                                index.Tabs[i2].SecurityName, index.Tabs[i2].TimeFrame) == false)
+                            {
+                                return false;
+                            }
                         }
                     }
                 }
@@ -1462,24 +1458,45 @@ namespace OsEngine.OsOptimizer
                     if (screener.Tabs == null ||
                         screener.Tabs.Count == 0)
                     {
-                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
-                        ui.ShowDialog();
-                        SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
-                        if (NeedToMoveUiToEvent != null)
-                        {
-                            NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);
-                        }
-                        return false;
+                        noDataInOneSource = true;
                     }
-
-                    for (int i2 = 0; i2 < screener.Tabs.Count; i2++)
+                    else
                     {
-                        if (HaveSecurityAndTfInStorage(
-                            screener.Tabs[i2].Connector.SecurityName, screener.Tabs[i2].Connector.TimeFrame) == false)
+                        noDataFull = false;
+
+                        for (int i2 = 0; i2 < screener.Tabs.Count; i2++)
                         {
-                            return false;
+                            if (HaveSecurityAndTfInStorage(
+                                screener.Tabs[i2].Connector.SecurityName, screener.Tabs[i2].Connector.TimeFrame) == false)
+                            {
+                                return false;
+                            }
                         }
                     }
+                }
+            }
+
+            if (noDataFull == true)
+            { // данные полность не подключены
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
+                ui.ShowDialog();
+                SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
+                if (NeedToMoveUiToEvent != null)
+                {
+                    NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);
+                }
+                return false;
+            }
+
+            if(noDataInOneSource == true)
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Message103);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return false;
                 }
             }
 

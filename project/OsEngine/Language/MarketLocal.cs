@@ -1726,6 +1726,10 @@ namespace OsEngine.Language
             "Eng:The program automatically went into reconnect mode. _" +
             "Ru:Программа автоматически перешла в режим повторного подключения. _");
 
+        public string Message103 => OsLocalization.ConvertToLocString(
+            "Eng:One of the sources does not have data connected. Do you want to continue? _" +
+            "Ru:В одном из источников не подключены данные. Вы хотите продолжить? _");
+
         public string TitleTester => OsLocalization.ConvertToLocString(
             "Eng:Exchange emulator_" +
             "Ru:Эмулятор биржи_");
