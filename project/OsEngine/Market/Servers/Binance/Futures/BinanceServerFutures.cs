@@ -113,11 +113,17 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             // check server availability for HTTP communication with it / проверяем доступность сервера для HTTP общения с ним
-            Uri uri = new Uri(_baseUrl + "/" + type_str_selector + "/v1/time");
+            //Uri uri = new Uri(_baseUrl + "/" + type_str_selector + "/v1/time");
             try
             {
                 RestRequest requestRest = new RestRequest("/" + type_str_selector + "/v1/time", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode != HttpStatusCode.OK)
