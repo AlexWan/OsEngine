@@ -346,30 +346,60 @@ namespace OsEngine.OsTrader.Panels
             {
                 for (int i = 0; TabsSimple != null && i < TabsSimple.Count; i++)
                 {
-                    if (string.IsNullOrEmpty(TabsSimple[i].Connector.SecurityName) == false
-                        && TabsSimple[i].IsConnected == false)
+                    if(StartProgram == StartProgram.IsOsTrader)
                     {
-                        return false;
+                        if (TabsSimple[i].IsConnected == false)
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(TabsSimple[i].Connector.SecurityName) == false
+                          && TabsSimple[i].IsConnected == false)
+                        {
+                            return false;
+                        }
                     }
                 }
 
                 for (int i = 0; TabsScreener != null && i < TabsScreener.Count; i++)
                 {
-                    if (TabsScreener[i].SecuritiesNames != null 
-                        && TabsScreener[i].SecuritiesNames.Count > 0
-                        && TabsScreener[i].IsConnected == false)
+                    if (StartProgram == StartProgram.IsOsTrader)
                     {
-                        return false;
+                        if (TabsScreener[i].IsConnected == false)
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        if (TabsScreener[i].SecuritiesNames != null
+                         && TabsScreener[i].SecuritiesNames.Count > 0
+                         && TabsScreener[i].IsConnected == false)
+                        {
+                            return false;
+                        }
                     }
                 }
 
                 for (int i = 0; TabsIndex != null && i < TabsIndex.Count; i++)
                 {
-                    if (TabsIndex[i].Tabs != null
+                    if (StartProgram == StartProgram.IsOsTrader)
+                    {
+                        if (TabsIndex[i].IsConnected == false)
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        if (TabsIndex[i].Tabs != null
                         && TabsIndex[i].Tabs.Count > 0
                         && TabsIndex[i].IsConnected == false)
-                    {
-                        return false;
+                        {
+                            return false;
+                        }
                     }
                 }
 
