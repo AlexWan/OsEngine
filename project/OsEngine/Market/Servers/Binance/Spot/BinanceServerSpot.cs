@@ -84,11 +84,17 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
 
             // check server availability for HTTP communication with it 
-            Uri uri = new Uri(_baseUrl + "/v1/time");
+            //Uri uri = new Uri(_baseUrl + "/v1/time");
             try
             {
                 RestRequest requestRest = new RestRequest("/v1/time", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode != HttpStatusCode.OK)
@@ -136,7 +142,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
             DisposeSockets();
 
             _subscribedSecurities.Clear();
-            _securities = new List<Security>();
             _newMessagePrivate = new ConcurrentQueue<BinanceUserMessage>();
             _newMessagePublic = new ConcurrentQueue<string>();
             _newMessagePublicMarketDepth = new ConcurrentQueue<string>();
@@ -201,14 +206,16 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
         }
 
-        private List<Security> _securities;
+        private Dictionary<string, Security> _securitiesDict = new Dictionary<string, Security>();
 
         private void UpdatePairs(SecurityResponce pairs)
         {
-            if (_securities == null)
+            if (_securitiesDict == null)
             {
-                _securities = new List<Security>();
+                _securitiesDict = new Dictionary<string, Security>();
             }
+
+            List<Security> securities = new List<Security>();
 
             foreach (var sec in pairs.symbols)
             {
@@ -274,12 +281,17 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 security.MinTradeAmountType = MinTradeAmountType.C_Currency;
 
                 security.State = SecurityStateType.Activ;
-                _securities.Add(security);
+                securities.Add(security);
+            }
+
+            foreach (Security sec in securities)
+            {
+                _securitiesDict[sec.Name] = sec;
             }
 
             if (SecurityEvent != null)
             {
-                SecurityEvent(_securities);
+                SecurityEvent(securities);
             }
         }
 
@@ -2028,12 +2040,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private int GetDecimalsVolume(string security)
         {
-            for (int i = 0; i < _securities.Count; i++)
+            if (_securitiesDict.TryGetValue(security, out Security sec))
             {
-                if (security == _securities[i].Name)
-                {
-                    return _securities[i].DecimalsVolume;
-                }
+                return sec.DecimalsVolume;
             }
 
             return 0;
