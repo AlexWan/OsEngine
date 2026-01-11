@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -98,6 +99,72 @@ namespace OsEngine.Robots.FuturesStart
         private StrategyParameterDecimal _contangoCoefficient9;
         private StrategyParameterDecimal _contangoCoefficient10;
 
+        private StrategyParameterBool _tradeRegimeSecurity1;
+        private StrategyParameterBool _tradeRegimeSecurity2;
+        private StrategyParameterBool _tradeRegimeSecurity3;
+        private StrategyParameterBool _tradeRegimeSecurity4;
+        private StrategyParameterBool _tradeRegimeSecurity5;
+        private StrategyParameterBool _tradeRegimeSecurity6;
+        private StrategyParameterBool _tradeRegimeSecurity7;
+        private StrategyParameterBool _tradeRegimeSecurity8;
+        private StrategyParameterBool _tradeRegimeSecurity9;
+        private StrategyParameterBool _tradeRegimeSecurity10;
+
+        private bool CanTradeThisSecurity(string securityName)
+        {
+            if (this.TabsSimple[0].Security != null
+                   && this.TabsSimple[0].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity1.ValueBool;
+            }
+            if (this.TabsSimple[1].Security != null
+                && this.TabsSimple[1].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity2.ValueBool;
+            }
+            if (this.TabsSimple[2].Security != null
+                && this.TabsSimple[2].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity3.ValueBool;
+            }
+            if (this.TabsSimple[3].Security != null
+                && this.TabsSimple[3].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity4.ValueBool;
+            }
+            if (this.TabsSimple[4].Security != null
+                && this.TabsSimple[4].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity5.ValueBool;
+            }
+            if (this.TabsSimple[5].Security != null
+               && this.TabsSimple[5].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity6.ValueBool;
+            }
+            if (this.TabsSimple[6].Security != null
+               && this.TabsSimple[6].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity7.ValueBool;
+            }
+            if (this.TabsSimple[7].Security != null
+                && this.TabsSimple[7].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity8.ValueBool;
+            }
+            if (this.TabsSimple[8].Security != null
+                && this.TabsSimple[8].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity9.ValueBool;
+            }
+            if (this.TabsSimple[9].Security != null
+                && this.TabsSimple[9].Security.Name == securityName)
+            {
+                return _tradeRegimeSecurity10.ValueBool;
+            }
+            return false;
+        }
+
         // Trade periods
         private NonTradePeriods _tradePeriodsSettings;
         private StrategyParameterButton _tradePeriodsShowDialogButton;
@@ -160,6 +227,17 @@ namespace OsEngine.Robots.FuturesStart
 
             StrategyParameterButton buttonShowContango = CreateParameterButton("Show contango", "Contango");
             buttonShowContango.UserClickOnButtonEvent += ButtonShowContango_UserClickOnButtonEvent;
+
+            _tradeRegimeSecurity1 = CreateParameter("Trade security 1", true, "Trade securities");
+            _tradeRegimeSecurity2 = CreateParameter("Trade security 2", true, "Trade securities");
+            _tradeRegimeSecurity3 = CreateParameter("Trade security 3", true, "Trade securities");
+            _tradeRegimeSecurity4 = CreateParameter("Trade security 4", true, "Trade securities");
+            _tradeRegimeSecurity5 = CreateParameter("Trade security 5", true, "Trade securities");
+            _tradeRegimeSecurity6 = CreateParameter("Trade security 6", true, "Trade securities");
+            _tradeRegimeSecurity7 = CreateParameter("Trade security 7", true, "Trade securities");
+            _tradeRegimeSecurity8 = CreateParameter("Trade security 8", true, "Trade securities");
+            _tradeRegimeSecurity9 = CreateParameter("Trade security 9", true, "Trade securities");
+            _tradeRegimeSecurity10 = CreateParameter("Trade security 10", true, "Trade securities");
 
             // Source creation
 
@@ -224,6 +302,10 @@ namespace OsEngine.Robots.FuturesStart
             CreateIndicators(_base10, _futs10);
 
             ParametrsChangeByUser += FuturesStartContangoScreener_ParametrsChangeByUser;
+
+            Description = OsLocalization.ConvertToLocString(
+              "Eng:Trend futures screener on the Bollinger channel breakout. With a filter by the stage of the futures deviation from the base. Designed for the MOEX stock futures market_" +
+              "Ru:Трендовый скринер фьючерсов на пробое канала Боллинджер. С фильтром по стадии отклонения фьючерса от базы. Рассчитана на рынок фьючерсов на акции MOEX_");
         }
 
         private void ButtonShowContango_UserClickOnButtonEvent()
@@ -454,6 +536,11 @@ namespace OsEngine.Robots.FuturesStart
                 SetContangoValues(baseSource, futuresSource);
             }
 
+            if (CanTradeThisSecurity(baseSource.Security.Name) == false)
+            {
+                return;
+            }
+
             List<Position> futuresPositions = futuresSource.PositionsOpenAll;
 
             if(futuresPositions.Count > 0)
@@ -640,34 +727,6 @@ namespace OsEngine.Robots.FuturesStart
         #endregion
 
         #region Helpers
-
-        // Method for calculating MovingAverage
-        private decimal Sma(List<Candle> candles, int len, int index)
-        {
-            if (candles.Count == 0
-                || index >= candles.Count
-                || index <= 0)
-            {
-                return 0;
-            }
-
-            decimal summ = 0;
-
-            int countPoints = 0;
-
-            for (int i = index; i >= 0 && i > index - len; i--)
-            {
-                countPoints++;
-                summ += candles[i].Close;
-            }
-
-            if (countPoints == 0)
-            {
-                return 0;
-            }
-
-            return summ / countPoints;
-        }
 
         // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
