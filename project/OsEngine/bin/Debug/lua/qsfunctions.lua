@@ -959,26 +959,103 @@ end
 
 --- Возвращаем все свечи по заданному инструменту и интервалу
 function qsfunctions.get_candles_from_data_source(msg)
-	local ds, is_error = create_data_source(msg)
-	if not is_error then
-		--- датасорс изначально приходит пустой, нужно некоторое время подождать пока он заполниться данными
-		repeat sleep(1) until ds:Size() > 0
-
-		local count = tonumber(split(msg.data, "|")[5]) --- возвращаем последние count свечей. Если равен 0, то возвращаем все доступные свечи.
-		local class, sec, interval, param = get_candles_param(msg)
-		local candles = {}
-		local start_i = count == 0 and 1 or math.max(1, ds:Size() - count + 1)
-		for i = start_i, ds:Size() do
-			local candle = fetch_candle(ds, i)
-			candle.sec = sec
-			candle.class = class
-			candle.interval = interval
-			table.insert(candles, candle)
-		end
-		ds:Close()
-		msg.data = candles
-	end
-	return msg
+    -- Получаем параметры до создания datasource
+    local class, sec, interval, param = get_candles_param(msg)
+    local count = tonumber(split(msg.data, "|")[5]) or 0
+    
+    -- Создаем datasource
+    local ds, is_error = create_data_source(msg)
+    if is_error then
+        -- Ошибка уже обработана в create_data_source
+        return msg
+    end
+    
+    -- Проверяем, что datasource создан
+    if not ds then
+        msg.cmd = "lua_error"
+        msg.lua_error = "Failed to create data source"
+        return msg
+    end
+    
+    -- Ожидаем данные с таймаутом
+    local max_wait_seconds = 10
+    local wait_start = os.time()
+    
+    while ds:Size() == 0 do
+        if os.time() - wait_start >= max_wait_seconds then
+            ds:Close()
+            msg.cmd = "lua_error"
+            msg.lua_error = "There are no candles for this period. DataSource is empty after waiting " .. max_wait_seconds .. " seconds for " .. class .. ":" .. sec
+            return msg
+        end
+        
+        -- Используем delay или sleep
+        if delay then
+            delay(100)  -- 100ms
+        else
+            local socket = require("socket")
+            socket.sleep(0.1)  -- 0.1 секунды
+        end
+    end
+    
+    local actual_size = ds:Size()
+    
+    local max_candles = 10000
+    local start_index, end_index, requested_count
+    
+    if count == 0 then
+        requested_count = math.min(actual_size, max_candles)
+        start_index = math.max(1, actual_size - requested_count + 1)
+        end_index = actual_size
+    else
+        requested_count = math.min(count, max_candles)
+        start_index = math.max(1, actual_size - requested_count + 1)
+        end_index = math.min(actual_size, start_index + requested_count - 1)
+    end
+    
+    -- Проверяем, что start_index <= end_index
+    if start_index > end_index then
+        ds:Close()
+        msg.cmd = "lua_error"
+        msg.lua_error = "Invalid candle range: start=" .. start_index .. ", end=" .. end_index .. ", size=" .. actual_size
+        return msg
+    end
+    
+    -- Читаем свечи
+    local candles = {}
+    local batch_size = 1000
+    local processed = 0
+    
+    for batch_start = start_index, end_index, batch_size do
+        local batch_end = math.min(batch_start + batch_size - 1, end_index)
+        
+        for i = batch_start, batch_end do
+            local candle = fetch_candle(ds, i)
+            if candle then
+                candle.sec = sec
+                candle.class = class
+                candle.interval = interval
+                table.insert(candles, candle)
+                processed = processed + 1
+            else
+                log("Failed to fetch candle at index " .. i, 1)
+            end
+        end
+        
+        if delay then
+            delay(5)  -- 5ms пауза
+        end
+        
+        if os.time() - wait_start >= max_wait_seconds + 30 then  -- Дополнительные 30 секунд на обработку
+            break
+        end
+    end
+    
+    ds:Close()
+    
+    msg.data = candles
+    
+    return msg
 end
 
 function create_data_source(msg)

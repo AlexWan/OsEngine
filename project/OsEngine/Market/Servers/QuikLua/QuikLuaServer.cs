@@ -167,6 +167,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     QuikLua.Events.OnMoneyLimit += Events_OnMoneyLimit;
                     QuikLua.Events.OnTrade += EventsOnOnTrade;
                     QuikLua.Events.OnOrder += EventsOnOnOrder;
+                    QuikLua.Events.OnAllTrade += EventsOnOnAllTrade;
                     QuikLua.Events.OnQuote += EventsOnOnQuote;
                     QuikLua.Events.OnFuturesClientHolding += EventsOnOnFuturesClientHolding;
                     QuikLua.Events.OnFuturesLimitChange += EventsOnOnFuturesLimitChange;
@@ -230,6 +231,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     QuikLua.Events.OnTrade -= EventsOnOnTrade;
                     QuikLua.Events.OnOrder -= EventsOnOnOrder;
                     QuikLua.Events.OnQuote -= EventsOnOnQuote;
+                    QuikLua.Events.OnAllTrade -= EventsOnOnAllTrade;
                     QuikLua.Events.OnFuturesClientHolding -= EventsOnOnFuturesClientHolding;
                     QuikLua.Events.OnFuturesLimitChange -= EventsOnOnFuturesLimitChange;
                     QuikLua.Events.OnTransReply -= Events_OnTransReply;
@@ -329,7 +331,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        private RateGate _gateToGetCandles = new RateGate(1, TimeSpan.FromMilliseconds(2000));
+        private RateGate _gateToGetCandles = new RateGate(1, TimeSpan.FromMilliseconds(500));
 
         private int _tradeMode;
 
@@ -1479,8 +1481,6 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     QuikLua.OrderBook.Subscribe(security.NameClass, security.Name.Split('+')[0]);
                     subscribedSecurities.Add(security);
-                    QuikLua.Events.OnAllTrade -= EventsOnOnAllTrade;
-                    QuikLua.Events.OnAllTrade += EventsOnOnAllTrade;
                 }
             }
             catch (Exception error)
