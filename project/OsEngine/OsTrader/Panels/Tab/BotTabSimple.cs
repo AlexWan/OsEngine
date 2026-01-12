@@ -694,7 +694,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void SetChartElement(IChartElement element)
         {
-            _chartMaster.SetChartElement(element);
+            if (_chartMaster != null)
+            {
+                _chartMaster.SetChartElement(element);
+            }
         }
 
         /// <summary>
@@ -702,7 +705,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void DeleteChartElement(IChartElement element)
         {
-            _chartMaster.DeleteChartElement(element);
+            if (_chartMaster != null)
+            {
+                _chartMaster.DeleteChartElement(element);
+            }
         }
 
         /// <summary>
@@ -710,7 +716,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void DeleteAllChartElement()
         {
-            _chartMaster.DeleteAllChartElement();
+            if (_chartMaster != null)
+            {
+                _chartMaster.DeleteAllChartElement();
+            }
         }
 
         /// <summary>
@@ -718,7 +727,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public string GetChartLabel()
         {
-            return _chartMaster.GetChartLabel();
+            if (_chartMaster != null)
+            {
+                return _chartMaster.GetChartLabel();
+            }
+            return "";
         }
 
         /// <summary>
@@ -726,7 +739,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void MoveChartToTheRight()
         {
-            _chartMaster.MoveChartToTheRight();
+            if(_chartMaster != null)
+            {
+                _chartMaster.MoveChartToTheRight();
+            }
         }
 
         // closed components
@@ -1416,6 +1432,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowConnectorDialog()
         {
+            if(_connector == null)
+            {
+                return;
+            }
             _connector.ShowDialog(true);
         }
 
@@ -1424,6 +1444,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (DialogClosed != null)
             {
                 DialogClosed();
+            }
+
+            if(_journal == null)
+            {
+                return;
             }
 
             _journal.CommissionType = _connector.CommissionType;
