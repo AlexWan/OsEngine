@@ -329,7 +329,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        private RateGate _gateToGetCandles = new RateGate(1, TimeSpan.FromMilliseconds(500));
+        private RateGate _gateToGetCandles = new RateGate(1, TimeSpan.FromMilliseconds(2000));
 
         private int _tradeMode;
 
@@ -1463,6 +1463,8 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
+                _gateToGetCandles.WaitToProceed();
+
                 if (subscribedSecurities.Find(sec => sec.Name == security.Name) != null)
                 {
                     return;
