@@ -664,20 +664,13 @@ namespace OsEngine.Market.Servers.QuikLua
                     _clientCodes = QuikLua.Class.GetClientCodes().Result;
                 }
 
-                if (_clientCodes == null)
-                {
-                    return;
-                }
-
                 if (_portfolios == null)
                 {
                     _portfolios = new List<Portfolio>();
                 }
 
-                if (UpdateSpotPortfolio() == false || UpdateFuturesPortfolio() == false)
-                {
-                    return;
-                }
+                UpdateSpotPortfolio();
+                UpdateFuturesPortfolio();
 
                 string message = "";
                 for (int i = 0; i < _portfolios.Count; i++)
@@ -705,10 +698,8 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        private bool UpdateFuturesPortfolio()
+        private void UpdateFuturesPortfolio()
         {
-            bool futuresPortfolioIsLoad = false;
-
             try
             {
                 List<FuturesLimits> futuresLimits = QuikLua.Trading.GetFuturesClientLimits().Result;
@@ -811,29 +802,16 @@ namespace OsEngine.Market.Servers.QuikLua
                     portfolio.SetNewPosition(positionRub);
 
                     _portfolios.Add(portfolio);
-
-                    futuresPortfolioIsLoad = true;
-                }
-
-                // Если в параметрах коннектора указан определенный клиентский код, который не относится к фьючерсам, то считаем, что фьючерсный портфель загружен и больше сюда не возвращаемся.
-                if (futuresLimits != null && string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false &&
-                    futuresPortfolioIsLoad == false)
-                {
-                    futuresPortfolioIsLoad = true;
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            return futuresPortfolioIsLoad;
         }
 
-        private bool UpdateSpotPortfolio()
+        private void UpdateSpotPortfolio()
         {
-            bool spotPortfolioIsLoad = false;
-
             try
             {
                 List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
@@ -927,26 +905,14 @@ namespace OsEngine.Market.Servers.QuikLua
                             UpdateSpotPosition(spotPos, myPortfolio, money, _clientCodes[i3]);
 
                             _portfolios.Add(myPortfolio);
-
-                            spotPortfolioIsLoad = true;
                         }
                     }
-                }
-
-                // Если в параметрах коннектора указан определенный клиентский код, который не относится к споту, то считаем, что спотовый портфель загружен и больше сюда не возвращаемся.
-                if (accaunts != null && money != null && spotPos != null &&
-                    string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false &&
-                    spotPortfolioIsLoad == false)
-                {
-                    spotPortfolioIsLoad = true;
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            return spotPortfolioIsLoad;
         }
 
         private void GetPortfoliosArea()
