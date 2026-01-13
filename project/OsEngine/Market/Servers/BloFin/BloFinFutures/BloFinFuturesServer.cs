@@ -415,15 +415,15 @@ namespace OsEngine.Market.Servers.BloFin
             DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
-            return GetCandleData(security, timeFrameBuilder, startTime, endTime, endTime, false);
+            return GetCandleData(security, timeFrameBuilder, startTime, endTime, endTime);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            return GetCandleData(security, timeFrameBuilder, startTime, endTime, actualTime, true);
+            return GetCandleData(security, timeFrameBuilder, startTime, endTime, actualTime);
         }
 
-        private List<Candle> GetCandleData(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool isOsData)
+        private List<Candle> GetCandleData(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
             endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
@@ -441,18 +441,23 @@ namespace OsEngine.Market.Servers.BloFin
                 return null;
             }
 
-            int limitCandles = 1000;
-
-            if (isOsData)
-            {
-                limitCandles = 1440;
-            }
+            int limitCandles = 1440;
 
             TimeSpan span = endTime - startTime;
 
             if (limitCandles > span.TotalMinutes / tfTotalMinutes)
             {
                 limitCandles = (int)Math.Round(span.TotalMinutes / tfTotalMinutes, MidpointRounding.AwayFromZero);
+            }
+
+            int timeRange = tfTotalMinutes * 1440;
+
+            DateTime maxStartTime = DateTime.UtcNow.AddMinutes(-timeRange);
+
+            if (maxStartTime > startTime)
+            {
+                SendLogMessage("Maximum interval is 1400 candles from today!", LogMessageType.Error);
+                return null;
             }
 
             List<Candle> allCandles = new List<Candle>();
