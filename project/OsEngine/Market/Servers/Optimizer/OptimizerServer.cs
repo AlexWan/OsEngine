@@ -369,72 +369,80 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 return;
             }
-            DataStorage newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
-
-            if (newStorage == null)
+            
+            try
             {
-                newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
+                DataStorage newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
 
                 if (newStorage == null)
                 {
-                    SendLogMessage(OsLocalization.Market.Message36, LogMessageType.Error);
+                    newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
+
+                    if (newStorage == null)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message36, LogMessageType.Error);
+                        return;
+                    }
+                }
+
+                if (_storages.Find(s => s.Security.Name == newStorage.Security.Name &&
+                                        s.Candles == newStorage.Candles &&
+                                        s.TimeFrame == newStorage.TimeFrame &&
+                                        s.Trades == newStorage.Trades &&
+                                        s.MarketDepths == newStorage.MarketDepths) != null)
+                {
                     return;
                 }
-            }
 
-            if (_storages.Find(s => s.Security.Name == newStorage.Security.Name &&
-                                    s.Candles == newStorage.Candles &&
-                                    s.TimeFrame == newStorage.TimeFrame &&
-                                    s.Trades == newStorage.Trades &&
-                                    s.MarketDepths == newStorage.MarketDepths) != null)
+                _storages.Add(newStorage);
+
+                if (_securities.Find(s => s.Name == _storages[_storages.Count - 1].Security.Name) == null)
+                {
+                    _securities.Add(_storages[_storages.Count - 1].Security);
+                }
+
+                SecurityOptimizer securityOpt = new SecurityOptimizer();
+                securityOpt.Security = security;
+                securityOpt.TimeFrame = timeFrame;
+                securityOpt.TimeFrameSpan = GetTimeFremeInSpan(timeFrame);
+                securityOpt.TimeStart = timeStart;
+                securityOpt.TimeEnd = timeEnd;
+                securityOpt.RealEndTime = timeEnd.AddDays(1);
+                securityOpt.NewCandleEvent += TesterServer_NewCandleEvent;
+                securityOpt.NewTradesEvent += TesterServer_NewTradesEvent;
+                securityOpt.NeedToCheckOrders += TesterServer_NeedToCheckOrders;
+                securityOpt.NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
+                securityOpt.LogMessageEvent += SendLogMessage;
+
+                if (_storages[_storages.Count - 1].StorageType == TesterDataType.Candle)
+                {
+                    securityOpt.DataType = SecurityTesterDataType.Candle;
+                    securityOpt.Candles = _storages[_storages.Count - 1].Candles;
+                }
+                else if (_storages[_storages.Count - 1].StorageType == TesterDataType.TickOnlyReadyCandle)
+                {
+                    securityOpt.DataType = SecurityTesterDataType.Tick;
+                    securityOpt.Trades = _storages[_storages.Count - 1].Trades;
+                }
+                else if (_storages[_storages.Count - 1].StorageType == TesterDataType.TickAllCandleState)
+                {
+                    securityOpt.DataType = SecurityTesterDataType.Tick;
+                    securityOpt.Trades = _storages[_storages.Count - 1].Trades;
+                }
+                else if (_storages[_storages.Count - 1].StorageType == TesterDataType.MarketDepthOnlyReadyCandle)
+                {
+                    securityOpt.DataType = SecurityTesterDataType.MarketDepth;
+                    securityOpt.MarketDepths = _storages[_storages.Count - 1].MarketDepths;
+                }
+
+                _candleSeriesTesterActivate.Add(securityOpt);
+
+                ServerStatus = ServerConnectStatus.Connect;
+            }
+            catch(Exception error)
             {
-                return;
+                SendLogMessage(error.ToString(),LogMessageType.Error);
             }
-
-            _storages.Add(newStorage);
-
-            if (_securities.Find(s => s.Name == _storages[_storages.Count - 1].Security.Name) == null)
-            {
-                _securities.Add(_storages[_storages.Count - 1].Security);
-            }
-
-            SecurityOptimizer securityOpt = new SecurityOptimizer();
-            securityOpt.Security = security;
-            securityOpt.TimeFrame = timeFrame;
-            securityOpt.TimeFrameSpan = GetTimeFremeInSpan(timeFrame);
-            securityOpt.TimeStart = timeStart;
-            securityOpt.TimeEnd = timeEnd;
-            securityOpt.RealEndTime = timeEnd.AddDays(1);
-            securityOpt.NewCandleEvent += TesterServer_NewCandleEvent;
-            securityOpt.NewTradesEvent += TesterServer_NewTradesEvent;
-            securityOpt.NeedToCheckOrders += TesterServer_NeedToCheckOrders;
-            securityOpt.NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
-            securityOpt.LogMessageEvent += SendLogMessage;
-
-            if (_storages[_storages.Count - 1].StorageType == TesterDataType.Candle)
-            {
-                securityOpt.DataType = SecurityTesterDataType.Candle;
-                securityOpt.Candles = _storages[_storages.Count - 1].Candles;
-            }
-            else if (_storages[_storages.Count - 1].StorageType == TesterDataType.TickOnlyReadyCandle)
-            {
-                securityOpt.DataType = SecurityTesterDataType.Tick;
-                securityOpt.Trades = _storages[_storages.Count - 1].Trades;
-            }
-            else if (_storages[_storages.Count - 1].StorageType == TesterDataType.TickAllCandleState)
-            {
-                securityOpt.DataType = SecurityTesterDataType.Tick;
-                securityOpt.Trades = _storages[_storages.Count - 1].Trades;
-            }
-            else if (_storages[_storages.Count - 1].StorageType == TesterDataType.MarketDepthOnlyReadyCandle)
-            {
-                securityOpt.DataType = SecurityTesterDataType.MarketDepth;
-                securityOpt.MarketDepths = _storages[_storages.Count - 1].MarketDepths;
-            }
-
-            _candleSeriesTesterActivate.Add(securityOpt);
-
-            ServerStatus = ServerConnectStatus.Connect;
         }
 
         public DateTime TimeNow;

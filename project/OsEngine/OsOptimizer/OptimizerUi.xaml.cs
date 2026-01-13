@@ -437,7 +437,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception error)
             {
-                _master.SendLogMessage(error.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -463,7 +463,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception error)
             {
-                _master.SendLogMessage(error.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -634,8 +634,8 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
-                for (int i = statuses.Count-1, i2 = _progressBars.Count-1; 
-                    i >= 0 && i2 >= 0; 
+                for (int i = statuses.Count - 1, i2 = _progressBars.Count - 1;
+                    i >= 0 && i2 >= 0;
                     i2--, i--)
                 {
                     ProgressBarStatus status = statuses[i];
@@ -645,11 +645,11 @@ namespace OsEngine.OsOptimizer
                         return;
                     }
 
-                    if(_progressBars[i2].Maximum != status.MaxValue)
+                    if (_progressBars[i2].Maximum != status.MaxValue)
                     {
                         _progressBars[i2].Maximum = status.MaxValue;
                     }
-                    if(_progressBars[i2].Value != status.CurrentValue)
+                    if (_progressBars[i2].Value != status.CurrentValue)
                     {
                         _progressBars[i2].Value = status.CurrentValue;
                     }
@@ -657,7 +657,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -939,7 +939,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1032,7 +1032,7 @@ namespace OsEngine.OsOptimizer
 
         private void _gridSources_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            _master.SendLogMessage(e.ToString(), LogMessageType.Error);
+            _master?.SendLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void PaintTableSources()
@@ -1474,7 +1474,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1733,7 +1733,7 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
-            _master.SendLogMessage(e.ToString(), LogMessageType.Error);
+            _master?.SendLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void PaintTableParameters()
@@ -1798,7 +1798,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2504,7 +2504,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
                 PaintTableParameters();
             }
         }
@@ -2587,7 +2587,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3033,7 +3033,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -3091,7 +3091,7 @@ namespace OsEngine.OsOptimizer
                 }
                 catch (Exception error)
                 {
-                    _master.SendLogMessage(error.ToString(), LogMessageType.Error);
+                    _master?.SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
             };
         }
@@ -3205,7 +3205,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception error)
             {
-                _master.SendLogMessage(error.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(error.ToString(), LogMessageType.Error);
             }
 
         }
@@ -3332,7 +3332,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3516,7 +3516,7 @@ namespace OsEngine.OsOptimizer
             }
             catch(Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3577,11 +3577,11 @@ namespace OsEngine.OsOptimizer
             {
                 DateTime start = DateTime.Now;
 
-                _master.SendLogMessage(OsLocalization.Optimizer.Message11, LogMessageType.System);
+                _master?.SendLogMessage(OsLocalization.Optimizer.Message11, LogMessageType.System);
 
                 List<string> strategiesInclude = BotFactory.GetNamesStrategyWithParametersSync();
 
-                _master.SendLogMessage(OsLocalization.Optimizer.Message19 + " " + strategiesInclude.Count, LogMessageType.System);
+                _master?.SendLogMessage(OsLocalization.Optimizer.Message19 + " " + strategiesInclude.Count, LogMessageType.System);
 
                 if (string.IsNullOrEmpty(_master.StrategyName))
                 {
