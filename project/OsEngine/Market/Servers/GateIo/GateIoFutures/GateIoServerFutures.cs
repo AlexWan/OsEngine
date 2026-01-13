@@ -320,7 +320,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         #region 3 Securities
 
-        private RateGate _rateGateSecurities = new RateGate(2, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateSecurities = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         public void GetSecurities()
         {
@@ -762,11 +762,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             if (maxStartTime > startTime)
             {
-                SendLogMessage("Maximum interval is 10,000 candles from today!", LogMessageType.Error);
+                SendLogMessage("Maximum interval is 9999 candles from today!", LogMessageType.Error);
                 return null;
             }
 
-            DateTime partEndTime = startTimeData.AddMinutes(tfTotalMinutes * 900);
+            DateTime partEndTime = startTimeData.AddMinutes(tfTotalMinutes * 2000);
 
             do
             {
@@ -799,7 +799,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 allCandles.AddRange(candles);
 
                 startTimeData = partEndTime.AddMinutes(tfTotalMinutes) + TimeSpan.FromMinutes(tfTotalMinutes);
-                partEndTime = startTimeData.AddMinutes(tfTotalMinutes * 900);
+                partEndTime = startTimeData.AddMinutes(tfTotalMinutes * 2000);
 
                 if (startTimeData >= DateTime.UtcNow)
                 {
@@ -818,22 +818,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            TimeSpan interval = timeFrameBuilder.TimeFrameTimeSpan;
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime timeEnd = DateTime.UtcNow;
+            DateTime timeStart = timeEnd.AddMinutes(-tfTotalMinutes * candleCount);
 
-            int tfTotalMinutes = (int)interval.TotalMinutes;
-
-            int timeRange = tfTotalMinutes * 900;
-
-            DateTime maxStartTime = DateTime.UtcNow.AddMinutes(-timeRange);
-
-            int from = TimeManager.GetTimeStampSecondsToDateTime(maxStartTime);
-            int to = TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow);
-
-            string tf = GetInterval(interval);
-
-            List<Candle> candles = RequestCandleHistory(security.Name, tf, from, to);
-
-            return candles;
+            return GetCandleDataToSecurity(security, timeFrameBuilder, timeStart, timeEnd, timeStart);
         }
 
         private string GetInterval(TimeSpan timeFrame)
