@@ -195,6 +195,8 @@ namespace OsEngine.Market.Servers.QuikLua
                         ServerStatus = ServerConnectStatus.Connect;
                         ConnectEvent();
                     }
+
+                    _portfolioCounter = 0;
                 }
             }
             catch (Exception error)
@@ -253,11 +255,13 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 subscribedSecurities = new List<Security>();
                 QuikLua = null;
+                _portfolioCounter = 0;
 
                 _lastTimePingMarketDepth = DateTime.MinValue;
                 _lastTimePingMyOrders = DateTime.MinValue;
                 _lastTimePingPortfoios = DateTime.MinValue;
                 _lastTimePingTrades = DateTime.MinValue;
+                _lastTimeUpdatePortfolio = DateTime.MinValue;
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
@@ -336,6 +340,10 @@ namespace OsEngine.Market.Servers.QuikLua
         private int _tradeMode;
 
         private bool _needRequestPositions = false;
+
+        private int _portfolioCounter;
+
+        private DateTime _lastTimeUpdatePortfolio = DateTime.MinValue;
 
         private List<string> _clientCodes;
 
@@ -672,20 +680,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 UpdateSpotPortfolio();
                 UpdateFuturesPortfolio();
 
-                string message = "";
-                for (int i = 0; i < _portfolios.Count; i++)
-                {
-                    if (i + 1 < _portfolios.Count)
-                    {
-                        message += "\n" + _portfolios[i].Number + ";";
-                    }
-                    else
-                    {
-                        message += "\n" + _portfolios[i].Number + ".";
-                    }
-                }
-
-                SendLogMessage($"Подгружены портфели: {message}", LogMessageType.System);
+                _lastTimeUpdatePortfolio = DateTime.Now;
 
                 if (PortfolioEvent != null)
                 {
@@ -1117,6 +1112,16 @@ namespace OsEngine.Market.Servers.QuikLua
                             }
                         }
                     }
+                    else if (_portfolioCounter <= 10 && _lastTimeUpdatePortfolio != DateTime.MinValue && _lastTimeUpdatePortfolio.AddMinutes(1) < DateTime.Now)
+                    {
+                        GetPortfolios();
+
+                        _portfolioCounter++;
+                    }
+                    else if (_portfolioCounter > 10 && _lastTimeUpdatePortfolio != DateTime.MinValue && _lastTimeUpdatePortfolio.AddHours(1) < DateTime.Now)
+                    {
+                        GetPortfolios();
+                    }
                     else if (_needRequestPositions == true)
                     {
                         List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
@@ -1183,22 +1188,25 @@ namespace OsEngine.Market.Servers.QuikLua
                         sec = subscribedSecurities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
                     }
 
-                    if (sec == null)
-                    {
-                        _needRequestPositions = true;
-                        continue;
-                    }
-                    else
-                    {
-                        _needRequestPositions = false;
-                    }
-
                     LimitKind limitKind = LimitKind.T0;
 
                     if (_tradeMode == 0) limitKind = LimitKind.T0;
                     else if (_tradeMode == 1) limitKind = LimitKind.T1;
                     else if (_tradeMode == 2) limitKind = LimitKind.T2;
                     else limitKind = LimitKind.NotImplemented;
+
+                    if (sec == null)
+                    {
+                        if (pos.LimitKind != limitKind)
+                            _needRequestPositions = false;
+                        else
+                            _needRequestPositions = true;
+                        continue;
+                    }
+                    else
+                    {
+                        _needRequestPositions = false;
+                    }
 
                     PositionOnBoard position = new PositionOnBoard();
 
