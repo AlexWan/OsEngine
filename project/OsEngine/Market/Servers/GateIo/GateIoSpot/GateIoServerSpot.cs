@@ -406,22 +406,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            TimeSpan interval = timeFrameBuilder.TimeFrameTimeSpan;
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime timeEnd = DateTime.UtcNow;
+            DateTime timeStart = timeEnd.AddMinutes(-tfTotalMinutes * candleCount);
 
-            int tfTotalMinutes = (int)interval.TotalMinutes;
-
-            int timeRange = tfTotalMinutes * 900;
-
-            DateTime maxStartTime = DateTime.UtcNow.AddMinutes(-timeRange);
-
-            int from = TimeManager.GetTimeStampSecondsToDateTime(maxStartTime);
-            int to = TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow);
-
-            string tf = GetInterval(interval);
-
-            List<Candle> candles = RequestCandleHistory(security.Name, tf, from, to);
-
-            return candles;
+            return GetCandleDataToSecurity(security, timeFrameBuilder, timeStart, timeEnd, timeStart);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
@@ -451,12 +440,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             if (maxStartTime > startTime)
             {
-                SendLogMessage("Maximum interval is 10,000 candles from today!", LogMessageType.Error);
+                SendLogMessage("Maximum interval is 9990 candles from today!", LogMessageType.Error);
                 return null;
             }
 
             DateTime startTimeData = startTime;
-            DateTime partEndTime = startTimeData.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 500);
+            DateTime partEndTime = startTimeData.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 999);
 
             do
             {
@@ -489,7 +478,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 allCandles.AddRange(candles);
 
                 startTimeData = partEndTime.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
-                partEndTime = startTimeData.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 500);
+                partEndTime = startTimeData.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 999);
 
                 if (startTimeData >= DateTime.UtcNow)
                 {

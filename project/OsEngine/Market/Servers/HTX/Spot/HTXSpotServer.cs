@@ -600,6 +600,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             if (countNeedToLoad > _limitCandles)
             {
                 countNeedToLoad = _limitCandles;
+                SendLogMessage("Maximum interval is 2000 candles from today!", LogMessageType.Error);
             }
 
             string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
