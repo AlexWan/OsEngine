@@ -1722,11 +1722,6 @@ namespace OsEngine.Market.Servers.QuikLua
             _queueFuturesLimits.Enqueue(futLimit);
         }
 
-        private void Events_OnAccountBalance(AccountBalance accBal)
-        {
-
-        }
-
         private ConcurrentQueue<DepoLimitEx> _queueDepoLimitEx = new ConcurrentQueue<DepoLimitEx>();
 
         private void Events_OnDepoLimit(DepoLimitEx dLimit)
