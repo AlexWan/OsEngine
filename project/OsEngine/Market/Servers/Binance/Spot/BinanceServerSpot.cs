@@ -703,6 +703,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     var param = new Dictionary<string, string>();
                     param.Add("symbol=" + nameSec.ToUpper(), "&interval=1m" + "&startTime=" + startTime + "&endTime=" + endTime);
                     var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, false);
+
+                    if (string.IsNullOrEmpty(res))
+                    {
+                        return null;
+                    }
+
                     var candles = _deserializeCandles(res);
 
                     var newCandles = BuildCandles(candles, 2, 1);
@@ -713,6 +719,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     var param = new Dictionary<string, string>();
                     param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
                     var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, false);
+
+                    if (string.IsNullOrEmpty(res))
+                    {
+                        return null;
+                    }
+
                     var candles = _deserializeCandles(res);
                     var newCandles = BuildCandles(candles, 10, 5);
                     return newCandles;
@@ -722,6 +734,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     var param = new Dictionary<string, string>();
                     param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
                     var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, false);
+
+                    if (string.IsNullOrEmpty(res))
+                    {
+                        return null;
+                    }
+
                     var candles = _deserializeCandles(res);
                     var newCandles = BuildCandles(candles, 20, 5);
                     return newCandles;
@@ -731,6 +749,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     var param = new Dictionary<string, string>();
                     param.Add("symbol=" + nameSec.ToUpper(), "&interval=15m" + "&startTime=" + startTime + "&endTime=" + endTime);
                     var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, false);
+
+                    if (string.IsNullOrEmpty(res))
+                    {
+                        return null;
+                    }
+
                     var candles = _deserializeCandles(res);
                     var newCandles = BuildCandles(candles, 45, 15);
                     return newCandles;
