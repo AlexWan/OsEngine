@@ -175,9 +175,40 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     QuikLua.Service.QuikService.Start();
 
+                    _clientCodes = new List<string>();
+                    _futuresCodes = new List<string>();
+
                     if (string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false)
                     {
-                        _clientCodes = [ClientCodeFromSettings.Value];
+                        List<string> spotClientCodes = QuikLua.Class.GetClientCodes().Result;
+                        bool inArray = false;
+
+                        // Проверяем клиентские коды для спота
+                        for (int i = 0; i < spotClientCodes.Count; i++)
+                        {
+                            if (spotClientCodes[i] == ClientCodeFromSettings.Value)
+                            {
+                                _clientCodes = [ClientCodeFromSettings.Value];
+                                inArray = true;
+                                break;
+                            }
+                        }
+
+                        // Проверяем торговые счета для фьючерсов
+                        if (inArray == false)
+                        {
+                            List<FuturesLimits> futuresLimits = QuikLua.Trading.GetFuturesClientLimits().Result;
+
+                            for (int i = 0; i < futuresLimits.Count; i++)
+                            {
+                                if (futuresLimits[i].TrdAccId == ClientCodeFromSettings.Value)
+                                {
+                                    _futuresCodes = [ClientCodeFromSettings.Value];
+                                    inArray = true;
+                                    break;
+                                }
+                            }
+                        }
                     }
 
                     bool isConnected = QuikLua.Service.IsConnected().Result;
@@ -240,6 +271,12 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
 
                 if (_clientCodes != null)
+                {
+                    _clientCodes.Clear();
+                    _clientCodes = null;
+                }
+
+                if (_futuresCodes != null)
                 {
                     _clientCodes.Clear();
                     _clientCodes = null;
@@ -346,6 +383,8 @@ namespace OsEngine.Market.Servers.QuikLua
         private DateTime _lastTimeUpdatePortfolio = DateTime.MinValue;
 
         private List<string> _clientCodes;
+
+        private List<string> _futuresCodes;
 
         private readonly Char _separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
 
@@ -666,12 +705,6 @@ namespace OsEngine.Market.Servers.QuikLua
                     return;
                 }
 
-                if (_clientCodes == null)
-                {
-                    _clientCodes = new List<string>();
-                    _clientCodes = QuikLua.Class.GetClientCodes().Result;
-                }
-
                 if (_portfolios == null)
                 {
                     _portfolios = new List<Portfolio>();
@@ -705,9 +738,9 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     bool inArray = false;
 
-                    for (int i2 = 0; i2 < _clientCodes.Count; i2++)
+                    for (int i2 = 0; i2 < _futuresCodes.Count; i2++)
                     {
-                        if (futuresLimits[i].TrdAccId == _clientCodes[i2])
+                        if (futuresLimits[i].TrdAccId == _futuresCodes[i2])
                         {
                             inArray = true;
                             break;
@@ -726,7 +759,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     if (futuresLimits[i].LimitType != 0) continue;
                     else if (inArray == true) continue;
 
-                    _clientCodes.Add(futuresLimits[i].TrdAccId);
+                    _futuresCodes.Add(futuresLimits[i].TrdAccId);
 
                     Portfolio portfolio = new Portfolio();
                     portfolio.ServerType = ServerType.QuikLua;
@@ -809,6 +842,8 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
+                _clientCodes = QuikLua.Class.GetClientCodes().Result;
+
                 List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
 
                 List<MoneyLimitEx> money = QuikLua.Trading.GetMoneyLimits().Result;
