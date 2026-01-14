@@ -27,12 +27,12 @@ namespace OsEngine.Entity
         public DateTime Time;
 
         /// <summary>
-        /// Levels of sales. best with index 0
+        /// Levels of sales. Best with index 0
         /// </summary>
         public List<MarketDepthLevel> Asks;
 
         /// <summary>
-        /// Levels of buy. best with index 0
+        /// Levels of buy. Best with index 0
         /// </summary>
         public List<MarketDepthLevel> Bids;
 
@@ -87,9 +87,253 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Security that owns to market depth
+        /// Security name that owns to market depth
         /// </summary>
         public string SecurityNameCode;
+
+        /// <summary>
+        /// Price of the center of market depth
+        /// </summary>
+        public double CentrePrice
+        {
+            get
+            {
+                if (Asks == null
+                    || Asks.Count == 0)
+                {
+                    return -1;
+                }
+                if (Bids == null
+                    || Bids.Count == 0)
+                {
+                    return -1;
+                }
+
+                double bestAsk = Asks[0].Price;
+                double bestBid = Bids[0].Price;
+
+                if (bestAsk == 0
+                    || bestBid == 0)
+                {
+                    return -1;
+                }
+
+                if (bestBid >= bestAsk)
+                {
+                    return -1;
+                }
+
+                double result = bestBid + ((bestAsk - bestBid)/2);
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Distance between the best buy and the best sell in absolute terms
+        /// If the calculation is unsuccessful, it returns -1
+        /// </summary>
+        public double SpreadAbsolute
+        {
+            get
+            {
+                if(Asks == null 
+                    || Asks.Count == 0)
+                {
+                    return -1;
+                }
+                if (Bids == null
+                    || Bids.Count == 0)
+                {
+                    return -1;
+                }
+
+                double bestAsk = Asks[0].Price;
+                double bestBid = Bids[0].Price;
+
+                if(bestAsk == 0 
+                    ||  bestBid == 0)
+                {
+                    return -1;
+                }
+
+                if(bestBid >= bestAsk)
+                {
+                    return -1;
+                }
+
+                double spread = bestAsk - bestBid;
+
+                return spread;
+            }
+        }
+
+        /// <summary>
+        /// The distance between the best buy and the best sell as a percentage. 
+        /// If the calculation is unsuccessful, it returns -1
+        /// </summary>
+        public double SpreadPercent
+        {
+            get
+            {
+                if (Asks == null
+                    || Asks.Count == 0)
+                {
+                    return -1;
+                }
+                if (Bids == null
+                    || Bids.Count == 0)
+                {
+                    return -1;
+                }
+
+                double bestAsk = Asks[0].Price;
+                double bestBid = Bids[0].Price;
+
+                if (bestAsk == 0
+                    || bestBid == 0)
+                {
+                    return -1;
+                }
+
+                if (bestBid >= bestAsk)
+                {
+                    return -1;
+                }
+
+                double spreadAbs = bestAsk - bestBid;
+
+                double spreadPercent = spreadAbs / (bestBid / 100);
+
+                return spreadPercent;
+            }
+        }
+
+        /// <summary>
+        /// Slippage from center of market depth to purchase for a certain amount of money
+        /// </summary>
+        /// <param name="direction">Direction for transaction</param>
+        /// <param name="security">Class of security that wields the market depth</param>
+        /// <param name="money">Amount for which the transaction is expected</param>
+        public double GetSlippagePercentToEntry(Side direction, Security security, decimal money)
+        {
+            if(direction == Side.None
+                || security == null
+                || money <= 0)
+            {
+                return -1;
+            }
+
+            double centrePrice = this.CentrePrice;
+
+            if(centrePrice == -1)
+            {
+                return -1;
+            }
+
+            double moneyOnPosition = (double)money;
+
+            if (direction == Side.Buy)
+            {
+                // ПОКУПКА
+                double moneySumm = 0;
+                double furtherPrice = 0;
+
+                for(int i = 0;i < Asks.Count;i++)
+                {
+                    if(moneySumm > moneyOnPosition)
+                    {
+                        break;
+                    }
+                    MarketDepthLevel currentLevel = Asks[i];
+
+                    if(currentLevel.Ask == 0
+                        || currentLevel.Price == 0)
+                    {
+                        continue;
+                    }
+
+                    furtherPrice = currentLevel.Price;
+
+                    double moneyOnLevel = currentLevel.Ask * currentLevel.Price;
+
+                    if (security.PriceStep != security.PriceStepCost
+                       && security.PriceStep != 0
+                       && security.PriceStepCost != 0)
+                    {
+                        moneyOnLevel = moneyOnLevel
+                            / (double)security.PriceStep * (double)security.PriceStepCost;
+                    }
+
+                    if (security.Lot != 0)
+                    {
+                        moneyOnLevel = moneyOnLevel * (double)security.Lot;
+                    }
+
+                    moneySumm += moneyOnLevel;
+                }
+
+                if(furtherPrice != 0)
+                {
+                    double slippageAbs = furtherPrice - centrePrice;
+                    double slippagePercent = slippageAbs / (centrePrice / 100);
+
+                    return Math.Round(slippagePercent, 4);
+                }
+            }
+            if (direction == Side.Sell)
+            {
+                // ПРОДАЖА
+                double moneySumm = 0;
+                double furtherPrice = 0;
+
+                for (int i = 0; i < Bids.Count; i++)
+                {
+                    if (moneySumm > moneyOnPosition)
+                    {
+                        break;
+                    }
+                    MarketDepthLevel currentLevel = Bids[i];
+
+                    if (currentLevel.Bid == 0
+                        || currentLevel.Price == 0)
+                    {
+                        continue;
+                    }
+
+                    furtherPrice = currentLevel.Price;
+
+                    double moneyOnLevel = currentLevel.Bid * currentLevel.Price;
+
+                    if (security.PriceStep != security.PriceStepCost
+                       && security.PriceStep != 0
+                       && security.PriceStepCost != 0)
+                    {
+                        moneyOnLevel = moneyOnLevel
+                            / (double)security.PriceStep * (double)security.PriceStepCost;
+                    }
+
+                    if (security.Lot != 0)
+                    {
+                        moneyOnLevel = moneyOnLevel * (double)security.Lot;
+                    }
+
+                    moneySumm += moneyOnLevel;
+                }
+
+                if (furtherPrice != 0)
+                {
+                    double slippageAbs = centrePrice - furtherPrice;
+                    double slippagePercent = slippageAbs / (centrePrice / 100);
+
+                    return Math.Round(slippagePercent, 4);
+                }
+            }
+
+            return -1;
+        }
+
+        #region Service
 
         public long LastBinaryPrice = 0;
 
@@ -333,6 +577,9 @@ namespace OsEngine.Entity
 
             return newDepth;
         }
+
+        #endregion
+
     }
 
     /// <summary>

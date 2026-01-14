@@ -86,6 +86,7 @@ namespace OsEngine.Robots.FuturesStart
         private StrategyParameterDecimal _bollingerDeviation;
 
         private StrategyParameterString _contangoFilterRegime;
+        private StrategyParameterInt _contangoFilterCountSecurities;
         private StrategyParameterInt _contangoStageToTradeLong;
         private StrategyParameterInt _contangoStageToTradeShort;
         private StrategyParameterDecimal _contangoCoefficient1;
@@ -202,8 +203,8 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _bollingerLength = CreateParameter("Bollinger Length", 150, 20, 300, 10, "Base");
-            _bollingerDeviation = CreateParameter("Bollinger deviation", 1.7m, 1, 4, 0.1m, "Base");
+            _bollingerLength = CreateParameter("Bollinger Length", 150, 40, 300, 10, "Base");
+            _bollingerDeviation = CreateParameter("Bollinger deviation", 1.7m, 0.5m, 4, 0.1m, "Base");
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
@@ -211,6 +212,7 @@ namespace OsEngine.Robots.FuturesStart
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             _contangoFilterRegime = CreateParameter("Contango filter regime", "On_MOEXStocksAuto", new[] { "Off", "On_MOEXStocksAuto", "On_Manual" }, "Contango");
+            _contangoFilterCountSecurities = CreateParameter("Contango filter count securities", 3, 1, 2, 1, "Contango");
             _contangoStageToTradeLong = CreateParameter("Contango stage to trade Long", 1, 1, 2, 1, "Contango");
             _contangoStageToTradeShort = CreateParameter("Contango stage to trade Short", 2, 1, 2, 1, "Contango");
 
@@ -951,11 +953,11 @@ namespace OsEngine.Robots.FuturesStart
             {
                 if (_contangoValues[i].SecurityName == secName)
                 {
-                    if(i <= _contangoValues.Count /3)
+                    if(i <= _contangoFilterCountSecurities.ValueInt)
                     {
                         return 1;
                     }
-                    else if (i >= _contangoValues.Count / 3)
+                    else if (i >= _contangoValues.Count - _contangoFilterCountSecurities.ValueInt)
                     {
                         return 2;
                     }
