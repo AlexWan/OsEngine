@@ -876,12 +876,64 @@ namespace OsEngine.Robots.FuturesStart
 
             decimal coeff = 1;
 
-            if(_contangoFilterRegime.ValueString == "On_MOEXStocksAuto"
-                && baseSource.Security.Name.Contains("MGNT") == false)
+            if(_contangoFilterRegime.ValueString == "On_MOEXStocksAuto")
             {
-                for (int i = 0; i < baseSource.Security.Decimals; i++)
+                if (baseSource.Security.Name.Contains("MGNT") == false
+                    && baseSource.Security.Name.Contains("VTB") == false
+                     && baseSource.Security.Name.Contains("GMKN") == false)
                 {
-                    coeff = coeff * 10;
+                    for (int i = 0; i < baseSource.Security.Decimals; i++)
+                    {
+                        coeff = coeff * 10;
+                    }
+                }
+                else if (baseSource.Security.Name.Contains("VTB") == true)
+                {
+                    DateTime time = baseSource.TimeServerCurrent;
+
+                    if (time.Year < 2024)
+                    {
+                        coeff = 20;
+                    }
+                    else if (time.Year == 2024
+                        && time.Month < 7)
+                    {
+                        coeff = 20;
+                    }
+                    else if (time.Year == 2024
+                            && time.Month == 7
+                            && time.Day < 15)
+                    {
+                        coeff = 20;
+                    }
+                    else
+                    {
+                        coeff = 100;
+                    }
+                }
+                else if (baseSource.Security.Name.Contains("GMKN") == true)
+                {
+                    DateTime time = baseSource.TimeServerCurrent;
+
+                    if (time.Year < 2024)
+                    {
+                        coeff = 100;
+                    }
+                    else if (time.Year == 2024
+                        && time.Month < 4)
+                    {
+                        coeff = 100;
+                    }
+                    else if (time.Year == 2024
+                            && time.Month == 4
+                            && time.Day < 4)
+                    {
+                        coeff = 100;
+                    }
+                    else
+                    {
+                        coeff = 10;
+                    }
                 }
             }
             else if (_contangoFilterRegime.ValueString == "On_Manual") 

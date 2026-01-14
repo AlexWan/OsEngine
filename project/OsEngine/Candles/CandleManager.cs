@@ -811,6 +811,10 @@ namespace OsEngine.Entity
                 {
                     for (int i = 0; i < _activeSeriesBasedOnTrades.Count; i++)
                     {
+                        if (_activeSeriesBasedOnTrades[i] == null)
+                        {
+                            continue;
+                        }
                         _activeSeriesBasedOnTrades[i].Clear();
                     }
                 }
@@ -863,6 +867,11 @@ namespace OsEngine.Entity
 
             for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
             {
+                if (_activeSeriesBasedOnTrades[i] == null)
+                {
+                    continue;
+                }
+
                 if (nameSecurities.Find(nameSec => nameSec == _activeSeriesBasedOnTrades[i].Security.Name) != null)
                 {
                     mySeries.Add(_activeSeriesBasedOnTrades[i]);
