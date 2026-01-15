@@ -278,8 +278,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 if (_futuresCodes != null)
                 {
-                    _clientCodes.Clear();
-                    _clientCodes = null;
+                    _futuresCodes.Clear();
+                    _futuresCodes = null;
                 }
 
                 if (_queueMyTrades != null) _queueMyTrades.Clear();
