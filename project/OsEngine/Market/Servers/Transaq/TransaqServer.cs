@@ -50,6 +50,7 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterBoolean(OsLocalization.Market.UseOther, false); // 11
             CreateParameterBoolean(OsLocalization.Market.FullLogConnector, false); // 12
             CreateParameterButton(OsLocalization.Market.ButtonNameChangePassword); // 13
+            CreateParameterBoolean(OsLocalization.Market.ReconnectingAfterNoneOrder, true); // 14
 
             ServerParameters[4].Comment = OsLocalization.Market.Label160;
             ServerParameters[5].Comment = OsLocalization.Market.Label193;
@@ -61,6 +62,7 @@ namespace OsEngine.Market.Servers.Transaq
             ServerParameters[11].Comment = OsLocalization.Market.Label107;
             ServerParameters[12].Comment = OsLocalization.Market.Label309;
             ServerParameters[13].Comment = OsLocalization.Market.Label105;
+            ServerParameters[14].Comment = OsLocalization.Market.Label315;
         }
     }
 
@@ -116,8 +118,6 @@ namespace OsEngine.Market.Servers.Transaq
             Thread worker8 = new Thread(ThreadSecurityInfoParsingWorkPlace);
             worker8.Name = "TransaqThreadUpdateSecurityInfo";
             worker8.Start();
-
-
         }
 
         public ServerType ServerType
@@ -159,6 +159,7 @@ namespace OsEngine.Market.Servers.Transaq
             _useOther = ((ServerParameterBool)ServerParameters[11]).Value;
             _fullLog = ((ServerParameterBool)ServerParameters[12]).Value;
             ServerParameterButton btn = ((ServerParameterButton)ServerParameters[13]);
+            _reconectingAfterNone = ((ServerParameterBool)ServerParameters[14]).Value;
             _fullMarketDepthIsOn = ((ServerParameterBool)ServerParameters[21]).Value;
 
             btn.UserClickButton += () => { ButtonClickChangePasswordWindowShow(); };
@@ -411,6 +412,8 @@ namespace OsEngine.Market.Servers.Transaq
         private bool _fullLog;
 
         private bool _fullMarketDepthIsOn;
+
+        private bool _reconectingAfterNone = false;
 
         #endregion
 
@@ -2223,7 +2226,6 @@ namespace OsEngine.Market.Servers.Transaq
                             {
                                 _transaqSecuritiesInString.Enqueue(data);
                                 _lastUpdateSecurityArrayTime = DateTime.Now;
-
                             }
                             else if (data.StartsWith("<clientlimits"))
                             {
@@ -2307,6 +2309,21 @@ namespace OsEngine.Market.Servers.Transaq
                                 || data.StartsWith("<candlekinds>"))
                             {
                                 // do nothin
+                            }
+                            else if (data.Contains("OsEngineTransaqReconnect"))
+                            {
+                                if (ServerStatus == ServerConnectStatus.Connect)
+                                {
+                                    Dispose();
+                                }
+
+                                Thread.Sleep(1000);
+
+                                if (ServerStatus == ServerConnectStatus.Disconnect)
+                                {
+                                    WebProxy proxy = new WebProxy();
+                                    Connect(proxy);
+                                }
                             }
                             else
                             {
@@ -2718,7 +2735,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (order.Orderno == "0")
                 {
-                    if(order.Status == "cancelled" ||
+                    if (order.Status == "cancelled" ||
                          order.Status == "expired" ||
                          order.Status == "disabled" ||
                          order.Status == "removed")
@@ -2874,9 +2891,26 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     newOrder.State = OrderStateType.Pending;
                 }
+                else if (order.Status == "inactive")
+                {
+                    SendLogMessage($"Пришел ответ от сервера: статус ордера не известен из-за проблем со связью с биржей", LogMessageType.System);
+                    newOrder.State = OrderStateType.None;
+
+                    if (_reconectingAfterNone)
+                    {
+                        _newMessage.Enqueue("OsEngineTransaqReconnect");
+                    }
+                }
                 else
                 {
+                    SendLogMessage($"Пришел необработанный статус ордера: Security {newOrder.SecurityNameCode}, NumberMarket {newOrder.NumberMarket}, NumberUser {newOrder.NumberUser}, Side {newOrder.Side}, Price {newOrder.Price} " +
+                        $"Volume {newOrder.Volume}, VolumeExecute {newOrder.VolumeExecute}, Time {newOrder.TimeCallBack}, Status {newOrder.State}", LogMessageType.System);
                     newOrder.State = OrderStateType.None;
+
+                    if (_reconectingAfterNone)
+                    {
+                        _newMessage.Enqueue("OsEngineTransaqReconnect");
+                    }
                 }
 
                 if (_fullLog)
