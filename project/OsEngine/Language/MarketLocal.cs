@@ -4,6 +4,8 @@
 */
 
 
+using System.Security.Policy;
+
 namespace OsEngine.Language
 {
     public class MarketLocal
@@ -1286,6 +1288,10 @@ namespace OsEngine.Language
           "Eng:Are you sure you want to clear the log? Data will be lost!_" +
           "Ru:Вы уверены что хотите очистить лог? Данные будут потеряны!_");
 
+        public string Label315 => OsLocalization.ConvertToLocString(
+          "Eng:Reconnects the connector with No order. If the Transit server sends an order with the inactive status (the status is not known due to problems with communication with the exchange), then such an order is marked with the None status and is considered lost. Transaq Connector does not have a method for requesting orders, so the only way to request this order is to reconnect the connector._" +
+          "Ru:Переподключает коннектор при None ордере. Если сервер Транзак присылает ордер со статусом inactive (Статус не известен из-за проблем со связью с биржей), то такой ордер помечается статусом None и считается потерянным. У Transaq Connector нет метода для запроса ордеров, поэтому единственный способ запросить данный ордер это переподключение коннектора_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");
@@ -1881,6 +1887,10 @@ namespace OsEngine.Language
         public string FullLogConnector => OsLocalization.ConvertToLocString(
             "Eng:Full logging of user's orders and trades_" +
             "Ru:Полное логирование ордеров и трейдов пользователя_");
+
+        public string ReconnectingAfterNoneOrder => OsLocalization.ConvertToLocString(
+            "Eng:Reconnecting after a None order_" +
+            "Ru:Переподключение после None ордера_");
 
         public string PortfolioOnlyBots => OsLocalization.ConvertToLocString(
             "Eng:Bot only portfolio_" +
