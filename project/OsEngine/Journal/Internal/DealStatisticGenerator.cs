@@ -372,7 +372,6 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
                 decimal returnDecimal = deals[i].ProfitPortfolioAbs;
-                decimal scaledReturn = returnDecimal * (deals[i].MultToJournal / 100m);
                 tradeReturns.Add(returnDecimal);
             }
 

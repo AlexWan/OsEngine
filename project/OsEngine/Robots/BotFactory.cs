@@ -97,6 +97,11 @@ namespace OsEngine.Robots
                 }
                 catch (Exception e)
                 {
+                    if(isScript == true)
+                    {
+                       return GetStrategyForName(nameClass, nameInstance, startProgram, false);
+                    }
+                  
                     MessageBox.Show($"BotFactory. Script compilation/instantiation error for '{nameClass}': {e.ToString()}");
                     return null;
                 }

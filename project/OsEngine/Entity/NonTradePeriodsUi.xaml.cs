@@ -4,8 +4,6 @@
 */
 
 using OsEngine.Language;
-using OsEngine.Logging;
-using OsEngine.Market.Connectors;
 using System;
 using System.IO;
 using System.Windows;

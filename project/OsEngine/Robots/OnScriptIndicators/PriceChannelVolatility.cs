@@ -76,15 +76,15 @@ public class PriceChannelVolatility : BotPanel
 
         // Create indicator PriceChannel
         _pc = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
+        _pc = (Aindicator)_tab.CreateCandleIndicator(_pc, "Prime");
         _pc.ParametersDigit[0].Value = _lengthChannelUp.ValueInt;
         _pc.ParametersDigit[1].Value = _lengthChannelDown.ValueInt;
-        _pc = (Aindicator)_tab.CreateCandleIndicator(_pc, "Prime");
         _pc.Save();
 
         // Create indicator ATR
         _atr = IndicatorsFactory.CreateIndicatorByName("ATR",name + "ATR", false);
-        _atr.ParametersDigit[0].Value = _lengthAtr.ValueInt;
         _atr = (Aindicator)_tab.CreateCandleIndicator(_atr, "Second");
+        _atr.ParametersDigit[0].Value = _lengthAtr.ValueInt;
         _atr.Save();
 
         // Subscribe to the candle finished event

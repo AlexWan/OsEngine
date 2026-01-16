@@ -85,14 +85,14 @@ public class PairRsiTrade : BotPanel
 
         // Create indicartor Rsi one
         _rsi1 = IndicatorsFactory.CreateIndicatorByName("RSI",name + "RSI1", false);
-        _rsi1.ParametersDigit[0].Value = _rsiOnePeriod.ValueInt;
         _rsi1 = (Aindicator)_tab1.CreateCandleIndicator(_rsi1, "Rsi1_Area");
+        _rsi1.ParametersDigit[0].Value = _rsiOnePeriod.ValueInt;
         _rsi1.Save();
 
         // Create indicator Rsi two
         _rsi2 = IndicatorsFactory.CreateIndicatorByName("RSI",name + "RSI2", false);
-        _rsi2.ParametersDigit[0].Value = _rsiTwoPeriod.ValueInt;
         _rsi2 = (Aindicator)_tab2.CreateCandleIndicator(_rsi2, "Rsi2_Area");
+        _rsi2.ParametersDigit[0].Value = _rsiTwoPeriod.ValueInt;
         _rsi2.Save();
 
         // Subscribe to the indicator update event

@@ -10,8 +10,6 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using OsEngine.Language;
@@ -232,7 +230,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             decimal stopPrice;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)

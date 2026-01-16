@@ -84,8 +84,8 @@ public class CciTrade : BotPanel
 
         // Create indicator CCI
         _cci = IndicatorsFactory.CreateIndicatorByName("CCI",name + "Cci", false);
-        _cci.ParametersDigit[0].Value = _cciLength.ValueInt;
         _cci = (Aindicator)_tab.CreateCandleIndicator(_cci, "CciArea");
+        _cci.ParametersDigit[0].Value = _cciLength.ValueInt;
         _cci.Save();
 
         // Create upLine
