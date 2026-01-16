@@ -1007,6 +1007,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                                 needPortf.SetNewPosition(position);
                             }
+                            else continue;
 
                             if (PortfolioEvent != null)
                             {
