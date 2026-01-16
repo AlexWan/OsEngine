@@ -213,7 +213,7 @@ namespace OsEngine.Robots.FuturesStart
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             _contangoFilterRegime = CreateParameter("Contango filter regime", "On_MOEXStocksAuto", new[] { "Off", "On_MOEXStocksAuto", "On_Manual" }, "Contango");
-            _contangoFilterCountSecurities = CreateParameter("Contango filter count securities", 2, 1, 2, 1, "Contango");
+            _contangoFilterCountSecurities = CreateParameter("Contango filter count securities", 3, 1, 2, 1, "Contango");
             _contangoStageToTradeLong = CreateParameter("Contango stage to trade Long", 1, 1, 2, 1, "Contango");
             _contangoStageToTradeShort = CreateParameter("Contango stage to trade Short", 2, 1, 2, 1, "Contango");
 

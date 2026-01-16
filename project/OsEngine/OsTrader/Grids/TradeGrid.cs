@@ -8,7 +8,6 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Atp;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
@@ -699,7 +698,15 @@ namespace OsEngine.OsTrader.Grids
                 catch(Exception e)
                 {
                     Thread.Sleep(1000);
-                    SendNewLogMessage(e.ToString(),LogMessageType.Error);
+
+                    try
+                    {
+                        SendNewLogMessage(e.ToString(), LogMessageType.Error);
+                    }
+                    catch
+                    {
+                        ServerMaster.SendNewLogMessage(e.ToString(), LogMessageType.Error);
+                    }
                 }
             }
         }
@@ -2401,6 +2408,28 @@ namespace OsEngine.OsTrader.Grids
 
                 if (linesWithPositions != null &&
                     linesWithPositions.Count != 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool HaveOrdersInMarketInGrid
+        {
+            get
+            {
+                List<TradeGridLine> linesWithOpenOrders = GetLinesWithOpenOrdersFact();
+                List<TradeGridLine> linesWithCloseOrders = GetLinesWithClosingOrdersFact();
+
+                if(linesWithOpenOrders != null 
+                    && linesWithOpenOrders.Count > 0)
+                {
+                    return true;
+                }
+                if (linesWithCloseOrders != null
+                  && linesWithCloseOrders.Count > 0)
                 {
                     return true;
                 }

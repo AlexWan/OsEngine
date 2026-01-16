@@ -967,6 +967,12 @@ namespace OsEngine.OsOptimizer
 
                 index--;
 
+                if(index < 0
+                    || index > _chartSeriesResult.Series[0].Points.Count)
+                {
+                    return;
+                }
+
                 for (int i = 0; i < _chartSeriesResult.Series[0].Points.Count; i++)
                 {
                     if (index == i)

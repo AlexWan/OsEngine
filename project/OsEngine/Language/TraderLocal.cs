@@ -2478,5 +2478,9 @@ namespace OsEngine.Language
         public string Label644 => OsLocalization.ConvertToLocString(
          "Eng:Stop trade by profit_" +
          "Ru:Стоп-торги после профита_");
+
+        public string Label665 => OsLocalization.ConvertToLocString(
+         "Eng:There are open positions on the grid. They will be lost. Do you want to continue?_" +
+         "Ru:По сетке есть открытые позиции. Они будут утеряны. Вы хотите продолжить?");
     }
 }
