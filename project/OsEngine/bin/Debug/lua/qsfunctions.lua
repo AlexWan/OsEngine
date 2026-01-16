@@ -978,7 +978,7 @@ function qsfunctions.get_candles_from_data_source(msg)
     end
     
     -- Ожидаем данные с таймаутом
-    local max_wait_seconds = 120
+    local max_wait_seconds = 20
     local wait_start = os.time()
     
     while ds:Size() == 0 do
