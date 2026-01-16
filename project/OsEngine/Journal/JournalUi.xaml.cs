@@ -2082,13 +2082,16 @@ namespace OsEngine.Journal
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem8 });
-                items[0].Click += OpenDealMoreInfo_Click;
+                items[^1].Click += OpenDealMoreInfo_Click;
 
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem9 });
-                items[1].Click += OpenDealDelete_Click;
+                items[^1].Click += OpenDealDelete_Click;
 
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem10 });
-                items[2].Click += OpenDealClearAll_Click;
+                items[^1].Click += OpenDealClearAll_Click;
+
+                items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem11 });
+                items[^1].Click += OpenDealSaveInFile_Click;
 
                 if (_botsJournals.Count != 0)
                 {
@@ -2110,6 +2113,81 @@ namespace OsEngine.Journal
 
                 _openPositionGrid.ContextMenuStrip = menu;
                 _openPositionGrid.ContextMenuStrip.Show(_openPositionGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void OpenDealSaveInFile_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                SaveFileDialog myDialog = new SaveFileDialog();
+                myDialog.Filter = "*.txt|";
+                myDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(myDialog.FileName))
+                {
+                    System.Windows.Forms.MessageBox.Show(OsLocalization.Journal.Message1);
+                    return;
+                }
+
+                StringBuilder workSheet = new StringBuilder();
+                workSheet.Append(OsLocalization.Entity.PositionColumn1 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn2 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn3 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn4 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn5 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn6 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn7 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn8 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn9 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn10 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn11 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn12 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn13 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn14 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn15 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn16 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn17 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn18 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn19 + "\r\n");
+
+                for (int i = 0; i < _openPositionGrid.Rows.Count; i++)
+                {
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[0].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[1].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[2].Value + ";");
+
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[3].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[4].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[5].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[6].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[7].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[8].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[9].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[10].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[11].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[12].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[13].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[14].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[15].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[16].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[17].Value + ";");
+                    workSheet.Append(_openPositionGrid.Rows[i].Cells[18].Value + "\r\n");
+                }
+
+                string fileName = myDialog.FileName;
+                if (fileName.Split('.').Length == 1)
+                {
+                    fileName = fileName + ".txt";
+                }
+
+                StreamWriter writer = new StreamWriter(fileName);
+                writer.Write(workSheet);
+                writer.Close();
             }
             catch (Exception error)
             {
