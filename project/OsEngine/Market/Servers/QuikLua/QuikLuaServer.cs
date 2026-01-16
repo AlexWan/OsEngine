@@ -736,37 +736,51 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 for (int i = 0; futuresLimits != null && i < futuresLimits.Count; i++)
                 {
-                    bool inArray = false;
-
-                    for (int i2 = 0; i2 < _futuresCodes.Count; i2++)
+                    bool portfolioAlreadyExists = false;
+                    Portfolio portfolio = null;
+                    for (int i2 = 0; i2 < _portfolios.Count; i2++)
                     {
-                        if (futuresLimits[i].TrdAccId == _futuresCodes[i2])
+                        if (_portfolios[i2].Number == futuresLimits[i].TrdAccId + _portfolioSeparator + futuresLimits[i].FirmId)
                         {
-                            inArray = true;
+                            portfolio = _portfolios[i2];
+                            portfolioAlreadyExists = true;
                             break;
                         }
                     }
 
-                    if (string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false)
+                    if (portfolio == null)
                     {
-                        if (ClientCodeFromSettings.Value != futuresLimits[i].TrdAccId)
+                        bool inArray = false;
+
+                        for (int i2 = 0; i2 < _futuresCodes.Count; i2++)
                         {
-                            continue;
+                            if (futuresLimits[i].TrdAccId == _futuresCodes[i2])
+                            {
+                                inArray = true;
+                                break;
+                            }
                         }
-                        else inArray = false;
+
+                        if (string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false)
+                        {
+                            if (ClientCodeFromSettings.Value != futuresLimits[i].TrdAccId)
+                            {
+                                continue;
+                            }
+                            else inArray = false;
+                        }
+
+                        if (futuresLimits[i].LimitType != 0) continue;
+                        else if (inArray == true) continue;
+
+                        _futuresCodes.Add(futuresLimits[i].TrdAccId);
+
+                        portfolio = new Portfolio();
+                        portfolio.Number = futuresLimits[i].TrdAccId + _portfolioSeparator + futuresLimits[i].FirmId;
                     }
 
-                    if (futuresLimits[i].LimitType != 0) continue;
-                    else if (inArray == true) continue;
-
-                    _futuresCodes.Add(futuresLimits[i].TrdAccId);
-
-                    Portfolio portfolio = new Portfolio();
                     portfolio.ServerType = ServerType.QuikLua;
                     portfolio.UnrealizedPnl = futuresLimits[i].VarMargin.ToString().Replace('.', _separator).ToDecimal();
-
-                    portfolio.Number = futuresLimits[i].TrdAccId + _portfolioSeparator + futuresLimits[i].FirmId;
-
                     portfolio.ValueBegin = futuresLimits[i].CbpPrevLimit.ToString().Replace('.', _separator).ToDecimal();
                     portfolio.ValueCurrent = futuresLimits[i].CbpLimit.ToString().Replace('.', _separator).ToDecimal();
                     portfolio.ValueBlocked = futuresLimits[i].CbpLUsedForOrders.ToString().Replace('.', _separator).ToDecimal() +
@@ -829,7 +843,10 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     portfolio.SetNewPosition(positionRub);
 
-                    _portfolios.Add(portfolio);
+                    if (portfolioAlreadyExists == false)
+                    {
+                        _portfolios.Add(portfolio);
+                    }
                 }
             }
             catch (Exception ex)
@@ -881,9 +898,24 @@ namespace OsEngine.Market.Servers.QuikLua
 
                         for (int i3 = 0; _clientCodes != null && i3 < _clientCodes.Count; i3++)
                         {
-                            Portfolio myPortfolio = new Portfolio();
+                            bool portfolioAlreadyExists = false;
+                            Portfolio myPortfolio = null;
+                            for (int i4 = 0; i4 < _portfolios.Count; i4++)
+                            {
+                                if (_portfolios[i4].Number == accaunts[i].TrdaccId + _portfolioSeparator + _clientCodes[i3])
+                                {
+                                    myPortfolio = _portfolios[i4];
+                                    portfolioAlreadyExists = true;
+                                    break;
+                                }
+                            }
 
-                            myPortfolio.Number = accaunts[i].TrdaccId + _portfolioSeparator + _clientCodes[i3];
+                            if (myPortfolio == null)
+                            {
+                                myPortfolio = new Portfolio();
+                                myPortfolio.Number = accaunts[i].TrdaccId + _portfolioSeparator + _clientCodes[i3];
+                            }
+
                             myPortfolio.ServerType = ServerType.QuikLua;
 
                             PortfolioInfoEx qPortfolio = QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, _clientCodes[i3], _tradeMode).Result;
@@ -934,7 +966,10 @@ namespace OsEngine.Market.Servers.QuikLua
 
                             UpdateSpotPosition(spotPos, myPortfolio, money, _clientCodes[i3]);
 
-                            _portfolios.Add(myPortfolio);
+                            if (portfolioAlreadyExists == false)
+                            {
+                                _portfolios.Add(myPortfolio);
+                            }
                         }
                     }
                 }
