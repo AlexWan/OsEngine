@@ -94,7 +94,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
             CustomTraceListener.OnTraceMessageReceived += message =>
             {
-                if (message.Contains("ThrowOperationCanceledException") || message.Contains("TaskCanceledException"))
+                if (message.Contains("ThrowOperationCanceledException") || message.Contains("TaskCanceledException") || message.Contains("DataSource is empty"))
                 {
                     return;
                 }
