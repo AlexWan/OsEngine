@@ -2581,6 +2581,14 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nMarket data", LogMessageType.System);
+                        SendMessageOnReconnectInErrorLog();
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+
                     SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
@@ -2889,6 +2897,14 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nPortfolio", LogMessageType.System);
+                        SendMessageOnReconnectInErrorLog();
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+
                     SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
@@ -3134,6 +3150,14 @@ namespace OsEngine.Market.Servers.TInvest
                     }
 
                     SendLogMessage(exception.ToString(), LogMessageType.System);
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nPositions", LogMessageType.System);
+                        SendMessageOnReconnectInErrorLog();
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+
                     Thread.Sleep(5000);
                 }
             }
@@ -3388,6 +3412,16 @@ namespace OsEngine.Market.Servers.TInvest
                     }
 
                     SendLogMessage(exception.ToString(), LogMessageType.System);
+
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nOrders", LogMessageType.System);
+                        SendMessageOnReconnectInErrorLog();
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+
+                   
                     Thread.Sleep(5000);
                 }
             }
