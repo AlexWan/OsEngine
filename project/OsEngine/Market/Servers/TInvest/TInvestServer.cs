@@ -2533,7 +2533,7 @@ namespace OsEngine.Market.Servers.TInvest
                         MarketDepthEvent?.Invoke(depth);
                     }
                 }
-                catch (RpcException ex)
+                catch (Exception exception)
                 {
                     if(_isDisposedNow == true)
                     {
@@ -2547,7 +2547,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        string message = GetGRPCErrorMessage(ex);
+                        string message = exception.ToString();
 
                         if (message.Contains("limit") == false)
                         {
@@ -2564,32 +2564,13 @@ namespace OsEngine.Market.Servers.TInvest
                         // need to reconnect everything
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
-                            SendLogMessage(OsLocalization.Market.Label294 + "\nMarket data", LogMessageType.System);
+                            SendLogMessage(OsLocalization.Market.Label294 + "\nMarket data\n" + message, LogMessageType.System);
                             SendMessageOnReconnectInErrorLog();
                             ServerStatus = ServerConnectStatus.Disconnect;
                             DisconnectEvent();
                         }
                         Thread.Sleep(5000);
                     }
-                    Thread.Sleep(5000);
-                }
-                catch (Exception exception)
-                {
-                    if(exception.ToString().Contains("Cannot access a disposed"))
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nMarket data", LogMessageType.System);
-                        SendMessageOnReconnectInErrorLog();
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
-
-                    SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -2853,7 +2834,7 @@ namespace OsEngine.Market.Servers.TInvest
                         PortfolioEvent!(_myPortfolios);
                     }
                 }
-                catch (RpcException exception)
+                catch (Exception exception)
                 {
                     if (_isDisposedNow == true)
                     {
@@ -2865,7 +2846,7 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
-                    string message = GetGRPCErrorMessage(exception);
+                    string message = exception.ToString();
                     
                     if (message.Contains("limit") == false)
                     {
@@ -2882,30 +2863,11 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nPortfolio" , LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nPortfolio\n" + message, LogMessageType.System);
                         SendMessageOnReconnectInErrorLog();
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
-                    Thread.Sleep(5000);
-                }
-                catch (Exception exception)
-                {
-                    if (exception.ToString().Contains("Cannot access a disposed"))
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nPortfolio", LogMessageType.System);
-                        SendMessageOnReconnectInErrorLog();
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
-
-                    SendLogMessage(exception.ToString(), LogMessageType.System);
                     Thread.Sleep(5000);
                 }
             }
@@ -3105,7 +3067,7 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
                 }
-                catch (RpcException exception)
+                catch (Exception exception)
                 {
                     if (_isDisposedNow == true)
                     {
@@ -3117,7 +3079,7 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
-                    string message = GetGRPCErrorMessage(exception);
+                    string message = exception.ToString();
 
                     if (message.Contains("limit") == false)
                     {
@@ -3134,30 +3096,11 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nPositions", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nPositions\n" + message, LogMessageType.System);
                         SendMessageOnReconnectInErrorLog();
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
-                    Thread.Sleep(5000);
-                }
-                catch (Exception exception)
-                {
-                    if (exception.ToString().Contains("Cannot access a disposed"))
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
-                    SendLogMessage(exception.ToString(), LogMessageType.System);
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nPositions", LogMessageType.System);
-                        SendMessageOnReconnectInErrorLog();
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
-
                     Thread.Sleep(5000);
                 }
             }
@@ -3361,7 +3304,7 @@ namespace OsEngine.Market.Servers.TInvest
                         MyOrderEvent?.Invoke(order);
                     }
                 }
-                catch (RpcException ex)
+                catch (Exception exception)
                 {
                     if (_isDisposedNow == true)
                     {
@@ -3373,7 +3316,7 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
-                    string message = GetGRPCErrorMessage(ex);
+                    string message = exception.ToString();
 
                     if (message.Contains("limit") == false)
                     {
@@ -3396,32 +3339,11 @@ namespace OsEngine.Market.Servers.TInvest
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nOrders", LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Label294 + "\nOrders\n" + message, LogMessageType.System);
                         SendMessageOnReconnectInErrorLog();
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
-                    Thread.Sleep(5000);
-                }
-                catch (Exception exception)
-                {
-                    if (exception.ToString().Contains("Cannot access a disposed"))
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
-                    SendLogMessage(exception.ToString(), LogMessageType.System);
-
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        SendLogMessage(OsLocalization.Market.Label294 + "\nOrders", LogMessageType.System);
-                        SendMessageOnReconnectInErrorLog();
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
-
-                   
                     Thread.Sleep(5000);
                 }
             }
