@@ -12,6 +12,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
 
     public class RestMessageCandle
     {
+        public string code;
+        public string msg;
         public List<List<string>> data { get; set; }
     }
 
