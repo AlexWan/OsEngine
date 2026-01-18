@@ -1888,6 +1888,8 @@ namespace OsEngine.Market.Servers.TInvest
 
             _lastPortfolioDataTime = DateTime.UtcNow;
             _lastPositionsDataTime = DateTime.UtcNow;
+            _lastMarketDataTime = DateTime.UtcNow;
+            _lastMyOrderStateDataTime = DateTime.UtcNow;
         }
 
         #endregion
