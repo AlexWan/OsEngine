@@ -14,6 +14,7 @@ using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -161,24 +162,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 else
                 {
                     SendLogMessage("Connection can be open. BitGet. Error request", LogMessageType.Error);
-
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
+                    Disconnect();
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
                 SendLogMessage("Connection can be open. BitGet. Error request", LogMessageType.Error);
-
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                Disconnect();
             }
         }
 
@@ -199,6 +190,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
             _queueMarketDepths = new ConcurrentQueue<string>();
             _queueTrades = new ConcurrentQueue<string>();
+            _portfolioIsStarted = false;
 
             Disconnect();
         }
@@ -247,7 +239,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private int _limitCandlesData = 200;
 
-        private int _limitCandlesTrader = 1000;
+        //private int _limitCandlesTrader = 1000;
 
         private List<string> _listCoin;
 
@@ -278,6 +270,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         #region 3 Securities
 
+        private RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(50));
+
         public void GetSecurities()
         {
             for (int indCoin = 0; indCoin < _listCoin.Count; indCoin++)
@@ -298,70 +292,77 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                     IRestResponse response = client.Execute(requestRest);
 
-                    if (response.StatusCode != HttpStatusCode.OK)
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        SendLogMessage($"Http State Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
-                        continue;
-                    }
+                        ResponseRestMessage<List<RestMessageSymbol>> symbols = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<RestMessageSymbol>>());
 
-                    ResponseRestMessage<List<RestMessageSymbol>> symbols = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<RestMessageSymbol>>());
-
-                    List<Security> securities = new List<Security>();
-
-                    if (symbols.data.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    for (int i = 0; i < symbols.data.Count; i++)
-                    {
-                        RestMessageSymbol item = symbols.data[i];
-
-                        int decimals = Convert.ToInt32(item.pricePlace);
-                        decimal priceStep = (GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep))).ToDecimal();
-
-                        if (item.symbolStatus.Equals("normal"))
+                        if (symbols.code.Equals("00000") == true)
                         {
-                            Security newSecurity = new Security();
+                            List<Security> securities = new List<Security>();
 
-                            newSecurity.Exchange = ServerType.BitGetFutures.ToString();
-                            newSecurity.DecimalsVolume = Convert.ToInt32(item.volumePlace);
-                            newSecurity.Lot = 1;
-                            newSecurity.Name = item.symbol;
-                            newSecurity.NameFull = item.symbol;
-                            newSecurity.NameClass = _listCoin[indCoin];
-                            newSecurity.NameId = item.symbol;
-                            newSecurity.SecurityType = SecurityType.Futures;
-                            newSecurity.Decimals = decimals;
-                            newSecurity.PriceStep = priceStep;
-                            newSecurity.PriceStepCost = priceStep;
-                            newSecurity.State = SecurityStateType.Activ;
-                            newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
-                            newSecurity.MinTradeAmount = item.minTradeUSDT.ToDecimal();
-
-                            if (newSecurity.DecimalsVolume == 0)
+                            if (symbols.data.Count == 0)
                             {
-                                newSecurity.VolumeStep = 1;
-                            }
-                            else
-                            {
-                                newSecurity.VolumeStep = item.minTradeNum.ToDecimal();
+                                continue;
                             }
 
-                            securities.Add(newSecurity);
+                            for (int i = 0; i < symbols.data.Count; i++)
+                            {
+                                RestMessageSymbol item = symbols.data[i];
+
+                                int decimals = Convert.ToInt32(item.pricePlace);
+                                decimal priceStep = (GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep))).ToDecimal();
+
+                                if (item.symbolStatus.Equals("normal"))
+                                {
+                                    Security newSecurity = new Security();
+
+                                    newSecurity.Exchange = ServerType.BitGetFutures.ToString();
+                                    newSecurity.DecimalsVolume = Convert.ToInt32(item.volumePlace);
+                                    newSecurity.Lot = 1;
+                                    newSecurity.Name = item.symbol;
+                                    newSecurity.NameFull = item.symbol;
+                                    newSecurity.NameClass = _listCoin[indCoin];
+                                    newSecurity.NameId = item.symbol;
+                                    newSecurity.SecurityType = SecurityType.Futures;
+                                    newSecurity.Decimals = decimals;
+                                    newSecurity.PriceStep = priceStep;
+                                    newSecurity.PriceStepCost = priceStep;
+                                    newSecurity.State = SecurityStateType.Activ;
+                                    newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                                    newSecurity.MinTradeAmount = item.minTradeUSDT.ToDecimal();
+
+                                    if (newSecurity.DecimalsVolume == 0)
+                                    {
+                                        newSecurity.VolumeStep = 1;
+                                    }
+                                    else
+                                    {
+                                        newSecurity.VolumeStep = item.minTradeNum.ToDecimal();
+                                    }
+
+                                    securities.Add(newSecurity);
+                                }
+                            }
+
+                            SecurityEvent(securities);
+                        }
+                        else
+                        {
+                            SendLogMessage($"Securities error: {symbols.code} || msg: {symbols.msg}", LogMessageType.Error);
                         }
                     }
+                    else
+                    {
+                        SendLogMessage($"Securities request error: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    }
 
-                    SecurityEvent(securities);
                 }
-                catch (Exception exception)
+                catch (Exception ex)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    SendLogMessage($"Securities request error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
                 }
             }
         }
-
-        private RateGate _rateGateSecurity = new RateGate(2, TimeSpan.FromMilliseconds(100));
 
         private string GetPriceStep(int PricePlace, int PriceEndStep)
         {
@@ -393,7 +394,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         #region 4 Portfolios
 
-        public List<Portfolio> Portfolios;
+        private List<Portfolio> _portfolios = new List<Portfolio>();
 
         private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
@@ -440,11 +441,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public void GetPortfolios()
         {
-            if (Portfolios == null)
-            {
-                GetNewPortfolio();
-            }
-
             for (int i = 0; i < _listCoin.Count; i++)
             {
                 CreatePortfolio(true, _listCoin[i]);
@@ -465,53 +461,59 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string path = "/api/v2/mix/account/accounts" + "?productType=" + productType;
 
                 IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null, null);
-                string json = responseMessage.Content;
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    ResponseRestMessage<List<Account>> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<Account>>());
+                    ResponseRestMessage<List<Account>> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<Account>>());
 
                     if (stateResponse.code.Equals("00000") == true)
                     {
-                        if (Portfolios == null)
-                        {
-                            return;
-                        }
+                        Portfolio portfolio = _portfolios.Find(p => p.Number == "BitGetFutures");
 
-                        Portfolio portfolio = Portfolios[0];
+                        if (portfolio == null)
+                        {
+                            Portfolio newPortf = new Portfolio();
+                            newPortf.Number = "BitGetFutures";
+                            newPortf.ValueBegin = 1;
+                            newPortf.ValueCurrent = 1;
+                            _portfolios.Add(newPortf);
+                            portfolio = newPortf;
+                        }
 
                         decimal positionInUSDT = 0;
                         decimal positionPnL = 0;
 
                         for (int i = 0; i < stateResponse.data.Count; i++)
                         {
+                            Account item = stateResponse.data[i];
+
                             if (productType == "COIN-FUTURES"
-                                && stateResponse.data[i].marginCoin.ToString() == "USDC")
+                                && item.marginCoin.ToString() == "USDC")
                             {
                                 continue;
                             }
 
-                            if (stateResponse.data[i].marginCoin.ToString() == "USDT")
+                            if (item.marginCoin.ToString() == "USDT")
                             {
-                                positionInUSDT = stateResponse.data[i].unionTotalMargin.ToDecimal();
-                                positionPnL = stateResponse.data[i].unrealizedPL.ToDecimal();
+                                positionInUSDT = item.unionTotalMargin.ToDecimal();
+                                positionPnL = item.unrealizedPL.ToDecimal();
                             }
                             else
                             {
-                                positionInUSDT += stateResponse.data[i].usdtEquity.ToDecimal();
-                                positionPnL += stateResponse.data[i].unrealizedPL.ToDecimal();
+                                positionInUSDT += item.usdtEquity.ToDecimal();
+                                positionPnL += item.unrealizedPL.ToDecimal();
                             }
 
                             PositionOnBoard pos = new PositionOnBoard();
                             pos.PortfolioName = "BitGetFutures";
-                            pos.SecurityNameCode = stateResponse.data[i].marginCoin.ToString();
-                            pos.ValueBlocked = stateResponse.data[i].locked.ToDecimal();
-                            pos.ValueCurrent = stateResponse.data[i].available.ToDecimal();
-                            pos.UnrealizedPnl = Math.Round(stateResponse.data[i].unrealizedPL.ToDecimal(), 6);
+                            pos.SecurityNameCode = item.marginCoin.ToString();
+                            pos.ValueBlocked = item.locked.ToDecimal();
+                            pos.ValueCurrent = item.available.ToDecimal();
+                            pos.UnrealizedPnl = Math.Round(item.unrealizedPL.ToDecimal(), 6);
 
                             if (IsUpdateValueBegin)
                             {
-                                pos.ValueBegin = stateResponse.data[i].accountEquity.ToDecimal();
+                                pos.ValueBegin = item.accountEquity.ToDecimal();
                             }
 
                             portfolio.SetNewPosition(pos);
@@ -520,33 +522,22 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         resultPositionInUSDT.Add(positionInUSDT.ToString());
                         resultPositionPnL.Add(positionPnL.ToString());
 
-                        PortfolioEvent?.Invoke(Portfolios);
+                        PortfolioEvent?.Invoke(_portfolios);
                     }
                     else
                     {
-                        SendLogMessage($"Code: {stateResponse.code}", LogMessageType.Error);
+                        SendLogMessage($"Portfolio error: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
                     }
+                }
+                else
+                {
+                    SendLogMessage($"Portfolio error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage($"Portfolio request error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
-        }
-
-        private void GetNewPortfolio()
-        {
-            Portfolios = new List<Portfolio>();
-
-            Portfolio portfolioInitial = new Portfolio();
-            portfolioInitial.Number = "BitGetFutures";
-            portfolioInitial.ValueBegin = 1;
-            portfolioInitial.ValueCurrent = 1;
-            portfolioInitial.ValueBlocked = 0;
-
-            Portfolios.Add(portfolioInitial);
-
-            PortfolioEvent(Portfolios);
         }
 
         private void CreatePositions(string productType)
@@ -558,11 +549,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string path = "/api/v2/mix/position/all-position" + "?productType=" + productType;
 
                 IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null, null);
-                string json = responseMessage.Content;
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    ResponseRestMessage<List<RestMessagePositions>> positions = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<RestMessagePositions>>());
+                    ResponseRestMessage<List<RestMessagePositions>> positions = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<RestMessagePositions>>());
 
                     if (positions.code.Equals("00000") == true)
                     {
@@ -571,12 +561,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             return;
                         }
 
-                        if (Portfolios == null)
+                        if (_portfolios == null)
                         {
-                            GetNewPortfolio();
+                            return;
                         }
 
-                        Portfolio portfolio = Portfolios[0];
+                        Portfolio portfolio = _portfolios[0];
 
                         if (positions != null)
                         {
@@ -584,33 +574,35 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             {
                                 for (int i = 0; i < positions.data.Count; i++)
                                 {
+                                    RestMessagePositions item = positions.data[i];
+
                                     PositionOnBoard pos = new PositionOnBoard();
                                     pos.PortfolioName = "BitGetFutures";
-                                    pos.SecurityNameCode = positions.data[i].symbol;
+                                    pos.SecurityNameCode = item.symbol;
 
-                                    if (positions.data[i].posMode == "hedge_mode")
+                                    if (item.posMode == "hedge_mode")
                                     {
-                                        if (positions.data[i].holdSide == "long")
+                                        if (item.holdSide == "long")
                                         {
-                                            pos.SecurityNameCode = positions.data[i].symbol + "_" + "LONG";
+                                            pos.SecurityNameCode = item.symbol + "_" + "LONG";
                                         }
-                                        if (positions.data[i].holdSide == "short")
+                                        if (item.holdSide == "short")
                                         {
-                                            pos.SecurityNameCode = positions.data[i].symbol + "_" + "SHORT";
+                                            pos.SecurityNameCode = item.symbol + "_" + "SHORT";
                                         }
                                     }
 
-                                    if (positions.data[i].holdSide == "long")
+                                    if (item.holdSide == "long")
                                     {
-                                        pos.ValueCurrent = positions.data[i].available.ToDecimal();
+                                        pos.ValueCurrent = item.available.ToDecimal();
                                     }
-                                    else if (positions.data[i].holdSide == "short")
+                                    else if (item.holdSide == "short")
                                     {
-                                        pos.ValueCurrent = positions.data[i].available.ToDecimal() * -1;
+                                        pos.ValueCurrent = item.available.ToDecimal() * -1;
                                     }
 
-                                    pos.ValueBlocked = positions.data[i].locked.ToDecimal();
-                                    pos.UnrealizedPnl = positions.data[i].unrealizedPL.ToDecimal();
+                                    pos.ValueBlocked = item.locked.ToDecimal();
+                                    pos.UnrealizedPnl = item.unrealizedPL.ToDecimal();
 
                                     portfolio.SetNewPosition(pos);
 
@@ -679,17 +671,21 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             SendLogMessage("BITGET ERROR. NO POSITIONS IN REQUEST.", LogMessageType.Error);
                         }
 
-                        PortfolioEvent?.Invoke(Portfolios);
+                        PortfolioEvent?.Invoke(_portfolios);
                     }
                     else
                     {
-                        SendLogMessage($"Code: {positions.code}", LogMessageType.Error);
+                        SendLogMessage($"Positions error: {positions.code} || msg: {positions.msg}", LogMessageType.Error);
                     }
+                }
+                else
+                {
+                    SendLogMessage($"Positions error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage($"Positions request error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -708,7 +704,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 portfolioPnL += resultPositionPnL[i].ToDecimal();
             }
 
-            Portfolio portfolio = Portfolios[0];
+            Portfolio portfolio = _portfolios[0];
 
             if (IsUpdateValueBegin)
             {
@@ -718,7 +714,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             portfolio.ValueCurrent = Math.Round(portfolioInUSDT, 4);
             portfolio.UnrealizedPnl = Math.Round(portfolioPnL, 6);
 
-            PortfolioEvent(Portfolios);
+            PortfolioEvent(_portfolios);
 
             resultPositionInUSDT.Clear();
             resultPositionPnL.Clear();
@@ -727,6 +723,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         private bool _portfolioIsStarted = false;
 
         public event Action<List<Portfolio>> PortfolioEvent;
+
         #endregion
 
         #region 5 Data
@@ -737,15 +734,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
-            return GetCandleData(security, timeFrameBuilder, startTime, endTime, endTime, true);
+            return GetCandleData(security, timeFrameBuilder, startTime, endTime, endTime);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            return GetCandleData(security, timeFrameBuilder, startTime, endTime, actualTime, true);
+            return GetCandleData(security, timeFrameBuilder, startTime, endTime, actualTime);
         }
 
-        private List<Candle> GetCandleData(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool isOsData)
+        private List<Candle> GetCandleData(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
             endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
@@ -763,12 +760,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 return null;
             }
 
-            int limitCandles = _limitCandlesTrader;
-
-            if (isOsData)
-            {
-                limitCandles = _limitCandlesData;
-            }
+            //int limitCandles = _limitCandlesTrader;
+            int limitCandles = _limitCandlesData;
 
             TimeSpan span = endTime - startTime;
 
@@ -789,7 +782,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
 
-                List<Candle> candles = RequestCandleHistory(security, interval, from, to, isOsData, limitCandles);
+                List<Candle> candles = RequestCandleHistory(security, interval, from, to, limitCandles);
 
                 if (candles == null || candles.Count == 0)
                 {
@@ -887,16 +880,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private readonly RateGate _rgCandleData = new RateGate(2, TimeSpan.FromMilliseconds(100));
 
-        private List<Candle> RequestCandleHistory(Security security, string interval, long startTime, long endTime, bool isOsData, int limitCandles)
+        private List<Candle> RequestCandleHistory(Security security, string interval, long startTime, long endTime, int limitCandles)
         {
             _rgCandleData.WaitToProceed();
 
-            string stringUrl = "/api/v2/mix/market/candles";
-
-            if (isOsData)
-            {
-                stringUrl = "/api/v2/mix/market/history-candles";
-            }
+            // string stringUrl = "/api/v2/mix/market/candles";
+            string stringUrl = "/api/v2/mix/market/history-candles";
 
             try
             {
@@ -915,11 +904,23 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    return ConvertCandles(response.Content);
+                    RestMessageCandle responseCandles = JsonConvert.DeserializeObject<RestMessageCandle>(response.Content);
+
+                    if (responseCandles.code.Equals("00000") == true)
+                    {
+                        return ConvertCandles(responseCandles);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Candle history error: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                    if (response.ToString().StartsWith("<!DOCTYPE") == false)
+                    {
+                        SendLogMessage($"Candle history error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception exception)
@@ -930,20 +931,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             return null;
         }
 
-        private List<Candle> ConvertCandles(string json)
+        private List<Candle> ConvertCandles(RestMessageCandle responseCandles)
         {
-            RestMessageCandle symbols = JsonConvert.DeserializeObject<RestMessageCandle>(json);
-
             List<Candle> candles = new List<Candle>();
 
-            if (symbols.data.Count == 0)
+            if (responseCandles.data.Count == 0)
             {
                 return null;
             }
 
-            for (int i = 0; i < symbols.data.Count; i++)
+            for (int i = 0; i < responseCandles.data.Count; i++)
             {
-                if (CheckCandlesToZeroData(symbols.data[i]))
+                if (CheckCandlesToZeroData(responseCandles.data[i]))
                 {
                     continue;
                 }
@@ -951,15 +950,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 Candle candle = new Candle();
 
                 candle.State = CandleState.Finished;
-                candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(long.Parse(symbols.data[i][0]));
-                candle.Volume = symbols.data[i][5].ToDecimal();
-                candle.Close = symbols.data[i][4].ToDecimal();
-                candle.High = symbols.data[i][2].ToDecimal();
-                candle.Low = symbols.data[i][3].ToDecimal();
-                candle.Open = symbols.data[i][1].ToDecimal();
+                candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(long.Parse(responseCandles.data[i][0]));
+                candle.Volume = responseCandles.data[i][5].ToDecimal();
+                candle.Close = responseCandles.data[i][4].ToDecimal();
+                candle.High = responseCandles.data[i][2].ToDecimal();
+                candle.Low = responseCandles.data[i][3].ToDecimal();
+                candle.Open = responseCandles.data[i][1].ToDecimal();
 
                 candles.Add(candle);
             }
+
             return candles;
         }
 
@@ -1639,7 +1639,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
                     && _subscribedSecutiries.Count != 0
-                    && _subscribedSecutiries.Count % 70 == 0)
+                    && _subscribedSecutiries.Count % 20 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1720,17 +1720,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
                     else
                     {
-                        SendLogMessage($"GetFundingData error. Code:{responseFunding.code} || msg: {responseFunding.msg}", LogMessageType.Error);
+                        SendLogMessage($"Funding data error:{responseFunding.code} || msg: {responseFunding.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"GetFundingData error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"Funding data error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage($"GetFundingData error. {ex.ToString()}", LogMessageType.Error);
+                SendLogMessage($"Funding data error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1768,17 +1768,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
                     else
                     {
-                        SendLogMessage($"GetFundingHistory error. Code:{responseFunding.code} || msg: {responseFunding.msg}", LogMessageType.Error);
+                        SendLogMessage($"Funding history error:{responseFunding.code} || msg: {responseFunding.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"GetFundingHistory error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"Funding history error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage($"GetFundingHistory error. {ex.ToString()}", LogMessageType.Error);
+                SendLogMessage($"Funding history error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1921,35 +1921,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         }
                         else
                         {
-                            ResponseWebSocketMessageSubscribe SubscribeState = null;
-
-                            try
+                            if (message.StartsWith("{\"event\":\"error\""))
                             {
-                                SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
-                            }
-                            catch (Exception error)
-                            {
-                                SendLogMessage("Error in message reader: " + error.ToString(), LogMessageType.Error);
-                                SendLogMessage("message str: \n" + message, LogMessageType.Error);
-                                continue;
-                            }
+                                SendLogMessage("WebSocket listener error", LogMessageType.Error);
+                                SendLogMessage(message, LogMessageType.Error);
 
-                            if (SubscribeState.code != null)
-                            {
-                                if (SubscribeState.code.Equals("0") == false)
-                                {
-                                    SendLogMessage("WebSocket listener error", LogMessageType.Error);
-                                    SendLogMessage(SubscribeState.code + "\n" +
-                                        SubscribeState.msg, LogMessageType.Error);
-
-                                    if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
-                                    { // if there are problems with the web socket startup, you need to restart it
-                                        ServerStatus = ServerConnectStatus.Disconnect;
-                                        DisconnectEvent();
-                                    }
+                                if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
+                                { // if there are problems with the web socket startup, you need to restart it
+                                    Disconnect();
                                 }
-
-                                continue;
                             }
                         }
                     }
@@ -2069,58 +2049,34 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             continue;
                         }
 
-                        ResponseWebSocketMessageSubscribe SubscribeState = null;
-
-                        try
+                        if (message.Contains("account"))
                         {
-                            SubscribeState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscribe());
-                        }
-                        catch (Exception error)
-                        {
-                            SendLogMessage("Error in message reader: " + error.ToString(), LogMessageType.Error);
-                            SendLogMessage("message str: \n" + message, LogMessageType.Error);
+                            UpdateAccount(message);
                             continue;
                         }
-
-                        if (SubscribeState.code != null)
+                        else if (message.Contains("positions"))
                         {
-                            if (SubscribeState.code.Equals("0") == false)
-                            {
-                                SendLogMessage("WebSocket listener error", LogMessageType.Error);
-                                SendLogMessage(SubscribeState.code + "\n" +
-                                    SubscribeState.msg, LogMessageType.Error);
-
-                                if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
-                                { // if there are problems with the web socket startup, you need to restart it
-                                    ServerStatus = ServerConnectStatus.Disconnect;
-                                    DisconnectEvent();
-                                }
-                            }
-
+                            UpdatePositions(message);
+                            continue;
+                        }
+                        else if (message.Contains("orders"))
+                        {
+                            UpdateOrder(message);
                             continue;
                         }
                         else
                         {
-                            ResponseWebSocketMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<object>());
-
-                            if (action.arg != null)
+                            if (message.StartsWith("{\"event\":\"error\""))
                             {
-                                if (action.arg.channel.Equals("account"))
-                                {
-                                    UpdateAccount(message);
-                                    continue;
-                                }
-                                if (action.arg.channel.Equals("positions"))
-                                {
-                                    UpdatePositions(message);
-                                    continue;
-                                }
-                                if (action.arg.channel.Equals("orders"))
-                                {
-                                    UpdateOrder(message);
-                                    continue;
+                                SendLogMessage("WebSocket listener error", LogMessageType.Error);
+                                SendLogMessage(message, LogMessageType.Error);
+
+                                if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
+                                { // if there are problems with the web socket startup, you need to restart it
+                                    Disconnect();
                                 }
                             }
+
                         }
                     }
                 }
@@ -2148,12 +2104,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     return;
                 }
 
-                if (Portfolios == null)
+                if (_portfolios == null)
                 {
-                    GetNewPortfolio();
+                    return;
                 }
 
-                Portfolio portfolio = Portfolios[0];
+                Portfolio portfolio = _portfolios[0];
 
                 if (positions != null)
                 {
@@ -2256,7 +2212,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     SendLogMessage("BITGET ERROR. NO POSITIONS IN REQUEST.", LogMessageType.Error);
                 }
 
-                PortfolioEvent?.Invoke(Portfolios);
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception ex)
             {
@@ -2281,12 +2237,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     return;
                 }
 
-                if (Portfolios == null)
+                if (_portfolios == null)
                 {
-                    GetNewPortfolio();
+                    return;
                 }
 
-                Portfolio portfolio = Portfolios[0];
+                Portfolio portfolio = _portfolios[0];
 
                 for (int i = 0; i < assets.data.Count; i++)
                 {
@@ -2300,7 +2256,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     portfolio.SetNewPosition(pos);
                 }
 
-                PortfolioEvent?.Invoke(Portfolios);
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception ex)
             {
@@ -2431,7 +2387,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     return;
                 }
 
-                for (int i = 0; i < responseTrade.data.Count; i++)
+                for (int i = responseTrade.data.Count - 1; i >= 0; i--)
                 {
                     Trade trade = new Trade();
                     trade.SecurityNameCode = responseTrade.arg.instId;
@@ -2684,10 +2640,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
                 IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/order/place-order", Method.POST, null, jsonRequest);
-                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
+                    ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
+
                     if (stateResponse.code.Equals("00000") == true)
                     {
                         // ignore
@@ -2695,25 +2652,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     else
                     {
                         CreateOrderFail(order);
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        SendLogMessage($"Order Fail: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
                     CreateOrderFail(order);
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                    if (stateResponse != null && stateResponse.code != null)
-                    {
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                    }
+                    SendLogMessage($"Order Fail. Status: {responseMessage.StatusCode} || msg:{responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage($"Order send error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -2732,10 +2682,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
                 IRestResponse response = CreatePrivateQueryOrders("/api/v2/mix/order/cancel-order", Method.POST, null, jsonRequest);
-                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<object>());
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
+                    ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<object>());
+
                     if (stateResponse.code.Equals("00000") == true)
                     {
                         return true;
@@ -2747,8 +2698,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                         if (state == OrderStateType.None)
                         {
-                            SendLogMessage($"Code: {stateResponse.code}\n"
-                                + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                            SendLogMessage($"Cancel order failed: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
                             return false;
                         }
                         else
@@ -2763,13 +2713,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                     if (state == OrderStateType.None)
                     {
-                        SendLogMessage($"Http State Code: {response.StatusCode}", LogMessageType.Error);
-
-                        if (stateResponse != null && stateResponse.code != null)
-                        {
-                            SendLogMessage($"Code: {stateResponse.code}\n"
-                                + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                        }
+                        SendLogMessage($"Cancel order failed. Status: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                         return false;
                     }
                     else
@@ -2780,7 +2724,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage($"Cancel order error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
 
             return false;
@@ -2788,7 +2732,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public void GetAllActivOrders()
         {
-            List<Order> ordersOpenAll = GetAllActivOrdersArray(100, true);
+            List<Order> ordersOpenAll = GetAllActivOrdersArray(100);
 
             for (int i = 0; i < ordersOpenAll.Count; i++)
             {
@@ -2799,19 +2743,21 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private List<Order> GetAllActivOrdersArray(int maxCountByCategory, bool onlyActive)
+        private List<Order> GetAllActivOrdersArray(int maxCountByCategory)
         {
             List<Order> ordersOpenAll = new List<Order>();
 
             List<Order> orders = new List<Order>();
 
-            GetAllOpenOrders(orders, 100, true);
+            GetAllOpenOrders(orders, 100);
 
             if (orders != null
                 && orders.Count > 0)
             {
                 ordersOpenAll.AddRange(orders);
             }
+
+            ordersOpenAll = ordersOpenAll.OrderByDescending(order => order.TimeCreate).ToList();
 
             return ordersOpenAll;
         }
@@ -2825,12 +2771,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string path = "/api/v2/mix/order/detail?symbol=" + order.SecurityNameCode + "&productType=" + order.SecurityClassCode + "&clientOid=" + order.NumberUser;
 
                 IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null, null);
-                string json = responseMessage.Content;
-
-                ResponseRestMessage<DataOrderStatus> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<DataOrderStatus>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
+                    ResponseRestMessage<DataOrderStatus> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<DataOrderStatus>());
+
                     if (stateResponse.code.Equals("00000") == true)
                     {
                         Order newOrder = new Order();
@@ -2866,14 +2811,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
                     else
                     {
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            , LogMessageType.Error);
+                        SendLogMessage($"Order status error: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
                     }
+                }
+                else
+                {
+                    SendLogMessage($"Order status error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage($"Order status error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
 
             return OrderStateType.None;
@@ -2888,12 +2836,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string path = $"/api/v2/mix/order/fills?symbol={order.SecurityNameCode}&productType={order.SecurityClassCode}";
 
                 IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null, null);
-                string json = responseMessage.Content;
-
-                RestMyTradesResponce stateResponse = JsonConvert.DeserializeAnonymousType(json, new RestMyTradesResponce());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
+                    RestMyTradesResponce stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new RestMyTradesResponce());
+
                     if (stateResponse.code.Equals("00000") == true)
                     {
                         for (int i = 0; i < stateResponse.data.fillList.Count; i++)
@@ -2914,14 +2861,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
                     else
                     {
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        SendLogMessage($"My trades request error: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
                     }
                 }
+                else
+                {
+                    SendLogMessage($"My trades to order error: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                SendLogMessage(e.Message, LogMessageType.Error);
+                SendLogMessage($"My trades to order error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -2945,9 +2895,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 CreatePrivateQueryOrders("/api/v2/mix/order/cancel-all-orders", Method.POST, null, jsonRequest);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                SendLogMessage(e.Message, LogMessageType.Error);
+                SendLogMessage($"Cancel all orders to security error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -2967,13 +2917,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     CreatePrivateQueryOrders("/api/v2/mix/order/cancel-all-orders", Method.POST, null, jsonRequest);
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                SendLogMessage(e.Message, LogMessageType.Error);
+                SendLogMessage($"Cancel all orders error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
-        public void GetAllOpenOrders(List<Order> array, int maxCount, bool onlyActive)
+        public void GetAllOpenOrders(List<Order> array, int maxCount)
         {
             try
             {
@@ -2989,12 +2939,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     //requestPath += $"clientOrderId={order.NumberUser.ToString()}";
 
                     IRestResponse responseMessage = CreatePrivateQuery(requestPath, Method.GET, null, null);
-                    string json = responseMessage.Content;
-
-                    ResponseRestMessage<RestMessageOrders> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<RestMessageOrders>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
+                        ResponseRestMessage<RestMessageOrders> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<RestMessageOrders>());
+
                         if (stateResponse.code.Equals("00000") == true)
                         {
                             if (stateResponse.data.entrustedList == null)
@@ -3007,49 +2956,47 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 Order curOder = ConvertRestToOrder(stateResponse.data.entrustedList[ind]);
                                 orders.Add(curOder);
                             }
-
-                            if (orders.Count > 0)
-                            {
-                                array.AddRange(orders);
-
-                                if (array.Count > maxCount)
-                                {
-                                    while (array.Count > maxCount)
-                                    {
-                                        array.RemoveAt(array.Count - 1);
-                                    }
-                                    return;
-                                }
-                                else if (array.Count < 50)
-                                {
-                                    return;
-                                }
-                            }
-                            else
-                            {
-                                return;
-                            }
-
-                            return;
                         }
                         else
                         {
-                            SendLogMessage($"Code: {stateResponse.code}\n"
-                                + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                            SendLogMessage($"Open orders error: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
                             return;
                         }
                     }
                     else
                     {
-                        SendLogMessage($"GetOpenOrders>. Order error. Code: {responseMessage.StatusCode}\n"
-                                + $"Message: {responseMessage.Content}", LogMessageType.Error);
+                        SendLogMessage($"All open orders error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                         return;
                     }
                 }
+
+                if (orders.Count > 0)
+                {
+                    array.AddRange(orders);
+
+                    if (array.Count > maxCount)
+                    {
+                        while (array.Count > maxCount)
+                        {
+                            array.RemoveAt(array.Count - 1);
+                        }
+                        return;
+                    }
+                    else if (array.Count < 50)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+
+                return;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                SendLogMessage(e.Message, LogMessageType.Error);
+                SendLogMessage($"All open orders error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 return;
             }
         }
@@ -3136,7 +3083,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             int countToMethod = startIndex + count;
 
-            List<Order> result = GetAllActivOrdersArray(countToMethod, true);
+            List<Order> result = GetAllActivOrdersArray(countToMethod);
 
             List<Order> resultExit = new List<Order>();
 
@@ -3160,7 +3107,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             int countToMethod = startIndex + count;
 
-            List<Order> result = GetAllHistoricalOrdersArray(countToMethod, false);
+            List<Order> result = GetAllHistoricalOrdersArray(countToMethod);
 
             List<Order> resultExit = new List<Order>();
 
@@ -3180,13 +3127,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             return resultExit;
         }
 
-        private List<Order> GetAllHistoricalOrdersArray(int maxCountByCategory, bool onlyActive)
+        private List<Order> GetAllHistoricalOrdersArray(int maxCountByCategory)
         {
             List<Order> ordersOpenAll = new List<Order>();
 
             List<Order> orders = new List<Order>();
 
-            GetAllHistoricalOrders(orders, 100, true);
+            GetAllHistoricalOrders(orders, 100);
 
             if (orders != null
                 && orders.Count > 0)
@@ -3194,10 +3141,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 ordersOpenAll.AddRange(orders);
             }
 
+            ordersOpenAll = ordersOpenAll.OrderByDescending(order => order.TimeCreate).ToList();
+
             return ordersOpenAll;
         }
 
-        private void GetAllHistoricalOrders(List<Order> array, int maxCount, bool onlyActive)
+        private void GetAllHistoricalOrders(List<Order> array, int maxCount)
         {
             try
             {
@@ -3213,12 +3162,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     //requestPath += $"clientOrderId={order.NumberUser.ToString()}";
 
                     IRestResponse responseMessage = CreatePrivateQuery(requestPath, Method.GET, null, null);
-                    string json = responseMessage.Content;
-
-                    ResponseRestMessage<RestMessageOrders> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<RestMessageOrders>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
+                        ResponseRestMessage<RestMessageOrders> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<RestMessageOrders>());
+
                         if (stateResponse.code.Equals("00000") == true)
                         {
                             if (stateResponse.data.entrustedList == null)
@@ -3232,49 +3180,47 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                                 orders.Add(curOder);
                             }
-
-                            if (orders.Count > 0)
-                            {
-                                array.AddRange(orders);
-
-                                if (array.Count > maxCount)
-                                {
-                                    while (array.Count > maxCount)
-                                    {
-                                        array.RemoveAt(array.Count - 1);
-                                    }
-                                    return;
-                                }
-                                else if (array.Count < 50)
-                                {
-                                    return;
-                                }
-                            }
-                            else
-                            {
-                                return;
-                            }
-
-                            return;
                         }
                         else
                         {
-                            SendLogMessage($"Code: {stateResponse.code}\n"
-                                + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                            SendLogMessage($"All historical orders error: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
                             return;
                         }
                     }
                     else
                     {
-                        SendLogMessage($"GetHistoryOrder>. Order error. Code: {responseMessage.StatusCode}\n"
-                                + $"Message: {responseMessage.Content}", LogMessageType.Error);
+                        SendLogMessage($"All historical orders error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                         return;
                     }
                 }
+
+                if (orders.Count > 0)
+                {
+                    array.AddRange(orders);
+
+                    if (array.Count > maxCount)
+                    {
+                        while (array.Count > maxCount)
+                        {
+                            array.RemoveAt(array.Count - 1);
+                        }
+                        return;
+                    }
+                    else if (array.Count < 50)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+
+                return;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                SendLogMessage(e.Message, LogMessageType.Error);
+                SendLogMessage($"All historical orders error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 return;
             }
         }
@@ -3311,7 +3257,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage($"Create private query error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 return null;
             }
         }
@@ -3351,7 +3297,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage($"Create private query orders error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 return null;
             }
         }
@@ -3478,18 +3424,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         }
                         else
                         {
-                            SendLogMessage($"GetOpenInterest> - Code: {oiResponse.code} - {oiResponse.msg}", LogMessageType.Error);
+                            SendLogMessage($"Open interest error: {oiResponse.code} || msg: {oiResponse.msg}", LogMessageType.Error);
                         }
                     }
                     else
                     {
-                        SendLogMessage($"GetOpenInterest> - Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                        SendLogMessage($"Open interest error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                SendLogMessage(e.Message, LogMessageType.Error);
+                SendLogMessage($"Open interest error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -3523,8 +3469,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         }
                         else
                         {
-                            SendLogMessage($"SetPositionMode - Code: {stateResponse.code}\n"
-                                + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                            SendLogMessage($"Position mode error: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
                         }
                     }
                     else
@@ -3533,60 +3478,69 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             || responseMessage.Content.Contains("\"Apikey does not exist\"")
                             || responseMessage.Content.Contains("\"apikey/password is incorrect\"")
                             || responseMessage.Content.Contains("\"Request timestamp expired\"")
+                            || responseMessage.Content.Contains("\"Country/Region is not supported\"")
                             || responseMessage.Content == "")
                         {
                             Disconnect();
                         }
 
-                        SendLogMessage($"SetPositionMode - Http State Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                        SendLogMessage($"Position mode error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                SendLogMessage(e.Message, LogMessageType.Error);
+                SendLogMessage($"Position mode error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
         public void SetLeverage(Security security, decimal leverage)
         {
-            Dictionary<string, string> jsonContent = new Dictionary<string, string>();
-
-            jsonContent.Add("symbol", security.Name);
-            jsonContent.Add("productType", security.NameClass);
-            jsonContent.Add("marginCoin", security.NameClass.Split("-")[0]);
-            jsonContent.Add("leverage", leverage.ToString());
-
-            string jsonRequest = JsonConvert.SerializeObject(jsonContent);
-
-            IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-leverage", Method.POST, null, jsonRequest);
-
-            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            try
             {
-                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
 
-                if (stateResponse.code.Equals("00000") == true)
+                Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+
+                jsonContent.Add("symbol", security.Name);
+                jsonContent.Add("productType", security.NameClass);
+                jsonContent.Add("marginCoin", security.NameClass.Split("-")[0]);
+                jsonContent.Add("leverage", leverage.ToString());
+
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-leverage", Method.POST, null, jsonRequest);
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    // ignore
+                    ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
+
+                    if (stateResponse.code.Equals("00000") == true)
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage($"Leverage error: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"SetLeverage - Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    if (responseMessage.Content.Contains("\"sign signature error\"")
+                        || responseMessage.Content.Contains("\"Apikey does not exist\"")
+                        || responseMessage.Content.Contains("\"apikey/password is incorrect\"")
+                        || responseMessage.Content.Contains("\"Request timestamp expired\"")
+                        || responseMessage.Content.Contains("\"Country/Region is not supported\"")
+                        || responseMessage.Content == "")
+                    {
+                        Disconnect();
+                    }
+
+                    SendLogMessage($"Leverage error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                if (responseMessage.Content.Contains("\"sign signature error\"")
-                    || responseMessage.Content.Contains("\"Apikey does not exist\"")
-                    || responseMessage.Content.Contains("\"apikey/password is incorrect\"")
-                    || responseMessage.Content.Contains("\"Request timestamp expired\"")
-                    || responseMessage.Content == "")
-                {
-                    Disconnect();
-                }
-
-                SendLogMessage($"SetLeverage - Http State Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                SendLogMessage($"Leverage error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
