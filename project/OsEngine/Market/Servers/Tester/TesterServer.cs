@@ -4464,8 +4464,6 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            _candleManager.SynhSeries(namesSecurity);
-
             if (TypeTesterData == TesterDataType.TickAllCandleState ||
                 TypeTesterData == TesterDataType.TickOnlyReadyCandle)
             {

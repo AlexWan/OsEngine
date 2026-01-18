@@ -6842,32 +6842,32 @@ namespace OsEngine.OsTrader.Panels.Tab
             { // назначаем трейду номер свечи в тестере и оптимизаторе
                 List<Candle> candles = CandlesAll;
 
-                if (candles != null && candles.Count > 0)
+                if (candles != null && candles.Count > 1)
                 {
                     if (Connector.MyServer.ServerType == ServerType.Tester)
                     {
                         TesterServer server = (TesterServer)Connector.MyServer;
 
-                        if (server.TypeTesterData == TesterDataType.Candle)
-                        {
-                            trade.NumberCandleInTester = candles.Count;
-                        }
-                        else
+                        if(trade.Time == candles[^1].TimeStart)
                         {
                             trade.NumberCandleInTester = candles.Count - 1;
                         }
+                        else
+                        {
+                            trade.NumberCandleInTester = candles.Count;
+                        }
                     }
-                    if (Connector.MyServer.ServerType == ServerType.Optimizer)
+                    else if (Connector.MyServer.ServerType == ServerType.Optimizer)
                     {
                         OptimizerServer server = (OptimizerServer)Connector.MyServer;
 
-                        if (server.TypeTesterData == TesterDataType.Candle)
+                        if (trade.Time == candles[^1].TimeStart)
                         {
-                            trade.NumberCandleInTester = candles.Count;
+                            trade.NumberCandleInTester = candles.Count - 1;
                         }
                         else
                         {
-                            trade.NumberCandleInTester = candles.Count - 1;
+                            trade.NumberCandleInTester = candles.Count;
                         }
                     }
                 }
