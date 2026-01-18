@@ -6844,31 +6844,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (candles != null && candles.Count > 1)
                 {
-                    if (Connector.MyServer.ServerType == ServerType.Tester)
+                    if (trade.Time == candles[^1].TimeStart)
                     {
-                        TesterServer server = (TesterServer)Connector.MyServer;
-
-                        if(trade.Time == candles[^1].TimeStart)
-                        {
-                            trade.NumberCandleInTester = candles.Count - 1;
-                        }
-                        else
-                        {
-                            trade.NumberCandleInTester = candles.Count;
-                        }
+                        trade.NumberCandleInTester = candles.Count - 1;
                     }
-                    else if (Connector.MyServer.ServerType == ServerType.Optimizer)
+                    else
                     {
-                        OptimizerServer server = (OptimizerServer)Connector.MyServer;
-
-                        if (trade.Time == candles[^1].TimeStart)
-                        {
-                            trade.NumberCandleInTester = candles.Count - 1;
-                        }
-                        else
-                        {
-                            trade.NumberCandleInTester = candles.Count;
-                        }
+                        trade.NumberCandleInTester = candles.Count;
                     }
                 }
             }
