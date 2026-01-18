@@ -171,6 +171,13 @@ namespace OsEngine.Market.Servers.TInvest
                         streamsIsLost = true;
                     }
 
+                    if (_positionsDataStream != null 
+                        && _lastPositionsDataTime.AddMinutes(3) < DateTime.UtcNow)
+                    {
+                        lostStreamName = "Positions data stream";
+                        streamsIsLost = true;
+                    }
+
                     if (_myOrderStateDataStream != null && _lastMyOrderStateDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
                         lostStreamName = "Order state data stream";
@@ -180,6 +187,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (streamsIsLost)
                     {
+                        SendLogMessage(
+                            "Stream is lost. ConnectionCheckThread(). stream = " 
+                            + lostStreamName, LogMessageType.System);
+
                         if (_isDisposedNow == true)
                         {
                             continue;
@@ -191,7 +202,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                             if (TryReconnectDataStream() == true)
                             {
-                                _lastMarketDataTime = DateTime.Now;
+                                _lastMarketDataTime = DateTime.UtcNow;
                                 SendLogMessage(OsLocalization.Market.Label295 + "\nMarket data. ConnectionCheckThread()", LogMessageType.System);
                                 Thread.Sleep(2000);
                                 _isReconnectByPingMarketData = false;
@@ -206,7 +217,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                             if (TryReconnectOrdersStream() == true)
                             {
-                                _lastMyOrderStateDataTime = DateTime.Now;
+                                _lastMyOrderStateDataTime = DateTime.UtcNow;
                                 SendLogMessage(OsLocalization.Market.Label295 + "\nOrders data. ConnectionCheckThread()", LogMessageType.System);
 
                                 if (ForceCheckOrdersAfterReconnectEvent != null)
@@ -224,11 +235,24 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             _isReconnectByPingPortfoliosData = true;
 
-                            if (TryReconnectPortfolioStream() == true
-                            && TryReconnectPositionsStream() == true)
+                            if (TryReconnectPortfolioStream() == true)
                             {
-                                _lastPortfolioDataTime = DateTime.Now;
+                                _lastPortfolioDataTime = DateTime.UtcNow;
                                 SendLogMessage(OsLocalization.Market.Label295 + "\nPortfolio and Positions data. ConnectionCheckThread()", LogMessageType.System);
+                                Thread.Sleep(2000);
+                                _isReconnectByPingPortfoliosData = false;
+                                continue;
+                            }
+                        }
+
+                        if (lostStreamName == "Positions data stream")
+                        {
+                            _isReconnectByPingPortfoliosData = true;
+
+                            if (TryReconnectPositionsStream() == true)
+                            {
+                                _lastPositionsDataTime = DateTime.UtcNow;
+                                SendLogMessage(OsLocalization.Market.Label295 + "\nPositions data stream. ConnectionCheckThread()", LogMessageType.System);
                                 Thread.Sleep(2000);
                                 _isReconnectByPingPortfoliosData = false;
                                 continue;
@@ -368,6 +392,7 @@ namespace OsEngine.Market.Servers.TInvest
                 _lastMarketDataTime = DateTime.UtcNow;
                 _lastMdTime = DateTime.UtcNow;
                 _lastPortfolioDataTime = DateTime.UtcNow;
+                _lastPositionsDataTime = DateTime.UtcNow;
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
@@ -1862,6 +1887,7 @@ namespace OsEngine.Market.Servers.TInvest
                     headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
             _lastPortfolioDataTime = DateTime.UtcNow;
+            _lastPositionsDataTime = DateTime.UtcNow;
         }
 
         #endregion
@@ -1960,7 +1986,7 @@ namespace OsEngine.Market.Servers.TInvest
                     _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
                         headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
-                _lastPortfolioDataTime = DateTime.UtcNow;
+                _lastPositionsDataTime = DateTime.UtcNow;
             }
             catch
             {
@@ -2170,6 +2196,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         private DateTime _lastMarketDataTime = DateTime.MinValue;
         private DateTime _lastPortfolioDataTime = DateTime.MinValue;
+        private DateTime _lastPositionsDataTime = DateTime.MinValue;
         private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
 
         private List<SubscribeOrderBookRequest> _marketDataRequestsOrderBook = new List<SubscribeOrderBookRequest>();
@@ -2905,14 +2932,14 @@ namespace OsEngine.Market.Servers.TInvest
                         continue;
                     }
 
-                    _lastPortfolioDataTime = DateTime.UtcNow;
+                    _lastPositionsDataTime = DateTime.UtcNow;
 
                     if (positionsResponse.Ping != null)
                     {
                         Thread.Sleep(1);
                         continue;
                     }
-
+                    
                     if (positionsResponse.Position != null)
                     {
 
