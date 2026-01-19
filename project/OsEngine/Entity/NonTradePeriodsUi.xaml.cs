@@ -4,11 +4,13 @@
 */
 
 using OsEngine.Language;
+using OsEngine.Market;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Collections.Generic;
+using System.Windows.Media;
 
 namespace OsEngine.Entity
 {
@@ -301,8 +303,175 @@ namespace OsEngine.Entity
 
         private void NonTradePeriodsUi_Closed(object sender, EventArgs e)
         {
-            _periods = null;
+            if (_periods.NonTradePeriodGeneral.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodGeneral.NonTradePeriod1End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodGeneral.NonTradePeriod1OnOff, OsLocalization.Trader.Label462, numberPeriod: 1, $"{_periods.NonTradePeriodGeneral.NonTradePeriod1Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodGeneral.NonTradePeriod1End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodGeneral.NonTradePeriod2Start.TimeSpan >= _periods.NonTradePeriodGeneral.NonTradePeriod2End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodGeneral.NonTradePeriod2OnOff, OsLocalization.Trader.Label462, numberPeriod: 2, $"{_periods.NonTradePeriodGeneral.NonTradePeriod2Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodGeneral.NonTradePeriod2End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodGeneral.NonTradePeriod3Start.TimeSpan >= _periods.NonTradePeriodGeneral.NonTradePeriod3End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodGeneral.NonTradePeriod3OnOff, OsLocalization.Trader.Label462, numberPeriod: 3, $"{_periods.NonTradePeriodGeneral.NonTradePeriod3Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodGeneral.NonTradePeriod3End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodGeneral.NonTradePeriod4Start.TimeSpan >= _periods.NonTradePeriodGeneral.NonTradePeriod4End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodGeneral.NonTradePeriod4OnOff, OsLocalization.Trader.Label462, numberPeriod: 4, $"{_periods.NonTradePeriodGeneral.NonTradePeriod4Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodGeneral.NonTradePeriod4End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodGeneral.NonTradePeriod5Start.TimeSpan >= _periods.NonTradePeriodGeneral.NonTradePeriod5End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodGeneral.NonTradePeriod4OnOff, OsLocalization.Trader.Label462, numberPeriod: 5, $"{_periods.NonTradePeriodGeneral.NonTradePeriod5Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodGeneral.NonTradePeriod5End.TimeSpan.ToString()}");
+            }
 
+            if (_periods.NonTradePeriodMonday.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodMonday.NonTradePeriod1End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodMonday.NonTradePeriod1OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label625, numberPeriod: 1, $"{_periods.NonTradePeriodMonday.NonTradePeriod1Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodMonday.NonTradePeriod1End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodMonday.NonTradePeriod2Start.TimeSpan >= _periods.NonTradePeriodMonday.NonTradePeriod2End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodMonday.NonTradePeriod2OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label625, numberPeriod: 2, $"{_periods.NonTradePeriodMonday.NonTradePeriod2Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodMonday.NonTradePeriod2End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodMonday.NonTradePeriod3Start.TimeSpan >= _periods.NonTradePeriodMonday.NonTradePeriod3End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodMonday.NonTradePeriod3OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label625, numberPeriod: 3, $"{_periods.NonTradePeriodMonday.NonTradePeriod3Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodMonday.NonTradePeriod3End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodMonday.NonTradePeriod4Start.TimeSpan >= _periods.NonTradePeriodMonday.NonTradePeriod4End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodMonday.NonTradePeriod4OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label625, numberPeriod: 4, $"{_periods.NonTradePeriodMonday.NonTradePeriod4Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodMonday.NonTradePeriod4End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodMonday.NonTradePeriod5Start.TimeSpan >= _periods.NonTradePeriodMonday.NonTradePeriod5End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodMonday.NonTradePeriod5OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label625, numberPeriod: 5, $"{_periods.NonTradePeriodMonday.NonTradePeriod5Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodMonday.NonTradePeriod5End.TimeSpan.ToString()}");
+            }
+
+            if (_periods.NonTradePeriodTuesday.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodTuesday.NonTradePeriod1End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodTuesday.NonTradePeriod1OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label626, numberPeriod: 1, $"{_periods.NonTradePeriodTuesday.NonTradePeriod1Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodTuesday.NonTradePeriod1End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodTuesday.NonTradePeriod2Start.TimeSpan >= _periods.NonTradePeriodTuesday.NonTradePeriod2End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodTuesday.NonTradePeriod2OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label626, numberPeriod: 2, $"{_periods.NonTradePeriodTuesday.NonTradePeriod2Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodTuesday.NonTradePeriod2End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodTuesday.NonTradePeriod3Start.TimeSpan >= _periods.NonTradePeriodTuesday.NonTradePeriod3End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodTuesday.NonTradePeriod3OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label626, numberPeriod: 3, $"{_periods.NonTradePeriodTuesday.NonTradePeriod3Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodTuesday.NonTradePeriod3End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodTuesday.NonTradePeriod4Start.TimeSpan >= _periods.NonTradePeriodTuesday.NonTradePeriod4End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodTuesday.NonTradePeriod4OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label626, numberPeriod: 4, $"{_periods.NonTradePeriodTuesday.NonTradePeriod4Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodTuesday.NonTradePeriod4End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodTuesday.NonTradePeriod5Start.TimeSpan >= _periods.NonTradePeriodTuesday.NonTradePeriod5End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodTuesday.NonTradePeriod5OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label626, numberPeriod: 5, $"{_periods.NonTradePeriodTuesday.NonTradePeriod5Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodTuesday.NonTradePeriod5End.TimeSpan.ToString()}");
+            }
+
+            if (_periods.NonTradePeriodWednesday.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodWednesday.NonTradePeriod1End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodWednesday.NonTradePeriod1OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label627, numberPeriod: 1, $"{_periods.NonTradePeriodWednesday.NonTradePeriod1Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodWednesday.NonTradePeriod1Start.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodWednesday.NonTradePeriod2Start.TimeSpan >= _periods.NonTradePeriodWednesday.NonTradePeriod2End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodWednesday.NonTradePeriod2OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label627, numberPeriod: 2, $"{_periods.NonTradePeriodWednesday.NonTradePeriod2Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodWednesday.NonTradePeriod2Start.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodWednesday.NonTradePeriod3Start.TimeSpan >= _periods.NonTradePeriodWednesday.NonTradePeriod3End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodWednesday.NonTradePeriod3OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label627, numberPeriod: 3, $"{_periods.NonTradePeriodWednesday.NonTradePeriod3Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodWednesday.NonTradePeriod3Start.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodWednesday.NonTradePeriod4Start.TimeSpan >= _periods.NonTradePeriodWednesday.NonTradePeriod4End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodWednesday.NonTradePeriod4OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label627, numberPeriod: 4, $"{_periods.NonTradePeriodWednesday.NonTradePeriod4Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodWednesday.NonTradePeriod4Start.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodWednesday.NonTradePeriod5Start.TimeSpan >= _periods.NonTradePeriodWednesday.NonTradePeriod5End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodWednesday.NonTradePeriod5OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label627, numberPeriod: 5, $"{_periods.NonTradePeriodWednesday.NonTradePeriod5Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodWednesday.NonTradePeriod5Start.TimeSpan.ToString()}");
+            }
+
+            if (_periods.NonTradePeriodThursday.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodThursday.NonTradePeriod1End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodThursday.NonTradePeriod1OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label628, numberPeriod: 1, $"{_periods.NonTradePeriodThursday.NonTradePeriod1Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodThursday.NonTradePeriod1End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodThursday.NonTradePeriod2Start.TimeSpan >= _periods.NonTradePeriodThursday.NonTradePeriod2End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodThursday.NonTradePeriod2OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label628, numberPeriod: 2, $"{_periods.NonTradePeriodThursday.NonTradePeriod2Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodThursday.NonTradePeriod2End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodThursday.NonTradePeriod3Start.TimeSpan >= _periods.NonTradePeriodThursday.NonTradePeriod3End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodThursday.NonTradePeriod3OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label628, numberPeriod: 3, $"{_periods.NonTradePeriodThursday.NonTradePeriod3Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodThursday.NonTradePeriod3End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodThursday.NonTradePeriod4Start.TimeSpan >= _periods.NonTradePeriodThursday.NonTradePeriod4End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodThursday.NonTradePeriod4OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label628, numberPeriod: 4, $"{_periods.NonTradePeriodThursday.NonTradePeriod4Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodThursday.NonTradePeriod4End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodThursday.NonTradePeriod5Start.TimeSpan >= _periods.NonTradePeriodThursday.NonTradePeriod5End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodThursday.NonTradePeriod5OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label628, numberPeriod: 5, $"{_periods.NonTradePeriodThursday.NonTradePeriod5Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodThursday.NonTradePeriod5End.TimeSpan.ToString()}");
+            }
+
+            if (_periods.NonTradePeriodFriday.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodFriday.NonTradePeriod1End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodFriday.NonTradePeriod1OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label629, numberPeriod: 1, $"{_periods.NonTradePeriodFriday.NonTradePeriod1Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodFriday.NonTradePeriod1End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodFriday.NonTradePeriod2Start.TimeSpan >= _periods.NonTradePeriodFriday.NonTradePeriod2End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodFriday.NonTradePeriod2OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label629, numberPeriod: 2, $"{_periods.NonTradePeriodFriday.NonTradePeriod2Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodFriday.NonTradePeriod2End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodFriday.NonTradePeriod3Start.TimeSpan >= _periods.NonTradePeriodFriday.NonTradePeriod3End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodFriday.NonTradePeriod3OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label629, numberPeriod: 3, $"{_periods.NonTradePeriodFriday.NonTradePeriod3Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodFriday.NonTradePeriod3End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodFriday.NonTradePeriod4Start.TimeSpan >= _periods.NonTradePeriodFriday.NonTradePeriod4End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodFriday.NonTradePeriod4OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label629, numberPeriod: 4, $"{_periods.NonTradePeriodFriday.NonTradePeriod4Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodFriday.NonTradePeriod4End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodFriday.NonTradePeriod5Start.TimeSpan >= _periods.NonTradePeriodFriday.NonTradePeriod5End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodFriday.NonTradePeriod5OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label629, numberPeriod: 5, $"{_periods.NonTradePeriodFriday.NonTradePeriod5Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodFriday.NonTradePeriod5End.TimeSpan.ToString()}");
+            }
+
+            if (_periods.NonTradePeriodSaturday.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodSaturday.NonTradePeriod1End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSaturday.NonTradePeriod1OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label630, numberPeriod: 1, $"{_periods.NonTradePeriodSaturday.NonTradePeriod1Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodSaturday.NonTradePeriod1End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodSaturday.NonTradePeriod2Start.TimeSpan >= _periods.NonTradePeriodSaturday.NonTradePeriod2End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSaturday.NonTradePeriod2OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label630, numberPeriod: 2, $"{_periods.NonTradePeriodSaturday.NonTradePeriod2Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodSaturday.NonTradePeriod2End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodSaturday.NonTradePeriod3Start.TimeSpan >= _periods.NonTradePeriodSaturday.NonTradePeriod3End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSaturday.NonTradePeriod3OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label630, numberPeriod: 3, $"{_periods.NonTradePeriodSaturday.NonTradePeriod3Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodSaturday.NonTradePeriod3End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodSaturday.NonTradePeriod4Start.TimeSpan >= _periods.NonTradePeriodSaturday.NonTradePeriod4End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSaturday.NonTradePeriod4OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label630, numberPeriod: 4, $"{_periods.NonTradePeriodSaturday.NonTradePeriod4Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodSaturday.NonTradePeriod4End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodSaturday.NonTradePeriod5Start.TimeSpan >= _periods.NonTradePeriodSaturday.NonTradePeriod5End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSaturday.NonTradePeriod5OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label630, numberPeriod: 5, $"{_periods.NonTradePeriodSaturday.NonTradePeriod5Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodSaturday.NonTradePeriod5End.TimeSpan.ToString()}");
+            }
+
+            if (_periods.NonTradePeriodSunday.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodSunday.NonTradePeriod1End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSunday.NonTradePeriod1OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label631, numberPeriod: 1, $"{_periods.NonTradePeriodSunday.NonTradePeriod1Start.TimeSpan.ToString()} > {_periods.NonTradePeriodSunday.NonTradePeriod1End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodSunday.NonTradePeriod2Start.TimeSpan >= _periods.NonTradePeriodSunday.NonTradePeriod2End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSunday.NonTradePeriod2OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label631, numberPeriod: 2, $"{_periods.NonTradePeriodSunday.NonTradePeriod2Start.TimeSpan.ToString()} > {_periods.NonTradePeriodSunday.NonTradePeriod2End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodSunday.NonTradePeriod3Start.TimeSpan >= _periods.NonTradePeriodSunday.NonTradePeriod3End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSunday.NonTradePeriod3OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label631, numberPeriod: 3, $"{_periods.NonTradePeriodSunday.NonTradePeriod3Start.TimeSpan.ToString()} > {_periods.NonTradePeriodSunday.NonTradePeriod3End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodSunday.NonTradePeriod4Start.TimeSpan >= _periods.NonTradePeriodSunday.NonTradePeriod4End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSunday.NonTradePeriod4OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label631, numberPeriod: 4, $"{_periods.NonTradePeriodSunday.NonTradePeriod4Start.TimeSpan.ToString()} > {_periods.NonTradePeriodSunday.NonTradePeriod4End.TimeSpan.ToString()}");
+            }
+            if (_periods.NonTradePeriodSunday.NonTradePeriod5Start.TimeSpan >= _periods.NonTradePeriodSunday.NonTradePeriod5End.TimeSpan)
+            {
+                OffPeriod(ref _periods.NonTradePeriodSunday.NonTradePeriod5OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label631, numberPeriod: 5, $"{_periods.NonTradePeriodSunday.NonTradePeriod5Start.TimeSpan.ToString()} > {_periods.NonTradePeriodSunday.NonTradePeriod5End.TimeSpan.ToString()}");
+            }
+
+            _periods = null;
         }
 
         #region Trade days 
@@ -424,111 +593,170 @@ namespace OsEngine.Entity
         TextBox nonTradePeriod5Start,
         TextBox nonTradePeriod5End)
         {
+            // -- Period 1 -- \\ 
+
+            NonTradeChartElement nonTradeChartPeriod1 = new NonTradeChartElement();
+            nonTradeChartPeriod1.NonTradePeriodCheckBox = checkBoxNonTradePeriod1OnOff;
+            nonTradeChartPeriod1.NonTradePeriodStartTextBox = nonTradePeriod1Start;
+            nonTradeChartPeriod1.NonTradePeriodEndTextBox = nonTradePeriod1End;
 
             checkBoxNonTradePeriod1OnOff.IsChecked = period.NonTradePeriod1OnOff;
-
             checkBoxNonTradePeriod1OnOff.Checked += (object sender, RoutedEventArgs e) =>
             {
-                CheckBoxNonTradePeriod1OnOff_Checked(sender, e, period);
+                CheckBoxNonTradePeriod1OnOff_Checked(sender, e, period, nonTradeChartPeriod1);
             };
             checkBoxNonTradePeriod1OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
             {
-                CheckBoxNonTradePeriod1OnOff_Checked(sender, e, period);
+                CheckBoxNonTradePeriod1OnOff_Checked(sender, e, period, nonTradeChartPeriod1);
             };
-
-            checkBoxNonTradePeriod2OnOff.IsChecked = period.NonTradePeriod2OnOff;
-            checkBoxNonTradePeriod2OnOff.Checked += (object sender, RoutedEventArgs e) =>
-            {
-                CheckBoxNonTradePeriod2OnOff_Checked(sender, e, period);
-            };
-            checkBoxNonTradePeriod2OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
-            {
-                CheckBoxNonTradePeriod2OnOff_Checked(sender, e, period);
-            };
-
-            checkBoxNonTradePeriod3OnOff.IsChecked = period.NonTradePeriod3OnOff;
-            checkBoxNonTradePeriod3OnOff.Checked += (object sender, RoutedEventArgs e) =>
-            {
-                CheckBoxNonTradePeriod3OnOff_Checked(sender, e, period);
-            };
-            checkBoxNonTradePeriod3OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
-            {
-                CheckBoxNonTradePeriod3OnOff_Checked(sender, e, period);
-            };
-
-            checkBoxNonTradePeriod4OnOff.IsChecked = period.NonTradePeriod4OnOff;
-            checkBoxNonTradePeriod4OnOff.Checked += (object sender, RoutedEventArgs e) =>
-            {
-                CheckBoxNonTradePeriod4OnOff_Checked(sender, e, period);
-            };
-            checkBoxNonTradePeriod4OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
-            {
-                CheckBoxNonTradePeriod4OnOff_Checked(sender, e, period);
-            };
-
-            checkBoxNonTradePeriod5OnOff.IsChecked = period.NonTradePeriod5OnOff;
-            checkBoxNonTradePeriod5OnOff.Checked += (object sender, RoutedEventArgs e) =>
-            {
-                CheckBoxNonTradePeriod5OnOff_Checked(sender, e, period);
-            };
-            checkBoxNonTradePeriod5OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
-            {
-                CheckBoxNonTradePeriod5OnOff_Checked(sender, e, period);
-            };
-
 
             nonTradePeriod1Start.Text = period.NonTradePeriod1Start.ToString();
             nonTradePeriod1Start.TextChanged += (object sender, TextChangedEventArgs e) =>
             {
-                TextBoxNonTradePeriod1Start_TextChanged(sender, e, period);
+                TextBoxNonTradePeriod1Start_TextChanged(sender, e, period, nonTradeChartPeriod1);
             };
-            nonTradePeriod2Start.Text = period.NonTradePeriod2Start.ToString();
-            nonTradePeriod2Start.TextChanged += (object sender, TextChangedEventArgs e) =>
-            {
-                TextBoxNonTradePeriod2Start_TextChanged(sender, e, period);
-            };
-            nonTradePeriod3Start.Text = period.NonTradePeriod3Start.ToString();
-            nonTradePeriod3Start.TextChanged += (object sender, TextChangedEventArgs e) =>
-            {
-                TextBoxNonTradePeriod3Start_TextChanged(sender, e, period);
-            };
-            nonTradePeriod4Start.Text = period.NonTradePeriod4Start.ToString();
-            nonTradePeriod4Start.TextChanged += (object sender, TextChangedEventArgs e) =>
-            {
-                TextBoxNonTradePeriod4Start_TextChanged(sender, e, period);
-            };
-            nonTradePeriod5Start.Text = period.NonTradePeriod5Start.ToString();
-            nonTradePeriod5Start.TextChanged += (object sender, TextChangedEventArgs e) =>
-            {
-                TextBoxNonTradePeriod5Start_TextChanged(sender, e, period);
-            };
-
 
             nonTradePeriod1End.Text = period.NonTradePeriod1End.ToString();
             nonTradePeriod1End.TextChanged += (object sender, TextChangedEventArgs e) =>
             {
-                TextBoxNonTradePeriod1End_TextChanged(sender, e, period);
+                TextBoxNonTradePeriod1End_TextChanged(sender, e, period, nonTradeChartPeriod1);
             };
+
+            CheckNonTradePeriods(nonTradeChartPeriod1, period.NonTradePeriod1Start, period.NonTradePeriod1End);
+
+            // ---- \\
+
+            // -- Period 2 -- \\
+
+            NonTradeChartElement nonTradeChartPeriod2 = new NonTradeChartElement();
+            nonTradeChartPeriod2.NonTradePeriodCheckBox = checkBoxNonTradePeriod2OnOff;
+            nonTradeChartPeriod2.NonTradePeriodStartTextBox = nonTradePeriod2Start;
+            nonTradeChartPeriod2.NonTradePeriodEndTextBox = nonTradePeriod2End;
+
+            checkBoxNonTradePeriod2OnOff.IsChecked = period.NonTradePeriod2OnOff;
+            checkBoxNonTradePeriod2OnOff.Checked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod2OnOff_Checked(sender, e, period, nonTradeChartPeriod2);
+            };
+            checkBoxNonTradePeriod2OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod2OnOff_Checked(sender, e, period, nonTradeChartPeriod2);
+            };
+
+            nonTradePeriod2Start.Text = period.NonTradePeriod2Start.ToString();
+            nonTradePeriod2Start.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod2Start_TextChanged(sender, e, period, nonTradeChartPeriod2);
+            };
+
             nonTradePeriod2End.Text = period.NonTradePeriod2End.ToString();
             nonTradePeriod2End.TextChanged += (object sender, TextChangedEventArgs e) =>
             {
-                TextBoxNonTradePeriod2End_TextChanged(sender, e, period);
+                TextBoxNonTradePeriod2End_TextChanged(sender, e, period, nonTradeChartPeriod2);
             };
+
+            CheckNonTradePeriods(nonTradeChartPeriod2, period.NonTradePeriod2Start, period.NonTradePeriod2End);
+
+            // ---- \\
+
+            // -- Period 3 -- \\
+
+            NonTradeChartElement nonTradeChartPeriod3 = new NonTradeChartElement();
+            nonTradeChartPeriod3.NonTradePeriodCheckBox = checkBoxNonTradePeriod3OnOff;
+            nonTradeChartPeriod3.NonTradePeriodStartTextBox = nonTradePeriod3Start;
+            nonTradeChartPeriod3.NonTradePeriodEndTextBox = nonTradePeriod3End;
+
+            checkBoxNonTradePeriod3OnOff.IsChecked = period.NonTradePeriod3OnOff;
+            checkBoxNonTradePeriod3OnOff.Checked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod3OnOff_Checked(sender, e, period, nonTradeChartPeriod3);
+            };
+            checkBoxNonTradePeriod3OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod3OnOff_Checked(sender, e, period, nonTradeChartPeriod3);
+            };
+
+            nonTradePeriod3Start.Text = period.NonTradePeriod3Start.ToString();
+            nonTradePeriod3Start.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod3Start_TextChanged(sender, e, period, nonTradeChartPeriod3);
+            };
+
             nonTradePeriod3End.Text = period.NonTradePeriod3End.ToString();
             nonTradePeriod3End.TextChanged += (object sender, TextChangedEventArgs e) =>
             {
-                TextBoxNonTradePeriod3End_TextChanged(sender, e, period);
+                TextBoxNonTradePeriod3End_TextChanged(sender, e, period, nonTradeChartPeriod3);
             };
+
+            CheckNonTradePeriods(nonTradeChartPeriod3, period.NonTradePeriod3Start, period.NonTradePeriod3End);
+
+            // ---- \\
+
+            // -- Period 4 -- \\
+
+            NonTradeChartElement nonTradeChartPeriod4 = new NonTradeChartElement();
+            nonTradeChartPeriod4.NonTradePeriodCheckBox = checkBoxNonTradePeriod4OnOff;
+            nonTradeChartPeriod4.NonTradePeriodStartTextBox = nonTradePeriod4Start;
+            nonTradeChartPeriod4.NonTradePeriodEndTextBox = nonTradePeriod4End;
+
+            checkBoxNonTradePeriod4OnOff.IsChecked = period.NonTradePeriod4OnOff;
+            checkBoxNonTradePeriod4OnOff.Checked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod4OnOff_Checked(sender, e, period, nonTradeChartPeriod4);
+            };
+            checkBoxNonTradePeriod4OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod4OnOff_Checked(sender, e, period, nonTradeChartPeriod4);
+            };
+
+            nonTradePeriod4Start.Text = period.NonTradePeriod4Start.ToString();
+            nonTradePeriod4Start.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod4Start_TextChanged(sender, e, period, nonTradeChartPeriod4);
+            };
+
             nonTradePeriod4End.Text = period.NonTradePeriod4End.ToString();
             nonTradePeriod4End.TextChanged += (object sender, TextChangedEventArgs e) =>
             {
-                TextBoxNonTradePeriod4End_TextChanged(sender, e, period);
+                TextBoxNonTradePeriod4End_TextChanged(sender, e, period, nonTradeChartPeriod4);
             };
+
+            CheckNonTradePeriods(nonTradeChartPeriod4, period.NonTradePeriod4Start, period.NonTradePeriod4End);
+
+            // ---- \\
+
+            // -- Period 5 -- \\
+
+            NonTradeChartElement nonTradeChartPeriod5 = new NonTradeChartElement();
+            nonTradeChartPeriod5.NonTradePeriodCheckBox = checkBoxNonTradePeriod5OnOff;
+            nonTradeChartPeriod5.NonTradePeriodStartTextBox = nonTradePeriod5Start;
+            nonTradeChartPeriod5.NonTradePeriodEndTextBox = nonTradePeriod5End;
+
+            checkBoxNonTradePeriod5OnOff.IsChecked = period.NonTradePeriod5OnOff;
+            checkBoxNonTradePeriod5OnOff.Checked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod5OnOff_Checked(sender, e, period, nonTradeChartPeriod5);
+            };
+            checkBoxNonTradePeriod5OnOff.Unchecked += (object sender, RoutedEventArgs e) =>
+            {
+                CheckBoxNonTradePeriod5OnOff_Checked(sender, e, period, nonTradeChartPeriod5);
+            };
+
+            nonTradePeriod5Start.Text = period.NonTradePeriod5Start.ToString();
+            nonTradePeriod5Start.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                TextBoxNonTradePeriod5Start_TextChanged(sender, e, period, nonTradeChartPeriod5);
+            };
+
             nonTradePeriod5End.Text = period.NonTradePeriod5End.ToString();
             nonTradePeriod5End.TextChanged += (object sender, TextChangedEventArgs e) =>
             {
-                TextBoxNonTradePeriod5End_TextChanged(sender, e, period);
+                TextBoxNonTradePeriod5End_TextChanged(sender, e, period, nonTradeChartPeriod5);
             };
+
+            CheckNonTradePeriods(nonTradeChartPeriod5, period.NonTradePeriod5Start, period.NonTradePeriod5End);
+
+            // ---- \\
         }
 
         #endregion
@@ -537,11 +765,11 @@ namespace OsEngine.Entity
 
         private bool _repaintNow = false;
 
-        private void CheckBoxNonTradePeriod1OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
+        private void CheckBoxNonTradePeriod1OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
-                if(_repaintNow == true)
+                if (_repaintNow == true)
                 {
                     return;
                 }
@@ -556,7 +784,7 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod1Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod1Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -573,14 +801,21 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod1Start.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod1Start, period.NonTradePeriod1End);
+
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
-        private void TextBoxNonTradePeriod1End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod1End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -597,16 +832,20 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod1End.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod1Start, period.NonTradePeriod1End);
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
-
-
-        private void CheckBoxNonTradePeriod2OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
+        private void CheckBoxNonTradePeriod2OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -625,7 +864,7 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod2Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod2Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -642,14 +881,20 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod2Start.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod2Start, period.NonTradePeriod2End);
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
-        private void TextBoxNonTradePeriod2End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod2End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -666,16 +911,20 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod2End.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod2Start, period.NonTradePeriod2End);
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
-
-
-        private void CheckBoxNonTradePeriod3OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
+        private void CheckBoxNonTradePeriod3OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -694,7 +943,7 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod3Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod3Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -711,14 +960,20 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod3Start.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod3Start, period.NonTradePeriod3End);
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
-        private void TextBoxNonTradePeriod3End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod3End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -735,16 +990,20 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod3End.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod3Start, period.NonTradePeriod3End);
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
-
-
-        private void CheckBoxNonTradePeriod4OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
+        private void CheckBoxNonTradePeriod4OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -764,7 +1023,7 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod4Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod4Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -781,14 +1040,20 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod4Start.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod4Start, period.NonTradePeriod4End);
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
-        private void TextBoxNonTradePeriod4End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod4End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -805,16 +1070,20 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod4End.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod4Start, period.NonTradePeriod4End);
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
-
-
-        private void CheckBoxNonTradePeriod5OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period)
+        private void CheckBoxNonTradePeriod5OnOff_Checked(object sender, RoutedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -833,7 +1102,7 @@ namespace OsEngine.Entity
             }
         }
 
-        private void TextBoxNonTradePeriod5Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod5Start_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -850,14 +1119,20 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod5Start.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod5Start, period.NonTradePeriod5End);
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
-        private void TextBoxNonTradePeriod5End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period)
+        private void TextBoxNonTradePeriod5End_TextChanged(object sender, TextChangedEventArgs e, NonTradePeriodInDay period, NonTradeChartElement chartElement)
         {
             try
             {
@@ -874,10 +1149,16 @@ namespace OsEngine.Entity
 
                 period.NonTradePeriod5End.LoadFromString(box.Text);
                 _periods.Save();
+
+                CheckNonTradePeriods(chartElement, period.NonTradePeriod5Start, period.NonTradePeriod5End);
             }
             catch
             {
-                // ignore
+                if (chartElement != null && chartElement.NonTradePeriodStartTextBox != null && chartElement.NonTradePeriodEndTextBox != null)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
             }
         }
 
@@ -917,7 +1198,7 @@ namespace OsEngine.Entity
 
                     using (StreamWriter writer = new StreamWriter(filePath))
                     {
-                        for(int i = 0;i < array.Count;i++)
+                        for (int i = 0; i < array.Count; i++)
                         {
                             writer.WriteLine(array[i]);
                         }
@@ -964,7 +1245,7 @@ namespace OsEngine.Entity
 
                     using (StreamReader reader = new StreamReader(filePath))
                     {
-                        while(reader.EndOfStream == false)
+                        while (reader.EndOfStream == false)
                         {
                             array.Add(reader.ReadLine());
                         }
@@ -987,6 +1268,56 @@ namespace OsEngine.Entity
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.ToString());
                 ui.ShowDialog();
             }
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private void OffPeriod(ref bool nonTradePeriodInDayOnOff, string nameTab, int numberPeriod, string errorTime)
+        {
+            try
+            {
+                nonTradePeriodInDayOnOff = false;
+                _periods.Save();
+                ServerMaster.SendNewLogMessage($"{OsLocalization.Trader.Label666}. {this.Name}. {nameTab}. {OsLocalization.Trader.Label559} {numberPeriod} {OsLocalization.Trader.Label667}. {OsLocalization.Trader.Label668}: {errorTime}.", Logging.LogMessageType.Error);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckNonTradePeriods(NonTradeChartElement chartElement, TimeOfDay nonTradePeriodStart, TimeOfDay nonTradePeriodEnd)
+        {
+            try
+            {
+                TimeSpan startDayTime = new TimeSpan(0, 0, 0, 0);
+
+                if (nonTradePeriodStart.TimeSpan < startDayTime ||
+                    nonTradePeriodEnd.TimeSpan < startDayTime ||
+                    nonTradePeriodStart.TimeSpan >= nonTradePeriodEnd.TimeSpan)
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = Brushes.Red;
+                    chartElement.NonTradePeriodEndTextBox.Background = Brushes.Red;
+                }
+                else
+                {
+                    chartElement.NonTradePeriodStartTextBox.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF111217"));
+                    chartElement.NonTradePeriodEndTextBox.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF111217"));
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private class NonTradeChartElement
+        {
+            public CheckBox NonTradePeriodCheckBox;
+            public TextBox NonTradePeriodStartTextBox;
+            public TextBox NonTradePeriodEndTextBox;
         }
 
         #endregion
