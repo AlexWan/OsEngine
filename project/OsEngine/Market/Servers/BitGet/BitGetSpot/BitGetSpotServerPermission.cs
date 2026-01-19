@@ -96,7 +96,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public bool DataFeedTfDayCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTfTickCanLoad
@@ -140,7 +140,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = false,
                 TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = false
+                TimeFrameDayIsOn = true
             };
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
