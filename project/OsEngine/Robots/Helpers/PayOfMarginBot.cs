@@ -72,7 +72,7 @@ namespace OsEngine.Robots.Helpers
 
             CreateTableSumm();
 
-            if(_dgvSumm != null)
+            if (_dgvSumm != null)
             {
                 customTabSumm.AddChildren(_hostSumm);
                 LoadTableSumm();
@@ -180,9 +180,9 @@ namespace OsEngine.Robots.Helpers
                 int year = 0;
                 int.TryParse(_dgvSumm.Rows[e.RowIndex].Cells[0].Value.ToString(), out year);
 
-                if (year != 0) 
+                if (year != 0)
                 {
-                    EditRatesWindow window = new(this, _dictTableSumm[year], year);                    
+                    EditRatesWindow window = new(this, _dictTableSumm[year], year);
                 }
             }
         }
@@ -206,7 +206,7 @@ namespace OsEngine.Robots.Helpers
                 {
                     SetDefaultTableSumm();
                     return;
-                }           
+                }
             }
             catch (Exception ex)
             {
@@ -219,9 +219,9 @@ namespace OsEngine.Robots.Helpers
             _dictTableSumm.Clear();
 
             for (int i = 2000; i < 2031; i++)
-            {              
+            {
                 _dictTableSumm[i] = GetListTableToYear(i);
-            }           
+            }
         }
 
         private List<ListTableSumm> GetListTableToYear(int year)
@@ -599,7 +599,8 @@ namespace OsEngine.Robots.Helpers
                 SendNewLogMessage("Logic entry. Date: " + timeStart.ToString("dd.MM.yyyy"), Logging.LogMessageType.System);
             }
 
-            decimal volume = 0;
+            decimal volumeLong = 0;
+            decimal volumeShort = 0;
             decimal deposit = 0;
             DateTime timeDeposit = DateTime.MinValue;
 
@@ -620,7 +621,8 @@ namespace OsEngine.Robots.Helpers
 
                 List<Journal.Journal> journals = _bots[i].GetJournals();
 
-                decimal volumeBot = 0;
+                decimal volumeLongBot = 0;
+                decimal volumeShortBot = 0;
 
                 for (int j = 0; j < journals.Count; j++)
                 {
@@ -630,13 +632,27 @@ namespace OsEngine.Robots.Helpers
                     {
                         Position position = curJournal.OpenPositions[i2];
 
-                        if(position.Lots != 0)
+                        if (position.Direction == Side.Buy)
                         {
-                            volumeBot += position.EntryPrice * position.OpenVolume * position.Lots;
+                            if (position.Lots != 0)
+                            {
+                                volumeLongBot += position.EntryPrice * position.OpenVolume * position.Lots;
+                            }
+                            else
+                            {
+                                volumeLongBot += position.EntryPrice * position.OpenVolume;
+                            }
                         }
-                        else
+                        else if (position.Direction == Side.Sell)
                         {
-                            volumeBot += position.EntryPrice * position.OpenVolume;
+                            if (position.Lots != 0)
+                            {
+                                volumeShortBot += position.EntryPrice * position.OpenVolume * position.Lots;
+                            }
+                            else
+                            {
+                                volumeShortBot += position.EntryPrice * position.OpenVolume;
+                            }
                         }
 
                         DateTime time = _bots[i].OpenPositions[^1].TimeOpen;
@@ -649,23 +665,29 @@ namespace OsEngine.Robots.Helpers
                     }
                 }
 
-                volume += volumeBot;               
+                volumeLong += volumeLongBot;
+                volumeShort += volumeShortBot;
             }
 
-            if (volume > deposit)
+            if (volumeShort > 0)
             {
-                TaxDeal(taxBot, timeStart, Math.Round(volume - deposit, 2));
+                TaxDeal(taxBot, timeStart, volumeShort, Side.Sell);
             }
-            else
+
+            if (volumeLong > deposit)
+            {
+                TaxDeal(taxBot, timeStart, Math.Round(volumeLong - deposit, 2), Side.Buy);
+            }
+            else if (volumeShort <= 0 && volumeLong < deposit)
             {
                 if (_fullLogIsOn.ValueBool == true)
                 {
-                    SendNewLogMessage("No margin. Date: " + timeStart.ToString("dd.MM.yyyy") + " Amount positions: " + volume + " Deposit: " + deposit, Logging.LogMessageType.System);
+                    SendNewLogMessage("No margin. Date: " + timeStart.ToString("dd.MM.yyyy") + " Amount positions: " + volumeLong + volumeShort + " Deposit: " + deposit, Logging.LogMessageType.System);
                 }
             }
         }
 
-        private void TaxDeal(BotPanel taxBot, DateTime timeStart, decimal margin)
+        private void TaxDeal(BotPanel taxBot, DateTime timeStart, decimal margin, Side side)
         {
             if (taxBot == null)
             {
@@ -690,12 +712,25 @@ namespace OsEngine.Robots.Helpers
 
             PositionCreator _dealCreator = new PositionCreator();
 
-            Position newDeal = _dealCreator.CreatePosition(
-               taxBot.NameStrategyUniq, Side.Buy, 2, marginComission,
-               OrderPriceType.Limit, manualPositionSupport.SecondToOpen,
-               security, portfolio, _startProgram,
-               manualPositionSupport.OrderTypeTime,
-               manualPositionSupport.LimitsMakerOnly);
+            Position newDeal = null;
+            if (side == Side.Buy)
+            {
+                newDeal = _dealCreator.CreatePosition(
+                   taxBot.NameStrategyUniq, side, 2, marginComission,
+                   OrderPriceType.Limit, manualPositionSupport.SecondToOpen,
+                   security, portfolio, _startProgram,
+                   manualPositionSupport.OrderTypeTime,
+                   manualPositionSupport.LimitsMakerOnly);
+            }
+            else if (side == Side.Sell)
+            {
+                newDeal = _dealCreator.CreatePosition(
+                   taxBot.NameStrategyUniq, side, 1, marginComission,
+                   OrderPriceType.Limit, manualPositionSupport.SecondToOpen,
+                   security, portfolio, _startProgram,
+                   manualPositionSupport.OrderTypeTime,
+                   manualPositionSupport.LimitsMakerOnly);
+            }
 
             newDeal.NameBotClass = this._tab.BotClassName;
 
@@ -705,11 +740,21 @@ namespace OsEngine.Robots.Helpers
 
             Position position = taxBot.TabsSimple[0].PositionsLast;
 
-            Order closeOrder
-                = _dealCreator.CreateCloseOrderForDeal(security, position, 1,
-                OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1),
-                StartProgram, manualPositionSupport.OrderTypeTime,
-                connector.ServerFullName, manualPositionSupport.LimitsMakerOnly);
+            Order closeOrder = null;
+            if (side == Side.Buy)
+            {
+                closeOrder = _dealCreator.CreateCloseOrderForDeal(security, position, 1,
+                 OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1),
+                 StartProgram, manualPositionSupport.OrderTypeTime,
+                 connector.ServerFullName, manualPositionSupport.LimitsMakerOnly);
+            }
+            else if (side == Side.Sell)
+            {
+                closeOrder = _dealCreator.CreateCloseOrderForDeal(security, position, 2,
+                    OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1),
+                    StartProgram, manualPositionSupport.OrderTypeTime,
+                    connector.ServerFullName, manualPositionSupport.LimitsMakerOnly);
+            }
 
             closeOrder.PortfolioNumber = portfolio.Number;
             closeOrder.Volume = marginComission;
@@ -739,7 +784,7 @@ namespace OsEngine.Robots.Helpers
                             break;
                         }
 
-                        if(i > 0 && list[i - 1].Summ <= margin && list[i].Summ > margin)
+                        if (i > 0 && list[i - 1].Summ <= margin && list[i].Summ > margin)
                         {
                             rate = list[i].Rate;
                             typeValue = list[i].TypeValue;
@@ -798,7 +843,7 @@ namespace OsEngine.Robots.Helpers
                     }
 
                     return marginComission;
-                }                                
+                }
             }
             catch (Exception ex)
             {
@@ -818,7 +863,7 @@ namespace OsEngine.Robots.Helpers
         }
 
         #endregion
-    }        
+    }
 
     public class EditRatesWindow : Window
     {
@@ -837,7 +882,7 @@ namespace OsEngine.Robots.Helpers
             _listTableSumm = list;
             _bot = bot;
 
-            this.Title = OsLocalization.ConvertToLocString($"Eng:{bot.NameStrategyUniq} {year} year_Ru:{bot.NameStrategyUniq} {year} год_");            
+            this.Title = OsLocalization.ConvertToLocString($"Eng:{bot.NameStrategyUniq} {year} year_Ru:{bot.NameStrategyUniq} {year} год_");
             this.Width = 460;
             this.Height = 350;
             this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -847,8 +892,8 @@ namespace OsEngine.Robots.Helpers
 
             _mainPanel = new StackPanel();
             _mainPanel.Orientation = System.Windows.Controls.Orientation.Vertical;
-            _mainPanel.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 21, 26, 30)); 
-           
+            _mainPanel.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 21, 26, 30));
+
             _host = new WindowsFormsHost();
             _host.Child = GetTable();
             FillTableSumm();
@@ -881,7 +926,7 @@ namespace OsEngine.Robots.Helpers
         private void EditRatesWindow_Closed(object sender, EventArgs e)
         {
             try
-            {              
+            {
                 this.Closed -= EditRatesWindow_Closed;
                 _createButton.Click -= CreateButton_Click;
                 _createButton = null;
@@ -955,13 +1000,13 @@ namespace OsEngine.Robots.Helpers
 
         private void _dgv_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            
+
         }
 
         private void _dgv_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             try
-            {                
+            {
                 if (e.ColumnIndex == 2)
                 {
                     ListTableSumm list = new();
@@ -979,7 +1024,7 @@ namespace OsEngine.Robots.Helpers
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
-                
+
         private void FillTableSumm()
         {
             try
@@ -1007,7 +1052,7 @@ namespace OsEngine.Robots.Helpers
             {
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-        }       
+        }
     }
 
     public class ListTableSumm
