@@ -160,7 +160,7 @@ namespace OsEngine.Market.Servers.Transaq
             _fullLog = ((ServerParameterBool)ServerParameters[12]).Value;
             ServerParameterButton btn = ((ServerParameterButton)ServerParameters[13]);
             _reconectingAfterNone = ((ServerParameterBool)ServerParameters[14]).Value;
-            _fullMarketDepthIsOn = ((ServerParameterBool)ServerParameters[21]).Value;
+            _fullMarketDepthIsOn = ((ServerParameterBool)ServerParameters[22]).Value;
 
             btn.UserClickButton += () => { ButtonClickChangePasswordWindowShow(); };
 
