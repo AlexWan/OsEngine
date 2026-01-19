@@ -5604,6 +5604,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return false;
                 }
 
+                if(position.OpenVolume == 0)
+                {
+                    return false;
+                }
+
                 if (position.StopOrderIsActive)
                 {
 

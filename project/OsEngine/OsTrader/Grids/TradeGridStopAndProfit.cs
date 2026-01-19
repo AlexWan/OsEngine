@@ -234,8 +234,7 @@ namespace OsEngine.OsTrader.Grids
                 Position pos = positions[i];
 
                 if (pos.OpenVolume == 0
-                    || pos.State == PositionStateType.Done
-                    || pos.CloseActive == true)
+                    || pos.State == PositionStateType.Done)
                 {
                     continue;
                 }

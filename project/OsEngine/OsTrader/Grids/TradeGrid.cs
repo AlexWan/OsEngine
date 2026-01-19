@@ -34,7 +34,6 @@ namespace OsEngine.OsTrader.Grids
             Tab.PositionOpeningSuccesEvent += Tab_PositionOpeningSuccesEvent;
             Tab.PositionClosingSuccesEvent += Tab_PositionClosingSuccesEvent;
             Tab.PositionStopActivateEvent += Tab_PositionStopActivateEvent;
-            Tab.PositionProfitActivateEvent += Tab_PositionProfitActivateEvent;
             Tab.Connector.TestStartEvent += Connector_TestStartEvent;
 
             Tab.PositionOpeningFailEvent += Tab_PositionOpeningFailEvent;
@@ -251,7 +250,6 @@ namespace OsEngine.OsTrader.Grids
                 Tab.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
                 Tab.PositionClosingSuccesEvent -= Tab_PositionClosingSuccesEvent;
                 Tab.PositionStopActivateEvent -= Tab_PositionStopActivateEvent;
-                Tab.PositionProfitActivateEvent -= Tab_PositionProfitActivateEvent;
                 Tab.Connector.TestStartEvent -= Connector_TestStartEvent;
                 Tab.PositionOpeningFailEvent -= Tab_PositionOpeningFailEvent;
                 Tab.PositionClosingFailEvent -= Tab_PositionClosingFailEvent;
@@ -1089,6 +1087,28 @@ namespace OsEngine.OsTrader.Grids
 
         private void GridTypeOpenPositionLogic(TradeGridRegime baseRegime)
         {
+            if (_firstStopIsActivate == true)
+            {
+                if (_firstStopActivateTime.AddSeconds(5) < DateTime.Now)
+                {
+                    string message = "First stop by grid is activate. \n";
+                    message += "Stop trading" + "\n";
+                    message += "New regime: CloseForced";
+
+                    SendNewLogMessage(message, LogMessageType.Signal);
+
+                    Regime = TradeGridRegime.CloseForced;
+                    Save();
+                    RePaintGrid();
+                    _firstStopIsActivate = false;
+                    _vacationTime = DateTime.Now.AddSeconds(5);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             // 1 сверям позиции в журнале и в сетке
 
             TryFindPositionsInJournalAfterReconnect();
@@ -1132,26 +1152,6 @@ namespace OsEngine.OsTrader.Grids
                         {
                             TryDeleteDonePositions();
                         }
-                    }
-                }
-                else if(_firstStopIsActivate == true)
-                {
-                    if(_firstStopActivateTime.AddSeconds(5) <DateTime.Now)
-                    {
-                        string message = "First stop by grid is activate. \n";
-                        message += "Stop trading" + "\n";
-                        message += "New regime: CloseForced";
-
-                        SendNewLogMessage(message, LogMessageType.Signal);
-
-                        Regime = TradeGridRegime.CloseForced;
-                        Save();
-                        RePaintGrid();
-                        _firstStopIsActivate = false;
-                    }
-                    else
-                    {
-                        return;
                     }
                 }
             }
@@ -1246,21 +1246,12 @@ namespace OsEngine.OsTrader.Grids
 
         private bool _firstPositionIsOpen = false;
 
-        private void Tab_PositionProfitActivateEvent(Position obj)
-        {
-            if (_firstStopIsActivate == false)
-            {
-                _firstStopIsActivate = true;
-                _firstStopActivateTime = Tab.TimeServerCurrent;
-            }
-        }
-
         private void Tab_PositionStopActivateEvent(Position obj)
         {
             if(_firstStopIsActivate == false)
             {
                 _firstStopIsActivate = true;
-                _firstStopActivateTime = Tab.TimeServerCurrent;
+                _firstStopActivateTime = DateTime.Now;
             }
         }
 
@@ -1495,7 +1486,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 for (int i = 0; i < ordersToCancelBadPrice.Count; i++)
                 {
-                    //Tab.SetNewLogMessage("Отзыв ордера по не правильной цене", LogMessageType.Error);
+                    //Tab.SetNewLogMessage("Отзыв ордера по не правильной цене", LogMessageType.System);
                     Tab.CloseOrder(ordersToCancelBadPrice[i]);
                 }
 
@@ -1511,7 +1502,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 for (int i = 0; i < ordersToCancelBadLines.Count; i++)
                 {
-                   // Tab.SetNewLogMessage("Отзыв ордера по количеству", LogMessageType.Error);
+                    //Tab.SetNewLogMessage("Отзыв ордера по количеству", LogMessageType.System);
                     Tab.CloseOrder(ordersToCancelBadLines[i]);
                 }
 
@@ -1527,7 +1518,7 @@ namespace OsEngine.OsTrader.Grids
             {
                 for (int i = 0; i < ordersToCancelOpenOrders.Count; i++)
                 {
-                    //Tab.SetNewLogMessage("Отзыв ордера по дыре в сетке", LogMessageType.Error);
+                    //Tab.SetNewLogMessage("Отзыв ордера по дыре в сетке", LogMessageType.System);
                     Tab.CloseOrder(ordersToCancelOpenOrders[i]);
                 }
 
@@ -1591,13 +1582,24 @@ namespace OsEngine.OsTrader.Grids
 
                 if (position.CloseActive 
                     && currentLine.CanReplaceExitOrder == true) 
-                {
+                 {
                     Order closeOrder = position.CloseOrders[^1];
 
-                    if (closeOrder.Price != currentLine.PriceExit
-                        && closeOrder.TypeOrder != OrderPriceType.Market)
+                    if(GridType == TradeGridPrimeType.MarketMaking)
                     {
-                        ordersToCancel.Add(closeOrder);
+                        if (closeOrder.Price != currentLine.PriceExit
+                         && closeOrder.TypeOrder != OrderPriceType.Market)
+                        {
+                            ordersToCancel.Add(closeOrder);
+                        }
+                    }
+                    else if(GridType == TradeGridPrimeType.OpenPosition)
+                    {
+                        if (closeOrder.Price != position.ProfitOrderPrice
+                        && closeOrder.TypeOrder != OrderPriceType.Market)
+                        {
+                            ordersToCancel.Add(closeOrder);
+                        }
                     }
                 }
             }

@@ -149,7 +149,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
-                    Thread.Sleep(10000);
+                    Thread.Sleep(20000);
 
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
@@ -271,6 +271,10 @@ namespace OsEngine.Market.Servers.TInvest
                             DisconnectEvent();
                             Thread.Sleep(2000);                          
                         }
+                    }
+                    else
+                    {
+                        GetPortfolios();
                     }
                 }
                 catch (Exception ex)
@@ -1160,6 +1164,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (Exception ex)
                 {
                     SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
+                }
+
+                if(instrument == null)
+                {
+                    continue;
                 }
 
                 PositionOnBoard newPos = new PositionOnBoard();
