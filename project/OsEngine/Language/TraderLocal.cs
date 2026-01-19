@@ -2482,5 +2482,17 @@ namespace OsEngine.Language
         public string Label665 => OsLocalization.ConvertToLocString(
          "Eng:There are open positions on the grid. They will be lost. Do you want to continue?_" +
          "Ru:По сетке есть открытые позиции. Они будут утеряны. Вы хотите продолжить?");
+
+        public string Label666 => OsLocalization.ConvertToLocString(
+         "Eng:Error in the settings of non-trading periods_" +
+         "Ru:Ошибка в настройках неторговых периодов");
+
+        public string Label667 => OsLocalization.ConvertToLocString(
+         "Eng:is off_" +
+         "Ru:выключен");
+
+        public string Label668 => OsLocalization.ConvertToLocString(
+         "Eng:Time error_" +
+         "Ru:Ошибка времени");
     }
 }
