@@ -344,7 +344,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 }
                             }
 
-                            SecurityEvent(securities);
+                            SecurityEvent?.Invoke(securities);
                         }
                         else
                         {
@@ -770,6 +770,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 limitCandles = (int)Math.Round(span.TotalMinutes / tfTotalMinutes, MidpointRounding.AwayFromZero);
             }
 
+            if (tfTotalMinutes == 1440)
+            {
+                limitCandles = 90;
+            }
+
             List<Candle> allCandles = new List<Candle>();
 
             DateTime startTimeData = startTime;
@@ -859,7 +864,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 timeFrameMinutes == 15 ||
                 timeFrameMinutes == 30 ||
                 timeFrameMinutes == 60 ||
-                timeFrameMinutes == 240)
+                timeFrameMinutes == 240
+                || timeFrameMinutes == 1440)
             {
                 return true;
             }
@@ -872,13 +878,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 return $"{tf.Minutes}m";
             }
-            else
+            else if (tf.Hours != 0)
             {
                 return $"{tf.Hours}H";
             }
+            else
+            {
+                return $"{tf.Days}Dutc";
+            }
         }
 
-        private readonly RateGate _rgCandleData = new RateGate(2, TimeSpan.FromMilliseconds(100));
+        private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         private List<Candle> RequestCandleHistory(Security security, string interval, long startTime, long endTime, int limitCandles)
         {
@@ -1639,7 +1649,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
                     && _subscribedSecutiries.Count != 0
-                    && _subscribedSecutiries.Count % 20 == 0)
+                    && _subscribedSecutiries.Count % 30 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1816,15 +1826,27 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             {
                                 if (_subscribedSecutiries != null)
                                 {
+                                    List<string> argsList = new List<string>();
+
                                     for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
-                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
+                                        string nameClass = _subscribedSecutiries[i2].NameClass;
+                                        string name = _subscribedSecutiries[i2].Name;
+
+                                        argsList.Add($"{{\"instType\":\"{nameClass}\",\"channel\":\"books15\",\"instId\":\"{name}\"}}");
+                                        argsList.Add($"{{\"instType\":\"{nameClass}\",\"channel\":\"trade\",\"instId\":\"{name}\"}}");
 
                                         if (_extendedMarketData)
                                         {
-                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribedSecutiries[i2].NameClass}\",\"channel\": \"ticker\",\"instId\": \"{_subscribedSecutiries[i2].Name}\"}}]}}");
+                                            argsList.Add($"{{\"instType\":\"{nameClass}\",\"channel\":\"ticker\",\"instId\":\"{name}\"}}");
                                         }
+                                    }
+
+                                    if (argsList.Count > 0)
+                                    {
+                                        string message = $"{{\"op\":\"unsubscribe\",\"args\":[{string.Join(",", argsList)}]}}";
+
+                                        webSocketPublic.SendAsync(message);
                                     }
                                 }
                             }
@@ -1845,11 +1867,22 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 try
                 {
+                    List<string> privateArgsList = new List<string>();
+
                     for (int i = 0; i < _listCoin.Count; i++)
                     {
-                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
-                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"positions\",\"coin\": \"default\"}}]}}");
-                        _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_listCoin[i]}\",\"channel\": \"orders\",\"coin\": \"default\"}}]}}");
+                        string instType = _listCoin[i];
+
+                        privateArgsList.Add($"{{\"instType\":\"{instType}\",\"channel\":\"account\",\"coin\":\"default\"}}");
+                        privateArgsList.Add($"{{\"instType\":\"{instType}\",\"channel\":\"positions\",\"coin\":\"default\"}}");
+                        privateArgsList.Add($"{{\"instType\":\"{instType}\",\"channel\":\"orders\",\"coin\":\"default\"}}");
+                    }
+
+                    if (privateArgsList.Count > 0)
+                    {
+                        string privateMessage = $"{{\"op\":\"unsubscribe\",\"args\":[{string.Join(",", privateArgsList)}]}}";
+
+                        _webSocketPrivate.SendAsync(privateMessage);
                     }
                 }
                 catch
@@ -2856,7 +2889,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             myTrade.SecurityNameCode = item.symbol.ToUpper();
                             myTrade.Side = item.side == "buy" ? Side.Buy : Side.Sell;
 
-                            MyTradeEvent(myTrade);
+                            MyTradeEvent?.Invoke(myTrade);
                         }
                     }
                     else
