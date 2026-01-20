@@ -90,7 +90,7 @@ namespace OsEngine.Robots
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator settings
-            _lengthAtr = CreateParameter("CCI Length", 21, 7, 48, 7, "Indicator");
+            _lengthAtr = CreateParameter("ATR Length", 21, 7, 48, 7, "Indicator");
             _coefAtr = CreateParameter("Coef Atr", 1, 1m, 10, 1, "Indicator");
 
             // Create indicator ATR
