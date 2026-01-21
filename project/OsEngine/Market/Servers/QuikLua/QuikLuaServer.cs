@@ -2140,8 +2140,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 order.NumberUser = transReply.TransID;
                 order.State = OrderStateType.Fail;
-                order.SecurityNameCode = transReply.SecCode;
                 order.SecurityClassCode = transReply.ClassCode;
+                order.SecurityNameCode = transReply.SecCode + "+" + order.SecurityClassCode;
                 order.PortfolioNumber = transReply.Account + _portfolioSeparator + transReply.ClientCode;
                 order.Price = transReply.Price.ToString().ToDecimal();
                 order.Volume = transReply.Quantity.ToString().ToDecimal();

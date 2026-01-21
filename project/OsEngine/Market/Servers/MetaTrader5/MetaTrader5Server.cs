@@ -28,8 +28,8 @@ namespace OsEngine.Market.Servers.MetaTrader5
             CreateParameterBoolean("Use netting", true); // 2
             CreateParameterBoolean("Currency", true); // 3
             CreateParameterBoolean("Commodities", true); // 4
-            CreateParameterBoolean("Funds", false); // 5
-            CreateParameterBoolean("Other", false); // 6
+            CreateParameterBoolean("Funds", true); // 5
+            CreateParameterBoolean("Other", true); // 6
             CreateParameterBoolean("Only market watch", true); // 7
             CreateParameterBoolean("Market depth of ticks", true); // 8
             CreateParameterEnum("Deposit currency", "RUB", new List<string> { "RUB", "USD", "EUR" }); // 9

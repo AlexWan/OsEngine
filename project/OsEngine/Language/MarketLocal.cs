@@ -1291,6 +1291,14 @@ namespace OsEngine.Language
         public string Label315 => OsLocalization.ConvertToLocString(
           "Eng:Reconnects the connector with No order. If the Transit server sends an order with the inactive status (the status is not known due to problems with communication with the exchange), then such an order is marked with the None status and is considered lost. Transaq Connector does not have a method for requesting orders, so the only way to request this order is to reconnect the connector._" +
           "Ru:Переподключает коннектор при None ордере. Если сервер Транзак присылает ордер со статусом inactive (Статус не известен из-за проблем со связью с биржей), то такой ордер помечается статусом None и считается потерянным. У Transaq Connector нет метода для запроса ордеров, поэтому единственный способ запросить данный ордер это переподключение коннектора_");
+       
+        public string Label316 => OsLocalization.ConvertToLocString(
+          "Eng:Expiration_" +
+          "Ru:Экспирация_");
+
+        public string Label317 => OsLocalization.ConvertToLocString(
+          "Eng:Strike_" +
+          "Ru:Страйк_");
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
