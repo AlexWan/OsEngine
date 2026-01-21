@@ -41,6 +41,13 @@
         <Label Name="LabelSecurities" Content="Securities" HorizontalAlignment="Left" Margin="419,5,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <Label Name="Label6" Content="Classes displayed" HorizontalAlignment="Left" Margin="421,33,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxClass" Margin="533,33,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
+
+        <ComboBox Name="ComboBoxExpiration" Margin="547,83,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="138"/>
+        <Label Name="LabelExpiration" Content="Expiration" HorizontalAlignment="Left" Margin="419,83,0,0" VerticalAlignment="Top"/>
+
+        <ComboBox Name="ComboBoxStrike" Margin="547,113,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="138"/>
+        <Label Name="LabelStrike" Content="Strike" HorizontalAlignment="Left" Margin="419,113,0,0" VerticalAlignment="Top"/>
+
         <Button Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Right" Margin="0,10,16,0" VerticalAlignment="Top" Width="23" Height="20"/>
         <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Right" Margin="0,10,126,0" VerticalAlignment="Top" Width="23" Height="20"/>
         <Label Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Right" Margin="0,10,91,0" VerticalAlignment="Top" Height="20"/>
