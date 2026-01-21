@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Entity"
         mc:Ignorable="d"
-               Title="Securities" Height="348" Width="490" MinWidth="300" MinHeight="350" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+               Title="Securities" Height="348" Width="490" MinWidth="300" ResizeMode="NoResize" MinHeight="350" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <TabControl Margin="0,0,0,40" Grid.ColumnSpan="2">
+        <TabControl Margin="0,0,0,40" Name="TabControlPrime" Grid.ColumnSpan="2">
             <TabItem Name="TabItemNonTradePeriods" Header="No trade periods common">
                 <Grid >
                     <CheckBox Name="CheckBoxNonTradePeriod1OnOff" Content="No trade period 1" HorizontalAlignment="Left" Margin="21,50,0,0" VerticalAlignment="Top"/>
@@ -184,6 +184,12 @@
 
 
 
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItemStandardSettings" Header="Standard settings">
+                <Grid >
+                    <Button Name="ButtonSetStandardMoexSpot" Content="Set standard MOEX settings for Spot section" Margin="10,28,10,0" VerticalAlignment="Top" Click="ButtonSetStandardMoexSpot_Click"/>
+                    <Button Name="ButtonSetStandardMoexFutures" Content="Set standard MOEX settings for Futures section" Margin="10,58,10,0" VerticalAlignment="Top" Click="ButtonSetStandardMoexFutures_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>

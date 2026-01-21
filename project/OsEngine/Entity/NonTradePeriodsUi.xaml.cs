@@ -233,6 +233,17 @@ namespace OsEngine.Entity
             ButtonLoadSet.Content = OsLocalization.Market.Label98;
             ButtonSaveSet.Content = OsLocalization.Market.Label99;
 
+            if(OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            {
+                TabItemStandardSettings.Header = "Преднастройки";
+                ButtonSetStandardMoexSpot.Content = "Установить стандартные настройки рынка Акций MOEX";
+                ButtonSetStandardMoexFutures.Content = "Установить стандартные настройки срочного(фьючерсы и опционы) рынка MOEX";
+            }
+            else
+            {
+                TabItemStandardSettings.Visibility = Visibility.Collapsed;
+                
+            }
 
             // general non trade periods 
             LocalToPeriods(
@@ -1272,6 +1283,54 @@ namespace OsEngine.Entity
 
         #endregion
 
+        #region Standard settings
+
+        private void ButtonSetStandardMoexSpot_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label669);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                _periods.SetMoexSpotNonTradePeriods();
+                SetCurrentSettingsInForm();
+            }
+            catch(Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ButtonSetStandardMoexFutures_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label670);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                _periods.SetMoexFuturesNonTradePeriods();
+                SetCurrentSettingsInForm();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
         #region Helpers
 
         private void OffPeriod(ref bool nonTradePeriodInDayOnOff, string nameTab, int numberPeriod, string errorTime)
@@ -1321,5 +1380,6 @@ namespace OsEngine.Entity
         }
 
         #endregion
+
     }
 }

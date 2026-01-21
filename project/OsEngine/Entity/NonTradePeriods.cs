@@ -8,7 +8,6 @@ using OsEngine.Market;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Documents;
 
 namespace OsEngine.Entity
 {
@@ -144,6 +143,316 @@ namespace OsEngine.Entity
             {
                 // ignore
             }
+        }
+
+        #endregion
+
+        #region Pre-sets
+
+        public void SetMoexSpotNonTradePeriods()
+        {
+            NonTradePeriodGeneral.NonTradePeriod1OnOff = false;
+            NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+            NonTradePeriodGeneral.NonTradePeriod3OnOff = false;
+            NonTradePeriodGeneral.NonTradePeriod4OnOff = false;
+            NonTradePeriodGeneral.NonTradePeriod5OnOff = false;
+            
+            TradeInMonday = true;
+            TradeInTuesday = true;
+            TradeInWednesday = true;
+            TradeInThursday = true;
+            TradeInFriday = true;
+            TradeInSaturday = true;
+            TradeInSunday = true;
+
+            // Monday
+
+            NonTradePeriodMonday.NonTradePeriod1OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod1Start = new TimeOfDay() { Hour =0,Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod1End = new TimeOfDay() { Hour = 6, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodMonday.NonTradePeriod2OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodMonday.NonTradePeriod3OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod3End = new TimeOfDay() { Hour = 19, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodMonday.NonTradePeriod4OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod4Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod4End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodMonday.NonTradePeriod5OnOff = false;
+
+            // Tuesday
+
+            NonTradePeriodTuesday.NonTradePeriod1OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodTuesday.NonTradePeriod1End = new TimeOfDay() { Hour = 6, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodTuesday.NonTradePeriod2OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodTuesday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodTuesday.NonTradePeriod3OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodTuesday.NonTradePeriod3End = new TimeOfDay() { Hour = 19, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodTuesday.NonTradePeriod4OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod4Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodTuesday.NonTradePeriod4End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodTuesday.NonTradePeriod5OnOff = false;
+
+            // Wednesday
+
+            NonTradePeriodWednesday.NonTradePeriod1OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodWednesday.NonTradePeriod1End = new TimeOfDay() { Hour = 6, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodWednesday.NonTradePeriod2OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodWednesday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodWednesday.NonTradePeriod3OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodWednesday.NonTradePeriod3End = new TimeOfDay() { Hour = 19, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodWednesday.NonTradePeriod4OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod4Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodWednesday.NonTradePeriod4End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodWednesday.NonTradePeriod5OnOff = false;
+
+            // Thursday
+
+            NonTradePeriodThursday.NonTradePeriod1OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodThursday.NonTradePeriod1End = new TimeOfDay() { Hour = 6, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodThursday.NonTradePeriod2OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodThursday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodThursday.NonTradePeriod3OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodThursday.NonTradePeriod3End = new TimeOfDay() { Hour = 19, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodThursday.NonTradePeriod4OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod4Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodThursday.NonTradePeriod4End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodThursday.NonTradePeriod5OnOff = false;
+
+            // Friday
+
+            NonTradePeriodFriday.NonTradePeriod1OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodFriday.NonTradePeriod1End = new TimeOfDay() { Hour = 6, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodFriday.NonTradePeriod2OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodFriday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodFriday.NonTradePeriod3OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodFriday.NonTradePeriod3End = new TimeOfDay() { Hour = 19, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodFriday.NonTradePeriod4OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod4Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodFriday.NonTradePeriod4End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodFriday.NonTradePeriod5OnOff = false;
+
+            // Saturday
+
+            NonTradePeriodSaturday.NonTradePeriod1OnOff = true;
+            NonTradePeriodSaturday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodSaturday.NonTradePeriod1End = new TimeOfDay() { Hour = 9, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodSaturday.NonTradePeriod2OnOff = true;
+            NonTradePeriodSaturday.NonTradePeriod2Start = new TimeOfDay() { Hour = 18, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodSaturday.NonTradePeriod2End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodSaturday.NonTradePeriod3OnOff = false;
+            NonTradePeriodSaturday.NonTradePeriod4OnOff = false;
+            NonTradePeriodSaturday.NonTradePeriod5OnOff = false;
+
+            // Sunday
+
+            NonTradePeriodSunday.NonTradePeriod1OnOff = true;
+            NonTradePeriodSunday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodSunday.NonTradePeriod1End = new TimeOfDay() { Hour = 9, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodSunday.NonTradePeriod2OnOff = true;
+            NonTradePeriodSunday.NonTradePeriod2Start = new TimeOfDay() { Hour = 18, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodSunday.NonTradePeriod2End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodSunday.NonTradePeriod3OnOff = false;
+            NonTradePeriodSunday.NonTradePeriod4OnOff = false;
+            NonTradePeriodSunday.NonTradePeriod5OnOff = false;
+
+            Save();
+        }
+
+        public void SetMoexFuturesNonTradePeriods()
+        {
+            NonTradePeriodGeneral.NonTradePeriod1OnOff = false;
+            NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+            NonTradePeriodGeneral.NonTradePeriod3OnOff = false;
+            NonTradePeriodGeneral.NonTradePeriod4OnOff = false;
+            NonTradePeriodGeneral.NonTradePeriod5OnOff = false;
+
+            TradeInMonday = true;
+            TradeInTuesday = true;
+            TradeInWednesday = true;
+            TradeInThursday = true;
+            TradeInFriday = true;
+            TradeInSaturday = true;
+            TradeInSunday = true;
+
+            // Monday
+
+            NonTradePeriodMonday.NonTradePeriod1OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodMonday.NonTradePeriod2OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodMonday.NonTradePeriod3OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodMonday.NonTradePeriod4OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodMonday.NonTradePeriod5OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod5End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            // Tuesday
+
+            NonTradePeriodTuesday.NonTradePeriod1OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodTuesday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodTuesday.NonTradePeriod2OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodTuesday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodTuesday.NonTradePeriod3OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodTuesday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodTuesday.NonTradePeriod4OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodTuesday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodTuesday.NonTradePeriod5OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodTuesday.NonTradePeriod5End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+
+            // Wednesday
+
+            NonTradePeriodWednesday.NonTradePeriod1OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodWednesday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodWednesday.NonTradePeriod2OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodWednesday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodWednesday.NonTradePeriod3OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodWednesday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodWednesday.NonTradePeriod4OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodWednesday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodWednesday.NonTradePeriod5OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodWednesday.NonTradePeriod5End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            // Thursday
+
+            NonTradePeriodThursday.NonTradePeriod1OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodThursday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodThursday.NonTradePeriod2OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodThursday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodThursday.NonTradePeriod3OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodThursday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodThursday.NonTradePeriod4OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodThursday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodThursday.NonTradePeriod5OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodThursday.NonTradePeriod5End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            // Friday
+
+            NonTradePeriodFriday.NonTradePeriod1OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodFriday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodFriday.NonTradePeriod2OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodFriday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodFriday.NonTradePeriod3OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodFriday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodFriday.NonTradePeriod4OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodFriday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodFriday.NonTradePeriod5OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 48, Second = 0, Millisecond = 0 };
+            NonTradePeriodFriday.NonTradePeriod5End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            // Saturday
+
+            NonTradePeriodSaturday.NonTradePeriod1OnOff = true;
+            NonTradePeriodSaturday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodSaturday.NonTradePeriod1End = new TimeOfDay() { Hour = 9, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodSaturday.NonTradePeriod2OnOff = true;
+            NonTradePeriodSaturday.NonTradePeriod2Start = new TimeOfDay() { Hour = 18, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodSaturday.NonTradePeriod2End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodSaturday.NonTradePeriod3OnOff = false;
+            NonTradePeriodSaturday.NonTradePeriod4OnOff = false;
+            NonTradePeriodSaturday.NonTradePeriod5OnOff = false;
+
+            // Sunday
+
+            NonTradePeriodSunday.NonTradePeriod1OnOff = true;
+            NonTradePeriodSunday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodSunday.NonTradePeriod1End = new TimeOfDay() { Hour = 9, Minute = 52, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodSunday.NonTradePeriod2OnOff = true;
+            NonTradePeriodSunday.NonTradePeriod2Start = new TimeOfDay() { Hour = 18, Minute = 58, Second = 0, Millisecond = 0 };
+            NonTradePeriodSunday.NonTradePeriod2End = new TimeOfDay() { Hour = 24, Minute = 00, Second = 0, Millisecond = 0 };
+
+            NonTradePeriodSunday.NonTradePeriod3OnOff = false;
+            NonTradePeriodSunday.NonTradePeriod4OnOff = false;
+            NonTradePeriodSunday.NonTradePeriod5OnOff = false;
+
+            Save();
+
         }
 
         #endregion

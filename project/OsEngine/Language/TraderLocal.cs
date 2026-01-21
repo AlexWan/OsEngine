@@ -2494,5 +2494,14 @@ namespace OsEngine.Language
         public string Label668 => OsLocalization.ConvertToLocString(
          "Eng:Time error_" +
          "Ru:Ошибка времени");
+
+        public string Label669 => OsLocalization.ConvertToLocString(
+         "Eng:The settings for non-trading periods for the Spot market on the Moscow Exchange will be set. The old settings will be lost! Are you sure?_" +
+         "Ru:Будут установлены настройки неторговых периодов для рынка Спот на Московской бирже. Старые настройки будут утеряны! Вы уверены?");
+
+        public string Label670 => OsLocalization.ConvertToLocString(
+         "Eng:The settings for non-trading periods for the Futures and Options market on the Moscow Exchange will be set. The old settings will be lost! Are you sure?_" +
+         "Ru:Будут установлены настройки неторговых периодов для Срочного(фьючерсы и опционы) рынка на Московской бирже. Старые настройки будут утеряны! Вы уверены?");
+
     }
 }
