@@ -838,6 +838,9 @@ namespace OsEngine.Market.Connectors
 
                 Save();
 
+                _bestAsk = 0;
+                _bestBid = 0;
+
                 if (ConnectorStartedReconnectEvent != null)
                 {
                     ConnectorStartedReconnectEvent(SecurityName, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerFullName);
