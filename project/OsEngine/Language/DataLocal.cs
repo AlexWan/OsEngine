@@ -331,7 +331,7 @@ namespace OsEngine.Language
         public string Label76 => OsLocalization.ConvertToLocString(
             "Eng:You want to delete these securities.Are you sure?_" +
             "Ru:Вы собираетесь удалить следующие инструменты.Вы уверены?_");
- 
+
         public string Label77 => OsLocalization.ConvertToLocString(
           "Eng:You must enter fractional or integer number_" +
           "Ru:Необходимо ввести целое или дробное число_");
@@ -419,5 +419,21 @@ namespace OsEngine.Language
         public string Label98 => OsLocalization.ConvertToLocString(
           "Eng:First, you need to enable the set and the source of the data_" +
           "Ru:Сначала надо включить сет и источник данных_");
+
+        public string Label99 => OsLocalization.ConvertToLocString(
+          "Eng:The name of the set is not selected_" +
+          "Ru:Название сета не выбрано_");
+
+        public string Label100 => OsLocalization.ConvertToLocString(
+          "Eng:The data source is not selected_" +
+          "Ru:Источник данных не выбран_");
+
+        public string Label101 => OsLocalization.ConvertToLocString(
+          "Eng:Upload the configuration file_" +
+          "Ru:Загрузить файл конфигурации_");
+
+        public string Label102 => OsLocalization.ConvertToLocString(
+          "Eng:Save the file_" +
+          "Ru:Сохранить файл_");
     }
 }
