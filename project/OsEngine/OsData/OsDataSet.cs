@@ -57,6 +57,7 @@ namespace OsEngine.OsData
                 {
                     Directory.CreateDirectory("Data\\" + SetName);
                 }
+
                 using (StreamWriter writer = new StreamWriter("Data\\" + SetName + @"\\Settings.txt", false))
                 {
                     writer.WriteLine(BaseSettings.GetSaveStr());
@@ -85,7 +86,6 @@ namespace OsEngine.OsData
 
             try
             {
-
                 if (SecuritiesLoad == null)
                 {
                     SecuritiesLoad = new List<SecurityToLoad>();
@@ -117,6 +117,42 @@ namespace OsEngine.OsData
                 {
                     Updater = new SetUpdater();
                     Updater.LoadUpdateSettings("Data\\" + SetName + @"\\UpdateSettings.txt");
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void LoadSecurityFromFile(string filePath, string setName)
+        {
+            if (!File.Exists(filePath))
+            {
+                return;
+            }
+
+            try
+            {
+                if (SecuritiesLoad == null)
+                {
+                    SecuritiesLoad = new List<SecurityToLoad>();
+                }
+
+                SecuritiesLoad.Clear();
+
+                using (StreamReader reader = new StreamReader(filePath))
+                {
+                    BaseSettings.Load(reader.ReadLine());
+
+                    while (reader.EndOfStream == false)
+                    {
+                        SecuritiesLoad.Add(new SecurityToLoad());
+                        SecuritiesLoad[SecuritiesLoad.Count - 1].Load(reader.ReadLine(), "Set_" + setName);
+                        SecuritiesLoad[SecuritiesLoad.Count - 1].NewLogMessageEvent += SendNewLogMessage;
+                    }
+
+                    reader.Close();
                 }
             }
             catch (Exception ex)
@@ -733,7 +769,7 @@ namespace OsEngine.OsData
             SecLoaders.Clear();
         }
 
-        public void Load(string saveStr)
+        public void Load(string saveStr, string setName = null)
         {
             string[] saveArray = saveStr.Split('~');
 
@@ -742,7 +778,15 @@ namespace OsEngine.OsData
             SecClass = saveArray[2];
             IsCollapsed = Convert.ToBoolean(saveArray[3]);
             SecExchange = saveArray[4];
-            SetName = saveArray[5];
+
+            if (setName == null)
+            {
+                SetName = saveArray[5];
+            }
+            else
+            {
+                SetName = setName;
+            }
 
             if (saveArray[6].Contains("False"))
             {
@@ -2587,7 +2631,7 @@ namespace OsEngine.OsData
                                 {
                                     _fileStream = new FileStream(_filePath, FileMode.Append, FileAccess.Write);
                                 }
-                                    
+
                                 if (_binaryWriter == null)
                                 {
                                     _binaryWriter = new DataBinaryWriter(_fileStream);

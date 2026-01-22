@@ -40,10 +40,13 @@
         <ComboBox Name="ComboBoxMarketDepthDepth" HorizontalAlignment="Left" Margin="269,205,0,0" VerticalAlignment="Top" Width="83" Height="20"/>
         <Label Name="Label17" Content="Depth" HorizontalAlignment="Left" Margin="215,205,0,0" VerticalAlignment="Top" />
         <CheckBox Name="CheckBoxNeedToUpDate" Content="Auto update" Margin="305,298,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-        <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,29" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
         <CheckBox Name="CheckBoxTf4HourIsOn" Content="4 hour" HorizontalAlignment="Left" Margin="215,96,0,0" VerticalAlignment="Top" />
         <CheckBox Name="CheckBoxTfDayIsOn" Content="day" HorizontalAlignment="Left" Margin="215,117,0,0" VerticalAlignment="Top" />
         <Rectangle Name="StopUsePanelOne" HorizontalAlignment="Left" Height="155" Margin="17,75,0,0" Stroke="Black" VerticalAlignment="Top" Width="339" Opacity="0.5" StrokeThickness="0"/>
         <Rectangle Name="StopUsePanelTwo" HorizontalAlignment="Left" Height="26" Margin="297,298,0,0" Stroke="Black" VerticalAlignment="Top" Width="125" Opacity="0.5" StrokeThickness="0"/>
+        
+        <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,29" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
+        <Button Name="SaveButton" Content="Save" HorizontalAlignment="Left" Margin="10,0,10,29" VerticalAlignment="Bottom" Width="150"  Click="SaveButton_Click"/>
+        <Button Name="LoadButton" Content="Load" HorizontalAlignment="Left" Margin="170,0,10,29" VerticalAlignment="Bottom" Width="150" Click="LoadButton_Click"/>
     </Grid>
 </Window>
