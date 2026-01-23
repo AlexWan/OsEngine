@@ -207,6 +207,7 @@ namespace OsEngine.OsOptimizer
         {
             try
             {
+
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
                 ui.ShowDialog();
 
@@ -215,6 +216,8 @@ namespace OsEngine.OsOptimizer
                     e.Cancel = true;
                     return;
                 }
+
+                _isClosed = true;
 
                 ComboBoxThreadsCount.SelectionChanged -= ComboBoxThreadsCount_SelectionChanged;
 
@@ -323,6 +326,8 @@ namespace OsEngine.OsOptimizer
         private OptimizerReportCharting _resultsCharting;
 
         private OptimizerMaster _master;
+
+        private bool _isClosed;
 
         private void StopUserActivity()
         {
@@ -579,6 +584,11 @@ namespace OsEngine.OsOptimizer
             {
                 Thread.Sleep(1500);
 
+                if(_isClosed == true)
+                {
+                    return;
+                }
+
                 if (MainWindow.ProccesIsWorked == false)
                 {
                     return;
@@ -614,6 +624,11 @@ namespace OsEngine.OsOptimizer
                         _progressBars[i2].Value = 100;
                     }
 
+                    return;
+                }
+
+                if(_master == null)
+                {
                     return;
                 }
 
@@ -896,13 +911,10 @@ namespace OsEngine.OsOptimizer
         private void CommissionValueTextBoxOnTextChanged(object sender, TextChangedEventArgs e)
         {
             decimal commissionValue;
+
             try
             {
-                var isParsed = decimal.TryParse(CommissionValueTextBox.Text, out commissionValue);
-                if (!isParsed || commissionValue < 0)
-                {
-                    throw new Exception();
-                }
+                commissionValue = CommissionValueTextBox.Text.ToDecimal();
             }
             catch
             {

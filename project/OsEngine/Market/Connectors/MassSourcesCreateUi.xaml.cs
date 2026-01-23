@@ -121,6 +121,13 @@ namespace OsEngine.Market.Connectors
                 ComboBoxTypeServer.Items.Add(servers[i].ServerNameAndPrefix);
             }
 
+            ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
+            ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
+            ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
+            ComboBoxCommissionType.SelectedItem = SourcesCreator.CommissionType.ToString();
+
+            TextBoxCommissionValue.Text = SourcesCreator.CommissionValue.ToString();
+
             if (servers.Count > 0
                 && servers[0].ServerType == ServerType.Tester)
             {
@@ -142,6 +149,9 @@ namespace OsEngine.Market.Connectors
                 SourcesCreator.ServerName = ServerType.Optimizer.ToString();
                 _selectedServerType = ServerType.Optimizer;
                 _selectedServerName = ServerType.Optimizer.ToString();
+
+                ComboBoxCommissionType.IsEnabled = false;
+                TextBoxCommissionValue.IsEnabled = false;
             }
 
             if (SourcesCreator.ServerType != ServerType.None)
@@ -194,13 +204,6 @@ namespace OsEngine.Market.Connectors
             {
                 ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Collapsed;
             }
-
-            ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
-            ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
-            ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
-            ComboBoxCommissionType.SelectedItem = SourcesCreator.CommissionType.ToString();
-
-            TextBoxCommissionValue.Text = SourcesCreator.CommissionValue.ToString();
 
             _saveTradesInCandles = SourcesCreator.SaveTradesInCandles;
         }
