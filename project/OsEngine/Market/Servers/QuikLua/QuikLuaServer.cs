@@ -42,7 +42,7 @@ namespace OsEngine.Market.Servers.QuikLua
             CreateParameterBoolean(OsLocalization.Market.FullLogConnector, false); // 9
             CreateParameterInt("Port", 34130); // 10
             CreateParameterBoolean(OsLocalization.Market.PortfolioOnlyBots, false); // 11
-            CreateParameterString(OsLocalization.Market.PortfolioSeparator, "+"); // 12
+            CreateParameterString(OsLocalization.Market.PortfolioSeparator, "/"); // 12
 
             ServerParameters[0].Comment = OsLocalization.Market.Label107;
             ServerParameters[1].Comment = OsLocalization.Market.Label107;
