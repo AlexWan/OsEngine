@@ -995,14 +995,9 @@ namespace OsEngine.Market.Servers.TInvest
 
                 GetAccountsResponse accountsResponse = _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata);
 
-                // для sandboxa
                 if (accountsResponse.Accounts.Count == 0)
                 {
-                    Portfolio myPortfolio = new Portfolio();
-                    myPortfolio.Number = "sandbox";
-                    myPortfolio.ValueCurrent = 1;
-                    myPortfolio.ValueBegin = 1;
-                    _myPortfolios.Add(myPortfolio);
+                    throw new Exception(OsLocalization.Market.Label318);
                 }
 
                 for (int i = 0; i < accountsResponse.Accounts.Count; i++)
@@ -1074,7 +1069,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage(OsLocalization.Market.Label290 + ex.ToString(), LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Label290 + " \n" + ex.ToString(), LogMessageType.Error);
 
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
@@ -1998,6 +1993,11 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                 }
 
+                if(_myPortfolios.Count == 0)
+                {
+                    return false;
+                }
+
                 RepeatedField<string> accountsList = new RepeatedField<string>();
                 for (int i = 0; i < _myPortfolios.Count; i++)
                 {
@@ -2007,6 +2007,8 @@ namespace OsEngine.Market.Servers.TInvest
                 _positionsDataStream =
                     _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
                         headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+
+               
 
                 _lastPositionsDataTime = DateTime.UtcNow;
             }

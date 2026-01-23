@@ -1300,6 +1300,13 @@ namespace OsEngine.Language
           "Eng:Strike_" +
           "Ru:Страйк_");
 
+        public string Label318 => OsLocalization.ConvertToLocString(
+          "Eng:There are no portfolio numbers in the GetAccountesReques. request. There is an internet error, a sandbox token has been issued, or a new portfolio has been created and you need to wait a few hours._" +
+          "Ru:Нет номеров портфелей в запросе GetAccountesReques. Ошибка интернета, выписан токен песочницы или создан новый портфель и нужно подождать несколько часов._");
+
+
+
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");
