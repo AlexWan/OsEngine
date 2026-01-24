@@ -204,11 +204,11 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
             _bollingerLength = CreateParameter("Bollinger Length", 150, 40, 300, 10, "Base");
-            _bollingerDeviation = CreateParameter("Bollinger deviation", 1.7m, 0.5m, 4, 0.1m, "Base");
+            _bollingerDeviation = CreateParameter("Bollinger deviation", 2.3m, 0.5m, 4, 0.1m, "Base");
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 10, 1.0m, 50, 4, "Base");
+            _volume = CreateParameter("Volume", 15, 1.0m, 50, 4, "Base");
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             _contangoFilterRegime = CreateParameter("Contango filter regime", "On_MOEXStocksAuto", new[] { "Off", "On_MOEXStocksAuto", "On_Manual" }, "Contango");

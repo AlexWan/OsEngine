@@ -203,17 +203,17 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _keltnerEmaLength = CreateParameter("Keltner ema Length", 150, 20, 300, 10, "Base");
+            _keltnerEmaLength = CreateParameter("Keltner ema Length", 115, 20, 300, 10, "Base");
             _keltnerAtrLength = CreateParameter("Keltner atr Length", 20, 20, 300, 10, "Base");
-            _keltnerDeviation = CreateParameter("Keltner deviation", 1.3m, 1, 4, 0.1m, "Base");
+            _keltnerDeviation = CreateParameter("Keltner deviation", 3m, 1, 4, 0.1m, "Base");
                 
              // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 10, 1.0m, 50, 4, "Base");
+            _volume = CreateParameter("Volume", 15, 1.0m, 50, 4, "Base");
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             _contangoFilterRegime = CreateParameter("Contango filter regime", "On_MOEXStocksAuto", new[] { "Off", "On_MOEXStocksAuto", "On_Manual" }, "Contango");
-            _contangoFilterCountSecurities = CreateParameter("Contango filter count securities", 3, 1, 2, 1, "Contango");
+            _contangoFilterCountSecurities = CreateParameter("Contango filter count securities", 5, 1, 2, 1, "Contango");
             _contangoStageToTradeLong = CreateParameter("Contango stage to trade Long", 1, 1, 2, 1, "Contango");
             _contangoStageToTradeShort = CreateParameter("Contango stage to trade Short", 2, 1, 2, 1, "Contango");
 
