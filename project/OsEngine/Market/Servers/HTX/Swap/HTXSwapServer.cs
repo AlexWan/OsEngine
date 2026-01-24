@@ -425,7 +425,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newSecurity.SecurityType = SecurityType.Futures;
                                 newSecurity.DecimalsVolume = item.contract_size.DecimalsCount();
                                 newSecurity.Lot = 1; //item.contract_size.ToDecimal();
-                                newSecurity.PriceStep = item.price_tick.Replace(',', '.').TrimEnd('0').TrimEnd('.').ToDecimal();
+
+                                bool isScientific = item.price_tick.IndexOf('E') >= 0 || item.price_tick.IndexOf('e') >= 0;
+
+                                if (isScientific)
+                                {
+                                    newSecurity.PriceStep = item.price_tick.ToDecimal();
+                                }
+                                else
+                                {
+                                    newSecurity.PriceStep = item.price_tick.Replace(',', '.').TrimEnd('0').TrimEnd('.').ToDecimal();
+                                }
+
                                 newSecurity.Decimals = item.price_tick.DecimalsCount();
                                 newSecurity.PriceStepCost = newSecurity.PriceStep;
                                 newSecurity.State = SecurityStateType.Activ;
@@ -486,7 +497,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
             else
             {
-                CreateQueryPortfolioCoin(true);
+                //CreateQueryPortfolioCoin(true);
             }
 
             _portfolioIsStarted = true;
@@ -522,7 +533,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                     else
                     {
-                        CreateQueryPortfolioCoin(false);
+                        //CreateQueryPortfolioCoin(false);
                     }
                 }
                 catch (Exception error)
@@ -599,19 +610,33 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 IRestResponse responseMessage = CreatePrivateQuery($"{_pathRest}/v1/swap_account_info", Method.POST);
 
-                if (!responseMessage.Content.Contains("error"))
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    //UpdatePorfolioCoin(JsonResponse, IsUpdateValueBegin);
+                    ResponseRest<List<PortfoliosCoin>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRest<List<PortfoliosCoin>>());
+
+                    if (response.status == "ok")
+                    {
+                        List<PortfoliosCoin> itemPortfolio = response.data;
+                        UpdatePorfolioCoin(itemPortfolio, IsUpdateValueBegin);
+                    }
+                    else
+                    {
+                        if (responseMessage.Content.Contains("Incorrect Access key [Access key"))
+                        {
+                            Disconnect();
+                        }
+
+                        SendLogMessage($"Portfolio Coin error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    if (responseMessage.Content.Contains("Incorrect Access key [Access key错误]")
-                            || responseMessage.Content.Contains("Verification failure [校验失败]"))
+                    if (responseMessage.Content.Contains("Incorrect Access key [Access key"))
                     {
                         Disconnect();
                     }
 
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                    SendLogMessage($"Portfolio Coin error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -620,11 +645,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private void UpdatePorfolioCoin(string json, bool IsUpdateValueBegin)
+        private void UpdatePorfolioCoin(List<PortfoliosCoin> item, bool IsUpdateValueBegin)
         {
-            ResponseMessagePortfoliosCoin response = JsonConvert.DeserializeObject<ResponseMessagePortfoliosCoin>(json);
-            List<ResponseMessagePortfoliosCoin.Data> item = response.data;
-
             if (Portfolios == null)
             {
                 return;
@@ -638,6 +660,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 {
                     continue;
                 }
+
                 PositionOnBoard pos = new PositionOnBoard();
                 pos.PortfolioName = "HTXSwapPortfolio";
                 pos.SecurityNameCode = item[i].symbol.ToString();
@@ -652,7 +675,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 portfolio.SetNewPosition(pos);
             }
 
-            PortfolioEvent(Portfolios);
+            PortfolioEvent?.Invoke(Portfolios);
         }
 
         private void CreateQueryPortfolioUsdt(bool IsUpdateValueBegin)
@@ -690,7 +713,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         Disconnect();
                     }
 
-                    SendLogMessage($"Portfolio error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    SendLogMessage($"Portfolio USDT error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -806,7 +829,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                    SendLogMessage($"Get price security error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -861,12 +884,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 endTimeData = DateTime.UtcNow;
             }
 
+            string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
+
             do
             {
                 long from = TimeManager.GetTimeStampSecondsToDateTime(startTimeData);
                 long to = TimeManager.GetTimeStampSecondsToDateTime(endTimeData);
-
-                string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
 
                 List<Candle> candles = RequestCandleHistory(security.Name, interval, from, to);
 
@@ -1033,7 +1056,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
                 else
                 {
-                    SendLogMessage($"Candle History error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    if (responseMessage.ToString().StartsWith("<!DOCTYPE") == false)
+                    {
+                        SendLogMessage($"Candle History error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception exception)
@@ -2588,11 +2614,20 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 Portfolio portfolio = Portfolios[0];
 
-                // decimal resultPnL = 0;
+                Dictionary<string, bool> positionInASecurity = new Dictionary<string, bool>();
 
                 for (int i = 0; i < item.Count; i++)
                 {
                     PositionOnBoard pos = new PositionOnBoard();
+
+                    string securityName = item[i].contract_code;
+
+                    if (positionInASecurity.ContainsKey(securityName))
+                    {
+                        continue;
+                    }
+
+                    positionInASecurity.Add(securityName, true);
 
                     pos.PortfolioName = "HTXSwapPortfolio";
 
@@ -2621,63 +2656,56 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         pos.ValueCurrent = -item[i].volume.ToDecimal() * GetVolume(item[i].contract_code);
                     }
 
-                    //pos.ValueBlocked = item[i].frozen.ToDecimal();
                     pos.UnrealizedPnl = Math.Round(item[i].profit_unreal.ToDecimal(), 5);
-                    //resultPnL += pos.UnrealizedPnl;
 
                     portfolio.SetNewPosition(pos);
                 }
 
-                //if (_usdtSwapValue)
+                //List<PositionOnBoard> positionInPortfolio = portfolio.GetPositionOnBoard();
+
+                //for (int j = 0; j < positionInPortfolio.Count; j++)
                 //{
-                //    portfolio.UnrealizedPnl = resultPnL;
+                //    if (positionInPortfolio[j].SecurityNameCode == "USDT")
+                //    {
+                //        continue;
+                //    }
+
+                //    bool isInArray = false;
+
+                //    for (int i = 0; i < item.Count; i++)
+                //    {
+                //        PositionsItem item2 = item[i];
+
+                //        string curNameSec = item2.contract_code;
+
+                //        if (item2.position_mode == "dual_side")
+                //        {
+                //            if (item[i].direction == "buy")
+                //            {
+                //                curNameSec = item2.contract_code + "_" + "LONG";
+                //            }
+                //            else if (item[i].direction == "sell")
+                //            {
+                //                curNameSec = item2.contract_code + "_" + "SHORT";
+                //            }
+                //        }
+                //        else
+                //        {
+                //            curNameSec = item2.contract_code;
+                //        }
+
+                //        if (curNameSec == positionInPortfolio[j].SecurityNameCode)
+                //        {
+                //            isInArray = true;
+                //            break;
+                //        }
+                //    }
+
+                //    if (isInArray == false)
+                //    {
+                //        positionInPortfolio[j].ValueCurrent = 0;
+                //    }
                 //}
-
-                List<PositionOnBoard> positionInPortfolio = portfolio.GetPositionOnBoard();
-
-                for (int j = 0; j < positionInPortfolio.Count; j++)
-                {
-                    if (positionInPortfolio[j].SecurityNameCode == "USDT")
-                    {
-                        continue;
-                    }
-
-                    bool isInArray = false;
-
-                    for (int i = 0; i < item.Count; i++)
-                    {
-                        PositionsItem item2 = item[i];
-
-                        string curNameSec = item2.contract_code;
-
-                        if (item2.position_mode == "dual_side")
-                        {
-                            if (item[i].direction == "buy")
-                            {
-                                curNameSec = item2.contract_code + "_" + "LONG";
-                            }
-                            else if (item[i].direction == "sell")
-                            {
-                                curNameSec = item2.contract_code + "_" + "SHORT";
-                            }
-                        }
-                        else
-                        {
-                            curNameSec = item2.contract_code;
-                        }
-
-                        if (curNameSec == positionInPortfolio[j].SecurityNameCode)
-                        {
-                            isInArray = true;
-                            break;
-                        }
-                    }
-
-                    if (isInArray == false)
-                    {
-                        positionInPortfolio[j].ValueCurrent = 0;
-                    }
-                }
 
                 PortfolioEvent?.Invoke(Portfolios);
             }
@@ -2812,9 +2840,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
         {
             decimal minVolume = 1;
 
-            if (_securitiesDict.TryGetValue(securityName, out Security sec))
+            if ("USDT".Equals(((ServerParameterEnum)ServerParameters[2]).Value))
             {
-                minVolume = sec.MinTradeAmount;
+                if (_securitiesDict.TryGetValue(securityName, out Security sec))
+                {
+                    minVolume = sec.MinTradeAmount;
+                }
             }
 
             if (minVolume <= 0)
@@ -3273,7 +3304,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                     else
                     {
-                        SendLogMessage($"Get order from exchange failed: {responseMessage.Content}", LogMessageType.Error);
+                        if (!responseMessage.Content.Contains("This contract doesnt exist.")
+                            && !responseMessage.Content.Contains("Order doesnt exist."))
+                        {
+                            SendLogMessage($"Get order from exchange failed: {responseMessage.Content}", LogMessageType.Error);
+                        }
                     }
                 }
                 else
