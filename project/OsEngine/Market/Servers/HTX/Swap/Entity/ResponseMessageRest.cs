@@ -39,6 +39,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
     {
         public string code { get; set; }
         public T data { get; set; }
+        public string status { get; set; }
         public string msg { get; set; }
         public string ts { get; set; }
     }
@@ -93,17 +94,13 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         public string withdraw_available { get; set; }
     }
 
-    public class ResponseMessagePortfoliosCoin
+    public class PortfoliosCoin
     {
-        public List<Data> data { get; set; }
+        public string symbol { get; set; }
+        public string margin_balance { get; set; }
+        public string margin_available { get; set; }
+        public string margin_frozen { get; set; }
 
-        public class Data
-        {
-            public string symbol { get; set; }
-            public string margin_balance { get; set; }
-            public string margin_available { get; set; }
-            public string margin_frozen { get; set; }
-        }
     }
 
     public class ResponseMessagePositionsCoin
