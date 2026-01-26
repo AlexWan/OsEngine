@@ -4120,6 +4120,11 @@ namespace OsEngine.Market.Servers.Tester
                     LoadSecurityEvent();
                 }
 
+                if(_candleSeriesTesterActivate.Count > 1)
+                {
+                    _candleSeriesTesterActivate = _candleSeriesTesterActivate.OrderBy(x => x.Security.Name).ToList();
+                }
+
                 return series;
             }
         }
