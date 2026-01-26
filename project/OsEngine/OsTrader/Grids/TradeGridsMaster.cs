@@ -129,16 +129,26 @@ namespace OsEngine.OsTrader.Grids
             {
                 if (TradeGrids[i].Number == num)
                 {
-                    if (TradeGrids[i].HaveOpenPositionsByGrid
-                        || TradeGrids[i].HaveOrdersInMarketInGrid)
+                    if(_startProgram == StartProgram.IsOsTrader)
                     {
-                        AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label665);
-
-                        ui.ShowDialog();
-
-                        if (ui.UserAcceptAction == false)
+                        if (TradeGrids[i].HaveOpenPositionsByGrid
+                            || TradeGrids[i].HaveOrdersInMarketInGrid)
                         {
-                            return;
+                            try
+                            {
+                                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label665);
+
+                                ui.ShowDialog();
+
+                                if (ui.UserAcceptAction == false)
+                                {
+                                    return;
+                                }
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
                         }
                     }
 
