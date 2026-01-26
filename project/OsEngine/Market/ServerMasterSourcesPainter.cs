@@ -348,7 +348,7 @@ namespace OsEngine.Market
             }
             catch (Exception ex)
             {
-                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.System);
             }
         }
 
