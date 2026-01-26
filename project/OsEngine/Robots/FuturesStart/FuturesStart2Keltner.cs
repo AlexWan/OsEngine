@@ -1263,7 +1263,7 @@ namespace OsEngine.Robots.FuturesStart
                 }
             }
 
-            tabFutures.TryReLoadTabs();
+            tabFutures.NeedToReloadTabs = true;
         }
 
         #endregion
