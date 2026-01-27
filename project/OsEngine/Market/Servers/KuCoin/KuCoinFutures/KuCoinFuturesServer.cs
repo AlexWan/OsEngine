@@ -684,66 +684,57 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 startTime = actualTime;
             }
 
-            int countNeedToLoad = GetCountCandlesFromSliceTime(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
+            if (!CheckTime(startTime, endTime, actualTime))
+            {
+                return null;
+            }
 
-            return GetCandleHistory(security.NameFull, timeFrameBuilder.TimeFrameTimeSpan, true, countNeedToLoad, endTime);
-        }
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
 
-        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, int CountToLoad, DateTime timeEnd)
-        {
-            // From technical support chat: Right now the kucoin servers are only returning 24 hours for the lower timeframes and no more than 30 days for higher timeframes. Hopefully their new API fixes this, but no word yet when this will be.
-
-            int needToLoadCandles = CountToLoad;
+            if (!CheckTf(tfTotalMinutes))
+            {
+                return null;
+            }
 
             List<Candle> candles = new List<Candle>();
 
-            DateTime fromTime = timeEnd - TimeSpan.FromMinutes(tf.TotalMinutes * CountToLoad);
+            DateTime fromTime = endTime - TimeSpan.FromMinutes(tfTotalMinutes * 200);
 
-            const int KuCoinFuturesDataLimit = 200; // KuCoin limitation: For each query, the system would return at most 200 pieces of data. To obtain more data, please page the data by time.
-
-            do
+            while (startTime < endTime)
             {
-                int limit = needToLoadCandles;
+                List<Candle> newCandles = CreateQueryCandles(security.Name, GetStringInterval(timeFrameBuilder.TimeFrameTimeSpan), fromTime, endTime);
 
-                if (needToLoadCandles > KuCoinFuturesDataLimit)
+                if (newCandles != null && candles.Count != 0 && newCandles.Count != 0)
                 {
-                    limit = KuCoinFuturesDataLimit;
-
-                }
-                else
-                {
-                    limit = needToLoadCandles;
-                }
-
-                List<Candle> rangeCandles = new List<Candle>();
-
-                DateTime slidingFrom = timeEnd - TimeSpan.FromMinutes(tf.TotalMinutes * limit);
-                rangeCandles = CreateQueryCandles(nameSec, GetStringInterval(tf), slidingFrom, timeEnd);
-
-                if (rangeCandles == null)
-                    return null; // no data
-
-                candles.InsertRange(0, rangeCandles);
-
-                if (rangeCandles.Count < KuCoinFuturesDataLimit) // hard limit
-                {
-                    if ((candles.Count > rangeCandles.Count) && (candles[rangeCandles.Count].TimeStart == candles[rangeCandles.Count - 1].TimeStart))
-                    { // HACK: exchange returns one element twice when data in the past ends
-                        candles.RemoveAt(rangeCandles.Count);
+                    for (int i = 0; i < newCandles.Count; i++)
+                    {
+                        if (candles[0].TimeStart <= newCandles[i].TimeStart)
+                        {
+                            newCandles.RemoveAt(i);
+                            i--;
+                        }
                     }
+                }
 
-                    // this happens when the server does not provide new data further into the past
+                if (newCandles == null)
+                {
+                    break;
+                }
+
+                if (newCandles.Count == 0)
+                {
                     return candles;
                 }
 
+                candles.InsertRange(0, newCandles);
+
                 if (candles.Count != 0)
                 {
-                    timeEnd = candles[0].TimeStart;
+                    endTime = candles[0].TimeStart;
                 }
 
-                needToLoadCandles -= limit;
-            } while (needToLoadCandles > 0);
-
+                fromTime = endTime - TimeSpan.FromMinutes(tfTotalMinutes * 200);
+            }
 
             return candles;
         }
@@ -816,21 +807,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
-        private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
-        {
-            if (tf.Hours != 0)
-            {
-                TimeSpan TimeSlice = endTime - startTime;
-
-                return Convert.ToInt32(TimeSlice.TotalHours / tf.TotalHours);
-            }
-            else
-            {
-                TimeSpan TimeSlice = endTime - startTime;
-                return Convert.ToInt32(TimeSlice.TotalMinutes / tf.Minutes);
-            }
-        }
-
         private string GetStringInterval(TimeSpan tf)
         {
             // The granularity (granularity parameter of K-line) represents the number of minutes, the available granularity scope is: 1,5,15,30,60,120,240,480,720,1440,10080. Requests beyond the above range will be rejected.
@@ -842,6 +818,34 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 return $"{tf.TotalMinutes}";
             }
+        }
+
+        private bool CheckTf(int timeFrameMinutes)
+        {
+            if (timeFrameMinutes == 1
+                || timeFrameMinutes == 3
+                || timeFrameMinutes == 5
+                || timeFrameMinutes == 15
+                || timeFrameMinutes == 30
+                || timeFrameMinutes == 60
+                || timeFrameMinutes == 240
+                || timeFrameMinutes == 1440)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            if (startTime >= endTime ||
+                startTime >= DateTime.UtcNow ||
+                actualTime > endTime ||
+                actualTime > DateTime.UtcNow)
+            {
+                return false;
+            }
+            return true;
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
