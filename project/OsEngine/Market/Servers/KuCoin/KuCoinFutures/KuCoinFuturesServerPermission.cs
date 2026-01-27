@@ -134,7 +134,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public bool IsUseLotToCalculateProfit
         {
-            get { return true; }
+            get { return false; }
         }
 
         public TimeFramePermission TradeTimeFramePermission
@@ -164,7 +164,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = false,
                 TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = false
+                TimeFrameDayIsOn = true
             };
 
 
