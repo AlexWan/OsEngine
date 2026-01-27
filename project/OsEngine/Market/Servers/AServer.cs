@@ -1192,11 +1192,16 @@ namespace OsEngine.Market.Servers
                     }
 
                     if ((ServerRealization.ServerStatus != ServerConnectStatus.Connect
-                        || ServerStatus != ServerConnectStatus.Connect)
-
-                        && _serverStatusNeed == ServerConnectStatus.Connect &&
+                        || ServerStatus != ServerConnectStatus.Connect) && 
+                        _serverStatusNeed == ServerConnectStatus.Connect &&
                        LastStartServerTime.AddSeconds(100) < DateTime.Now)
                     {
+                        if (_nonTradePeriods.CanTradeThisTime(DateTime.Now) == false)
+                        {
+                            SendLogMessage(OsLocalization.Market.Message104, LogMessageType.System);
+                            continue;
+                        }
+
                         SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         ServerRealization.Dispose();
                         _subscribeSecurities.Clear();
