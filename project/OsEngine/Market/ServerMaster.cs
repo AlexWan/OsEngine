@@ -86,7 +86,6 @@ using OsEngine.Market.Servers.OKXData;
 using System.Windows.Controls;
 using OsEngine.Market.Servers.ExMo.ExmoSpot;
 using OsEngine.Market.Servers.BybitData;
-using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.GateIoData;
 using OsEngine.Market.Servers.BitGetData;
 using OsEngine.Market.Servers.MetaTrader5;

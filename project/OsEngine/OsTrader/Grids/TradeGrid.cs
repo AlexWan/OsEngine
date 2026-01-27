@@ -2316,6 +2316,19 @@ namespace OsEngine.OsTrader.Grids
                     {
                         if (string.IsNullOrEmpty(position.OpenOrders[^1].NumberMarket))
                         {
+                            if(position.OpenOrders[^1].State == OrderStateType.None
+                                && _lastNoneOrderTime == DateTime.MinValue)
+                            {
+                                _lastNoneOrderTime = DateTime.Now;
+                            }
+                            else if(position.OpenOrders[^1].State == OrderStateType.None
+                                && _lastNoneOrderTime.AddMinutes(5) < DateTime.Now)
+                            {// 5ть минут висит ордер со статусом NONE. Утерян
+                                position.OpenOrders.RemoveAt(position.OpenOrders.Count - 1);
+                                SendNewLogMessage("Remove NONE open order. Five minutes rule", LogMessageType.Error);
+                                return true;
+                            }
+
                             return true;
                         }
                     }
@@ -2324,14 +2337,34 @@ namespace OsEngine.OsTrader.Grids
                     {
                         if (string.IsNullOrEmpty(position.CloseOrders[^1].NumberMarket))
                         {
+                            if (position.CloseOrders[^1].State == OrderStateType.None
+                                && _lastNoneOrderTime == DateTime.MinValue)
+                            {
+                                _lastNoneOrderTime = DateTime.Now;
+                            }
+                            else if (position.CloseOrders[^1].State == OrderStateType.None
+                                && _lastNoneOrderTime.AddMinutes(5) < DateTime.Now)
+                            {// 5ть минут висит ордер со статусом NONE. Утерян
+                                position.CloseOrders.RemoveAt(position.CloseOrders.Count - 1);
+                                SendNewLogMessage("Remove NONE close order. Five minutes rule", LogMessageType.Error);
+                                return true;
+                            }
+
                             return true;
                         }
                     }
                 }
             }
 
+            if(_lastNoneOrderTime != DateTime.MinValue)
+            {
+                _lastNoneOrderTime = DateTime.MinValue;
+            }
+
             return false;
         }
+
+        private DateTime _lastNoneOrderTime;
 
         public bool HaveOrdersTryToCancelLastSecond()
         {
