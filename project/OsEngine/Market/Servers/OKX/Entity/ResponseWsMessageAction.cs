@@ -134,6 +134,7 @@ namespace OsEngine.Market.Servers.OKX.Entity
 
     public class ResponseMessagePositions
     {
+        public string instType;
         public string instId;
         public string posSide;
         public string availPos;
