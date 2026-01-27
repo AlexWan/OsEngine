@@ -1198,6 +1198,7 @@ namespace OsEngine.Market.Servers
                     {
                         if (_nonTradePeriods.CanTradeThisTime(DateTime.Now) == false)
                         {
+                            LastStartServerTime = DateTime.Now;
                             SendLogMessage(OsLocalization.Market.Message104, LogMessageType.System);
                             continue;
                         }
