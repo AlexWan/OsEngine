@@ -727,18 +727,20 @@ namespace OsEngine.Market.Servers.OKX
             endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
             actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
 
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            int CountCandlesNeedToLoad = GetCountCandlesFromTimeInterval(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
+
             if (startTime < DateTime.UtcNow.AddMonths(-3))
             {
-                SendLogMessage("History more than 3 months is not supported by Api", LogMessageType.Error);
-                return null;
+                startTime = endTime.AddDays(-90);
+                CountCandlesNeedToLoad = GetCountCandlesFromTimeInterval(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
+                SendLogMessage("Candlestick data history for a period longer than 3 months is not supported by the API.", LogMessageType.Error);
             }
 
             if (!CheckTime(startTime, endTime, actualTime))
             {
                 return null;
             }
-
-            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
 
             if (!CheckTf(tfTotalMinutes))
             {
@@ -749,8 +751,6 @@ namespace OsEngine.Market.Servers.OKX
             {
                 endTime = DateTime.UtcNow;
             }
-
-            int CountCandlesNeedToLoad = GetCountCandlesFromTimeInterval(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
 
             List<Candle> candles = GetCandleDataHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, CountCandlesNeedToLoad, TimeManager.GetTimeStampMilliSecondsToDateTime(endTime), isOsData);
 
@@ -2045,7 +2045,7 @@ namespace OsEngine.Market.Servers.OKX
                                 SendLogMessage("[WS Public] Got error msg: " + action.msg, LogMessageType.Error);
                             }
                         }
-                    }   
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -2110,7 +2110,7 @@ namespace OsEngine.Market.Servers.OKX
                                 SendLogMessage("[WS Private] Got error msg: " + action.msg, LogMessageType.Error);
                             }
                         }
-                    }   
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -2150,7 +2150,8 @@ namespace OsEngine.Market.Servers.OKX
 
                             pos.PortfolioName = "OKX";
 
-                            if (item.instId.Contains("SWAP"))
+                            if (item.instId.Contains("SWAP")
+                                || item.instType == "FUTURES")
                             {
                                 if (item.posSide.Contains("long"))
                                 {
@@ -2298,7 +2299,7 @@ namespace OsEngine.Market.Servers.OKX
                         {
                             UpdateTrades(message);
                         }
-                    }     
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2331,7 +2332,7 @@ namespace OsEngine.Market.Servers.OKX
                         {
                             UpdateTrades(message);
                         }
-                    }      
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2363,8 +2364,8 @@ namespace OsEngine.Market.Servers.OKX
                         if (_queueMessageTradesSwap.TryDequeue(out message))
                         {
                             UpdateTrades(message);
-                        } 
-                    }     
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2396,8 +2397,8 @@ namespace OsEngine.Market.Servers.OKX
                         if (_queueMessageTradesSpot.TryDequeue(out message))
                         {
                             UpdateTrades(message);
-                        } 
-                    }    
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2429,7 +2430,7 @@ namespace OsEngine.Market.Servers.OKX
                         if (_queueMessageMarketDepthOption.TryDequeue(out message))
                         {
                             UpdateMarketDepth(message);
-                        }  
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -2462,7 +2463,7 @@ namespace OsEngine.Market.Servers.OKX
                         if (_queueMessageMarketDepthFutures.TryDequeue(out message))
                         {
                             UpdateMarketDepth(message);
-                        } 
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -2728,23 +2729,34 @@ namespace OsEngine.Market.Servers.OKX
                         myTrade.NumberOrderParent = item.ordId.ToString();
                         myTrade.NumberTrade = item.tradeId.ToString();
 
-                        if (item.instId.Contains("SWAP"))
+                        if (item.instId.Contains("SWAP")
+                            || item.instType == "FUTURES")
                         {
-                            if (string.IsNullOrEmpty(item.fee))
-                            {
-                                myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
-                            }
-                            else
-                            {// there is a commission
-                                if (item.instId.StartsWith(item.feeCcy))
-                                { // the commission is taken in the traded currency, not in the exchange currency
-                                    myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId) + item.fee.ToDecimal();
-                                }
-                                else
-                                {
-                                    myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
-                                }
-                            }
+                            myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+
+                            //if (string.IsNullOrEmpty(item.fee))
+                            //{
+                            //    myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+                            //}
+                            //else
+                            //{
+                            //    if (item.instId.EndsWith("USDT"))
+                            //    {
+                            //        // there is a commission
+                            //        if (item.instId.StartsWith(item.feeCcy))
+                            //        { // the commission is taken in the traded currency, not in the exchange currency
+                            //            myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId) + item.fee.ToDecimal();
+                            //        }
+                            //        else
+                            //        {
+                            //            myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+                            //        }
+                            //    }
+                            //   else
+                            //    {
+                            //        myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+                            //    }
+                            //}
                         }
                         else
                         {
@@ -2814,7 +2826,8 @@ namespace OsEngine.Market.Servers.OKX
             newOrder.NumberMarket = item.ordId.ToString();
             newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
 
-            if (item.instId.Contains("SWAP"))
+            if (item.instId.Contains("SWAP")
+                || item.instType == "FUTURES")
             {
                 newOrder.Volume = item.sz.ToDecimal() * GetVolume(item.instId);
             }
@@ -3102,7 +3115,8 @@ namespace OsEngine.Market.Servers.OKX
         {
             _rateGateOrder.WaitToProceed();
 
-            if (order.SecurityNameCode.Contains("SWAP"))
+            if (order.SecurityNameCode.Contains("SWAP")
+                || order.SecurityClassCode.Contains("FUTURES"))
             {
                 SendOrderSwap(order);
             }
@@ -3373,6 +3387,8 @@ namespace OsEngine.Market.Servers.OKX
                 ordersOpenAll.AddRange(orders);
             }
 
+            ordersOpenAll = ordersOpenAll.OrderByDescending(order => order.TimeCreate).ToList();
+
             return ordersOpenAll;
         }
 
@@ -3533,7 +3549,21 @@ namespace OsEngine.Market.Servers.OKX
             {
                 _rateGateGenerateToTrade.WaitToProceed();
 
-                string TypeInstr = order.SecurityNameCode.EndsWith("SWAP") ? "SWAP" : "SPOT";
+                string TypeInstr = "SPOT";
+
+                if (order.SecurityNameCode.EndsWith("SWAP"))
+                {
+                    TypeInstr = "SWAP";
+                }
+                else
+                {
+                    int dashCount = order.SecurityNameCode.Count(c => c == '-');
+
+                    if (dashCount == 2)
+                    {
+                        TypeInstr = "FUTURES";
+                    }
+                }
 
                 string url = $"{_baseUrl}/api/v5/trade/fills-history?ordId={order.NumberMarket}&instId={order.SecurityNameCode}&instType={TypeInstr}";
 
@@ -3560,23 +3590,34 @@ namespace OsEngine.Market.Servers.OKX
                             myTrade.NumberOrderParent = item.ordId.ToString();
                             myTrade.NumberTrade = item.tradeId.ToString();
 
-                            if (item.instId.Contains("SWAP"))
+                            if (item.instId.Contains("SWAP")
+                                || item.instType == "FUTURES")
                             {
-                                if (string.IsNullOrEmpty(item.fee))
-                                {
-                                    myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
-                                }
-                                else
-                                {// there is a commission
-                                    if (item.instId.StartsWith(item.feeCcy))
-                                    { // the commission is taken in the traded currency, not in the exchange currency
-                                        myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId) + item.fee.ToDecimal();
-                                    }
-                                    else
-                                    {
-                                        myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
-                                    }
-                                }
+                                myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+
+                                //if (string.IsNullOrEmpty(item.fee))
+                                //{
+                                //    myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+                                //}
+                                //else
+                                //{
+                                //    if (item.instId.EndsWith("USDT"))
+                                //    {
+                                //        // there is a commission
+                                //        if (item.instId.StartsWith(item.feeCcy))
+                                //        { // the commission is taken in the traded currency, not in the exchange currency
+                                //            myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId) + item.fee.ToDecimal();
+                                //        }
+                                //        else
+                                //        {
+                                //            myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+                                //        }
+                                //    }
+                                //    else
+                                //    {
+                                //        myTrade.Volume = item.fillSz.ToDecimal() * GetVolume(item.instId);
+                                //    }
+                                //}
                             }
                             else
                             {
@@ -3683,23 +3724,37 @@ namespace OsEngine.Market.Servers.OKX
         {
             List<Order> ordersOpenAll = new List<Order>();
 
-            List<Order> orders = new List<Order>();
+            List<Order> swapOrders = new List<Order>();
+            GetAllHistoricalOrders(swapOrders, maxCountByCategory, "SWAP");
 
-            for (int i = 0; i < _instType.Count; i++)
+            if (swapOrders != null
+                && swapOrders.Count > 0)
             {
-                GetAllHistoricalOrders(orders, 100, _instType[i]);
+                ordersOpenAll.AddRange(swapOrders);
             }
 
-            if (orders != null
-                && orders.Count > 0)
+            List<Order> spotOrders = new List<Order>();
+            GetAllHistoricalOrders(spotOrders, maxCountByCategory, "SPOT");
+
+            if (spotOrders != null
+                && spotOrders.Count > 0)
             {
-                ordersOpenAll.AddRange(orders);
+                ordersOpenAll.AddRange(spotOrders);
             }
+
+            List<Order> futuresOrders = new List<Order>();
+            GetAllHistoricalOrders(futuresOrders, maxCountByCategory, "FUTURES");
+
+            if (futuresOrders != null
+                && futuresOrders.Count > 0)
+            {
+                ordersOpenAll.AddRange(futuresOrders);
+            }
+
+            ordersOpenAll = ordersOpenAll.OrderByDescending(order => order.TimeCreate).ToList();
 
             return ordersOpenAll;
         }
-
-        private List<string> _instType = new List<string>() { "SWAP", "SPOT" };
 
         private void GetAllHistoricalOrders(List<Order> array, int maxCount, string instType)
         {

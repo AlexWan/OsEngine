@@ -7,6 +7,7 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -111,6 +112,10 @@ namespace OsEngine.Robots.FuturesStart
         private StrategyParameterBool _tradeRegimeSecurity9;
         private StrategyParameterBool _tradeRegimeSecurity10;
 
+        // Auto connection securities
+
+        private StrategyParameterString _portfolioNum;
+
         private bool CanTradeThisSecurity(string securityName)
         {
             if (this.TabsSimple[0].Security != null
@@ -203,17 +208,17 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _keltnerEmaLength = CreateParameter("Keltner ema Length", 150, 20, 300, 10, "Base");
+            _keltnerEmaLength = CreateParameter("Keltner ema Length", 115, 20, 300, 10, "Base");
             _keltnerAtrLength = CreateParameter("Keltner atr Length", 20, 20, 300, 10, "Base");
-            _keltnerDeviation = CreateParameter("Keltner deviation", 1.3m, 1, 4, 0.1m, "Base");
+            _keltnerDeviation = CreateParameter("Keltner deviation", 3m, 1, 4, 0.1m, "Base");
                 
              // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 10, 1.0m, 50, 4, "Base");
+            _volume = CreateParameter("Volume", 15, 1.0m, 50, 4, "Base");
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             _contangoFilterRegime = CreateParameter("Contango filter regime", "On_MOEXStocksAuto", new[] { "Off", "On_MOEXStocksAuto", "On_Manual" }, "Contango");
-            _contangoFilterCountSecurities = CreateParameter("Contango filter count securities", 3, 1, 2, 1, "Contango");
+            _contangoFilterCountSecurities = CreateParameter("Contango filter count securities", 5, 1, 2, 1, "Contango");
             _contangoStageToTradeLong = CreateParameter("Contango stage to trade Long", 1, 1, 2, 1, "Contango");
             _contangoStageToTradeShort = CreateParameter("Contango stage to trade Short", 2, 1, 2, 1, "Contango");
 
@@ -238,9 +243,18 @@ namespace OsEngine.Robots.FuturesStart
             _tradeRegimeSecurity5 = CreateParameter("Trade security 5", true, "Trade securities");
             _tradeRegimeSecurity6 = CreateParameter("Trade security 6", true, "Trade securities");
             _tradeRegimeSecurity7 = CreateParameter("Trade security 7", true, "Trade securities");
-            _tradeRegimeSecurity8 = CreateParameter("Trade security 8", true, "Trade securities");
-            _tradeRegimeSecurity9 = CreateParameter("Trade security 9", true, "Trade securities");
-            _tradeRegimeSecurity10 = CreateParameter("Trade security 10", true, "Trade securities");
+            _tradeRegimeSecurity8 = CreateParameter("Trade security 8", false, "Trade securities");
+            _tradeRegimeSecurity9 = CreateParameter("Trade security 9", false, "Trade securities");
+            _tradeRegimeSecurity10 = CreateParameter("Trade security 10", false, "Trade securities");
+
+            // Auto Securities
+
+            if (startProgram == StartProgram.IsOsTrader)
+            {
+                _portfolioNum = CreateParameter("Portfolio number", "", "Auto deploy");
+                StrategyParameterButton buttonAutoDeploy = CreateParameterButton("Deploy standard securities", "Auto deploy");
+                buttonAutoDeploy.UserClickOnButtonEvent += ButtonAutoDeploy_UserClickOnButtonEvent;
+            }
 
             // Source creation
 
@@ -1023,6 +1037,233 @@ namespace OsEngine.Robots.FuturesStart
             }
 
             return 0;
+        }
+
+        #endregion
+
+        #region Auto-set securities to T-Investment
+
+        private void ButtonAutoDeploy_UserClickOnButtonEvent()
+        {
+            SetTSecurities();
+        }
+
+        public void SetTSecurities()
+        {
+            // 1 сервер Т-Банк должен быть включен
+
+            List<AServer> servers = ServerMaster.GetAServers();
+
+            if (servers == null
+                || servers.Count == 0)
+            {
+                SendNewLogMessage("Сначала подключите коннектор к Т-Инвестиции", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (servers.Find(s => s.ServerType == ServerType.TInvest) == null)
+            {
+                SendNewLogMessage("Сначала подключите коннектор к Т-Инвестиции", Logging.LogMessageType.Error);
+                return;
+            }
+
+            // 2 номер портфеля должен быть указан
+
+            string portfolioName = _portfolioNum.ValueString;
+
+            if (string.IsNullOrEmpty(portfolioName) == true)
+            {
+                SendNewLogMessage("Не указан портфель для развёртывания источников", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Portfolio myPortfolio = null;
+            AServer myServer = null;
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                if (servers[i].ServerType != ServerType.TInvest)
+                {
+                    continue;
+                }
+
+                List<Portfolio> portfoliosInServer = servers[i].Portfolios;
+
+                if (portfoliosInServer == null
+                    || portfoliosInServer.Count == 0)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < portfoliosInServer.Count; j++)
+                {
+                    if (portfoliosInServer[j].Number == portfolioName)
+                    {
+                        myServer = servers[i];
+                        myPortfolio = portfoliosInServer[j];
+                        break;
+                    }
+                }
+
+                if (myServer != null)
+                {
+                    break;
+                }
+            }
+
+            if (myServer == null)
+            {
+                SendNewLogMessage("Не найден портфель и сервер. Возможно указан не верный портфель", Logging.LogMessageType.Error);
+                return;
+            }
+
+            // 3 фьючерсная площадка и спот, должны быть подключены к коннектору
+
+            List<Security> securitiesAll = myServer.Securities;
+
+            if (securitiesAll == null
+                || securitiesAll.Count == 0)
+            {
+                SendNewLogMessage("В коннекторе не найдены бумаги. Возможно он не подключен", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (securitiesAll.Find(s => s.SecurityType == SecurityType.Futures) == null)
+            {
+                SendNewLogMessage("В коннекторе не найдены фьючерсы. Возможно в коннекторе выключено разрешение на их скачивание. Это настраивается в коннекторе", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (securitiesAll.Find(s => s.SecurityType == SecurityType.Stock) == null)
+            {
+                SendNewLogMessage("В коннекторе не найдены акции. Возможно в коннекторе выключено разрешение на их скачивание. Это настраивается в коннекторе", Logging.LogMessageType.Error);
+                return;
+            }
+
+            // 4 устанавливаем инструменты
+
+            Security spotSber = securitiesAll.Find(s => s.Name == "SBER" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresSber =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+                (s.Name.StartsWith("SRH") || s.Name.StartsWith("SRM")
+                || s.Name.StartsWith("SRZ") || s.Name.StartsWith("SRU")));
+
+            SetSecurities(_base1, _futs1, spotSber, futuresSber, myPortfolio, myServer);
+
+            Security spotSberPref = securitiesAll.Find(s => s.Name == "SBERP" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresSberPref =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+                (s.Name.StartsWith("SPH") || s.Name.StartsWith("SPM")
+                || s.Name.StartsWith("SPZ") || s.Name.StartsWith("SPU")));
+
+            SetSecurities(_base2, _futs2, spotSberPref, futuresSberPref, myPortfolio, myServer);
+
+            Security spotGazp = securitiesAll.Find(s => s.Name == "GAZP" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresGazp =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+                (s.Name.StartsWith("GZH") || s.Name.StartsWith("GZM")
+                || s.Name.StartsWith("GZZ") || s.Name.StartsWith("GZU")));
+
+            SetSecurities(_base3, _futs3, spotGazp, futuresGazp, myPortfolio, myServer);
+
+            Security spotRosn = securitiesAll.Find(s => s.Name == "ROSN" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresRosn =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+                (s.Name.StartsWith("RNH") || s.Name.StartsWith("RNM")
+                || s.Name.StartsWith("RNZ") || s.Name.StartsWith("RNU")));
+
+            SetSecurities(_base4, _futs4, spotRosn, futuresRosn, myPortfolio, myServer);
+
+            Security spotLkoh = securitiesAll.Find(s => s.Name == "LKOH" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresLkoh =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+                (s.Name.StartsWith("LKH") || s.Name.StartsWith("LKM")
+                || s.Name.StartsWith("LKZ") || s.Name.StartsWith("LKU")));
+
+            SetSecurities(_base5, _futs5, spotLkoh, futuresLkoh, myPortfolio, myServer);
+
+            Security spotVtb = securitiesAll.Find(s => s.Name == "VTBR" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresVtb =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+                (s.Name.StartsWith("VBH") || s.Name.StartsWith("VBM")
+                || s.Name.StartsWith("VBZ") || s.Name.StartsWith("VBU")));
+
+            SetSecurities(_base6, _futs6, spotVtb, futuresVtb, myPortfolio, myServer);
+
+            Security spotGmk = securitiesAll.Find(s => s.Name == "GMKN" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresGmk =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+                (s.Name.StartsWith("GKH") || s.Name.StartsWith("GKM")
+                || s.Name.StartsWith("GKZ") || s.Name.StartsWith("GKU")));
+
+            SetSecurities(_base7, _futs7, spotGmk, futuresGmk, myPortfolio, myServer);
+
+            Security spotAlrs = securitiesAll.Find(s => s.Name == "ALRS" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresAlrs =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+                (s.Name.StartsWith("ALH") || s.Name.StartsWith("ALM")
+                || s.Name.StartsWith("ALZ") || s.Name.StartsWith("ALU")));
+
+            SetSecurities(_base8, _futs8, spotAlrs, futuresAlrs, myPortfolio, myServer);
+
+            Security spotAflt = securitiesAll.Find(s => s.Name == "AFLT" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresAflt =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+               (s.Name.StartsWith("AFH") || s.Name.StartsWith("AFM")
+                || s.Name.StartsWith("AFZ") || s.Name.StartsWith("AFU")));
+
+            SetSecurities(_base9, _futs9, spotAflt, futuresAflt, myPortfolio, myServer);
+
+            Security spotMgnt = securitiesAll.Find(s => s.Name == "MGNT" && s.SecurityType == SecurityType.Stock);
+            List<Security> futuresMgnt =
+                securitiesAll.FindAll(s => s.SecurityType == SecurityType.Futures &&
+                (s.Name.StartsWith("MNH") || s.Name.StartsWith("MNM")
+                || s.Name.StartsWith("MNZ") || s.Name.StartsWith("MNU")));
+
+            SetSecurities(_base10, _futs10, spotMgnt, futuresMgnt, myPortfolio, myServer);
+        }
+
+        private void SetSecurities(BotTabSimple tabSpot, BotTabScreener tabFutures,
+            Security spotSecurity, List<Security> futuresSecurity, Portfolio portfolio, AServer server)
+        {
+            if (spotSecurity == null || futuresSecurity == null)
+            {
+                return;
+            }
+
+            tabSpot.Connector.ServerType = server.ServerType;
+            tabSpot.Connector.ServerFullName = server.ServerNameAndPrefix;
+            tabSpot.Connector.TimeFrame = TimeFrame.Min15;
+            tabSpot.Connector.SecurityName = spotSecurity.Name;
+            tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
+            tabSpot.Connector.PortfolioName = portfolio.Number;
+
+            tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
+            tabFutures.TimeFrame = TimeFrame.Min15;
+            tabFutures.PortfolioName = portfolio.Number;
+            tabFutures.ServerType = server.ServerType;
+            tabFutures.ServerName = server.ServerNameAndPrefix;
+
+            List<ActivatedSecurity> securitiesToScreener = new List<ActivatedSecurity>();
+
+            for (int i = 0; i < futuresSecurity.Count; i++)
+            {
+                ActivatedSecurity sec = new ActivatedSecurity();
+                sec.SecurityClass = futuresSecurity[i].NameClass;
+                sec.SecurityName = futuresSecurity[i].Name;
+                sec.IsOn = true;
+                securitiesToScreener.Add(sec);
+            }
+
+            for (int i = 0; i < securitiesToScreener.Count; i++)
+            {
+                if (tabFutures.SecuritiesNames.Find(s => s.SecurityName == securitiesToScreener[i].SecurityName) == null)
+                {
+                    tabFutures.SecuritiesNames.Add(securitiesToScreener[i]);
+                }
+            }
+
+            tabFutures.NeedToReloadTabs = true;
         }
 
         #endregion

@@ -68,6 +68,15 @@ namespace OsEngine.Market.Connectors
                     ComboBoxTypeServer.Items.Add(servers[i].ServerNameAndPrefix);
                 }
 
+                ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
+                ComboBoxCommissionType.SelectedItem = _connectorBot.CommissionType.ToString();
+                ComboBoxCommissionType.SelectionChanged += ComboBoxCommissionType_SelectionChanged;
+                ComboBoxCommissionType_SelectionChanged(null, null);
+
+                TextBoxCommissionValue.Text = _connectorBot.CommissionValue.ToString();
+
                 if (servers.Count > 0
                     && servers[0].ServerType == ServerType.Optimizer)
                 {
@@ -75,6 +84,9 @@ namespace OsEngine.Market.Connectors
                     _selectedServerName = ServerType.Optimizer.ToString();
                     connectorBot.ServerType = ServerType.Optimizer;
                     connectorBot.ServerFullName = _selectedServerName;
+
+                    ComboBoxCommissionType.IsEnabled = false;
+                    TextBoxCommissionValue.IsEnabled = false;
                 }
 
                 if (connectorBot.ServerType != ServerType.None)
@@ -149,15 +161,6 @@ namespace OsEngine.Market.Connectors
                 {
                     ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Collapsed;
                 }
-
-                ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
-                ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
-                ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
-                ComboBoxCommissionType.SelectedItem = _connectorBot.CommissionType.ToString();
-                ComboBoxCommissionType.SelectionChanged += ComboBoxCommissionType_SelectionChanged;
-                ComboBoxCommissionType_SelectionChanged(null, null);
-
-                TextBoxCommissionValue.Text = _connectorBot.CommissionValue.ToString();
 
                 _saveTradesInCandles = _connectorBot.SaveTradesInCandles;
 

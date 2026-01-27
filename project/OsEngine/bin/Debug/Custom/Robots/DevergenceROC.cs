@@ -251,7 +251,7 @@ namespace OsEngine.Robots
                 return false;
             }
 
-            DateTime openTime = DateTime.Parse(position.SignalTypeOpen);
+            DateTime openTime = position.TimeOpen;
 
             int counter = 0;
 

@@ -11,6 +11,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Tester;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace OsEngine.Market.Servers.Optimizer
 {
@@ -436,6 +437,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
 
                 _candleSeriesTesterActivate.Add(securityOpt);
+
+                if (_candleSeriesTesterActivate.Count > 1)
+                {
+                    _candleSeriesTesterActivate = _candleSeriesTesterActivate.OrderBy(x => x.Security.Name).ToList();
+                }
 
                 ServerStatus = ServerConnectStatus.Connect;
             }

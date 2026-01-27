@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public string name;
         public List<string> tickers;
     }
-       
+
     public class ResponseMessageSecurities
     {
         public string total;
@@ -52,9 +52,60 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public Dictionary<string, List<string>> xSeries { get; set; }
     }
 
+    public class OrderResponse
+    {
+        public string order_id { get; set; }
+        public OrderItem order { get; set; }
+        public string warning { get; set; }
+    }
+
+    public class OrderItem
+    {
+        public string auth_login { get; set; }
+        public string user_id { get; set; }
+        public string order_id { get; set; }
+        public string date { get; set; }
+        public string stat { get; set; }
+        public string stat_orig { get; set; }
+        public string stat_d { get; set; }
+        public string instr { get; set; }
+        public string instr_type { get; set; }
+        public string oper { get; set; }
+        public string type { get; set; }
+        public string cur { get; set; }
+        public string p { get; set; }
+        public string stop { get; set; }
+        public string stop_init_price { get; set; }
+        public string stop_activated { get; set; }
+        public string q { get; set; }
+        public string leaves_qty { get; set; }
+        public string exp { get; set; }
+        public string stat_prev { get; set; }
+        public string user_order_id { get; set; }
+        public string trailing_price { get; set; }
+        public string trades { get; set; }
+        public string changetime { get; set; }
+        public string profit { get; set; }
+        public string curr_q { get; set; }
+        public string trades_json { get; set; }
+        public string error { get; set; }
+        public string market_time { get; set; }
+        public string creator_login { get; set; }
+        public string owner_login { get; set; }
+        public string safety_type_id { get; set; }
+        public string repo_start_date { get; set; }
+        public string repo_end_date { get; set; }
+        public string repo_start_cash { get; set; }
+        public string repo_end_cash { get; set; }
+        public string order_nb { get; set; }
+        public string orig_cl_ord_id { get; set; }
+        public string last_checked_datetime { get; set; }
+        public string id { get; set; }
+    }
+
     public class ResponseRestOrders
     {
-        public Result result;        
+        public Result result;
     }
 
     public class Result
@@ -64,7 +115,7 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
 
     public class ResultOrders
     {
-        public List<ResponseOrders> order;       
+        public List<ResponseOrders> order;
     }
 
     public class RestResponsePortfolio
@@ -95,5 +146,5 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public string market_value;
         public string curr;
         public string currval;
-    }        
+    }
 }

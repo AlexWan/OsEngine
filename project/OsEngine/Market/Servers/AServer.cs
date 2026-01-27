@@ -3909,7 +3909,7 @@ namespace OsEngine.Market.Servers
                 if (_portfolios == null ||
                     _portfolios.Count == 0)
                 {
-                    SendLogMessage("AServer Error. You can't Execute order when Portfolious is null "
+                    SendLogMessage("AServer Error. You can't Execute order when Portfolio is null "
                        + order.NumberUser, LogMessageType.Error);
                     order.State = OrderStateType.Fail;
                     _ordersToSend.Enqueue(order);

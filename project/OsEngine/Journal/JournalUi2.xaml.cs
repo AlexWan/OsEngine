@@ -5034,16 +5034,53 @@ namespace OsEngine.Journal
 
         private List<SecurityToPaint> GetAllSecuritiesToPaint()
         {
+            List<Journal> myJournals = new List<Journal>();
+
+            for (int i = 0; _botsJournals != null && i < _botsJournals.Count; i++)
+            {
+                BotPanelJournal panel = _botsJournals[i];
+
+                for (int i2 = 0; i2 < panel._Tabs.Count; i2++)
+                {
+                    myJournals.Add(panel._Tabs[i2].Journal);
+                }
+            }
+
+            if (myJournals == null
+                || myJournals.Count == 0)
+            {
+                return new List<SecurityToPaint>();
+            }
+
+            List<Position> positionsAll = new List<Position>();
+
+            for (int i = 0; i < myJournals.Count; i++)
+            {
+                if (myJournals[i].AllPosition != null)
+                {
+                    positionsAll.AddRange(myJournals[i].AllPosition);
+                }
+            }
+
+            for (int i = 0; i < positionsAll.Count; i++)
+            {
+                if (positionsAll[i] == null)
+                {
+                    positionsAll.RemoveAt(i);
+                    i--;
+                }
+            }
+
             List<SecurityToPaint> securities = new List<SecurityToPaint>();
 
-            if (_allPositions == null)
+            if (positionsAll == null)
             {
                 return securities;
             }
 
-            for (int i = 0; i < _allPositions.Count; i++)
+            for (int i = 0; i < positionsAll.Count; i++)
             {
-                Position position = _allPositions[i];
+                Position position = positionsAll[i];
 
                 string secName = position.SecurityName;
 

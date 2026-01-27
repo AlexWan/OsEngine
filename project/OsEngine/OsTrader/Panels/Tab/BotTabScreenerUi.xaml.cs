@@ -62,6 +62,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ComboBoxTypeServer.Items.Add(servers[i].ServerNameAndPrefix);
                 }
 
+                ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
+                ComboBoxCommissionType.SelectedItem = _screener.CommissionType.ToString();
+                ComboBoxCommissionType.SelectionChanged += ComboBoxCommissionType_SelectionChanged;
+                ComboBoxCommissionType_SelectionChanged(null, null);
+
+                TextBoxCommissionValue.Text = _screener.CommissionValue.ToString();
+
                 if (servers.Count > 0
                     && servers[0].ServerType == ServerType.Optimizer)
                 {
@@ -73,6 +82,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
                     ComboBoxPortfolio.IsEnabled = false;
                     _selectedServerName = ServerType.Optimizer.ToString();
+                    ComboBoxCommissionType.IsEnabled = false;
+                    TextBoxCommissionValue.IsEnabled = false;
                 }
                 else if (servers.Count > 0
                      && servers[0].ServerType == ServerType.Tester)
@@ -134,15 +145,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ButtonMarketDepthBuildMaxSpread.Visibility = Visibility.Collapsed;
                 }
-
-                ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
-                ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
-                ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
-                ComboBoxCommissionType.SelectedItem = _screener.CommissionType.ToString();
-                ComboBoxCommissionType.SelectionChanged += ComboBoxCommissionType_SelectionChanged;
-                ComboBoxCommissionType_SelectionChanged(null, null);
-
-                TextBoxCommissionValue.Text = _screener.CommissionValue.ToString();
 
                 _saveTradesInCandles = _screener.SaveTradesInCandles;
 

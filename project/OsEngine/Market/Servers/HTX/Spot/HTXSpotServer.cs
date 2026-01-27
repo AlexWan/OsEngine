@@ -15,6 +15,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -205,8 +206,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         #region 3 Securities
 
+        private List<Security> _securities;
+
         public void GetSecurities()
         {
+            if (_securities == null)
+            {
+                _securities = new List<Security>();
+            }
+
             try
             {
                 string url = $"https://{_baseUrl}/v1/settings/common/market-symbols";
@@ -223,8 +231,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseRestMessage<List<ResponseSecurities>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<ResponseSecurities>>());
-
-                    List<Security> securities = new List<Security>();
 
                     if (response.status == "ok")
                     {
@@ -258,11 +264,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                                 newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
 
-                                securities.Add(newSecurity);
+                                _securities.Add(newSecurity);
                             }
                         }
 
-                        SecurityEvent?.Invoke(securities);
+                        SecurityEvent?.Invoke(_securities);
                     }
                     else
                     {
@@ -433,10 +439,10 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             {
                                 PositionOnBoard pos = new PositionOnBoard();
 
-                                if (response.data.list[j].type == "trade" && response.data.list[j].balance == "0")
-                                {
-                                    continue;
-                                }
+                                //if (response.data.list[j].type == "trade" && response.data.list[j].balance == "0")
+                                //{
+                                //    continue;
+                                //}
 
                                 if (response.data.list[j].type == "frozen")
                                 {
@@ -1254,7 +1260,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         #region 9 Security subscribe
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(400));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         public void Subscribe(Security security)
         {
@@ -1302,7 +1308,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             if (webSocketPublic.ReadyState == WebSocketState.Open
                 && _subscribedSecurities.Count != 0
-                && _subscribedSecurities.Count % 150 == 0)
+                && _subscribedSecurities.Count % 50 == 0)
             {
                 // creating a new socket
                 WebSocket newSocket = CreateNewPublicSocket();
@@ -1396,8 +1402,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic.Count != 0
-               && _webSocketPublic != null)
+            if (_webSocketPublic != null
+               && _webSocketPublic.Count != 0)
             {
                 for (int i = 0; i < _webSocketPublic.Count; i++)
                 {
@@ -1407,23 +1413,45 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     {
                         if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            if (_subscribedSecurities != null)
+                            if (_subscribedSecurities != null
+                                && _subscribedSecurities.Count > 0)
                             {
+                                List<string> mbpTopics = new List<string>();
+                                List<string> tradeTopics = new List<string>();
+                                List<string> tickerTopics = new List<string>();
+
                                 for (int j = 0; j < _subscribedSecurities.Count; j++)
                                 {
                                     string securityName = _subscribedSecurities[j];
 
-                                    string topic = $"market.{securityName}.mbp.refresh.20";
-                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
-
-                                    topic = $"market.{securityName}.trade.detail";
-                                    webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                    mbpTopics.Add($"market.{securityName}.mbp.refresh.20");
+                                    tradeTopics.Add($"market.{securityName}.trade.detail");
 
                                     if (_extendedMarketData)
                                     {
-                                        topic = $"market.{securityName}.ticker";
-                                        webSocketPublic.SendAsync($"{{\"action\": \"unsub\",\"ch\": \"{topic}\"}}");
+                                        tickerTopics.Add($"market.{securityName}.ticker");
                                     }
+                                }
+
+                                if (mbpTopics.Count > 0)
+                                {
+                                    string mbpTopicsJson = string.Join(",", mbpTopics.Select(t => $"\"{t}\""));
+                                    string id1 = Guid.NewGuid().ToString("N");
+                                    webSocketPublic.SendAsync($"{{\"unsub\": [{mbpTopicsJson}],\"id\": \"{id1}\"}}");
+                                }
+
+                                if (tradeTopics.Count > 0)
+                                {
+                                    string tradeTopicsJson = string.Join(",", tradeTopics.Select(t => $"\"{t}\""));
+                                    string id2 = Guid.NewGuid().ToString("N");
+                                    webSocketPublic.SendAsync($"{{\"unsub\": [{tradeTopicsJson}],\"id\": \"{id2}\"}}");
+                                }
+
+                                if (tickerTopics.Count > 0)
+                                {
+                                    string tickerTopicsJson = string.Join(",", tickerTopics.Select(t => $"\"{t}\""));
+                                    string id3 = Guid.NewGuid().ToString("N");
+                                    webSocketPublic.SendAsync($"{{\"unsub\": [{tickerTopicsJson}],\"id\": \"{id3}\"}}");
                                 }
                             }
                         }
@@ -1860,13 +1888,20 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
                 {
                     myTrade.Volume = item.tradeVolume.ToDecimal() - item.transactFee.ToDecimal();
+
+                    int decimalVolume = GetVolumeDecimals(myTrade.SecurityNameCode);
+
+                    if (decimalVolume > 0)
+                    {
+                        myTrade.Volume = Math.Floor(myTrade.Volume * (decimal)Math.Pow(10, decimalVolume)) / (decimal)Math.Pow(10, decimalVolume);
+                    }
                 }
                 else
                 {
                     myTrade.Volume = item.tradeVolume.ToDecimal();
                 }
 
-                MyTradeEvent(myTrade);
+                MyTradeEvent?.Invoke(myTrade);
 
                 if (item.orderStatus.Equals("partial-filled") || item.orderStatus.Equals("filled"))
                 {
@@ -1876,13 +1911,18 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.tradeTime));
                     newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.orderCreateTime));
 
-                    try
+                    if (item.clientOrderId != null)
                     {
-                        newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
-                    }
-                    catch
-                    {
-                        //ignore
+                        try
+                        {
+                            string numberFull = item.clientOrderId;
+                            string numUser = numberFull.Replace("AAe2ccbd47", "");
+                            newOrder.NumberUser = Convert.ToInt32(numUser);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
                     }
 
                     newOrder.NumberMarket = item.orderId.ToString();
@@ -1913,6 +1953,19 @@ namespace OsEngine.Market.Servers.HTX.Spot
             {
                 SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        private int GetVolumeDecimals(string security)
+        {
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (security == _securities[i].Name)
+                {
+                    return _securities[i].DecimalsVolume;
+                }
+            }
+
+            return 0;
         }
 
         private void UpdateOrder(string message)
@@ -2292,17 +2345,19 @@ namespace OsEngine.Market.Servers.HTX.Spot
                                     newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
                                 }
 
-                                try
+                                if (item[i].client_order_id != null)
                                 {
-                                    string numberFull = item[i].client_order_id;
-                                    string numUser = numberFull.Replace("AAe2ccbd47", "");
-                                    newOrder.NumberUser = Convert.ToInt32(numUser);
+                                    try
+                                    {
+                                        string numberFull = item[i].client_order_id;
+                                        string numUser = numberFull.Replace("AAe2ccbd47", "");
+                                        newOrder.NumberUser = Convert.ToInt32(numUser);
+                                    }
+                                    catch
+                                    {
+                                        // ignore
+                                    }
                                 }
-                                catch
-                                {
-                                    // ignore
-                                }
-
 
                                 newOrder.NumberMarket = item[i].id.ToString();
 
@@ -2733,17 +2788,19 @@ namespace OsEngine.Market.Servers.HTX.Spot
                                     newOrder.TimeDone = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
                                 }
 
-                                try
+                                if (item[i].client_order_id != null)
                                 {
-                                    string numberFull = item[i].client_order_id;
-                                    string numUser = numberFull.Replace("AAe2ccbd47", "");
-                                    newOrder.NumberUser = Convert.ToInt32(numUser);
+                                    try
+                                    {
+                                        string numberFull = item[i].client_order_id;
+                                        string numUser = numberFull.Replace("AAe2ccbd47", "");
+                                        newOrder.NumberUser = Convert.ToInt32(numUser);
+                                    }
+                                    catch
+                                    {
+                                        // ignore
+                                    }
                                 }
-                                catch
-                                {
-                                    // ignore
-                                }
-
 
                                 newOrder.NumberMarket = item[i].id.ToString();
                                 newOrder.Volume = item[i].amount.ToDecimal();
