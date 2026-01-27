@@ -1751,6 +1751,10 @@ namespace OsEngine.Language
             "Eng:One of the sources does not have data connected. Do you want to continue? _" +
             "Ru:В одном из источников не подключены данные. Вы хотите продолжить? _");
 
+        public string Message104 => OsLocalization.ConvertToLocString(
+            "Eng:Connection during the non-trading period of the connector is interrupted_" +
+            "Ru:Подключение в неторговый период коннектора прервано_");
+
         public string TitleTester => OsLocalization.ConvertToLocString(
             "Eng:Exchange emulator_" +
             "Ru:Эмулятор биржи_");
