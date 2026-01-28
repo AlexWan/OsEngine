@@ -14,6 +14,7 @@ namespace OsEngine.Indicators
             if (state == IndicatorState.Configure)
             {
                 _series = CreateSeries("Volume", Color.DodgerBlue, IndicatorChartPaintType.Column, true);
+                _series.CanReBuildHistoricalValues = true;
             }
             else if (state == IndicatorState.Dispose)
             {
@@ -24,6 +25,11 @@ namespace OsEngine.Indicators
         public override void OnProcess(List<Candle> candles, int index)
         {
             _series.Values[index] = candles[index].Volume;
+
+            if(index - 1 >= 0)
+            {
+                _series.Values[index - 1] = candles[index - 1].Volume;
+            }
         }
     }
 }
