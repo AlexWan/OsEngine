@@ -597,21 +597,24 @@ namespace OsEngine.Market.Servers.MetaTrader5
                     }
 
                     position.PortfolioName = myPortfolio.Number;
-                    position.ValueCurrent = _mtApiClient.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_VOLUME).ToDecimal();
-                    position.ValueBegin = position.ValueCurrent;
-                    position.ValueBlocked = position.ValueCurrent;
+
                     position.UnrealizedPnl = _mtApiClient.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_PROFIT).ToDecimal();
 
                     long positionType = _mtApiClient.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_TYPE);
 
                     if (positionType == 0)
                     {
+                        position.ValueCurrent = _mtApiClient.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_VOLUME).ToDecimal();
                         position.SecurityNameCode = _mtApiClient.PositionGetSymbol(i) + "_LONG";
                     }
                     else if (positionType == 1)
                     {
+                        position.ValueCurrent = -_mtApiClient.PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE.POSITION_VOLUME).ToDecimal();
                         position.SecurityNameCode = _mtApiClient.PositionGetSymbol(i) + "_SHORT";
                     }
+
+                    position.ValueBegin = position.ValueCurrent;
+                    position.ValueBlocked = position.ValueCurrent;
 
                     if (positions.Count == 0)
                         positions.Add(position);
