@@ -2503,5 +2503,9 @@ namespace OsEngine.Language
          "Eng:The settings for non-trading periods for the Futures and Options market on the Moscow Exchange will be set. The old settings will be lost! Are you sure?_" +
          "Ru:Будут установлены настройки неторговых периодов для Срочного(фьючерсы и опционы) рынка на Московской бирже. Старые настройки будут утеряны! Вы уверены?");
 
+        public string Label671 => OsLocalization.ConvertToLocString(
+         "Eng:Reduce orders count on low deposit errors_" +
+         "Ru:Уменьшать кол-во ордеров при нехватке депозита");
+
     }
 }

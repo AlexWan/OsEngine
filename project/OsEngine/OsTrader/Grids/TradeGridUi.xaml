@@ -233,14 +233,15 @@
                     <Label Name="LabelFailOpenOrdersCountFact" Content="Current fail open orders" HorizontalAlignment="Left" Margin="9,63,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxFailOpenOrdersCountFact" Margin="221,63,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxFailCancelOrdersReactionIsOn" Content="Check cancel orders stream" HorizontalAlignment="Left" Margin="10,127,0,0" VerticalAlignment="Top" Width="312"/>
-                    <Label Name="LabelFailCancelOrdersCountToReaction" Content="Max fail cancel orders" HorizontalAlignment="Left" Margin="9,158,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxFailCancelOrdersCountToReaction" Margin="196,158,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <Label Name="LabelFailCancelOrdersCountFact" Content="Current fail cancel orders" HorizontalAlignment="Left" Margin="9,186,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxFailCancelOrdersCountFact" Margin="221,186,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <CheckBox Name="CheckBoxWaitOnStartConnectorIsOn" Content="Wait on start connector is in" HorizontalAlignment="Left" Margin="10,252,0,0" VerticalAlignment="Top" Width="312"/>
-                    <Label Name="LabelWaitSecondsOnStartConnector" Content="Wait seconds on start connector" HorizontalAlignment="Left" Margin="10,280,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxWaitSecondsOnStartConnector" Margin="221,280,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxFailCancelOrdersReactionIsOn" Content="Check cancel orders stream" HorizontalAlignment="Left" Margin="10,102,0,0" VerticalAlignment="Top" Width="312"/>
+                    <Label Name="LabelFailCancelOrdersCountToReaction" Content="Max fail cancel orders" HorizontalAlignment="Left" Margin="9,133,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxFailCancelOrdersCountToReaction" Margin="196,133,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <Label Name="LabelFailCancelOrdersCountFact" Content="Current fail cancel orders" HorizontalAlignment="Left" Margin="9,161,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxFailCancelOrdersCountFact" Margin="221,161,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxWaitOnStartConnectorIsOn" Content="Wait on start connector is in" HorizontalAlignment="Left" Margin="9,207,0,0" VerticalAlignment="Top" Width="312"/>
+                    <Label Name="LabelWaitSecondsOnStartConnector" Content="Wait seconds on start connector" HorizontalAlignment="Left" Margin="9,235,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxWaitSecondsOnStartConnector" Margin="220,235,16,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxReduceOrdersCountInMarketOnNoFundsError" Content="Reduce orders count on low deposit errors" HorizontalAlignment="Left" Margin="10,276,0,0" VerticalAlignment="Top" Width="312"/>
                 </Grid>
             </TabItem>
         </TabControl>

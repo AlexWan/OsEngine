@@ -363,8 +363,12 @@ namespace OsEngine.OsTrader.Grids
             CheckBoxWaitOnStartConnectorIsOn.Unchecked += CheckBoxWaitOnStartConnectorIsOn_Checked;
 
             TextBoxWaitSecondsOnStartConnector.Text = tradeGrid.ErrorsReaction.WaitSecondsOnStartConnector.ToString();
-            TextBoxWaitSecondsOnStartConnector.TextChanged += TextBoxWaitSecondsOnStartConnector_TextChanged; 
+            TextBoxWaitSecondsOnStartConnector.TextChanged += TextBoxWaitSecondsOnStartConnector_TextChanged;
 
+            CheckBoxReduceOrdersCountInMarketOnNoFundsError.IsChecked = tradeGrid.ErrorsReaction.ReduceOrdersCountInMarketOnNoFundsError;
+            CheckBoxReduceOrdersCountInMarketOnNoFundsError.Checked += CheckBoxReduceOrdersCountInMarketOnNoFundsError_Checked;
+            CheckBoxReduceOrdersCountInMarketOnNoFundsError.Unchecked += CheckBoxReduceOrdersCountInMarketOnNoFundsError_Checked;
+            
             // trailing up / down
 
             CheckBoxTrailingUpIsOn.IsChecked = tradeGrid.TrailingUp.TrailingUpIsOn;
@@ -532,6 +536,8 @@ namespace OsEngine.OsTrader.Grids
 
             CheckBoxWaitOnStartConnectorIsOn.Content = OsLocalization.Trader.Label582;
             LabelWaitSecondsOnStartConnector.Content = OsLocalization.Trader.Label583;
+
+            CheckBoxReduceOrdersCountInMarketOnNoFundsError.Content = OsLocalization.Trader.Label671;
 
             // trailing up
 
@@ -755,6 +761,9 @@ namespace OsEngine.OsTrader.Grids
                 CheckBoxStartGridByTimeOfDayIsOn.Checked += CheckBoxStartGridByTimeOfDayIsOn_Checked;
                 CheckBoxStartGridByTimeOfDayIsOn.Unchecked += CheckBoxStartGridByTimeOfDayIsOn_Checked;
 
+                TextBoxMaxOpenOrdersInMarket.Text = TradeGrid.MaxOpenOrdersInMarket.ToString();
+                TextBoxMaxCloseOrdersInMarket.Text = TradeGrid.MaxCloseOrdersInMarket.ToString();
+
                 CheckEnabledItems();
             }
             catch (Exception ex)
@@ -861,6 +870,19 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 TradeGrid.ErrorsReaction.WaitSecondsOnStartConnector = Convert.ToInt32(TextBoxWaitSecondsOnStartConnector.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxReduceOrdersCountInMarketOnNoFundsError_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.ErrorsReaction.ReduceOrdersCountInMarketOnNoFundsError = CheckBoxReduceOrdersCountInMarketOnNoFundsError.IsChecked.Value;
                 TradeGrid.Save();
             }
             catch

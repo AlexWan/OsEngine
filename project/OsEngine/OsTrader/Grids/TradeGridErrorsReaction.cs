@@ -4,10 +4,12 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using System;
+using System.Collections.Generic;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -17,12 +19,14 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridErrorsReaction(TradeGrid grid)
         {
-
+            _myGrid = grid;
         }
+
+        private TradeGrid _myGrid;
 
         public void Delete()
         {
-
+            _myGrid = null;
         }
 
         public bool FailOpenOrdersReactionIsOn = true;
@@ -41,6 +45,8 @@ namespace OsEngine.OsTrader.Grids
 
         public int WaitSecondsOnStartConnector = 30;
 
+        public bool ReduceOrdersCountInMarketOnNoFundsError = true;
+
         public string GetSaveString()
         {
             string result = "";
@@ -55,6 +61,8 @@ namespace OsEngine.OsTrader.Grids
 
             result += WaitOnStartConnectorIsOn + "@";
             result += WaitSecondsOnStartConnector + "@";
+
+            result += ReduceOrdersCountInMarketOnNoFundsError + "@";
 
             result += "@";
             result += "@";
@@ -82,11 +90,13 @@ namespace OsEngine.OsTrader.Grids
                 {
                     WaitOnStartConnectorIsOn = Convert.ToBoolean(values[6]);
                     WaitSecondsOnStartConnector = Convert.ToInt32(values[7]);
+                    ReduceOrdersCountInMarketOnNoFundsError = Convert.ToBoolean(values[8]);
                 }
                 catch
                 {
                     WaitOnStartConnectorIsOn = true;
                     WaitSecondsOnStartConnector = 30;
+                    ReduceOrdersCountInMarketOnNoFundsError = true;
                 }
             }
             catch (Exception e)
@@ -101,38 +111,56 @@ namespace OsEngine.OsTrader.Grids
 
         public void PositionClosingFailEvent(Position position)
         {
-            if(position.CloseOrders == null
-                || position.CloseOrders.Count == 0)
+            try
             {
-                return;
+                if (position.CloseOrders == null
+                 || position.CloseOrders.Count == 0)
+                {
+                    return;
+                }
+
+                Order lastOrder = position.CloseOrders[^1];
+
+                if (lastOrder.State == OrderStateType.Fail)
+                {
+                    FailCancelOrdersCountFact++;
+                }
+
+                TryFindNoFundsError(position, false);
             }
-
-            Order lastOrder = position.CloseOrders[^1];
-
-            if(lastOrder.State == OrderStateType.Fail)
+            catch(Exception error)
             {
-                FailCancelOrdersCountFact++;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
         public void PositionOpeningFailEvent(Position position)
         {
-            if (position.OpenOrders == null
+            try
+            {
+                if (position.OpenOrders == null
                 || position.OpenOrders.Count == 0)
-            {
-                return;
+                {
+                    return;
+                }
+
+                Order lastOrder = position.OpenOrders[^1];
+
+                if (lastOrder == null)
+                {
+                    return;
+                }
+
+                if (lastOrder.State == OrderStateType.Fail)
+                {
+                    FailOpenOrdersCountFact++;
+                }
+
+                TryFindNoFundsError(position,true);
             }
-
-            Order lastOrder = position.OpenOrders[^1];
-
-            if(lastOrder == null)
+            catch (Exception error)
             {
-                return;
-            }
-
-            if (lastOrder.State == OrderStateType.Fail)
-            {
-                FailOpenOrdersCountFact++;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -156,6 +184,85 @@ namespace OsEngine.OsTrader.Grids
             }
 
             return false;
+        }
+
+        #endregion
+
+        #region No funds error reaction
+
+        private void TryFindNoFundsError(Position position, bool isOpenOrder)
+        {
+            try
+            {
+                if (_myGrid == null)
+                {
+                    return;
+                }
+
+                if(_myGrid.Tab.StartProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
+                if(ReduceOrdersCountInMarketOnNoFundsError == false)
+                {
+                    return;
+                }
+
+                IServer server = _myGrid.Tab.Connector.MyServer;
+
+                if (server.ServerType != ServerType.TInvest)
+                {
+                    return;
+                }
+
+                AServer tInvest = (AServer)server;
+
+                List<LogMessage> messages = tInvest.Log.LastErrorMessages;
+
+                bool haveNoFundsError = false;
+
+                for (int i = 0; i < messages.Count; i++)
+                {
+                    string message = messages[i].Message;
+
+                    if(message.Contains(OsLocalization.Market.Label301))
+                    {
+                        haveNoFundsError = true;
+                        break;
+                    }
+                }
+
+                if(haveNoFundsError == true)
+                {
+                    if(isOpenOrder == true 
+                        && _myGrid.MaxOpenOrdersInMarket > 1)
+                    {
+                        _myGrid.MaxOpenOrdersInMarket--;
+                        _myGrid.Save();
+                        _myGrid.RePaintGrid();
+
+                        string message = "ERROR on open order. No money on deposit \n";
+                        message += "Reduce open orders in market. " + "\n";
+                        message += "New value open orders in market: " + _myGrid.MaxOpenOrdersInMarket;
+                        SendNewLogMessage(message, LogMessageType.Error);
+                    }
+                    else if( isOpenOrder == false)
+                    {
+                        _myGrid.MaxCloseOrdersInMarket--;
+                        _myGrid.Save();
+                        _myGrid.RePaintGrid();
+                        string message = "ERROR on close order. No money on deposit \n";
+                        message += "Reduce close orders in market. " + "\n";
+                        message += "New value close orders in market: " + _myGrid.MaxCloseOrdersInMarket;
+                        SendNewLogMessage(message, LogMessageType.Error);
+                    }
+                }
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
         }
 
         #endregion
