@@ -487,18 +487,18 @@ namespace OsEngine.Market.Servers.TraderNet
                         valueCurrent += balance * currval;
                     }
 
-                    //List<PosRest> posRest = response.result.ps.pos;
+                    List<PosRest> posRest = response.result.ps.pos;
 
-                    //if (posRest.Count > 0)
-                    //{
-                    //    for (int i = 0; i < posRest.Count; i++)
-                    //    {
-                    //        decimal.TryParse(posRest[i].market_value, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal market_value);
-                    //        decimal.TryParse(posRest[i].currval, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal currval);
+                    if (posRest.Count > 0)
+                    {
+                        for (int i = 0; i < posRest.Count; i++)
+                        {
+                            decimal.TryParse(posRest[i].market_value, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal market_value);
+                            decimal.TryParse(posRest[i].currval, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal currval);
 
-                    //        //valueCurrent += market_value * currval;
-                    //    }
-                    //}
+                            valueCurrent += market_value * currval;
+                        }
+                    }
 
                     if (_portfolioCurrency == "USD" && kurs != 0)
                     {
