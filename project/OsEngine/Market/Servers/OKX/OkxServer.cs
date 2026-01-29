@@ -1812,54 +1812,58 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                for (int i = 0; i < _webSocketPublic.Count; i++)
+                if (_webSocketPublic != null
+                    && _webSocketPublic.Count != 0)
                 {
-                    WebSocket webSocketPublic = _webSocketPublic[i];
-
-                    try
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        try
                         {
-                            if (_subscribedSecurities != null)
+                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                foreach (var item in _subscribedSecurities)
+                                if (_subscribedSecurities != null)
                                 {
-                                    string name = item.Key;
-                                    webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
-                                    webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
-
-                                    if (_extendedMarketData)
+                                    foreach (var item in _subscribedSecurities)
                                     {
-                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{name}\"}}]}}");
+                                        string name = item.Key;
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
 
-                                        if (name.Contains("SWAP"))
+                                        if (_extendedMarketData)
                                         {
-                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
-                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{name}\"}}]}}");
+                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{name}\"}}]}}");
+
+                                            if (name.Contains("SWAP"))
+                                            {
+                                                webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
+                                                webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{name}\"}}]}}");
+                                            }
+                                        }
+
+                                        if (item.Value)
+                                        {
+                                            //option
+                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}\"}}]}}");
                                         }
                                     }
-
-                                    if (item.Value)
-                                    {
-                                        //option
-                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}\"}}]}}");
-                                    }
                                 }
-                            }
 
-                            if (_baseOptionSerurities != null)
-                            {
-                                foreach (string name in _baseOptionSerurities)
+                                if (_baseOptionSerurities != null)
                                 {
-                                    webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"opt-summary\",\"instFamily\": \"{name}\"}}]}}");
-                                    webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}-SWAP\"}}]}}");
+                                    foreach (string name in _baseOptionSerurities)
+                                    {
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"opt-summary\",\"instFamily\": \"{name}\"}}]}}");
+                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}-SWAP\"}}]}}");
+                                    }
                                 }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
                     }
                 }
             }
