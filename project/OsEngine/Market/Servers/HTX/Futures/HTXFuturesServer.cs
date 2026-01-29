@@ -1231,8 +1231,8 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic.Count != 0
-               && _webSocketPublic != null)
+            if (_webSocketPublic != null
+                && _webSocketPublic.Count != 0)
             {
 
                 for (int i = 0; i < _webSocketPublic.Count; i++)

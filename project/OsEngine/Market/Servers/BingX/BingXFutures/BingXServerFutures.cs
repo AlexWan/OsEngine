@@ -1500,34 +1500,40 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             try
             {
-                for (int i = 0; i < _webSocketPublic.Count; i++)
+                if (_webSocketPublic != null
+                    && _webSocketPublic.Count != 0)
                 {
-                    WebSocket webSocketPublic = _webSocketPublic[i];
 
-                    try
+
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        try
                         {
-                            if (_subscribedSecutiries != null)
+                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
+                                if (_subscribedSecutiries != null)
                                 {
-                                    string name = _subscribedSecutiries[i2];
-
-                                    webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
-                                    webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
-
-                                    if (_extendedMarketData)
+                                    for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{name}@ticker\"}}");
+                                        string name = _subscribedSecutiries[i2];
+
+                                        webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
+                                        webSocketPublic.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
+
+                                        if (_extendedMarketData)
+                                        {
+                                            webSocketPublic.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{name}@ticker\"}}");
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
                     }
                 }
             }

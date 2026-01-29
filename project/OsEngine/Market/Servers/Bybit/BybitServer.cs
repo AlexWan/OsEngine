@@ -2247,44 +2247,48 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                for (int i = 0; i < _webSocketPublicSpot.Count; i++)
+                if (_webSocketPublicSpot != null
+                    && _webSocketPublicSpot.Count != 0)
                 {
-                    WebSocket webSocketPublicSpot = _webSocketPublicSpot[i];
-
-                    webSocketPublicSpot.OnOpen -= WebSocketPublic_Opened;
-                    webSocketPublicSpot.OnMessage -= WebSocketPublic_MessageReceivedSpot;
-                    webSocketPublicSpot.OnError -= WebSocketPublic_Error;
-                    webSocketPublicSpot.OnClose -= WebSocketPublic_Closed;
-
-                    try
+                    for (int i = 0; i < _webSocketPublicSpot.Count; i++)
                     {
-                        if (webSocketPublicSpot != null && webSocketPublicSpot?.ReadyState == WebSocketState.Open)
-                        {
-                            for (int i2 = 0; i2 < SubscribeSecuritySpot.Count; i2++)
-                            {
-                                string s = SubscribeSecuritySpot[i2].Split('.')[0];
-                                webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
-                                webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+                        WebSocket webSocketPublicSpot = _webSocketPublicSpot[i];
 
-                                if (_extendedMarketData)
+                        webSocketPublicSpot.OnOpen -= WebSocketPublic_Opened;
+                        webSocketPublicSpot.OnMessage -= WebSocketPublic_MessageReceivedSpot;
+                        webSocketPublicSpot.OnError -= WebSocketPublic_Error;
+                        webSocketPublicSpot.OnClose -= WebSocketPublic_Closed;
+
+                        try
+                        {
+                            if (webSocketPublicSpot != null && webSocketPublicSpot?.ReadyState == WebSocketState.Open)
+                            {
+                                for (int i2 = 0; i2 < SubscribeSecuritySpot.Count; i2++)
                                 {
-                                    webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    string s = SubscribeSecuritySpot[i2].Split('.')[0];
+                                    webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
+                                    webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+
+                                    if (_extendedMarketData)
+                                    {
+                                        webSocketPublicSpot?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    }
                                 }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                    }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
 
-                    if (webSocketPublicSpot.ReadyState == WebSocketState.Open)
-                    {
-                        webSocketPublicSpot.CloseAsync();
+                        if (webSocketPublicSpot.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublicSpot.CloseAsync();
+                        }
+                        webSocketPublicSpot.Dispose();
+                        webSocketPublicSpot = null;
                     }
-                    webSocketPublicSpot.Dispose();
-                    webSocketPublicSpot = null;
-                }
+                }    
             }
             catch (Exception ex)
             {
@@ -2295,43 +2299,47 @@ namespace OsEngine.Market.Servers.Bybit
 
             try
             {
-                for (int i = 0; i < _webSocketPublicLinear.Count; i++)
+                if (_webSocketPublicLinear != null
+                    && _webSocketPublicLinear.Count != 0)
                 {
-                    WebSocket webSocketPublicLinear = _webSocketPublicLinear[i];
-                    webSocketPublicLinear.OnOpen -= WebSocketPublic_Opened;
-                    webSocketPublicLinear.OnMessage -= WebSocketPublic_MessageReceivedLinear;
-                    webSocketPublicLinear.OnError -= WebSocketPublic_Error;
-                    webSocketPublicLinear.OnClose -= WebSocketPublic_Closed;
-
-                    try
+                    for (int i = 0; i < _webSocketPublicLinear.Count; i++)
                     {
-                        if (webSocketPublicLinear != null && webSocketPublicLinear?.ReadyState == WebSocketState.Open)
-                        {
-                            for (int i2 = 0; i2 < SubscribeSecurityLinear.Count; i2++)
-                            {
-                                string s = SubscribeSecurityLinear[i2].Split('.')[0];
-                                webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
-                                webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+                        WebSocket webSocketPublicLinear = _webSocketPublicLinear[i];
+                        webSocketPublicLinear.OnOpen -= WebSocketPublic_Opened;
+                        webSocketPublicLinear.OnMessage -= WebSocketPublic_MessageReceivedLinear;
+                        webSocketPublicLinear.OnError -= WebSocketPublic_Error;
+                        webSocketPublicLinear.OnClose -= WebSocketPublic_Closed;
 
-                                if (_extendedMarketData)
+                        try
+                        {
+                            if (webSocketPublicLinear != null && webSocketPublicLinear?.ReadyState == WebSocketState.Open)
+                            {
+                                for (int i2 = 0; i2 < SubscribeSecurityLinear.Count; i2++)
                                 {
-                                    webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    string s = SubscribeSecurityLinear[i2].Split('.')[0];
+                                    webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
+                                    webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+
+                                    if (_extendedMarketData)
+                                    {
+                                        webSocketPublicLinear?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    }
                                 }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                    }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
 
-                    if (webSocketPublicLinear.ReadyState == WebSocketState.Open)
-                    {
-                        webSocketPublicLinear.CloseAsync();
-                    }
+                        if (webSocketPublicLinear.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublicLinear.CloseAsync();
+                        }
 
-                    webSocketPublicLinear.Dispose();
-                    webSocketPublicLinear = null;
+                        webSocketPublicLinear.Dispose();
+                        webSocketPublicLinear = null;
+                    }
                 }
             }
             catch (Exception ex)
@@ -2343,43 +2351,47 @@ namespace OsEngine.Market.Servers.Bybit
 
             try
             {
-                for (int i = 0; i < _webSocketPublicInverse.Count; i++)
+                if (_webSocketPublicInverse != null
+                    && _webSocketPublicInverse.Count != 0)
                 {
-                    WebSocket webSocketPublicInverse = _webSocketPublicInverse[i];
-                    webSocketPublicInverse.OnOpen -= WebSocketPublic_Opened;
-                    webSocketPublicInverse.OnMessage -= WebSocketPublicInverse_OnMessage;
-                    webSocketPublicInverse.OnError -= WebSocketPublic_Error;
-                    webSocketPublicInverse.OnClose -= WebSocketPublic_Closed;
-
-                    try
+                    for (int i = 0; i < _webSocketPublicInverse.Count; i++)
                     {
-                        if (webSocketPublicInverse != null && webSocketPublicInverse?.ReadyState == WebSocketState.Open)
-                        {
-                            for (int i2 = 0; i2 < SubscribeSecurityInverse.Count; i2++)
-                            {
-                                string s = SubscribeSecurityInverse[i2].Split('.')[0];
-                                webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
-                                webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+                        WebSocket webSocketPublicInverse = _webSocketPublicInverse[i];
+                        webSocketPublicInverse.OnOpen -= WebSocketPublic_Opened;
+                        webSocketPublicInverse.OnMessage -= WebSocketPublicInverse_OnMessage;
+                        webSocketPublicInverse.OnError -= WebSocketPublic_Error;
+                        webSocketPublicInverse.OnClose -= WebSocketPublic_Closed;
 
-                                if (_extendedMarketData)
+                        try
+                        {
+                            if (webSocketPublicInverse != null && webSocketPublicInverse?.ReadyState == WebSocketState.Open)
+                            {
+                                for (int i2 = 0; i2 < SubscribeSecurityInverse.Count; i2++)
                                 {
-                                    webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    string s = SubscribeSecurityInverse[i2].Split('.')[0];
+                                    webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
+                                    webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+
+                                    if (_extendedMarketData)
+                                    {
+                                        webSocketPublicInverse?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    }
                                 }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                    }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
 
-                    if (webSocketPublicInverse.ReadyState == WebSocketState.Open)
-                    {
-                        webSocketPublicInverse.CloseAsync();
-                    }
+                        if (webSocketPublicInverse.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublicInverse.CloseAsync();
+                        }
 
-                    webSocketPublicInverse.Dispose();
-                    webSocketPublicInverse = null;
+                        webSocketPublicInverse.Dispose();
+                        webSocketPublicInverse = null;
+                    }
                 }
             }
             catch (Exception ex)
@@ -2391,45 +2403,49 @@ namespace OsEngine.Market.Servers.Bybit
 
             try
             {
-                for (int i = 0; i < _webSocketPublicOption.Count; i++)
+                if (_webSocketPublicOption != null
+                    && _webSocketPublicOption.Count != 0)
                 {
-                    WebSocket webSocketPublicOption = _webSocketPublicOption[i];
-                    webSocketPublicOption.OnOpen -= WebSocketPublic_Opened;
-                    webSocketPublicOption.OnMessage -= WebSocketPublicOption_OnMessage;
-                    webSocketPublicOption.OnError -= WebSocketPublic_Error;
-                    webSocketPublicOption.OnClose -= WebSocketPublic_Closed;
-
-                    try
+                    for (int i = 0; i < _webSocketPublicOption.Count; i++)
                     {
-                        if (webSocketPublicOption != null && webSocketPublicOption?.ReadyState == WebSocketState.Open)
+                        WebSocket webSocketPublicOption = _webSocketPublicOption[i];
+                        webSocketPublicOption.OnOpen -= WebSocketPublic_Opened;
+                        webSocketPublicOption.OnMessage -= WebSocketPublicOption_OnMessage;
+                        webSocketPublicOption.OnError -= WebSocketPublic_Error;
+                        webSocketPublicOption.OnClose -= WebSocketPublic_Closed;
+
+                        try
                         {
-                            for (int i2 = 0; i2 < SubscribedSecurityOption.Count; i2++)
+                            if (webSocketPublicOption != null && webSocketPublicOption?.ReadyState == WebSocketState.Open)
                             {
-                                string s = SubscribedSecurityOption[i2];
-                                string baseCoin = s.Split('.')[0];
-
-                                webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
-                                webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.25.{s}\" ] }}");
-
-                                if (_extendedMarketData)
+                                for (int i2 = 0; i2 < SubscribedSecurityOption.Count; i2++)
                                 {
-                                    webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    string s = SubscribedSecurityOption[i2];
+                                    string baseCoin = s.Split('.')[0];
+
+                                    webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
+                                    webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.25.{s}\" ] }}");
+
+                                    if (_extendedMarketData)
+                                    {
+                                        webSocketPublicOption.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    }
                                 }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                    }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
 
-                    if (webSocketPublicOption.ReadyState == WebSocketState.Open)
-                    {
-                        webSocketPublicOption.CloseAsync();
-                    }
+                        if (webSocketPublicOption.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublicOption.CloseAsync();
+                        }
 
-                    webSocketPublicOption.Dispose();
-                    webSocketPublicOption = null;
+                        webSocketPublicOption.Dispose();
+                        webSocketPublicOption = null;
+                    }
                 }
             }
             catch (Exception ex)
