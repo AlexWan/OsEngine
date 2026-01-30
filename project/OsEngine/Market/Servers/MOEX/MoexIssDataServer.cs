@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -518,7 +523,7 @@ namespace OsEngine.Market.Servers.MOEX
                     while (newCandle.TimeStart.Minute != 0
                         && newCandle.TimeStart.Minute % endTf != 0)
                     {
-                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes(1);
+                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes(-1);
                     }
                 }
                 if (startTf == 10
@@ -527,7 +532,7 @@ namespace OsEngine.Market.Servers.MOEX
                     while (newCandle.TimeStart.Minute != 0
                         && newCandle.TimeStart.Minute != 30)
                     {
-                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes(1);
+                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes(-1);
                     }
                 }
 
@@ -537,7 +542,7 @@ namespace OsEngine.Market.Servers.MOEX
                     while (newCandle.TimeStart.Minute != 0
                         && newCandle.TimeStart.Minute % 5 != 0)
                     {
-                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes(1);
+                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes(-1);
                     }
                 }
 
