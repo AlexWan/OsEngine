@@ -1509,7 +1509,7 @@ namespace OsEngine.OsData
             }
 
             // QSH стаканы рубим по 10 дней
-            if (TimeFrame == TimeFrame.MarketDepth && MDType == MarketDepthsLoaderType.History)
+            else if (TimeFrame == TimeFrame.MarketDepth && MDType == MarketDepthsLoaderType.History)
             {
                 interval = new TimeSpan(10, 0, 0, 0);
             }
