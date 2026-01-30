@@ -407,7 +407,7 @@ namespace OsEngine.Market.Servers.TraderNet
             while (true)
             {
                 try
-                {
+                {                  
                     Thread.Sleep(5000);
 
                     if (IsCompletelyDeleted == true)
@@ -1201,6 +1201,8 @@ namespace OsEngine.Market.Servers.TraderNet
                 {
                     return;
                 }
+
+                Thread.Sleep(5000);
 
                 _webSocket.SendAsync("[\"portfolio\"]");
                 _webSocket.SendAsync("[\"orders\"]");
