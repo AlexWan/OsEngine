@@ -35,6 +35,7 @@ namespace OsEngine.Robots.Grids
         private StrategyParameterInt _maxGridsCount;
         private StrategyParameterInt _bollingerLen;
         private StrategyParameterDecimal _bollingerDev;
+        private StrategyParameterDecimal _bollingerUpPercent;
 
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
@@ -80,8 +81,6 @@ namespace OsEngine.Robots.Grids
             }
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On"});
-            _bollingerLen = CreateParameter("Bollinger length", 50, 15, 20, 1);
-            _bollingerDev = CreateParameter("Bollinger deviation", 1.5m, 0.7m, 2.5m, 0.1m);
 
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4);
@@ -95,6 +94,12 @@ namespace OsEngine.Robots.Grids
 
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
+
+            _bollingerLen = CreateParameter("Bollinger length", 230, 15, 300, 10, "Bollinger");
+            _bollingerDev = CreateParameter("Bollinger deviation", 2.1m, 0.7m, 2.5m, 0.1m, "Bollinger");
+            _bollingerUpPercent = CreateParameter("Bollinger up percent", 80m, 0.7m, 2.5m, 0.1m, "Bollinger");
+            StrategyParameterButton button = CreateParameterButton("Show bollinger ranking", "Bollinger");
+            button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
 
             _tabScreener.CreateCandleIndicator(1, "Bollinger", new List<string>() { "100", "2" }, "Prime");
 
@@ -151,10 +156,12 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
-            if (candles.Count < 5)
+            if (candles.Count < 25)
             {
                 return;
             }
+
+            SetBollingerRanking(candles, tab);
 
             if (tab.GridsMaster.TradeGrids.Count != 0)
             {
@@ -210,7 +217,7 @@ namespace OsEngine.Robots.Grids
             decimal lastPrice = candles[^1].Close;
 
             if (lastPrice < lastDownLine
-                && _regime.ValueString != "OnlyShort")
+                && _bollingersUpLinePercent > _bollingerUpPercent.ValueDecimal)
             {
                 ThrowGrid(lastPrice, Side.Buy, tab);
             }
@@ -352,6 +359,135 @@ namespace OsEngine.Robots.Grids
             }
         }
 
+
+        #region Bollinger ranking
+
+        private List<BollingerRankingValue> _bollingerRankingValues = new List<BollingerRankingValue>();
+
+        private void SetBollingerRanking(List<Candle> candles, BotTabSimple tab)
+        {
+            BollingerRankingValue value = null;
+
+            for (int i = 0; i < _bollingerRankingValues.Count; i++)
+            {
+                if (_bollingerRankingValues[i].SecurityName == tab.Connector.SecurityName)
+                {
+                    value = _bollingerRankingValues[i];
+                    value.LastTimeUpdate = tab.TimeServerCurrent;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < _bollingerRankingValues.Count; i++)
+            {
+                if (_bollingerRankingValues[i].LastTimeUpdate > tab.TimeServerCurrent)
+                {
+                    _bollingerRankingValues.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                if (_bollingerRankingValues[i].LastTimeUpdate.AddHours(2) < tab.TimeServerCurrent)
+                {
+                    _bollingerRankingValues.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+            }
+
+            if (value == null)
+            {
+                value = new BollingerRankingValue();
+                value.SecurityName = tab.Connector.SecurityName;
+
+                _bollingerRankingValues.Add(value);
+            }
+
+            Aindicator bollinger = (Aindicator)tab.Indicators[0];
+
+            if (bollinger.ParametersDigit[0].Value != _bollingerLen.ValueInt
+                || bollinger.ParametersDigit[1].Value != _bollingerDev.ValueDecimal)
+            {
+                bollinger.ParametersDigit[0].Value = _bollingerLen.ValueInt;
+                bollinger.ParametersDigit[1].Value = _bollingerDev.ValueDecimal;
+                bollinger.Save();
+                bollinger.Reload();
+            }
+
+            if (bollinger.DataSeries[0].Values.Count == 0 ||
+                bollinger.DataSeries[0].Last == 0 ||
+                bollinger.DataSeries[1].Values.Count == 0 ||
+                bollinger.DataSeries[1].Last == 0)
+            {
+                return;
+            }
+
+            decimal lastUpLine = bollinger.DataSeries[0].Last;
+            decimal lastDownLine = bollinger.DataSeries[1].Last;
+
+            if (lastUpLine == 0
+                || lastDownLine == 0)
+            {
+                return;
+            }
+
+            decimal lastPrice = candles[^1].Close;
+
+            if (lastPrice < lastDownLine)
+            {
+                value.PositionToBollinger = -1;
+            }
+            else if (lastPrice > lastUpLine)
+            {
+                value.PositionToBollinger = 1;
+            }
+            else
+            {
+                value.PositionToBollinger = 0;
+            }
+
+            decimal upBollinger = 0;
+            decimal downBollinger = 0;
+
+            for (int i = 0; i < _bollingerRankingValues.Count; i++)
+            {
+                if (_bollingerRankingValues[i].PositionToBollinger == 1)
+                {
+                    upBollinger++;
+                }
+                else if(_bollingerRankingValues[i].PositionToBollinger == -1)
+                {
+                    downBollinger++;
+                }
+            }
+
+            _bollingersUpLinePercent = upBollinger / (Convert.ToDecimal(_bollingerRankingValues.Count)/100);
+
+            _bollingersDownLinePercent = downBollinger / (Convert.ToDecimal(_bollingerRankingValues.Count) / 100);
+
+        }
+
+        private decimal _bollingersUpLinePercent = 0;
+        private decimal _bollingersDownLinePercent = 0;
+
+        private void Button_UserClickOnButtonEvent()
+        {
+            if(_tabScreener.IsConnected == false
+                || _tabScreener.Tabs.Count == 0)
+            {
+                SendNewLogMessage("No connection. Set sources", Logging.LogMessageType.Error);
+            }
+
+            string message = "Bollinger Ranking. Time: " 
+                +_tabScreener.Tabs[0].TimeServerCurrent.ToString() + "\n";
+
+            message += "Price higher up bollinger line percent: " + _bollingersUpLinePercent + "\n";
+            message += "Price lower down bollinger line percent: " + _bollingersDownLinePercent + "\n";
+
+            SendNewLogMessage(message, Logging.LogMessageType.Error);
+        }
+
+        #endregion
+
         #region Non trade periods
 
         // Trade periods
@@ -360,39 +496,48 @@ namespace OsEngine.Robots.Grids
 
         private void CopyNonTradePeriodsSettingsInGrid(TradeGrid grid)
         {
-            /*
+
             grid.NonTradePeriods.NonTradePeriod1Regime = TradeGridRegime.CloseForced;
 
-            grid.NonTradePeriods.SettingsPeriod1.TradeInMonday = _tradeInMonday.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.TradeInTuesday = _tradeInTuesday.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.TradeInWednesday = _tradeInWednesday.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.TradeInThursday = _tradeInThursday.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.TradeInFriday = _tradeInFriday.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.TradeInSaturday = _tradeInSaturday.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.TradeInSunday = _tradeInSunday.ValueBool;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInMonday = _tradePeriodsSettings.TradeInMonday;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInTuesday = _tradePeriodsSettings.TradeInTuesday;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInWednesday = _tradePeriodsSettings.TradeInWednesday;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInThursday = _tradePeriodsSettings.TradeInThursday;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInFriday = _tradePeriodsSettings.TradeInFriday;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInSaturday = _tradePeriodsSettings.TradeInSaturday;
+            grid.NonTradePeriods.SettingsPeriod1.TradeInSunday = _tradePeriodsSettings.TradeInSunday;
 
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1OnOff = _nonTradePeriod1OnOff.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1Start = _nonTradePeriod1Start.Value;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1End = _nonTradePeriod1End.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1OnOff = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1Start = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1End = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End;
 
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod2OnOff = _nonTradePeriod2OnOff.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod2Start = _nonTradePeriod2Start.Value;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod2End = _nonTradePeriod2End.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod2OnOff = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod2Start = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod2End = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End;
 
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod3OnOff = _nonTradePeriod3OnOff.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod3Start = _nonTradePeriod3Start.Value;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod3End = _nonTradePeriod3End.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod3OnOff = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod3Start = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod3End = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End;
 
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod4OnOff = _nonTradePeriod4OnOff.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod4Start = _nonTradePeriod4Start.Value;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod4End = _nonTradePeriod4End.Value;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod4OnOff = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod4OnOff;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod4Start = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod4Start;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod4End = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod4End;
 
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod5OnOff = _nonTradePeriod5OnOff.ValueBool;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod5Start = _nonTradePeriod5Start.Value;
-            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod5End = _nonTradePeriod5End.Value;*/
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod5OnOff = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod5OnOff;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod5Start = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod5Start;
+            grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod5End = _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod5End;
 
         }
 
         #endregion
+    }
+
+    public class BollingerRankingValue
+    {
+        public string SecurityName;
+
+        public int PositionToBollinger; // 0: между линий 1: выше боллиндрежа -1: ниже боллинджера
+
+        public DateTime LastTimeUpdate;
     }
 }

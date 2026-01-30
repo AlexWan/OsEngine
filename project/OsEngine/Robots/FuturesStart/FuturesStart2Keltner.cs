@@ -208,9 +208,9 @@ namespace OsEngine.Robots.FuturesStart
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _keltnerEmaLength = CreateParameter("Keltner ema Length", 115, 20, 300, 10, "Base");
-            _keltnerAtrLength = CreateParameter("Keltner atr Length", 20, 20, 300, 10, "Base");
-            _keltnerDeviation = CreateParameter("Keltner deviation", 3m, 1, 4, 0.1m, "Base");
+            _keltnerEmaLength = CreateParameter("Keltner ema Length", 150, 20, 300, 10, "Base");
+            _keltnerAtrLength = CreateParameter("Keltner atr Length", 24, 20, 300, 10, "Base");
+            _keltnerDeviation = CreateParameter("Keltner deviation", 3.9m, 1, 4, 0.1m, "Base");
                 
              // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
