@@ -165,6 +165,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             _queueTrades = new ConcurrentQueue<string>();
             _queueMarketDepths = new ConcurrentQueue<string>();
 
+            _isBalanceSubscribed = false;
+
             Disconnect();
         }
 
@@ -574,6 +576,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                     {
                         string[] current = response[i];
 
+                        if (CheckCandlesToZeroData(current))
+                        {
+                            continue;
+                        }
+
                         Candle candle = new Candle();
 
                         candle.State = CandleState.Finished;
@@ -600,6 +607,19 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
 
             return null;
+        }
+
+        private bool CheckCandlesToZeroData(string[] item)
+        {
+            if (item[5].ToDecimal() == 0 ||
+                item[2].ToDecimal() == 0 ||
+                item[3].ToDecimal() == 0 ||
+                item[4].ToDecimal() == 0)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -1211,7 +1231,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                         return;
                     }
 
-                    Thread.Sleep(20000);
+                    Thread.Sleep(14000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
@@ -1262,6 +1282,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
+        private bool _isBalanceSubscribed = false;
+
         public void Subscribe(Security security)
         {
             _rateGateSubscribe.WaitToProceed();
@@ -1287,7 +1309,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
                     && _subscribedSecurities.Count != 0
-                    && _subscribedSecurities.Count % 50 == 0)
+                    && _subscribedSecurities.Count % 20 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1318,20 +1340,21 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                     if (_extendedMarketData)
                     {
-                        if (_extendedMarketData)
-                        {
-                            SubscribeTicker(security.Name, webSocketPublic);
-                        }
+                        SubscribeTicker(security.Name, webSocketPublic);
                     }
                 }
 
                 if (_webSocketPrivate != null)
                 {
-                    SubscribePortfolio();
+                    if (!_isBalanceSubscribed)
+                    {
+                        SubscribePortfolio();
+                        _isBalanceSubscribed = true;
+                    }
+
                     SubscribeOrders(security.Name);
                     SubscribeUserTrades(security.Name);
                 }
-
             }
             catch (Exception exception)
             {
@@ -1341,23 +1364,37 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private void SubscribeTicker(string security, WebSocket webSocketPublic)
         {
-            long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            try
+            {
+                long time = TimeManager.GetUnixTimeStampSeconds();
+                webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void SubscribeMarketDepth(string security, WebSocket webSocketPublic)
         {
-            AddMarketDepth(security);
-
-            string level = "5";
-
-            if (((ServerParameterBool)ServerParameters[10]).Value == true)
+            try
             {
-                level = "20";
-            }
+                AddMarketDepth(security);
 
-            long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"100ms\"]}}");
+                string level = "5";
+
+                if (((ServerParameterBool)ServerParameters[10]).Value == true)
+                {
+                    level = "20";
+                }
+
+                long time = TimeManager.GetUnixTimeStampSeconds();
+                webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"100ms\"]}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void AddMarketDepth(string name)
@@ -1370,35 +1407,63 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private void SubscribeTrades(string security, WebSocket webSocketPublic)
         {
-            long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            try
+            {
+                long time = TimeManager.GetUnixTimeStampSeconds();
+                webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"spot.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void SubscribeOrders(string security)
         {
-            long timeStamp = TimeManager.GetUnixTimeStampSeconds();
-            string param = $"channel=spot.orders&event=subscribe&time={timeStamp}";
-            string sign = SingData(param);
+            try
+            {
+                long timeStamp = TimeManager.GetUnixTimeStampSeconds();
+                string param = $"channel=spot.orders&event=subscribe&time={timeStamp}";
+                string sign = SingData(param);
 
-            _webSocketPrivate.SendAsync($"{{\"id\": {timeStamp * 1000000},\"time\": {timeStamp},\"channel\": \"spot.orders\",\"event\": \"subscribe\",\"payload\": [\"{security}\"],\"auth\": {{\"method\": \"api_key\",\"KEY\": \"{_publicKey}\",\"SIGN\": \"{sign}\"}}}}");
+                _webSocketPrivate.SendAsync($"{{\"id\": {timeStamp * 1000000},\"time\": {timeStamp},\"channel\": \"spot.orders\",\"event\": \"subscribe\",\"payload\": [\"{security}\"],\"auth\": {{\"method\": \"api_key\",\"KEY\": \"{_publicKey}\",\"SIGN\": \"{sign}\"}}}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void SubscribeUserTrades(string security)
         {
-            long timeStamp = TimeManager.GetUnixTimeStampSeconds();
-            string param = $"channel=spot.usertrades&event=subscribe&time={timeStamp}";
-            string sign = SingData(param);
+            try
+            {
+                long timeStamp = TimeManager.GetUnixTimeStampSeconds();
+                string param = $"channel=spot.usertrades&event=subscribe&time={timeStamp}";
+                string sign = SingData(param);
 
-            _webSocketPrivate.SendAsync($"{{\"id\": {timeStamp * 1000000},\"time\": {timeStamp},\"channel\": \"spot.usertrades\",\"event\": \"subscribe\",\"payload\": [\"{security}\"],\"auth\": {{\"method\": \"api_key\",\"KEY\": \"{_publicKey}\",\"SIGN\": \"{sign}\"}}}}");
+                _webSocketPrivate.SendAsync($"{{\"id\": {timeStamp * 1000000},\"time\": {timeStamp},\"channel\": \"spot.usertrades\",\"event\": \"subscribe\",\"payload\": [\"{security}\"],\"auth\": {{\"method\": \"api_key\",\"KEY\": \"{_publicKey}\",\"SIGN\": \"{sign}\"}}}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void SubscribePortfolio()
         {
-            long timeStamp = TimeManager.GetUnixTimeStampSeconds();
-            string param = $"channel=spot.balances&event=subscribe&time={timeStamp}";
-            string sign = SingData(param);
+            try
+            {
+                long timeStamp = TimeManager.GetUnixTimeStampSeconds();
+                string param = $"channel=spot.balances&event=subscribe&time={timeStamp}";
+                string sign = SingData(param);
 
-            _webSocketPrivate.SendAsync($"{{\"id\": {timeStamp * 1000000},\"time\": {timeStamp},\"channel\": \"spot.balances\",\"event\": \"subscribe\",\"auth\": {{\"method\": \"api_key\",\"KEY\": \"{_publicKey}\",\"SIGN\": \"{sign}\"}}}}");
+                _webSocketPrivate.SendAsync($"{{\"id\": {timeStamp * 1000000},\"time\": {timeStamp},\"channel\": \"spot.balances\",\"event\": \"subscribe\",\"auth\": {{\"method\": \"api_key\",\"KEY\": \"{_publicKey}\",\"SIGN\": \"{sign}\"}}}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void UnsubscribeFromAllWebSockets()
