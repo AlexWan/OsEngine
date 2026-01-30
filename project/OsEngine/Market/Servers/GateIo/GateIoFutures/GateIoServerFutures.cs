@@ -17,6 +17,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -235,7 +236,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             try
             {
                 UnsubscribeFromAllWebSockets();
-                _subscribedSecutiries.Clear();
+                _subscribedSecurities.Clear();
                 _allDepths.Clear();
 
                 DeleteWebSocketConnection();
@@ -1340,7 +1341,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         return;
                     }
 
-                    Thread.Sleep(20000);
+                    Thread.Sleep(14000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
@@ -1388,9 +1389,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         #region 9 WebSocket security subscribe
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(600));
 
-        private List<Security> _subscribedSecutiries = new List<Security>();
+        private List<Security> _subscribedSecurities = new List<Security>();
+
+        private bool _isBalanceSubscribed = false;
 
         public void Subscribe(Security security)
         {
@@ -1403,18 +1406,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     return;
                 }
 
-                if (_subscribedSecutiries != null)
+                if (_subscribedSecurities.Any(s => s.Name.Equals(security.Name)))
                 {
-                    for (int i = 0; i < _subscribedSecutiries.Count; i++)
-                    {
-                        if (_subscribedSecutiries[i].Name.Equals(security.Name))
-                        {
-                            return;
-                        }
-                    }
+                    return;
                 }
 
-                _subscribedSecutiries.Add(security);
+                _subscribedSecurities.Add(security);
 
                 if (_webSocketPublic.Count == 0)
                 {
@@ -1424,8 +1421,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
-                    && _subscribedSecutiries.Count != 0
-                    && _subscribedSecutiries.Count % 50 == 0)
+                    && _subscribedSecurities.Count != 0
+                    && _subscribedSecurities.Count % 20 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1456,19 +1453,21 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                     if (_extendedMarketData)
                     {
-                        if (_extendedMarketData)
-                        {
-                            SubscribeContractStats(security.Name, webSocketPublic);
-                            SubscribeTicker(security.Name, webSocketPublic);
-                            GetContract(security.Name);
-                            GetFundingHistory(security.Name);
-                        }
+                        SubscribeContractStats(security.Name, webSocketPublic);
+                        SubscribeTicker(security.Name, webSocketPublic);
+                        GetContract(security.Name);
+                        GetFundingHistory(security.Name);
                     }
                 }
 
                 if (_webSocketPrivate != null)
                 {
-                    SubscribePortfolio();
+                    if (!_isBalanceSubscribed)
+                    {
+                        SubscribePortfolio();
+                        _isBalanceSubscribed = true;
+                    }
+
                     SubscribeOrders(security.Name);
                     SubscribeMyTrades(security.Name);
                 }
@@ -1570,53 +1569,95 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private void SubscribeTicker(string security, WebSocket webSocketPublic)
         {
-            long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            try
+            {
+                long time = TimeManager.GetUnixTimeStampSeconds();
+                webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void SubscribeContractStats(string security, WebSocket webSocketPublic)
         {
-            long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"1m\"]}}");
+            try
+            {
+                long time = TimeManager.GetUnixTimeStampSeconds();
+                webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"1m\"]}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void SubscribeMarketDepth(string security, WebSocket webSocketPublic)
         {
-            AddMarketDepth(security);
-
-            string level = "1";
-
-            if (((ServerParameterBool)ServerParameters[13]).Value == true)
+            try
             {
-                level = "20";
-            }
+                AddMarketDepth(security);
 
-            long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"0\"]}}");
+                string level = "1";
+
+                if (((ServerParameterBool)ServerParameters[13]).Value == true)
+                {
+                    level = "20";
+                }
+
+                long time = TimeManager.GetUnixTimeStampSeconds();
+                webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"0\"]}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void SubscribeTrades(string security, WebSocket webSocketPublic)
         {
-            long time = TimeManager.GetUnixTimeStampSeconds();
-            webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            try
+            {
+                long time = TimeManager.GetUnixTimeStampSeconds();
+                webSocketPublic?.SendAsync($"{{\"time\":{time},\"channel\":\"futures.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void SubscribeOrders(string security)
         {
-            long timeStamp = TimeManager.GetUnixTimeStampSeconds();
-            string param = string.Format("channel={0}&event={1}&time={2}", "futures.orders", "subscribe", timeStamp);
-            string sign = SingData(param);
+            try
+            {
+                long timeStamp = TimeManager.GetUnixTimeStampSeconds();
+                string param = string.Format("channel={0}&event={1}&time={2}", "futures.orders", "subscribe", timeStamp);
+                string sign = SingData(param);
 
-            _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.orders\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+                _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.orders\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void SubscribeMyTrades(string security)
         {
-            long timeStamp = TimeManager.GetUnixTimeStampSeconds();
-            string param = string.Format("channel={0}&event={1}&time={2}", "futures.usertrades", "subscribe", timeStamp);
-            string sign = SingData(param);
+            try
+            {
+                long timeStamp = TimeManager.GetUnixTimeStampSeconds();
+                string param = string.Format("channel={0}&event={1}&time={2}", "futures.usertrades", "subscribe", timeStamp);
+                string sign = SingData(param);
 
-            _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.usertrades\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+                _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.usertrades\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\", \"{security}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void AddMarketDepth(string name)
@@ -1629,11 +1670,18 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private void SubscribePortfolio()
         {
-            long timeStamp = TimeManager.GetUnixTimeStampSeconds();
-            string param = string.Format("channel={0}&event={1}&time={2}", "futures.balances", "subscribe", timeStamp);
-            string sign = SingData(param);
+            try
+            {
+                long timeStamp = TimeManager.GetUnixTimeStampSeconds();
+                string param = string.Format("channel={0}&event={1}&time={2}", "futures.balances", "subscribe", timeStamp);
+                string sign = SingData(param);
 
-            _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.balances\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+                _webSocketPrivate.SendAsync($"{{\"time\":{timeStamp},\"channel\":\"futures.balances\",\"event\":\"subscribe\",\"payload\":[\"{_userId}\"],\"auth\":{{\"method\":\"api_key\",\"KEY\":\"{_publicKey}\",\"SIGN\":\"{sign}\"}}}}");
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void UnsubscribeFromAllWebSockets()
@@ -1651,11 +1699,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         {
                             if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                if (_subscribedSecutiries != null)
+                                if (_subscribedSecurities != null)
                                 {
-                                    for (int i2 = 0; i2 < _subscribedSecutiries.Count; i2++)
+                                    for (int i2 = 0; i2 < _subscribedSecurities.Count; i2++)
                                     {
-                                        string name = _subscribedSecutiries[i2].Name;
+                                        string name = _subscribedSecurities[i2].Name;
                                         long time = TimeManager.GetUnixTimeStampSeconds();
                                         string level = "1";
 
@@ -1694,9 +1742,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 {
                     UnsubscribePortfolio();
 
-                    for (int i = 0; i < _subscribedSecutiries.Count; i++)
+                    for (int i = 0; i < _subscribedSecurities.Count; i++)
                     {
-                        string name = _subscribedSecutiries[i].Name;
+                        string name = _subscribedSecurities[i].Name;
 
                         UnsubscribeOrders(name);
                         UnsubscribeMyTrades(name);
@@ -1796,20 +1844,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                             }
                             else
                             {
-                                ResponseWebsocketMessage<object> responseWebsocketMessage;
-
-                                try
-                                {
-                                    responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<object>());
-                                }
-                                catch
-                                {
-                                    continue;
-                                }
+                                ResponseWebsocketMessage<object> responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<object>());
 
                                 if (responseWebsocketMessage.error != null)
                                 {
                                     SendLogMessage("WebSocket Public message " + responseWebsocketMessage.error, LogMessageType.Error);
+                                    continue;
                                 }
                             }
                         }
@@ -1920,35 +1960,29 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     {
                         if (_fIFOListWebSocketPrivateMessage.TryDequeue(out string message))
                         {
-                            ResponseWebsocketMessage<object> responseWebsocketMessage;
-
-                            try
-                            {
-                                responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<object>());
-                            }
-                            catch
-                            {
-                                continue;
-                            }
-
-                            if (responseWebsocketMessage.error != null)
-                            {
-                                SendLogMessage("WebSocket Private message " + responseWebsocketMessage.error, LogMessageType.Error);
-                            }
-
-                            if (responseWebsocketMessage.channel.Equals("futures.usertrades") && responseWebsocketMessage.Event.Equals("update"))
+                            if (message.Contains("futures.usertrades") && message.Contains("update"))
                             {
                                 UpdateMyTrade(message);
                                 continue;
                             }
-                            else if (responseWebsocketMessage.channel.Equals("futures.orders") && responseWebsocketMessage.Event.Equals("update"))
+                            else if (message.Contains("futures.orders") && message.Contains("update"))
                             {
                                 UpdateOrder(message);
                             }
-                            else if (responseWebsocketMessage.channel.Equals("futures.balances") && responseWebsocketMessage.Event.Equals("update"))
+                            else if (message.Contains("futures.balances") && message.Contains("update"))
                             {
                                 UpdatePortfolio(message);
                                 continue;
+                            }
+                            else
+                            {
+                                ResponseWebsocketMessage<object> responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<object>());
+
+                                if (responseWebsocketMessage.error != null)
+                                {
+                                    SendLogMessage("WebSocket Private message " + responseWebsocketMessage.error, LogMessageType.Error);
+                                    continue;
+                                }
                             }
                         }
                     }
