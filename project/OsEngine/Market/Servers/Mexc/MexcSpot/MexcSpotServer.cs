@@ -2096,9 +2096,9 @@ namespace OsEngine.Market.Servers.Mexc
 
         private Order GetOrderFromExchange(string userOrderId, string symbol)
         {
-            if (string.IsNullOrEmpty(userOrderId))
+            if (string.IsNullOrEmpty(userOrderId)
+                || userOrderId == "0")
             {
-                SendLogMessage("Order ID is empty", LogMessageType.Connect);
                 return null;
             }
 
