@@ -407,7 +407,7 @@ namespace OsEngine.Market.Servers.TraderNet
             while (true)
             {
                 try
-                {                  
+                {
                     Thread.Sleep(5000);
 
                     if (IsCompletelyDeleted == true)
@@ -1835,6 +1835,11 @@ namespace OsEngine.Market.Servers.TraderNet
 
         public OrderStateType GetOrderStatus(Order order)
         {
+            if (order.NumberUser == 0)
+            {
+                return OrderStateType.None;
+            }
+
             try
             {
                 Dictionary<string, dynamic> data = new Dictionary<string, dynamic>();
@@ -1874,7 +1879,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
                     if (strNumber.Length < 2)
                     {
-                        SendLogMessage($"GetOrderStatus: Incorrect UserOrderID {item.userOrderId}", LogMessageType.Error);
+                        //SendLogMessage($"GetOrderStatus: Incorrect UserOrderID {item.userOrderId}", LogMessageType.Error);
                         continue;
                     }
 
