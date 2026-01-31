@@ -346,6 +346,11 @@ namespace OsEngine.Market.Servers.BloFin
 
                             Security newSecurity = new Security();
 
+                            if (item.quoteCurrency != "USDT")
+                            {
+                                continue;
+                            }
+
                             newSecurity.Exchange = ServerType.BloFinFutures.ToString();
                             newSecurity.Lot = 1;
                             newSecurity.Name = item.instId;
@@ -400,7 +405,17 @@ namespace OsEngine.Market.Servers.BloFin
 
         public void GetPortfolios()
         {
+            //try
+            //{
+            //    string path = $"/api/v1/asset/balances";
+            //    string requestStr = $"{path}?accountType=futures";
 
+            //    IRestResponse response = CreatePrivateQuery(requestStr, Method.GET);
+            //}
+            //catch (Exception ex)
+            //{
+            //    SendLogMessage($"Portfolio error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            //}
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -441,92 +456,60 @@ namespace OsEngine.Market.Servers.BloFin
                 return null;
             }
 
-            int limitCandles = 1440;
+            int countNeedToLoad = GetCountCandlesToLoad();
 
-            TimeSpan span = endTime - startTime;
-
-            if (limitCandles > span.TotalMinutes / tfTotalMinutes)
+            if (countNeedToLoad > 1440)
             {
-                limitCandles = (int)Math.Round(span.TotalMinutes / tfTotalMinutes, MidpointRounding.AwayFromZero);
-            }
-
-            int timeRange = tfTotalMinutes * 1440;
-
-            DateTime maxStartTime = DateTime.UtcNow.AddMinutes(-timeRange);
-
-            if (maxStartTime > startTime)
-            {
+                countNeedToLoad = 1440;
                 SendLogMessage("Maximum interval is 1400 candles from today!", LogMessageType.Error);
-                return null;
             }
 
-            List<Candle> allCandles = new List<Candle>();
+            List<Candle> candles = new List<Candle>();
 
-            DateTime startTimeData = startTime;
-            DateTime endTimeData = startTimeData.AddMinutes(tfTotalMinutes * limitCandles);
+            string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
 
-            do
+            DateTime fromTime = endTime - TimeSpan.FromMinutes(tfTotalMinutes * countNeedToLoad);
+
+            while (startTime < endTime)
             {
-                long from = TimeManager.GetTimeStampMilliSecondsToDateTime(startTimeData);
-                long to = TimeManager.GetTimeStampMilliSecondsToDateTime(endTimeData);
+                long from = TimeManager.GetTimeStampMilliSecondsToDateTime(fromTime);
+                long to = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
 
-                string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
+                List<Candle> newCandles = RequestCandleHistory(security, interval, from, to, countNeedToLoad);
 
-                List<Candle> candles = RequestCandleHistory(security, interval, from, to, limitCandles);
-
-                if (candles == null || candles.Count == 0)
+                if (newCandles != null && candles.Count != 0 && newCandles.Count != 0)
                 {
-                    break;
-                }
-
-                Candle last = candles[candles.Count - 1];
-
-                if (allCandles.Count > 0)
-                {
-                    if (allCandles[allCandles.Count - 1].TimeStart == candles[0].TimeStart)
+                    for (int i = 0; i < newCandles.Count; i++)
                     {
-                        candles.RemoveAt(0);
-                    }
-                }
-
-                if (last.TimeStart >= endTime)
-
-                {
-                    for (int i = 0; i < candles.Count; i++)
-                    {
-                        if (candles[i].TimeStart <= endTime)
+                        if (candles[0].TimeStart <= newCandles[i].TimeStart)
                         {
-                            allCandles.Add(candles[i]);
+                            newCandles.RemoveAt(i);
+                            i--;
                         }
                     }
-                    break;
                 }
 
-                allCandles.AddRange(candles);
-
-                startTimeData = endTimeData;
-                endTimeData = startTimeData.AddMinutes(tfTotalMinutes * limitCandles);
-
-                if (startTimeData >= endTime)
+                if (newCandles == null)
                 {
                     break;
                 }
 
-                if (endTimeData > endTime)
+                if (newCandles.Count == 0)
                 {
-                    endTimeData = endTime;
+                    return candles;
                 }
 
-                span = endTimeData - startTimeData;
+                candles.InsertRange(0, newCandles);
 
-                if (limitCandles > span.TotalMinutes / tfTotalMinutes)
+                if (candles.Count != 0)
                 {
-                    limitCandles = (int)Math.Round(span.TotalMinutes / tfTotalMinutes, MidpointRounding.AwayFromZero);
+                    endTime = candles[0].TimeStart;
                 }
 
-            } while (true);
+                fromTime = endTime - TimeSpan.FromMinutes(tfTotalMinutes * countNeedToLoad);
+            }
 
-            return allCandles;
+            return candles;
         }
 
         private List<Candle> RequestCandleHistory(Security security, string interval, long startTime, long endTime, int limitCandles)
@@ -554,12 +537,15 @@ namespace OsEngine.Market.Servers.BloFin
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                    if (response.ToString().StartsWith("<!DOCTYPE") == false)
+                    {
+                        SendLogMessage($"Candles request error. Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Candles request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
 
             return null;
@@ -599,6 +585,20 @@ namespace OsEngine.Market.Servers.BloFin
             candles.Reverse();
 
             return candles;
+        }
+
+        private int GetCountCandlesToLoad()
+        {
+            for (int i = 0; i < ServerParameters.Count; i++)
+            {
+                if (ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
+                {
+                    ServerParameterInt Param = (ServerParameterInt)ServerParameters[i];
+                    return Param.Value;
+                }
+            }
+
+            return 300;
         }
 
         private bool CheckCandlesToZeroData(List<string> item)
