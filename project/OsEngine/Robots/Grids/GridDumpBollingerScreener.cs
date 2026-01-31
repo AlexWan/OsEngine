@@ -33,6 +33,7 @@ namespace OsEngine.Robots.Grids
     {
         private StrategyParameterString _regime;
         private StrategyParameterInt _maxGridsCount;
+
         private StrategyParameterInt _bollingerLen;
         private StrategyParameterDecimal _bollingerDev;
         private StrategyParameterDecimal _bollingerUpPercent;
@@ -40,11 +41,13 @@ namespace OsEngine.Robots.Grids
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
+        private StrategyParameterDecimal _volumeMult;
 
         private StrategyParameterInt _linesCount;
         private StrategyParameterDecimal _linesStep;
+        private StrategyParameterDecimal _linesMult;
         private StrategyParameterDecimal _profitValue;
-        private StrategyParameterInt _closePositionsCountToCloseGrid;
+        private StrategyParameterDecimal _trailStopValuePercent;
 
         private BotTabScreener _tabScreener;
 
@@ -81,21 +84,23 @@ namespace OsEngine.Robots.Grids
             }
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On"});
-
+            
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4);
+            _volume = CreateParameter("Volume", 25m, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            _volumeMult = CreateParameter("Volume mult. Martingale", 1.5m, 1.0m, 50, 4);
 
-            _maxGridsCount = CreateParameter("Max grids count", 5, 0, 20, 1, "Grid");
-            _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
-            _linesStep = CreateParameter("Grid lines step", 0.1m, 0.1m, 5, 0.1m, "Grid");
-            _profitValue = CreateParameter("Profit percent", 0.1m, 0.1m, 5, 0.1m, "Grid");
-            _closePositionsCountToCloseGrid = CreateParameter("Grid close positions max", 50, 10, 300, 10, "Grid");
+            _maxGridsCount = CreateParameter("Max grids count", 3, 0, 20, 1, "Grid");
+            _linesCount = CreateParameter("Grid lines count", 3, 10, 300, 10, "Grid");
+            _linesStep = CreateParameter("Grid lines step", 0.3m, 0.1m, 5, 0.1m, "Grid");
+            _linesMult = CreateParameter("Grid lines step mult", 1.5m, 0.1m, 5, 0.1m, "Grid");
+            _profitValue = CreateParameter("Profit percent", 1m, 0.1m, 5, 0.1m, "Grid");
+            _trailStopValuePercent = CreateParameter("Stop percent", 2.5m, 1, 5, 0.1m, "Grid");
 
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _bollingerLen = CreateParameter("Bollinger length", 230, 15, 300, 10, "Bollinger");
+            _bollingerLen = CreateParameter("Bollinger length", 30, 15, 300, 10, "Bollinger");
             _bollingerDev = CreateParameter("Bollinger deviation", 2.1m, 0.7m, 2.5m, 0.1m, "Bollinger");
             _bollingerUpPercent = CreateParameter("Bollinger up percent", 80m, 0.7m, 2.5m, 0.1m, "Bollinger");
             StrategyParameterButton button = CreateParameterButton("Show bollinger ranking", "Bollinger");
@@ -167,8 +172,7 @@ namespace OsEngine.Robots.Grids
             {
                 LogicCloseGrid(candles, tab);
             }
-
-            if (tab.GridsMaster.TradeGrids.Count == 0)
+            else if (tab.GridsMaster.TradeGrids.Count == 0)
             {
                 LogicCreateGrid(candles, tab);
             }
@@ -225,14 +229,24 @@ namespace OsEngine.Robots.Grids
 
         private void ThrowGrid(decimal lastPrice, Side side, BotTabSimple tab)
         {
+            /*
+
+            Сетка - открытие позиции с мартингейлом
+            Подбираем, максимум 3 раза, с увеличением объёма
+            Закрываем по общему профиту.
+            Также закрываем по стопу.
+
+            */
+
             // 1 создаём сетку
             TradeGrid grid = tab.GridsMaster.CreateNewTradeGrid();
 
             // 2 устанавливаем её тип
-            grid.GridType = TradeGridPrimeType.MarketMaking;
+            grid.GridType = TradeGridPrimeType.OpenPosition;
 
             // 3 устанавливаем объёмы
             grid.GridCreator.StartVolume = _volume.ValueDecimal;
+            grid.GridCreator.MartingaleMultiplicator = _volumeMult.ValueDecimal;
             grid.GridCreator.TradeAssetInPortfolio = _tradeAssetInPortfolio.ValueString;
 
             if (_volumeType.ValueString == "Contracts")
@@ -253,72 +267,39 @@ namespace OsEngine.Robots.Grids
             grid.GridCreator.FirstPrice = lastPrice;
             grid.GridCreator.LineCountStart = _linesCount.ValueInt;
             grid.GridCreator.LineStep = _linesStep.ValueDecimal;
+            grid.GridCreator.StepMultiplicator = _linesMult.ValueDecimal;
             grid.GridCreator.TypeStep = TradeGridValueType.Percent;
+            grid.GridCreator.GridSide = Side.Buy;
+            grid.GridCreator.CreateNewGrid(tab, TradeGridPrimeType.OpenPosition);
 
-            grid.GridCreator.TypeProfit = TradeGridValueType.Percent;
-            grid.GridCreator.ProfitStep = _profitValue.ValueDecimal;
+            grid.StopAndProfit.StopValue = _trailStopValuePercent.ValueDecimal;
+            grid.StopAndProfit.StopValueType = TradeGridValueType.Percent;
+            grid.StopAndProfit.StopRegime = OnOffRegime.On;
 
-            grid.GridCreator.GridSide = side;
+            grid.StopAndProfit.ProfitValue = _profitValue.ValueDecimal;
+            grid.StopAndProfit.ProfitValueType = TradeGridValueType.Percent;
+            grid.StopAndProfit.ProfitRegime = OnOffRegime.On;
 
-            grid.GridCreator.CreateNewGrid(tab, TradeGridPrimeType.MarketMaking);
+            grid.Save();
+
+            grid.Regime = TradeGridRegime.On;
 
             // 5 устанавливаем не торговые периоды на сетку
 
             CopyNonTradePeriodsSettingsInGrid(grid);
 
-            // 6 устанавливаем Trailing Up
-
-            grid.TrailingUp.TrailingUpStep = tab.RoundPrice(lastPrice * 0.005m, tab.Security, Side.Sell);
-            grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m;
-            grid.TrailingUp.TrailingUpIsOn = true;
-            grid.TrailingUp.TrailingUpCanMoveExitOrder = false;
-
-            // 7 устанавливаем Trailing Down
-
-            grid.TrailingUp.TrailingDownStep = tab.RoundPrice(lastPrice * 0.005m, tab.Security, Side.Buy);
-            grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
-            grid.TrailingUp.TrailingDownIsOn = true;
-            grid.TrailingUp.TrailingDownCanMoveExitOrder = false;
-
-            // 8 устанавливаем закрытие сетки по количеству сделок
-
-            grid.StopBy.StopGridByPositionsCountReaction = TradeGridRegime.CloseForced;
-            grid.StopBy.StopGridByPositionsCountValue = _closePositionsCountToCloseGrid.ValueInt;
-            grid.StopBy.StopGridByPositionsCountIsOn = true;
-
-            // 9 сохраняем
+            // 6 сохраняем
             grid.Save();
 
-            // 10 включаем
+            // 7 включаем
             grid.Regime = TradeGridRegime.On;
         }
 
         private void LogicCloseGrid(List<Candle> candles, BotTabSimple tab)
         {
-            // 1 проверяем всё ли в порядке с индикатором
-
-            Aindicator bollinger = (Aindicator)tab.Indicators[0];
-
-            if (bollinger.ParametersDigit[0].Value != _bollingerLen.ValueInt
-                || bollinger.ParametersDigit[1].Value != _bollingerDev.ValueDecimal)
-            {
-                bollinger.ParametersDigit[0].Value = _bollingerLen.ValueInt;
-                bollinger.ParametersDigit[1].Value = _bollingerDev.ValueDecimal;
-                bollinger.Save();
-                bollinger.Reload();
-            }
-
-            if (bollinger.DataSeries[0].Values.Count == 0 ||
-                bollinger.DataSeries[0].Last == 0 ||
-                bollinger.DataSeries[1].Values.Count == 0 ||
-                bollinger.DataSeries[1].Last == 0)
-            {
-                return;
-            }
-
             TradeGrid grid = tab.GridsMaster.TradeGrids[0];
 
-            // 2 проверяем сетку на то что она уже прекратила работать и её надо удалить
+            // 1 проверяем сетку на то что она уже прекратила работать и её надо удалить
 
             if (grid.HaveOpenPositionsByGrid == false
                 && grid.Regime == TradeGridRegime.Off)
@@ -326,39 +307,7 @@ namespace OsEngine.Robots.Grids
                 tab.GridsMaster.DeleteAtNum(grid.Number);
                 return;
             }
-
-            if (grid.Regime != TradeGridRegime.On)
-            {
-                return;
-            }
-
-            // 3 проверяем сетку на обратную сторону канала. Может пора её закрывать
-
-            decimal lastUpLine = bollinger.DataSeries[0].Last;
-            decimal lastDownLine = bollinger.DataSeries[1].Last;
-
-            if (lastUpLine == 0
-                || lastDownLine == 0)
-            {
-                return;
-            }
-
-            decimal lastPrice = candles[^1].Close;
-
-            Side gridSide = grid.GridCreator.GridSide;
-
-            if (gridSide == Side.Buy
-                && lastPrice > lastUpLine)
-            {
-                grid.Regime = TradeGridRegime.CloseForced;
-            }
-            else if (gridSide == Side.Sell
-                && lastPrice < lastDownLine)
-            {
-                grid.Regime = TradeGridRegime.CloseForced;
-            }
         }
-
 
         #region Bollinger ranking
 
@@ -401,6 +350,8 @@ namespace OsEngine.Robots.Grids
 
                 _bollingerRankingValues.Add(value);
             }
+
+            value.LastTimeUpdate = tab.TimeServerCurrent;
 
             Aindicator bollinger = (Aindicator)tab.Indicators[0];
 
@@ -475,6 +426,7 @@ namespace OsEngine.Robots.Grids
                 || _tabScreener.Tabs.Count == 0)
             {
                 SendNewLogMessage("No connection. Set sources", Logging.LogMessageType.Error);
+                return;
             }
 
             string message = "Bollinger Ranking. Time: " 

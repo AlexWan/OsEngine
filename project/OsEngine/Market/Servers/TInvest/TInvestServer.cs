@@ -2483,6 +2483,9 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         MarketDepthEvent?.Invoke(depth);
                     }
+
+                    security.PriceLimitHigh = GetValue(marketData.Orderbook.LimitUp);
+                    security.PriceLimitLow = GetValue(marketData.Orderbook.LimitDown);
                 }
                 else if (marketData.Candle != null)
                 {
