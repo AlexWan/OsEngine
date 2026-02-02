@@ -1093,7 +1093,7 @@ namespace OsEngine.Market.Servers
             SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
 
             ServerStatus = ServerConnectStatus.Disconnect;
-            
+
             if (NeedToReconnectEvent != null)
             {
                 NeedToReconnectEvent();
@@ -1192,12 +1192,19 @@ namespace OsEngine.Market.Servers
                     }
 
                     if ((ServerRealization.ServerStatus != ServerConnectStatus.Connect
-                        || ServerStatus != ServerConnectStatus.Connect) && 
+                        || ServerStatus != ServerConnectStatus.Connect) &&
                         _serverStatusNeed == ServerConnectStatus.Connect &&
                        LastStartServerTime.AddSeconds(100) < DateTime.Now)
                     {
-                        if (_nonTradePeriods.CanTradeThisTime(DateTime.Now) == false)
+                        GetNonTradePeriod();
+
+                        if (_isNonTradingPeriodNow)
                         {
+                            if (ConnectStatusChangeEvent != null)
+                            {
+                                ConnectStatusChangeEvent(_serverConnectStatus.ToString());
+                            }
+
                             LastStartServerTime = DateTime.Now;
                             SendLogMessage(OsLocalization.Market.Message104, LogMessageType.System);
                             continue;
@@ -1234,16 +1241,16 @@ namespace OsEngine.Market.Servers
 
                         LastStartServerTime = DateTime.Now;
 
-                        if(NeedToReconnectEvent != null)
+                        if (NeedToReconnectEvent != null)
                         {
                             Thread worker = new Thread(SendReconnectEvent);
                             worker.Start();
                         }
-                       
+
                         continue;
                     }
 
-                    if (ServerRealization.ServerStatus == ServerConnectStatus.Connect 
+                    if (ServerRealization.ServerStatus == ServerConnectStatus.Connect
                         && _serverStatusNeed == ServerConnectStatus.Disconnect)
                     {
                         SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
@@ -1338,9 +1345,9 @@ namespace OsEngine.Market.Servers
                     _candleManager = null;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1353,7 +1360,7 @@ namespace OsEngine.Market.Servers
                     NeedToReconnectEvent();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -1675,7 +1682,7 @@ namespace OsEngine.Market.Servers
                         {
                             return;
                         }
-                       
+
                         await Task.Delay(1);
                     }
                 }
@@ -1882,7 +1889,7 @@ namespace OsEngine.Market.Servers
                         {
                             return;
                         }
-                   
+
                         await Task.Delay(1);
                     }
                 }
@@ -2577,7 +2584,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
         {
-            if (series.IsMergedByCandlesFromFile == false 
+            if (series.IsMergedByCandlesFromFile == false
                 && series.CandleCreateMethodType == "TimeShiftCandle")
             {
                 series.IsMergedByCandlesFromFile = true;
@@ -2591,18 +2598,18 @@ namespace OsEngine.Market.Servers
                 {
                     List<Candle> candlesStorage = _candleStorage.GetCandles(series.Specification, _needToLoadCandlesCountParam.Value);
 
-                    if(series.TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+                    if (series.TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
                     {
                         // нужно вставками прогружать каждую свечу по отдельности. 
                         series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
 
-                        for(int i = 0; candlesStorage != null && i < candlesStorage.Count;i++)
+                        for (int i = 0; candlesStorage != null && i < candlesStorage.Count; i++)
                         {
                             Candle candle = candlesStorage[i];
 
                             bool isInArray = false;
 
-                            for(int j = 0;j < series.CandlesAll.Count;j++)
+                            for (int j = 0; j < series.CandlesAll.Count; j++)
                             {
                                 if (series.CandlesAll[j].TimeStart == candle.TimeStart)
                                 {
@@ -2618,7 +2625,7 @@ namespace OsEngine.Market.Servers
                                     break;
                                 }
                                 else if (j != 0
-                                    && candle.TimeStart > series.CandlesAll[j-1].TimeStart
+                                    && candle.TimeStart > series.CandlesAll[j - 1].TimeStart
                                     && candle.TimeStart < series.CandlesAll[j].TimeStart)
                                 {
                                     series.CandlesAll.Insert(j, candle);
@@ -2627,17 +2634,17 @@ namespace OsEngine.Market.Servers
                                 }
                             }
 
-                            if(isInArray == false)
+                            if (isInArray == false)
                             {
                                 series.CandlesAll.Add(candle);
                             }
                         }
 
-                        if(series.CandlesAll.Count > _needToLoadCandlesCountParam.Value)
+                        if (series.CandlesAll.Count > _needToLoadCandlesCountParam.Value)
                         {
-                            series.CandlesAll = 
+                            series.CandlesAll =
                                 series.CandlesAll.GetRange(
-                                    series.CandlesAll.Count - _needToLoadCandlesCountParam.Value, 
+                                    series.CandlesAll.Count - _needToLoadCandlesCountParam.Value,
                                     _needToLoadCandlesCountParam.Value);
                         }
 
@@ -4666,7 +4673,7 @@ namespace OsEngine.Market.Servers
                         SendMessageConnectorConnectInAnalysisServer();
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
                     await Task.Delay(5000);
@@ -4779,7 +4786,7 @@ namespace OsEngine.Market.Servers
 
                 if (!_nonTradePeriods.CanTradeThisTime(DateTime.Now))
                 {
-                    if(_isNonTradingPeriodNow != true)
+                    if (_isNonTradingPeriodNow != true)
                     {
                         _isNonTradingPeriodNow = true;
 
@@ -4810,9 +4817,9 @@ namespace OsEngine.Market.Servers
 
         public bool IsNonTradePeriod
         {
-            get 
+            get
             {
-                return _isNonTradingPeriodNow; 
+                return _isNonTradingPeriodNow;
             }
         }
 
@@ -4835,12 +4842,12 @@ namespace OsEngine.Market.Servers
         private ConcurrentQueue<SecurityLeverageData> _queueLeverage = new();
 
         private async void GetListLeverageTask()
-        {            
+        {
             while (true)
             {
                 try
                 {
-                    if(IsDeleted == true)
+                    if (IsDeleted == true)
                     {
                         return;
                     }
@@ -4888,7 +4895,7 @@ namespace OsEngine.Market.Servers
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
                     await Task.Delay(5000);
                 }
-            }            
+            }
         }
 
         private void GetListLeverage()
