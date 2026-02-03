@@ -460,6 +460,8 @@ namespace OsEngine.Market.Servers.Alor
                     else if (item.type.StartsWith("Календарный спред"))
                     {
                         newSecurity.NameClass = "Futures spread";
+                        newSecurity.MarginBuy = item.marginbuy.ToDecimal();
+                        newSecurity.MarginSell = item.marginsell.ToDecimal();
                     }
                     else if (newSecurity.SecurityType == SecurityType.Futures)
                     {
