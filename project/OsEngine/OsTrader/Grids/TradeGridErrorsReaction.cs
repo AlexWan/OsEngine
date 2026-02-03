@@ -247,7 +247,8 @@ namespace OsEngine.OsTrader.Grids
                         message += "New value open orders in market: " + _myGrid.MaxOpenOrdersInMarket;
                         SendNewLogMessage(message, LogMessageType.Error);
                     }
-                    else if( isOpenOrder == false)
+                    else if( isOpenOrder == false
+                        && _myGrid.MaxCloseOrdersInMarket > 1)
                     {
                         _myGrid.MaxCloseOrdersInMarket--;
                         _myGrid.Save();
