@@ -11,7 +11,7 @@ namespace OsEngine
     {
         public static GridInstructions Grids = new GridInstructions();
 
-
+        public static MainMenuInstructions MainMenu = new MainMenuInstructions();
 
     }
 }
