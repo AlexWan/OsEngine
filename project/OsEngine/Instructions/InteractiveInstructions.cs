@@ -13,5 +13,7 @@ namespace OsEngine
 
         public static MainMenuInstructions MainMenu = new MainMenuInstructions();
 
+        public static OsDataInstructions Data = new OsDataInstructions();
+
     }
 }
