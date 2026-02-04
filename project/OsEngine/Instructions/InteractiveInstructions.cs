@@ -15,5 +15,7 @@ namespace OsEngine
 
         public static OsDataInstructions Data = new OsDataInstructions();
 
+        public static ConverterInstructions Converter = new ConverterInstructions();
+
     }
 }
