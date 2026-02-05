@@ -19,7 +19,7 @@ namespace OsEngine.Instructions
 
                 if (currentLanguage == OsLocalType.Ru)
                 {
-                    return "Os Data. сборник статей";
+                    return "Os Data. Сборник статей";
                 }
                 else if (currentLanguage == OsLocalType.Eng)
                 {
