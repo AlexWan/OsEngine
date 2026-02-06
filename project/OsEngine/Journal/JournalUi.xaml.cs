@@ -278,44 +278,39 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                lock (_paintLocker)
+                if (TabControlPrime.SelectedIndex == 0)
                 {
-
-                    if (TabControlPrime.SelectedIndex == 0)
-                    {
-                        PaintProfitOnChart(_allPositions);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 1)
-                    {
-                        bool needShowTickState = !(_botsJournals.Count > 1);
-
-                        PaintStatTable(_allPositions, _longPositions, _shortPositions, needShowTickState);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 2)
-                    {
-                        PaintDrawDown(_allPositions);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 3)
-                    {
-                        PaintVolumeOnChart(_allPositions);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 4)
-                    {
-                        PaintOpenPositionGrid(_allPositions);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 5)
-                    {
-                        PaintClosePositionGrid(_allPositions);
-                    }
+                    PaintProfitOnChart(_allPositions);
                 }
+                else if (TabControlPrime.SelectedIndex == 1)
+                {
+                    bool needShowTickState = !(_botsJournals.Count > 1);
+
+                    PaintStatTable(_allPositions, _longPositions, _shortPositions, needShowTickState);
+                }
+                else if (TabControlPrime.SelectedIndex == 2)
+                {
+                    PaintDrawDown(_allPositions);
+                }
+                else if (TabControlPrime.SelectedIndex == 3)
+                {
+                    PaintVolumeOnChart(_allPositions);
+                }
+                else if (TabControlPrime.SelectedIndex == 4)
+                {
+                    PaintOpenPositionGrid(_allPositions);
+                }
+                else if (TabControlPrime.SelectedIndex == 5)
+                {
+                    PaintClosePositionGrid(_allPositions);
+                }
+
             }
             catch (Exception error)
             {
                 System.Windows.MessageBox.Show(error.ToString());
             }
         }
-
-        private string _paintLocker = "_paintLocker";
 
         private void ComboBoxChartType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

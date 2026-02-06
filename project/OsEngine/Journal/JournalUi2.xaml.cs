@@ -471,38 +471,36 @@ namespace OsEngine.Journal
                     shortPositions.Add(_shortPositions[i]);
                 }
 
-                lock (_paintLocker)
+                if (TabControlPrime.SelectedIndex == -1 ||
+                    TabControlPrime.SelectedIndex == 0)
                 {
-                    if (TabControlPrime.SelectedIndex == -1 ||
-                        TabControlPrime.SelectedIndex == 0)
-                    {
-                        PaintProfitOnChart(allSortPoses);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 1)
-                    {
-                        bool needShowTickState = !(_botsJournals.Count > 1);
-
-                        PaintStatTable(allSortPoses, longPositions, shortPositions, needShowTickState);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 2)
-                    {
-                        PaintDrawDown(allSortPoses);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 3)
-                    {
-                        PaintVolume(allSortPoses);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 4)
-                    {
-                        PaintOpenPositionGrid(allSortPoses);
-                    }
-                    else if (TabControlPrime.SelectedIndex == 5)
-                    {
-                        PaintClosePositionGrid();
-                    }
-
-                    PaintTitleAbsProfit(allSortPoses);
+                    PaintProfitOnChart(allSortPoses);
                 }
+                else if (TabControlPrime.SelectedIndex == 1)
+                {
+                    bool needShowTickState = !(_botsJournals.Count > 1);
+
+                    PaintStatTable(allSortPoses, longPositions, shortPositions, needShowTickState);
+                }
+                else if (TabControlPrime.SelectedIndex == 2)
+                {
+                    PaintDrawDown(allSortPoses);
+                }
+                else if (TabControlPrime.SelectedIndex == 3)
+                {
+                    PaintVolume(allSortPoses);
+                }
+                else if (TabControlPrime.SelectedIndex == 4)
+                {
+                    PaintOpenPositionGrid(allSortPoses);
+                }
+                else if (TabControlPrime.SelectedIndex == 5)
+                {
+                    PaintClosePositionGrid();
+                }
+
+                PaintTitleAbsProfit(allSortPoses);
+
             }
             catch (Exception error)
             {
@@ -530,8 +528,6 @@ namespace OsEngine.Journal
             }
 
         }
-
-        private string _paintLocker = "journalPainterLocker";
 
         private void ComboBoxChartType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
