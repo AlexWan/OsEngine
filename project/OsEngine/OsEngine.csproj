@@ -160,6 +160,10 @@
     <Content Remove="bin\Release\libssl-3-x64.dll" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Images\InstructionPosts\GreenPost.png" />
+    <None Remove="Images\InstructionPosts\GreenPostCollection.png" />
+    <None Remove="Images\InstructionPosts\WhitePost.png" />
+    <None Remove="Images\InstructionPosts\WhitePostCollection.png" />
     <None Remove="Images\MainWIndow\flag_eng.png" />
     <None Remove="Images\MainWIndow\flag_ru.png" />
     <None Remove="Images\MainWIndow\tbank.mp4" />
@@ -168,6 +172,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\InstructionPosts\GreenPost.png" />
+    <Resource Include="Images\InstructionPosts\GreenPostCollection.png" />
+    <Resource Include="Images\InstructionPosts\WhitePost.png" />
+    <Resource Include="Images\InstructionPosts\WhitePostCollection.png" />
     <Resource Include="Images\MainWIndow\flag_eng.png" />
     <Resource Include="Images\MainWIndow\flag_ru.png" />
     <Resource Include="Images\OsLogo.ico" />

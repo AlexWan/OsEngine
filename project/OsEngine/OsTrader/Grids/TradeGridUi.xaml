@@ -173,7 +173,12 @@
                     <Label Name="LabelTrailingDownLimit" Content="Limit" HorizontalAlignment="Left" Margin="11,201,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTrailingDownLimit" Margin="164,201,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <CheckBox Name="CheckBoxTrailingDownCanMoveExitOrder" Content="Can move exit orders" HorizontalAlignment="Left" Margin="11,229,0,0" VerticalAlignment="Top" Width="316"/>
-                    <Button Name="ButtonTrailUpInstruction" Content="???" Margin="0,0,12,10" VerticalAlignment="Bottom" Height="25" Foreground="#FF12D6AB" HorizontalAlignment="Right" Width="57" Click="ButtonTrailUpInstruction_Click"/>
+                    <Button Name="ButtonTrailUpInstruction"  Margin="293,0,10,10" VerticalAlignment="Bottom" Height="36" Click="ButtonTrailUpInstruction_Click">
+                        <Grid>
+                            <Image Name="PostGreen" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                            <Image Name="PostWhite"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                        </Grid>
+                    </Button>
 
                 </Grid>
             </TabItem>
@@ -193,7 +198,12 @@
                     <ComboBox Name="ComboBoxNonTradePeriod2Regime" Margin="202,81,10,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonSetNonTradePeriods2" Content="Set periods 2" Margin="196,109,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods2_Click"/>
                     <Label Name="LabelNonTradePeriod2IsActive" Content="Active >>" HorizontalAlignment="Left" Margin="127,111,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#FF12FFE5"/>
-                    <Button Name="ButtonPosts" Content="Posts" Margin="196,0,12,10" VerticalAlignment="Bottom" Height="25" Foreground="#FF12D6AB"/>
+                    <Button Name="ButtonPosts" Margin="293,0,10,10" VerticalAlignment="Bottom"  Height="36">
+                        <Grid>
+                            <Image Name="GreenCollection"  Source="/Images/InstructionPosts/GreenPostCollection.png"  Width="31" Height="25"/>
+                            <Image Name="WhiteCollection"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
+                        </Grid>
+                    </Button>
 
                 </Grid>
             </TabItem>
