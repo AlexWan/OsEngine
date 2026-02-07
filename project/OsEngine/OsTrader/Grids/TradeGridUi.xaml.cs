@@ -17,6 +17,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -144,7 +145,7 @@ namespace OsEngine.OsTrader.Grids
             }
             else
             {
-                ButtonPosts.Content = OsLocalization.Trader.Label639;
+                //ButtonPosts.Content = OsLocalization.Trader.Label639;
                 ButtonPosts.Click += ButtonPosts_Click;
             }
 
@@ -408,8 +409,51 @@ namespace OsEngine.OsTrader.Grids
 
             CheckEnabledItems();
 
+            StartButtonBlinkAnimation();
+
             Thread worker = new Thread(TableUpdateThread);
             worker.Start();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            DispatcherTimer timer = new DispatcherTimer();
+            int blinkCount = 0;
+            bool isGreenVisible = true;
+
+            timer.Interval = TimeSpan.FromMilliseconds(300);
+            timer.Tick += (s, e) =>
+            {
+                if (blinkCount >= 20)
+                {
+                    timer.Stop();
+                    GreenCollection.Opacity = 1;
+                    WhiteCollection.Opacity = 0;
+                    PostGreen.Opacity = 1;
+                    PostWhite.Opacity = 0;
+                    return;
+                }
+
+                if (isGreenVisible)
+                {
+                    GreenCollection.Opacity = 0;
+                    WhiteCollection.Opacity = 1;
+                    PostGreen.Opacity = 0;
+                    PostWhite.Opacity = 1;
+                }
+                else
+                {
+                    GreenCollection.Opacity = 1;
+                    WhiteCollection.Opacity = 0;
+                    PostGreen.Opacity = 1;
+                    PostWhite.Opacity = 0;
+                }
+
+                isGreenVisible = !isGreenVisible;
+                blinkCount++;
+            };
+
+            timer.Start();
         }
 
         private void Localization()
