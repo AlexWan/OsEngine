@@ -480,27 +480,12 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             if (_openAtStopExpiresBars.ValueInt == 0)
             {// lifetime of the order - one candle
-                if (_limitSignal.ValueBool == false)
-                {
-                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual);
-                }
-                else if (_limitSignal.ValueBool == true)
-                {
-                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, "User click button buy at stop");
-                }
+                _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, "User click button buy at stop");
             }
             else
             {// lifetime order is clearly indicated in the number of candles. Can be more than 1
                 int expireBars = _openAtStopExpiresBars.ValueInt;
-
-                if (_limitSignal.ValueBool == false)
-                {
-                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, expireBars);
-                }
-                else if (_limitSignal.ValueBool == true)
-                {
-                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, expireBars, "User click button buy at stop");
-                }
+                _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, expireBars, "User click button buy at stop");
             }
         }
 
@@ -550,27 +535,14 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             if (_openAtStopExpiresBars.ValueInt == 0)
             {// lifetime of the order - one candle
-                if (_limitSignal.ValueBool == false)
-                {
-                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual);
-                }
-                else if (_limitSignal.ValueBool == true)
-                {
-                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, "User click button sell at stop");
-                }
+
+                _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, "User click button sell at stop");
             }
             else
             {// lifetime order is clearly indicated in the number of candles. Can be more than 1
                 int expireBars = _openAtStopExpiresBars.ValueInt;
 
-                if (_limitSignal.ValueBool == false)
-                {
-                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, expireBars);
-                }
-                else if (_limitSignal.ValueBool == true)
-                {
-                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, expireBars, "User click button sell at stop");
-                }
+                _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, expireBars, "User click button sell at stop");
             }
         }
 

@@ -1706,6 +1706,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">volume</param>
         public Position BuyAtMarket(decimal volume)
         {
+            Position position = BuyAtMarket(volume, "");
+
+            return position;
+        }
+
+        /// <summary>
+        /// Enter a long position at any price
+        /// </summary>
+        /// <param name="volume">volume to be entered</param>
+        /// <param name="signalType">open position signal name</param>
+        public Position BuyAtMarket(decimal volume, string signalType)
+        {
             try
             {
                 if (_connector.IsConnected == false
@@ -1736,7 +1748,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_connector.MarketOrdersIsSupport)
                 {
-                    return LongCreate(price, volume, type, timeLife, false);
+                    return LongCreate(price, volume, type, timeLife, false, signalType);
                 }
                 else
                 {
@@ -1749,24 +1761,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             return null;
-
-        }
-
-        /// <summary>
-        /// Enter a long position at any price
-        /// </summary>
-        /// <param name="volume">volume to be entered</param>
-        /// <param name="signalType">open position signal name</param>
-        public Position BuyAtMarket(decimal volume, string signalType)
-        {
-            Position position = BuyAtMarket(volume);
-
-            if (position != null)
-            {
-                position.SignalTypeOpen = signalType;
-            }
-
-            return position;
         }
 
         /// <summary>
@@ -1776,22 +1770,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceLimit">order price</param>
         public Position BuyAtLimit(decimal volume, decimal priceLimit)
         {
-            try
-            {
-                if (_connector.IsConnected == false
-                    || _connector.IsReadyToTrade == false)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
-                    return null;
-                }
+            Position position = BuyAtLimit(volume, priceLimit, "");
 
-                return LongCreate(priceLimit, volume, OrderPriceType.Limit, ManualPositionSupport.SecondToOpen, false);
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            return null;
+            return position;
         }
 
         /// <summary>
@@ -1802,14 +1783,23 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">>open position signal name. Will be written to position property: SignalTypeOpen</param>
         public Position BuyAtLimit(decimal volume, decimal priceLimit, string signalType)
         {
-            Position position = BuyAtLimit(volume, priceLimit);
-
-            if (position != null)
+            try
             {
-                position.SignalTypeOpen = signalType;
-            }
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
 
-            return position;
+                return LongCreate(priceLimit, volume, OrderPriceType.Limit, 
+                    ManualPositionSupport.SecondToOpen, false, signalType);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         /// <summary>
@@ -2774,6 +2764,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">volume</param>
         public Position SellAtMarket(decimal volume)
         {
+            Position position = SellAtMarket(volume,"");
+
+            return position;
+        }
+
+        /// <summary>
+        /// Enter the short position at any price
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="signalType">open position signal name</param>
+        public Position SellAtMarket(decimal volume, string signalType)
+        {
             try
             {
                 if (_connector.IsConnected == false
@@ -2805,7 +2807,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_connector.MarketOrdersIsSupport)
                 {
-                    return ShortCreate(price, volume, type, timeLife, false);
+                    return ShortCreate(price, volume, type, timeLife, false, signalType);
                 }
                 else
                 {
@@ -2820,45 +2822,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Enter the short position at any price
-        /// </summary>
-        /// <param name="volume">volume</param>
-        /// <param name="signalType">open position signal name</param>
-        public Position SellAtMarket(decimal volume, string signalType)
-        {
-            Position position = SellAtMarket(volume);
-
-            if (position != null)
-            {
-                position.SignalTypeOpen = signalType;
-            }
-
-            return position;
-        }
-
-        /// <summary>
         /// Enter the short position at limit price
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="priceLimit">order price</param>
         public Position SellAtLimit(decimal volume, decimal priceLimit)
         {
-            try
-            {
-                if (_connector.IsConnected == false
-                   || _connector.IsReadyToTrade == false)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
-                    return null;
-                }
+            Position position = SellAtLimit(volume, priceLimit, "");
 
-                return ShortCreate(priceLimit, volume, OrderPriceType.Limit, ManualPositionSupport.SecondToOpen, false);
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            return null;
+            return position;
         }
 
         /// <summary>
@@ -2869,14 +2841,23 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">open position signal name. Will be written to position property: SignalTypeOpen</param>
         public Position SellAtLimit(decimal volume, decimal priceLimit, string signalType)
         {
-            Position position = SellAtLimit(volume, priceLimit);
-
-            if (position != null)
+            try
             {
-                position.SignalTypeOpen = signalType;
-            }
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
 
-            return position;
+                return ShortCreate(priceLimit, volume, OrderPriceType.Limit, 
+                    ManualPositionSupport.SecondToOpen, false, signalType);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         /// <summary>
@@ -4735,7 +4716,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">life time</param>
         /// <param name="isStopOrProfit">whether the order is a result of a stop or a profit </param>
         private Position ShortCreate(decimal price, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
-            bool isStopOrProfit)
+            bool isStopOrProfit, string signalType)
         {
             try
             {
@@ -4767,6 +4748,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     timeLife, Security, Portfolio, StartProgram,
                     ManualPositionSupport.OrderTypeTime,
                     ManualPositionSupport.LimitsMakerOnly);
+
+                newDeal.SignalTypeOpen = signalType;
 
                 newDeal.NameBotClass = this.BotClassName;
 
@@ -4877,7 +4860,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">life time</param>
         /// <param name="isStopOrProfit">whether the order is a result of a stop or a profit</param>
         private Position LongCreate(decimal price, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
-            bool isStopOrProfit)
+            bool isStopOrProfit, string signalType)
         {
             try
             {
@@ -4909,6 +4892,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ManualPositionSupport.OrderTypeTime,
                     ManualPositionSupport.LimitsMakerOnly);
 
+                newDeal.SignalTypeOpen = signalType;
                 newDeal.NameBotClass = this.BotClassName;
 
                 newDeal.OpenOrders[0].IsStopOrProfit = isStopOrProfit;
@@ -6054,13 +6038,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 pos = LongCreate(PositionOpenerToStop[i].PriceOrder,
                                  PositionOpenerToStop[i].Volume, PositionOpenerToStop[i].OrderPriceType,
-                                 ManualPositionSupport.SecondToOpen, true);
-
-                                if (pos != null
-                                    && !string.IsNullOrEmpty(opener.SignalType))
-                                {
-                                    pos.SignalTypeOpen = opener.SignalType;
-                                }
+                                 ManualPositionSupport.SecondToOpen, true, opener.SignalType);
                             }
                             else
                             {
@@ -6118,13 +6096,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 pos = ShortCreate(PositionOpenerToStop[i].PriceOrder,
                                     PositionOpenerToStop[i].Volume, PositionOpenerToStop[i].OrderPriceType,
-                                    ManualPositionSupport.SecondToOpen, true);
-
-                                if (pos != null
-                                    && !string.IsNullOrEmpty(opener.SignalType))
-                                {
-                                    pos.SignalTypeOpen = opener.SignalType;
-                                }
+                                    ManualPositionSupport.SecondToOpen, true, opener.SignalType);
                             }
                             else
                             {
