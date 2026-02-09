@@ -50,7 +50,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Главное меню OsEngine",
-                PostLink = "https://o-s-a.net/posts/glavnoe-menyu-osengine.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item304"
             }
         };
 
@@ -61,7 +61,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Главное меню OsEngine. Общие настройки",
-                PostLink = "https://o-s-a.net/posts/osengine-main-menu-general-settings.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item845"
             }
         };
     }

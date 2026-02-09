@@ -57,7 +57,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Os Data. Общая инструкция",
-                PostLink = "https://o-s-a.net/posts/os-engine-os-data-2-0.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item113"
             }
         };
 
@@ -68,7 +68,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Os Data. Лента сделок. Стаканы",
-                PostLink = "https://o-s-a.net/posts/os-data-lenta-sdelok-stakany.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item86"
             }
         };
 
@@ -79,7 +79,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "OsData и Тестер. Качаем слепки стаканов и запускаем на них тесты",
-                PostLink = "https://o-s-a.net/posts/osdata-tester-marketdepth.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item287"
             }
         };
 
@@ -90,7 +90,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "OsData и Тестер. Качаем ленту сделок и запускаем на ней тесты",
-                PostLink = "https://o-s-a.net/posts/we-pump-transaction-tape-run-tests.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item310"
             }
         };
 
@@ -101,7 +101,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "OsData – обрезаем лишние ценовые ряды по фильтрам",
-                PostLink = "https://o-s-a.net/posts/osdata-trim-unnecessary-price-series-by-filters.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item832"
             }
         };
 
@@ -112,7 +112,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "OsData — автоматическое обновление сета данных по таймеру",
-                PostLink = "https://o-s-a.net/posts/osdata-automatic-update-of-the-data-set-by-timer.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item840"
             }
         };
 
@@ -123,7 +123,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "OsData – Генерация данных денежных фондов TMON/LQDT (для MOEX, NYSE) для дальнейших тестов",
-                PostLink = "https://o-s-a.net/posts/osdata-generates-tmon-lqdt-for-moex-nyse-cash-fund-data-for-further-testing.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item824"
             }
         };
 
@@ -134,7 +134,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "OsData – дублируем данные сета в другую папку",
-                PostLink = "https://o-s-a.net/posts/osdata-duplicate-dataset-to-another-folder.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item836"
             }
         };
 
@@ -145,7 +145,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "OsData. Создание сета данных",
-                PostLink = "https://o-s-a.net/posts/creating-data-set.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item846"
             }
         };
     }

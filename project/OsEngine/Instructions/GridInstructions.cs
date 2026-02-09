@@ -246,7 +246,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Сетки. Базовые настройки",
-                PostLink = "https://o-s-a.net/posts/basic-grid-settings.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub101&items%5B%5D=item850"
             }
         };
 
@@ -257,7 +257,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Сетки. Создание сетки",
-                PostLink = "https://o-s-a.net/posts/creating-grid.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub101&items%5B%5D=item851"
             }
         };
 
@@ -268,7 +268,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Сетки. Стоп торги",
-                PostLink = "https://o-s-a.net/posts/stop-trading.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub101&items%5B%5D=item852"
             }
         };
 
@@ -279,7 +279,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Сетки. Авто старт",
-                PostLink = "https://o-s-a.net/posts/grids-auto-start.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub101&items%5B%5D=item853"
             }
         };
 
@@ -290,7 +290,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Сетки. Стоп и профит",
-                PostLink = "https://o-s-a.net/posts/stop-and-profit-grids.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub101&items%5B%5D=item854"
             }
         };
 
@@ -301,7 +301,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Сетки. Остановка сетки по ошибкам выставления и отзыва ордеров",
-                PostLink = "https://o-s-a.net/posts/grid-stop-grid-due-to-errors.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub101&items%5B%5D=item855"
             }
         };
     }
