@@ -48,11 +48,11 @@
                     <Label Name="LabelMaxCloseOrdersInMarket" Content="Close:" HorizontalAlignment="Left" Margin="220,150,0,0" VerticalAlignment="Top" Width="64"/>
 
 
-                    <Button Name="ButtonLoad" Content="Load" Margin="10,0,0,78" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="124" Click="ButtonLoad_Click"/>
-                    <Button Name="ButtonSave" Content="Save" Margin="10,0,0,50" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="124" Click="ButtonSave_Click"/>
-                    <Button Name="ButtonStart" Content="Start" Margin="139,0,143,50" Height="51" VerticalAlignment="Bottom" Click="ButtonStart_Click"/>
-                    <Button Name="ButtonStop" Content="Stop" Margin="0,0,14,78" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="124" Click="ButtonStop_Click"/>
-                    <Button Name="ButtonClose" Content="Close" Margin="0,0,14,50" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="124" Click="ButtonClose_Click"/>
+                    <Button Name="ButtonLoad" Content="Load" Margin="10,0,0,88" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="124" Click="ButtonLoad_Click"/>
+                    <Button Name="ButtonSave" Content="Save" Margin="10,0,0,60" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="124" Click="ButtonSave_Click"/>
+                    <Button Name="ButtonStart" Content="Start" Margin="139,0,143,60" Height="51" VerticalAlignment="Bottom" Click="ButtonStart_Click"/>
+                    <Button Name="ButtonStop" Content="Stop" Margin="0,0,14,88" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="124" Click="ButtonStop_Click"/>
+                    <Button Name="ButtonClose" Content="Close" Margin="0,0,14,60" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="124" Click="ButtonClose_Click"/>
                     <Label Name="LabelDelayInReal" Content="Waiting for an order action (MLS)" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxDelayInReal" Text="500" Margin="284,178,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxCheckMicroVolumes" Margin="193,205,14,0" VerticalAlignment="Top"/>
@@ -60,12 +60,17 @@
 
                     <Label Name="LabelMaxDistanceToOrdersPercent" Content="Max distance from the price" HorizontalAlignment="Left" Margin="10,233,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxMaxDistanceToOrdersPercent" Text="1.5" Margin="194,233,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-
+                    <Button Name="ButtonBase"  Margin="293,0,10,10" VerticalAlignment="Bottom" Height="36" Click="ButtonBase_Click">
+                        <Grid>
+                            <Image Name="PostGreenBase" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                            <Image Name="PostWhiteBase"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                        </Grid>
+                    </Button>
 
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemGridCreation" Header="Creation">
-                <Grid >
+                <Grid Margin="3,0,-3,0" >
                     <Label Name="LabelGridSide" Content="Direction" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxGridSide" Margin="164,10,14,0" VerticalAlignment="Top"/>
 
@@ -91,15 +96,21 @@
                     <Label Name="LabelAsset" Content="Asset" HorizontalAlignment="Left" Margin="10,206,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTradeAssetInPortfolio" HorizontalAlignment="Left" Margin="68,206,0,0" TextWrapping="Wrap" Text="Prime" VerticalAlignment="Top" Width="102"/>
 
-                    <Button Name="ButtonCreateGrid" Content="Create grid" HorizontalAlignment="Left" Margin="10,0,0,78" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonCreateGrid_Click"/>
-                    <Button Name="ButtonDeleteGrid" Content="Delete grid" HorizontalAlignment="Left" Margin="10,0,0,50" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonDeleteGrid_Click"/>
-                    <Button Name="ButtonNewLevel" Content="New level" HorizontalAlignment="Right" Margin="0,0,14,78" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonNewLevel_Click"/>
-                    <Button Name="ButtonRemoveSelected" Content="Remove selected" HorizontalAlignment="Right" Margin="0,0,14,50" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonRemoveSelected_Click"/>
+                    <Button Name="ButtonCreateGrid" Content="Create grid" HorizontalAlignment="Left" Margin="10,0,0,88" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonCreateGrid_Click"/>
+                    <Button Name="ButtonDeleteGrid" Content="Delete grid" HorizontalAlignment="Left" Margin="10,0,0,60" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonDeleteGrid_Click"/>
+                    <Button Name="ButtonNewLevel" Content="New level" HorizontalAlignment="Right" Margin="0,0,14,88" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonNewLevel_Click"/>
+                    <Button Name="ButtonRemoveSelected" Content="Remove selected" HorizontalAlignment="Right" Margin="0,0,14,60" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonRemoveSelected_Click"/>
                     <Label Name="LabelSelectOffToUse" Content="Trade regime OFF, to use" HorizontalAlignment="Left" Margin="14,94,0,0" VerticalAlignment="Top" Width="324" Height="28" FontWeight="Bold" FontSize="15"/>
+                    <Button Name="ButtonCreation"  Margin="293,0,10,10" VerticalAlignment="Bottom" Height="36" Click="ButtonCreation_Click">
+                        <Grid>
+                            <Image Name="PostGreenCreation" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                            <Image Name="PostWhiteCreation"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                        </Grid>
+                    </Button>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemStopTrading" Header="Stop trading">
-                <Grid >
+                <Grid Margin="3,0,-3,0" >
                     <CheckBox Name="CheckBoxStopGridByMoveUpIsOn" Content="Stop by move up %" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxStopGridByMoveUpValuePercent" Margin="164,10,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
                     <Label Name="LabelStopGridByMoveUpValuePercentReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top"/>
@@ -133,10 +144,16 @@
 
                     <Label Name="LabelStopGridByTimeOfDayReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,258,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxStopGridByTimeOfDayReaction" Margin="162,258,14,0" VerticalAlignment="Top"/>
+                    <Button Name="ButtonStopTrading"  Margin="293,0,10,10" VerticalAlignment="Bottom" Height="36" Click="ButtonStopTrading_Click">
+                        <Grid>
+                            <Image Name="PostGreenStopTrading" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                            <Image Name="PostWhiteStopTrading"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                        </Grid>
+                    </Button>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemAutoStart" Header="Auto start">
-                <Grid >
+                <Grid Margin="3,0,-3,0" >
                     <Label Name="LabelAutoStartRegime" Content="Start by price regime" HorizontalAlignment="Left" Margin="15,10,0,0" VerticalAlignment="Top" Width="134"/>
                     <ComboBox Name="ComboBoxAutoStartRegime" Margin="164,10,14,0" VerticalAlignment="Top"/>
                     <Label Name="LabelAutoStartPrice" Content="Price" HorizontalAlignment="Left" Margin="15,38,0,0" VerticalAlignment="Top" Width="67"/>
@@ -155,11 +172,17 @@
                     <TextBox Name="TextBoxStartGridByTimeOfDaySecond" Margin="298,87,17,0" TextWrapping="Wrap" Text="00" VerticalAlignment="Top"/>
                     <Label Name="LabelStartGridByTimeOfDaySecond" Content="S:" HorizontalAlignment="Left" Margin="280,87,0,0" VerticalAlignment="Top"/>
                     <CheckBox Name="CheckBoxSingleActivationMode"  Content="Single activation mode" HorizontalAlignment="Left" Margin="15,204,0,0" VerticalAlignment="Top"/>
+                    <Button Name="ButtonAutoStart"  Margin="293,0,10,10" VerticalAlignment="Bottom" Height="36" Click="ButtonAutoStart_Click">
+                        <Grid>
+                            <Image Name="PostGreenAutoStart" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                            <Image Name="PostWhiteAutoStart"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                        </Grid>
+                    </Button>
 
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemTrailingUp" Header="Trailing Up">
-                <Grid >
+                <Grid Margin="3,0,-3,0" >
                     <CheckBox Name="CheckBoxTrailingUpIsOn" Content="Trailing Up" HorizontalAlignment="Left" Margin="11,7,0,0" VerticalAlignment="Top" Width="316"/>
                     <Label Name="LabelTrailingUpStep" Content="Step" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTrailingUpStep" Margin="164,35,12,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
@@ -233,7 +256,7 @@
                     <TextBox Name="TextBoxTrailStopValue" Margin="143,249,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <Label Name="LabelMiddleEntryPrice" Content="Middle entry price" HorizontalAlignment="Left" Margin="10,285,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxMiddleEntryPrice" Margin="178,285,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <Button x:Name="ButtonStopAndProfit"  Margin="293,0,12,10" VerticalAlignment="Bottom" Height="36" Click="ButtonStopAndProfit_Click">
+                    <Button Name="ButtonStopAndProfit"  Margin="293,0,12,10" VerticalAlignment="Bottom" Height="36" Click="ButtonStopAndProfit_Click">
                         <Grid>
                             <Image Name="PostGreenStopAndProfit" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
                             <Image Name="PostWhiteStopAndProfit"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
@@ -258,7 +281,7 @@
                     <Label Name="LabelWaitSecondsOnStartConnector" Content="Wait seconds on start connector" HorizontalAlignment="Left" Margin="9,235,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxWaitSecondsOnStartConnector" Margin="220,235,16,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <CheckBox Name="CheckBoxReduceOrdersCountInMarketOnNoFundsError" Content="Reduce orders count on low deposit errors" HorizontalAlignment="Left" Margin="10,276,0,0" VerticalAlignment="Top" Width="312"/>
-                    <Button x:Name="ButtonError"  Margin="293,0,12,10" VerticalAlignment="Bottom" Height="36" Click="ButtonError_Click">
+                    <Button Name="ButtonError"  Margin="293,0,12,10" VerticalAlignment="Bottom" Height="36" Click="ButtonError_Click">
                         <Grid>
                             <Image Name="PostGreenError" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
                             <Image Name="PostWhiteError"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
