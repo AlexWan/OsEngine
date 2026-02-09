@@ -207,7 +207,8 @@ namespace OsEngine.OsTrader.Grids
                 newLine.Side = GridSide;
                 newLine.Volume = volumeCurrent;
 
-                if (tab.Security != null
+                if (tab.StartProgram == StartProgram.IsOsTrader
+                   && tab.Security != null
                    && tab.Security.DecimalsVolume >= 0
                    && TypeVolume == TradeGridVolumeType.Contracts)
                 {
@@ -215,7 +216,7 @@ namespace OsEngine.OsTrader.Grids
                 }
                 else
                 {
-                    newLine.Volume = Math.Round(volumeCurrent, 4);
+                    newLine.Volume = Math.Round(volumeCurrent, 5);
                 }
 
                 if (newLine.Volume <= 0)
