@@ -2493,16 +2493,37 @@ namespace OsEngine.OsTrader.Grids
 
                 for (int i = 0; i < positions.Count; i++)
                 {
-                    List<Order> orders = positions[i].OpenOrders;
+                    Position currentPos = positions[i];
+
+                    if(currentPos == null)
+                    {
+                        continue;
+                    }
+
+                    List<Order> orders = currentPos.OpenOrders;
+
+                    if(orders == null)
+                    {
+                        continue;
+                    }
 
                     for (int j = 0; j < orders.Count; j++)
                     {
-                        List<MyTrade> myTrades = orders[j].MyTrades;
+                        Order currentOrder = orders[j];
 
-                        if (myTrades == null || myTrades.Count == 0)
+                        if(currentOrder == null)
                         {
                             continue;
                         }
+
+                        List<MyTrade> myTrades = currentOrder.MyTrades;
+
+                        if (myTrades == null 
+                            || myTrades.Count == 0)
+                        {
+                            continue;
+                        }
+
                         tradesOpenPos.AddRange(myTrades);
                     }
                 }
