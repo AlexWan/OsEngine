@@ -986,7 +986,7 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
-                if (_lastTimeGetPortfolio.AddSeconds(10) > DateTime.Now)
+                if (_lastTimeGetPortfolio.AddSeconds(5) > DateTime.Now)
                 {
                     return;
                 }
@@ -1096,15 +1096,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             else
             {
-                myPortfolio.Number = portfolioResponse.AccountId;
-
-                decimal value = portfolioResponse.TotalAmountPortfolio != null ? GetValue(portfolioResponse.TotalAmountPortfolio) : 1;
-
-                if (value != 1)
-                {
-                    myPortfolio.ValueCurrent = value;
-                }
-
+                // ignore
             }
         }
 
@@ -1113,11 +1105,6 @@ namespace OsEngine.Market.Servers.TInvest
             if (portfolio == null)
             {
                 return;
-            }
-
-            if(portfolio.AccountId == "2309437515")
-            {
-
             }
 
             Portfolio portf = _myPortfolios.Find(p => p.Number == portfolio.AccountId);
@@ -1309,15 +1296,17 @@ namespace OsEngine.Market.Servers.TInvest
 
             // Блокированные средства по портфелю целиком
 
-            portf.ValueBlocked = 0;
+            decimal valueBlock = 0;
 
             for (int i = 0; i < portfolio.Positions.Count; i++)
             {
                 if (portfolio.Positions[i].InstrumentType == "currency")
                 {
-                    portf.ValueBlocked += GetValue(portfolio.Positions[i].BlockedLots) * GetValue(portfolio.Positions[i].AveragePositionPrice);
+                    valueBlock += GetValue(portfolio.Positions[i].BlockedLots) * GetValue(portfolio.Positions[i].AveragePositionPrice);
                 }
             }
+
+            portf.ValueBlocked = valueBlock;
 
             // Денежная позиция в портфеле
 
@@ -1333,7 +1322,9 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     decimal valuePortfolio = GetValue(posMoney);
 
-                    newPos.ValueCurrent = valuePortfolio - futuresAndOptionsGO; // - spotShortValue;
+                    decimal blockRub = portf.ValueBlocked;
+
+                    newPos.ValueCurrent = valuePortfolio - blockRub; // - futuresAndOptionsGO; // -spotShortValue;
 
                     /*if(portf.ValueBlocked != 0)
                     {
@@ -2816,36 +2807,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (portfolioResponse.Portfolio != null)
                     {
-                        Portfolio portf = _myPortfolios.Find((p) => p.Number == portfolioResponse.Portfolio.AccountId);
-
-                        if (portf == null)
-                        {
-                            continue;
-                        }
-
-                        if (portfolioResponse.Portfolio.TotalAmountPortfolio != null)
-                        {
-                            portf.ValueCurrent = GetValue(portfolioResponse.Portfolio.TotalAmountPortfolio);
-                        }
-                        else
-                        {
-                            decimal resultValue = 0;
-
-                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountBonds);
-                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountCurrencies);
-                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountEtf);
-                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountFutures);
-                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountOptions);
-                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountShares);
-                            resultValue += GetValue(portfolioResponse.Portfolio.TotalAmountSp);
-
-                            portf.ValueCurrent = resultValue;
-                        }
-
-                        portf.UnrealizedPnl = GetValue(portfolioResponse.Portfolio.DailyYield);
-                        UpdatePositionsInPortfolio(portfolioResponse.Portfolio);
-
-                        PortfolioEvent!(_myPortfolios);
+                        GetPortfolios();
                     }
                 }
                 catch (Exception exception)
@@ -3053,26 +3015,6 @@ namespace OsEngine.Market.Servers.TInvest
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                             portf.SetNewPosition(newPos);
-                        }
-
-                        for (int i = 0; i < posData.Money.Count; i++)
-                        {
-                            PositionsMoney pos = posData.Money[i];
-
-                            if (pos.AvailableValue.Currency == "rub")
-                            {
-                                portf.ValueBlocked = GetValue(pos.BlockedValue);
-
-                                List<PositionOnBoard> posesInPortfolio = portf.PositionOnBoard;
-
-                                for (int j = 0; posesInPortfolio != null && j < posesInPortfolio.Count; j++)
-                                {
-                                    if (posesInPortfolio[j].SecurityNameCode == "rub")
-                                    {
-                                        posesInPortfolio[j].ValueBlocked = portf.ValueBlocked;
-                                    }
-                                }
-                            }
                         }
 
                         if (PortfolioEvent != null)
