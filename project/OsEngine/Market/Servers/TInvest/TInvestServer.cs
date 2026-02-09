@@ -1115,6 +1115,11 @@ namespace OsEngine.Market.Servers.TInvest
                 return;
             }
 
+            if(portfolio.AccountId == "2309437515")
+            {
+
+            }
+
             Portfolio portf = _myPortfolios.Find(p => p.Number == portfolio.AccountId);
 
             if (portf == null)
@@ -1328,7 +1333,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     decimal valuePortfolio = GetValue(posMoney);
 
-                    newPos.ValueCurrent = valuePortfolio - futuresAndOptionsGO - spotShortValue;
+                    newPos.ValueCurrent = valuePortfolio - futuresAndOptionsGO; // - spotShortValue;
 
                     /*if(portf.ValueBlocked != 0)
                     {
