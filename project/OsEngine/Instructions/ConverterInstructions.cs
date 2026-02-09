@@ -49,7 +49,7 @@ namespace OsEngine.Instructions
             Ru = new InstructionLocalized()
             {
                 Description = "Конвертер и Конвертер свечей",
-                PostLink = "https://o-s-a.net/posts/osngine-glavnoe-menyu-konverter-i-konverter-svechej.html"
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item87"
             }
         };
     }
