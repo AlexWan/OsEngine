@@ -386,7 +386,7 @@ namespace OsEngine.Robots
                         {
                             if (positions[i].SecurityNameCode == "rub")
                             {
-                                return positions[i].ValueCurrent - positions[i].ValueBlocked;
+                                return positions[i].ValueCurrent;
                             }
                         }
                     }
