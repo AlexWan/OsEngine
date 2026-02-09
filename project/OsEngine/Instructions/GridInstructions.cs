@@ -52,6 +52,12 @@ namespace OsEngine.Instructions
                 result.Add(Link14);
                 result.Add(Link15);
                 result.Add(Link16);
+                result.Add(Link17);
+                result.Add(Link18);
+                result.Add(Link19);
+                result.Add(Link20);
+                result.Add(Link21);
+                result.Add(Link22);
 
                 return result;
             }
@@ -233,5 +239,70 @@ namespace OsEngine.Instructions
             }
         };
 
+        public Instruction Link17 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Сетки. Базовые настройки",
+                PostLink = "https://o-s-a.net/posts/basic-grid-settings.html"
+            }
+        };
+
+        public Instruction Link18 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Сетки. Создание сетки",
+                PostLink = "https://o-s-a.net/posts/creating-grid.html"
+            }
+        };
+
+        public Instruction Link19 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Сетки. Стоп торги",
+                PostLink = "https://o-s-a.net/posts/stop-trading.html"
+            }
+        };
+
+        public Instruction Link20 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Сетки. Авто старт",
+                PostLink = "https://o-s-a.net/posts/grids-auto-start.html"
+            }
+        };
+
+        public Instruction Link21 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Сетки. Стоп и профит",
+                PostLink = "https://o-s-a.net/posts/stop-and-profit-grids.html"
+            }
+        };
+
+        public Instruction Link22 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Сетки. Остановка сетки по ошибкам выставления и отзыва ордеров",
+                PostLink = "https://o-s-a.net/posts/grid-stop-grid-due-to-errors.html"
+            }
+        };
     }
 }

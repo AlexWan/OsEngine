@@ -428,8 +428,12 @@ namespace OsEngine.OsTrader.Grids
                     timer.Stop();
                     GreenCollection.Opacity = 1;
                     WhiteCollection.Opacity = 0;
-                    PostGreen.Opacity = 1;
-                    PostWhite.Opacity = 0;
+                    PostGreenTrailUpInstruction.Opacity = 1;
+                    PostWhiteTrailUpInstruction.Opacity = 0;
+                    PostGreenStopAndProfit.Opacity = 1;
+                    PostWhiteStopAndProfit.Opacity = 0;
+                    PostGreenError.Opacity = 1;
+                    PostWhiteError.Opacity = 0;
                     return;
                 }
 
@@ -437,15 +441,23 @@ namespace OsEngine.OsTrader.Grids
                 {
                     GreenCollection.Opacity = 0;
                     WhiteCollection.Opacity = 1;
-                    PostGreen.Opacity = 0;
-                    PostWhite.Opacity = 1;
+                    PostGreenTrailUpInstruction.Opacity = 0;
+                    PostWhiteTrailUpInstruction.Opacity = 1;
+                    PostGreenStopAndProfit.Opacity = 0;
+                    PostWhiteStopAndProfit.Opacity = 1;
+                    PostGreenError.Opacity = 0;
+                    PostWhiteError.Opacity = 1;
                 }
                 else
                 {
                     GreenCollection.Opacity = 1;
                     WhiteCollection.Opacity = 0;
-                    PostGreen.Opacity = 1;
-                    PostWhite.Opacity = 0;
+                    PostGreenTrailUpInstruction.Opacity = 1;
+                    PostWhiteTrailUpInstruction.Opacity = 0;
+                    PostGreenStopAndProfit.Opacity = 1;
+                    PostWhiteStopAndProfit.Opacity = 0;
+                    PostGreenError.Opacity = 1;
+                    PostWhiteError.Opacity = 0;
                 }
 
                 isGreenVisible = !isGreenVisible;
@@ -2960,5 +2972,15 @@ namespace OsEngine.OsTrader.Grids
 
 
         #endregion
+
+        private void ButtonStopAndProfit_Click(object sender, RoutedEventArgs e)
+        {
+            InteractiveInstructions.Grids.Link21.ShowLinkInBrowser();
+        }
+
+        private void ButtonError_Click(object sender, RoutedEventArgs e)
+        {
+            InteractiveInstructions.Grids.Link22.ShowLinkInBrowser();
+        }
     }
 }
