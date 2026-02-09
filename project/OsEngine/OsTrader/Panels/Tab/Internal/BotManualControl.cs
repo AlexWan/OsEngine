@@ -572,7 +572,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         }
 
                         if (openOrder.State != OrderStateType.Active &&
-                            openOrder.State != OrderStateType.Partial)
+                            openOrder.State != OrderStateType.Partial &&
+                            openOrder.State != OrderStateType.Pending)
+                        {
+                            continue;
+                        }
+
+                        if (string.IsNullOrEmpty(openOrder.NumberMarket))
                         {
                             continue;
                         }
@@ -630,8 +636,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
-                        if ((closeOrder.State != OrderStateType.Active &&
-                             closeOrder.State != OrderStateType.Partial))
+                        if (closeOrder.State != OrderStateType.Active 
+                            && closeOrder.State != OrderStateType.Partial
+                            && closeOrder.State != OrderStateType.Pending)
+                        {
+                            continue;
+                        }
+
+                        if(string.IsNullOrEmpty(closeOrder.NumberMarket))
                         {
                             continue;
                         }
