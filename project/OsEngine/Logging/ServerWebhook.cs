@@ -85,7 +85,7 @@ namespace OsEngine.Logging
         {
             if (File.Exists(@"Engine\webhookSet.txt"))
             {
-                StreamReader reader = new StreamReader(@"Engine\webhookSet.txt");
+                using StreamReader reader = new StreamReader(@"Engine\webhookSet.txt");
 
                 SlackBotToken = reader.ReadLine();
 
@@ -111,11 +111,7 @@ namespace OsEngine.Logging
                         Webhooks = newWebhooks;
                         IsReady = true;
                     }
-
                 }
-
-                reader.Close();
-
             }
             else
             {
@@ -130,7 +126,7 @@ namespace OsEngine.Logging
         /// </summary>
         public void Save()
         {
-            StreamWriter writer = new StreamWriter(@"Engine\webhookSet.txt");
+            using StreamWriter writer = new StreamWriter(@"Engine\webhookSet.txt");
             writer.WriteLine(SlackBotToken);
             IsReady = false;
             if (Webhooks != null && Webhooks[0] != null)
@@ -141,7 +137,6 @@ namespace OsEngine.Logging
                     writer.WriteLine(Webhooks[i]);
                 }
             }
-            writer.Close();
         }
 
         /// <summary>
