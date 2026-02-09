@@ -325,12 +325,11 @@ namespace OsEngine.Logging
             {
                 if (File.Exists(@"Engine\telegramSet.txt"))
                 {
-                    StreamReader reader = new StreamReader(@"Engine\telegramSet.txt");
+                    using StreamReader reader = new StreamReader(@"Engine\telegramSet.txt");
                     BotToken = reader.ReadLine();
                     ChatId = Convert.ToInt64(reader.ReadLine());
-
                     string isProcessingCommand = reader.ReadLine();
-                    if ( isProcessingCommand == "True" || isProcessingCommand == "true")
+                    if (isProcessingCommand == "True" || isProcessingCommand == "true")
                     {
                         ProcessingCommand = true;
                     }
@@ -340,7 +339,6 @@ namespace OsEngine.Logging
                     }
 
                     _isReady = true;
-                    reader.Close();
                 }
                 else
                 {
@@ -364,11 +362,10 @@ namespace OsEngine.Logging
         {
             try
             {
-                StreamWriter writer = new StreamWriter(@"Engine\telegramSet.txt");
+                using StreamWriter writer = new StreamWriter(@"Engine\telegramSet.txt");
                 writer.WriteLine(BotToken);
                 writer.WriteLine(ChatId);
                 writer.WriteLine(ProcessingCommand);
-                writer.Close();
 
                 if(string.IsNullOrEmpty(BotToken) == false &&
                     ChatId != 0)
