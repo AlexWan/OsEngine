@@ -271,8 +271,12 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                     else
                     {
-                        GetPortfolios();
-                        Thread.Sleep(20000);
+                        if (_lastTimeGetPortfolio.AddSeconds(10) < DateTime.Now)
+                        {
+                            GetPortfolios();
+                        }
+                      
+                        Thread.Sleep(5000);
                     }
                 }
                 catch (Exception ex)
@@ -1989,7 +1993,7 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                 }
 
-                if(_myPortfolios.Count == 0)
+                if (_myPortfolios.Count == 0)
                 {
                     return false;
                 }
@@ -2004,7 +2008,7 @@ namespace OsEngine.Market.Servers.TInvest
                     _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
                         headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
-               
+
 
                 _lastPositionsDataTime = DateTime.UtcNow;
             }
@@ -3469,6 +3473,13 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     order.State = OrderStateType.Active;
                     order.NumberMarket = response.OrderId;
+
+                    if (_lastMyOrderStateDataTime.AddSeconds(5) < DateTime.UtcNow)
+                    {   // Сбрасываем счётчики жизни потока принимающего статусы ордеров
+                        // если он отсох, надо чтобы через 3 секунды уже переподключался.
+                        _lastMyOrderStateDataTime = DateTime.UtcNow.AddSeconds(-177);
+                        _lastTryReconnectOrdersStream = DateTime.Now.AddMinutes(-1);
+                    }
                 }
 
                 MyOrderEvent!(order);
@@ -3659,6 +3670,13 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (response != null)
                 {
+                    if (_lastMyOrderStateDataTime.AddSeconds(5) < DateTime.UtcNow)
+                    {   // Сбрасываем счётчики жизни потока принимающего статусы ордеров
+                        // если он отсох, надо чтобы через 3 секунды уже переподключался.
+                        _lastMyOrderStateDataTime = DateTime.UtcNow.AddSeconds(-177);
+                        _lastTryReconnectOrdersStream = DateTime.Now.AddMinutes(-1);
+                    }
+
                     return true;
                 }
                 else
@@ -4234,6 +4252,40 @@ namespace OsEngine.Market.Servers.TInvest
         public event Action<Funding> FundingUpdateEvent { add { } remove { } }
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
+
+        #endregion
+
+        #region 12 Set trade mode
+
+        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort)
+        {
+         
+        }
+
+        public void SetHedgeMode(string securityName, string className, string hedgeMode)
+        {
+          
+        }
+
+        public void SetMarginMode(string securityName, string className, string marginMode)
+        {
+           
+        }
+
+        public void SetCommonLeverage(string selectedClass, string leverage)
+        {
+        
+        }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode)
+        {
+           
+        }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode)
+        {
+            
+        }
 
         #endregion
     }
