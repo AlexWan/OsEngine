@@ -21,7 +21,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 
-
 namespace OsEngine.Market.Servers.OKX
 {
     public class OkxServer : AServer
@@ -35,9 +34,6 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamPassword, "");
-            CreateParameterBoolean("Hedge Mode", true);
-            ServerParameters[3].ValueChange += OkxServer_ValueChange;
-            CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
             CreateParameterBoolean("Use Options", false);
             CreateParameterBoolean("Demo Mode", false);
             CreateParameterBoolean("Extended Data", false);
@@ -45,16 +41,9 @@ namespace OsEngine.Market.Servers.OKX
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
             ServerParameters[2].Comment = OsLocalization.Market.Label271;
-            ServerParameters[3].Comment = OsLocalization.Market.Label250;
-            ServerParameters[4].Comment = OsLocalization.Market.Label249;
-            ServerParameters[5].Comment = OsLocalization.Market.Label253;
-            ServerParameters[6].Comment = OsLocalization.Market.Label268;
-            ServerParameters[7].Comment = OsLocalization.Market.Label252;
-        }
-
-        private void OkxServer_ValueChange()
-        {
-            ((OkxServerRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
+            ServerParameters[3].Comment = OsLocalization.Market.Label253;
+            ServerParameters[4].Comment = OsLocalization.Market.Label268;
+            ServerParameters[5].Comment = OsLocalization.Market.Label252;
         }
     }
 
@@ -120,20 +109,10 @@ namespace OsEngine.Market.Servers.OKX
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _password = ((ServerParameterPassword)ServerParameters[2]).Value;
-            HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
+           
+            _useOptions = ((ServerParameterBool)ServerParameters[3]).Value;
 
-            if (((ServerParameterEnum)ServerParameters[4]).Value == "Cross")
-            {
-                _marginMode = "cross";
-            }
-            else
-            {
-                _marginMode = "isolated";
-            }
-
-            _useOptions = ((ServerParameterBool)ServerParameters[5]).Value;
-
-            if (((ServerParameterBool)ServerParameters[6]).Value == false)
+            if (((ServerParameterBool)ServerParameters[4]).Value == false)
             {
                 _demoMode = false;
             }
@@ -142,7 +121,7 @@ namespace OsEngine.Market.Servers.OKX
                 _demoMode = true;
             }
 
-            if (((ServerParameterBool)ServerParameters[7]).Value == true)
+            if (((ServerParameterBool)ServerParameters[5]).Value == true)
             {
                 _extendedMarketData = true;
             }
@@ -266,25 +245,6 @@ namespace OsEngine.Market.Servers.OKX
         private string _webSocketUrlPublicDemo = "wss://wspap.okx.com:8443/ws/v5/public";
 
         private string _webSocketUrlPrivateDemo = "wss://wspap.okx.com:8443/ws/v5/private";
-
-        private bool _hedgeMode;
-
-        public bool HedgeMode
-        {
-            get { return _hedgeMode; }
-            set
-            {
-                if (value == _hedgeMode)
-                {
-                    return;
-                }
-                _hedgeMode = value;
-
-                SetPositionMode();
-            }
-        }
-
-        private string _marginMode;
 
         private bool _useOptions;
 
@@ -1271,8 +1231,6 @@ namespace OsEngine.Market.Servers.OKX
                         {
                             ConnectEvent();
                         }
-
-                        SetPositionMode();
                     }
                 }
             }
@@ -1292,56 +1250,6 @@ namespace OsEngine.Market.Servers.OKX
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
-        }
-
-        private void SetPositionMode()
-        {
-            if (ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                return;
-            }
-
-            Dictionary<string, string> dict = new Dictionary<string, string>();
-
-            dict["posMode"] = "net_mode";
-
-            if (HedgeMode)
-            {
-                dict["posMode"] = "long_short_mode";
-            }
-
-            try
-            {
-                string res = PushPositionMode(dict);
-            }
-            catch (Exception error)
-            {
-                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
-            }
-        }
-
-        private string PushPositionMode(Dictionary<string, string> requestParams)
-        {
-            string url = $"{_baseUrl}{"/api/v5/account/set-position-mode"}";
-            string bodyStr = JsonConvert.SerializeObject(requestParams);
-            HttpClient client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, bodyStr, _demoMode, _myProxy));
-
-            HttpResponseMessage res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
-            string contentStr = res.Content.ReadAsStringAsync().Result;
-
-            ResponseRestMessage<List<RestMessageSendOrder>> message = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseRestMessage<List<RestMessageSendOrder>>());
-
-            if (message.code.Equals("1"))
-            {
-                SendLogMessage($"PushPositionMode - {message.data[0].sMsg}", LogMessageType.Error);
-            }
-            else if (message.msg == "API key doesn't exist")
-            {
-                SendLogMessage($"PushPositionMode - {contentStr}", LogMessageType.Error);
-                Disconnect();
-            }
-
-            return contentStr;
         }
 
         #endregion
@@ -3191,7 +3099,9 @@ namespace OsEngine.Market.Servers.OKX
             {
                 string posSide = "net";
 
-                if (HedgeMode)
+                bool hedgeMode = GetHedgeModeFromSettings(order.SecurityClassCode);
+
+                if (hedgeMode)
                 {
                     posSide = order.Side == Side.Buy ? "long" : "short";
 
@@ -3208,7 +3118,7 @@ namespace OsEngine.Market.Servers.OKX
                 Dictionary<string, dynamic> orderRequest = new Dictionary<string, dynamic>();
 
                 orderRequest.Add("instId", order.SecurityNameCode);
-                orderRequest.Add("tdMode", _marginMode);
+                orderRequest.Add("tdMode", GetMarginMode(order.SecurityNameCode, order.SecurityClassCode));
                 orderRequest.Add("clOrdId", order.NumberUser.ToString());
                 orderRequest.Add("side", order.Side == Side.Buy ? "buy" : "sell");
                 orderRequest.Add("ordType", order.TypeOrder.ToString().ToLower());
@@ -3868,17 +3778,191 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 14 Set trade mode
 
-        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort) { }
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode)
+        {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+
+            dict["posMode"] = "net_mode";
+
+            if (hedgeMode == "On")
+            {
+                dict["posMode"] = "long_short_mode";
+            }
+
+            try
+            {
+                string res = PushPositionMode(dict);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private string PushPositionMode(Dictionary<string, string> requestParams)
+        {
+            string url = $"{_baseUrl}{"/api/v5/account/set-position-mode"}";
+            string bodyStr = JsonConvert.SerializeObject(requestParams);
+            HttpClient client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, bodyStr, _demoMode, _myProxy));
+
+            HttpResponseMessage res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
+            string contentStr = res.Content.ReadAsStringAsync().Result;
+
+            ResponseRestMessage<List<RestMessageSendOrder>> message = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseRestMessage<List<RestMessageSendOrder>>());
+
+            if (message.code.Equals("1"))
+            {
+                SendLogMessage($"PushPositionMode - {message.data[0].sMsg}", LogMessageType.Error);
+            }
+            else if (message.msg == "API key doesn't exist")
+            {
+                SendLogMessage($"PushPositionMode - {contentStr}", LogMessageType.Error);
+                Disconnect();
+            }
+
+            return contentStr;
+        }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
+
+        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort)
+        {
+            try
+            {
+                Dictionary<string, string> requestParams = new Dictionary<string, string>();
+
+                string marginMode = GetMarginMode(securityName, className);
+
+                requestParams["instId"] = securityName;
+                requestParams["mgnMode"] = marginMode;
+
+                if (leverageLong != "")
+                {
+                    requestParams["lever"] = leverageLong;
+                    requestParams["posSide"] = "long";
+                    PushLeverage(requestParams);
+                }
+
+                if (leverageShort != "")
+                {
+                    requestParams["lever"] = leverageShort;
+                    requestParams["posSide"] = "short";
+                    PushLeverage(requestParams);
+                }
+
+                if (leverage != "")
+                {
+                    requestParams["lever"] = leverage;
+                    PushLeverage(requestParams);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private string GetMarginMode(string securityName, string className)
+        {
+            List<AServer> servers = ServerMaster.GetAServers();
+
+            List<SecurityLeverageData> securityData = new();
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                if (servers[i].ServerRealization.Equals(this))
+                {
+                    securityData = servers[i].ListLeverageData[className].SecurityData;
+                }
+            }
+
+            if (securityData.Count == 0)
+            {
+                return "";
+            }
+
+            for (int i = 0; i < securityData.Count; i++)
+            {
+                if (securityData[i].SecurityName == securityName && securityData[i].ClassName == className)
+                {
+                    return securityData[i].MarginMode.ToString();
+                }
+            }
+
+            return "";
+        }
+
+        private void PushLeverage(Dictionary<string, string> requestParams)
+        {
+            try
+            {
+                string url = $"{_baseUrl}{"/api/v5/account/set-leverage"}";
+                string bodyStr = JsonConvert.SerializeObject(requestParams);
+                HttpClient client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, bodyStr, _demoMode, _myProxy));
+
+                HttpResponseMessage res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
+                string contentStr = res.Content.ReadAsStringAsync().Result;
+
+                ResponseRestMessage<List<RestMessageSendOrder>> message = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseRestMessage<List<RestMessageSendOrder>>());
+
+                if (message.code.Equals("1"))
+                {
+                    SendLogMessage($"SetLeverage - {message.data[0].sMsg}", LogMessageType.Error);
+                }
+                else if (message.msg == "API key doesn't exist")
+                {
+                    SendLogMessage($"SetLeverage - {contentStr}", LogMessageType.Error);
+                    Disconnect();
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+            }
+        }
 
         public void SetHedgeMode(string securityName, string className, string hedgeMode) { }
 
         public void SetMarginMode(string securityName, string className, string marginMode) { }
 
-        public void SetCommonLeverage(string selectedClass, string leverage) { }
+        private bool GetHedgeModeFromSettings(string className)
+        {
+            try
+            {
+                List<AServer> servers = ServerMaster.GetAServers();
 
-        public void SetCommonHedgeMode(string selectedClass, string hedgeMode) { }
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    if (servers[i].ServerRealization.Equals(this))
+                    {
+                        ClassLeverageData data = servers[i].ListLeverageData[className];
 
-        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
+                        if (data.CommonHedgeMode == "Off")
+                        {
+                            return false;
+                        }
+                        else if (data.CommonHedgeMode == "On")
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"GetHedgeModeFromSettings: {error.Message} {error.StackTrace}", LogMessageType.Error);
+                return false;
+            }
+        }
 
         #endregion
     }

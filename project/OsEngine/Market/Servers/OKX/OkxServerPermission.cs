@@ -299,34 +299,185 @@ namespace OsEngine.Market.Servers.OKX
             get { return false; }
         }
 
+        #endregion
+
+        #region Leverage, HedgeMode, MarginMode Permissions
+
         public bool Leverage_IsSupports
         {
-            get { return false; }
+            get { return true; }
         }
 
         public Dictionary<string, LeveragePermission> Leverage_Permission
         {
-            get { return null; }
+            get
+            {
+                return new Dictionary<string, LeveragePermission>()
+                {
+                    ["Linear_SWAP_USDT"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "isolated" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    },
+
+                    ["Inverse_SWAP_USD"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "isolated" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    },
+
+                    ["Linear_SWAP_USD"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "isolated" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    },
+
+                    ["Inverse_FUTURES_USD"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "isolated" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    },
+
+                    ["Linear_FUTURES_USDT"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "isolated" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    }
+                };
+            }
         }
 
         public bool HedgeMode_IsSupports
         {
-            get { return false; }
+            get { return true; }
         }
 
         public Dictionary<string, HedgeModePermission> HedgeMode_Permission
         {
-            get { return null; }
+            get
+            {
+                return new Dictionary<string, HedgeModePermission>()
+                {
+                    ["Linear_SWAP_USDT"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    },
+
+                    ["Inverse_SWAP_USD"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "Off",
+                        HedgeMode_CommonMode = false,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    },
+
+                    ["Linear_SWAP_USD"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "Off",
+                        HedgeMode_CommonMode = false,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    },
+
+                    ["Inverse_FUTURES_USD"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "Off",
+                        HedgeMode_CommonMode = false,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    },
+
+                    ["Linear_FUTURES_USDT"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "Off",
+                        HedgeMode_CommonMode = false,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    }
+                };
+            }
         }
 
         public bool MarginMode_IsSupports
         {
-            get { return false; }
+            get { return true; }
         }
 
         public Dictionary<string, MarginModePermission> MarginMode_Permission
         {
-            get { return null; }
+            get
+            {
+                return new Dictionary<string, MarginModePermission>()
+                {
+                    ["Linear_SWAP_USDT"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "cross",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "isolated", "cross" }
+                    },
+
+                    ["Inverse_SWAP_USD"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "cross",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "isolated", "cross" }
+                    },
+
+                    ["Linear_SWAP_USD"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "cross",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "isolated", "cross" }
+                    },
+
+                    ["Inverse_FUTURES_USD"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "cross",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "isolated", "cross" }
+                    },
+
+                    ["Linear_FUTURES_USDT"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "cross",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "isolated", "cross" }
+                    }
+                };
+            }
         }
 
         #endregion

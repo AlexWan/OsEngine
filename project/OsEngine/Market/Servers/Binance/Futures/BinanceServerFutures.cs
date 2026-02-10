@@ -22,7 +22,6 @@ using OsEngine.Entity.WebSocketOsEngine;
 using TradeResponse = OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity.TradeResponse;
 using System.Net;
 
-
 namespace OsEngine.Market.Servers.Binance.Futures
 {
     public enum FuturesType
@@ -43,23 +42,14 @@ namespace OsEngine.Market.Servers.Binance.Futures
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Futures Type", "USDT-M", new List<string> { "USDT-M", "COIN-M" });
-            CreateParameterBoolean("HedgeMode", false);
-            ServerParameters[3].ValueChange += BinanceServerFutures_ValueChange;
             CreateParameterBoolean("Demo Account", false);
             CreateParameterBoolean("Extended Data", false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
             ServerParameters[2].Comment = OsLocalization.Market.Label254;
-            ServerParameters[3].Comment = OsLocalization.Market.Label250;
-            ServerParameters[4].Comment = OsLocalization.Market.Label268;
-            ServerParameters[5].Comment = OsLocalization.Market.Label270;
-
-        }
-
-        private void BinanceServerFutures_ValueChange()
-        {
-            ((BinanceServerFuturesRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
+            ServerParameters[3].Comment = OsLocalization.Market.Label268;
+            ServerParameters[4].Comment = OsLocalization.Market.Label270;
         }
     }
 
@@ -103,7 +93,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
             _myProxy = proxy;
             ApiKey = ((ServerParameterString)ServerParameters[0]).Value;
             SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-            HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
 
             if (string.IsNullOrEmpty(ApiKey) ||
                 string.IsNullOrEmpty(SecretKey))
@@ -155,7 +144,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 type_str_selector = "dapi";
             }
 
-            if (((ServerParameterBool)ServerParameters[4]).Value == true)
+            if (((ServerParameterBool)ServerParameters[3]).Value == true)
             {
                 if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
                 {
@@ -171,7 +160,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 }
             }
 
-            if (((ServerParameterBool)ServerParameters[5]).Value == true)
+            if (((ServerParameterBool)ServerParameters[4]).Value == true)
             {
                 _extendedMarketData = true;
             }
@@ -181,7 +170,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             ActivateSockets();
-            SetPositionMode();
         }
 
         public void Dispose()
@@ -239,52 +227,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public string SecretKey;
 
         private bool _extendedMarketData;
-
-        public bool HedgeMode
-        {
-            get { return _hedgeMode; }
-            set
-            {
-                if (value == _hedgeMode)
-                {
-                    return;
-                }
-                _hedgeMode = value;
-
-                SetPositionMode();
-            }
-        }
-
-        private bool _hedgeMode;
-
-        public void SetPositionMode()
-        {
-            try
-            {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    return;
-                }
-
-                var rs = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/positionSide/dual", new Dictionary<string, string>(), true);
-
-                if (rs != null)
-                {
-                    var modeNow = JsonConvert.DeserializeAnonymousType(rs, new HedgeModeResponse());
-                    if (modeNow.dualSidePosition != HedgeMode)
-                    {
-                        var param = new Dictionary<string, string>();
-                        param.Add("dualSidePosition=", HedgeMode.ToString().ToLower());
-                        CreateQuery(Method.POST, "/" + type_str_selector + "/v1/positionSide/dual", param, true);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-
-            }
-        }
 
         #endregion
 
@@ -1516,8 +1458,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     ConnectEvent();
                 }
-
-                SetPositionMode();
             }
         }
 
@@ -2587,7 +2527,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 param.Add("symbol=", order.SecurityNameCode.ToUpper());
                 param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
-                if (HedgeMode)
+
+                bool hedgeMode = GetHedgeModeFromSettings(order.SecurityClassCode);
+
+                if (hedgeMode)
                 {
                     if (order.PositionConditionType == OrderPositionConditionType.Close)
                     {
@@ -2605,7 +2548,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     order.Volume.ToString(CultureInfo.InvariantCulture)
                         .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
 
-                if (!HedgeMode && order.PositionConditionType == OrderPositionConditionType.Close)
+                if (!hedgeMode && order.PositionConditionType == OrderPositionConditionType.Close)
                 {
                     param.Add("&reduceOnly=", "false");
                     // param.Add("&closePosition=", "false");
@@ -3299,19 +3242,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 return hash.ComputeHash(messageBytes);
             }
         }
-
-        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort) { }
-
-        public void SetHedgeMode(string securityName, string className, string hedgeMode) { }
-
-        public void SetMarginMode(string securityName, string className, string marginMode) { }
-
-        public void SetCommonLeverage(string selectedClass, string leverage) { }
-
-        public void SetCommonHedgeMode(string selectedClass, string hedgeMode) { }
-
-        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
-
+                
         #endregion
 
         #region 13 Log
@@ -3329,6 +3260,127 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public event Action<Funding> FundingUpdateEvent;
 
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
+        #endregion
+
+        #region 14 Set trade mode
+
+        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort) 
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                Dictionary<string, string> param = new();
+
+                param.Add("symbol=", securityName.ToUpper());                
+
+                if (leverage == "")
+                {
+                    param.Add("&leverage=", leverageLong);
+                }
+                else
+                {
+                    param.Add("&leverage=", leverage);
+                }
+
+                CreateQuery(Method.POST, "/" + type_str_selector + "/v1/leverage", param, true);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void SetHedgeMode(string securityName, string className, string hedgeMode) { }
+
+        public void SetMarginMode(string securityName, string className, string marginMode) 
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                Dictionary<string, string> param = new();
+
+                param.Add("symbol=", securityName.ToUpper());
+                param.Add("&marginType=", marginMode);
+
+                CreateQuery(Method.POST, "/" + type_str_selector + "/v1/marginType", param, true);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode) 
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                bool mode = false;
+
+                if (hedgeMode == "On")
+                {
+                    mode = true;
+                }
+
+                var rs = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/positionSide/dual", new Dictionary<string, string>(), true);
+
+                if (rs != null)
+                {
+                    var modeNow = JsonConvert.DeserializeAnonymousType(rs, new HedgeModeResponse());
+                    if (modeNow.dualSidePosition != mode)
+                    {
+                        var param = new Dictionary<string, string>();
+                        param.Add("dualSidePosition=", mode.ToString().ToLower());
+                        CreateQuery(Method.POST, "/" + type_str_selector + "/v1/positionSide/dual", param, true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
+
+        private bool GetHedgeModeFromSettings(string className)
+        {
+            List<AServer> servers = ServerMaster.GetAServers();
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                if (servers[i].ServerRealization.Equals(this))
+                {
+                    ClassLeverageData data = servers[i].ListLeverageData[className];
+
+                    if (data.CommonHedgeMode == "Off")
+                    {
+                        return false;
+                    }
+                    else if (data.CommonHedgeMode == "On")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         #endregion
     }
