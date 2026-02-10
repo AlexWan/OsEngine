@@ -2160,14 +2160,17 @@ namespace OsEngine.Market.Servers.Optimizer
 
         #endregion
 
-        public decimal GetLeverage(Security security)
-        {
-            return 0;
-        }
+        public void SetLeverage(SecurityLeverageData data) { }
 
-        public void SetLeverage(Security security, decimal leverage)
-        {
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
 
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode) { }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
+
+        public Dictionary<string, ClassLeverageData> ListLeverageData
+        {
+            get { return null; }
         }
 
         public List<string> GetQshHistoryFileToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdete)
@@ -2175,7 +2178,6 @@ namespace OsEngine.Market.Servers.Optimizer
             return null;
         }
 
-        List<SecurityLeverageData> IServer.ListLeverageData => null;
     }
 
     /// <summary>

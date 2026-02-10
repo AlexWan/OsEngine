@@ -141,19 +141,19 @@ namespace OsEngine.Market.Servers
         /// List of instruments with leverage
         /// Список инструментов с уровнями плечей
         /// </summary>
-        List<SecurityLeverageData> ListLeverageData { get; }
-
-        /// <summary>
-        /// get leverage value for instrument
-        /// получить значение плеча по инструменту
-        /// </summary>
-        decimal GetLeverage(Security security);
+        Dictionary<string, ClassLeverageData> ListLeverageData { get; }
 
         /// <summary>
         /// set leverage value for instrument
         /// установить значение плеча по инструменту
         /// </summary>
-        void SetLeverage(Security security, decimal leverage);
+        void SetLeverage(SecurityLeverageData data);
+
+        public void SetCommonLeverage(string selectedClass, string leverage);
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode);
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode);
 
         #endregion
 

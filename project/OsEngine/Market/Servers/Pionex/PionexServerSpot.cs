@@ -2088,8 +2088,6 @@ namespace OsEngine.Market.Servers.Pionex
             }
         }
 
-        public void SetLeverage(Security security, decimal leverage) { }
-
         #endregion
 
         #region 12 Log
@@ -2100,6 +2098,22 @@ namespace OsEngine.Market.Servers.Pionex
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+
+        #region 13 Set trade mode
+
+        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort) { }
+
+        public void SetHedgeMode(string securityName, string className, string hedgeMode) { }
+
+        public void SetMarginMode(string securityName, string className, string marginMode) { }
+
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode) { }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
 
         #endregion
     }

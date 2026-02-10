@@ -87,7 +87,32 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// Set leverage on security
         /// </summary>
-        void SetLeverage(Security security, decimal leverage);
+        void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort);
+
+        /// <summary>
+        /// Set Hedge mode on security
+        /// </summary>
+        void SetHedgeMode(string securityName, string className, string hedgeMode);
+
+        /// <summary>
+        /// Set Margin mode on security
+        /// </summary>
+        void SetMarginMode(string securityName, string className, string marginMode);
+
+        /// <summary>
+        /// Set common leverage on class security
+        /// </summary>
+        void SetCommonLeverage(string selectedClass, string leverage);
+
+        /// <summary>
+        /// Set common Hedge mode on class security
+        /// </summary>
+        void SetCommonHedgeMode(string selectedClass, string hedgeMode);
+
+        /// <summary>
+        /// Set common Margin mode on class security
+        /// </summary>
+        void SetCommonMarginMode(string selectedClass, string marginMode);
 
         #endregion
 

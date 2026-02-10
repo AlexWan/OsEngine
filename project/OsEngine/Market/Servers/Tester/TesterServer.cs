@@ -4806,22 +4806,23 @@ namespace OsEngine.Market.Servers.Tester
         public event Action<Funding> NewFundingEvent { add { } remove { } }
         public event Action<SecurityVolumes> NewVolume24hUpdateEvent { add { } remove { } }
 
-        public decimal GetLeverage(Security security)
-        {
-            return 0;
-        }
-
-        public void SetLeverage(Security security, decimal leverage)
-        {
-
-        }
-
         public List<string> GetQshHistoryFileToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdete)
         {
             return null;
         }
 
-        List<SecurityLeverageData> IServer.ListLeverageData => null;
+        public void SetLeverage(SecurityLeverageData data) { }
+
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode) { }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
+
+        public Dictionary<string, ClassLeverageData> ListLeverageData
+        {
+            get { return null; }
+        }
 
         #endregion
     }

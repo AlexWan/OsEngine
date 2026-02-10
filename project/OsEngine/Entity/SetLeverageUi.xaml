@@ -3,18 +3,44 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Securities" Height="700" Width="800" MinWidth="400" MinHeight="300" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
-        <Rectangle Margin="5"/>
-        <WindowsFormsHost Name="HostLeverage" Margin="5,49,5,40"/>
-        <ComboBox Name="ComboBoxClass" HorizontalAlignment="Left" Margin="132,25,0,0" VerticalAlignment="Top" Width="179"/>
-        <Label Name="LabelClass" Content="Class" HorizontalAlignment="Left" Margin="21,25,0,0" VerticalAlignment="Top" Width="81"/>
-        <TextBox Name="TextBoxSearchLeverage" HorizontalAlignment="Left" Margin="355,25,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="164"/>
-        <Button Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="496,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
-        <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="355,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
-        <Label Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="415,5,0,0" VerticalAlignment="Top" Height="20"/>
-        <Label Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="430,5,0,0" VerticalAlignment="Top" Height="20"/>
-        <Label Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="449,5,0,0" VerticalAlignment="Top" Height="20"/>
-        <Label Name="LabelLeverage" Content="Leverage" HorizontalAlignment="Left" Margin="550,25,0,0" VerticalAlignment="Top" Width="65"/>
-        <TextBox Name="TextBoxLeverage" HorizontalAlignment="Left" Margin="620,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40"/>
-        <Button Name="ButtonLoad" Content="Load from file" HorizontalAlignment="Center" Margin="0,0,0,10" VerticalAlignment="Bottom" Width="150" Height="20"/>
+        <Label Name="LabelClass" Content="Class" HorizontalAlignment="Left" Margin="21,5,0,0" VerticalAlignment="Top" Width="81"/>
+        <ComboBox Name="ComboBoxClass" HorizontalAlignment="Left" Margin="100,5,0,0" VerticalAlignment="Top" Width="179"/>        
+        <TabControl Margin="0,35,0,0" BorderThickness="0" Name="TabControlPrime" TabStripPlacement="Top">
+            <TabItem Name="TabItemCommonSettings" Header="Common settings" Width="140" Margin="0,0,0,0">
+                <Grid>
+                    <Label Name="LabelCommonLeverage" Content="Leverage" HorizontalAlignment="Left" Margin="21,25,0,0" VerticalAlignment="Top" Width="100"/>
+                    <TextBox Name="TextBoxCommonLeverage" HorizontalAlignment="Left" Margin="125,25,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="100"/>
+                    <Button Name="ButtonCommonLeverage" Content="Accept" HorizontalAlignment="Left" Margin="250,25,0,0" VerticalAlignment="Top" Width="100" Height="23"/>
+                    
+                    <Label Name="LabelCommonHedgeMode" Content="Hedge mode" HorizontalAlignment="Left" Margin="21,60,0,0" VerticalAlignment="Top" Width="100"/>
+                    <ComboBox Name="ComboBoxCommonHedgeMode" HorizontalAlignment="Left" Margin="125,60,0,0" VerticalAlignment="Top" Width="100"/>
+                    <Button Name="ButtonCommonHedgeMode" Content="Accept" HorizontalAlignment="Left" Margin="250,60,0,0" VerticalAlignment="Top" Width="100" Height="23"/>
+                    
+                    <Label Name="LabelCommonMarginMode" Content="Margin mode" HorizontalAlignment="Left" Margin="21,95,0,0" VerticalAlignment="Top" Width="100"/>
+                    <ComboBox Name="ComboBoxCommonMarginMode" HorizontalAlignment="Left" Margin="125,95,0,0" VerticalAlignment="Top" Width="100"/>
+                    <Button Name="ButtonCommonMarginMode" Content="Accept" HorizontalAlignment="Left" Margin="250,95,0,0" VerticalAlignment="Top" Width="100" Height="23"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItemInstrumentSettings" Header="Instrument settings" Width="200" Margin="0,0,0,0">
+                <Grid>
+                    <Rectangle Margin="5"/>
+                    <WindowsFormsHost Name="HostLeverage" Margin="5,60,5,40"/>                    
+                    <TextBox Name="TextBoxSearchLeverage" HorizontalAlignment="Left" Margin="25,25,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="164"/>
+                    <Button Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="166,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+                    <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="25,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+                    <Label Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="85,5,0,0" VerticalAlignment="Top" Height="20"/>
+                    <Label Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="100,5,0,0" VerticalAlignment="Top" Height="20"/>
+                    <Label Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="119,5,0,0" VerticalAlignment="Top" Height="20"/>
+                    <Label Name="LabelLeverage" Content="Leverage" HorizontalAlignment="Left" Margin="210,25,0,0" VerticalAlignment="Top" Width="65"/>
+                    <TextBox Name="TextBoxLeverage" HorizontalAlignment="Left" Margin="280,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40"/>
+                    <Label Name="LabelHedge" Content="Hedge mode" HorizontalAlignment="Left" Margin="340,25,0,0" VerticalAlignment="Top" Width="100"/>
+                    <ComboBox Name="ComboBoxHedge" HorizontalAlignment="Left" Margin="440,25,0,0" VerticalAlignment="Top" Width="100"/>
+                    <Label Name="LabelMargin" Content="Margin mode" HorizontalAlignment="Left" Margin="560,25,0,0" VerticalAlignment="Top" Width="100"/>
+                    <ComboBox Name="ComboBoxMargin" HorizontalAlignment="Left" Margin="660,25,0,0" VerticalAlignment="Top" Width="100"/>
+                    <Button Name="ButtonLoad" Content="Load from file" HorizontalAlignment="Right" Margin="0,0,180,10" VerticalAlignment="Bottom" Width="150" Height="20"/>
+                    <Button Name="ButtonAcceptAll" Content="Accept all" HorizontalAlignment="Right" Margin="0,0,20,10" VerticalAlignment="Bottom" Width="150" Height="20"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>
