@@ -142,6 +142,12 @@ namespace OsEngine.OsTrader.Grids
             {
                 ButtonPosts.Visibility = Visibility.Hidden;
                 ButtonTrailUpInstruction.Visibility = Visibility.Hidden;
+                ButtonStopAndProfit.Visibility = Visibility.Hidden;
+                ButtonError.Visibility = Visibility.Hidden;
+                ButtonBase.Visibility = Visibility.Hidden;
+                ButtonCreation.Visibility = Visibility.Hidden;
+                ButtonStopTrading.Visibility = Visibility.Hidden;
+                ButtonAutoStart.Visibility = Visibility.Hidden;
             }
             else
             {

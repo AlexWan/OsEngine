@@ -32,6 +32,12 @@
             <Button Name="ButtonLocal_Eng" Margin="557,232,0,0" VerticalAlignment="Top" Height="24" Click="ButtonLocal_Eng_Click" HorizontalAlignment="Left" Width="37">
                 <Image Name="ImageFlag_Eng" Width="30" Height="27" Source="/Images/MainWIndow/flag_eng.png"/>
             </Button>
+            <Button Name="ButtonPostsMenu" Margin="37,227,549,0" VerticalAlignment="Top" Height="36" Width="37">
+                <Grid>
+                    <Image Name="GreenCollectionMenu"  Source="/Images/InstructionPosts/GreenPostCollection.png"  Width="31" Height="25"/>
+                    <Image Name="WhiteCollectionMenu"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
+                </Grid>
+            </Button>
         </Grid>
         <Grid Name="VideoGrid" VerticalAlignment="Top" Height="120" Margin="0,271,0,0">
             <Grid Width="570" HorizontalAlignment="Center" Margin="0,0,0,25">
