@@ -3,6 +3,8 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System.Collections.Generic;
+
 namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 {
     public class BitGetFuturesServerPermission : IServerPermission
@@ -309,34 +311,137 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
+        #endregion
+
+        #region Leverage, HedgeMode, MarginMode Permissions
+
         public bool Leverage_IsSupports
         {
             get { return true; }
         }
 
-        public decimal Leverage_StandardValue
-        {
-            get { return 10; }
-        }
-
-        public string[] Leverage_SupportClasses
+        public Dictionary<string, LeveragePermission> Leverage_Permission
         {
             get
             {
-                string[] listClasses = new string[]
+                return new Dictionary<string, LeveragePermission>()
                 {
-                    "USDT-FUTURES",
-                    "COIN-FUTURES",
-                    "USDC-FUTURES"
-                };
 
-                return listClasses;
+                    ["USDT-FUTURES"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "isolated" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    },
+
+                    ["COIN-FUTURES"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "isolated" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    },
+
+                    ["USDC-FUTURES"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "isolated" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    }
+                };
             }
         }
 
-        public bool CanChangeOrderMarketNumber
+        public bool HedgeMode_IsSupports
         {
-            get { return false; }
+            get { return true; }
+        }
+
+        public Dictionary<string, HedgeModePermission> HedgeMode_Permission
+        {
+            get
+            {
+                return new Dictionary<string, HedgeModePermission>()
+                {
+                    ["USDT-FUTURES"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    },
+
+                    ["COIN-FUTURES"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    },
+
+                    ["USDC-FUTURES"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    }
+                };
+            }
+        }
+
+        public bool MarginMode_IsSupports
+        {
+            get { return true; }
+        }
+
+        public Dictionary<string, MarginModePermission> MarginMode_Permission
+        {
+            get
+            {
+                return new Dictionary<string, MarginModePermission>()
+                {
+                    ["USDT-FUTURES"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "crossed",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = true,
+                        MarginMode_SupportMode = new[] { "isolated", "crossed" }
+                    },
+
+                    ["COIN-FUTURES"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "crossed",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = true,
+                        MarginMode_SupportMode = new[] { "isolated", "crossed" }
+                    },
+
+                    ["USDC-FUTURES"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "crossed",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = true,
+                        MarginMode_SupportMode = new[] { "isolated", "crossed" }
+                    }
+                };
+            }
         }
 
         #endregion

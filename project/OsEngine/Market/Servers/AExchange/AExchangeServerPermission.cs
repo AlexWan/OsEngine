@@ -3,6 +3,8 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System.Collections.Generic;
+
 namespace OsEngine.Market.Servers.AE
 {
     public class AExchangeServerPermission : IServerPermission
@@ -286,6 +288,16 @@ namespace OsEngine.Market.Servers.AE
         {
             get { return false; }
         }
+
+        public Dictionary<string, LeveragePermission> Leverage_Permission => throw new System.NotImplementedException();
+
+        public bool HedgeMode_IsSupports => throw new System.NotImplementedException();
+
+        public Dictionary<string, HedgeModePermission> HedgeMode_Permission => throw new System.NotImplementedException();
+
+        public bool MarginMode_IsSupports => throw new System.NotImplementedException();
+
+        public Dictionary<string, MarginModePermission> MarginMode_Permission => throw new System.NotImplementedException();
 
 
         #endregion

@@ -3,6 +3,8 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System.Collections.Generic;
+
 namespace OsEngine.Market.Servers.Bybit
 {
     public class BybitServerPermission : IServerPermission
@@ -301,36 +303,207 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
+        #endregion
+
+        #region Leverage, HedgeMode, MarginMode Permissions
+
         public bool Leverage_IsSupports
         {
             get { return true; }
         }
 
-        public decimal Leverage_StandardValue
-        {
-            get { return 10; }
-        }
-
-        public string[] Leverage_SupportClasses
+        public Dictionary<string, LeveragePermission> Leverage_Permission
         {
             get
             {
-                string[] listClasses = new string[]
+                return new Dictionary<string, LeveragePermission>()
                 {
-                    "LinearPerpetual",
-                    "LinearPerpetual_PERP",
-                    "InversePerpetual",
-                    "LinearFutures",
-                    "InverseFutures"
-                };
+                    ["LinearPerpetual"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "Isolated" },
+                        Leverage_CantBeLeverage = new[] { "Portfolio" }
+                    },
 
-                return listClasses;
+                    ["LinearPerpetual_PERP"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "Isolated" },
+                        Leverage_CantBeLeverage = new[] { "Portfolio" }
+                    },
+
+                    ["InversePerpetual"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "Isolated" },
+                        Leverage_CantBeLeverage = new[] { "Portfolio" }
+                    },
+
+                    ["LinearFutures"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "Isolated" },
+                        Leverage_CantBeLeverage = new[] { "Portfolio" }
+                    },
+
+                    ["InverseFutures"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = true,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "Isolated" },
+                        Leverage_CantBeLeverage = new[] { "Portfolio" }
+                    }
+                };
             }
         }
 
-        public bool CanChangeOrderMarketNumber
+        public bool HedgeMode_IsSupports
         {
-            get { return false; }
+            get { return true; }
+        }
+
+        public Dictionary<string, HedgeModePermission> HedgeMode_Permission
+        {
+            get
+            {
+                return new Dictionary<string, HedgeModePermission>()
+                {
+                    ["LinearPerpetual"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "Portfolio" }
+                    },
+
+                    ["LinearPerpetual_PERP"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    },
+
+                    ["InversePerpetual"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    },
+
+                    ["LinearFutures"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    },
+
+                    ["InverseFutures"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    },
+
+                    ["USDT_Options"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    }
+                };
+            }
+        }
+
+        public bool MarginMode_IsSupports
+        {
+            get { return true; }
+        }
+
+        public Dictionary<string, MarginModePermission> MarginMode_Permission
+        {
+            get
+            {
+                return new Dictionary<string, MarginModePermission>()
+                {
+                    ["LinearPerpetual"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "Cross",
+                        MarginMode_CommonMode = true,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    },
+
+                    ["LinearPerpetual_PERP"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "Cross",
+                        MarginMode_CommonMode = true,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    },
+
+                    ["InversePerpetual"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "Cross",
+                        MarginMode_CommonMode = true,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    },
+
+                    ["LinearFutures"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "Cross",
+                        MarginMode_CommonMode = true,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    },
+
+                    ["InverseFutures"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "Cross",
+                        MarginMode_CommonMode = true,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    },
+
+                    ["USDT_Options"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "Cross",
+                        MarginMode_CommonMode = true,
+                        MarginMode_CheckOpenPosition = false,
+                        MarginMode_SupportMode = new[] { "Isolated", "Cross", "Portfolio" }
+                    }
+                };
+            }
         }
 
         #endregion

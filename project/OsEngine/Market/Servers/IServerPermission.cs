@@ -1,5 +1,7 @@
 ﻿
 
+using System.Collections.Generic;
+
 namespace OsEngine.Market.Servers
 {
     public interface IServerPermission
@@ -107,16 +109,65 @@ namespace OsEngine.Market.Servers
         int AsyncCandlesStarter_RateGateLimitMls { get; }
 
         string[] IpAddressServer { get; }
-
-        bool Leverage_IsSupports { get; }
-
-        decimal Leverage_StandardValue { get; }
-
-        string[] Leverage_SupportClasses { get; }
-
+                
         bool CanChangeOrderMarketNumber { get; }
 
         #endregion
+
+        #region Leverage Permission 
+
+        bool Leverage_IsSupports { get; }
+
+        Dictionary<string, LeveragePermission> Leverage_Permission { get; }
+
+        bool HedgeMode_IsSupports { get; }
+
+        Dictionary<string, HedgeModePermission> HedgeMode_Permission { get; }
+
+        bool MarginMode_IsSupports { get; }
+
+        Dictionary<string, MarginModePermission> MarginMode_Permission { get; }
+
+        #endregion
+    }
+
+    public class LeveragePermission
+    {
+        public decimal Leverage_StandardValue { get; set; }
+
+        public bool Leverage_CommonMode { get; set; }
+
+        public bool Leverage_IndividualLongShort { get; set; }
+
+        public bool Leverage_CheckOpenPosition { get; set; }
+
+        public string[] Leverage_SupportClassesIndividualLongShort { get; set; }
+
+        public string[] Leverage_CantBeLeverage { get; set; }
+    }
+
+    public class HedgeModePermission
+    {
+        public string HedgeMode_StandardValue { get; set; }
+
+        public bool HedgeMode_CommonMode { get; set; }
+
+        public bool HedgeMode_CheckOpenPosition { get; set; }
+
+        public string[] HedgeMode_SupportMode { get; set; }
+
+        public string[] HedgeMode_CantBeHedgeMode { get; set; }
+    }
+
+    public class MarginModePermission
+    {
+        public string MarginMode_StandardValue { get; set; }
+
+        public bool MarginMode_CommonMode { get; set; }
+
+        public bool MarginMode_CheckOpenPosition { get; set; }
+
+        public string[] MarginMode_SupportMode { get; set; }
     }
 
     public class TimeFramePermission

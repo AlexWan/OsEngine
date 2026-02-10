@@ -1625,7 +1625,27 @@ namespace OsEngine.Market.Servers.AstsBridge
             return null;
         }
 
-        List<SecurityLeverageData> IServer.ListLeverageData => null;
+        public void SetLeverage(SecurityLeverageData data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetCommonLeverage(string selectedClass, string leverage)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Dictionary<string, ClassLeverageData> ListLeverageData => throw new NotImplementedException();
 
         /// <summary>
         /// log manager

@@ -303,6 +303,16 @@ namespace OsEngine.Market.Servers.BybitData
             get { return false; }
         }
 
+        public Dictionary<string, LeveragePermission> Leverage_Permission => throw new NotImplementedException();
+
+        public bool HedgeMode_IsSupports => throw new NotImplementedException();
+
+        public Dictionary<string, HedgeModePermission> HedgeMode_Permission => throw new NotImplementedException();
+
+        public bool MarginMode_IsSupports => throw new NotImplementedException();
+
+        public Dictionary<string, MarginModePermission> MarginMode_Permission => throw new NotImplementedException();
+
         #endregion
     }
 }

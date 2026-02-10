@@ -547,12 +547,48 @@ namespace OsEngine.Language
             "Eng:Message box_" +
             "Ru:Окно сообщений_");
 
-        public string LeverageColumn => OsLocalization.ConvertToLocString(
-            "Eng:Leverage_" +
-            "Ru:Плечо_");
+        public string LeverageLongColumn => OsLocalization.ConvertToLocString(
+            "Eng:Long leverage_" +
+            "Ru:Плечо по лонгу_");
+
+        public string LeverageShortColumn => OsLocalization.ConvertToLocString(
+            "Eng:Short leverage_" +
+            "Ru:Плечо по шорту_");
+
+        public string LeverageCommonColumn => OsLocalization.ConvertToLocString(
+            "Eng:Common leverage_" +
+            "Ru:Плечо общее_");
+
+        public string HedgeModeColumn => OsLocalization.ConvertToLocString(
+            "Eng:Hedge mode_" +
+            "Ru:Хедж режим_");
+
+        public string MarginModeColumn => OsLocalization.ConvertToLocString(
+            "Eng:Margin mode_" +
+            "Ru:Режим маржи_");
 
         public string TitleSetLeverageUi => OsLocalization.ConvertToLocString(
             "Eng:Leverage instruments_" +
             "Ru:Плечи инструментов_");
+
+        public string TabItemCommonSettings => OsLocalization.ConvertToLocString(
+            "Eng:Common settings_" +
+            "Ru:Общие настройки_");
+
+        public string TabItemInstrumentSettings => OsLocalization.ConvertToLocString(
+            "Eng:Instruments settings_" +
+            "Ru:Настройки по инструментам_");
+
+        public string LabelHedgeMode => OsLocalization.ConvertToLocString(
+            "Eng:Hedge mode_" +
+            "Ru:Режим хеджирования_");
+
+        public string LabelLeverage => OsLocalization.ConvertToLocString(
+            "Eng:Leverage_" +
+            "Ru:Плечо_");
+
+        public string LabelMarginMode => OsLocalization.ConvertToLocString(
+            "Eng:Margin mode_" +
+            "Ru:Режим маржи_");
     }
 }

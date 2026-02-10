@@ -1,4 +1,6 @@
-﻿namespace OsEngine.Market.Servers.OKXData
+﻿using System.Collections.Generic;
+
+namespace OsEngine.Market.Servers.OKXData
 {
     internal class OKXDataServerPermission : IServerPermission
     {
@@ -260,6 +262,16 @@
         {
             get { return false; }
         }
+
+        public Dictionary<string, LeveragePermission> Leverage_Permission => throw new System.NotImplementedException();
+
+        public bool HedgeMode_IsSupports => throw new System.NotImplementedException();
+
+        public Dictionary<string, HedgeModePermission> HedgeMode_Permission => throw new System.NotImplementedException();
+
+        public bool MarginMode_IsSupports => throw new System.NotImplementedException();
+
+        public Dictionary<string, MarginModePermission> MarginMode_Permission => throw new System.NotImplementedException();
 
         #endregion
     }
