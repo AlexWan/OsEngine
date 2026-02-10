@@ -6814,20 +6814,35 @@ namespace OsEngine.OsTrader.Panels.Tab
                 MyTradeEvent(trade);
             }
 
-            if (StartProgram == StartProgram.IsTester
-                || StartProgram == StartProgram.IsOsOptimizer)
+            if (StartProgram == StartProgram.IsTester)
             { // назначаем трейду номер свечи в тестере и оптимизаторе
                 List<Candle> candles = CandlesAll;
 
-                if (candles != null && candles.Count > 1)
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if(servers != null 
+                    && servers.Count > 0
+                    && servers[0].ServerType == ServerType.Tester)
                 {
-                    if (trade.Time == candles[^1].TimeStart)
+                    TesterServer tester = (TesterServer)servers[0];
+
+                    if(tester.TypeTesterData == TesterDataType.Candle)
                     {
-                        trade.NumberCandleInTester = candles.Count - 1;
+                        if (candles != null && candles.Count > 1)
+                        {
+                            if (trade.Time == candles[^1].TimeStart)
+                            {
+                                trade.NumberCandleInTester = candles.Count - 1;
+                            }
+                            else
+                            {
+                                trade.NumberCandleInTester = candles.Count;
+                            }
+                        }
                     }
                     else
                     {
-                        trade.NumberCandleInTester = candles.Count;
+                        trade.NumberCandleInTester = candles.Count - 1;
                     }
                 }
             }
