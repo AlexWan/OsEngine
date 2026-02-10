@@ -3424,7 +3424,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 try
                 {
-                    response = _ordersClient.PostOrder(request, _gRpcMetadata);
+                    response = PostOrderPrivateLoop(request, 0, order);
                 }
                 catch (RpcException ex)
                 {
@@ -3488,6 +3488,49 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception, LogMessageType.Error);
             }
+        }
+
+        private PostOrderResponse PostOrderPrivateLoop(PostOrderRequest request, int attemptNumber, Order order)
+        {
+            // Метод для обработки ошибок в ядре брокера, не позволяющих принять заявку с первого раза
+            // В таком случае приходит ошибка: "Internal network error"
+            // Рекомендация поддержки: Выслать тут же ещё раз, с тем же номером ордера. Сделали
+
+            attemptNumber++;
+
+            if(attemptNumber > 2)
+            {
+                throw new Exception("Internal network error. Ошибки на стороне Т-Апи. Две попытки выставить ордер не привели к успеху.");
+            }
+
+            PostOrderResponse response = null;
+
+            try
+            {
+                response = _ordersClient.PostOrder(request, _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+
+                if (message.Contains("Internal network error"))
+                {
+                    OrderStateType orderStateType = GetOrderStatus(order);
+
+                    if(orderStateType == OrderStateType.None)
+                    {
+                        return PostOrderPrivateLoop(request, attemptNumber, order);
+                    }
+                    else
+                    { // ордер всё таки выставлен, но отчёт о нём не пришёл!
+                        throw new Exception("Internal network error. Ошибки на стороне Т-Апи. Ордер выставлен, но его номер в торговом ядре не известен. Нужно синхронизировать позиции");
+                    }
+                }
+
+                throw;
+            }
+
+            return response;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
