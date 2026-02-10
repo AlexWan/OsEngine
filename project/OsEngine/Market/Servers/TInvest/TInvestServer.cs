@@ -3432,6 +3432,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (message.Contains("Not enough assets"))
                     {
+                        CheckCrazyNotEnoughAssetsOrderSpam();
                         message = OsLocalization.Market.Label301;
                     }
                     else if (message.Contains("The price is too high"))
@@ -3489,6 +3490,38 @@ namespace OsEngine.Market.Servers.TInvest
                 SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception, LogMessageType.Error);
             }
         }
+
+        private void CheckCrazyNotEnoughAssetsOrderSpam()
+        {
+            // некоторые пользователи выставляют внутри дня тысячи заявок без обеспечения
+            // отключая при этом все реакции в роботах, нагружая сервера Т-Банк
+            // решение: вырубаем у них коннектор, когда за час больше 100 ошибок "Not enough assets"
+
+            if(_hourNotEnoughAssetsOrders != DateTime.Now.Hour)
+            {
+                _hourNotEnoughAssetsOrders = DateTime.Now.Hour;
+                _badOrdersCount = 0;
+            }
+
+            _badOrdersCount++;
+
+            if(_badOrdersCount > 100)
+            {
+                if (ServerStatus == ServerConnectStatus.Connect)
+                {
+                    SendLogMessage(
+                        " Сервер был отключен. Т.к. кол-во необеспеченных ордеров внутри часа больше 100\n "
+                        + "Прекратите спамить биржу, это мешает людям торговать\n "
+                        + "Пожалуйста посчитайте обеспечение и баланс. И в соответствии с этим настройте роботов. ", LogMessageType.Error);
+
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+        }
+
+        private int _hourNotEnoughAssetsOrders;
+        private int _badOrdersCount;
 
         private PostOrderResponse PostOrderPrivateLoop(PostOrderRequest request, int attemptNumber, Order order)
         {
