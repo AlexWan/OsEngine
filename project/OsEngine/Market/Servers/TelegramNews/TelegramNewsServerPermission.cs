@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+
 namespace OsEngine.Market.Servers.TelegramNews
 {
     class TelegramNewsServerPermission : IServerPermission
@@ -255,21 +257,39 @@ namespace OsEngine.Market.Servers.TelegramNews
             get { return null;  }
         }
 
+        public bool CanChangeOrderMarketNumber
+        {
+            get { return false; }
+        }
+
         public bool Leverage_IsSupports
         {
             get { return false; }
         }
 
-        public decimal Leverage_StandardValue
+        public Dictionary<string, LeveragePermission> Leverage_Permission
         {
-            get { return 10; }
+            get { return null; }
         }
 
-        public string[] Leverage_SupportClasses { get; }
-
-        public bool CanChangeOrderMarketNumber
+        public bool HedgeMode_IsSupports
         {
             get { return false; }
+        }
+
+        public Dictionary<string, HedgeModePermission> HedgeMode_Permission
+        {
+            get { return null; }
+        }
+
+        public bool MarginMode_IsSupports
+        {
+            get { return false; }
+        }
+
+        public Dictionary<string, MarginModePermission> MarginMode_Permission
+        {
+            get { return null; }
         }
 
         #endregion

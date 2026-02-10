@@ -3,6 +3,8 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System.Collections.Generic;
+
 namespace OsEngine.Market.Servers.AE
 {
     public class AExchangeServerPermission : IServerPermission
@@ -270,23 +272,40 @@ namespace OsEngine.Market.Servers.AE
             get { return null; }
         }
 
-        public bool Leverage_IsSupports
-        {
-            get { return false; }
-        }
-
-        public decimal Leverage_StandardValue
-        {
-            get { return 10; }
-        }
-
-        public string[] Leverage_SupportClasses { get; }
-
         public bool CanChangeOrderMarketNumber
         {
             get { return false; }
         }
 
+        public bool Leverage_IsSupports
+        {
+            get { return false; }
+        }
+
+        public Dictionary<string, LeveragePermission> Leverage_Permission
+        {
+            get { return null; }
+        }
+
+        public bool HedgeMode_IsSupports
+        {
+            get { return false; }
+        }
+
+        public Dictionary<string, HedgeModePermission> HedgeMode_Permission
+        {
+            get { return null; }
+        }
+
+        public bool MarginMode_IsSupports
+        {
+            get { return false; }
+        }
+
+        public Dictionary<string, MarginModePermission> MarginMode_Permission
+        {
+            get { return null; }
+        }
 
         #endregion
     }

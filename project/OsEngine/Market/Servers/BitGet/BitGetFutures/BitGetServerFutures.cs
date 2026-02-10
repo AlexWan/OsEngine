@@ -35,9 +35,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterPassphrase, "");
-            CreateParameterBoolean("Hedge Mode", true);
-            ServerParameters[3].ValueChange += BitGetServerFutures_ValueChange;
-            CreateParameterEnum("Margin Mode", "Crossed", new List<string> { "Crossed", "Isolated" });
             CreateParameterBoolean("Demo Trading", false);
             CreateParameterBoolean("Extended Data", false);
 
@@ -48,11 +45,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             ServerParameters[4].Comment = OsLocalization.Market.Label249;
             ServerParameters[5].Comment = OsLocalization.Market.Label268;
             ServerParameters[6].Comment = OsLocalization.Market.Label270;
-        }
-
-        private void BitGetServerFutures_ValueChange()
-        {
-            ((BitGetServerRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
         }
     }
 
@@ -101,8 +93,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
             SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             Passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
-            HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
-
+            
             if (string.IsNullOrEmpty(PublicKey) ||
                 string.IsNullOrEmpty(SeckretKey) ||
                 string.IsNullOrEmpty(Passphrase))
@@ -112,7 +103,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 return;
             }
 
-            if (((ServerParameterBool)ServerParameters[5]).Value == true)
+            if (((ServerParameterBool)ServerParameters[3]).Value == true)
             {
                 _listCoin = new List<string>() { "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES" };
             }
@@ -121,16 +112,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 _listCoin = new List<string>() { "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES" };
             }
 
-            if (((ServerParameterEnum)ServerParameters[4]).Value == "Crossed")
-            {
-                _marginMode = "crossed";
-            }
-            else
-            {
-                _marginMode = "isolated";
-            }
-
-            if (((ServerParameterBool)ServerParameters[6]).Value == true)
+            if (((ServerParameterBool)ServerParameters[4]).Value == true)
             {
                 _extendedMarketData = true;
             }
@@ -242,25 +224,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         //private int _limitCandlesTrader = 1000;
 
         private List<string> _listCoin;
-
-        private bool _hedgeMode;
-
-        public bool HedgeMode
-        {
-            get { return _hedgeMode; }
-            set
-            {
-                if (value == _hedgeMode)
-                {
-                    return;
-                }
-                _hedgeMode = value;
-
-                SetPositionMode();
-            }
-        }
-
-        private string _marginMode = "crossed";
 
         private bool _extendedMarketData;
 
@@ -1306,8 +1269,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     {
                         ConnectEvent();
                     }
-
-                    SetPositionMode();
                 }
             }
         }
@@ -2623,7 +2584,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string trSide = "open";
                 string posSide;
 
-                if (HedgeMode)
+                bool hedgeMode = GetHedgeModeFromSettings(order.SecurityClassCode);
+
+                if (hedgeMode)
                 {
                     if (order.PositionConditionType == OrderPositionConditionType.Close)
                     {
@@ -2647,7 +2610,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 jsonContent.Add("symbol", order.SecurityNameCode);
                 jsonContent.Add("productType", order.SecurityClassCode.ToLower());
-                jsonContent.Add("marginMode", _marginMode);
+                jsonContent.Add("marginMode", GetMarginModeFromSettings(order.SecurityNameCode, order.SecurityClassCode));
 
                 if (order.SecurityClassCode == "COIN-FUTURES")
                 {
@@ -2665,7 +2628,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 jsonContent.Add("size", order.Volume.ToString().Replace(",", "."));
                 jsonContent.Add("clientOid", order.NumberUser);
 
-                if (HedgeMode)
+                if (hedgeMode)
                 {
                     jsonContent.Add("tradeSide", trSide);
                 }
@@ -3472,76 +3435,32 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void SetPositionMode()
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
                 return;
             }
 
+            bool mode = false;
+
+            if (hedgeMode == "On")
+            {
+                mode = true;
+            }
+
             try
             {
-                for (int i = 0; i < _listCoin.Count; i++)
-                {
-                    Dictionary<string, string> jsonContent = new Dictionary<string, string>();
-
-                    jsonContent.Add("posMode", HedgeMode == true ? "hedge_mode" : "one_way_mode");
-                    jsonContent.Add("productType", _listCoin[i]);
-
-                    string jsonRequest = JsonConvert.SerializeObject(jsonContent);
-
-                    IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-position-mode", Method.POST, null, jsonRequest);
-
-                    if (responseMessage.StatusCode == HttpStatusCode.OK)
-                    {
-                        ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
-
-                        if (stateResponse.code.Equals("00000") == true)
-                        {
-                            // ignore
-                        }
-                        else
-                        {
-                            SendLogMessage($"Position mode error: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
-                        }
-                    }
-                    else
-                    {
-                        if (responseMessage.Content.Contains("\"sign signature error\"")
-                            || responseMessage.Content.Contains("\"Apikey does not exist\"")
-                            || responseMessage.Content.Contains("\"apikey/password is incorrect\"")
-                            || responseMessage.Content.Contains("\"Request timestamp expired\"")
-                            || responseMessage.Content.Contains("\"Country/Region is not supported\"")
-                            || responseMessage.Content == "")
-                        {
-                            Disconnect();
-                        }
-
-                        SendLogMessage($"Position mode error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"Position mode error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
-        public void SetLeverage(Security security, decimal leverage)
-        {
-            try
-            {
-
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
 
-                jsonContent.Add("symbol", security.Name);
-                jsonContent.Add("productType", security.NameClass);
-                jsonContent.Add("marginCoin", security.NameClass.Split("-")[0]);
-                jsonContent.Add("leverage", leverage.ToString());
+                jsonContent.Add("posMode", mode == true ? "hedge_mode" : "one_way_mode");
+                jsonContent.Add("productType", selectedClass);
 
                 string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
-                IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-leverage", Method.POST, null, jsonRequest);
+                IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-position-mode", Method.POST, null, jsonRequest);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -3553,7 +3472,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
                     else
                     {
-                        SendLogMessage($"Leverage error: {stateResponse.code} || msg: {stateResponse.msg}", LogMessageType.Error);
+                        SendLogMessage($"SetPositionMode - Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
                 }
                 else
@@ -3562,19 +3482,169 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         || responseMessage.Content.Contains("\"Apikey does not exist\"")
                         || responseMessage.Content.Contains("\"apikey/password is incorrect\"")
                         || responseMessage.Content.Contains("\"Request timestamp expired\"")
-                        || responseMessage.Content.Contains("\"Country/Region is not supported\"")
                         || responseMessage.Content == "")
                     {
                         Disconnect();
                     }
 
-                    SendLogMessage($"Leverage error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    SendLogMessage($"SetPositionMode - Http State Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                SendLogMessage($"Leverage error {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage(e.Message, LogMessageType.Error);
             }
+        }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
+
+        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort)
+        {
+            Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+
+            jsonContent.Add("symbol", securityName);
+            jsonContent.Add("productType", className);
+            jsonContent.Add("marginCoin", className.Split("-")[0]);
+
+            if (leverage != "")
+            {
+                jsonContent.Add("leverage", leverage.ToString());
+            }
+            else
+            {
+                jsonContent.Add("longLeverage", leverageLong.ToString());
+                jsonContent.Add("shortLeverage", leverageShort.ToString());
+            }
+
+            string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+            IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-leverage", Method.POST, null, jsonRequest);
+
+            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            {
+                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
+
+                if (stateResponse.code.Equals("00000") == true)
+                {
+                    // ignore
+                }
+                else
+                {
+                    SendLogMessage($"SetLeverage - Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+            else
+            {
+                if (responseMessage.Content.Contains("\"sign signature error\"")
+                    || responseMessage.Content.Contains("\"Apikey does not exist\"")
+                    || responseMessage.Content.Contains("\"apikey/password is incorrect\"")
+                    || responseMessage.Content.Contains("\"Request timestamp expired\"")
+                    || responseMessage.Content == "")
+                {
+                    Disconnect();
+                }
+
+                SendLogMessage($"SetLeverage - Http State Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+            }
+        }
+
+        public void SetHedgeMode(string securityName, string className, string hedgeMode) { }
+
+        public void SetMarginMode(string securityName, string className, string marginMode)
+        {
+            Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+
+            jsonContent.Add("symbol", securityName);
+            jsonContent.Add("productType", className);
+            jsonContent.Add("marginCoin", className.Split("-")[0]);
+            jsonContent.Add("marginMode", marginMode);
+
+            string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+            IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-margin-mode", Method.POST, null, jsonRequest);
+
+            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            {
+                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
+
+                if (stateResponse.code.Equals("00000") == true)
+                {
+                    // ignore
+                }
+                else
+                {
+                    SendLogMessage($"SetMarginMode - Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+            else
+            {
+                if (responseMessage.Content.Contains("\"sign signature error\"")
+                    || responseMessage.Content.Contains("\"Apikey does not exist\"")
+                    || responseMessage.Content.Contains("\"apikey/password is incorrect\"")
+                    || responseMessage.Content.Contains("\"Request timestamp expired\"")
+                    || responseMessage.Content == "")
+                {
+                    Disconnect();
+                }
+
+                SendLogMessage($"SetMarginMode - Http State Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+            }
+        }
+
+        private string GetMarginModeFromSettings(string securityName, string className)
+        {
+            List<AServer> servers = ServerMaster.GetAServers();
+
+            List<SecurityLeverageData> securityData = new();
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                if (servers[i].ServerRealization.Equals(this))
+                {
+                    securityData = servers[i].ListLeverageData[className].SecurityData;
+                }
+            }
+
+            if (securityData.Count == 0)
+            {
+                return "";
+            }
+
+            for (int i = 0; i < securityData.Count; i++)
+            {
+                if (securityData[i].SecurityName == securityName && securityData[i].ClassName == className)
+                {
+                    return securityData[i].MarginMode.ToString();
+                }
+            }
+
+            return "";
+        }
+
+        private bool GetHedgeModeFromSettings(string className)
+        {
+            List<AServer> servers = ServerMaster.GetAServers();
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                if (servers[i].ServerRealization.Equals(this))
+                {
+                    ClassLeverageData data = servers[i].ListLeverageData[className];
+
+                    if (data.CommonHedgeMode == "Off")
+                    {
+                        return false;
+                    }
+                    else if (data.CommonHedgeMode == "On")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;       
         }
 
         #endregion

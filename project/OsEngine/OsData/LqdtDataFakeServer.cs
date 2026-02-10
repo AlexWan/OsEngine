@@ -484,6 +484,8 @@ namespace OsEngine.OsData
 
         public List<MyTrade> MyTrades { get; set; }
 
+        public Dictionary<string, ClassLeverageData> ListLeverageData => throw new NotImplementedException();
+
         public void ShowDialog(int num = 0) { }
 
         public void StopServer() { }
@@ -543,22 +545,20 @@ namespace OsEngine.OsData
         public event Action<Order> CancelOrderFailEvent;
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public decimal GetLeverage(Security security)
-        {
-            return 0;
-        }
-
-        public void SetLeverage(Security security, decimal leverage)
-        {
-
-        }
+        
 
         public List<string> GetQshHistoryFileToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdete)
         {
             return null;
         }
 
-        List<SecurityLeverageData> IServer.ListLeverageData => null;
+        public void SetLeverage(SecurityLeverageData data) { }
+
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode) { }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
 
         #endregion
     }

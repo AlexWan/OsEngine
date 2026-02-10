@@ -3849,9 +3849,7 @@ namespace OsEngine.Market.Servers.OKX
             HttpClient _client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, null, _demoMode, _myProxy));
             return _client.GetAsync(url).Result;
         }
-
-        public void SetLeverage(Security security, decimal leverage) { }
-
+              
         #endregion
 
         #region 13 Log
@@ -3865,6 +3863,22 @@ namespace OsEngine.Market.Servers.OKX
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+
+        #region 14 Set trade mode
+
+        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort) { }
+
+        public void SetHedgeMode(string securityName, string className, string hedgeMode) { }
+
+        public void SetMarginMode(string securityName, string className, string marginMode) { }
+
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode) { }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
 
         #endregion
     }

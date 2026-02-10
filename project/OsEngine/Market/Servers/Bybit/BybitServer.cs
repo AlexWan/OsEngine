@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -36,9 +37,6 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Server type", Net_type.MainNet.ToString(), new List<string>() { Net_type.MainNet.ToString(),
                 Net_type.Demo.ToString(), Net_type.Netherlands.ToString(), Net_type.HongKong.ToString(), Net_type.Turkey.ToString(), Net_type.Kazakhstan.ToString() });
-            CreateParameterEnum("Margin Mode", MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
-            CreateParameterBoolean("Hedge Mode", true);
-            ServerParameters[4].ValueChange += BybitServer_ValueChange;
             CreateParameterBoolean("Extended Data", false);
             CreateParameterBoolean("Use Options", false);
 
@@ -47,16 +45,8 @@ namespace OsEngine.Market.Servers.Bybit
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
             ServerParameters[2].Comment = OsLocalization.Market.Label248;
-            ServerParameters[3].Comment = OsLocalization.Market.Label249;
-            ServerParameters[4].Comment = OsLocalization.Market.Label250;
-            ServerParameters[5].Comment = OsLocalization.Market.Label251;
-            ServerParameters[6].Comment = OsLocalization.Market.Label252;
-            ServerParameters[7].Comment = OsLocalization.Market.Label253;
-        }
-
-        private void BybitServer_ValueChange()
-        {
-            ((BybitServerRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[4]).Value;
+            ServerParameters[3].Comment = OsLocalization.Market.Label252;
+            ServerParameters[4].Comment = OsLocalization.Market.Label253;
         }
     }
 
@@ -130,10 +120,8 @@ namespace OsEngine.Market.Servers.Bybit
                 PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 net_type = (Net_type)Enum.Parse(typeof(Net_type), ((ServerParameterEnum)ServerParameters[2]).Value);
-                margineMode = (MarginMode)Enum.Parse(typeof(MarginMode), ((ServerParameterEnum)ServerParameters[3]).Value);
-                HedgeMode = ((ServerParameterBool)ServerParameters[4]).Value;
 
-                if (((ServerParameterBool)ServerParameters[5]).Value == true)
+                if (((ServerParameterBool)ServerParameters[3]).Value == true)
                 {
                     _extendedMarketData = true;
                 }
@@ -142,7 +130,7 @@ namespace OsEngine.Market.Servers.Bybit
                     _extendedMarketData = false;
                 }
 
-                if (((ServerParameterBool)ServerParameters[6]).Value == true)
+                if (((ServerParameterBool)ServerParameters[4]).Value == true)
                 {
                     _useOptions = true;
                 }
@@ -162,8 +150,6 @@ namespace OsEngine.Market.Servers.Bybit
                 CreatePrivateWebSocketConnect();
 
                 CheckFullActivation();
-                SetMargineMode();
-                //SetPositionMode();
             }
             catch (Exception ex)
             {
@@ -254,8 +240,6 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     ServerStatus = ServerConnectStatus.Connect;
                     ConnectEvent();
-
-                    SetPositionMode();
                 }
             }
             catch (Exception ex)
@@ -314,43 +298,6 @@ namespace OsEngine.Market.Servers.Bybit
             Disconnect();
         }
 
-        private void SetMargineMode()
-        {
-            try
-            {
-                Dictionary<string, object> parametrs = new Dictionary<string, object>();
-                parametrs["setMarginMode"] = margineMode == MarginMode.Cross ? "REGULAR_MARGIN" : "ISOLATED_MARGIN";
-                CreatePrivateQuery(parametrs, Method.POST, "/v5/account/set-margin-mode");
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"Check Bybit API Keys and Unified AccountBalance Settings! {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
-        private void SetPositionMode()
-        {
-            try
-            {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    return;
-                }
-
-                Dictionary<string, object> parametrs = new Dictionary<string, object>();
-                parametrs.Clear();
-                parametrs["category"] = Category.linear.ToString();
-                parametrs["coin"] = "USDT";
-                parametrs["mode"] = HedgeMode == true ? "3" : "0"; //Position mode. 0: Merged Single. 3: Both Sides
-
-                CreatePrivateQuery(parametrs, Method.POST, "/v5/position/switch-mode");
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"SetPositionMode: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
         public bool IsCompletelyDeleted { get; set; }
 
         public event Action ConnectEvent;
@@ -379,24 +326,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private Net_type net_type;
 
-        private MarginMode margineMode;
-
         private bool _hedgeMode;
-
-        public bool HedgeMode
-        {
-            get { return _hedgeMode; }
-            set
-            {
-                if (value == _hedgeMode)
-                {
-                    return;
-                }
-                _hedgeMode = value;
-
-                SetPositionMode();
-            }
-        }
 
         private bool _extendedMarketData;
 
@@ -408,7 +338,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             get
             {
-                if (((ServerParameterBool)ServerParameters[14]).Value)
+                if (((ServerParameterBool)ServerParameters[12]).Value)
                 {
                     return 50;
                 }
@@ -1230,7 +1160,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 pos.PortfolioName = potrolioNumber;
 
-                if (HedgeMode
+                if (_hedgeMode
                     && posJson.symbol.Contains("USDT"))
                 {
                     if (posJson.side == "Buy")
@@ -3655,7 +3585,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 bool reduceOnly = false;
 
-                if (HedgeMode
+                if (_hedgeMode
                     && order.SecurityClassCode == "LinearPerpetual")
                 {
                     if (order.PositionConditionType == OrderPositionConditionType.Close)
@@ -3684,7 +3614,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 parameters["orderLinkId"] = order.NumberUser.ToString();
 
-                if (HedgeMode)
+                if (_hedgeMode)
                 {
                     parameters["reduceOnly"] = reduceOnly;
                 }
@@ -4709,55 +4639,6 @@ namespace OsEngine.Market.Servers.Bybit
             return BitConverter.ToString(signature).Replace("-", "").ToLower();
         }
 
-        public void SetLeverage(Security security, decimal leverage)
-        {
-            try
-            {
-                IRestResponse responseMessage = null;
-
-                if (security.SecurityType == SecurityType.Futures)
-                {
-                    string category = Category.linear.ToString();
-
-                    if (security.Name.EndsWith(".I"))
-                    {
-                        category = Category.inverse.ToString();
-                    }
-
-                    Dictionary<string, object> parameters = new Dictionary<string, object>();
-                    parameters.Clear();
-                    parameters["category"] = category;
-                    parameters["symbol"] = security.Name.Split(".")[0];
-                    parameters["buyLeverage"] = leverage.ToString().Replace(",", ".");
-                    parameters["sellLeverage"] = leverage.ToString().Replace(",", ".");
-
-                    responseMessage = CreatePrivateQuery(parameters, Method.POST, "/v5/position/set-leverage");
-                }
-
-                if (responseMessage == null)
-                {
-                    return;
-                }
-
-                if (responseMessage.StatusCode != HttpStatusCode.OK)
-                {
-                    SendLogMessage($"SetLeverage: {security.Name} - {responseMessage.Content}", LogMessageType.Error);
-                    return;
-                }
-
-                ResponseRestMessageList<string> jsonResponce = JsonConvert.DeserializeObject<ResponseRestMessageList<string>>(responseMessage.Content);
-
-                if (jsonResponce.retMsg != "OK")
-                {
-                    SendLogMessage($"SetLeverage: {security.Name} - {jsonResponce.retMsg}", LogMessageType.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"SetLeverage: {security.Name} - {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
         #endregion 12
 
         #region 13 Log
@@ -4770,6 +4651,110 @@ namespace OsEngine.Market.Servers.Bybit
         }
 
         #endregion 13
+
+        #region 14 Set trade mode
+
+        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort)
+        {
+            try
+            {
+                string category = Category.linear.ToString();
+
+                if (securityName.EndsWith(".I"))
+                {
+                    category = Category.inverse.ToString();
+                }
+
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+                parameters.Clear();
+                parameters["category"] = category;
+                parameters["symbol"] = securityName.Split(".")[0];
+                parameters["buyLeverage"] = leverageLong == "" ? leverage.ToString().Replace(",", ".") : leverageLong.ToString().Replace(",", ".");
+                parameters["sellLeverage"] = leverageShort == "" ? leverage.ToString().Replace(",", ".") : leverageShort.ToString().Replace(",", ".");
+
+                IRestResponse response = CreatePrivateQuery(parameters, Method.POST, "/v5/position/set-leverage");
+
+                if (response == null)
+                {
+                    return;
+                }
+
+                ResponseRestMessageList<string> jsonResponce = JsonConvert.DeserializeObject<ResponseRestMessageList<string>>(response.Content);
+
+                if (jsonResponce.retMsg != "OK" && jsonResponce.retMsg != "leverage not modified")
+                {
+                    SendLogMessage($"SetLeverage: {securityName} - {jsonResponce.retMsg}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"SetLeverage: {securityName} - {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        public void SetHedgeMode(string securityName, string className, string hedgeMode) { }
+
+        public void SetMarginMode(string securityName, string className, string marginMode) { }
+
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                _hedgeMode = false;
+
+                if (hedgeMode == "On")
+                {
+                    _hedgeMode = true;
+                }
+
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs.Clear();
+                parametrs["category"] = Category.linear.ToString();
+                parametrs["coin"] = "USDT";
+                parametrs["mode"] = _hedgeMode == true ? "3" : "0"; //Position mode. 0: Merged Single. 3: Both Sides
+
+                CreatePrivateQuery(parametrs, Method.POST, "/v5/position/switch-mode");
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"SetPositionMode: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode)
+        {
+            try
+            {
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+
+                string mode = "ISOLATED_MARGIN";
+
+                if (marginMode == MarginMode.Cross.ToString())
+                {
+                    mode = "REGULAR_MARGIN";
+                }
+                if (marginMode == MarginMode.Portfolio.ToString())
+                {
+                    mode = "PORTFOLIO_MARGIN";
+                }
+
+                parametrs["setMarginMode"] = mode;
+                CreatePrivateQuery(parametrs, Method.POST, "/v5/account/set-margin-mode");
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Check Bybit API Keys and Unified AccountBalance Settings! {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 
     public class Tickers
@@ -4794,7 +4779,8 @@ namespace OsEngine.Market.Servers.Bybit
     public enum MarginMode
     {
         Cross,
-        Isolated
+        Isolated,
+        Portfolio
     }
 
     public enum Category

@@ -2837,7 +2837,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             return SignHMACSHA256(preHash, "e5b87448-971c-4d2b-b5e8-80b51e9d9bd7");
         }
 
-        public void SetLeverage(Security security, decimal leverage) { }
+        public void SetLeverage(string securityName, string className, string leverage, string leverageLong, string leverageShort) { }
+
+        public void SetHedgeMode(string securityName, string className, string hedgeMode) { }
+
+        public void SetMarginMode(string securityName, string className, string marginMode) { }
+
+        public void SetCommonLeverage(string selectedClass, string leverage) { }
+
+        public void SetCommonHedgeMode(string selectedClass, string hedgeMode) { }
+
+        public void SetCommonMarginMode(string selectedClass, string marginMode) { }
 
         #endregion
 
