@@ -305,34 +305,132 @@ namespace OsEngine.Market.Servers.Binance.Futures
             get { return false; }
         }
 
+        #endregion
+
+        #region Leverage, HedgeMode, MarginMode Permissions
+
         public bool Leverage_IsSupports
         {
-            get { return false; }
+            get { return true; }
         }
 
         public Dictionary<string, LeveragePermission> Leverage_Permission
         {
-            get { return null; }
+            get
+            {
+                return new Dictionary<string, LeveragePermission>()
+                {
+
+                    ["USDT"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = false,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    },
+
+                    ["USDC"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = false,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    },
+
+                    ["DeliverableFutures"] = new LeveragePermission
+                    {
+                        Leverage_StandardValue = 10,
+                        Leverage_CommonMode = false,
+                        Leverage_IndividualLongShort = false,
+                        Leverage_CheckOpenPosition = false,
+                        Leverage_SupportClassesIndividualLongShort = new[] { "" },
+                        Leverage_CantBeLeverage = new[] { "" }
+                    }
+                };
+            }
         }
 
         public bool HedgeMode_IsSupports
         {
-            get { return false; }
+            get { return true; }
         }
 
         public Dictionary<string, HedgeModePermission> HedgeMode_Permission
         {
-            get { return null; }
+            get
+            {
+                return new Dictionary<string, HedgeModePermission>()
+                {
+                    ["USDT"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    },
+
+                    ["USDC"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    },
+
+                    ["DeliverableFutures"] = new HedgeModePermission
+                    {
+                        HedgeMode_StandardValue = "On",
+                        HedgeMode_CommonMode = true,
+                        HedgeMode_CheckOpenPosition = true,
+                        HedgeMode_SupportMode = new[] { "Off", "On" },
+                        HedgeMode_CantBeHedgeMode = new[] { "" }
+                    }
+                };
+            }
         }
 
         public bool MarginMode_IsSupports
         {
-            get { return false; }
+            get { return true; }
         }
 
         public Dictionary<string, MarginModePermission> MarginMode_Permission
         {
-            get { return null; }
+            get
+            {
+                return new Dictionary<string, MarginModePermission>()
+                {
+                    ["USDT"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "CROSSED",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = true,
+                        MarginMode_SupportMode = new[] { "ISOLATED", "CROSSED" }
+                    },
+
+                    ["USDC"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "CROSSED",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = true,
+                        MarginMode_SupportMode = new[] { "ISOLATED", "CROSSED" }
+                    },
+
+                    ["DeliverableFutures"] = new MarginModePermission
+                    {
+                        MarginMode_StandardValue = "CROSSED",
+                        MarginMode_CommonMode = false,
+                        MarginMode_CheckOpenPosition = true,
+                        MarginMode_SupportMode = new[] { "ISOLATED", "CROSSED" }
+                    }
+                };
+            }
         }
 
         #endregion
