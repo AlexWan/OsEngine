@@ -2507,5 +2507,9 @@ namespace OsEngine.Language
          "Eng:Reduce orders count on low deposit errors_" +
          "Ru:Уменьшать кол-во ордеров при нехватке депозита");
 
+        public string Label672 => OsLocalization.ConvertToLocString(
+         "Eng:Current server time_" +
+         "Ru:Текущее время сервера");
+
     }
 }
