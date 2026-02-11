@@ -149,7 +149,6 @@ namespace OsEngine
               || InteractiveInstructions.MainMenu.AllInstructionsInClass.Count == 0)
             {
                 ButtonPostsMenu.Visibility = Visibility.Hidden;
-
             }
             else
             {
