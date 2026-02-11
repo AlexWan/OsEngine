@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using OsEngine.Language;
+using OsEngine.Market;
 
 
 namespace OsEngine.PrimeSettings
@@ -98,37 +99,44 @@ namespace OsEngine.PrimeSettings
 
         private void StartButtonBlinkAnimation()
         {
-            DispatcherTimer timer = new DispatcherTimer();
-            int blinkCount = 0;
-            bool isGreenVisible = true;
-
-            timer.Interval = TimeSpan.FromMilliseconds(300);
-            timer.Tick += (s, e) =>
+            try
             {
-                if (blinkCount >= 20)
-                {
-                    timer.Stop();
-                    PostGreenGeneralSettings.Opacity = 1;
-                    PostWhiteGeneralSettings.Opacity = 0;
-                    return;
-                }
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
 
-                if (isGreenVisible)
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
                 {
-                    PostGreenGeneralSettings.Opacity = 0;
-                    PostWhiteGeneralSettings.Opacity = 1;
-                }
-                else
-                {
-                    PostGreenGeneralSettings.Opacity = 1;
-                    PostWhiteGeneralSettings.Opacity = 0;
-                }
+                    if (blinkCount >= 20)
+                    {
+                        timer.Stop();
+                        PostGreenGeneralSettings.Opacity = 1;
+                        PostWhiteGeneralSettings.Opacity = 0;
+                        return;
+                    }
 
-                isGreenVisible = !isGreenVisible;
-                blinkCount++;
-            };
+                    if (isGreenVisible)
+                    {
+                        PostGreenGeneralSettings.Opacity = 0;
+                        PostWhiteGeneralSettings.Opacity = 1;
+                    }
+                    else
+                    {
+                        PostGreenGeneralSettings.Opacity = 1;
+                        PostWhiteGeneralSettings.Opacity = 0;
+                    }
 
-            timer.Start();
+                    isGreenVisible = !isGreenVisible;
+                    blinkCount++;
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ChangeText()
