@@ -739,7 +739,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void MoveChartToTheRight()
         {
-            if(_chartMaster != null)
+            if (_chartMaster != null)
             {
                 _chartMaster.MoveChartToTheRight();
             }
@@ -1432,7 +1432,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowConnectorDialog()
         {
-            if(_connector == null)
+            if (_connector == null)
             {
                 return;
             }
@@ -1446,7 +1446,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 DialogClosed();
             }
 
-            if(_journal == null)
+            if (_journal == null)
             {
                 return;
             }
@@ -1792,7 +1792,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                return LongCreate(priceLimit, volume, OrderPriceType.Limit, 
+                return LongCreate(priceLimit, volume, OrderPriceType.Limit,
                     ManualPositionSupport.SecondToOpen, false, signalType);
             }
             catch (Exception error)
@@ -2764,7 +2764,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">volume</param>
         public Position SellAtMarket(decimal volume)
         {
-            Position position = SellAtMarket(volume,"");
+            Position position = SellAtMarket(volume, "");
 
             return position;
         }
@@ -2850,7 +2850,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                return ShortCreate(priceLimit, volume, OrderPriceType.Limit, 
+                return ShortCreate(priceLimit, volume, OrderPriceType.Limit,
                     ManualPositionSupport.SecondToOpen, false, signalType);
             }
             catch (Exception error)
@@ -5588,7 +5588,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return false;
                 }
 
-                if(position.OpenVolume == 0)
+                if (position.OpenVolume == 0)
                 {
                     return false;
                 }
@@ -6814,20 +6814,35 @@ namespace OsEngine.OsTrader.Panels.Tab
                 MyTradeEvent(trade);
             }
 
-            if (StartProgram == StartProgram.IsTester
-                || StartProgram == StartProgram.IsOsOptimizer)
+            if (StartProgram == StartProgram.IsTester)
             { // назначаем трейду номер свечи в тестере и оптимизаторе
                 List<Candle> candles = CandlesAll;
 
-                if (candles != null && candles.Count > 1)
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers != null
+                    && servers.Count > 0
+                    && servers[0].ServerType == ServerType.Tester)
                 {
-                    if (trade.Time == candles[^1].TimeStart)
+                    TesterServer tester = (TesterServer)servers[0];
+
+                    if (tester.TypeTesterData == TesterDataType.Candle)
                     {
-                        trade.NumberCandleInTester = candles.Count - 1;
+                        if (candles != null && candles.Count > 1)
+                        {
+                            if (trade.Time == candles[^1].TimeStart)
+                            {
+                                trade.NumberCandleInTester = candles.Count - 1;
+                            }
+                            else
+                            {
+                                trade.NumberCandleInTester = candles.Count;
+                            }
+                        }
                     }
                     else
                     {
-                        trade.NumberCandleInTester = candles.Count;
+                        trade.NumberCandleInTester = candles.Count - 1;
                     }
                 }
             }
@@ -7010,7 +7025,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(_positionsAwaitSendInEventsQueue.IsEmpty == true)
+                if (_positionsAwaitSendInEventsQueue.IsEmpty == true)
                 {
                     return;
                 }
