@@ -235,7 +235,14 @@ namespace OsEngine.PrimeSettings
 
         private void ButtonGeneralSettings_Click(object sender, RoutedEventArgs e)
         {
-            InteractiveInstructions.MainMenu.Link2.ShowLinkInBrowser();
+            try
+            {
+                InteractiveInstructions.MainMenu.Link2.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
