@@ -240,13 +240,20 @@ namespace OsEngine
 
         private void ImagePadlock_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            RobotsUiLightUnblock ui = new RobotsUiLightUnblock();
-
-            ui.ShowDialog();
-
-            if (ui.IsUnBlocked == true)
+            try
             {
-                UnblockInterface();
+                RobotsUiLightUnblock ui = new RobotsUiLightUnblock();
+
+                ui.ShowDialog();
+
+                if (ui.IsUnBlocked == true)
+                {
+                    UnblockInterface();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -298,27 +305,34 @@ namespace OsEngine
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            GlobalGUILayout.IsClosed = true;
-
-            if (ProccesIsWorked == true)
+            try
             {
-                ProccesIsWorked = false;
+                GlobalGUILayout.IsClosed = true;
 
-                if (this.IsVisible == false)
+                if (ProccesIsWorked == true)
                 {
-                    _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label391, 100, 0, true);
-                    AwaitUi ui = new AwaitUi(_awaitUiBotsInfoLoading);
+                    ProccesIsWorked = false;
 
-                    Thread worker = new Thread(Await7Seconds);
-                    worker.Start();
+                    if (this.IsVisible == false)
+                    {
+                        _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label391, 100, 0, true);
+                        AwaitUi ui = new AwaitUi(_awaitUiBotsInfoLoading);
 
-                    ui.ShowDialog();
+                        Thread worker = new Thread(Await7Seconds);
+                        worker.Start();
+
+                        ui.ShowDialog();
+                    }
                 }
+
+                Thread.Sleep(500);
+
+                Process.GetCurrentProcess().Kill();
             }
-
-            Thread.Sleep(500);
-
-            Process.GetCurrentProcess().Kill();
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         AwaitObject _awaitUiBotsInfoLoading;
@@ -751,26 +765,32 @@ namespace OsEngine
 
         private async void ThreadAreaGreeting()
         {
-            await Task.Delay(1000);
-            double angle = 5;
-
-            for (int i = 0; i < 7; i++)
+            try
             {
-                RotatePic(angle);
-                await Task.Delay(50);
-                angle += 10;
-            }
+                await Task.Delay(1000);
+                double angle = 5;
 
-            for (int i = 0; i < 7; i++)
-            {
-                RotatePic(angle);
+                for (int i = 0; i < 7; i++)
+                {
+                    RotatePic(angle);
+                    await Task.Delay(50);
+                    angle += 10;
+                }
+
+                for (int i = 0; i < 7; i++)
+                {
+                    RotatePic(angle);
+                    await Task.Delay(100);
+                    angle += 10;
+                }
+
                 await Task.Delay(100);
-                angle += 10;
+                RotatePic(angle);
             }
-
-            await Task.Delay(100);
-            RotatePic(angle);
-
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void RotatePic(double angle)
@@ -782,20 +802,26 @@ namespace OsEngine
             }
 
             ImageGear.RenderTransform = new RotateTransform(angle, 12, 12);
-
         }
 
         private void ButtonSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (_settingsUi == null)
+            try
             {
-                _settingsUi = new PrimeSettingsMasterUi();
-                _settingsUi.Show();
-                _settingsUi.Closing += delegate { _settingsUi = null; };
+                if (_settingsUi == null)
+                {
+                    _settingsUi = new PrimeSettingsMasterUi();
+                    _settingsUi.Show();
+                    _settingsUi.Closing += delegate { _settingsUi = null; };
+                }
+                else
+                {
+                    _settingsUi.Activate();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _settingsUi.Activate();
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -821,40 +847,47 @@ namespace OsEngine
 
         private void CommandLineInterfaceProcess()
         {
-            string[] args = Environment.GetCommandLineArgs();
-            if (Array.Exists(args, a => a.Equals("-robots")))
+            try
             {
-                ButtonRobotCandleOne_Click(this, default);
-            }
-            else if (Array.Exists(args, a => a.Equals("-tester")))
-            {
-                ButtonTesterCandleOne_Click(this, default);
-            }
-            else if (Array.Exists(args, a => a.Equals("-robotslight")))
-            {
-                ButtonRobotLight_Click(this, default);
-            }
-            else if (Array.Exists(args, a => a.Equals("-error")) && PrimeSettingsMaster.RebootTradeUiLight)
-            {
+                string[] args = Environment.GetCommandLineArgs();
 
-                CriticalErrorHandler.ErrorInStartUp = true;
-
-                Array.ForEach(args, (a) => { CriticalErrorHandler.ErrorMessage += a; });
-
-                new Task(() =>
+                if (Array.Exists(args, a => a.Equals("-robots")))
                 {
-                    string messageError = String.Empty;
+                    ButtonRobotCandleOne_Click(this, default);
+                }
+                else if (Array.Exists(args, a => a.Equals("-tester")))
+                {
+                    ButtonTesterCandleOne_Click(this, default);
+                }
+                else if (Array.Exists(args, a => a.Equals("-robotslight")))
+                {
+                    ButtonRobotLight_Click(this, default);
+                }
+                else if (Array.Exists(args, a => a.Equals("-error")) && PrimeSettingsMaster.RebootTradeUiLight)
+                {
+                    CriticalErrorHandler.ErrorInStartUp = true;
 
-                    for (int i = 0; i < args.Length; i++)
+                    Array.ForEach(args, (a) => { CriticalErrorHandler.ErrorMessage += a; });
+
+                    new Task(() =>
                     {
-                        messageError += args[i];
-                    }
+                        string messageError = String.Empty;
 
-                    MessageBox.Show(messageError);
+                        for (int i = 0; i < args.Length; i++)
+                        {
+                            messageError += args[i];
+                        }
 
-                }).Start();
+                        MessageBox.Show(messageError);
 
-                ButtonRobotLight_Click(this, default);
+                    }).Start();
+
+                    ButtonRobotLight_Click(this, default);
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 

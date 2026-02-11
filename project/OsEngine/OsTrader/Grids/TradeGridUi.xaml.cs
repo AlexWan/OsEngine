@@ -2676,37 +2676,86 @@ namespace OsEngine.OsTrader.Grids
 
         private void ButtonTrailUpInstruction_Click(object sender, RoutedEventArgs e)
         {
-            InteractiveInstructions.Grids.Link6.ShowLinkInBrowser();
+            try
+            {
+                InteractiveInstructions.Grids.Link6.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonStopAndProfit_Click(object sender, RoutedEventArgs e)
         {
-            InteractiveInstructions.Grids.Link21.ShowLinkInBrowser();
+            try
+            {
+                InteractiveInstructions.Grids.Link21.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonError_Click(object sender, RoutedEventArgs e)
         {
-            InteractiveInstructions.Grids.Link22.ShowLinkInBrowser();
+            try
+            {
+                InteractiveInstructions.Grids.Link22.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonBase_Click(object sender, RoutedEventArgs e)
         {
-            InteractiveInstructions.Grids.Link17.ShowLinkInBrowser();
+            try
+            {
+                InteractiveInstructions.Grids.Link17.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonCreation_Click(object sender, RoutedEventArgs e)
         {
-            InteractiveInstructions.Grids.Link18.ShowLinkInBrowser();
+            try
+            {
+                InteractiveInstructions.Grids.Link18.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonStopTrading_Click(object sender, RoutedEventArgs e)
         {
-            InteractiveInstructions.Grids.Link19.ShowLinkInBrowser();
+            try
+            {
+                InteractiveInstructions.Grids.Link19.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonAutoStart_Click(object sender, RoutedEventArgs e)
         {
-            InteractiveInstructions.Grids.Link20.ShowLinkInBrowser();
+            try
+            {
+                InteractiveInstructions.Grids.Link20.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
