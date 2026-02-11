@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.PrimeSettings"
         mc:Ignorable="d"
-              Title="Configuration" Style="{StaticResource WindowStyleNoResize}" Height="447" Width="404" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+              Title="Configuration" Style="{StaticResource WindowStyleNoResize}" Height="490" Width="404" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <ComboBox Name="ComboBoxLocalization" Margin="196,10,56,0" VerticalAlignment="Top" Height="23"/>
         <Label Name="LanguageLabel" Content="Language" HorizontalAlignment="Left" Margin="79,10,0,0" VerticalAlignment="Top"/>
@@ -42,6 +42,12 @@
         <Label Name="LabelSupportGroupEng" Content="Support group ENG:" HorizontalAlignment="Left" Margin="47,378,0,0" VerticalAlignment="Top"/>
         <Button Name="ButtonGoInRuSupport" Content="Go to" HorizontalAlignment="Right" Margin="0,344,40,0" VerticalAlignment="Top" Width="142" Click="ButtonGoInRuSupport_Click"/>
         <Button Name="ButtonGoInEngSupport" Content="Go to" HorizontalAlignment="Right" Margin="0,374,40,0" VerticalAlignment="Top" Width="142" Click="ButtonGoInEngSupport_Click"/>
+        <Button Name="ButtonGeneralSettings"  Margin="327,0,40,10" VerticalAlignment="Bottom" Height="36" Click="ButtonGeneralSettings_Click" >
+            <Grid>
+                <Image Name="PostGreenGeneralSettings" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhiteGeneralSettings"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
     </Grid>
 </Window>
