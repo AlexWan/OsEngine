@@ -6,6 +6,7 @@
 using Microsoft.Win32;
 using OsEngine.Alerts;
 using OsEngine.Entity;
+using OsEngine.Instructions;
 using OsEngine.Language;
 using OsEngine.Layout;
 using OsEngine.Market;
@@ -144,16 +145,72 @@ namespace OsEngine
                 UnblockInterface();
             }
 
+            if (InteractiveInstructions.MainMenu.AllInstructionsInClass == null
+              || InteractiveInstructions.MainMenu.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostsMenu.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                ButtonPostsMenu.Click += ButtonPostsMenu_Click;
+            }
+
             ChangeText();
 
             ReloadFlagButton();
 
             this.ContentRendered += MainWindow_ContentRendered;
+
+            StartButtonBlinkAnimation();
         }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    if (blinkCount >= 20)
+                    {
+                        timer.Stop();
+                        GreenCollectionMenu.Opacity = 1;
+                        WhiteCollectionMenu.Opacity = 0;
+                        return;
+                    }
+
+                    if (isGreenVisible)
+                    {
+                        GreenCollectionMenu.Opacity = 0;
+                        WhiteCollectionMenu.Opacity = 1;
+                    }
+                    else
+                    {
+                        GreenCollectionMenu.Opacity = 1;
+                        WhiteCollectionMenu.Opacity = 0;
+                    }
+
+                    isGreenVisible = !isGreenVisible;
+                    blinkCount++;
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void GifT_MediaEnded(object sender, RoutedEventArgs e)
         {
             GifT.Pause(); // останавливаем на последнем кадре
         }
+
         #region Block and Unblock interface
 
         private void BlockInterface()
@@ -388,7 +445,6 @@ namespace OsEngine
         {
             try
             {
-
                 if (!Directory.Exists("Engine"))
                 {
                     Directory.CreateDirectory("Engine");
@@ -511,7 +567,7 @@ namespace OsEngine
         private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
             if (e.Exception != null
-                && e.Exception.ToString().Contains("(995):")== true)
+                && e.Exception.ToString().Contains("(995):") == true)
             { // игнорируем прерывания потока за делом по кансел токену
                 return;
             }
@@ -905,6 +961,51 @@ namespace OsEngine
                 ButtonLocal_Eng.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
             }
         }
+
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ButtonPostsMenu_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.MainMenu.AllInstructionsInClass, InteractiveInstructions.MainMenu.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _instructionsUi.Closed -= _instructionsUi_Closed;
+                _instructionsUi = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 
 
