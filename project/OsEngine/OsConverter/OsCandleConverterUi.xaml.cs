@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using OsEngine.Language;
+using System.Windows.Threading;
 
 namespace OsEngine.OsConverter
 {
@@ -37,6 +38,56 @@ namespace OsEngine.OsConverter
 
             this.Activate();
             this.Focus();
+
+            if (InteractiveInstructions.Converter.AllInstructionsInClass == null
+             || InteractiveInstructions.Converter.AllInstructionsInClass.Count == 0)
+            {
+                ButtonCandleConverter.Visibility = Visibility.Hidden;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    if (blinkCount >= 20)
+                    {
+                        timer.Stop();
+                        PostGreenCandleConverter.Opacity = 1;
+                        PostWhiteCandleConverter.Opacity = 0;
+                        return;
+                    }
+
+                    if (isGreenVisible)
+                    {
+                        PostGreenCandleConverter.Opacity = 0;
+                        PostWhiteCandleConverter.Opacity = 1;
+                    }
+                    else
+                    {
+                        PostGreenCandleConverter.Opacity = 1;
+                        PostWhiteCandleConverter.Opacity = 0;
+                    }
+
+                    isGreenVisible = !isGreenVisible;
+                    blinkCount++;
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                _candleConverter.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)
@@ -86,5 +137,21 @@ namespace OsEngine.OsConverter
                 _candleConverter.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
             }
         }
+
+        #region Posts collection
+
+        private void ButtonCandleConverter_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.Converter.Link1.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                _candleConverter.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }
