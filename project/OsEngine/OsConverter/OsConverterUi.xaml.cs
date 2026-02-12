@@ -5,6 +5,7 @@
 
 using System;
 using System.Windows;
+using System.Windows.Threading;
 using OsEngine.Language;
 
 namespace OsEngine.OsConverter
@@ -30,6 +31,56 @@ namespace OsEngine.OsConverter
 
             this.Activate();
             this.Focus();
+
+            if (InteractiveInstructions.Converter.AllInstructionsInClass == null
+             || InteractiveInstructions.Converter.AllInstructionsInClass.Count == 0)
+            {
+                ButtonConverter.Visibility = Visibility.Hidden;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    if (blinkCount >= 20)
+                    {
+                        timer.Stop();
+                        PostGreenConverter.Opacity = 1;
+                        PostWhiteConverter.Opacity = 0;
+                        return;
+                    }
+
+                    if (isGreenVisible)
+                    {
+                        PostGreenConverter.Opacity = 0;
+                        PostWhiteConverter.Opacity = 1;
+                    }
+                    else
+                    {
+                        PostGreenConverter.Opacity = 1;
+                        PostWhiteConverter.Opacity = 0;
+                    }
+
+                    isGreenVisible = !isGreenVisible;
+                    blinkCount++;
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private OsConverterMaster _master;
@@ -69,5 +120,21 @@ namespace OsEngine.OsConverter
                 _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
+
+        #region Posts collection
+
+        private void ButtonConverter_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.Converter.Link1.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsConverter"
         mc:Ignorable="d"
-        Title="Converter: 1 / 5 min candles to another candles" Height="410" Width="620" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" MinWidth="610" MinHeight="400" Icon="/Images/OsLogo.ico">
+        Title="Converter: 1 / 5 min candles to another candles" Height="410" Width="620" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" MinWidth="610" MinHeight="410" Icon="/Images/OsLogo.ico">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -19,7 +19,7 @@
         <Rectangle Margin="5,95,5,0" Height="105" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
         <Label Name="Label2" Content="Outgoing data" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,102,0,0" FontSize="16" />
         <TextBox Name="TextBoxExit"  Margin="26,131,15,0" TextWrapping="Wrap" VerticalAlignment="Top" IsEnabled="False" Grid.ColumnSpan="2"/>
-        <Button Name="ButtonSetExitFile" Content="Specify" HorizontalAlignment="Left" Margin="21.574,101,0,0" VerticalAlignment="Top" Width="183" Click="ButtonSetExitFile_Click" Grid.Column="1"/>
+        <Button Name="ButtonSetExitFile" Content="Specify" HorizontalAlignment="Left" Margin="21.574,101,0,0" VerticalAlignment="Top" Width="181" Click="ButtonSetExitFile_Click" Grid.Column="1"/>
         <Grid Name="GreedLog" Margin="10,215,5,6" Grid.ColumnSpan="2">
             <TabControl Margin="10,-11,0,0" Name="TabControlPrime" BorderThickness="0" Background="#FF17171B">
                 <TabItem Name="Label4" Header="Logging" Width="140" >
@@ -50,7 +50,7 @@
                 </TransformGroup>
             </Label.RenderTransform>
         </Label>
-        <Button Name="ButtonStart" Content="Start conversion" Margin="22,164,15,0" VerticalAlignment="Top" Click="ButtonStart_Click" Grid.Column="1"/>
+        <Button Name="ButtonStart" Content="Start conversion" Margin="22,164.5,15,0" VerticalAlignment="Top" Click="ButtonStart_Click" Grid.Column="1"/>
         <ComboBox Name ="ComboBoxTimeFrameInitial" HorizontalAlignment="Right" Margin="0,16,15,0" VerticalAlignment="Top" Width="190" Grid.Column="1"/>
         <Button Name="ButtonCandleConverter" Margin="26,159,114,0" VerticalAlignment="Top" Height="36" Click="ButtonCandleConverter_Click">
             <Grid>
