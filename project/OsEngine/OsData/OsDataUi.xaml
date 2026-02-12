@@ -17,9 +17,15 @@
             <Label Name="Label4" Content="Source" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,0,0,0" FontSize="18" Height="31" />
             <TextBox Name="TextBoxSearchSource" VerticalAlignment="Top" Margin="196,4,36,0" Height="21" Text="search..."/>
             <WindowsFormsHost Name="HostSource" Height="155" Margin="5,31,5,0" VerticalAlignment="Top"/>
-            <Label Name="Label24" Content="Sets" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,188,0,0" FontSize="18" />
-            <WindowsFormsHost Name="HostSet" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,246,7,5" Width="293"/>
-            <Button Name="NewDataSetButton" Content="Add new data set" Margin="149,216,10,0" VerticalAlignment="Top" Click="NewDataSetButton_Click"/>
+            <Label Name="Label24" Content="Sets" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="ExtraBlack" Margin="10,214,0,0" FontSize="18" />
+            <WindowsFormsHost Name="HostSet" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,300,7,5" Width="286"/>
+            <Button Name="NewDataSetButton" Content="Add new data set" Margin="149,260,10,0" VerticalAlignment="Top" Click="NewDataSetButton_Click"/>
+            <Button Name="ButtonPostsData" HorizontalAlignment="Left" Margin="259,207,0,0" VerticalAlignment="Top" Height="36" Width="35">
+                <Grid>
+                    <Image Name="GreenCollectionData"  Source="/Images/InstructionPosts/GreenPostCollection.png"  Width="31" Height="25"/>
+                    <Image Name="WhiteCollectionData"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
+                </Grid>
+            </Button>
 
         </Grid>
         <Grid Grid.Row="0" Name="GreedChartPanel" Margin="0,0,315,0">
