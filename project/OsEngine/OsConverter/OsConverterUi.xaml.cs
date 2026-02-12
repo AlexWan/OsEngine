@@ -52,27 +52,35 @@ namespace OsEngine.OsConverter
                 timer.Interval = TimeSpan.FromMilliseconds(300);
                 timer.Tick += (s, e) =>
                 {
-                    if (blinkCount >= 20)
+                    try
                     {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenConverter.Opacity = 1;
+                            PostWhiteConverter.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenConverter.Opacity = 0;
+                            PostWhiteConverter.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenConverter.Opacity = 1;
+                            PostWhiteConverter.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                         timer.Stop();
-                        PostGreenConverter.Opacity = 1;
-                        PostWhiteConverter.Opacity = 0;
-                        return;
                     }
-
-                    if (isGreenVisible)
-                    {
-                        PostGreenConverter.Opacity = 0;
-                        PostWhiteConverter.Opacity = 1;
-                    }
-                    else
-                    {
-                        PostGreenConverter.Opacity = 1;
-                        PostWhiteConverter.Opacity = 0;
-                    }
-
-                    isGreenVisible = !isGreenVisible;
-                    blinkCount++;
                 };
 
                 timer.Start();

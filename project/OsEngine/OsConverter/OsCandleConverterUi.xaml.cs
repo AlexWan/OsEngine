@@ -59,27 +59,35 @@ namespace OsEngine.OsConverter
                 timer.Interval = TimeSpan.FromMilliseconds(300);
                 timer.Tick += (s, e) =>
                 {
-                    if (blinkCount >= 20)
+                    try
                     {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenCandleConverter.Opacity = 1;
+                            PostWhiteCandleConverter.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenCandleConverter.Opacity = 0;
+                            PostWhiteCandleConverter.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenCandleConverter.Opacity = 1;
+                            PostWhiteCandleConverter.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _candleConverter.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                         timer.Stop();
-                        PostGreenCandleConverter.Opacity = 1;
-                        PostWhiteCandleConverter.Opacity = 0;
-                        return;
                     }
-
-                    if (isGreenVisible)
-                    {
-                        PostGreenCandleConverter.Opacity = 0;
-                        PostWhiteCandleConverter.Opacity = 1;
-                    }
-                    else
-                    {
-                        PostGreenCandleConverter.Opacity = 1;
-                        PostWhiteCandleConverter.Opacity = 0;
-                    }
-
-                    isGreenVisible = !isGreenVisible;
-                    blinkCount++;
                 };
 
                 timer.Start();
