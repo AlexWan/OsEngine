@@ -108,27 +108,35 @@ namespace OsEngine.PrimeSettings
                 timer.Interval = TimeSpan.FromMilliseconds(300);
                 timer.Tick += (s, e) =>
                 {
-                    if (blinkCount >= 20)
+                    try
                     {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenGeneralSettings.Opacity = 1;
+                            PostWhiteGeneralSettings.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenGeneralSettings.Opacity = 0;
+                            PostWhiteGeneralSettings.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenGeneralSettings.Opacity = 1;
+                            PostWhiteGeneralSettings.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                         timer.Stop();
-                        PostGreenGeneralSettings.Opacity = 1;
-                        PostWhiteGeneralSettings.Opacity = 0;
-                        return;
                     }
-
-                    if (isGreenVisible)
-                    {
-                        PostGreenGeneralSettings.Opacity = 0;
-                        PostWhiteGeneralSettings.Opacity = 1;
-                    }
-                    else
-                    {
-                        PostGreenGeneralSettings.Opacity = 1;
-                        PostWhiteGeneralSettings.Opacity = 0;
-                    }
-
-                    isGreenVisible = !isGreenVisible;
-                    blinkCount++;
                 };
 
                 timer.Start();

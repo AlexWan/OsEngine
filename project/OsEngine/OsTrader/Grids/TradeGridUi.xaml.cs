@@ -431,69 +431,77 @@ namespace OsEngine.OsTrader.Grids
                 timer.Interval = TimeSpan.FromMilliseconds(300);
                 timer.Tick += (s, e) =>
                 {
-                    if (blinkCount >= 20)
+                    try
                     {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            GreenCollection.Opacity = 1;
+                            WhiteCollection.Opacity = 0;
+                            PostGreenTrailUpInstruction.Opacity = 1;
+                            PostWhiteTrailUpInstruction.Opacity = 0;
+                            PostGreenStopAndProfit.Opacity = 1;
+                            PostWhiteStopAndProfit.Opacity = 0;
+                            PostGreenError.Opacity = 1;
+                            PostWhiteError.Opacity = 0;
+                            PostGreenBase.Opacity = 1;
+                            PostWhiteBase.Opacity = 0;
+                            PostGreenCreation.Opacity = 1;
+                            PostWhiteCreation.Opacity = 0;
+                            PostGreenStopTrading.Opacity = 1;
+                            PostWhiteStopTrading.Opacity = 0;
+                            PostGreenAutoStart.Opacity = 1;
+                            PostWhiteAutoStart.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            GreenCollection.Opacity = 0;
+                            WhiteCollection.Opacity = 1;
+                            PostGreenTrailUpInstruction.Opacity = 0;
+                            PostWhiteTrailUpInstruction.Opacity = 1;
+                            PostGreenStopAndProfit.Opacity = 0;
+                            PostWhiteStopAndProfit.Opacity = 1;
+                            PostGreenError.Opacity = 0;
+                            PostWhiteError.Opacity = 1;
+                            PostGreenBase.Opacity = 0;
+                            PostWhiteBase.Opacity = 1;
+                            PostGreenCreation.Opacity = 0;
+                            PostWhiteCreation.Opacity = 1;
+                            PostGreenStopTrading.Opacity = 0;
+                            PostWhiteStopTrading.Opacity = 1;
+                            PostGreenAutoStart.Opacity = 0;
+                            PostWhiteAutoStart.Opacity = 1;
+                        }
+                        else
+                        {
+                            GreenCollection.Opacity = 1;
+                            WhiteCollection.Opacity = 0;
+                            PostGreenTrailUpInstruction.Opacity = 1;
+                            PostWhiteTrailUpInstruction.Opacity = 0;
+                            PostGreenStopAndProfit.Opacity = 1;
+                            PostWhiteStopAndProfit.Opacity = 0;
+                            PostGreenError.Opacity = 1;
+                            PostWhiteError.Opacity = 0;
+                            PostGreenBase.Opacity = 1;
+                            PostWhiteBase.Opacity = 0;
+                            PostGreenCreation.Opacity = 1;
+                            PostWhiteCreation.Opacity = 0;
+                            PostGreenStopTrading.Opacity = 1;
+                            PostWhiteStopTrading.Opacity = 0;
+                            PostGreenAutoStart.Opacity = 1;
+                            PostWhiteAutoStart.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                         timer.Stop();
-                        GreenCollection.Opacity = 1;
-                        WhiteCollection.Opacity = 0;
-                        PostGreenTrailUpInstruction.Opacity = 1;
-                        PostWhiteTrailUpInstruction.Opacity = 0;
-                        PostGreenStopAndProfit.Opacity = 1;
-                        PostWhiteStopAndProfit.Opacity = 0;
-                        PostGreenError.Opacity = 1;
-                        PostWhiteError.Opacity = 0;
-                        PostGreenBase.Opacity = 1;
-                        PostWhiteBase.Opacity = 0;
-                        PostGreenCreation.Opacity = 1;
-                        PostWhiteCreation.Opacity = 0;
-                        PostGreenStopTrading.Opacity = 1;
-                        PostWhiteStopTrading.Opacity = 0;
-                        PostGreenAutoStart.Opacity = 1;
-                        PostWhiteAutoStart.Opacity = 0;
-                        return;
                     }
-
-                    if (isGreenVisible)
-                    {
-                        GreenCollection.Opacity = 0;
-                        WhiteCollection.Opacity = 1;
-                        PostGreenTrailUpInstruction.Opacity = 0;
-                        PostWhiteTrailUpInstruction.Opacity = 1;
-                        PostGreenStopAndProfit.Opacity = 0;
-                        PostWhiteStopAndProfit.Opacity = 1;
-                        PostGreenError.Opacity = 0;
-                        PostWhiteError.Opacity = 1;
-                        PostGreenBase.Opacity = 0;
-                        PostWhiteBase.Opacity = 1;
-                        PostGreenCreation.Opacity = 0;
-                        PostWhiteCreation.Opacity = 1;
-                        PostGreenStopTrading.Opacity = 0;
-                        PostWhiteStopTrading.Opacity = 1;
-                        PostGreenAutoStart.Opacity = 0;
-                        PostWhiteAutoStart.Opacity = 1;
-                    }
-                    else
-                    {
-                        GreenCollection.Opacity = 1;
-                        WhiteCollection.Opacity = 0;
-                        PostGreenTrailUpInstruction.Opacity = 1;
-                        PostWhiteTrailUpInstruction.Opacity = 0;
-                        PostGreenStopAndProfit.Opacity = 1;
-                        PostWhiteStopAndProfit.Opacity = 0;
-                        PostGreenError.Opacity = 1;
-                        PostWhiteError.Opacity = 0;
-                        PostGreenBase.Opacity = 1;
-                        PostWhiteBase.Opacity = 0;
-                        PostGreenCreation.Opacity = 1;
-                        PostWhiteCreation.Opacity = 0;
-                        PostGreenStopTrading.Opacity = 1;
-                        PostWhiteStopTrading.Opacity = 0;
-                        PostGreenAutoStart.Opacity = 1;
-                        PostWhiteAutoStart.Opacity = 0;
-                    }
-
-                    isGreenVisible = !isGreenVisible;
-                    blinkCount++;
                 };
 
                 timer.Start();

@@ -175,27 +175,35 @@ namespace OsEngine
                 timer.Interval = TimeSpan.FromMilliseconds(300);
                 timer.Tick += (s, e) =>
                 {
-                    if (blinkCount >= 20)
+                    try
                     {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            GreenCollectionMenu.Opacity = 1;
+                            WhiteCollectionMenu.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            GreenCollectionMenu.Opacity = 0;
+                            WhiteCollectionMenu.Opacity = 1;
+                        }
+                        else
+                        {
+                            GreenCollectionMenu.Opacity = 1;
+                            WhiteCollectionMenu.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                         timer.Stop();
-                        GreenCollectionMenu.Opacity = 1;
-                        WhiteCollectionMenu.Opacity = 0;
-                        return;
                     }
-
-                    if (isGreenVisible)
-                    {
-                        GreenCollectionMenu.Opacity = 0;
-                        WhiteCollectionMenu.Opacity = 1;
-                    }
-                    else
-                    {
-                        GreenCollectionMenu.Opacity = 1;
-                        WhiteCollectionMenu.Opacity = 0;
-                    }
-
-                    isGreenVisible = !isGreenVisible;
-                    blinkCount++;
                 };
 
                 timer.Start();
