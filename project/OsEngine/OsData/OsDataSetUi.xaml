@@ -48,7 +48,7 @@
         <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,29" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
         <Button Name="SaveButton" Content="Save" HorizontalAlignment="Left" Margin="10,0,10,29" VerticalAlignment="Bottom" Width="150"  Click="SaveButton_Click"/>
         <Button Name="LoadButton" Content="Load" HorizontalAlignment="Left" Margin="170,0,10,29" VerticalAlignment="Bottom" Width="150" Click="LoadButton_Click"/>
-        <Button Name="ButtonDataSet"  Margin="498,285,30,0" VerticalAlignment="Top" Height="36" Click="ButtonDataSet_Click">
+        <Button Name="ButtonDataSet"  Margin="498,288,30,0" VerticalAlignment="Top" Height="36" Click="ButtonDataSet_Click">
             <Grid>
                 <Image Name="PostGreenDataSet" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
                 <Image Name="PostWhiteDataSet"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
