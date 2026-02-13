@@ -10,5 +10,11 @@
         </ComboBox>
         <Label Name="ExchangeLabel" Content="Exchange" HorizontalAlignment="Left" Margin="64,34,0,0" VerticalAlignment="Top" Height="27" Width="65"/>
         <Button Name="CreateButton" Content="Create" HorizontalAlignment="Left" Width="120" Margin="208,114,0,0" VerticalAlignment="Top" Click="CreateButton_Click"/>
+        <Button Name="ButtonDataLqdt" HorizontalAlignment="Left" Margin="312,28,0,0" VerticalAlignment="Top"  Height="36" Width="35" Click="ButtonDataLqdt_Click">
+            <Grid>
+                <Image Name="PostGreenDataLqdt" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhiteDataLqdt"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
     </Grid>
 </Window>
