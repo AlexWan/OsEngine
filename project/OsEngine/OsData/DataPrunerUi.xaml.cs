@@ -9,6 +9,7 @@ using OsEngine.Market;
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Threading;
 
 
 namespace OsEngine.OsData
@@ -21,7 +22,7 @@ namespace OsEngine.OsData
 
         public DataPrunerUi(OsDataSet set, OsDataSetPainter setPainter)
         {
-             InitializeComponent();
+            InitializeComponent();
 
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
@@ -55,6 +56,64 @@ namespace OsEngine.OsData
             Focus();
 
             Closed += DataPrunerUi_Closed;
+
+            if (InteractiveInstructions.Data.AllInstructionsInClass == null
+             || InteractiveInstructions.Data.AllInstructionsInClass.Count == 0)
+            {
+                ButtonDataDelete.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenDataDelete.Opacity = 1;
+                            PostWhiteDataDelete.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenDataDelete.Opacity = 0;
+                            PostWhiteDataDelete.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenDataDelete.Opacity = 1;
+                            PostWhiteDataDelete.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void DataPrunerUi_Closed(object sender, EventArgs e)
@@ -77,7 +136,7 @@ namespace OsEngine.OsData
                 if (DatePickerTimeStart.SelectedDate == null || DatePickerTimeEnd.SelectedDate == null)
                 {
                     ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label74, Logging.LogMessageType.Error);
-                     return;
+                    return;
                 }
 
                 if (DatePickerTimeStart.SelectedDate > DatePickerTimeEnd.SelectedDate)
@@ -172,7 +231,7 @@ namespace OsEngine.OsData
         {
             try
             {
-                if (string.IsNullOrEmpty( TextBoxMaxVol.Text) || string.IsNullOrEmpty(TextBoxMinVol.Text))
+                if (string.IsNullOrEmpty(TextBoxMaxVol.Text) || string.IsNullOrEmpty(TextBoxMinVol.Text))
                 {
                     ServerMaster.Log?.ProcessMessage(OsLocalization.Data.Label77, Logging.LogMessageType.Error);
                     return;
@@ -180,7 +239,7 @@ namespace OsEngine.OsData
 
                 decimal maxVol = TextBoxMaxVol.Text.ToDecimal();
                 decimal minVol = TextBoxMinVol.Text.ToDecimal();
-                
+
 
                 List<SecurityToLoad> wrongSecurities = [];
 
@@ -249,7 +308,7 @@ namespace OsEngine.OsData
                     lastDay = lastDay.AddDays(-1);
                     continue;
                 }
-    
+
                 decimal high = decimal.MinValue;
                 decimal low = decimal.MaxValue;
 
@@ -334,7 +393,7 @@ namespace OsEngine.OsData
 
                 if (wrongSecurities.Count > 0)
                     DeleteWrongSecurities(wrongSecurities);
-   
+
             }
             catch (Exception ex)
             {
@@ -433,5 +492,21 @@ namespace OsEngine.OsData
 
             Close();
         }
+
+        #region Posts collection
+
+        private void ButtonDataDelete_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.Data.Link5.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }

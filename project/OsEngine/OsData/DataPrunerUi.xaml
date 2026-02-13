@@ -111,6 +111,13 @@
             <Label Name="LabelMinDigit" Content="Min digits" Foreground="#FFE2E3E8" Grid.Row="4" Grid.Column="0"/>
             <TextBox Name="TextBoxMinDigits" Height="23" Grid.Row="4" Grid.Column="1" Width="100" Text="3"/>
             <Button Name="ButtonDelete4" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete4_Click"/>
+            <Button  Name="ButtonDataDelete"  Grid.Row="6" VerticalAlignment="Center"  Height="36" Grid.Column="1" Margin="75,0,10,0" Click="ButtonDataDelete_Click" >
+                <Grid>
+                    <Image Name="PostGreenDataDelete" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                    <Image Name="PostWhiteDataDelete"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                </Grid>
+            </Button>
         </Grid>
+
     </Grid>
 </Window>
