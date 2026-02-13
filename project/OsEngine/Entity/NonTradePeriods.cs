@@ -565,6 +565,31 @@ namespace OsEngine.Entity
 
         #endregion
 
+        #region Copy settings
+
+        public void CopySettings(NonTradePeriods newSettings)
+        {
+            TradeInMonday = newSettings.TradeInMonday;
+            TradeInTuesday = newSettings.TradeInTuesday;
+            TradeInWednesday = newSettings.TradeInWednesday;
+            TradeInThursday = newSettings.TradeInThursday;
+            TradeInFriday = newSettings.TradeInFriday;
+            TradeInSaturday = newSettings.TradeInSaturday;
+            TradeInSunday = newSettings.TradeInSunday;
+
+            NonTradePeriodGeneral.CopySettings(newSettings.NonTradePeriodGeneral);
+
+            NonTradePeriodMonday.CopySettings(newSettings.NonTradePeriodMonday);
+            NonTradePeriodTuesday.CopySettings(newSettings.NonTradePeriodTuesday);
+            NonTradePeriodWednesday.CopySettings(newSettings.NonTradePeriodWednesday);
+            NonTradePeriodThursday.CopySettings(newSettings.NonTradePeriodThursday);
+            NonTradePeriodFriday.CopySettings(newSettings.NonTradePeriodFriday);
+            NonTradePeriodSaturday.CopySettings(newSettings.NonTradePeriodSaturday);
+            NonTradePeriodSunday.CopySettings(newSettings.NonTradePeriodSunday);
+        }
+
+        #endregion
+
         #region Logic
 
         public bool CanTradeThisTime(DateTime curTime)
@@ -837,6 +862,31 @@ namespace OsEngine.Entity
             }
 
             return true;
+        }
+
+        public void CopySettings(NonTradePeriodInDay newPeriodSettings)
+        {
+            NonTradePeriod1OnOff = newPeriodSettings.NonTradePeriod1OnOff;
+            NonTradePeriod1Start = newPeriodSettings.NonTradePeriod1Start;
+            NonTradePeriod1End = newPeriodSettings.NonTradePeriod1End;
+
+            NonTradePeriod2OnOff = newPeriodSettings.NonTradePeriod2OnOff;
+            NonTradePeriod2Start = newPeriodSettings.NonTradePeriod2Start;
+            NonTradePeriod2End = newPeriodSettings.NonTradePeriod2End;
+
+            NonTradePeriod3OnOff = newPeriodSettings.NonTradePeriod3OnOff;
+            NonTradePeriod3Start = newPeriodSettings.NonTradePeriod3Start;
+            NonTradePeriod3End = newPeriodSettings.NonTradePeriod3End;
+
+            NonTradePeriod4OnOff = newPeriodSettings.NonTradePeriod4OnOff;
+            NonTradePeriod4Start = newPeriodSettings.NonTradePeriod4Start;
+            NonTradePeriod4End = newPeriodSettings.NonTradePeriod4End;
+
+            NonTradePeriod5OnOff = newPeriodSettings.NonTradePeriod5OnOff;
+            NonTradePeriod5Start = newPeriodSettings.NonTradePeriod5Start;
+            NonTradePeriod5End = newPeriodSettings.NonTradePeriod5End;
+
+
         }
     }
 }

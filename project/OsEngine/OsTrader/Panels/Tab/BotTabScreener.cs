@@ -2164,6 +2164,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 newIndicator = (Aindicator)Tabs[i].CreateCandleIndicator(newIndicator, ind.NameArea);
+
+                if(newIndicator == null)
+                {
+                    continue;
+                }
+
                 newIndicator.CanDelete = ind.CanDelete;
                 newIndicator.Save();
             }

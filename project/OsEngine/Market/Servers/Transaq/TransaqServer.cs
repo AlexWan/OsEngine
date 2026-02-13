@@ -2316,14 +2316,6 @@ namespace OsEngine.Market.Servers.Transaq
                                 {
                                     Dispose();
                                 }
-
-                                Thread.Sleep(1000);
-
-                                if (ServerStatus == ServerConnectStatus.Disconnect)
-                                {
-                                    WebProxy proxy = new WebProxy();
-                                    Connect(proxy);
-                                }
                             }
                             else
                             {

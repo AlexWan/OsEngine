@@ -527,6 +527,12 @@ namespace OsEngine.Market
 
                 int row = e.RowIndex;
 
+                if(row < 0
+                    || row >= _gridSources.Rows.Count)
+                {
+                    return;
+                }
+
                 if (_gridSources.Rows[row].Selected == false)
                 {
                     _gridSources.Rows[row].Selected = true;
