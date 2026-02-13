@@ -50,6 +50,12 @@
             <ComboBox Name="TimeBox" HorizontalAlignment="Left" Margin="190,14,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="24"/>
 
             <RadioButton Name="HourRBut" Content="Hour" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top" Foreground="#FFFF8100" Background="Transparent" Grid.Row="1" Checked="HourRBut_Checked"/>
+            <Button Name="ButtonDataSetUpdating" HorizontalAlignment="Left" Margin="238,53,0,0" Grid.Row="1" VerticalAlignment="Top" Height="36" Width="35" Click="ButtonDataSetUpdating_Click">
+                <Grid>
+                    <Image Name="PostGreenDataSetUpdating" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                    <Image Name="PostWhiteDataSetUpdating"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                </Grid>
+            </Button>
 
             <Grid Grid.Row="1" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
@@ -58,7 +64,7 @@
                 </Grid.ColumnDefinitions>
             </Grid>
         </Grid>
-
+        
     </Grid>
 
 </Window>

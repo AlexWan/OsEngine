@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 
 namespace OsEngine.OsData
@@ -46,6 +47,64 @@ namespace OsEngine.OsData
             UpdTimeLabel.Content = OsLocalization.Data.Label97;
 
             Closed += SetUpdatingUi_Closed;
+
+            if (InteractiveInstructions.Data.AllInstructionsInClass == null
+             || InteractiveInstructions.Data.AllInstructionsInClass.Count == 0)
+            {
+                ButtonDataSetUpdating.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenDataSetUpdating.Opacity = 1;
+                            PostWhiteDataSetUpdating.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenDataSetUpdating.Opacity = 0;
+                            PostWhiteDataSetUpdating.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenDataSetUpdating.Opacity = 1;
+                            PostWhiteDataSetUpdating.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void SetUpdatingUi_Closed(object sender, EventArgs e)
@@ -190,6 +249,22 @@ namespace OsEngine.OsData
 
             _set.Updater.Period = "Day";
         }
+
+        #region Posts collection
+
+        private void ButtonDataSetUpdating_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.Data.Link6.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }
 
