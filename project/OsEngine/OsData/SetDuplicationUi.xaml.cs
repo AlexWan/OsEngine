@@ -10,6 +10,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Threading;
 
 
 namespace OsEngine.OsData
@@ -56,6 +57,64 @@ namespace OsEngine.OsData
             Focus();
 
             Closed += SetDuplicationUi_Closed;
+
+            if (InteractiveInstructions.Data.AllInstructionsInClass == null
+            || InteractiveInstructions.Data.AllInstructionsInClass.Count == 0)
+            {
+                ButtonDataDuplication.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenDataDuplication.Opacity = 1;
+                            PostWhiteDataDuplication.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenDataDuplication.Opacity = 0;
+                            PostWhiteDataDuplication.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenDataDuplication.Opacity = 1;
+                            PostWhiteDataDuplication.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void SetDuplicationUi_Closed(object sender, EventArgs e)
@@ -211,5 +270,21 @@ namespace OsEngine.OsData
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
+
+        #region Posts collection
+
+        private void ButtonDataDuplication_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.Data.Link8.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }

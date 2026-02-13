@@ -76,7 +76,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Name="NowButton" Content="Dublicate now" Grid.Column="0" VerticalAlignment="Center" Width="120" Click="NowButton_Click"/>
+            <Button Name="NowButton" Content="Dublicate now" Grid.Column="0" VerticalAlignment="Center" Width="120" Click="NowButton_Click" Margin="0,0,107,0"/>
             <Label Name="EveryLabel" Content="Every" Grid.Column="2" VerticalAlignment="Center" Margin="20,0,0,0"/>
 
             <ComboBox Name="ComboBoxPeriods" Grid.Column="3" 
@@ -87,7 +87,15 @@
                 <ComboBoxItem Content="30"/>
             </ComboBox>
 
+            <Button Name="ButtonDataDuplication"  VerticalAlignment="Center" Height="36" Width="35" Click="ButtonDataDuplication_Click" Grid.Column="1">
+                <Grid>
+                    <Image Name="PostGreenDataDuplication" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                    <Image Name="PostWhiteDataDuplication"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                </Grid>
+            </Button>
+
             <Label Name="MinutsLabel" Content="minutes" Grid.Column="4" VerticalAlignment="Center" Margin="10,0,0,0"/>
         </Grid>
+
     </Grid>
 </Window>
