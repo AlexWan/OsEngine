@@ -45,6 +45,7 @@ namespace OsEngine.Instructions
                 result.Add(Link7);
                 result.Add(Link8);
                 result.Add(Link9);
+                result.Add(Link10);
 
                 return result;
             }
@@ -146,6 +147,17 @@ namespace OsEngine.Instructions
             {
                 Description = "OsData. Создание сета данных",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item846"
+            }
+        };
+
+        public Instruction Link10 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "OsData. Выбор инструментов для скачивания",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub28&items%5B%5D=item856"
             }
         };
     }
