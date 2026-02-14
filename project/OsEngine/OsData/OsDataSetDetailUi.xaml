@@ -28,8 +28,12 @@
         <Label Name="LabelTimeEndRealValue" Content="Time End Real val" HorizontalAlignment="Left" Margin="417,94,0,0" VerticalAlignment="Top"/>
         <Label Name="LabelCache" Content="Cache data " HorizontalAlignment="Left" Margin="0,167,0,0" VerticalAlignment="Top"/>
 
-
-
+        <Button Name="ButtonDataSetDetail" Margin="493,142,10,0" VerticalAlignment="Top" Height="36" Width="35" Click="ButtonDataSetDetail_Click">
+            <Grid>
+                <Image Name="PostGreenDataSetDetail" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhiteDataSetDetail"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
     </Grid>
 </Window>
