@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace OsEngine.OsData
 {
@@ -36,7 +37,65 @@ namespace OsEngine.OsData
 
             Closed += OsDataSetDetailUi_Closed;
 
+            if (InteractiveInstructions.Data.AllInstructionsInClass == null
+            || InteractiveInstructions.Data.AllInstructionsInClass.Count == 0)
+            {
+                ButtonDataSetDetail.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+
             Task.Run(PainterThreadArea);
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenDataSetDetail.Opacity = 1;
+                            PostWhiteDataSetDetail.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenDataSetDetail.Opacity = 0;
+                            PostWhiteDataSetDetail.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenDataSetDetail.Opacity = 1;
+                            PostWhiteDataSetDetail.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _loader.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                _loader.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void OsDataSetDetailUi_Closed(object sender, EventArgs e)
@@ -394,5 +453,21 @@ namespace OsEngine.OsData
 
             return nRow;
         }
+
+        #region Posts collection
+
+        private void ButtonDataSetDetail_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.Data.Link11.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                _loader.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }
