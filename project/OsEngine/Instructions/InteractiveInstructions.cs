@@ -17,5 +17,7 @@ namespace OsEngine
 
         public static ConverterInstructions Converter = new ConverterInstructions();
 
+        public static Journal2Instructions Journal2Posts = new Journal2Instructions();
+
     }
 }

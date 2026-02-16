@@ -27,6 +27,8 @@ using OsEngine.Layout;
 using OsEngine.Market;
 using System.Windows.Media;
 using OsEngine.OsData;
+using System.Windows.Threading;
+using OsEngine.Instructions;
 
 namespace OsEngine.Journal
 {
@@ -166,6 +168,68 @@ namespace OsEngine.Journal
             GlobalGUILayout.Listen(this, JournalName);
 
             RePaint();
+
+            if (InteractiveInstructions.Data.AllInstructionsInClass == null
+             || InteractiveInstructions.Data.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostsJournal2.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                ButtonPostsJournal2.Click += ButtonPostsJournal2_Click;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            GreenCollectionJournal2.Opacity = 1;
+                            WhiteCollectionJournal2.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            GreenCollectionJournal2.Opacity = 0;
+                            WhiteCollectionJournal2.Opacity = 1;
+                        }
+                        else
+                        {
+                            GreenCollectionJournal2.Opacity = 1;
+                            WhiteCollectionJournal2.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void JournalUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -243,7 +307,7 @@ namespace OsEngine.Journal
                     _gridLeveragePortfolio.Rows.Clear();
                     _gridLeveragePortfolio.DataError -= _gridLeveragePortfolio_DataError;
                     _gridLeveragePortfolio.Dispose();
-                    _gridLeveragePortfolio = null;                   
+                    _gridLeveragePortfolio = null;
                 }
 
                 if (_layoutPanelPortfolio != null)
@@ -622,8 +686,8 @@ namespace OsEngine.Journal
                 column0.CellTemplate = cell0;
                 column0.HeaderText = @"";
                 column0.ReadOnly = true;
-                column0.Width = 200;
-
+                column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                //column0.Width = 200;
                 _gridStatistics.Columns.Add(column0);
 
                 DataGridViewColumn column1 = new DataGridViewColumn();
@@ -1255,7 +1319,7 @@ namespace OsEngine.Journal
                                 minYval = benchmarkValue;
                             }
                         }
-                    }                    
+                    }
                 }
 
                 if (minYval != decimal.MaxValue &&
@@ -1291,7 +1355,7 @@ namespace OsEngine.Journal
 
                 PaintXLabelsOnEquityChart(positionsAll);
 
-                PaintRectangleEqutyLines();                
+                PaintRectangleEqutyLines();
             }
             catch (Exception error)
             {
@@ -1308,9 +1372,9 @@ namespace OsEngine.Journal
             {
                 _benchmark = new Benchmark(ComboBoxBenchmark.SelectedItem.ToString());
                 _benchmark.NewLogMessageEvent += SendNewLogMessage;
-                _benchmark.DownloadBenchmarkEvent += Benchmark_DownloadBenchmarkEvent;                
+                _benchmark.DownloadBenchmarkEvent += Benchmark_DownloadBenchmarkEvent;
 
-                List <decimal> data = LoadBenchmarkData(series);
+                List<decimal> data = LoadBenchmarkData(series);
 
                 if (data == null && !_checkBenchmarkData)
                 {
@@ -1330,7 +1394,7 @@ namespace OsEngine.Journal
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
-            }            
+            }
         }
 
         private void Benchmark_DownloadBenchmarkEvent()
@@ -1416,18 +1480,18 @@ namespace OsEngine.Journal
                             .Where(date => date < dateTime)
                             .OrderByDescending(date => date)
                             .FirstOrDefault(candleData.Keys.Min());
-                                        
+
                     if (candleData.ContainsKey(roundedDateTime))
                     {
                         if (ComboBoxChartType.SelectedItem.ToString() == "Absolute")
                         {
                             data.Add(candleData[roundedDateTime]);
-                        }                        
+                        }
                     }
                 }
 
                 return data;
-            }            
+            }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
@@ -1438,10 +1502,10 @@ namespace OsEngine.Journal
         private Series ScaleDataToChart(List<decimal> originalData, decimal chartMin, decimal chartMax)
         {
             try
-            {                
+            {
                 if (originalData == null || originalData.Count == 0)
                     return new Series();
-               
+
                 Series benchmark = new Series("SeriesBenchmark");
                 benchmark.ChartType = SeriesChartType.Line;
                 benchmark.YAxisType = AxisType.Secondary;
@@ -1484,7 +1548,7 @@ namespace OsEngine.Journal
             }
             else
             {
-                RectangleEquity.Fill = Brushes.Gray;                
+                RectangleEquity.Fill = Brushes.Gray;
             }
 
             if (_visibleLongLine)
@@ -1493,7 +1557,7 @@ namespace OsEngine.Journal
             }
             else
             {
-                RectangleLong.Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0, 112, 149));                
+                RectangleLong.Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0, 112, 149));
             }
 
             if (_visibleShortLine)
@@ -1501,7 +1565,7 @@ namespace OsEngine.Journal
                 RectangleShort.Fill = Brushes.DarkOrange;
             }
             else
-            {                
+            {
                 RectangleShort.Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 145, 80, 0));
             }
         }
@@ -1585,7 +1649,7 @@ namespace OsEngine.Journal
         {
             try
             {
-                RePaint();               
+                RePaint();
             }
             catch (Exception error)
             {
@@ -2159,7 +2223,7 @@ namespace OsEngine.Journal
                 _layoutPanelPortfolio.ColumnCount = 2;
                 _layoutPanelPortfolio.RowCount = 1;
                 _layoutPanelPortfolio.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80));
-                _layoutPanelPortfolio.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));               
+                _layoutPanelPortfolio.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
                 _layoutPanelPortfolio.Controls.Add(_chartPortfolio, 0, 0);
                 _layoutPanelPortfolio.Controls.Add(_gridLeveragePortfolio, 1, 0);
 
@@ -2317,16 +2381,16 @@ namespace OsEngine.Journal
 
                 Series totalPortfolio = new Series("SeriesPortfolio");
                 totalPortfolio.ChartType = SeriesChartType.Line;
-                totalPortfolio.Color = Color.White;  
+                totalPortfolio.Color = Color.White;
                 totalPortfolio.LabelForeColor = Color.White;
                 totalPortfolio.YAxisType = AxisType.Secondary;
                 totalPortfolio.ChartArea = "ChartAreaPortfolio";
                 totalPortfolio.BorderWidth = 4;
-                totalPortfolio.ShadowOffset = 2;                
+                totalPortfolio.ShadowOffset = 2;
 
                 Series volumePortfolio = new Series("SeriesVolumeToPortfolio");
                 volumePortfolio.ChartType = SeriesChartType.Line;
-                volumePortfolio.Color = Color.DeepSkyBlue;  
+                volumePortfolio.Color = Color.DeepSkyBlue;
                 volumePortfolio.LabelForeColor = Color.DeepSkyBlue;
                 volumePortfolio.YAxisType = AxisType.Secondary;
                 volumePortfolio.ChartArea = "ChartAreaPortfolio";
@@ -2373,7 +2437,7 @@ namespace OsEngine.Journal
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
                     Position pos = positionsAll[i];
-                    
+
                     if (pos.MaxVolume == 0)
                     {
                         continue;
@@ -2381,7 +2445,7 @@ namespace OsEngine.Journal
 
                     DateTime timeCreate = pos.TimeCreate;
                     DateTime timeClose = pos.TimeClose;
-                                        
+
                     int indexOpen = allChange.FindIndex(change => change == timeCreate);
                     int indexClose = allChange.FindIndex(change => change == timeClose);
 
@@ -2389,7 +2453,7 @@ namespace OsEngine.Journal
                     {
                         decimal volumeInPos = pos.MaxVolume * pos.EntryPrice;
 
-                        if(pos.Direction == Side.Buy && pos.MarginBuy != 0)
+                        if (pos.Direction == Side.Buy && pos.MarginBuy != 0)
                         {
                             volumeInPos = pos.MaxVolume * pos.MarginBuy;
                         }
@@ -2428,7 +2492,7 @@ namespace OsEngine.Journal
                         }
 
                         volume[indexClose] -= volumeInPos;
-                        
+
                         deposit[indexClose] = pos.PortfolioValueOnOpenPosition;
                     }
                 }
@@ -2436,7 +2500,7 @@ namespace OsEngine.Journal
                 List<decimal> volumeData = new();
 
                 for (int i = 0; i < volume.Count; i++)
-                {   
+                {
                     if (i > 0)
                     {
                         volumeData.Add(volumeData[^1] + volume[i]);
@@ -2444,7 +2508,7 @@ namespace OsEngine.Journal
                     else
                     {
                         volumeData.Add(volume[i]);
-                    }                    
+                    }
                 }
 
                 decimal maxVolume = 0;
@@ -2452,11 +2516,11 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < allChange.Count; i++)
                 {
-                    decimal totalDataPoint = Math.Round(deposit[i],4);
+                    decimal totalDataPoint = Math.Round(deposit[i], 4);
                     totalPortfolio.Points.AddXY(i, totalDataPoint);
                     totalPortfolio.Points[^1].AxisLabel = allChange[i].ToString();
 
-                    decimal volumeDataPoint = Math.Round(volumeData[i],4);             
+                    decimal volumeDataPoint = Math.Round(volumeData[i], 4);
                     volumePortfolio.Points.AddXY(i, volumeDataPoint);
                     volumePortfolio.Points[^1].AxisLabel = allChange[i].ToString();
 
@@ -2466,7 +2530,7 @@ namespace OsEngine.Journal
                     {
                         leverage = Math.Round(volumeDataPoint / totalDataPoint, 2);
                     }
-                    
+
                     leverageBars.Points.AddXY(i, leverage);
                     leverageBars.Points[^1].AxisLabel = allChange[i].ToString();
 
@@ -2537,7 +2601,7 @@ namespace OsEngine.Journal
                     valueMax = Math.Round(valueMax, 4);
                     valueMin = Math.Round(valueMin, 4);
 
-                    if(valueMax > valueMin)
+                    if (valueMax > valueMin)
                     {
                         _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Maximum = valueMax;
                         _chartPortfolio.ChartAreas["ChartAreaPortfolio"].AxisY2.Minimum = valueMin;
@@ -2605,7 +2669,7 @@ namespace OsEngine.Journal
                 {
                     timeSpan += keys.Value;
                 }
-                
+
                 for (int i = 0; i < leverageList.Count; i++)
                 {
                     DataGridViewRow newRow = new DataGridViewRow();
@@ -4239,7 +4303,7 @@ namespace OsEngine.Journal
                         ComboBoxChartType.SelectedItem = profitType;
                     }
 
-                    if(reader.EndOfStream == true)
+                    if (reader.EndOfStream == true)
                     {
                         return;
                     }
@@ -4437,7 +4501,7 @@ namespace OsEngine.Journal
             {
                 List<Journal> journals = new List<Journal>();
 
-                if(_botsJournals == null)
+                if (_botsJournals == null)
                 {
                     return null;
                 }
@@ -5603,6 +5667,51 @@ namespace OsEngine.Journal
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ButtonPostsJournal2_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.Journal2Posts.AllInstructionsInClass, InteractiveInstructions.Journal2Posts.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _instructionsUi.Closed -= _instructionsUi_Closed;
+                _instructionsUi = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         #endregion
     }

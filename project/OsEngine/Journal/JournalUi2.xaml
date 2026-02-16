@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Journal"
         mc:Ignorable="d"
-        Title="Journal" Height="800" Width="1370" MinWidth="500" MinHeight="400" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Journal" Height="1000" Width="1440" MinWidth="1200" MinHeight="500" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
         <Grid Name="GridTabPrime" Margin="510,0,-0.333,-0.333">
 
-            <TabControl Margin="0,0,0,0" BorderThickness="0" Name="TabControlPrime" TabStripPlacement="Bottom">
+            <TabControl Margin="0,1,1,0" BorderThickness="0" Name="TabControlPrime" TabStripPlacement="Bottom">
                 <TabItem Name="TabItem1" Header="Equity" Width="140" Margin="41,0,-140,0">
                     <Grid>
                         <WindowsFormsHost Name="HostEquity" Foreground="Black" Margin="0,0,0,47" />
@@ -27,7 +27,7 @@
                 </TabItem>
                 <TabItem Name="TabItem2" Header="Statistics" Width="140" Margin="41,0,-140,0">
                     <Grid >
-                        <WindowsFormsHost Name="HostStatistics" Foreground="Black" Margin="250,10" RenderTransformOrigin="0.5,0.5"/>
+                        <WindowsFormsHost Name="HostStatistics" Foreground="Black" Margin="25,10" RenderTransformOrigin="0.5,0.5"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItem3" Header="Drawdown" Width="140" Margin="41,0,-140,0">
@@ -73,8 +73,8 @@
             <Button Name="ButtonShowLeftPanel" Content=">>>>" HorizontalAlignment="Left" Margin="0,0,0,2" Width="92" Height="25" VerticalAlignment="Bottom" Click="ButtonShowLeftPanel_Click"/>
         </Grid>
         <Grid Name="GridActivBots" Margin="0,0" HorizontalAlignment="Left" Width="510">
-            <Rectangle RadiusX="0" Margin="0,0,0,36" Stroke="Black"/>
-            <Button Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" Margin="0,0,0,-0.333" VerticalAlignment="Bottom" Width="140" Click="ButtonHideLeftPanel_Click" RenderTransformOrigin="0.5,0.508"/>
+            <Rectangle RadiusX="0" Margin="0,0,0,28" Stroke="Black"/>
+            <Button Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="1,0,0,2" Width="92" Height="25" Click="ButtonHideLeftPanel_Click" RenderTransformOrigin="0.5,0.508"/>
             <Label Name="LabelFrom" Content="From" HorizontalAlignment="Left" Margin="0,9,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelTo" Content="To" HorizontalAlignment="Left" Margin="0,37,0,0" VerticalAlignment="Top"/>
             <TextBox Name="TextBoxFrom" HorizontalAlignment="Left" Margin="43,9,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
@@ -90,16 +90,22 @@
                     </TransformGroup>
                 </Slider.RenderTransform>
             </Slider>
-            <Button Name="ButtonReload" Content="Reload" HorizontalAlignment="Right" Margin="0,41,0,0" VerticalAlignment="Top" Width="110" Height="21" Click="ButtonReload_Click"/>
+            <Button Name="ButtonReload" Content="Reload" HorizontalAlignment="Right" Margin="0,41,2,0" VerticalAlignment="Top" Width="110" Height="21" Click="ButtonReload_Click"/>
             <CheckBox Name="ButtonAutoReload" Content="Auto update" HorizontalAlignment="Left" Margin="400,5,0,0" VerticalAlignment="Top" Width="110"/>
-            <TabControl Margin="5,67,0,36">
+            <TabControl Margin="1,78,1,28">
                 <TabItem Name="TabItemBotFilters" Header="Bots filter">
-                    <WindowsFormsHost Name="HostBotsSelected" Margin="0,0,0,0"/>
+                    <WindowsFormsHost Name="HostBotsSelected" Margin="-2,0,-4,0"/>
                 </TabItem>
                 <TabItem Name="TabItemSecurityFilters" Header="Securities filter">
                     <WindowsFormsHost Name="HostSecuritiesSelected" Margin="0,0,0,0"/>
                 </TabItem>
             </TabControl>
+            <Button Name="ButtonPostsJournal2" HorizontalAlignment="Left" Margin="455,65.8,0,0" VerticalAlignment="Top" Height="36" Width="35">
+                <Grid>
+                    <Image Name="GreenCollectionJournal2"  Source="/Images/InstructionPosts/GreenPostCollection.png"  Width="31" Height="25"/>
+                    <Image Name="WhiteCollectionJournal2"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
+                </Grid>
+            </Button>
         </Grid>
     </Grid>
 </Window>
