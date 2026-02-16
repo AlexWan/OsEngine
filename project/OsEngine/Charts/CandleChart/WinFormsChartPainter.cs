@@ -3111,10 +3111,6 @@ ContextMenuStrip menu)
         /// <param name="point"></param>
         public void PaintPoint(PointElement point)
         {
-            if (point.Y <= 0)
-            {
-                return;
-            }
             if (_myCandles == null)
             {
                 return;
