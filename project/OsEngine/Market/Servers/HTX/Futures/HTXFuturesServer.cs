@@ -19,6 +19,7 @@ using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using System.Security.Cryptography;
+using System.Linq;
 
 
 namespace OsEngine.Market.Servers.HTX.Futures
@@ -246,6 +247,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                             securities.Add(newSecurity);
                         }
+                    }
+
+                    if (securities.Count > 0)
+                    {
+                        securities = securities.OrderBy(s => s.Name).ToList();
                     }
 
                     SecurityEvent?.Invoke(securities);

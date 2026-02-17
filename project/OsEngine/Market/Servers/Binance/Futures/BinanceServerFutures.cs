@@ -21,6 +21,7 @@ using Newtonsoft.Json.Linq;
 using OsEngine.Entity.WebSocketOsEngine;
 using TradeResponse = OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity.TradeResponse;
 using System.Net;
+using System.Linq;
 
 
 namespace OsEngine.Market.Servers.Binance.Futures
@@ -401,12 +402,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     secNonPerp.Add(_securities[i]);
                 }
-
             }
 
             //List<Security> securitiesHistorical = CreateHistoricalSecurities(secNonPerp);
 
             //_securities.AddRange(securitiesHistorical);
+
+            if (_securities.Count > 0)
+            {
+                _securities = _securities.OrderBy(s => s.Name).ToList();
+            }
 
             if (SecurityEvent != null)
             {

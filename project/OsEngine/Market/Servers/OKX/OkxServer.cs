@@ -673,6 +673,11 @@ namespace OsEngine.Market.Servers.OKX
                 securities.Add(security);
             }
 
+            if (securities.Count > 0)
+            {
+                securities = securities.OrderBy(s => s.Name).ToList();
+            }
+
             foreach (Security sec in securities)
             {
                 _securitiesDict[sec.Name] = sec;
