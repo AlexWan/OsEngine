@@ -120,6 +120,9 @@ namespace OsEngine.OsData
             {
                 e.Cancel = true;
             }
+
+            _osDataMaster.Dispose();
+            _osDataMaster = null;
         }
 
         private void NewDataSetButton_Click(object sender, RoutedEventArgs e)

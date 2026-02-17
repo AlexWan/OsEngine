@@ -127,8 +127,7 @@ namespace OsEngine.Market
                 {
                     return;
                 }
-
-                if (_gridSources.InvokeRequired)
+                else if (_gridSources.InvokeRequired)
                 {
                     _gridSources.Invoke(new Action(ClearControls));
                     return;
@@ -156,9 +155,21 @@ namespace OsEngine.Market
                 {
                     _gridSources.DoubleClick -= _gridSources_DoubleClick;
                     _gridSources.DataError -= _gridSources_DataError;
+                    _gridSources.CellMouseClick -= _gridSources_CellMouseClick;
+                    _gridSources.Click -= _gridSources_Click;
                     _gridSources.Rows.Clear();
                     _gridSources.Columns.Clear();
                     DataGridFactory.ClearLinks(_gridSources);
+
+                    if (_gridSources.ContextMenuStrip.Items.Count == 5)
+                    {
+                        _gridSources.ContextMenuStrip.Items[0].Click -= _gridSources_ShowSettingsWindow_Click;
+                        _gridSources.ContextMenuStrip.Items[1].Click -= _gridSources_AttachServer_Click;
+                        _gridSources.ContextMenuStrip.Items[2].Click -= _gridSources_DetachServer_Click;
+                        _gridSources.ContextMenuStrip.Items[3].Click -= _gridSources_Connect_Click;
+                        _gridSources.ContextMenuStrip.Items[4].Click -= _gridSources_Disconnect_Click;
+                    }
+
                     _gridSources = null;
                 }
             }
@@ -242,7 +253,7 @@ namespace OsEngine.Market
 
                     row1.Cells.Add(new DataGridViewTextBoxCell());
 
-                    if(isInNonTradePeriod == false)
+                    if (isInNonTradePeriod == false)
                     {
                         row1.Cells[1].Value = servers[i].ServerStatus;
                     }
@@ -520,6 +531,15 @@ namespace OsEngine.Market
                 {
                     if (_gridSources.ContextMenuStrip != null)
                     {
+                        if (_gridSources.ContextMenuStrip.Items.Count == 5)
+                        {
+                            _gridSources.ContextMenuStrip.Items[0].Click -= _gridSources_ShowSettingsWindow_Click;
+                            _gridSources.ContextMenuStrip.Items[1].Click -= _gridSources_AttachServer_Click;
+                            _gridSources.ContextMenuStrip.Items[2].Click -= _gridSources_DetachServer_Click;
+                            _gridSources.ContextMenuStrip.Items[3].Click -= _gridSources_Connect_Click;
+                            _gridSources.ContextMenuStrip.Items[4].Click -= _gridSources_Disconnect_Click;
+                        }
+
                         _gridSources.ContextMenuStrip = null;
                     }
                     return;
@@ -527,7 +547,7 @@ namespace OsEngine.Market
 
                 int row = e.RowIndex;
 
-                if(row < 0
+                if (row < 0
                     || row >= _gridSources.Rows.Count)
                 {
                     return;
@@ -583,7 +603,8 @@ namespace OsEngine.Market
                 items.Add(new ToolStripMenuItem(OsLocalization.Market.ButtonDisconnect));
                 items[4].Click += _gridSources_Disconnect_Click;
 
-                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
+                ContextMenuStrip menu = new ContextMenuStrip();
+                menu.Items.AddRange(items.ToArray());
 
                 _gridSources.ContextMenuStrip = menu;
                 _gridSources.ContextMenuStrip.Show(_gridSources, new System.Drawing.Point(_mouseXPos, _mouseYPos));
@@ -1043,8 +1064,7 @@ namespace OsEngine.Market
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\AttachedServers.txt", false)
-                    )
+                using (StreamWriter writer = new StreamWriter(@"Engine\AttachedServers.txt", false))
                 {
                     for (int i = 0; i < _attachedServers.Count; i++)
                     {
