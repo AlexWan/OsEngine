@@ -988,9 +988,17 @@ namespace OsEngine.Market.Servers.TInvest
 
         public void GetPortfolios()
         {
+            GetPortfolioRecursion(0);
+        }
+
+        private void GetPortfolioRecursion(int tryCount)
+        {
             try
             {
-                if (_lastTimeGetPortfolio.AddSeconds(5) > DateTime.Now)
+                tryCount++;
+
+                if (tryCount == 1 
+                    && _lastTimeGetPortfolio.AddSeconds(5) > DateTime.Now)
                 {
                     return;
                 }
@@ -1071,12 +1079,19 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                if (ServerStatus != ServerConnectStatus.Disconnect)
+                if(tryCount == 1)
+                {// отправляем ещё на один круг. Возможно был кратковременный сбой
+                    GetPortfolioRecursion(tryCount);
+                }
+                else
                 {
-                    SendLogMessage(OsLocalization.Market.Label290 + " \n" + ex.ToString(), LogMessageType.Error);
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage(OsLocalization.Market.Label290 + " \n" + ex.ToString(), LogMessageType.Error);
 
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
                 }
             }
         }
