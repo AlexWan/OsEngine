@@ -10,8 +10,12 @@ using OsEngine.Market;
 using OsEngine.Market.Servers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.DirectoryServices;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -37,10 +41,10 @@ namespace OsEngine.OsData
         }
 
         public OsDataMasterPainter(OsDataMaster master,
-            WindowsFormsHost hostSetGrid, 
+            WindowsFormsHost hostSetGrid,
             WindowsFormsHost hostLog,
-            WindowsFormsHost hostSource, 
-            WindowsFormsHost hostSets, 
+            WindowsFormsHost hostSource,
+            WindowsFormsHost hostSets,
             System.Windows.Controls.Label setName,
             System.Windows.Controls.Label labelTimeStart,
             System.Windows.Controls.Label labelTimeEnd,
@@ -57,13 +61,15 @@ namespace OsEngine.OsData
             _bar = bar;
             _textBoxSource = textBox;
 
-            if (_textBoxSource != null) 
-            { 
+            if (_textBoxSource != null)
+            {
                 _textBoxSource.TextChanged += FilterTextBox_TextChanged;
                 _textBoxSource.GotFocus += FilterTextBox_Enter;
                 _textBoxSource.LostFocus += FilterTextBox_Leave;
                 _textBoxSource.Foreground = System.Windows.Media.Brushes.Gray;
             }
+
+            LoadAttachedServers();
 
             CreateSetGrid();
             RePaintSetGrid();
@@ -79,6 +85,32 @@ namespace OsEngine.OsData
             Log myLog = new Log("OsDataLog", StartProgram.IsOsData);
             myLog.StartPaint(hostLog);
             myLog.Listen(this);
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                ServerMaster.ServerCreateEvent -= ServerMaster_ServerCreateEvent;
+                ServerMaster.ServerDeleteEvent -= ServerMaster_ServerDeleteEvent;
+                _master.NewLogMessageEvent -= SendNewLogMessage;
+                _master.NeedUpDateTableEvent -= Master_NeedUpDateTableEvent;
+
+                if (_textBoxSource != null)
+                {
+                    _textBoxSource.TextChanged -= FilterTextBox_TextChanged;
+                    _textBoxSource.GotFocus -= FilterTextBox_Enter;
+                    _textBoxSource.LostFocus -= FilterTextBox_Leave;
+                }
+
+
+
+                ServerMaster.Log.StopPaint();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void Master_NeedUpDateTableEvent()
@@ -97,7 +129,7 @@ namespace OsEngine.OsData
         {
             try
             {
-                if(server.ServerType == ServerType.Optimizer)
+                if (server.ServerType == ServerType.Optimizer)
                 {
                     return;
                 }
@@ -384,7 +416,7 @@ namespace OsEngine.OsData
 
         private void CreateSourceGrid()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, 
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
 
             newGrid.ScrollBars = ScrollBars.Vertical;
@@ -404,14 +436,285 @@ namespace OsEngine.OsData
             column1.HeaderText = OsLocalization.Data.Label5;
             column1.ReadOnly = true;
             column1.Width = 130;
-            
+
             newGrid.Columns.Add(column1);
+
+            DataGridViewColumn colum3 = new DataGridViewColumn();
+            colum3.CellTemplate = cell0;
+            colum3.HeaderText = "";
+            colum3.ReadOnly = true;
+            colum3.Width = 30;
+
+            newGrid.Columns.Add(colum3);
 
             _gridSources = newGrid;
             _gridSources.DoubleClick += GridSources_DoubleClick;
             _gridSources.DataError += _gridSources_DataError;
+            _gridSources.Click += _gridSources_Click;
+            _gridSources.CellMouseClick += _gridSources_CellMouseClick;
             _hostSource.Child = _gridSources;
             _hostSource.VerticalAlignment = VerticalAlignment.Top;
+        }
+
+        private void _gridSources_Click(object sender, EventArgs e)
+        {
+            System.Windows.Forms.MouseEventArgs mouse = (System.Windows.Forms.MouseEventArgs)e;
+
+            if (mouse.Button != MouseButtons.Right)
+            {
+                return;
+            }
+
+            _mouseXPos = mouse.X;
+            _mouseYPos = mouse.Y;
+        }
+
+        private ServerType _lastClickServer;
+
+        private int _mouseXPos;
+
+        private int _mouseYPos;
+
+        private void _gridSources_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                if (e.Button != MouseButtons.Right)
+                {
+                    if (_gridSources.ContextMenuStrip != null)
+                    {
+                        _gridSources.ContextMenuStrip = null;
+                    }
+                    return;
+                }
+
+                int row = e.RowIndex;
+
+                if (row < 0
+                    || row >= _gridSources.Rows.Count)
+                {
+                    return;
+                }
+
+                if (_gridSources.Rows[row].Selected == false)
+                {
+                    _gridSources.Rows[row].Selected = true;
+                }
+
+                ServerType serverType = ServerType.None;
+
+                if (Enum.TryParse(_gridSources.Rows[row].Cells[0].Value.ToString(), out serverType) == false)
+                {
+                    return;
+                }
+
+                _lastClickServer = serverType;
+
+                bool isPin = false;
+
+                for (int i = 0; i < _attachedServers.Count; i++)
+                {
+                    if (_attachedServers[i] == serverType)
+                    {
+                        isPin = true;
+                        break;
+                    }
+                }
+
+                List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
+
+                items.Add(new ToolStripMenuItem(serverType.ToString()));
+                items[0].Enabled = false;
+
+                items.Add(new ToolStripMenuItem(OsLocalization.Market.Label119));
+                items[1].Click += _gridSources_ShowSettingsWindow_Click;
+
+                if (isPin == false)
+                {
+                    items.Add(new ToolStripMenuItem(OsLocalization.Market.Label117));
+                    items[2].Click += _gridSources_AttachServer_Click;
+                }
+                else if (isPin == true)
+                {
+                    items.Add(new ToolStripMenuItem(OsLocalization.Market.Label118));
+                    items[2].Click += _gridSources_DetachServer_Click;
+                }
+
+                items.Add(new ToolStripMenuItem(OsLocalization.Market.ButtonConnect));
+                items[3].Click += _gridSources_Connect_Click;
+
+                items.Add(new ToolStripMenuItem(OsLocalization.Market.ButtonDisconnect));
+                items[4].Click += _gridSources_Disconnect_Click;
+
+                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
+
+                _gridSources.ContextMenuStrip = menu;
+                _gridSources.ContextMenuStrip.Show(_gridSources, new System.Drawing.Point(_mouseXPos, _mouseYPos));
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _gridSources_Disconnect_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+
+                IServer myServer = null;
+
+                for (int i = 0; servers != null && i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType == _lastClickServer)
+                    {
+                        myServer = servers[i];
+                        break;
+                    }
+                }
+
+                if (myServer == null)
+                {
+                    return;
+                }
+
+                myServer.StopServer();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _gridSources_Connect_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+
+                IServer myServer = null;
+
+                for (int i = 0; servers != null && i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType == _lastClickServer)
+                    {
+                        myServer = servers[i];
+                        break;
+                    }
+                }
+
+                if (myServer == null)
+                {
+                    ServerMaster.CreateServer(_lastClickServer, false);
+                    Thread.Sleep(1000);
+                }
+
+                servers = ServerMaster.GetServers();
+
+                for (int i = 0; servers != null && i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType == _lastClickServer)
+                    {
+                        myServer = servers[i];
+                        break;
+                    }
+                }
+
+                if (myServer == null)
+                {
+                    return;
+                }
+
+                myServer.StartServer();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _gridSources_DetachServer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                for (int i = 0; i < _attachedServers.Count; i++)
+                {
+                    if (_attachedServers[i] == _lastClickServer)
+                    {
+                        _attachedServers.RemoveAt(i);
+                        i--;
+                    }
+                }
+
+                SaveAttachedServers();
+                RePaintSourceGrid();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _gridSources_AttachServer_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _attachedServers.Add(_lastClickServer);
+                SaveAttachedServers();
+                RePaintSourceGrid();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _gridSources_ShowSettingsWindow_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+
+                IServer myServer = null;
+
+                for (int i = 0; servers != null && i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType == _lastClickServer)
+                    {
+                        myServer = servers[i];
+                        break;
+                    }
+                }
+
+                if (myServer == null)
+                {
+                    ServerMaster.CreateServer(_lastClickServer, false);
+                    Thread.Sleep(1000);
+                }
+
+                servers = ServerMaster.GetServers();
+
+                for (int i = 0; servers != null && i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType == _lastClickServer)
+                    {
+                        myServer = servers[i];
+                        break;
+                    }
+                }
+
+                if (myServer == null)
+                {
+                    return;
+                }
+
+                myServer.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void _gridSources_DataError(object sender, DataGridViewDataErrorEventArgs e)
@@ -446,7 +749,11 @@ namespace OsEngine.OsData
         {
             try
             {
-                if (_gridSources.InvokeRequired)
+                if (_gridSources == null)
+                {
+                    return;
+                }
+                else if (_gridSources.InvokeRequired)
                 {
                     _gridSources.Invoke(new Action(RePaintSourceGrid));
                     return;
@@ -459,6 +766,7 @@ namespace OsEngine.OsData
                 List<ServerType> servers = ServerMaster.ServersTypesToOsData
                 .OrderBy(s => s.ToString(), StringComparer.OrdinalIgnoreCase)
                 .ToList();
+
                 List<IServer> serversCreate = ServerMaster.GetServers() ?? new List<IServer>();
 
                 if (_textBoxSource != null
@@ -509,6 +817,30 @@ namespace OsEngine.OsData
                             SelectionForeColor = Color.Black
                         };
                         row1.Cells[0].Style = row1.Cells[1].Style = style;
+                    }
+
+                    bool isAttached = false;
+
+                    for (int j = 0; j < _attachedServers.Count; j++)
+                    {
+                        if (servers[i] == _attachedServers[j])
+                        {
+                            isAttached = true;
+                            break;
+                        }
+                    }
+
+                    if (isAttached == true)
+                    {
+                        DataGridViewImageCell imageCell = new DataGridViewImageCell();
+                        Bitmap bmp = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\pinBar.png");
+                        imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                        imageCell.Value = bmp;
+                        row1.Cells.Add(imageCell);
+
+                        _gridSources.Rows.Insert(0, row1);
+
+                        continue;
                     }
 
                     _gridSources.Rows.Add(row1);
@@ -565,6 +897,62 @@ namespace OsEngine.OsData
 
         #endregion
 
+        #region Attaching servers on top
+
+        private List<ServerType> _attachedServers = new List<ServerType>();
+
+        private void LoadAttachedServers()
+        {
+            if (!File.Exists(@"Engine\OsDataAttachedServers.txt"))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\OsDataAttachedServers.txt"))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        ServerType type = new ServerType();
+
+                        if (Enum.TryParse(reader.ReadLine(), true, out type))
+                        {
+                            _attachedServers.Add(type);
+                        }
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void SaveAttachedServers()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\OsDataAttachedServers.txt", false)
+                    )
+                {
+                    for (int i = 0; i < _attachedServers.Count; i++)
+                    {
+                        writer.WriteLine(_attachedServers[i].ToString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        #endregion
+
         #region Work with Sets grid
 
         private WindowsFormsHost _hostSets;
@@ -591,7 +979,7 @@ namespace OsEngine.OsData
             column1.HeaderText = OsLocalization.Data.Label5;
             column1.ReadOnly = true;
             column1.Width = 100;
-          
+
             newGrid.Columns.Add(column1);
 
             _gridSets = newGrid;
