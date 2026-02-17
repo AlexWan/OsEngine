@@ -344,6 +344,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 }
                             }
 
+                            securities = securities.OrderBy(s => s.Name).ToList();
+
                             SecurityEvent?.Invoke(securities);
                         }
                         else

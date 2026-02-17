@@ -386,6 +386,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 securities.Add(security);
             }
 
+            securities = securities.OrderBy(s => s.Name).ToList();
+
             SecurityEvent?.Invoke(securities);
         }
 

@@ -18,6 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
+using System.Linq;
 
 
 namespace OsEngine.Market.Servers.BloFin
@@ -369,6 +370,8 @@ namespace OsEngine.Market.Servers.BloFin
 
                             securities.Add(newSecurity);
                         }
+
+                        securities = securities.OrderBy(s => s.Name).ToList();
 
                         foreach (Security sec in securities)
                         {

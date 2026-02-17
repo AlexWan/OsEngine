@@ -268,6 +268,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             }
                         }
 
+                        _securities = _securities.OrderBy(s => s.Name).ToList();
+
                         SecurityEvent?.Invoke(_securities);
                     }
                     else
