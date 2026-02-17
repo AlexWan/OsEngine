@@ -408,7 +408,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             //_securities.AddRange(securitiesHistorical);
 
-            _securities = _securities.OrderBy(s => s.Name).ToList();
+            if (_securities.Count > 0)
+            {
+                _securities = _securities.OrderBy(s => s.Name).ToList();
+            }
 
             if (SecurityEvent != null)
             {

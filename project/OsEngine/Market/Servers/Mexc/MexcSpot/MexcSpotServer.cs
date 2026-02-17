@@ -258,7 +258,10 @@ namespace OsEngine.Market.Servers.Mexc
                         securities.Add(security);
                     }
 
-                    securities = securities.OrderBy(s => s.Name).ToList();
+                    if (securities.Count > 0)
+                    {
+                        securities = securities.OrderBy(s => s.Name).ToList();
+                    }
 
                     if (securities.Count > 0)
                     {
