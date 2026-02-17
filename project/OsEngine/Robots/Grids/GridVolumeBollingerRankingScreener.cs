@@ -1,6 +1,6 @@
 ﻿/*
-* Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
-* Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System.Collections.Generic;
@@ -11,27 +11,24 @@ using OsEngine.OsTrader.Grids;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-
-/* Description
-Grid counter-trend screener. Bollinger and ADX. 
-We turn on the grid on reduced volatility and breakdown of the level.
-Volatility is viewed by ADX
-Additionally: Work days / Non-trading periods intraday
- */
+using System;
+using System.Linq;
 
 namespace OsEngine.Robots.Grids
 {
-    [Bot("GridBollingerScreener")]
-    public class GridBollingerScreener : BotPanel
+    [Bot("GridVolumeBollingerRankingScreener")]
+    public class GridVolumeBollingerRankingScreener : BotPanel
     {
         private StrategyParameterString _regime;
         private StrategyParameterInt _maxGridsCount;
         private StrategyParameterInt _bollingerLen;
         private StrategyParameterDecimal _bollingerDev;
 
-        public StrategyParameterInt _adxFilterLength;
-        public StrategyParameterDecimal _minAdxValue;
-        public StrategyParameterDecimal _maxAdxValue;
+        private StrategyParameterBool _bollingerRankingFilterIsOn;
+        private StrategyParameterDecimal _bollingerUpPercent;
+
+        private StrategyParameterBool _volumeRankingIsOn;
+        private StrategyParameterInt _volumeRankingMaxPosition;
 
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
@@ -40,11 +37,10 @@ namespace OsEngine.Robots.Grids
         private StrategyParameterInt _linesCount;
         private StrategyParameterDecimal _linesStep;
         private StrategyParameterDecimal _profitValue;
-        private StrategyParameterInt _closePositionsCountToCloseGrid;
 
         private BotTabScreener _tabScreener;
 
-        public GridBollingerScreener(string name, StartProgram startProgram) : base(name, startProgram)
+        public GridVolumeBollingerRankingScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
             // non trade periods
             _tradePeriodsSettings = new NonTradePeriods(name);
@@ -77,27 +73,33 @@ namespace OsEngine.Robots.Grids
             }
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
-            _bollingerLen = CreateParameter("Bollinger length", 50, 15, 20, 1);
-            _bollingerDev = CreateParameter("Bollinger deviation", 1.5m, 0.7m, 2.5m, 0.1m);
-            _adxFilterLength = CreateParameter("ADX filter length", 30, 10, 100, 3);
-            _minAdxValue = CreateParameter("ADX min value", 10, 5, 90, 1m);
-            _maxAdxValue = CreateParameter("ADX max value", 30, 20, 90, 1m);
 
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4);
+            _volume = CreateParameter("Volume", 40m, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            _bollingerLen = CreateParameter("Bollinger length", 50, 15, 20, 1);
+            _bollingerDev = CreateParameter("Bollinger deviation", 1.2m, 0.7m, 2.5m, 0.1m);
 
-            _maxGridsCount = CreateParameter("Max grids count", 5, 0, 20, 1, "Grid");
+            _maxGridsCount = CreateParameter("Max grids count", 1, 0, 20, 1, "Grid");
             _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
-            _linesStep = CreateParameter("Grid lines step", 0.1m, 0.1m, 5, 0.1m, "Grid");
-            _profitValue = CreateParameter("Profit percent", 0.1m, 0.1m, 5, 0.1m, "Grid");
-            _closePositionsCountToCloseGrid = CreateParameter("Grid close positions max", 50, 10, 300, 10, "Grid");
+            _linesStep = CreateParameter("Grid lines step", 0.5m, 0.1m, 5, 0.1m, "Grid");
+            _profitValue = CreateParameter("Profit percent", 0.5m, 0.1m, 5, 0.1m, "Grid");
+
+            _bollingerRankingFilterIsOn = CreateParameter("Bollinger filter is on", true, "Bollinger ranking");
+            _bollingerUpPercent = CreateParameter("Bollinger ranking percent to Entry", 70m, 1m, 100m, 1m, "Bollinger ranking");
+            StrategyParameterButton button = CreateParameterButton("Show bollinger ranking", "Bollinger ranking");
+            button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
+
+            _volumeRankingIsOn = CreateParameter("Volume ranking filter is on", true, "Volume ranking");
+            _volumeRankingMaxPosition = CreateParameter("Volume ranking max number", 10, 0, 20, 1, "Volume ranking");
+            StrategyParameterButton buttonVolume = CreateParameterButton("Show volume ranking", "Volume ranking");
+            buttonVolume.UserClickOnButtonEvent += ButtonVolume_UserClickOnButtonEvent;
+
 
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
             _tabScreener.CreateCandleIndicator(1, "Bollinger", new List<string>() { "100", "2" }, "Prime");
-            _tabScreener.CreateCandleIndicator(2, "ADX", new List<string>() { _adxFilterLength.ValueInt.ToString() }, "Second");
 
             this.ParametrsChangeByUser += GridBollingerScreener_ParametrsChangeByUser;
 
@@ -121,16 +123,6 @@ namespace OsEngine.Robots.Grids
                     CopyNonTradePeriodsSettingsInGrid(grid);
                 }
             }
-        }
-
-        public override string GetNameStrategyType()
-        {
-            return "GridBollingerScreener";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-
         }
 
         private void _tabScreener_TestStartEvent()
@@ -167,6 +159,9 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
+            SetBollingerRanking(candles, tab);
+            SetVolumeRanking(candles, tab);
+
             if (tab.GridsMaster.TradeGrids.Count != 0)
             {
                 LogicCloseGrid(candles, tab);
@@ -190,6 +185,7 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
+
             Aindicator bollinger = (Aindicator)tab.Indicators[0];
 
             if (bollinger.ParametersDigit[0].Value != _bollingerLen.ValueInt
@@ -209,28 +205,6 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
-            Aindicator adx = (Aindicator)tab.Indicators[1];
-
-            if (adx.ParametersDigit[0].Value != _adxFilterLength.ValueInt)
-            {
-                adx.ParametersDigit[0].Value = _adxFilterLength.ValueInt;
-                adx.Save();
-                adx.Reload();
-            }
-
-            decimal adxLast = adx.DataSeries[0].Last;
-
-            if (adxLast == 0)
-            {
-                return;
-            }
-
-            if (adxLast < _minAdxValue.ValueDecimal
-                || adxLast > _maxAdxValue.ValueDecimal)
-            {
-                return;
-            }
-
             decimal lastUpLine = bollinger.DataSeries[0].Last;
             decimal lastDownLine = bollinger.DataSeries[1].Last;
 
@@ -245,11 +219,43 @@ namespace OsEngine.Robots.Grids
             if (lastPrice > lastUpLine
                 && _regime.ValueString != "OnlyLong")
             {
+                if (_bollingerRankingFilterIsOn.ValueBool == true
+                 && _bollingersDownLinePercent < _bollingerUpPercent.ValueDecimal)
+                {
+                    return;
+                }
+
+                if (_volumeRankingIsOn.ValueBool == true)
+                {
+                    int volumeRanking = GetVolumeRankingIndex(tab.Security.Name);
+
+                    if (volumeRanking < _volumeRankingMaxPosition.ValueInt)
+                    {
+                        return;
+                    }
+                }
+
                 ThrowGrid(lastPrice, Side.Sell, tab);
             }
             if (lastPrice < lastDownLine
                 && _regime.ValueString != "OnlyShort")
             {
+                if (_bollingerRankingFilterIsOn.ValueBool == true
+                    && _bollingersUpLinePercent < _bollingerUpPercent.ValueDecimal)
+                {
+                    return;
+                }
+
+                if (_volumeRankingIsOn.ValueBool == true)
+                {
+                    int volumeRanking = GetVolumeRankingIndex(tab.Security.Name);
+
+                    if (volumeRanking < _volumeRankingMaxPosition.ValueInt)
+                    {
+                        return;
+                    }
+                }
+
                 ThrowGrid(lastPrice, Side.Buy, tab);
             }
         }
@@ -311,13 +317,7 @@ namespace OsEngine.Robots.Grids
             grid.TrailingUp.TrailingDownIsOn = true;
             grid.TrailingUp.TrailingDownCanMoveExitOrder = false;
 
-            // 8 устанавливаем закрытие сетки по количеству сделок
-
-            grid.StopBy.StopGridByPositionsCountReaction = TradeGridRegime.CloseForced;
-            grid.StopBy.StopGridByPositionsCountValue = _closePositionsCountToCloseGrid.ValueInt;
-            grid.StopBy.StopGridByPositionsCountIsOn = true;
-
-            // 9 сохраняем
+            // 8 сохраняем
             grid.Save();
 
             // 10 включаем
@@ -403,5 +403,229 @@ namespace OsEngine.Robots.Grids
         }
 
         #endregion
+
+
+        #region Bollinger ranking
+
+        private List<BollingerRankingValue> _bollingerRankingValues = new List<BollingerRankingValue>();
+
+        private void SetBollingerRanking(List<Candle> candles, BotTabSimple tab)
+        {
+            BollingerRankingValue value = null;
+
+            for (int i = 0; i < _bollingerRankingValues.Count; i++)
+            {
+                if (_bollingerRankingValues[i].SecurityName == tab.Connector.SecurityName)
+                {
+                    value = _bollingerRankingValues[i];
+                    value.LastTimeUpdate = tab.TimeServerCurrent;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < _bollingerRankingValues.Count; i++)
+            {
+                if (_bollingerRankingValues[i].LastTimeUpdate > tab.TimeServerCurrent)
+                {
+                    _bollingerRankingValues.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                if (_bollingerRankingValues[i].LastTimeUpdate.AddHours(2) < tab.TimeServerCurrent)
+                {
+                    _bollingerRankingValues.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+            }
+
+            if (value == null)
+            {
+                value = new BollingerRankingValue();
+                value.SecurityName = tab.Connector.SecurityName;
+
+                _bollingerRankingValues.Add(value);
+            }
+
+            value.LastTimeUpdate = tab.TimeServerCurrent;
+
+            Aindicator bollinger = (Aindicator)tab.Indicators[0];
+
+            if (bollinger.ParametersDigit[0].Value != _bollingerLen.ValueInt
+                || bollinger.ParametersDigit[1].Value != _bollingerDev.ValueDecimal)
+            {
+                bollinger.ParametersDigit[0].Value = _bollingerLen.ValueInt;
+                bollinger.ParametersDigit[1].Value = _bollingerDev.ValueDecimal;
+                bollinger.Save();
+                bollinger.Reload();
+            }
+
+            if (bollinger.DataSeries[0].Values.Count == 0 ||
+                bollinger.DataSeries[0].Last == 0 ||
+                bollinger.DataSeries[1].Values.Count == 0 ||
+                bollinger.DataSeries[1].Last == 0)
+            {
+                return;
+            }
+
+            decimal lastUpLine = bollinger.DataSeries[0].Last;
+            decimal lastDownLine = bollinger.DataSeries[1].Last;
+
+            if (lastUpLine == 0
+                || lastDownLine == 0)
+            {
+                return;
+            }
+
+            decimal lastPrice = candles[^1].Close;
+
+            if (lastPrice < lastDownLine)
+            {
+                value.PositionToBollinger = -1;
+            }
+            else if (lastPrice > lastUpLine)
+            {
+                value.PositionToBollinger = 1;
+            }
+            else
+            {
+                value.PositionToBollinger = 0;
+            }
+
+            decimal upBollinger = 0;
+            decimal downBollinger = 0;
+
+            for (int i = 0; i < _bollingerRankingValues.Count; i++)
+            {
+                if (_bollingerRankingValues[i].PositionToBollinger == 1)
+                {
+                    upBollinger++;
+                }
+                else if (_bollingerRankingValues[i].PositionToBollinger == -1)
+                {
+                    downBollinger++;
+                }
+            }
+
+            _bollingersUpLinePercent = upBollinger / (Convert.ToDecimal(_bollingerRankingValues.Count) / 100);
+
+            _bollingersDownLinePercent = downBollinger / (Convert.ToDecimal(_bollingerRankingValues.Count) / 100);
+
+        }
+
+        private decimal _bollingersUpLinePercent = 0;
+        private decimal _bollingersDownLinePercent = 0;
+
+        private void Button_UserClickOnButtonEvent()
+        {
+            if (_tabScreener.IsConnected == false
+                || _tabScreener.Tabs.Count == 0)
+            {
+                SendNewLogMessage("No connection. Set sources", Logging.LogMessageType.Error);
+                return;
+            }
+
+            string message = "Bollinger Ranking. Time: "
+                + _tabScreener.Tabs[0].TimeServerCurrent.ToString() + "\n";
+
+            message += "Price higher up bollinger line percent: " + _bollingersUpLinePercent + "\n";
+            message += "Price lower down bollinger line percent: " + _bollingersDownLinePercent + "\n";
+
+            SendNewLogMessage(message, Logging.LogMessageType.Error);
+        }
+
+        #endregion
+
+        #region Volume ranking
+
+        private List<VolumeRankingValue> _volumeRankingValues = new List<VolumeRankingValue>();
+
+        private void SetVolumeRanking(List<Candle> candles, BotTabSimple tab)
+        {
+            VolumeRankingValue value = null;
+
+            for (int i = 0; i < _volumeRankingValues.Count; i++)
+            {
+                if (_volumeRankingValues[i].SecurityName == tab.Connector.SecurityName)
+                {
+                    value = _volumeRankingValues[i];
+                    break;
+                }
+            }
+
+            if (value == null)
+            {
+                value = new VolumeRankingValue();
+                value.SecurityName = tab.Connector.SecurityName;
+
+                _volumeRankingValues.Add(value);
+            }
+
+            decimal volume = 0;
+
+            for (int i = candles.Count - 1; i >= 0 && i > candles.Count - 100; i--)
+            {
+                volume += candles[i].Close * candles[i].Volume;
+            }
+
+            value.SummVolumeLast100Candles = volume;
+
+            if (_volumeRankingValues.Count > 1)
+            {
+                _volumeRankingValues = _volumeRankingValues.OrderBy(x => x.SummVolumeLast100Candles).ToList();
+                _volumeRankingValues.Reverse();
+            }
+        }
+
+        private int GetVolumeRankingIndex(string secName)
+        {
+            for (int i = 0; i < _volumeRankingValues.Count; i++)
+            {
+                if (_volumeRankingValues[i].SecurityName == secName)
+                {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        private void ButtonVolume_UserClickOnButtonEvent()
+        {
+            if (_tabScreener.IsConnected == false
+               || _tabScreener.Tabs.Count == 0)
+            {
+                SendNewLogMessage("No connection. Set sources", Logging.LogMessageType.Error);
+                return;
+            }
+
+            string message = "Volume Ranking. Time: "
+                + _tabScreener.Tabs[0].TimeServerCurrent.ToString() + "\n";
+
+            for (int i = 0; i < _volumeRankingValues.Count; i++)
+            {
+                message += i + " " + _volumeRankingValues[i].SecurityName + ". Volume " + _volumeRankingValues[i].SummVolumeLast100Candles + "\n";
+            }
+
+            SendNewLogMessage(message, Logging.LogMessageType.Error);
+        }
+
+        #endregion
+    }
+
+    public class BollingerRankingValue
+    {
+        public string SecurityName;
+
+        public int PositionToBollinger; // 0: между линий 1: выше боллиндрежа -1: ниже боллинджера
+
+        public DateTime LastTimeUpdate;
+    }
+
+    public class VolumeRankingValue
+    {
+        public string SecurityName;
+
+        public decimal SummVolumeLast100Candles; // 0: между линий 1: выше боллиндрежа -1: ниже боллинджера
+
     }
 }
