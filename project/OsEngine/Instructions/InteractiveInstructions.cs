@@ -19,5 +19,6 @@ namespace OsEngine
 
         public static Journal2Instructions Journal2Posts = new Journal2Instructions();
 
+        public static TesterLightInstructions TesterLightPosts = new TesterLightInstructions();
     }
 }
