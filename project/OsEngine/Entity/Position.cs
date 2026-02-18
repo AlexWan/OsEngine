@@ -18,6 +18,8 @@ namespace OsEngine.Entity
     /// </summary>
     public class Position
     {
+        #region Constructor
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -25,6 +27,10 @@ namespace OsEngine.Entity
         {
             State = PositionStateType.None;
         }
+
+        #endregion
+
+        #region Properties
 
         /// <summary>
         /// List of orders involved in opening a position
@@ -617,9 +623,106 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// Position creation time
+        /// </summary>
+        public DateTime TimeCreate
+        {
+            get
+            {
+                if (_timeCreate == DateTime.MinValue &&
+                    _openOrders != null
+                    && _openOrders.Count > 0)
+                {
+                    _timeCreate = _openOrders[0].GetLastTradeTime();
+                }
+
+                return _timeCreate;
+            }
+        }
+
+        private DateTime _timeCreate;
+
+        /// <summary>
+        /// Position closing time
+        /// </summary>
+        public DateTime TimeClose
+        {
+            get
+            {
+                if (CloseOrders != null
+                    && CloseOrders.Count != 0)
+                {
+                    for (int i = CloseOrders.Count - 1; i > -1 && i < CloseOrders.Count; i--)
+                    {
+                        Order closeOrder = CloseOrders[i];
+
+                        if (closeOrder == null)
+                        {
+                            continue;
+                        }
+
+                        if (closeOrder.State != OrderStateType.Done
+                            && closeOrder.State != OrderStateType.Partial)
+                        {
+                            continue;
+                        }
+
+                        DateTime time = closeOrder.GetLastTradeTime();
+                        if (time != DateTime.MinValue)
+                        {
+                            return time;
+                        }
+                    }
+                }
+                return TimeCreate;
+            }
+        }
+
+        /// <summary>
+        /// Position opening time. The time when the first transaction on our position passed on the exchange
+        /// if the transaction is not open yet, it will return the time to create the position
+        /// </summary>
+        public DateTime TimeOpen
+        {
+            get
+            {
+                if (OpenOrders == null || OpenOrders.Count == 0)
+                {
+                    return TimeCreate;
+                }
+
+                DateTime timeOpen = DateTime.MaxValue;
+
+                for (int i = 0; i < OpenOrders.Count; i++)
+                {
+                    if (OpenOrders[i] == null)
+                    {
+                        continue;
+                    }
+                    if (OpenOrders[i].TradesIsComing &&
+                        OpenOrders[i].TimeExecuteFirstTrade < timeOpen)
+                    {
+                        timeOpen = OpenOrders[i].TimeExecuteFirstTrade;
+                    }
+                }
+
+                if (timeOpen == DateTime.MaxValue)
+                {
+                    return TimeCreate;
+                }
+
+                return TimeCreate;
+            }
+        }
+
+        /// <summary>
         /// Multiplier for position analysis, used for the needs of the platform. IMPORTANT. Don't change the value.
         /// </summary>
         public decimal MultToJournal = 100;
+
+        #endregion
+
+        #region Profit calculation
 
         /// <summary>
         /// Check the incoming order for this transaction
@@ -993,6 +1096,10 @@ namespace OsEngine.Entity
             }
         }
 
+        #endregion
+
+        #region Save and load position
+
         /// <summary>
         /// Take the string to save
         /// </summary>
@@ -1235,99 +1342,6 @@ namespace OsEngine.Entity
             State = state;
         }
 
-        /// <summary>
-        /// Position creation time
-        /// </summary>
-        public DateTime TimeCreate
-        {
-            get
-            {
-                if (_timeCreate == DateTime.MinValue &&
-                    _openOrders != null
-                    && _openOrders.Count > 0)
-                {
-                    _timeCreate = _openOrders[0].GetLastTradeTime();
-                }
-
-                return _timeCreate;
-            }
-        }
-
-        private DateTime _timeCreate;
-
-        /// <summary>
-        /// Position closing time
-        /// </summary>
-        public DateTime TimeClose
-        {
-            get
-            {
-                if (CloseOrders != null 
-                    && CloseOrders.Count != 0)
-                {
-                    for (int i = CloseOrders.Count-1; i > -1 && i < CloseOrders.Count; i--)
-                    {
-                        Order closeOrder = CloseOrders[i];
-
-                        if(closeOrder == null)
-                        {
-                            continue;
-                        }
-
-                        if (closeOrder.State != OrderStateType.Done
-                            && closeOrder.State != OrderStateType.Partial)
-                        {
-                            continue;
-                        }
-
-                        DateTime time = closeOrder.GetLastTradeTime();
-                        if (time != DateTime.MinValue)
-                        {
-                            return time;
-                        }
-                    }
-                }
-                return TimeCreate;
-            }
-        }
-
-        /// <summary>
-        /// Position opening time. The time when the first transaction on our position passed on the exchange
-        /// if the transaction is not open yet, it will return the time to create the position
-        /// </summary>
-        public DateTime TimeOpen
-        {
-            get
-            {
-                if (OpenOrders == null || OpenOrders.Count == 0)
-                {
-                    return TimeCreate;
-                }
-
-                DateTime timeOpen = DateTime.MaxValue;
-
-                for (int i = 0; i < OpenOrders.Count; i++)
-                {
-                    if(OpenOrders[i] == null)
-                    {
-                        continue;
-                    }
-                    if (OpenOrders[i].TradesIsComing &&
-                        OpenOrders[i].TimeExecuteFirstTrade < timeOpen)
-                    {
-                        timeOpen = OpenOrders[i].TimeExecuteFirstTrade;
-                    }
-                }
-
-                if (timeOpen == DateTime.MaxValue)
-                {
-                    return TimeCreate;
-                }
-
-                return TimeCreate;
-            }
-        }
-
         public string PositionSpecification
         {
             get
@@ -1398,8 +1412,10 @@ namespace OsEngine.Entity
             }
         }
 
-        // profit for the portfolio
-        
+        #endregion
+
+        #region Profit for the portfolio
+
         /// <summary>
         /// The amount of profit relative to the portfolio in percentage
         /// </summary>
@@ -1632,6 +1648,8 @@ namespace OsEngine.Entity
             }
 
         }
+
+        #endregion
 
         #region Obsolete
 
