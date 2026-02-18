@@ -308,7 +308,7 @@ namespace OsEngine.OsTrader.Gui
                     {
                         if (_master._startProgram == StartProgram.IsOsTrader)
                         {
-
+                            ShowInstructionsForTheBotStation();
                         }
                         else if (_master._startProgram == StartProgram.IsTester)
                         {
@@ -998,7 +998,15 @@ colum9.HeaderText = "Journal";
 
             if (_master._startProgram == StartProgram.IsOsTrader)
             {
-                row.Cells.Add(new DataGridViewTextBoxCell());
+                if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass != null
+                    && InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count > 0)
+                {
+                    AddImageToRow(row);
+                }
+                else
+                {
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                }
             }
             else
             {
@@ -1316,6 +1324,38 @@ colum9.HeaderText = "Journal";
                 {
                     _instructionsUi = new InstructionsUi(
                         InteractiveInstructions.TesterLightPosts.AllInstructionsInClass, InteractiveInstructions.TesterLightPosts.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == System.Windows.WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = System.Windows.WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ShowInstructionsForTheBotStation()
+        {
+            if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
+                    || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass, InteractiveInstructions.BotStationLightPosts.AllInstructionsInClassDescription);
                     _instructionsUi.Show();
                     _instructionsUi.Closed += _instructionsUi_Closed;
                 }
