@@ -161,7 +161,8 @@ namespace OsEngine.Market
                     _gridSources.Columns.Clear();
                     DataGridFactory.ClearLinks(_gridSources);
 
-                    if (_gridSources.ContextMenuStrip.Items.Count == 5)
+                    if (_gridSources.ContextMenuStrip != null 
+                        && _gridSources.ContextMenuStrip.Items.Count == 5)
                     {
                         _gridSources.ContextMenuStrip.Items[0].Click -= _gridSources_ShowSettingsWindow_Click;
                         _gridSources.ContextMenuStrip.Items[1].Click -= _gridSources_AttachServer_Click;

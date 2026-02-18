@@ -169,8 +169,8 @@ namespace OsEngine.Journal
 
             RePaint();
 
-            if (InteractiveInstructions.Data.AllInstructionsInClass == null
-             || InteractiveInstructions.Data.AllInstructionsInClass.Count == 0)
+            if (InteractiveInstructions.Journal2Posts.AllInstructionsInClass == null
+             || InteractiveInstructions.Journal2Posts.AllInstructionsInClass.Count == 0)
             {
                 ButtonPostsJournal2.Visibility = Visibility.Hidden;
             }
