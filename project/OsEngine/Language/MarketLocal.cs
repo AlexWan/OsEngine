@@ -1304,6 +1304,13 @@ namespace OsEngine.Language
           "Eng:There are no portfolio numbers in the GetAccountesReques. request. There is an internet error, a sandbox token has been issued, or a new portfolio has been created and you need to wait a few hours._" +
           "Ru:Нет номеров портфелей в запросе GetAccountesReques. Ошибка интернета, выписан токен песочницы или создан новый портфель и нужно подождать несколько часов._");
 
+        public string Label319 => OsLocalization.ConvertToLocString(
+          "Eng:You do not have permission to trade this instrument. You need to pass tests in your broker's personal account._" +
+          "Ru:У Вас нет разрешения торговать этот инструмент. Нужно проходить тесты в личном кабинете брокера._");
+
+
+
+
 
 
 
@@ -1954,5 +1961,7 @@ namespace OsEngine.Language
         public string LeverageButtonCommit => OsLocalization.ConvertToLocString(
            "Eng:The button opens the leverage settings window for instruments._" +
            "Ru:Кнопка открывает окно настроек плеча по инструментам._");
+
+
     }
 }

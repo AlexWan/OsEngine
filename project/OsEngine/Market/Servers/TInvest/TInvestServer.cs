@@ -3458,6 +3458,10 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         message = OsLocalization.Market.Label304;
                     }
+                    else if (message.Contains("Pol`zovatel` ne najden"))
+                    {
+                        message = OsLocalization.Market.Label319;
+                    }
 
                     SendLogMessage(OsLocalization.Market.Label291 +
                             "\n" + message +
