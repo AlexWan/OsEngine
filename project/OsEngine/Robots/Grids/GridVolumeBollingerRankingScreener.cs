@@ -78,7 +78,7 @@ namespace OsEngine.Robots.Grids
             _volume = CreateParameter("Volume", 40m, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
             _bollingerLen = CreateParameter("Bollinger length", 50, 15, 20, 1);
-            _bollingerDev = CreateParameter("Bollinger deviation", 1.2m, 0.7m, 2.5m, 0.1m);
+            _bollingerDev = CreateParameter("Bollinger deviation", 1.1m, 0.7m, 2.5m, 0.1m);
 
             _maxGridsCount = CreateParameter("Max grids count", 1, 0, 20, 1, "Grid");
             _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
@@ -86,15 +86,14 @@ namespace OsEngine.Robots.Grids
             _profitValue = CreateParameter("Profit percent", 0.5m, 0.1m, 5, 0.1m, "Grid");
 
             _bollingerRankingFilterIsOn = CreateParameter("Bollinger filter is on", true, "Bollinger ranking");
-            _bollingerUpPercent = CreateParameter("Bollinger ranking percent to Entry", 70m, 1m, 100m, 1m, "Bollinger ranking");
+            _bollingerUpPercent = CreateParameter("Bollinger ranking percent to Entry", 50m, 1m, 100m, 1m, "Bollinger ranking");
             StrategyParameterButton button = CreateParameterButton("Show bollinger ranking", "Bollinger ranking");
             button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
 
             _volumeRankingIsOn = CreateParameter("Volume ranking filter is on", true, "Volume ranking");
-            _volumeRankingMaxPosition = CreateParameter("Volume ranking max number", 10, 0, 20, 1, "Volume ranking");
+            _volumeRankingMaxPosition = CreateParameter("Volume ranking max number", 20, 0, 20, 1, "Volume ranking");
             StrategyParameterButton buttonVolume = CreateParameterButton("Show volume ranking", "Volume ranking");
             buttonVolume.UserClickOnButtonEvent += ButtonVolume_UserClickOnButtonEvent;
-
 
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;

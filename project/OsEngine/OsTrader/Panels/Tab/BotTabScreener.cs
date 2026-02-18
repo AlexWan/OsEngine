@@ -1141,6 +1141,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (haveNewSettings)
             {
+                tab.Connector.Save();
                 tab.Connector.ReconnectHard();
             }
         }
