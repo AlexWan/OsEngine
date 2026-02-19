@@ -25,6 +25,8 @@ using System.Globalization;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using System.Windows.Forms.DataVisualization.Charting;
+using System.Windows.Threading;
+using OsEngine.Instructions;
 
 
 namespace OsEngine.OsOptimizer
@@ -201,7 +203,69 @@ namespace OsEngine.OsOptimizer
 
             GlobalGUILayout.Listen(this, "optimizerUi");
 
+            if (InteractiveInstructions.OptimizerPosts.AllInstructionsInClass == null
+            || InteractiveInstructions.OptimizerPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostsOptimizer.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                ButtonPostsOptimizer.Click += ButtonPostsOptimizer_Click;
+            }
+
+            StartButtonBlinkAnimation();
+
             Task.Run(new Action(StrategyLoader));
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            GreenCollectionOptimizer.Opacity = 1;
+                            WhiteCollectionOptimizer.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            GreenCollectionOptimizer.Opacity = 0;
+                            WhiteCollectionOptimizer.Opacity = 1;
+                        }
+                        else
+                        {
+                            GreenCollectionOptimizer.Opacity = 1;
+                            WhiteCollectionOptimizer.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -317,7 +381,7 @@ namespace OsEngine.OsOptimizer
                 }
             }
             catch
-            { 
+            {
 
             }
         }
@@ -585,7 +649,7 @@ namespace OsEngine.OsOptimizer
             {
                 Thread.Sleep(1500);
 
-                if(_isClosed == true)
+                if (_isClosed == true)
                 {
                     return;
                 }
@@ -628,7 +692,7 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
-                if(_master == null)
+                if (_master == null)
                 {
                     return;
                 }
@@ -762,7 +826,7 @@ namespace OsEngine.OsOptimizer
 
                 ProgressBarPrime.Value = 0;
 
-                if(_progressBars != null && _progressBars.Count > 0)
+                if (_progressBars != null && _progressBars.Count > 0)
                 {
                     for (int i2 = 0; i2 < _progressBars.Count; i2++)
                     {
@@ -1117,7 +1181,7 @@ namespace OsEngine.OsOptimizer
                     row = GetBotTabScreenerRow((BotTabScreener)sources[i], i + 1);
                 }
 
-                if(row == null)
+                if (row == null)
                 {
                     return;
                 }
@@ -1125,7 +1189,7 @@ namespace OsEngine.OsOptimizer
                 _gridSources.Rows.Add(row);
             }
 
-            if(selectedRow != -1 
+            if (selectedRow != -1
                 && selectedRow > _gridSources.Rows.Count)
             {
                 _gridSources.FirstDisplayedScrollingRowIndex = selectedRow;
@@ -1429,22 +1493,22 @@ namespace OsEngine.OsOptimizer
 
                 BotPanel bot = _master.BotToTest;
 
-                if(bot == null)
+                if (bot == null)
                 {
                     return;
                 }
 
                 List<IIBotTab> sources = bot.GetTabs();
 
-                if (sources == null 
+                if (sources == null
                     || sources.Count == 0
                     || rowIndex >= sources.Count)
                 {
                     return;
                 }
 
-                if(_master.Storage == null 
-                    || _master.Storage.Securities == null 
+                if (_master.Storage == null
+                    || _master.Storage.Securities == null
                     || _master.Storage.Securities.Count == 0)
                 {
                     CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Label70);
@@ -2342,8 +2406,8 @@ namespace OsEngine.OsOptimizer
             try
             {
 
-                for (int i_param = 0, i_grid = 0; 
-                    i_param < _parameters.Count && i_grid < _gridParameters.Rows.Count; 
+                for (int i_param = 0, i_grid = 0;
+                    i_param < _parameters.Count && i_grid < _gridParameters.Rows.Count;
                     i_param++, i_grid++)
                 {
                     IIStrategyParameter parameter = _parameters[i_param];
@@ -3046,7 +3110,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master?.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3527,7 +3591,7 @@ namespace OsEngine.OsOptimizer
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -3596,7 +3660,8 @@ namespace OsEngine.OsOptimizer
 
                 _master?.SendLogMessage(OsLocalization.Optimizer.Message19 + " " + strategiesInclude.Count, LogMessageType.System);
 
-                if (string.IsNullOrEmpty(_master.StrategyName))
+                if (_master == null
+                    || string.IsNullOrEmpty(_master.StrategyName))
                 {
                     return;
                 }
@@ -3615,6 +3680,50 @@ namespace OsEngine.OsOptimizer
 
         #endregion
 
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ButtonPostsOptimizer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.OptimizerPosts.AllInstructionsInClass, InteractiveInstructions.OptimizerPosts.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _instructionsUi.Closed -= _instructionsUi_Closed;
+                _instructionsUi = null;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 
     public enum SortBotsType
