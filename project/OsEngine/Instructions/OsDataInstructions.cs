@@ -54,7 +54,7 @@ namespace OsEngine.Instructions
 
         public Instruction Link1 = new Instruction()
         {
-            Type = InstructionType.Post,
+            Type = InstructionType.Video,
 
             Ru = new InstructionLocalized()
             {
@@ -65,7 +65,7 @@ namespace OsEngine.Instructions
 
         public Instruction Link2 = new Instruction()
         {
-            Type = InstructionType.Post,
+            Type = InstructionType.Video,
 
             Ru = new InstructionLocalized()
             {
@@ -76,7 +76,7 @@ namespace OsEngine.Instructions
 
         public Instruction Link3 = new Instruction()
         {
-            Type = InstructionType.Post,
+            Type = InstructionType.Video,
 
             Ru = new InstructionLocalized()
             {
@@ -87,7 +87,7 @@ namespace OsEngine.Instructions
 
         public Instruction Link4 = new Instruction()
         {
-            Type = InstructionType.Post,
+            Type = InstructionType.Video,
 
             Ru = new InstructionLocalized()
             {

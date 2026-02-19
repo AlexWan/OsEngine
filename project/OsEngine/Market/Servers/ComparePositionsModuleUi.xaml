@@ -10,11 +10,17 @@
         <WindowsFormsHost Name="Host" Margin="5,26,5,75"/>
         <Label Name="LabelConnectionName" Content="Connection: " Margin="5,5,5,0" VerticalAlignment="Top"/>
 
-        <CheckBox Name="CheckBoxAutoLogMessageOnError" Content="Auto log message on error" HorizontalAlignment="Left" Margin="13,0,0,50" VerticalAlignment="Bottom" Width="361"/>
+        <CheckBox Name="CheckBoxAutoLogMessageOnError" Content="Auto log message on error" HorizontalAlignment="Left" Margin="13,0,0,50" VerticalAlignment="Bottom" Width="330"/>
         <Label Name="LabelVerificationPeriod" Content="Verification period" HorizontalAlignment="Left" Margin="13,0,0,22" VerticalAlignment="Bottom"/>
         <ComboBox Name ="ComboBoxVerificationPeriod"  HorizontalAlignment="Left" Margin="165,0,0,22" VerticalAlignment="Bottom" Width="120"/>
         <Label Name="LabelTimeDelaySeconds" Content="Time delay. Sec" HorizontalAlignment="Right" Margin="0,0,135,22" VerticalAlignment="Bottom" Width="132"/>
         <TextBox Name="TextBoxTimeDelaySeconds" HorizontalAlignment="Right" Margin="0,0,10,22" TextWrapping="Wrap" VerticalAlignment="Bottom" Width="120"/>
+        <Button Name="ButtonPositionComparison"  Margin="356,0,356,15"  Height="36" Width="35" VerticalAlignment="Bottom">
+            <Grid>
+                <Image Name="GreenCollectionPositionComparison"  Source="/Images/InstructionPosts/GreenPostCollection.png"  Width="31" Height="25"/>
+                <Image Name="WhiteCollectionPositionComparison"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
 
     </Grid>
