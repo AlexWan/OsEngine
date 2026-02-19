@@ -4087,6 +4087,11 @@ ContextMenuStrip menu)
                     Aindicator ind = (Aindicator)indicator;
                     List<IndicatorDataSeries> series = ind.DataSeries;
 
+                    if (ind.IsOn == false)
+                    {
+                        return;
+                    }
+
                     for (int i = 0; series != null && i < series.Count; i++)
                     {
                         if (series[i].IsPaint == false)
