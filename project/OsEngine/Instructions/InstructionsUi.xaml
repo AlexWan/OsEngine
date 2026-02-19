@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Instructions"
         mc:Ignorable="d"
-        Title="Instructions" Height="350" Width="600" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Instructions" Height="350" Width="600" WindowStartupLocation="CenterScreen" MinWidth="300" MinHeight="200"  Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="100*"/>

@@ -22,5 +22,7 @@ namespace OsEngine
         public static TesterLightInstructions TesterLightPosts = new TesterLightInstructions();
 
         public static BotStationLightInstructions BotStationLightPosts = new BotStationLightInstructions();
+
+        public static PositionComparisonInstructions PositionComparisonPosts = new PositionComparisonInstructions();
     }
 }
