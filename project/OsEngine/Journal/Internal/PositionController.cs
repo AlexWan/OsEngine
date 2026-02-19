@@ -846,29 +846,26 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (_startProgram != StartProgram.IsOsOptimizer)
+            for (int i = positions.Count - 1; i > -1; i--)
             {
-                for (int i = positions.Count - 1; i > -1; i--)
+                Position pos = positions[i];
+
+                if (pos == null)
                 {
-                    Position pos = positions[i];
+                    continue;
+                }
 
-                    if (pos == null)
+                if (pos.State == PositionStateType.Open
+                    || pos.State == PositionStateType.Closing
+                    || pos.State == PositionStateType.ClosingFail)
+                {
+                    decimal profitOld = pos.ProfitOperationAbs;
+
+                    pos.SetBidAsk(bid, ask);
+
+                    if (profitOld != pos.ProfitOperationAbs)
                     {
-                        continue;
-                    }
-
-                    if (pos.State == PositionStateType.Open
-                        || pos.State == PositionStateType.Closing
-                        || pos.State == PositionStateType.ClosingFail)
-                    {
-                        decimal profitOld = pos.ProfitOperationAbs;
-
-                        pos.SetBidAsk(bid, ask);
-
-                        if (profitOld != pos.ProfitOperationAbs)
-                        {
-                            ProcessPosition(pos);
-                        }
+                        ProcessPosition(pos);
                     }
                 }
             }
