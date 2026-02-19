@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsOptimizer.OptimizerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-         Title="Optimizer" Height="700"  Width="1110" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="1110" MinHeight="500" Icon="/Images/OsLogo.ico">
+         Title="Optimizer" Height="700"  Width="1110" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="1110" MinHeight="700" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="119*" />
@@ -17,6 +17,12 @@
             <Label Name="Label8" Content="Threads" HorizontalAlignment="Right" Margin="0,0,224,41" VerticalAlignment="Bottom"/>
             <Button Name="ButtonResults" Content="Results" Margin="0,52,24,0" VerticalAlignment="Top" Click="ButtonResults_Click" HorizontalAlignment="Right" Width="148"/>
             <Label Name="LabelTimeToEnd" Content="Time to end" Foreground="AliceBlue" HorizontalAlignment="Left" Margin="10,24,0,0" VerticalAlignment="Top" Height="19" Width="229" FontSize="12"/>
+            <Button Name="ButtonPostsOptimizer" HorizontalAlignment="Right"  VerticalAlignment="Top" Height="36" Width="35" Margin="0,41,242,0">
+                <Grid>
+                    <Image Name="GreenCollectionOptimizer"  Source="/Images/InstructionPosts/GreenPostCollection.png"  Width="31" Height="25"/>
+                    <Image Name="WhiteCollectionOptimizer"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
+                </Grid>
+            </Button>
         </Grid>
         <Grid Grid.Row="1">
             <TabControl Name="TabControlPrime" Margin="10,-15,10,10">

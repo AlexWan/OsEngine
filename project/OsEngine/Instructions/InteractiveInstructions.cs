@@ -24,5 +24,7 @@ namespace OsEngine
         public static BotStationLightInstructions BotStationLightPosts = new BotStationLightInstructions();
 
         public static PositionComparisonInstructions PositionComparisonPosts = new PositionComparisonInstructions();
+
+        public static OptimizerInstructions OptimizerPosts = new OptimizerInstructions();
     }
 }
