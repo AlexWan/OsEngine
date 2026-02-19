@@ -42,26 +42,6 @@ namespace OsEngine.Robots.Grids
 
         public GridVolumeBollingerRankingScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            // non trade periods
-            _tradePeriodsSettings = new NonTradePeriods(name);
-
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
-
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
-
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
-
-            _tradePeriodsSettings.TradeInSunday = false;
-            _tradePeriodsSettings.TradeInSaturday = false;
-
-            _tradePeriodsSettings.Load();
-
             TabCreate(BotTabType.Screener);
 
             _tabScreener = TabsScreener[0];
@@ -71,6 +51,8 @@ namespace OsEngine.Robots.Grids
             {
                 _tabScreener.TestStartEvent += _tabScreener_TestStartEvent;
             }
+
+            _tabScreener.CreateCandleIndicator(1, "Bollinger", new List<string>() { "100", "2" }, "Prime");
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
 
@@ -95,14 +77,33 @@ namespace OsEngine.Robots.Grids
             StrategyParameterButton buttonVolume = CreateParameterButton("Show volume ranking", "Volume ranking");
             buttonVolume.UserClickOnButtonEvent += ButtonVolume_UserClickOnButtonEvent;
 
+            // non trade periods
+
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _tabScreener.CreateCandleIndicator(1, "Bollinger", new List<string>() { "100", "2" }, "Prime");
-
             this.ParametrsChangeByUser += GridBollingerScreener_ParametrsChangeByUser;
 
-            Description = OsLocalization.Description.DescriptionLabel35;
+            Description = OsLocalization.Description.DescriptionLabel328;
         }
 
         private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
@@ -144,7 +145,7 @@ namespace OsEngine.Robots.Grids
             }
         }
 
-        // logic
+        #region Logic
 
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
@@ -215,30 +216,9 @@ namespace OsEngine.Robots.Grids
 
             decimal lastPrice = candles[^1].Close;
 
-            if (lastPrice > lastUpLine
-                && _regime.ValueString != "OnlyLong")
-            {
-                if (_bollingerRankingFilterIsOn.ValueBool == true
-                 && _bollingersDownLinePercent < _bollingerUpPercent.ValueDecimal)
-                {
-                    return;
-                }
-
-                if (_volumeRankingIsOn.ValueBool == true)
-                {
-                    int volumeRanking = GetVolumeRankingIndex(tab.Security.Name);
-
-                    if (volumeRanking < _volumeRankingMaxPosition.ValueInt)
-                    {
-                        return;
-                    }
-                }
-
-                ThrowGrid(lastPrice, Side.Sell, tab);
-            }
             if (lastPrice < lastDownLine
                 && _regime.ValueString != "OnlyShort")
-            {
+            {// выборос ЛОНГ сетки
                 if (_bollingerRankingFilterIsOn.ValueBool == true
                     && _bollingersUpLinePercent < _bollingerUpPercent.ValueDecimal)
                 {
@@ -256,6 +236,28 @@ namespace OsEngine.Robots.Grids
                 }
 
                 ThrowGrid(lastPrice, Side.Buy, tab);
+            }
+
+            if (lastPrice > lastUpLine
+                && _regime.ValueString != "OnlyLong")
+            {// выброс ШОРТ сетки
+                if (_bollingerRankingFilterIsOn.ValueBool == true
+                 && _bollingersDownLinePercent < _bollingerUpPercent.ValueDecimal)
+                {
+                    return;
+                }
+
+                if (_volumeRankingIsOn.ValueBool == true)
+                {
+                    int volumeRanking = GetVolumeRankingIndex(tab.Security.Name);
+
+                    if (volumeRanking < _volumeRankingMaxPosition.ValueInt)
+                    {
+                        return;
+                    }
+                }
+
+                ThrowGrid(lastPrice, Side.Sell, tab);
             }
         }
 
@@ -319,7 +321,7 @@ namespace OsEngine.Robots.Grids
             // 8 сохраняем
             grid.Save();
 
-            // 10 включаем
+            // 9 включаем
             grid.Regime = TradeGridRegime.On;
         }
 
@@ -389,9 +391,9 @@ namespace OsEngine.Robots.Grids
             }
         }
 
-        #region Non trade periods
+        #endregion
 
-        // Trade periods
+        #region Non trade periods
 
         private NonTradePeriods _tradePeriodsSettings;
         private StrategyParameterButton _tradePeriodsShowDialogButton;
@@ -402,7 +404,6 @@ namespace OsEngine.Robots.Grids
         }
 
         #endregion
-
 
         #region Bollinger ranking
 

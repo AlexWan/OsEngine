@@ -1316,8 +1316,12 @@ namespace OsEngine.Language
             "Ru:Трендовый робот скринер, на Adaptive Price Channel и группах волатильности. Покупка - Свеча закрылась выше верхней линии ценового канала. Фильтр по группам волатильности. Все бумаги для проверки разделены на 3 группы. Одна из них торгуется. Выход -  когда нижняя линия ценового канала пробита._");
 
         public string DescriptionLabel327 => OsLocalization.ConvertToLocString(
-        "Eng:The bot for pay taxes in Tester. During testing, the bot checks the Journal of all bots at the end of the year. It calculates the profit of trades for the last year in the Journal, calculates the tax, and deducts this tax from the deposit._" +
-        "Ru:Робот для уплаты налогов в Тестере. При тестировании робот по окончанию года проверяет Журналы всех ботов. Считает в Журнале профит сделок за последний год, расчитывает налог, и списывает этот налог из депозита._");
+            "Eng:The bot for pay taxes in Tester. During testing, the bot checks the Journal of all bots at the end of the year. It calculates the profit of trades for the last year in the Journal, calculates the tax, and deducts this tax from the deposit._" +
+            "Ru:Робот для уплаты налогов в Тестере. При тестировании робот по окончанию года проверяет Журналы всех ботов. Считает в Журнале профит сделок за последний год, расчитывает налог, и списывает этот налог из депозита._");
+
+        public string DescriptionLabel328 => OsLocalization.ConvertToLocString(
+            "Eng:Grid screener in the counter-trend using Bollinger and volume filters and the general direction of the market. Includes grid launch at level break. Optional - working days / non-trading periods inside the day._" +
+            "Ru:Контртрендовый скринер, выбрасывающий сетку по пробою уровней Bollinger. Торгуются НЕ ликвидные инструменты, идущие в другую сторону от основного рынка. Дополнительно- рабочие дни / не торговые периоды внутри дня_");
 
 
     }
