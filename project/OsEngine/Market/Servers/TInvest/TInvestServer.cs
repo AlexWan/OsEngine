@@ -1050,7 +1050,7 @@ namespace OsEngine.Market.Servers.TInvest
                         if (portfolioResponse != null)
                         {
                             GetPortfolios(portfolioResponse);
-                            UpdatePositionsInPortfolio(portfolioResponse);
+                            UpdatePositionsInPortfolio(portfolioResponse,0);
                         }
                     }
                     catch (Exception)
@@ -1119,12 +1119,14 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        private void UpdatePositionsInPortfolio(PortfolioResponse portfolio)
+        private void UpdatePositionsInPortfolio(PortfolioResponse portfolio, int tryCount)
         {
             if (portfolio == null)
             {
                 return;
             }
+
+            tryCount++;
 
             Portfolio portf = _myPortfolios.Find(p => p.Number == portfolio.AccountId);
 
@@ -1146,12 +1148,30 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (RpcException ex)
             {
-                string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting positions in portfolio. Info: {message}", LogMessageType.System);
+                if(tryCount < 3)
+                {// дополнительно две попытки запросить данные. На случай сбоев связи
+                    UpdatePositionsInPortfolio(portfolio, tryCount);
+                    return;
+                }
+                else
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting positions in portfolio. Portfolio id: " + portfolio.AccountId + " Info: {message}", LogMessageType.System);
+                    return;
+                }
             }
             catch
             {
-                SendLogMessage("Error getting positions in portfolio", LogMessageType.System);
+                if (tryCount < 3)
+                {// дополнительно две попытки запросить данные. На случай сбоев связи
+                    UpdatePositionsInPortfolio(portfolio, tryCount);
+                    return;
+                }
+                else
+                {
+                    SendLogMessage("Error getting positions in portfolio. Portfolio id: " + portfolio.AccountId, LogMessageType.System);
+                    return;
+                }
             }
 
             // переменные для учёта позиций
