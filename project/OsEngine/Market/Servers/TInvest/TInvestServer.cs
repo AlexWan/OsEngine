@@ -1033,6 +1033,12 @@ namespace OsEngine.Market.Servers.TInvest
                             continue;
                         }
 
+                        if(account.Type != AccountType.Tinkoff
+                            && account.Type != AccountType.TinkoffIis)
+                        {
+                            continue;
+                        }
+
                         PortfolioRequest portfolioRequest = new PortfolioRequest();
                         portfolioRequest.AccountId = account.Id;
 
@@ -1156,7 +1162,7 @@ namespace OsEngine.Market.Servers.TInvest
                 else
                 {
                     string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting positions in portfolio. Portfolio id: " + portfolio.AccountId + " Info: {message}", LogMessageType.System);
+                    SendLogMessage($"Error getting positions in portfolio. Portfolio id: " + portfolio.AccountId + " Info: " + message, LogMessageType.System);
                     return;
                 }
             }
