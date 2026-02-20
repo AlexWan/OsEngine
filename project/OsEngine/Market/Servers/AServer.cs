@@ -1381,6 +1381,12 @@ namespace OsEngine.Market.Servers
                         return;
                     }
 
+                    if (_ordersHub == null)
+                    {
+                        await Task.Delay(1);
+                        continue;
+                    }
+
                     bool workDone = false;
 
                     if (!_ordersToSend.IsEmpty)
@@ -1479,6 +1485,7 @@ namespace OsEngine.Market.Servers
                 catch (Exception error)
                 {
                     SendLogMessage(error.ToString(), LogMessageType.Error);
+                    await Task.Delay(2000);
                 }
             }
         }
