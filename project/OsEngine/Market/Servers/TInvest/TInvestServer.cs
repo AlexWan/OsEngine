@@ -49,7 +49,7 @@ namespace OsEngine.Market.Servers.TInvest
             useOptions.ValueChange += UseSector_ValueChange;
             useOther.ValueChange += UseSector_ValueChange;
 
-            CreateParameterBoolean("Filter out non-market data (holiday trading)", false);
+            CreateParameterBoolean("Filter out non-market data (holiday trading)", true);
             CreateParameterBoolean("Filter out dealer trades", false);
             CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, true);
         }
