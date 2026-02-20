@@ -191,7 +191,7 @@ namespace OsEngine.Market.Servers
                 _needToSaveTicksDaysCountParam.ValueChange += _needToSaveTicksDaysCountParam_ValueChange;
                 ServerParameters[1].Comment = OsLocalization.Market.Label88;
 
-                CreateParameterBoolean(OsLocalization.Market.ServerParam5, true);
+                CreateParameterBoolean(OsLocalization.Market.ServerParam5, false);
                 _needToSaveCandlesParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
                 _needToSaveCandlesParam.ValueChange += SaveCandleHistoryParam_ValueChange;
                 ServerParameters[2].Comment = OsLocalization.Market.Label89;
@@ -1753,6 +1753,7 @@ namespace OsEngine.Market.Servers
 
                         while (_candleSeriesToSend.TryDequeue(out series))
                         {
+
                             if (NewCandleIncomeEvent != null)
                             {
                                 NewCandleIncomeEvent(series);
