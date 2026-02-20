@@ -609,6 +609,11 @@ namespace OsEngine.Robots.FuturesStart
             {
                 Security sec = futures.Tabs[i].Security;
 
+                if (sec == null) 
+                { 
+                    continue; 
+                }
+
                 if (sec.Expiration == DateTime.MinValue)
                 {
                     continue;
