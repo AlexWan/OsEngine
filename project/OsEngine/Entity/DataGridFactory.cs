@@ -329,7 +329,7 @@ positionOpener.LifeTimeType
             cell0.Style = style;
 
             DataGridViewButtonColumn column0 = new DataGridViewButtonColumn();
-            column0.HeaderText = OsLocalization.Entity.PositionColumn1 + " ⌄";
+            column0.HeaderText = OsLocalization.Entity.PositionColumn1 ;
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             newGrid.Columns.Add(column0);
@@ -341,7 +341,7 @@ positionOpener.LifeTimeType
             newGrid.Columns.Add(column01);
 
             DataGridViewButtonColumn column02 = new DataGridViewButtonColumn();
-            column02.HeaderText = OsLocalization.Entity.PositionColumn3;
+            column02.HeaderText = OsLocalization.Entity.PositionColumn3 + " ⌄";
             column02.ReadOnly = true;
             column02.Width = 100;
             newGrid.Columns.Add(column02);
