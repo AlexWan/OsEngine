@@ -24,6 +24,9 @@ using OsEngine.Candles.Factory;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Drawing;
 using OsEngine.Market.Servers.Tester;
+using static Grpc.Tradeapi.V1.Marketdata.OrderBook.Types;
+using OsEngine.Charts.CandleChart.Indicators;
+using System.Threading.Tasks;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -126,6 +129,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                                  curScreener.Tabs.Count != 0 &&
                                  i2 < curScreener.Tabs.Count; i2++)
                             {
+                                if(_screeners[i].LastTimeClick.AddSeconds(2) > DateTime.Now)
+                                {
+                                    continue;
+                                }
                                 PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
                             }
                         }
@@ -185,6 +192,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     decimal ask = tab.PriceBestAsk;
                     decimal bid = tab.PriceBestBid;
 
+                    bool isOn = tab.EventsIsOn;
+
                     decimal last = 0;
 
                     int posCurr = tab.PositionsOpenAll.Count;
@@ -234,6 +243,27 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
 
                         row.Cells[6].Value = curPoses;
+                    }
+
+                    if (row.Cells[7].Value == null
+                        || row.Cells[7].Value.ToString() != isOn.ToString()
+                        || (row.Cells[7].Value.ToString() == false.ToString() &&
+                        row.Cells[7].Style.BackColor != Color.Orange)
+                        || (row.Cells[7].Value.ToString() == true.ToString() &&
+                        row.Cells[7].Style.BackColor != row.Cells[5].Style.BackColor))
+                    {
+                        if (isOn == false)
+                        {
+                            row.Cells[7].Style.BackColor = Color.Orange;
+                            row.Cells[7].Style.SelectionBackColor = Color.Orange;
+                        }
+                        else
+                        {
+                            row.Cells[7].Style.BackColor = row.Cells[5].Style.BackColor;
+                            row.Cells[7].Style.SelectionBackColor = row.Cells[5].Style.SelectionBackColor;
+                        }
+
+                        row.Cells[7].Value = isOn;
                     }
                 }
             }
@@ -1576,7 +1606,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Host where the screener grid is stored
         /// </summary>
-        WindowsFormsHost _host;
+        private WindowsFormsHost _host;
 
         /// <summary>
         /// Create table for screener
@@ -1639,21 +1669,36 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn colum7 = new DataGridViewColumn();
             colum7.CellTemplate = cell0;
-            colum7.HeaderText = "Pos. (curr/total)";
+            colum7.HeaderText = OsLocalization.Trader.Label186;
             colum7.ReadOnly = true;
             colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum7);
 
-            DataGridViewButtonColumn colum8 = new DataGridViewButtonColumn();
-            //colum6.CellTemplate = cell0;
+            DataGridViewColumn colum8 = new DataGridViewColumn();
+            colum8.CellTemplate = cell0;
+            colum8.HeaderText = OsLocalization.Trader.Label184;
             colum8.ReadOnly = false;
-            colum8.Width = 70;
+            colum8.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colum8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum8);
+
+            DataGridViewButtonColumn colum9 = new DataGridViewButtonColumn();
+            //colum6.CellTemplate = cell0;
+            colum9.ReadOnly = false;
+            colum9.Width = 70;
+            newGrid.Columns.Add(colum9);
+
+            DataGridViewButtonColumn colum10 = new DataGridViewButtonColumn();
+            //colum6.CellTemplate = cell0;
+            colum10.ReadOnly = false;
+            colum10.Width = 70;
+            newGrid.Columns.Add(colum10);
 
             SecuritiesDataGrid = newGrid;
 
             newGrid.Click += NewGrid_Click;
             SecuritiesDataGrid.DataError += SecuritiesDataGrid_DataError;
+            SecuritiesDataGrid.CellBeginEdit += _grid_CellBeginEdit;
         }
 
         private void SecuritiesDataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
@@ -1690,13 +1735,45 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         return;
                     }
+
                     int tabRow = SecuritiesDataGrid.SelectedCells[0].RowIndex;
                     int tabColumn = SecuritiesDataGrid.SelectedCells[0].ColumnIndex;
 
-                    if (tabColumn == 7)
+                    if(tabRow < 0 || tabRow >= Tabs.Count)
+                    {
+                        return;
+                    }
+
+                    if(tabColumn == 7)
+                    {
+                        return;
+                    }
+
+                    if (tabColumn == 8)
                     {
                         ShowChart(tabRow);
                         SecuritiesDataGrid.Rows[tabRow].Cells[0].Selected = true;
+                    }
+
+                    if (tabColumn == 9)
+                    { // удаление
+
+                        string secName = Tabs[tabRow].Connector.SecurityName;
+                        string secClass = Tabs[tabRow].Connector.SecurityClass;
+
+                        AcceptDialogUi ui = 
+                            new AcceptDialogUi(
+                                OsLocalization.Market.Label320 + "\n"
+                                + secName + "  " + secClass);
+
+                        ui.ShowDialog();
+
+                        if (ui.UserAcceptAction == false)
+                        {
+                            return;
+                        }
+
+                        RemoveTabBySecurityName(secName, secClass);
                     }
 
                     if (_previousActiveRow < SecuritiesDataGrid.Rows.Count)
@@ -1790,7 +1867,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private DataGridViewRow GetRowFromTab(BotTabSimple tab, int num)
         {
-            // Num, Class, Type, Sec code, Last, Bid, Ask, Positions count, Chart 
+            // Num, Class, Type, Sec code, Last, Bid, Ask, Positions count, On/Off, Chart, Delete 
 
             DataGridViewRow nRow = new DataGridViewRow();
 
@@ -1808,12 +1885,20 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-
             nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+            nRow.Cells.Add(new DataGridViewCheckBoxCell());
+            nRow.Cells[^1].Value = tab.EventsIsOn;
+            nRow.Cells[^1].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells[^1].ReadOnly = false;
 
             DataGridViewButtonCell button = new DataGridViewButtonCell();
             button.Value = OsLocalization.Trader.Label172;
             nRow.Cells.Add(button);
+
+            DataGridViewButtonCell buttonDelete = new DataGridViewButtonCell();
+            buttonDelete.Value = OsLocalization.Trader.Label470;
+            nRow.Cells.Add(buttonDelete);
 
             return nRow;
         }
@@ -1872,6 +1957,117 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 UserSelectActionEvent(pos, signal);
             }
+        }
+
+        #endregion
+
+        #region On/Off checkBoxes
+
+        private int _lastChangeRow;
+
+        private int _lastChangeColumn;
+
+        private void _grid_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            try
+            {
+                if (e.ColumnIndex < 3)
+                {
+                    return;
+                }
+
+                if (LastTimeClick.AddMilliseconds(500) > DateTime.Now)
+                {
+                    return;
+                }
+                LastTimeClick = DateTime.Now;
+
+                _lastChangeRow = e.RowIndex;
+                _lastChangeColumn = e.ColumnIndex;
+
+                Task.Run(ChangeOnOffAwait);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        public DateTime LastTimeClick = DateTime.MinValue;
+
+        private async void ChangeOnOffAwait()
+        {
+            try
+            {
+                await Task.Delay(200);
+                ChangeFocus();
+                await Task.Delay(200);
+                ChangeOnOff();
+            }
+            catch (Exception error)
+            {
+                System.Windows.MessageBox.Show(error.ToString());
+            }
+        }
+
+        private void ChangeFocus()
+        {
+            try
+            {
+                if (SecuritiesDataGrid.InvokeRequired)
+                {
+                    SecuritiesDataGrid.Invoke(new Action(ChangeFocus));
+                    return;
+                }
+
+                SecuritiesDataGrid.Rows[_lastChangeRow].Cells[0].Selected = true;
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ChangeOnOff()
+        {
+            try
+            {
+                if (SecuritiesDataGrid.InvokeRequired)
+                {
+                    SecuritiesDataGrid.Invoke(new Action(ChangeOnOff));
+                    return;
+                }
+
+                int coluIndex = _lastChangeColumn;
+                int rowIndex = _lastChangeRow;
+
+                int botsCount = 0;
+
+                if (this.Tabs.Count != 0)
+                {
+                    botsCount = this.Tabs.Count;
+                }
+
+                if (coluIndex == 7 &&
+                    rowIndex < botsCount &&
+                    SecuritiesDataGrid.Rows[rowIndex].Cells[7].Value != null)
+                {
+                    string textInCell = SecuritiesDataGrid.Rows[rowIndex].Cells[7].Value.ToString();
+                    bool isOn = Convert.ToBoolean(textInCell);
+
+                    OnOffBot(rowIndex, isOn);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void OnOffBot(int botNum, bool value)
+        {
+            BotTabSimple bot = this.Tabs[botNum];
+            bot.EventsIsOn = value;
         }
 
         #endregion

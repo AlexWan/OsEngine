@@ -1308,6 +1308,10 @@ namespace OsEngine.Language
           "Eng:You do not have permission to trade this instrument. You need to pass tests in your broker's personal account._" +
           "Ru:У Вас нет разрешения торговать этот инструмент. Нужно проходить тесты в личном кабинете брокера._");
 
+        public string Label320 => OsLocalization.ConvertToLocString(
+          "Eng:Do you want to delete the security? All data will be lost!_" +
+          "Ru:Хотите удалить торговый инструмент? Все данные будут утеряны! _");
+
 
 
 
