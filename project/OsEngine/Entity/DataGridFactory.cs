@@ -328,42 +328,37 @@ positionOpener.LifeTimeType
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = style;
 
-            DataGridViewColumn colum0 = new DataGridViewColumn();
-            colum0.CellTemplate = cell0;
-            colum0.HeaderText = OsLocalization.Entity.PositionColumn1;
-            colum0.ReadOnly = true;
-            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
-            newGrid.Columns.Add(colum0);
+            DataGridViewButtonColumn column0 = new DataGridViewButtonColumn();
+            column0.HeaderText = OsLocalization.Entity.PositionColumn1 + " ⌄";
+            column0.ReadOnly = true;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            newGrid.Columns.Add(column0);
 
-            DataGridViewColumn colum01 = new DataGridViewColumn();
-            colum01.CellTemplate = cell0;
-            colum01.HeaderText = OsLocalization.Entity.PositionColumn2;
-            colum01.ReadOnly = true;
-            colum01.Width = 100;
-            newGrid.Columns.Add(colum01);
+            DataGridViewButtonColumn column01 = new DataGridViewButtonColumn();
+            column01.HeaderText = OsLocalization.Entity.PositionColumn2;
+            column01.ReadOnly = true;
+            column01.Width = 100;
+            newGrid.Columns.Add(column01);
 
-            DataGridViewColumn colum02 = new DataGridViewColumn();
-            colum02.CellTemplate = cell0;
-            colum02.HeaderText = OsLocalization.Entity.PositionColumn3;
-            colum02.ReadOnly = true;
-            colum02.Width = 100;
-            newGrid.Columns.Add(colum02);
+            DataGridViewButtonColumn column02 = new DataGridViewButtonColumn();
+            column02.HeaderText = OsLocalization.Entity.PositionColumn3;
+            column02.ReadOnly = true;
+            column02.Width = 100;
+            newGrid.Columns.Add(column02);
 
-            DataGridViewColumn colu = new DataGridViewColumn();
-            colu.CellTemplate = cell0;
-            colu.HeaderText = OsLocalization.Entity.PositionColumn4;
-            colu.ReadOnly = readOnly;
-            colu.Width = 70;
+            DataGridViewButtonColumn column03 = new DataGridViewButtonColumn();
+            column03.HeaderText = OsLocalization.Entity.PositionColumn4;
+            column03.ReadOnly = readOnly;
+            column03.Width = 70;
 
-            newGrid.Columns.Add(colu);
+            newGrid.Columns.Add(column03);
 
-            DataGridViewColumn colum1 = new DataGridViewColumn();
-            colum1.CellTemplate = cell0;
-            colum1.HeaderText = OsLocalization.Entity.PositionColumn5;
-            colum1.ReadOnly = readOnly;
-            colum1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            DataGridViewButtonColumn column04 = new DataGridViewButtonColumn();
+            column04.HeaderText = OsLocalization.Entity.PositionColumn5;
+            column04.ReadOnly = readOnly;
+            column04.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-            newGrid.Columns.Add(colum1);
+            newGrid.Columns.Add(column04);
 
             // position SIDE
             if(readOnly == true)
