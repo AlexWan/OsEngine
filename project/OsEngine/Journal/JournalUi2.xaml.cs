@@ -3110,7 +3110,7 @@ namespace OsEngine.Journal
 
                 List<Position> openPositions = new List<Position>();
 
-                if (_sortModeOpenPoses == SortedMode.NumberPositionFromMoreToLess)
+                if (_sortModeOpenPoses == SortedMode.NumberPositionFromLessToMore)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3129,7 +3129,7 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeOpenPoses == SortedMode.NumberPositionFromLessToMore)
+                else if (_sortModeOpenPoses == SortedMode.NumberPositionFromMoreToLess)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3148,7 +3148,7 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeOpenPoses == SortedMode.OpenTimeFromLessToMore)
+                else if (_sortModeOpenPoses == SortedMode.OpenTimeFromMoreToLess)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3167,7 +3167,8 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeOpenPoses == SortedMode.OpenTimeFromMoreToLess)
+
+                else if (_sortModeOpenPoses == SortedMode.OpenTimeFromLessToMore)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3186,7 +3187,7 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeOpenPoses == SortedMode.CloseTimeFromLessToMore)
+                else if (_sortModeOpenPoses == SortedMode.CloseTimeFromMoreToLess)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3205,7 +3206,7 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeOpenPoses == SortedMode.CloseTimeFromMoreToLess)
+                else if (_sortModeOpenPoses == SortedMode.CloseTimeFromLessToMore)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3225,22 +3226,30 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeOpenPoses == SortedMode.SecurityNameFromLessToMore)
-                {
-                    openPositions = positionsAll.OrderBy(o => o.SecurityName).ToList();
-                }
                 else if (_sortModeOpenPoses == SortedMode.SecurityNameFromMoreToLess)
                 {
-                    openPositions = positionsAll.OrderBy(o => o.SecurityName).ToList();
-                    openPositions.Reverse();
+                    openPositions = positionsAll
+                        .Where(o => o.State != PositionStateType.Done && o.State != PositionStateType.OpeningFail)
+                        .OrderBy(o => o.SecurityName).ToList();
                 }
-                else if (_sortModeOpenPoses == SortedMode.BotNameFromLessToMore)
+                else if (_sortModeOpenPoses == SortedMode.SecurityNameFromLessToMore)
                 {
-                    openPositions = positionsAll.OrderBy(o => o.NameBot).ToList();
+                    openPositions = positionsAll
+                        .Where(o => o.State != PositionStateType.Done && o.State != PositionStateType.OpeningFail)
+                        .OrderBy(o => o.SecurityName).ToList();
+                    openPositions.Reverse();
                 }
                 else if (_sortModeOpenPoses == SortedMode.BotNameFromMoreToLess)
                 {
-                    openPositions = positionsAll.OrderBy(o => o.NameBot).ToList();
+                    openPositions = positionsAll
+                        .Where(o => o.State != PositionStateType.Done && o.State != PositionStateType.OpeningFail)
+                        .OrderBy(o => o.NameBot).ToList();
+                }
+                else if (_sortModeOpenPoses == SortedMode.BotNameFromLessToMore)
+                {
+                    openPositions = positionsAll
+                        .Where(o => o.State != PositionStateType.Done && o.State != PositionStateType.OpeningFail)
+                        .OrderBy(o => o.NameBot).ToList();
                     openPositions.Reverse();
                 }
 
@@ -3257,7 +3266,7 @@ namespace OsEngine.Journal
 
                 for (int i = startNum; i < endNum && i < openPositions.Count; i++)
                 {
-                    _openPositionGrid.Rows.Insert(0, GetRow(openPositions[i]));
+                    _openPositionGrid.Rows.Add(GetRow(openPositions[i]));
                 }
             }
             catch (Exception ex)
@@ -3930,7 +3939,7 @@ namespace OsEngine.Journal
                 List<Position> positionsAll = GetClosePositions();
                 List<Position> closePositions = new List<Position>();
 
-                if (_sortModeClosePoses == SortedMode.NumberPositionFromMoreToLess)
+                if (_sortModeClosePoses == SortedMode.NumberPositionFromLessToMore)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3949,7 +3958,7 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeClosePoses == SortedMode.NumberPositionFromLessToMore)
+                else if (_sortModeClosePoses == SortedMode.NumberPositionFromMoreToLess)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3968,7 +3977,7 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeClosePoses == SortedMode.OpenTimeFromLessToMore)
+                else if (_sortModeClosePoses == SortedMode.OpenTimeFromMoreToLess)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3987,7 +3996,7 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeClosePoses == SortedMode.OpenTimeFromMoreToLess)
+                else if (_sortModeClosePoses == SortedMode.OpenTimeFromLessToMore)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -4006,7 +4015,7 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeClosePoses == SortedMode.CloseTimeFromLessToMore)
+                else if (_sortModeClosePoses == SortedMode.CloseTimeFromMoreToLess)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -4025,7 +4034,7 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeClosePoses == SortedMode.CloseTimeFromMoreToLess)
+                else if (_sortModeClosePoses == SortedMode.CloseTimeFromLessToMore)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -4045,22 +4054,30 @@ namespace OsEngine.Journal
                         }
                     }
                 }
-                else if (_sortModeClosePoses == SortedMode.SecurityNameFromLessToMore)
-                {
-                    closePositions = positionsAll.OrderBy(o => o.SecurityName).ToList();
-                }
                 else if (_sortModeClosePoses == SortedMode.SecurityNameFromMoreToLess)
                 {
-                    closePositions = positionsAll.OrderBy(o => o.SecurityName).ToList();
-                    closePositions.Reverse();
+                    closePositions = positionsAll
+                        .Where(o => o.State == PositionStateType.Done && o.State == PositionStateType.OpeningFail)
+                        .OrderBy(o => o.SecurityName).ToList();
                 }
-                else if (_sortModeClosePoses == SortedMode.BotNameFromLessToMore)
+                else if (_sortModeClosePoses == SortedMode.SecurityNameFromLessToMore)
                 {
-                    closePositions = positionsAll.OrderBy(o => o.NameBot).ToList();
+                    closePositions = positionsAll
+                        .Where(o => o.State == PositionStateType.Done && o.State == PositionStateType.OpeningFail)
+                        .OrderBy(o => o.SecurityName).ToList();
+                    closePositions.Reverse();
                 }
                 else if (_sortModeClosePoses == SortedMode.BotNameFromMoreToLess)
                 {
-                    closePositions = positionsAll.OrderBy(o => o.NameBot).ToList();
+                    closePositions = positionsAll
+                        .Where(o => o.State == PositionStateType.Done && o.State == PositionStateType.OpeningFail)
+                        .OrderBy(o => o.NameBot).ToList();
+                }
+                else if (_sortModeClosePoses == SortedMode.BotNameFromLessToMore)
+                {
+                    closePositions = positionsAll
+                        .Where(o => o.State == PositionStateType.Done && o.State == PositionStateType.OpeningFail)
+                        .OrderBy(o => o.NameBot).ToList();
                     closePositions.Reverse();
                 }
 
@@ -4075,7 +4092,7 @@ namespace OsEngine.Journal
 
                 for (int i = startNum; i < endNum + 1 && i < closePositions.Count; i++)
                 {
-                    rows.Insert(0, GetRow(closePositions[i]));
+                    rows.Add(GetRow(closePositions[i]));
                 }
 
                 if (rows.Count > 0)
