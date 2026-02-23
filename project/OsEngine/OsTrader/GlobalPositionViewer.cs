@@ -812,7 +812,7 @@ namespace OsEngine.OsTrader
 
                 for (int i = 0; i < grid.Rows.Count; i++)
                 {
-                    if (positions.Find(pos => pos != null && pos.Number == (int)grid.Rows[i].Cells[0].Value) == null)
+                    if (sortOpenPositions.Find(pos => pos != null && pos.Number == (int)grid.Rows[i].Cells[0].Value) == null)
                     {
                         grid.Rows.Remove(grid.Rows[i]);
                     }
