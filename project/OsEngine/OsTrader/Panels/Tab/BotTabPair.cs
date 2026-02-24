@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Tab.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -1154,10 +1155,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < Pairs.Count; i++)
                 {
-                    List<Position> curPoses = Pairs[i].Tab1.PositionsOpenAll;
+                    List<Position> curPoses = new List<Position>(Pairs[i].Tab1.PositionsOpenAll ?? Enumerable.Empty<Position>());
 
-                    if (Pairs[i].Tab2.PositionsOpenAll != null
-                        && Pairs[i].Tab2.PositionsOpenAll.Count > 0)
+                    if (Pairs[i].Tab2.PositionsOpenAll != null && Pairs[i].Tab2.PositionsOpenAll.Count > 0)
                     {
                         curPoses.AddRange(Pairs[i].Tab2.PositionsOpenAll);
                     }
