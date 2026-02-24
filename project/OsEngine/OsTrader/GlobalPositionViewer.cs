@@ -664,7 +664,7 @@ namespace OsEngine.OsTrader
 
             try
             {
-                List<Position> sortOpenPositions = new List<Position>();
+                List<Position> sortPositions = new List<Position>();
 
                 if (sortedMode == SortedMode.NumberPositionFromMoreToLess)
                 {
@@ -673,12 +673,12 @@ namespace OsEngine.OsTrader
                         Position pos = positions[i];
                         int index = 0;
 
-                        while (index < sortOpenPositions.Count && sortOpenPositions[index].Number >= pos.Number)
+                        while (index < sortPositions.Count && sortPositions[index].Number >= pos.Number)
                         {
                             index++;
                         }
 
-                        sortOpenPositions.Insert(index, pos);
+                        sortPositions.Insert(index, pos);
                     }
                 }
                 else if (sortedMode == SortedMode.NumberPositionFromLessToMore)
@@ -688,12 +688,12 @@ namespace OsEngine.OsTrader
                         Position pos = positions[i];
                         int index = 0;
 
-                        while (index < sortOpenPositions.Count && sortOpenPositions[index].Number <= pos.Number)
+                        while (index < sortPositions.Count && sortPositions[index].Number <= pos.Number)
                         {
                             index++;
                         }
 
-                        sortOpenPositions.Insert(index, pos);
+                        sortPositions.Insert(index, pos);
                     }
                 }
                 else if (sortedMode == SortedMode.OpenTimeFromMoreToLess)
@@ -703,12 +703,12 @@ namespace OsEngine.OsTrader
                         Position pos = positions[i];
                         int index = 0;
 
-                        while (index < sortOpenPositions.Count && sortOpenPositions[index].TimeCreate >= pos.TimeCreate)
+                        while (index < sortPositions.Count && sortPositions[index].TimeCreate >= pos.TimeCreate)
                         {
                             index++;
                         }
 
-                        sortOpenPositions.Insert(index, pos);
+                        sortPositions.Insert(index, pos);
                     }
                 }
                 else if (sortedMode == SortedMode.OpenTimeFromLessToMore)
@@ -718,12 +718,12 @@ namespace OsEngine.OsTrader
                         Position pos = positions[i];
                         int index = 0;
 
-                        while (index < sortOpenPositions.Count && sortOpenPositions[index].TimeCreate <= pos.TimeCreate)
+                        while (index < sortPositions.Count && sortPositions[index].TimeCreate <= pos.TimeCreate)
                         {
                             index++;
                         }
 
-                        sortOpenPositions.Insert(index, pos);
+                        sortPositions.Insert(index, pos);
                     }
                 }
                 else if (sortedMode == SortedMode.CloseTimeFromMoreToLess)
@@ -733,12 +733,12 @@ namespace OsEngine.OsTrader
                         Position pos = positions[i];
                         int index = 0;
 
-                        while (index < sortOpenPositions.Count && sortOpenPositions[index].TimeClose >= pos.TimeClose)
+                        while (index < sortPositions.Count && sortPositions[index].TimeClose >= pos.TimeClose)
                         {
                             index++;
                         }
 
-                        sortOpenPositions.Insert(index, pos);
+                        sortPositions.Insert(index, pos);
                     }
                 }
                 else if (sortedMode == SortedMode.CloseTimeFromLessToMore)
@@ -748,73 +748,44 @@ namespace OsEngine.OsTrader
                         Position pos = positions[i];
                         int index = 0;
 
-                        while (index < sortOpenPositions.Count && sortOpenPositions[index].TimeClose <= pos.TimeClose)
+                        while (index < sortPositions.Count && sortPositions[index].TimeClose <= pos.TimeClose)
                         {
                             index++;
                         }
 
-                        sortOpenPositions.Insert(index, pos);
+                        sortPositions.Insert(index, pos);
                     }
                 }
                 else if (sortedMode == SortedMode.SecurityNameFromMoreToLess)
                 {
-                    sortOpenPositions = positions.OrderBy(o => o.SecurityName).ToList();
+                    sortPositions = positions.OrderBy(o => o.SecurityName).ToList();
                 }
                 else if (sortedMode == SortedMode.SecurityNameFromLessToMore)
                 {
-                    sortOpenPositions = positions.OrderBy(o => o.SecurityName).ToList();
-                    sortOpenPositions.Reverse();
+                    sortPositions = positions.OrderBy(o => o.SecurityName).ToList();
+                    sortPositions.Reverse();
                 }
                 else if (sortedMode == SortedMode.BotNameFromMoreToLess)
                 {
-                    sortOpenPositions = positions.OrderBy(o => o.NameBot).ToList();
+                    sortPositions = positions.OrderBy(o => o.NameBot).ToList();
                 }
                 else if (sortedMode == SortedMode.BotNameFromLessToMore)
                 {
-                    sortOpenPositions = positions.OrderBy(o => o.NameBot).ToList();
-                    sortOpenPositions.Reverse();
+                    sortPositions = positions.OrderBy(o => o.NameBot).ToList();
+                    sortPositions.Reverse();
                 }
 
-                for (int i = 0; i < sortOpenPositions.Count; i++)
+                grid.Rows.Clear();
+
+                for (int i = 0; i < sortPositions.Count; i++)
                 {
-                    Position position = sortOpenPositions[i];
+                    Position position = sortPositions[i];
 
-                    bool isIn = false;
+                    DataGridViewRow row = GetRow(position);
 
-                    for (int i2 = 0; i2 < grid.Rows.Count; i2++)
+                    if (row != null)
                     {
-                        if (grid.Rows[i2].Cells[0].Value != null &&
-                            grid.Rows[i2].Cells[0].Value.ToString() == position.Number.ToString() &&
-                            i == i2)
-                        {
-                            TryRePaint(position, grid.Rows[i2]);
-                            isIn = true;
-                            break;
-                        }
-                        else if (grid.Rows[i2].Cells[0].Value != null &&
-                            grid.Rows[i2].Cells[0].Value.ToString() == position.Number.ToString() &&
-                            i != i2)
-                        {
-                            grid.Rows.Remove(grid.Rows[i2]);
-                        }
-                    }
-
-                    if (isIn == false)
-                    {
-                        DataGridViewRow row = GetRow(position);
-
-                        if (row != null)
-                        {
-                            grid.Rows.Insert(i, row);
-                        }
-                    }
-                }
-
-                for (int i = 0; i < grid.Rows.Count; i++)
-                {
-                    if (sortOpenPositions.Find(pos => pos != null && pos.Number == (int)grid.Rows[i].Cells[0].Value) == null)
-                    {
-                        grid.Rows.Remove(grid.Rows[i]);
+                        grid.Rows.Add(row);
                     }
                 }
             }
@@ -1297,7 +1268,7 @@ namespace OsEngine.OsTrader
                 }
                 else if (header == OsLocalization.Entity.PositionColumn3 + " ⌄")
                 {
-                    sortMode = SortedMode.CloseTimeFromMoreToLess;
+                    sortMode = SortedMode.CloseTimeFromLessToMore;
                     grid.Columns[2].HeaderText = OsLocalization.Entity.PositionColumn3 + " ⌃";
 
                     grid.Columns[0].HeaderText = OsLocalization.Entity.PositionColumn1;
