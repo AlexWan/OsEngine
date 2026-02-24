@@ -29,6 +29,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Text.Json;
+using OsEngine.UpdateModule;
 
 namespace OsEngine
 {
@@ -41,6 +43,10 @@ namespace OsEngine
     {
 
         private static MainWindow _window;
+
+        private UpdateResponse _updServerResp;
+
+        private int _commitsCount;
 
         public static Dispatcher GetDispatcher
         {
@@ -121,6 +127,9 @@ namespace OsEngine
 
             Task task = new Task(ThreadAreaGreeting);
             task.Start();
+
+            Task updateTask = new Task(GetUpdateInfo);
+            updateTask.Start();
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
@@ -244,6 +253,7 @@ namespace OsEngine
             ButtonRobotLight.IsEnabled = false;
             ButtonLocal_Ru.IsEnabled = false;
             ButtonLocal_Eng.IsEnabled = false;
+            ButtonNewCommits.IsEnabled = false;
         }
 
         private void ImagePadlock_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -295,6 +305,7 @@ namespace OsEngine
             ButtonRobotLight.IsEnabled = true;
             ButtonLocal_Ru.IsEnabled = true;
             ButtonLocal_Eng.IsEnabled = true;
+            ButtonNewCommits.IsEnabled = true;
         }
 
         #endregion
@@ -392,6 +403,8 @@ namespace OsEngine
 
             ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLiteName;
             ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLiteName;
+
+            ChangeButtonCommits();
 
             if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
             {
@@ -1044,6 +1057,198 @@ namespace OsEngine
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
+        }
+
+        #endregion
+
+        #region Updater
+        private async void GetUpdateInfo()
+        {
+            try
+            {
+                DateTime insideVersionDate = File.GetLastWriteTimeUtc(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OsEngine.exe"));
+
+                if (!File.Exists(@"Engine\Updater\LastUpdatesInfo.txt")) // модуль запустили первый раз, значит сборка актуальная
+                {
+                    Directory.CreateDirectory(@"Engine\Updater");
+
+                    Directory.CreateDirectory(@"Engine\Log");
+
+                    //записываем дату сборки, далее ориентир будет по ней
+                    File.WriteAllText(@"Engine\Updater\LastUpdatesInfo.txt", insideVersionDate.ToString("G"));
+                }
+                else
+                {
+                    // взять из файла время последнего обновления
+                    string time = File.ReadAllText(@"Engine\Updater\LastUpdatesInfo.txt");
+
+                    insideVersionDate = DateTime.Parse(time);
+                }
+
+                // передать серверу дату 
+
+                string ip = "185.186.143.9";
+                int port = 49152;
+
+                using (TcpClient client = new TcpClient())
+                {
+                    await client.ConnectAsync(ip, port);
+
+                    if (client.Connected)
+                    {
+                        string request = $"{{\"LastUpdateDate\":\"{insideVersionDate:yyyy-MM-ddTHH:mm:ss}\"}}";
+
+                        byte[] data = Encoding.UTF8.GetBytes(request);
+
+                        using (NetworkStream stream = client.GetStream())
+                        {
+
+                            stream.Write(data, 0, data.Length);
+
+                            using (MemoryStream ms = new MemoryStream())
+                            {
+                                byte[] buffer = new byte[8192];
+                                int bytesRead;
+
+                                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                                {
+                                    ms.Write(buffer, 0, bytesRead);
+                                }
+
+                                string response = Encoding.UTF8.GetString(ms.ToArray());
+
+                                if (!string.IsNullOrEmpty(response))
+                                {
+                                    UpdateResponse firstResponse = JsonSerializer.Deserialize<UpdateResponse>(response);
+
+                                    if (firstResponse != null)
+                                    {
+                                        if (firstResponse.Success)
+                                        {
+                                            _updServerResp = firstResponse;
+
+                                            if (!File.Exists(@"Engine\Updater\FilesVersionsTime.txt"))
+                                            {
+                                                WriteFilesVersionsTime(insideVersionDate); // при первом запуске проекта с обновлятором записываем время версии файлов в Debug
+                                            }
+
+                                            _commitsCount = firstResponse.MissedCommitsCount;
+
+                                            Application.Current.Dispatcher.Invoke(() =>
+                                            {
+                                                ChangeButtonCommits();
+                                            });
+                                        }
+                                        else
+                                        {
+                                            _updServerResp = firstResponse;
+                                            throw new Exception("Сервер ответил с ошибкой");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("Нет ответа от сервера");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                _commitsCount = -1;
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    ChangeButtonCommits();
+                });
+            }
+        }
+
+        private void WriteFilesVersionsTime(DateTime fileTime)
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+
+                for (int i = 0; i < _updServerResp.Files.Count; i++)
+                {
+                    var fileInfo = _updServerResp.Files[i];
+
+                    DateTime correctTime = fileInfo.LastUpdate > fileTime ? fileTime : fileInfo.LastUpdate;
+
+                    sb.AppendLine(fileInfo.Name + "#" + correctTime + "#" + fileInfo.Size);
+
+                }
+
+                File.WriteAllText(@"Engine\Updater\FilesVersionsTime.txt", sb.ToString());
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void ChangeButtonCommits()
+        {
+            try
+            {
+                string buttCont = OsLocalization.MainWindow.NewCommits;
+                SolidColorBrush foreground = new((Color)ColorConverter.ConvertFromString("#FFEEEFFF"));
+                SolidColorBrush background = new((Color)ColorConverter.ConvertFromString("#FF111217"));
+
+                if (_commitsCount > 0)
+                {
+                    buttCont = OsLocalization.MainWindow.NewCommits.Replace("0", _commitsCount.ToString());
+                    background = new SolidColorBrush(Color.FromRgb(255, 85, 0));
+                    foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFF0F0F0"));
+                }
+                else if (_commitsCount < 0)
+                {
+                    buttCont = OsLocalization.MainWindow.NewCommits.Replace("0", " ?");
+                    foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFE30F26"));
+                }
+
+                ButtonNewCommits.Content = buttCont;
+                ButtonNewCommits.Foreground = foreground;
+                ButtonNewCommits.Background = background;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void ButtonNewCommits_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Hide();
+                UpdateModuleUi ui = new UpdateModuleUi(_updServerResp);
+                ui.ShowDialog();
+                Close();
+                ProccesIsWorked = false;
+                Thread.Sleep(5000);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
+            Process.GetCurrentProcess().Kill();
+        }
+
+        private void ButtCommits_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (_commitsCount > 0 || _commitsCount < 0)
+                ButtonNewCommits.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF1A1A1A"));
+        }
+
+        private void ButtCommits_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (_commitsCount > 0 || _commitsCount < 0)
+                ButtonNewCommits.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFF0F0F0"));
         }
 
         #endregion
