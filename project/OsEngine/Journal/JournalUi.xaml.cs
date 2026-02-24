@@ -1,6 +1,6 @@
-п»ї/*
- * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
- * Р’Р°С€Рё РїСЂР°РІР° РЅР° РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РєРѕРґР° СЂРµРіСѓР»РёСЂСѓСЋС‚СЃСЏ РґР°РЅРЅРѕР№ Р»РёС†РµРЅР·РёРµР№ http://o-s-a.net/doc/license_simple_engine.pdf
+/*
+* Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+* Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -32,7 +32,7 @@ namespace OsEngine.Journal
 {
     /// <summary>
     /// Interaction logic for JournalNewUi.xaml
-    /// Р›РѕРіРёРєР° РІР·Р°РёРјРѕРґРµР№СЃС‚РІРёСЏ РґР»СЏ JournalNewUi.xaml
+    /// Логика взаимодействия для JournalNewUi.xaml
     /// </summary>
     public partial class JournalUi
     {
@@ -367,21 +367,21 @@ namespace OsEngine.Journal
                 }
 
                 // 1 collecting all journals.
-                // 1 СЃРѕР±РёСЂР°РµРј РІСЃРµ Р¶СѓСЂРЅР°Р»С‹
+                // 1 собираем все журналы
                 List<Journal> myJournals = new List<Journal>();
 
                 for (int i = 0; i < _botsJournals.Count; i++)
                 {
                     string name = ((TabItem)TabBots.SelectedItem).Header.ToString();
                     // 1 only take our bots
-                    // 1 Р±РµСЂС‘Рј С‚РѕР»СЊРєРѕ РЅР°С€РµРіРѕ Р±РѕС‚Р°
+                    // 1 берём только нашего бота
                     if (name == "V" || name == _botsJournals[i].BotName)
                     {
                         for (int i2 = 0; i2 < _botsJournals[i]._Tabs.Count; i2++)
                         {
                             string nameTab = ((TabItem)TabControlLeft.SelectedItem).Header.ToString().Replace(" ", "");
                             // 2 only take our tabs
-                            // 2 Р±РµСЂС‘Рј С‚РѕР»СЊРєРѕ РЅР°С€Рё РІРєР»Р°РґРєРё
+                            // 2 берём только наши вкладки
                             if (name == "V" || nameTab == "V" || nameTab == _botsJournals[i]._Tabs[i2].TabNum.ToString())
                             {
                                 myJournals.Add(_botsJournals[i]._Tabs[i2].Journal);
@@ -396,7 +396,7 @@ namespace OsEngine.Journal
                 }
 
                 // 2 sorting deals on ALL / Long / Short
-                // 2 СЃРѕСЂС‚РёСЂСѓРµРј СЃРґРµР»РєРё РЅР° Р’РЎР• / Р›РѕРЅРі / РЁРѕСЂС‚
+                // 2 сортируем сделки на ВСЕ / Лонг / Шорт
 
                 List<Position> positionsAll = new List<Position>();
 
@@ -545,7 +545,7 @@ namespace OsEngine.Journal
                 for (int i = 0; i < _botsJournals.Count; i++)
                 {
                     // addition of a new element
-                    // РґРѕР±Р°РІР»РµРЅРёРµ РЅРѕРІРѕРіРѕ СЌР»РµРјРµРЅС‚Р°
+                    // добавление нового элемента
                     TabItem item = new TabItem() { Header = _botsJournals[i].BotName.ToString(), FontSize = 12 };
                     TabBots.Items.Add(item);
                 }
@@ -708,7 +708,7 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < 31; i++)
                 {
-                    _gridStatistics.Rows.Add(); //string addition/ РґРѕР±Р°РІР»РµРЅРёРµ СЃС‚СЂРѕРєРё
+                    _gridStatistics.Rows.Add(); //string addition/ добавление строки
                 }
 
                 _gridStatistics.Rows[0].Cells[0].Value = OsLocalization.Journal.GridRow1;
@@ -765,9 +765,9 @@ namespace OsEngine.Journal
                     CreateTableToStatistic();
                 }
 
-                List<string> positionsAllState = PositionStatisticGenerator.GetStatisticNew(positionsAll);
-                List<string> positionsLongState = PositionStatisticGenerator.GetStatisticNew(positionsLong);
-                List<string> positionsShortState = PositionStatisticGenerator.GetStatisticNew(positionsShort);
+                List<string> positionsAllState = PositionStatisticGenerator.GetStatisticNew(positionsAll, true);
+                List<string> positionsLongState = PositionStatisticGenerator.GetStatisticNew(positionsLong, false);
+                List<string> positionsShortState = PositionStatisticGenerator.GetStatisticNew(positionsShort, false);
 
                 if (positionsAllState == null)
                 {
@@ -841,8 +841,8 @@ namespace OsEngine.Journal
                 areaLineProfit.Position.Height = 70;
                 areaLineProfit.Position.Width = 100;
                 areaLineProfit.Position.Y = 0;
-                areaLineProfit.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ СЂР°Р·СЂРµС€Р°РµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ РёР·РјРµРЅСЏС‚СЊ СЂР°РјРєРё РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ
-                areaLineProfit.CursorX.IsUserEnabled = true; //trait/С‡РµСЂС‚a
+                areaLineProfit.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+                areaLineProfit.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartEquity.ChartAreas.Add(areaLineProfit);
 
@@ -852,7 +852,7 @@ namespace OsEngine.Journal
                 areaLineProfitBar.Position.Width = 100;
                 areaLineProfitBar.Position.Y = 70;
                 areaLineProfitBar.AxisX.Enabled = AxisEnabled.False;
-                areaLineProfitBar.CursorX.IsUserEnabled = true; //trait/С‡РµСЂС‚a
+                areaLineProfitBar.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartEquity.ChartAreas.Add(areaLineProfitBar);
 
@@ -1255,7 +1255,7 @@ namespace OsEngine.Journal
                 }
 
                 //  take the number of tools
-                // Р±РµСЂС‘Рј РєРѕР»-РІРѕ РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ
+                // берём кол-во инструментов
                 List<VolumeSecurity> volumes = new List<VolumeSecurity>();
 
                 for (int i = 0; i < positionsAll.Count; i++)
@@ -1271,7 +1271,7 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                // 1 СЃРѕР·РґР°С‘Рј РѕР±С‰СѓСЋ Р»РёРЅРёСЋ РІСЂРµРјРµРЅРё СЃРѕ РІСЃРµРјРё РёР·РјРµРЅРµРЅРёСЏРјРё
+                // 1 создаём общую линию времени со всеми изменениями
 
                 List<DateTime> allChange = new List<DateTime>();
 
@@ -1295,17 +1295,17 @@ namespace OsEngine.Journal
                     }
                 }
 
-                // 2 СЃРѕСЂС‚РёСЂРѕРІРєР°
+                // 2 сортировка
                 allChange = allChange.OrderBy(x => x).ToList();
 
-                // 3 Р°РєС‚РёРІРёСЂСѓРµРј РјР°СЃСЃРёРІ Volume РїРѕ Р±СѓРјР°РіР°Рј
+                // 3 активируем массив Volume по бумагам
 
                 for (int i = 0; i < volumes.Count; i++)
                 {
                     volumes[i].Volume = new decimal[allChange.Count].ToList();
                 }
 
-                // 4 СЃС‡РёС‚Р°РµРј РїРѕ РєР°Р¶РґРѕР№ РІСЂРµРјРµРЅРЅРѕР№ С‚РѕС‡РєРµ РѕР±СЉС‘РјС‹
+                // 4 считаем по каждой временной точке объёмы
 
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
@@ -1356,7 +1356,7 @@ namespace OsEngine.Journal
                     }
                 }
 
-                // 5 РїСЂРѕСЂРёСЃРѕРІС‹РІР°РµРј Р·РЅР°С‡РµРЅРёСЏ РЅР° С‡Р°СЂС‚Рµ
+                // 5 прорисовываем значения на чарте
 
                 int volumesStartNum = 0;
 
@@ -1408,8 +1408,8 @@ namespace OsEngine.Journal
 
                 ChartArea areaLineSecurity = new ChartArea("ChartArea" + name);
 
-                areaLineSecurity.CursorX.IsUserSelectionEnabled = true; //allow the user to change the view scope/ СЂР°Р·СЂРµС€Р°РµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ РёР·РјРµРЅСЏС‚СЊ СЂР°РјРєРё РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ
-                areaLineSecurity.CursorX.IsUserEnabled = true; //trait/С‡РµСЂС‚a
+                areaLineSecurity.CursorX.IsUserSelectionEnabled = true; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+                areaLineSecurity.CursorX.IsUserEnabled = true; //trait/чертa
 
                 areaLineSecurity.BorderColor = Color.Black;
                 areaLineSecurity.BackColor = Color.FromArgb(17, 18, 23);
@@ -1615,8 +1615,8 @@ namespace OsEngine.Journal
                 areaDdPunct.Position.Height = 50;
                 areaDdPunct.Position.Width = 100;
                 areaDdPunct.Position.Y = 0;
-                areaDdPunct.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ СЂР°Р·СЂРµС€Р°РµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ РёР·РјРµРЅСЏС‚СЊ СЂР°РјРєРё РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ
-                areaDdPunct.CursorX.IsUserEnabled = true; //trait/С‡РµСЂС‚a
+                areaDdPunct.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+                areaDdPunct.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartDd.ChartAreas.Add(areaDdPunct);
 
@@ -1626,7 +1626,7 @@ namespace OsEngine.Journal
                 areaDdPercent.Position.Width = 100;
                 areaDdPercent.Position.Y = 50;
                 areaDdPercent.AxisX.Enabled = AxisEnabled.False;
-                areaDdPercent.CursorX.IsUserEnabled = true; //trait/С‡РµСЂС‚a
+                areaDdPercent.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartDd.ChartAreas.Add(areaDdPercent);
 
@@ -1741,7 +1741,7 @@ namespace OsEngine.Journal
                 }
 
                 // dd in %
-                // РґРґ РІ %
+                // дд в %
 
                 List<decimal> ddPepcent = new decimal[positionsAll.Count].ToList();
 
@@ -1777,13 +1777,13 @@ namespace OsEngine.Journal
 
                     if (thisSumm < 0)
                     {
-                        // СѓР¶Рµ СѓС€Р»Рё РЅРёР¶Рµ РЅСѓР»РµРІРѕР№ РѕС‚РјРµС‚РєРё РїРѕ СЃС‡С‘С‚Сѓ
+                        // уже ушли ниже нулевой отметки по счёту
 
                         thisDown = -thisPik + thisSumm;
                     }
                     else if (thisSumm > 0)
                     {
-                        // РІС‹С€Рµ РЅСѓР»РµРІРѕР№ РѕС‚РјРµС‚РєРё РїРѕ СЃС‡С‘С‚Сѓ
+                        // выше нулевой отметки по счёту
                         thisDown = -(thisPik - thisSumm);
                     }
 

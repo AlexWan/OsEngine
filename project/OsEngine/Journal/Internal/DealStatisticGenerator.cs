@@ -14,7 +14,7 @@ namespace OsEngine.Journal.Internal
 {
     public class PositionStatisticGenerator
     {
-        public static List<string> GetStatisticNew(List<Position> positions)
+        public static List<string> GetStatisticNew(List<Position> positions, bool withMaxDrawDown)
         {
             if (positions == null)
             {
@@ -44,7 +44,7 @@ namespace OsEngine.Journal.Internal
                  Сред. П\У на капитал
                  Сред. П\У % на капитал
 
-                 Прибыльных  сделок
+                 Прибыльных сделок
                  Прибыльных %
                  Сред. П\У по сделке
                  Сред. П\У % по сделке
@@ -53,7 +53,7 @@ namespace OsEngine.Journal.Internal
                  Максимум подряд
 
                  Убыточных сделок
-                 Убыточных  %
+                 Убыточных %
                  Сред. П\У по сделке
                  Сред. П\У % по сделке
                  Сред. П\У на капитал
@@ -100,8 +100,17 @@ namespace OsEngine.Journal.Internal
             report.Add(Math.Round(GetAllMiddleLossInLossInPercentOnDeposit(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
             report.Add(GetMaxLossSeries(deals).ToString(new CultureInfo("ru-RU")));//maximum series of winning trades/максимальная серия выигрышных сделок
             report.Add("");
-            report.Add(Math.Round(GetMaxDownPercent(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
-            report.Add(Math.Round(GetCommissionAmount(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
+
+            if(withMaxDrawDown)
+            {
+                report.Add(Math.Round(GetMaxDownPercent(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
+            }
+            else
+            {
+                report.Add("");
+            }
+
+            report.Add(Math.Round(GetCommissionAmount(deals), 6).ToString(new CultureInfo("ru-RU"))); //комиссия
 
             /*report += Math.Round(GetSharp(), 2).ToString(new CultureInfo("ru-RU"));
             */

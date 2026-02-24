@@ -24,8 +24,6 @@ using OsEngine.Candles.Factory;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Drawing;
 using OsEngine.Market.Servers.Tester;
-using static Grpc.Tradeapi.V1.Marketdata.OrderBook.Types;
-using OsEngine.Charts.CandleChart.Indicators;
 using System.Threading.Tasks;
 
 namespace OsEngine.OsTrader.Panels.Tab
