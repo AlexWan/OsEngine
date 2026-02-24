@@ -1228,15 +1228,24 @@ namespace OsEngine
                 Hide();
                 UpdateModuleUi ui = new UpdateModuleUi(_updServerResp);
                 ui.ShowDialog();
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(5000);
+
+                if(ui.IsUpdated == true)
+                {
+                    Close();
+                    ProccesIsWorked = false;
+                    Thread.Sleep(5000);
+                    Process.GetCurrentProcess().Kill();
+                }
+                else
+                {
+                    Show();
+                }
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
+           
         }
 
         private void ButtCommits_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)

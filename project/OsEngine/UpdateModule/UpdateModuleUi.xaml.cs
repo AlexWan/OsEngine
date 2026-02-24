@@ -642,6 +642,9 @@ namespace OsEngine.UpdateModule
         #endregion
 
         #region Update process
+
+        public bool IsUpdated = false;
+
         private async void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             SaveLogMessage(OsLocalization.Updater.Message29);
@@ -658,6 +661,8 @@ namespace OsEngine.UpdateModule
 
                 // процесс обновления
                 SaveLogMessage(OsLocalization.Updater.Message31);
+
+                IsUpdated = true;
 
                 // Отключаем кнопки на время обновления
                 ButtonUpdate.IsEnabled = false;
