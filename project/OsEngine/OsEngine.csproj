@@ -130,6 +130,7 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Google.Protobuf" Version="3.31.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NSec.Cryptography" Version="25.4.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
     <PackageReference Include="System.ServiceModel.Syndication" Version="9.0.5" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.5" />
