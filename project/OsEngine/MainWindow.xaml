@@ -38,6 +38,8 @@
                     <Image Name="WhiteCollectionMenu"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
                 </Grid>
             </Button>
+            <Button Name="ButtonNewCommits" Content="  0 commits  " HorizontalAlignment="Left" Margin="91,231,0,0" VerticalAlignment="Top" Width="123" Height="28"
+                    Click="ButtonNewCommits_Click" MouseEnter="ButtCommits_MouseEnter" MouseLeave="ButtCommits_MouseLeave" />
         </Grid>
         <Grid Name="VideoGrid" VerticalAlignment="Top" Height="120" Margin="0,271,0,0">
             <Grid Width="570" HorizontalAlignment="Center" Margin="0,0,0,25">

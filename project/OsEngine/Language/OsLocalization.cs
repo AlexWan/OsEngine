@@ -301,5 +301,6 @@ namespace OsEngine.Language
 
         public static DescriptionRobotsLocal Description = new DescriptionRobotsLocal();
 
+        public static UpdaterLocal Updater = new UpdaterLocal();
     }
 }
