@@ -52,7 +52,7 @@ namespace OsEngine.OsTrader.RiskManager
         /// </summary>
         private void LoadDateOnForm()
         {
-            CheckBoxIsOn.IsChecked = _riskManager.IsActiv;
+            CheckBoxIsOn.IsChecked = _riskManager.IsActive;
             TextBoxOpenMaxDd.Text = _riskManager.MaxDrowDownToDayPersent.ToString(new CultureInfo("ru-RU"));
 
             ComboBoxReaction.Items.Add(RiskManagerReactionType.CloseAndOff);
@@ -80,7 +80,7 @@ namespace OsEngine.OsTrader.RiskManager
             }
 
 
-           _riskManager.IsActiv =  CheckBoxIsOn.IsChecked.Value;
+           _riskManager.IsActive =  CheckBoxIsOn.IsChecked.Value;
            _riskManager.MaxDrowDownToDayPersent = Convert.ToDecimal(TextBoxOpenMaxDd.Text);
 
            Enum.TryParse(ComboBoxReaction.Text,false,out _riskManager.ReactionType);
