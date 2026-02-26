@@ -89,8 +89,8 @@ namespace OsEngine.Language
            "Ru:Os Engine уже запущен из данной директории. Второй запускать нельзя!_");
 
         public string NewCommits => OsLocalization.ConvertToLocString(
-         "Eng:0 commits_" +
-         "Ru:0 коммитов_");
+         "Eng:Update (0)_" +
+         "Ru:Обновить (0)_");
 
     }
 }

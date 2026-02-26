@@ -20,7 +20,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-
 namespace OsEngine.UpdateModule
 {
     public partial class UpdateModuleUi : Window
