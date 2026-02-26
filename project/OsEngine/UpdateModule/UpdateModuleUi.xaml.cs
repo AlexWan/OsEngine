@@ -1059,7 +1059,8 @@ namespace OsEngine.UpdateModule
                         FileName = updaterExePath,
                         Arguments = $"\"update\" \"{currentDir}\" \"{tempDirWithNewFiles}\" {Environment.ProcessId} \"{Path.GetFileName(currentExePath)}\"",
                         UseShellExecute = true,
-                        CreateNoWindow = true
+                        CreateNoWindow = true,
+                        Verb = "runas"
                     };
 
                     Process.Start(startInfo);
