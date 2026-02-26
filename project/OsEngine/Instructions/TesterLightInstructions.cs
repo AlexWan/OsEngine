@@ -160,5 +160,16 @@ namespace OsEngine.Instructions
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub34&items%5B%5D=item116"
             }
         };
+
+        public Instruction Link11 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Добавить готового робота в OsEngine",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub28&items%5B%5D=item849"
+            }
+        };
     }
 }
