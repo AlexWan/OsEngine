@@ -61,7 +61,7 @@ namespace OsEngine.Market.AutoFollow
 
             // 6 Localization
 
-            LabelIsOn.Content = OsLocalization.Market.Label182; 
+            LabelIsOn.Content = OsLocalization.Market.Label182;
             LabelName.Content = OsLocalization.Market.Label70;
             LabelRobotsGrid.Content = OsLocalization.Market.Label208;
             LabelSlaveGrid.Content = OsLocalization.Market.Label209;
@@ -112,7 +112,7 @@ namespace OsEngine.Market.AutoFollow
                 CopyTraderInstance.IsOn = isOn;
                 ServerMaster.SaveCopyMaster();
 
-                if(NeedToUpdateCopyTradersGridEvent != null)
+                if (NeedToUpdateCopyTradersGridEvent != null)
                 {
                     NeedToUpdateCopyTradersGridEvent();
                 }
@@ -137,9 +137,9 @@ namespace OsEngine.Market.AutoFollow
                     NeedToUpdateCopyTradersGridEvent();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -191,7 +191,7 @@ namespace OsEngine.Market.AutoFollow
 
         private void LoadPanelsPositions()
         {
-            if(string.IsNullOrEmpty(CopyTraderInstance.PanelsPosition))
+            if (string.IsNullOrEmpty(CopyTraderInstance.PanelsPosition))
             {
                 return;
             }
@@ -227,7 +227,7 @@ namespace OsEngine.Market.AutoFollow
 
         private void PainterThreadArea()
         {
-            while(true)
+            while (true)
             {
                 try
                 {
@@ -241,7 +241,7 @@ namespace OsEngine.Market.AutoFollow
                     UpdateGridRobots();
                     UpdateGridSlave();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
@@ -343,14 +343,14 @@ namespace OsEngine.Market.AutoFollow
                 {
                     DataGridViewCell cell = _gridRobots.Rows[i].Cells[0];
 
-                    if(cell == null)
+                    if (cell == null)
                     {
                         continue;
                     }
 
                     bool isOn = Convert.ToBoolean(_gridRobots.Rows[i].Cells[3].Value);
 
-                    if(isOn == true)
+                    if (isOn == true)
                     {
                         namesOnRobots.Add(_gridRobots.Rows[i].Cells[1].Value.ToString());
                     }
@@ -365,7 +365,7 @@ namespace OsEngine.Market.AutoFollow
                 CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
-         
+
         private void UpdateGridRobots()
         {
             try
@@ -389,29 +389,29 @@ namespace OsEngine.Market.AutoFollow
 
                 List<DataGridViewRow> rowsNow = new List<DataGridViewRow>();
 
-                for(int i = 0; bots != null && i < bots.Count;i++)
+                for (int i = 0; bots != null && i < bots.Count; i++)
                 {
                     List<DataGridViewRow> botRows = GetRowsByRobot(bots[i], i);
 
-                    if(botRows!= null &&
+                    if (botRows != null &&
                         botRows.Count > 0)
                     {
                         rowsNow.AddRange(botRows);
                     }
                 }
 
-                if(rowsNow.Count != _gridRobots.Rows.Count)
+                if (rowsNow.Count != _gridRobots.Rows.Count)
                 { // 1 перерисовываем целиком
                     _gridRobots.Rows.Clear();
 
-                    for(int i = 0;i < rowsNow.Count;i++)
+                    for (int i = 0; i < rowsNow.Count; i++)
                     {
                         _gridRobots.Rows.Add(rowsNow[i]);
                     }
                 }
                 else
                 { // 2 перерисовываем по линиям
-                    for(int i = 0;i < _gridRobots.Rows.Count;i++)
+                    for (int i = 0; i < _gridRobots.Rows.Count; i++)
                     {
                         TryRePaintRobotRow(_gridRobots.Rows[i], rowsNow[i]);
 
@@ -428,11 +428,11 @@ namespace OsEngine.Market.AutoFollow
         {
             if (rowInGrid.Cells[3].Value != null)
             {
-                if(rowInGrid.Cells[3].Value.ToString() != rowNew.Cells[3].Value.ToString())
+                if (rowInGrid.Cells[3].Value.ToString() != rowNew.Cells[3].Value.ToString())
                 {
                     rowInGrid.Cells[3].Value = rowNew.Cells[3].Value;
                 }
-                
+
                 if (rowInGrid.Cells[3].Style.ForeColor != rowNew.Cells[3].Style.ForeColor)
                 {
                     rowInGrid.Cells[3].Style.ForeColor = rowNew.Cells[3].Style.ForeColor;
@@ -441,7 +441,7 @@ namespace OsEngine.Market.AutoFollow
 
             if (rowInGrid.Cells[5].Value != null)
             {
-                if(rowInGrid.Cells[5].Value.ToString() != rowNew.Cells[5].Value.ToString())
+                if (rowInGrid.Cells[5].Value.ToString() != rowNew.Cells[5].Value.ToString())
                 {
                     rowInGrid.Cells[5].Value = rowNew.Cells[5].Value;
                 }
@@ -503,7 +503,7 @@ namespace OsEngine.Market.AutoFollow
             rowFirst.Cells.Add(new DataGridViewTextBoxCell());
             rowFirst.Cells[rowFirst.Cells.Count - 1].Value = bot.GetType().Name;
 
-            if(CopyTraderInstance == null)
+            if (CopyTraderInstance == null)
             {
                 return null;
             }
@@ -526,7 +526,7 @@ namespace OsEngine.Market.AutoFollow
                 rowFirst.Cells[rowFirst.Cells.Count - 1].Style.ForeColor = System.Drawing.Color.Red;
             }
 
-                rowFirst.Cells.Add(new DataGridViewTextBoxCell());
+            rowFirst.Cells.Add(new DataGridViewTextBoxCell());
             rowFirst.Cells.Add(new DataGridViewTextBoxCell());
             rowFirst.Cells.Add(new DataGridViewTextBoxCell());
             rowFirst.Cells.Add(new DataGridViewTextBoxCell());
@@ -537,9 +537,9 @@ namespace OsEngine.Market.AutoFollow
 
             List<Security> securities = bot.GetSecuritiesInTradeSources();
 
-            for(int i = 0;i < securities.Count;i++)
+            for (int i = 0; i < securities?.Count; i++)
             {
-                botRow.Add(GetRowBySecurity(securities[i],bot));
+                botRow.Add(GetRowBySecurity(securities[i], bot));
             }
 
             return botRow;
@@ -572,18 +572,18 @@ namespace OsEngine.Market.AutoFollow
             decimal shortPosition = 0;
             decimal absPosition = 0;
 
-            for(int i = 0;i < poses.Count;i++)
+            for (int i = 0; i < poses.Count; i++)
             {
                 Position position = poses[i];
 
                 decimal openVolume = position.OpenVolume;
 
-                if(openVolume == 0)
+                if (openVolume == 0)
                 {
                     continue;
                 }
 
-                if(position.Direction == Side.Buy)
+                if (position.Direction == Side.Buy)
                 {
                     longPosition += openVolume;
                     absPosition += openVolume;
@@ -611,7 +611,7 @@ namespace OsEngine.Market.AutoFollow
                 row.Cells[row.Cells.Count - 1].Style.ForeColor = System.Drawing.Color.DarkRed;
             }
 
-            row.Cells.Add(new DataGridViewTextBoxCell()); 
+            row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[row.Cells.Count - 1].Value = absPosition;
 
             if (absPosition != 0)
@@ -748,7 +748,7 @@ namespace OsEngine.Market.AutoFollow
                         serverRows.Count > 0)
                     {
                         rowsNow.AddRange(serverRows);
-                       
+
                     }
                 }
 
@@ -780,17 +780,17 @@ namespace OsEngine.Market.AutoFollow
 
         private void TryRePaintPortfoliosRow(DataGridViewRow actualRow, DataGridViewRow virtualRow)
         {
-            if (actualRow.Cells[3].Value != null 
-                && virtualRow.Cells[3].Value != null 
-                && virtualRow.Cells[3].Value.ToString() 
+            if (actualRow.Cells[3].Value != null
+                && virtualRow.Cells[3].Value != null
+                && virtualRow.Cells[3].Value.ToString()
                 != actualRow.Cells[3].Value.ToString())
             {
                 actualRow.Cells[3].Value = virtualRow.Cells[3].Value;
             }
 
-            for(int i = 0;i < actualRow.Cells.Count;i++)
+            for (int i = 0; i < actualRow.Cells.Count; i++)
             {
-                if (virtualRow.Cells[i].Style.ForeColor != 
+                if (virtualRow.Cells[i].Style.ForeColor !=
                     actualRow.Cells[i].Style.ForeColor)
                 {
                     actualRow.Cells[i].Style.ForeColor = virtualRow.Cells[i].Style.ForeColor;
@@ -886,7 +886,7 @@ namespace OsEngine.Market.AutoFollow
                 int row = e.RowIndex;
                 int column = e.ColumnIndex;
 
-                if(column == 3)
+                if (column == 3)
                 {
                     DataGridViewCell cellPortfolioName = _gridSlave.Rows[row].Cells[2];
 
@@ -897,7 +897,7 @@ namespace OsEngine.Market.AutoFollow
                           _gridSlave.Rows[row].Cells[1].Value.ToString(), portfolioName);
 
                     bool portfolioIsOn = Convert.ToBoolean(_gridSlave.Rows[row].Cells[3].Value.ToString());
-                    
+
                     portfolioToCopy.IsOn = portfolioIsOn;
 
                     if (portfolioToCopy.IsOn == true)
@@ -950,7 +950,7 @@ namespace OsEngine.Market.AutoFollow
 
                     ShowDialogPortfolio(portfolioToCopy);
                 }
-                else if (row < _gridSlave.Rows.Count-1
+                else if (row < _gridSlave.Rows.Count - 1
                   && col == 5)
                 {// удалить
 
@@ -965,13 +965,13 @@ namespace OsEngine.Market.AutoFollow
 
                     CopyTraderInstance.RemovePortfolioAt(row);
                 }
-                else if(row == _gridSlave.Rows.Count - 1
+                else if (row == _gridSlave.Rows.Count - 1
                     && col == 5)
                 {// добавить новый
 
                     List<AServer> connectors = ServerMaster.GetAServers();
 
-                    if(connectors == null || connectors.Count == 0)
+                    if (connectors == null || connectors.Count == 0)
                     {
                         CustomMessageBoxUi uiMessage = new CustomMessageBoxUi(OsLocalization.Market.Label226);
                         uiMessage.ShowDialog();
@@ -1028,7 +1028,7 @@ namespace OsEngine.Market.AutoFollow
 
         public void ShowDialogPortfolio(PortfolioToCopy portfolioToCopy)
         {
-            for(int i = 0; i < _copyPortfolioUis.Count; i++)
+            for (int i = 0; i < _copyPortfolioUis.Count; i++)
             {
                 if (_copyPortfolioUis[i].UniqueName == portfolioToCopy.NameUnique)
                 {
@@ -1042,7 +1042,7 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
 
-            CopyPortfolioUi newGui = new CopyPortfolioUi(portfolioToCopy,CopyTraderInstance);
+            CopyPortfolioUi newGui = new CopyPortfolioUi(portfolioToCopy, CopyTraderInstance);
             _copyPortfolioUis.Add(newGui);
             newGui.Show();
             newGui.Closed += NewGui_Closed;
@@ -1066,7 +1066,7 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error); 
+                CopyTraderInstance?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
