@@ -13,7 +13,6 @@
           "Grpc.Net.Client": "2.71.0",
           "Microsoft.CSharp": "4.7.0",
           "Microsoft.CodeAnalysis.CSharp": "4.13.0",
-          "NSec.Cryptography": "25.4.0",
           "Newtonsoft.Json": "13.0.3",
           "System.Runtime.CompilerServices.Unsafe": "6.1.2",
           "System.ServiceModel.Duplex": "6.0.0",
@@ -35,6 +34,7 @@
           "LiteDB": "5.0.19.0",
           "MtApi5": "2.0.1.0",
           "MtClient": "1.0.0.0",
+          "NSec.Cryptography": "25.4.0.0",
           "OpenFAST": "1.1.3.0",
           "QuikSharp": "2.0.0.0",
           "RestSharp": "105.2.3.0",
@@ -93,85 +93,6 @@
           "lib/net8.0/Grpc.Net.Common.dll": {
             "assemblyVersion": "2.0.0.0",
             "fileVersion": "2.71.0.0"
-          }
-        }
-      },
-      "libsodium/1.0.20.1": {
-        "runtimeTargets": {
-          "runtimes/ios-arm64/native/libsodium.a": {
-            "rid": "ios-arm64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/linux-arm/native/libsodium.so": {
-            "rid": "linux-arm",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/linux-arm64/native/libsodium.so": {
-            "rid": "linux-arm64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/linux-musl-arm/native/libsodium.so": {
-            "rid": "linux-musl-arm",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/linux-musl-arm64/native/libsodium.so": {
-            "rid": "linux-musl-arm64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/linux-musl-x64/native/libsodium.so": {
-            "rid": "linux-musl-x64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/linux-x64/native/libsodium.so": {
-            "rid": "linux-x64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/maccatalyst-arm64/native/libsodium.a": {
-            "rid": "maccatalyst-arm64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/maccatalyst-x64/native/libsodium.a": {
-            "rid": "maccatalyst-x64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/osx-arm64/native/libsodium.dylib": {
-            "rid": "osx-arm64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/osx-x64/native/libsodium.dylib": {
-            "rid": "osx-x64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/tvos-arm64/native/libsodium.a": {
-            "rid": "tvos-arm64",
-            "assetType": "native",
-            "fileVersion": "0.0.0.0"
-          },
-          "runtimes/win-arm64/native/libsodium.dll": {
-            "rid": "win-arm64",
-            "assetType": "native",
-            "fileVersion": "1.0.20.0"
-          },
-          "runtimes/win-x64/native/libsodium.dll": {
-            "rid": "win-x64",
-            "assetType": "native",
-            "fileVersion": "1.0.20.0"
-          },
-          "runtimes/win-x86/native/libsodium.dll": {
-            "rid": "win-x86",
-            "assetType": "native",
-            "fileVersion": "1.0.20.0"
           }
         }
       },
@@ -302,17 +223,6 @@
           "lib/net6.0/Newtonsoft.Json.dll": {
             "assemblyVersion": "13.0.0.0",
             "fileVersion": "13.0.3.27908"
-          }
-        }
-      },
-      "NSec.Cryptography/25.4.0": {
-        "dependencies": {
-          "libsodium": "1.0.20.1"
-        },
-        "runtime": {
-          "lib/net8.0/NSec.Cryptography.dll": {
-            "assemblyVersion": "25.4.0.0",
-            "fileVersion": "25.4.0.0"
           }
         }
       },
@@ -704,6 +614,14 @@
           }
         }
       },
+      "NSec.Cryptography/25.4.0.0": {
+        "runtime": {
+          "NSec.Cryptography.dll": {
+            "assemblyVersion": "25.4.0.0",
+            "fileVersion": "25.4.0.0"
+          }
+        }
+      },
       "OpenFAST/1.1.3.0": {
         "runtime": {
           "OpenFAST.dll": {
@@ -794,13 +712,6 @@
       "sha512": "sha512-v0c8R97TwRYwNXlC8GyRXwYTCNufpDfUtj9la+wUrZFzVWkFJuNAltU+c0yI3zu0jl54k7en6u2WKgZgd57r2Q==",
       "path": "grpc.net.common/2.71.0",
       "hashPath": "grpc.net.common.2.71.0.nupkg.sha512"
-    },
-    "libsodium/1.0.20.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-pkiceEqJDQFHjbga3k/oPfTVX9g+GKJZ1VrkuiLhaymt9YNw1Dr7cX9hNuZuNaWcr9WD0moW55k4pMwzQ7JaZQ==",
-      "path": "libsodium/1.0.20.1",
-      "hashPath": "libsodium.1.0.20.1.nupkg.sha512"
     },
     "Microsoft.Bcl.TimeProvider/8.0.1": {
       "type": "package",
@@ -913,13 +824,6 @@
       "sha512": "sha512-HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
       "path": "newtonsoft.json/13.0.3",
       "hashPath": "newtonsoft.json.13.0.3.nupkg.sha512"
-    },
-    "NSec.Cryptography/25.4.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-Z3wPpG0xefMLmhn9T+Ka/EzAmMQPT0THL/5E4lf9cXI/N9rbGH0G23ZFpRcPnD0ast2k7ieG6QSVNIjmfPCXBQ==",
-      "path": "nsec.cryptography/25.4.0",
-      "hashPath": "nsec.cryptography.25.4.0.nupkg.sha512"
     },
     "System.Collections/4.3.0": {
       "type": "package",
@@ -1223,6 +1127,11 @@
       "sha512": ""
     },
     "MtClient/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NSec.Cryptography/25.4.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
