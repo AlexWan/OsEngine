@@ -23,6 +23,12 @@
         <Label Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="439,9,0,0" VerticalAlignment="Top" Height="20"/>
         <Label Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="458,9,0,0" VerticalAlignment="Top" Height="20"/>
         <Button Name="ButtonUpdateRobots" Content="Update Robots Info" Height="22" Margin="2,0,0,5" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="279" Click="ButtonUpdateRobots_Click"/>
+        <Button Name="ButtonRobots" HorizontalAlignment="Center" Margin="0,20,0,0" VerticalAlignment="Top" Height="36" Width="35" Click="ButtonRobots_Click">
+            <Grid>
+                <Image Name="PostGreenRobots" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhiteRobots"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
     </Grid>
 </Window>

@@ -775,18 +775,46 @@ namespace OsEngine.OsTrader
                     sortPositions.Reverse();
                 }
 
-                grid.Rows.Clear();
+                Dictionary<int, DataGridViewRow> rowsByNumber = new Dictionary<int, DataGridViewRow>();
+                foreach (DataGridViewRow row in grid.Rows)
+                {
+                    if (row.Cells[0].Value != null && int.TryParse(row.Cells[0].Value.ToString(), out int number))
+                    {
+                        if (!rowsByNumber.ContainsKey(number))
+                            rowsByNumber[number] = row;
+                    }
+                }
 
                 for (int i = 0; i < sortPositions.Count; i++)
                 {
-                    Position position = sortPositions[i];
+                    Position pos = sortPositions[i];
+                    int number = pos.Number;
 
-                    DataGridViewRow row = GetRow(position);
-
-                    if (row != null)
+                    if (rowsByNumber.TryGetValue(number, out DataGridViewRow existingRow))
                     {
-                        grid.Rows.Add(row);
+                        rowsByNumber.Remove(number);
+
+                        TryRePaint(pos, existingRow);
+
+                        if (existingRow.Index != i)
+                        {
+                            grid.Rows.RemoveAt(existingRow.Index);
+                            grid.Rows.Insert(i, existingRow);
+                        }
                     }
+                    else
+                    {
+                        DataGridViewRow newRow = GetRow(pos);
+                        if (newRow != null)
+                        {
+                            grid.Rows.Insert(i, newRow);
+                        }
+                    }
+                }
+
+                foreach (var row in rowsByNumber.Values)
+                {
+                    grid.Rows.Remove(row);
                 }
             }
             catch (Exception error)

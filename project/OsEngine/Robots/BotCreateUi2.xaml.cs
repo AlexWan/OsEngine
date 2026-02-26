@@ -17,6 +17,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace OsEngine.Robots
 {
@@ -118,6 +119,63 @@ namespace OsEngine.Robots
             ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
             ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
 
+            if (InteractiveInstructions.TesterLightPosts.AllInstructionsInClass == null
+            || InteractiveInstructions.TesterLightPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonRobots.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenRobots.Opacity = 1;
+                            PostWhiteRobots.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenRobots.Opacity = 0;
+                            PostWhiteRobots.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenRobots.Opacity = 1;
+                            PostWhiteRobots.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void TextBoxName_TextChanged(object sender, TextChangedEventArgs e)
@@ -1459,6 +1517,22 @@ namespace OsEngine.Robots
             CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label302);
             ui.ShowDialog();
         }
+
+        #region Posts collection
+
+        private void ButtonRobots_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.TesterLightPosts.Link11.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 
     public class BotDescription

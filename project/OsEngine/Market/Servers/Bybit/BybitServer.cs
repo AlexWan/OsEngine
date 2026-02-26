@@ -625,7 +625,7 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     _securities = _securities.OrderBy(s => s.Name).ToList();
                 }
-                
+
                 SecurityEvent?.Invoke(_securities);
             }
             catch (Exception ex)
@@ -882,7 +882,11 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (responseMessage.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"Portfolio error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    if (responseMessage.StatusCode != 0)
+                    {
+                        SendLogMessage($"Portfolio error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    }
+
                     return;
                 }
 
@@ -1058,7 +1062,11 @@ namespace OsEngine.Market.Servers.Bybit
 
                     if (responseMessage.StatusCode != HttpStatusCode.OK)
                     {
-                        SendLogMessage($"GetPositionsInverse>. Position error: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                        if (responseMessage.StatusCode != 0)
+                        {
+                            SendLogMessage($"GetPositionsInverse>. Position error: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                        }
+
                         return positionOnBoards;
                     }
 
@@ -1182,7 +1190,11 @@ namespace OsEngine.Market.Servers.Bybit
 
                         if (responseMessage.StatusCode != HttpStatusCode.OK)
                         {
-                            SendLogMessage($"GetPositionsLinear>. Position error: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                            if (responseMessage.StatusCode != 0)
+                            {
+                                SendLogMessage($"GetPositionsLinear>. Position error: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                            }
+
                             return positionOnBoards;
                         }
 
@@ -2293,7 +2305,7 @@ namespace OsEngine.Market.Servers.Bybit
                         webSocketPublicSpot.Dispose();
                         webSocketPublicSpot = null;
                     }
-                }    
+                }
             }
             catch (Exception ex)
             {
@@ -4455,7 +4467,10 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 else
                 {
-                    SendLogMessage($"CheckApiKeyInformation>. Error. {responseMessage.StatusCode} || {responseMessage.Content}", LogMessageType.Error);
+                    if (responseMessage.StatusCode != 0)
+                    {
+                        SendLogMessage($"CheckApiKeyInformation>. Error. {responseMessage.StatusCode} || {responseMessage.Content}", LogMessageType.Error);
+                    }
                 }
 
                 if (apiFromServer.Length < 1 || apiFromServer != ApiKey)

@@ -4,12 +4,15 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Instructions;
 using OsEngine.Language;
 using OsEngine.Layout;
 using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Windows;
 using System.Windows.Forms;
-using System.Collections.Generic;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -62,9 +65,9 @@ namespace OsEngine.Market.AutoFollow
                 DataGridFactory.ClearLinks(_grid);
                 HostCopyTraders.Child = null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                ServerMaster.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -144,12 +147,12 @@ namespace OsEngine.Market.AutoFollow
 
                 _grid.Rows.Clear();
 
-                 for (int i = 0; i < _master.CopyTraders.Count; i++)
-                 {
-                     _grid.Rows.Add(GetTraderRow(_master.CopyTraders[i]));
-                 }
+                for (int i = 0; i < _master.CopyTraders.Count; i++)
+                {
+                    _grid.Rows.Add(GetTraderRow(_master.CopyTraders[i]));
+                }
 
-                 _grid.Rows.Add(GetLastRow());
+                _grid.Rows.Add(GetLastRow());
             }
             catch (Exception ex)
             {
@@ -215,10 +218,20 @@ namespace OsEngine.Market.AutoFollow
             // 5 Remove / Add New
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+            if (InteractiveInstructions.AutoFollowPosts.AllInstructionsInClass != null
+                    && InteractiveInstructions.AutoFollowPosts.AllInstructionsInClass.Count > 0)
+            {
+                AddImageToRow(nRow);
+            }
+            else
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+            }
+
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-           
+
             DataGridViewButtonCell cell = new DataGridViewButtonCell();
             cell.Value = OsLocalization.Market.Label48;
             cell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -227,41 +240,73 @@ namespace OsEngine.Market.AutoFollow
             return nRow;
         }
 
+        private void AddImageToRow(DataGridViewRow row)
+        {
+            try
+            {
+                DataGridViewImageCell imageCell = new DataGridViewImageCell();
+                imageCell.ImageLayout = DataGridViewImageCellLayout.Normal;
+                row.Cells.Add(imageCell);
+                imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                string altPath = Path.Combine(System.Windows.Forms.Application.StartupPath, @"Images\InstructionPosts\GreenPostCollection.png");
+
+                if (File.Exists(altPath))
+                {
+                    using (FileStream fs = new FileStream(altPath, FileMode.Open, FileAccess.Read))
+                    {
+                        Image originalImage = Image.FromStream(fs);
+                        Image resizedImage = new Bitmap(originalImage, new System.Drawing.Size(25, 20));
+                        row.Cells[1].Value = resizedImage;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+
+                if (row.Cells.Count < 2)
+                {
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                }
+            }
+        }
+
         private void _grid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             try
             {
-                 int row = e.RowIndex;
-                 int column = e.ColumnIndex;
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
 
-                 if (row > _grid.Rows.Count
-                     || row < 0)
-                 {
-                     return;
-                 }
+                if (row > _grid.Rows.Count
+                    || row < 0)
+                {
+                    return;
+                }
 
-                 if (row + 1 == _grid.Rows.Count
-                     && column == 4)
-                 { // add new
+                if (row + 1 == _grid.Rows.Count
+                    && column == 4)
+                { // add new
                     _master.CreateNewCopyTrader();
-                     UpdateGrid();
-                 }
-                 else if (column == 4)
-                 { // delete
+                    UpdateGrid();
+                }
+                else if (column == 4)
+                { // delete
 
-                     AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label196);
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label196);
 
-                     ui.ShowDialog();
+                    ui.ShowDialog();
 
-                     if (ui.UserAcceptAction == false)
-                     {
-                         return;
-                     }
+                    if (ui.UserAcceptAction == false)
+                    {
+                        return;
+                    }
 
-                     int number = Convert.ToInt32(_grid.Rows[row].Cells[0].Value.ToString());
-                     _master.RemoveCopyTraderAt(number);
-                     UpdateGrid();
-                 }
+                    int number = Convert.ToInt32(_grid.Rows[row].Cells[0].Value.ToString());
+                    _master.RemoveCopyTraderAt(number);
+                    UpdateGrid();
+                }
                 else if (row + 1 < _grid.Rows.Count
                     && column == 3)
                 { // show dialog
@@ -269,6 +314,12 @@ namespace OsEngine.Market.AutoFollow
                     int number = Convert.ToInt32(_grid.Rows[row].Cells[0].Value.ToString());
                     ShowCopyTraderDialog(number);
                     UpdateGrid();
+                }
+                else if (row + 1 == _grid.Rows.Count
+                   && column == 1)
+                { // show instructions
+
+                    ShowInstructions();
                 }
             }
             catch (Exception ex)
@@ -319,7 +370,7 @@ namespace OsEngine.Market.AutoFollow
                     trader.IsOn = false;
                 }
 
-                if(trader.IsOn == true)
+                if (trader.IsOn == true)
                 {
                     nRow.Cells[2].Style.ForeColor = System.Drawing.Color.Green;
                 }
@@ -347,16 +398,16 @@ namespace OsEngine.Market.AutoFollow
         {
             CopyTrader trader = null;
 
-            for(int i = 0;i < _master.CopyTraders.Count;i++)
+            for (int i = 0; i < _master.CopyTraders.Count; i++)
             {
-                if(_master.CopyTraders [i].Number == number)
+                if (_master.CopyTraders[i].Number == number)
                 {
-                    trader = _master.CopyTraders [i];
+                    trader = _master.CopyTraders[i];
                     break;
                 }
             }
 
-            if(trader == null)
+            if (trader == null)
             {
                 return;
             }
@@ -365,7 +416,7 @@ namespace OsEngine.Market.AutoFollow
 
             CopyTraderUi ui = null;
 
-            for(int i = 0;i < _uis.Count;i++)
+            for (int i = 0; i < _uis.Count; i++)
             {
                 if (_uis[i].CopyTraderInstance.Number == trader.Number)
                 {
@@ -376,7 +427,7 @@ namespace OsEngine.Market.AutoFollow
 
             // 2 создаём или активируем
 
-            if(ui == null)
+            if (ui == null)
             {
                 ui = new CopyTraderUi(trader);
                 ui.LogMessageEvent += _master.SendLogMessage;
@@ -387,7 +438,7 @@ namespace OsEngine.Market.AutoFollow
             }
             else
             {
-                if(ui.WindowState == WindowState.Minimized)
+                if (ui.WindowState == WindowState.Minimized)
                 {
                     ui.WindowState = WindowState.Normal;
                 }
@@ -417,13 +468,64 @@ namespace OsEngine.Market.AutoFollow
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _master?.SendLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                _master?.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
-        private List<CopyTraderUi> _uis = new List<CopyTraderUi>(); 
+        private List<CopyTraderUi> _uis = new List<CopyTraderUi>();
+
+        #endregion
+
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ShowInstructions()
+        {
+            if (InteractiveInstructions.AutoFollowPosts.AllInstructionsInClass == null
+                    || InteractiveInstructions.AutoFollowPosts.AllInstructionsInClass.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.AutoFollowPosts.AllInstructionsInClass, InteractiveInstructions.AutoFollowPosts.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _instructionsUi.Closed -= _instructionsUi_Closed;
+                _instructionsUi = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         #endregion
 

@@ -133,7 +133,7 @@ namespace OsEngine.OsTrader.RiskManager
         /// <summary>
         /// Is the manager included
         /// </summary>
-        public bool IsActiv;
+        public bool IsActive;
 
         /// <summary>
         /// Clear previously loaded jorunals
@@ -181,7 +181,7 @@ namespace OsEngine.OsTrader.RiskManager
                 using (StreamReader reader = new StreamReader(@"Engine\" + _name + @".txt"))
                 {
                     MaxDrowDownToDayPersent = Convert.ToDecimal(reader.ReadLine());
-                    IsActiv = Convert.ToBoolean(reader.ReadLine());
+                    IsActive = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), false, out ReactionType);
 
                     reader.Close();
@@ -203,7 +203,7 @@ namespace OsEngine.OsTrader.RiskManager
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @".txt", false))
                 {
                     writer.WriteLine(MaxDrowDownToDayPersent);
-                    writer.WriteLine(IsActiv);
+                    writer.WriteLine(IsActive);
                     writer.WriteLine(ReactionType);
 
                     writer.Close();
@@ -265,7 +265,7 @@ namespace OsEngine.OsTrader.RiskManager
         {
             try
             {
-                if (!IsActiv)
+                if (!IsActive)
                 {
                     return;
                 }
@@ -291,7 +291,7 @@ namespace OsEngine.OsTrader.RiskManager
 
                 if (profit < -Math.Abs(MaxDrowDownToDayPersent))
                 {
-                    IsActiv = false;
+                    IsActive = false;
 
                     if (RiskManagerAlarmEvent != null)
                     {

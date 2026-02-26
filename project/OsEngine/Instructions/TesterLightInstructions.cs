@@ -45,6 +45,7 @@ namespace OsEngine.Instructions
                 result.Add(Link7);
                 result.Add(Link8);
                 result.Add(Link9);
+                result.Add(Link10);
 
                 return result;
             }
@@ -146,6 +147,28 @@ namespace OsEngine.Instructions
             {
                 Description = "Тестер. Добавляем инструменты для тестирования",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub28&items%5B%5D=item848"
+            }
+        };
+
+        public Instruction Link10 = new Instruction()
+        {
+            Type = InstructionType.Video,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Автоматическое сопровождение позиций в OsEngine",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub34&items%5B%5D=item116"
+            }
+        };
+
+        public Instruction Link11 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Добавить готового робота в OsEngine",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub28&items%5B%5D=item849"
             }
         };
     }

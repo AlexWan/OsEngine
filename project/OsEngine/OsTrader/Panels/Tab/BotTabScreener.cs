@@ -25,6 +25,7 @@ using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Drawing;
 using OsEngine.Market.Servers.Tester;
 using System.Threading.Tasks;
+using OsEngine.Journal;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -731,6 +732,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ((TesterServer)servers[0]).TestingStartEvent -= BotTabScreener_TestingStartEvent;
                     ((TesterServer)servers[0]).TestingEndEvent -= BotTabScreener_TestingEndEvent;
                 }
+            }
+
+            if(_journalUi.Count > 0)
+            {
+                JournalUi2[] journals = _journalUi.ToArray();
+
+                for (int i = 0;i < journals.Length;i++)
+                {
+                    journals[i].Close();
+                }
+                _journalUi = null;
             }
 
             if (TabDeletedEvent != null)
@@ -1496,6 +1508,96 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        public void ShowJournal(int tabNum)
+        {
+            try
+            {
+                BotTabSimple tab = Tabs[tabNum];
+
+                string journalName =
+                    "Journal2Ui_" + tab.TabName + tab.StartProgram.ToString();
+
+                for (int i = 0; i < _journalUi.Count; i++)
+                {
+                    if (_journalUi[i].JournalName == journalName)
+                    {
+                        if (_journalUi[i].WindowState == System.Windows.WindowState.Minimized)
+                        {
+                            _journalUi[i].WindowState = System.Windows.WindowState.Normal;
+                        }
+                        _journalUi[i].Activate();
+                        return;
+                    }
+                }
+
+                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
+
+                List<Journal.Journal> journals = new List<Journal.Journal>();
+                journals.Add(tab.GetJournal());
+
+                BotPanelJournal botPanel = new BotPanelJournal();
+                botPanel.BotName = tab.TabName;
+                botPanel.BotClass = this.NameStrategy;
+
+                botPanel._Tabs = new List<BotTabJournal>();
+
+                for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
+                {
+                    BotTabJournal botTabJournal = new BotTabJournal();
+                    botTabJournal.TabNum = i2;
+                    botTabJournal.Journal = journals[i2];
+                    botPanel._Tabs.Add(botTabJournal);
+                }
+
+                panelsJournal.Add(botPanel);
+
+                _journalUi.Add(new JournalUi2(panelsJournal, tab.StartProgram));
+                _journalUi[_journalUi.Count - 1].Closed += _journalUi_Closed;
+                _journalUi[_journalUi.Count - 1].LogMessageEvent += _journalUi_LogMessageEvent;
+                _journalUi[_journalUi.Count - 1].Show();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<JournalUi2> _journalUi = new List<JournalUi2>();
+
+        private void _journalUi_LogMessageEvent(string message, LogMessageType type)
+        {
+            SendNewLogMessage(message, type);
+        }
+
+        private void _journalUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_journalUi == null)
+                {
+                    return;
+                }
+
+                JournalUi2 myJournal = (JournalUi2)sender;
+
+                for (int i = 0; i < _journalUi.Count; i++)
+                {
+                    if (_journalUi[i].JournalName == myJournal.JournalName)
+                    {
+                        _journalUi[i].Closed -= _journalUi_Closed;
+                        _journalUi[i].LogMessageEvent -= _journalUi_LogMessageEvent;
+                        _journalUi[i].IsErase = true;
+                        _journalUi.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         /// <summary>
         /// start drawing this robot
         /// </summary> 
@@ -1681,16 +1783,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             newGrid.Columns.Add(colum8);
 
             DataGridViewButtonColumn colum9 = new DataGridViewButtonColumn();
-            //colum6.CellTemplate = cell0;
             colum9.ReadOnly = false;
             colum9.Width = 70;
             newGrid.Columns.Add(colum9);
 
             DataGridViewButtonColumn colum10 = new DataGridViewButtonColumn();
-            //colum6.CellTemplate = cell0;
             colum10.ReadOnly = false;
             colum10.Width = 70;
             newGrid.Columns.Add(colum10);
+
+            DataGridViewButtonColumn colum11 = new DataGridViewButtonColumn();
+            colum11.ReadOnly = false;
+            colum11.Width = 70;
+            newGrid.Columns.Add(colum11);
 
             SecuritiesDataGrid = newGrid;
 
@@ -1752,14 +1857,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                         ShowChart(tabRow);
                         SecuritiesDataGrid.Rows[tabRow].Cells[0].Selected = true;
                     }
+                    else if(tabColumn == 9)
+                    { // журнал
 
-                    if (tabColumn == 9)
+                       ShowJournal(tabRow);
+                    }
+                    else if (tabColumn == 10)
                     { // удаление
 
                         string secName = Tabs[tabRow].Connector.SecurityName;
                         string secClass = Tabs[tabRow].Connector.SecurityClass;
 
-                        AcceptDialogUi ui = 
+                        AcceptDialogUi ui =
                             new AcceptDialogUi(
                                 OsLocalization.Market.Label320 + "\n"
                                 + secName + "  " + secClass);
@@ -1893,6 +2002,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             DataGridViewButtonCell button = new DataGridViewButtonCell();
             button.Value = OsLocalization.Trader.Label172;
             nRow.Cells.Add(button);
+
+            DataGridViewButtonCell buttonJournal = new DataGridViewButtonCell();
+            buttonJournal.Value = OsLocalization.Trader.Label40;
+            nRow.Cells.Add(buttonJournal);
 
             DataGridViewButtonCell buttonDelete = new DataGridViewButtonCell();
             buttonDelete.Value = OsLocalization.Trader.Label470;
