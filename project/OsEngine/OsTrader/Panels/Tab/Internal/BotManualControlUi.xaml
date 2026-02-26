@@ -41,6 +41,12 @@
         <Label Name="LabelOrdersTypeTime" Content="Orders type time" HorizontalAlignment="Left" Margin="310,268,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
         <ComboBox Name="ComboBoxOrdersTypeTime" HorizontalAlignment="Left" Margin="449,268,0,0" VerticalAlignment="Top" Width="134"/>
         <CheckBox Name="CheckBoxLimitsMakerOnly" Content="Limits maker only" HorizontalAlignment="Left" Margin="310,294,0,0" VerticalAlignment="Top" />
+        <Button Name="ButtonBotManualControl" HorizontalAlignment="Left"  VerticalAlignment="Bottom" Height="36" Width="35" Margin="244,0,0,10" Click="ButtonBotManualControl_Click" >
+            <Grid>
+                <Image Name="PostGreenBotManualControl" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhiteBotManualControl"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
     </Grid>
 </Window>
