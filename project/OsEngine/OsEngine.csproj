@@ -105,6 +105,7 @@
     </Reference>
     <Reference Include="NSec.Cryptography">
       <HintPath>bin\Debug\NSec.Cryptography.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="OpenFAST">
       <HintPath>bin\Debug\OpenFAST.dll</HintPath>
