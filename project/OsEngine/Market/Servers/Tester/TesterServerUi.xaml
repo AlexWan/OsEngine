@@ -5,19 +5,19 @@
     <Grid>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="75"/>
+            <RowDefinition Height="92"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Rectangle Margin="5"  Grid.Row="1"/>
-        <Button Grid.Row="0" Grid.Column="0" Name="ButtonSynchronizer" Content="More settings" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="129" Click="ButtonSynchronizer_Click" FontSize="14"/>
-        <Button Grid.Row="0" Name="ButtonFast" Content="&gt;&gt;&gt;&gt;&gt;" Margin="162,49,383,0" VerticalAlignment="Top" RenderTransformOrigin="0.333,1.5" Click="buttonFast_Click" IsEnabled="True"
-                Grid.Column="0" FontSize="14" />
-        <Button Grid.Row="0" Name="ButtonNextCandle" Content="+ 1" Margin="0,49,194,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonNextCandle_Click" HorizontalAlignment="Right" Width="90" FontSize="14"/>
-        <Button Grid.Row="0" Name="ButtonPausePlay" Content="| |" Margin="0,49,289,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonPausePlay_Click" HorizontalAlignment="Right" Width="89" FontSize="14"/>
-        <Button Grid.Row="0" Grid.Column="0" Name="ButtonStartTest" Content="Start test" HorizontalAlignment="Left" Margin="5,49,0,0" VerticalAlignment="Top" Width="152" RenderTransformOrigin="0.333,1.5" IsEnabled="True" Click="buttonStartTest_Click" FontSize="14"/>
-        <ProgressBar Name="ProgressBar" Height="9" Margin="5,35,5,0" VerticalAlignment="Top" Grid.Row="0" Grid.Column="0" />
-        <Label Name="Label21" Content="Connection state " HorizontalAlignment="Right" Margin="0,6,112,0" VerticalAlignment="Top" Grid.Row="0" FontFamily="Calibri" Width="138" FontWeight="Bold" FontSize="16" />
-        <Label Name="LabelStatus" Content="Disconnect" Margin="0,6,5,0" VerticalAlignment="Top" Grid.Row="0" FontWeight="Bold" FontSize="16" HorizontalAlignment="Right" Width="102"/>
+        <Rectangle Margin="5,5,5,5"  Grid.Row="1"/>
+        <Button Grid.Row="0" Grid.Column="0" Name="ButtonSynchronizer" Content="More settings" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top" Width="129" Click="ButtonSynchronizer_Click" FontSize="14" Height="25"/>
+        <Button Grid.Row="0" Name="ButtonFast" Content="&gt;&gt;&gt;&gt;&gt;" Margin="162,55,383,0" VerticalAlignment="Top" RenderTransformOrigin="0.333,1.5" Click="buttonFast_Click" IsEnabled="True"
+                Grid.Column="0" FontSize="14" Height="25" />
+        <Button Grid.Row="0" Name="ButtonNextCandle" Content="+ 1" Margin="0,55,194,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonNextCandle_Click" HorizontalAlignment="Right" Width="90" FontSize="14" Height="25"/>
+        <Button Grid.Row="0" Name="ButtonPausePlay" Content="| |" Margin="0,55,289,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonPausePlay_Click" HorizontalAlignment="Right" Width="89" FontSize="14" Height="25"/>
+        <Button Grid.Row="0" Grid.Column="0" Name="ButtonStartTest" Content="Start test" HorizontalAlignment="Left" Margin="5,55,0,0" VerticalAlignment="Top" Width="152" RenderTransformOrigin="0.333,1.5" IsEnabled="True" Click="buttonStartTest_Click" FontSize="14" Height="25"/>
+        <ProgressBar Name="ProgressBar" Height="8" Margin="5,0,5,0" VerticalAlignment="Center" Grid.Column="0" />
+        <Label Name="Label21" Content="Connection state " HorizontalAlignment="Right" Margin="0,10,112,0" VerticalAlignment="Top" Grid.Row="0" FontFamily="Calibri" Width="138" FontWeight="Bold" FontSize="16" Height="23" />
+        <Label Name="LabelStatus" Content="Disconnect" Margin="0,10,5,0" VerticalAlignment="Top" Grid.Row="0" FontWeight="Bold" FontSize="16" HorizontalAlignment="Right" Width="102" Height="23"/>
         <TabControl Margin="10,21,12,10" Grid.Row="1">
             <TabItem Name="Label29" Header=" Broadcast data " FontSize="14">
                 <Grid>
@@ -94,7 +94,13 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <Button Grid.Row="0" Name="ButtonGoTo" Content="&gt;&gt;go to" Margin="0,49,5,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonGoTo_Click"/>
-        <Button Grid.Row="0" Name="ButtonNextPos" Content="&gt;&gt;next pos" Margin="0,49,99,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonNextPos_Click"/>
+        <Button Grid.Row="0" Name="ButtonGoTo" Content="&gt;&gt;go to" Margin="0,55,5,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonGoTo_Click" Height="25"/>
+        <Button Grid.Row="0" Name="ButtonNextPos" Content="&gt;&gt;next pos" Margin="0,55,99,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonNextPos_Click" Height="25"/>
+        <Button Name="ButtonTesterServer" HorizontalAlignment="Right" Margin="0,4,255,0" Grid.Row="0" VerticalAlignment="Top" Height="36" Width="34" Click="ButtonTesterServer_Click">
+            <Grid>
+                <Image Name="PostGreenTesterServer" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhiteTesterServer"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
     </Grid>
 </Window>
