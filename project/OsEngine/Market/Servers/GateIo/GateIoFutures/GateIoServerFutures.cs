@@ -375,13 +375,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 security.SecurityType = SecurityType.Futures;
                 security.PriceStep = current.order_price_round.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
-                security.Lot = 1;
+                security.Lot = current.quanto_multiplier.ToDecimal();
                 security.Decimals = current.order_price_round.DecimalsCount();
-                security.DecimalsVolume = current.quanto_multiplier.DecimalsCount();
+                security.DecimalsVolume = current.order_size_min.DecimalsCount();
 
-                security.VolumeStep = current.quanto_multiplier.ToDecimal();
+                security.VolumeStep = current.order_size_min.ToDecimal();
                 security.MinTradeAmountType = MinTradeAmountType.Contract;
-                security.MinTradeAmount = current.quanto_multiplier.ToDecimal();
+                security.MinTradeAmount = current.order_size_min.ToDecimal();
 
                 securities.Add(security);
             }
