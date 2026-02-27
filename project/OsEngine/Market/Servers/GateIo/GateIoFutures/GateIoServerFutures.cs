@@ -2368,7 +2368,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                 if (order.Side == Side.Sell)
                 {
-                    outputVolume = -1 * order.Volume;
+                    outputVolume = -1 * order.Volume / GetVolume(order.SecurityNameCode);
                 }
 
                 string size = outputVolume.ToString();
