@@ -675,6 +675,11 @@ namespace OsEngine.Market.Servers.Transaq
                     }
                 }
             }
+
+            if (SecurityEvent != null)
+            {
+                SecurityEvent(_securities);
+            }
         }
 
         private DateTime _lastUpdateSecurityArrayTime;
@@ -817,14 +822,7 @@ namespace OsEngine.Market.Servers.Transaq
                         if (security.SecurityType == SecurityType.Futures
                         || security.SecurityType == SecurityType.Option)
                         {
-                            if (security.PriceStep > 1)
-                            {
-                                security.PriceStepCost = security.PriceStep * pointCost / 100;
-                            }
-                            else
-                            {
-                                security.PriceStepCost = pointCost / 100;
-                            }
+                            security.PriceStepCost = security.PriceStep * pointCost * (decimal)Math.Pow(10, security.Decimals - 2);
                         }
                         else
                         {
