@@ -58,6 +58,8 @@ namespace OsEngine.Instructions
                 result.Add(Link20);
                 result.Add(Link21);
                 result.Add(Link22);
+                result.Add(Link23);
+                result.Add(Link24);
 
                 return result;
             }
@@ -302,6 +304,28 @@ namespace OsEngine.Instructions
             {
                 Description = "Сетки. Остановка сетки по ошибкам выставления и отзыва ордеров",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub101&items%5B%5D=item855"
+            }
+        };
+
+        public Instruction Link23 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Настройки неторговых периодов для сетки",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub101&items%5B%5D=item858"
+            }
+        };
+
+        public Instruction Link24 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Как запустить сетку и ребалансировщик на одном счёте",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub101&items%5B%5D=item859"
             }
         };
     }
