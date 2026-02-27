@@ -323,8 +323,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private RateGate _rateGateSecurities = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
+        private Dictionary<string, Security> _securitiesDict = new Dictionary<string, Security>();
+
         public void GetSecurities()
         {
+
+            if (_securitiesDict == null)
+            {
+                _securitiesDict = new Dictionary<string, Security>();
+            }
+
             _rateGateSecurities.WaitToProceed();
 
             try
@@ -375,13 +383,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 security.SecurityType = SecurityType.Futures;
                 security.PriceStep = current.order_price_round.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
-                security.Lot = current.quanto_multiplier.ToDecimal();
+                security.Lot = 1;
                 security.Decimals = current.order_price_round.DecimalsCount();
-                security.DecimalsVolume = current.order_size_min.DecimalsCount();
+                security.DecimalsVolume = current.quanto_multiplier.DecimalsCount();
 
-                security.VolumeStep = current.order_size_min.ToDecimal();
+                security.VolumeStep = current.quanto_multiplier.ToDecimal();
                 security.MinTradeAmountType = MinTradeAmountType.Contract;
-                security.MinTradeAmount = current.order_size_min.ToDecimal();
+                security.MinTradeAmount = current.quanto_multiplier.ToDecimal();
 
                 securities.Add(security);
             }
@@ -389,6 +397,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             if (securities.Count > 0)
             {
                 securities = securities.OrderBy(s => s.Name).ToList();
+            }
+
+            foreach (Security sec in securities)
+            {
+                _securitiesDict[sec.Name] = sec;
             }
 
             SecurityEvent?.Invoke(securities);
@@ -514,8 +527,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                             position.SecurityNameCode = item.contract;
                         }
 
-                        position.ValueBegin = item.size.ToDecimal();
-                        position.ValueCurrent = item.size.ToDecimal();
+                        position.ValueBegin = item.size.ToDecimal() * GetVolume(item.contract);
+                        position.ValueCurrent = item.size.ToDecimal() * GetVolume(item.contract);
                         position.UnrealizedPnl = item.unrealised_pnl.ToDecimal();
 
                         portfolio.SetNewPosition(position);
@@ -2206,7 +2219,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     newTrade.Price = responseMyTrade.result[i].price.ToDecimal();
                     newTrade.NumberTrade = responseMyTrade.result[i].id;
                     newTrade.Side = responseMyTrade.result[i].size.ToDecimal() < 0 ? Side.Sell : Side.Buy;
-                    newTrade.Volume = Math.Abs(responseMyTrade.result[i].size.ToDecimal());
+                    newTrade.Volume = Math.Abs(responseMyTrade.result[i].size.ToDecimal() * GetVolume(security));
 
                     MyTradeEvent?.Invoke(newTrade);
                 }
@@ -2280,7 +2293,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     }
 
                     newOrder.State = orderState;
-                    newOrder.Volume = Math.Abs(responseOrders.result[i].size.ToDecimal());
+                    newOrder.Volume = Math.Abs(responseOrders.result[i].size.ToDecimal() * GetVolume(newOrder.SecurityNameCode));
                     newOrder.Price = responseOrders.result[i].price.ToDecimal();
                     newOrder.ServerType = ServerType.GateIoFutures;
                     newOrder.PortfolioNumber = "GateIoFutures";
@@ -2351,7 +2364,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             try
             {
-                decimal outputVolume = order.Volume;
+                decimal outputVolume = order.Volume / GetVolume(order.SecurityNameCode);
 
                 if (order.Side == Side.Sell)
                 {
@@ -2408,6 +2421,23 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+        }
+
+        private decimal GetVolume(string securityName)
+        {
+            decimal minVolume = 1;
+
+            if (_securitiesDict.TryGetValue(securityName, out Security sec))
+            {
+                minVolume = sec.MinTradeAmount;
+            }
+
+            if (minVolume <= 0)
+            {
+                return 1;
+            }
+
+            return minVolume;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -2642,7 +2672,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         }
 
                         newOrder.State = orderState;
-                        newOrder.Volume = Math.Abs(responseOrders[i].size.ToDecimal());
+                        newOrder.Volume = Math.Abs(responseOrders[i].size.ToDecimal() * GetVolume(newOrder.SecurityNameCode));
                         newOrder.Price = responseOrders[i].price.ToDecimal();
                         newOrder.ServerType = ServerType.GateIoFutures;
                         newOrder.PortfolioNumber = "GateIoFutures";
@@ -2714,7 +2744,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                             newTrade.Price = responseMyTrade[i].price.ToDecimal();
                             newTrade.NumberTrade = responseMyTrade[i].id;
                             newTrade.Side = responseMyTrade[i].size.ToDecimal() < 0 ? Side.Sell : Side.Buy;
-                            newTrade.Volume = Math.Abs(responseMyTrade[i].size.ToDecimal());
+                            newTrade.Volume = Math.Abs(responseMyTrade[i].size.ToDecimal() * GetVolume(newTrade.SecurityNameCode));
 
                             MyTradeEvent?.Invoke(newTrade);
                         }
