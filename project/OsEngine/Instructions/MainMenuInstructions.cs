@@ -38,6 +38,7 @@ namespace OsEngine.Instructions
 
                 result.Add(Link1);
                 result.Add(Link2);
+                result.Add(Link3);
 
                 return result;
             }
@@ -62,6 +63,17 @@ namespace OsEngine.Instructions
             {
                 Description = "Главное меню OsEngine. Общие настройки",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&subcats%5B%5D=sub28&items%5B%5D=item845"
+            }
+        };
+
+        public Instruction Link3 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Модуль обновления OsEngine: как обновить терминал в автоматическом режиме",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab76&subcats%5B%5D=sub34&items%5B%5D=item863"
             }
         };
     }
