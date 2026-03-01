@@ -63,6 +63,8 @@ namespace OsEngine.Instructions
                 result.Add(Link25);
                 result.Add(Link26);
 
+                result.Add(Link28);
+
                 return result;
             }
         }
@@ -361,6 +363,17 @@ namespace OsEngine.Instructions
             {
                 Description = "Опицоны",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&cats%5B%5D=tab76&subcats%5B%5D=sub116"
+            }
+        };
+
+        public Instruction Link28 = new Instruction()
+        {
+            Type = InstructionType.Video,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Модуль просмотра нагрузки на систему",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab76&subcats%5B%5D=sub34&items%5B%5D=item451"
             }
         };
     }
