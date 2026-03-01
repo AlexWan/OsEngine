@@ -171,5 +171,16 @@ namespace OsEngine.Instructions
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub28&items%5B%5D=item849"
             }
         };
+
+        public Instruction Link12 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Риск менеджер",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&cats%5B%5D=tab76&subcats%5B%5D=sub28&items%5B%5D=item381"
+            }
+        };
     }
 }
