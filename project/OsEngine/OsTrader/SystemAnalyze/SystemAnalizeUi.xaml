@@ -59,17 +59,23 @@
         <Rectangle  Margin="2,0,2,5" Grid.Row="3"/>
         <Label Content="MOQ" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="20" Width="46" Grid.Row="3"/>
         <Button Name="ButtonMoqToolTip" Content="?" HorizontalAlignment="Left" Margin="49,12,0,0" Grid.Row="3" VerticalAlignment="Top" Height="14" Width="14" Click="ButtonMoqToolTip_Click"/>
-       
+
         <CheckBox Name="CheckBoxMoqCollectDataIsOn" Content="Collect data" HorizontalAlignment="Left" Margin="86,8,0,0" VerticalAlignment="Top" Grid.Row="3" Height="22" Width="86"/>
         <Label Name="LabelMoqPeriod" Content="Period" HorizontalAlignment="Right" Margin="0,8,346,0" VerticalAlignment="Top" Grid.Row="3"/>
         <ComboBox Name="ComboBoxMoqPeriodSavePoint" HorizontalAlignment="Right" Margin="0,8,211,0" VerticalAlignment="Top" Width="120" Grid.Row="3"/>
         <Label Name="LabelMoqPointsMaxCount" Content="Max points" HorizontalAlignment="Right" Margin="0,8,132,0" VerticalAlignment="Top" Grid.Row="3"/>
         <TextBox Name="TextBoxMoqPointsMax" HorizontalAlignment="Right" Margin="0,8,27,0" VerticalAlignment="Top" Width="100" Grid.Row="3"/>
-        
+
         <Label Name="LabelMoqMaxOrdersInQueue" Content="Orders in queue" HorizontalAlignment="Left" Margin="10,54,0,0" VerticalAlignment="Top" Grid.Row="3"/>
         <TextBox Name="TextBoxMaxOrdersInQueue" HorizontalAlignment="Left" Margin="129,54,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="43" Grid.Row="3"/>
-        
+
         <WindowsFormsHost Name="HostMoq" Margin="177,38,3,5" Grid.Row="3"/>
+        <Button Name="ButtonSystemAnalyze" HorizontalAlignment="Left" Margin="10,0,0,10" Grid.Row="3" VerticalAlignment="Bottom" Height="36" Width="35" Click="ButtonSystemAnalyze_Click">
+            <Grid>
+                <Image Name="PostGreenSystemAnalyze" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhiteSystemAnalyze"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
     </Grid>
 </Window>
