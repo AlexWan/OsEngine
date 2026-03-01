@@ -39,6 +39,12 @@
                         HorizontalAlignment="Right"
                         Margin="0,0,0,0"
                         Click="ButtonUpdRequest_Click"/>
+                <Button Name="ButtonUpdateModule" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Center" Height="36" Width="35" Click="ButtonUpdateModule_Click">
+                    <Grid>
+                        <Image Name="PostGreenUpdateModule" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                        <Image Name="PostWhiteUpdateModule"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                    </Grid>
+                </Button>
             </Grid>
 
             <!-- TabControl -->
