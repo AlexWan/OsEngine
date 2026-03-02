@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.SystemAnalyze"
         mc:Ignorable="d"
-        Title="System analyze ui" Height="700" Width="600" MinHeight="400" MinWidth="590" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" ResizeMode="CanResize" WindowStartupLocation="CenterScreen" >
+        Title="System analyze ui" Height="700" Width="600" MinHeight="520" MinWidth="590" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" ResizeMode="CanResize" WindowStartupLocation="CenterScreen" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="200*"/>

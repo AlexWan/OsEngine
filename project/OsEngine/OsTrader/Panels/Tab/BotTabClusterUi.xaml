@@ -20,6 +20,12 @@
         <Label Name="LabelLinesStep" Content="Lines step" HorizontalAlignment="Left" Margin="104,129,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxChartType" Margin="182,82,89,0" VerticalAlignment="Top"/>
         <Label Name="LabelShowType" Content="Show" HorizontalAlignment="Left" Margin="104,82,0,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonPostsCluster" HorizontalAlignment="Left" Margin="16,0,0,43" VerticalAlignment="Bottom" Height="36" Width="35">
+            <Grid>
+                <Image Name="GreenCollectionCluster"  Source="/Images/InstructionPosts/GreenPostCollection.png"  Width="31" Height="25"/>
+                <Image Name="WhiteCollectionCluster"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
     </Grid>
 </Window>
