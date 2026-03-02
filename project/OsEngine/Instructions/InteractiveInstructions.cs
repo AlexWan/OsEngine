@@ -28,5 +28,7 @@ namespace OsEngine
         public static OptimizerInstructions OptimizerPosts = new OptimizerInstructions();
 
         public static AutoFollowInstructions AutoFollowPosts = new AutoFollowInstructions();
+
+        public static ClusterInstructions ClusterPosts = new ClusterInstructions();
     }
 }
