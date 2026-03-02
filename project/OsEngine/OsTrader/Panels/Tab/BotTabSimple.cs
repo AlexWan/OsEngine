@@ -6233,6 +6233,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     price = PriceBestBid - Security.PriceStep * 40;
                 }
+
+                order.Price = price;
             }
 
             if (order.TypeOrder == OrderPriceType.Market
