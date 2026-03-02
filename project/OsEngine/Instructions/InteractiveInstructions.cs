@@ -30,5 +30,7 @@ namespace OsEngine
         public static AutoFollowInstructions AutoFollowPosts = new AutoFollowInstructions();
 
         public static ClusterInstructions ClusterPosts = new ClusterInstructions();
+
+        public static IndexInstructions IndexPosts = new IndexInstructions();
     }
 }

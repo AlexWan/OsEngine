@@ -12,12 +12,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
 using OsEngine.Market;
+using System.Windows.Threading;
+using OsEngine.Instructions;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
     public partial class BotTabIndexUi
     {
-
         public BotTabIndexUi(BotTabIndex spread)
         {
             InitializeComponent();
@@ -131,9 +132,78 @@ namespace OsEngine.OsTrader.Panels.Tab
             this.Activate();
             this.Focus();
 
+            if (InteractiveInstructions.IndexPosts.AllInstructionsInClass == null
+             || InteractiveInstructions.IndexPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostsIndex.Visibility = Visibility.Hidden;
+                ButtonInstructionIndex.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                ButtonPostsIndex.Click += ButtonPostsIndex_Click;
+            }
+
+            StartButtonBlinkAnimation();
+
             Thread worker = new Thread(PricePainterThreadWorker);
             worker.Name = "BotTabIndexPricePainter";
             worker.Start();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            GreenCollectionIndex.Opacity = 1;
+                            WhiteCollectionIndex.Opacity = 0;
+                            PostGreenIndex.Opacity = 1;
+                            PostWhiteIndex.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            GreenCollectionIndex.Opacity = 0;
+                            WhiteCollectionIndex.Opacity = 1;
+                            PostGreenIndex.Opacity = 0;
+                            PostWhiteIndex.Opacity = 1;
+                        }
+                        else
+                        {
+                            GreenCollectionIndex.Opacity = 1;
+                            WhiteCollectionIndex.Opacity = 0;
+                            PostGreenIndex.Opacity = 1;
+                            PostWhiteIndex.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
@@ -756,5 +826,61 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ButtonPostsIndex_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.IndexPosts.AllInstructionsInClass, InteractiveInstructions.IndexPosts.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _instructionsUi.Closed -= _instructionsUi_Closed;
+                _instructionsUi = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ButtonInstructionIndex_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.IndexPosts.Link3.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }
