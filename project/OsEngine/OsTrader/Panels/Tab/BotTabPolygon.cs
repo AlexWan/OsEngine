@@ -14,6 +14,8 @@ using System.Windows.Forms.Integration;
 using System.Threading;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using System.Drawing;
+using OsEngine.Instructions;
 
 
 namespace OsEngine.OsTrader.Panels.Tab
@@ -191,21 +193,21 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Sequences = null;
                 }
 
-                 if (_grid != null)
-                 {
+                if (_grid != null)
+                {
                     DataGridFactory.ClearLinks(_grid);
                     _grid.CellClick -= _grid_CellClick;
                     _grid.DataError -= _grid_DataError;
                     _grid.Rows.Clear();
                     _grid.Columns.Clear();
                     _grid = null;
-                 }
+                }
 
-                 if (_host != null)
-                 {
-                     _host.Child = null;
-                     _host = null;
-                 }
+                if (_host != null)
+                {
+                    _host.Child = null;
+                    _host = null;
+                }
 
                 if (TabDeletedEvent != null)
                 {
@@ -444,7 +446,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void TrySortSequences()
         {
-            if(SortingOnOff == false)
+            if (SortingOnOff == false)
             {
                 return;
             }
@@ -468,7 +470,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
                     }
                 }
-                catch(Exception e) 
+                catch (Exception e)
                 {
                     SendNewLogMessage(e.Message, LogMessageType.Error);
                 }
@@ -536,7 +538,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         Sequences[i].ProfitGreaterThanSignalValueEvent -= Pair_ProfitGreaterThanSignalValueEvent;
                         Sequences[i].LogMessageEvent -= Pair_LogMessageEvent;
 
-                        for(int i2 = 0;i2 <  _uiList.Count;i2++)
+                        for (int i2 = 0; i2 < _uiList.Count; i2++)
                         {
                             if (_uiList[i2].Polygon.Name == Sequences[i].Name)
                             {
@@ -641,7 +643,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Create a sequence of instruments according to predefined securities and settings. 
         /// Called from the auto-create sequences interface
         /// </summary>
-        public void CreateSequence(string sec1, string sec2, string sec3, 
+        public void CreateSequence(string sec1, string sec2, string sec3,
             string baseCurrency, string portfolio, ServerType server, string serverName)
         {
             lock (_pairsLocker)
@@ -680,7 +682,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void StartThisTab(BotTabSimple tab, ServerType server, 
+        private void StartThisTab(BotTabSimple tab, ServerType server,
             string portfolioName, string securityName, string serverName)
         {
             // 1 берём сервер
@@ -695,7 +697,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             for (int i = 0; i < servers.Count; i++)
             {
-                if (servers[i].ServerType == server 
+                if (servers[i].ServerType == server
                     && servers[i].ServerNameAndPrefix == serverName)
                 {
                     myServer = servers[i];
@@ -812,9 +814,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ProfitGreaterThanSignalValueEvent(profit, sequence);
                 }
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
-                SendNewLogMessage(e.Message,LogMessageType.Error);
+                SendNewLogMessage(e.Message, LogMessageType.Error);
             }
         }
 
@@ -832,7 +834,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SendNewLogMessage(e.Message, LogMessageType.Error);
             }
         }
-    
+
         /// <summary>
         /// The source has a new sequence for trading
         /// </summary>
@@ -1004,7 +1006,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _grid.Rows.Add(rows[i]);
                 }
 
-                if(showRow > 0 &&
+                if (showRow > 0 &&
                     showRow < _grid.Rows.Count)
                 {
                     _grid.FirstDisplayedScrollingRowIndex = showRow;
@@ -1022,53 +1024,65 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void TryRePaintGrid()
         {
-            List<DataGridViewRow> rows = GetRowsToGrid();
-
-            if (rows == null)
+            try
             {
-                return;
-            }
+                List<DataGridViewRow> rows = GetRowsToGrid();
 
-            if (rows.Count != _grid.Rows.Count)
-            {// 1 кол-во строк изменилось - перерисовываем полностью
-                RePaintGrid();
-                return;
-            }
-
-            for (int i = 1; i < rows.Count; i++)
-            {
-                if (rows[i].Cells[1].Value == null)
+                if (rows == null)
                 {
-                    continue;
+                    return;
                 }
 
-                TryRePaintRow(_grid.Rows[i], rows[i]);
-            }
+                if (rows.Count != _grid.Rows.Count)
+                {// 1 кол-во строк изменилось - перерисовываем полностью
+                    RePaintGrid();
+                    return;
+                }
 
-            if(_grid.Rows.Count == 0)
+                for (int i = 1; i < rows.Count; i++)
+                {
+                    if (i >= _grid.Rows.Count)
+                    {
+                        // На всякий случай, если здесь вдруг
+                        break;
+                    }
+
+                    if (rows[i].Cells[1].Value == null)
+                    {
+                        continue;
+                    }
+
+                    TryRePaintRow(_grid.Rows[i], rows[i]);
+                }
+
+                if (_grid.Rows.Count == 0)
+                {
+                    return;
+                }
+
+                DataGridViewRow firstOldRow = _grid.Rows[0];
+
+                bool sortingOnOffCurrent;
+
+                if (firstOldRow.Cells[3].Value.ToString().EndsWith("on"))
+                {
+                    sortingOnOffCurrent = true;
+                }
+                else// if (firstOldRow.Cells[5].Value.ToString().EndsWith("off"))
+                {
+                    sortingOnOffCurrent = false;
+                }
+
+                if (sortingOnOffCurrent != SortingOnOff)
+                {
+                    SortingOnOff = sortingOnOffCurrent;
+                    SaveStandartSettings();
+                }
+            }
+            catch (Exception error)
             {
-                return;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            DataGridViewRow firstOldRow = _grid.Rows[0];
-
-            bool sortingOnOffCurrent;
-
-            if (firstOldRow.Cells[3].Value.ToString().EndsWith("on"))
-            {
-                sortingOnOffCurrent = true;
-            }
-            else// if (firstOldRow.Cells[5].Value.ToString().EndsWith("off"))
-            {
-                sortingOnOffCurrent = false;
-            }
-
-            if(sortingOnOffCurrent != SortingOnOff)
-            {
-                SortingOnOff = sortingOnOffCurrent;
-                SaveStandartSettings();
-            }
-
         }
 
         /// <summary>
@@ -1191,7 +1205,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             comboBox.Items.Add("Sort on");
             comboBox.Items.Add("Sort off");
 
-            if(SortingOnOff)
+            if (SortingOnOff)
             {
                 comboBox.Value = "Sort on";
             }
@@ -1318,13 +1332,54 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+            if (InteractiveInstructions.PolygonPosts.AllInstructionsInClass != null
+                    && InteractiveInstructions.PolygonPosts.AllInstructionsInClass.Count > 0)
+            {
+                AddImageToRow(nRow);
+            }
+            else
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+            }
 
             DataGridViewButtonCell button = new DataGridViewButtonCell(); // добавить пару
             button.Value = OsLocalization.Trader.Label236;
             nRow.Cells.Add(button);
 
             return nRow;
+        }
+
+        private void AddImageToRow(DataGridViewRow row)
+        {
+            try
+            {
+                DataGridViewImageCell imageCell = new DataGridViewImageCell();
+                imageCell.ImageLayout = DataGridViewImageCellLayout.Normal;
+                row.Cells.Add(imageCell);
+                imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                string altPath = Path.Combine(Application.StartupPath, @"Images\InstructionPosts\GreenPostCollection.png");
+
+                if (File.Exists(altPath))
+                {
+                    using (FileStream fs = new FileStream(altPath, FileMode.Open, FileAccess.Read))
+                    {
+                        Image originalImage = Image.FromStream(fs);
+                        Image resizedImage = new Bitmap(originalImage, new Size(25, 20));
+                        row.Cells[4].Value = resizedImage;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+
+                if (row.Cells.Count < 2)
+                {
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                }
+            }
         }
 
         /// <summary>
@@ -1448,7 +1503,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _autoSelectPairsUi.Closed += _autoSelectPairsUi_Closed;
 
                 }
-                else if (column == 4)
+                else if (column == 4 && _grid.Rows.Count != row + 1)
                 {
                     // возможно кнопка открытия отдельного окна пары или общих настроек
 
@@ -1498,7 +1553,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _uiList.Add(ui);
 
                     ui.Closed += Ui_Closed;
-
+                }
+                else if (column == 4 && _grid.Rows.Count == row + 1)
+                {
+                    ShowInstructionsForTheBotStation();
                 }
             }
             catch (Exception error)
@@ -1563,11 +1621,62 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ShowInstructionsForTheBotStation()
+        {
+            if (InteractiveInstructions.PolygonPosts.AllInstructionsInClass == null
+                    || InteractiveInstructions.PolygonPosts.AllInstructionsInClass.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.PolygonPosts.AllInstructionsInClass, InteractiveInstructions.PolygonPosts.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == System.Windows.WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = System.Windows.WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _instructionsUi.Closed -= _instructionsUi_Closed;
+                _instructionsUi = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
         #region Logging
 
         private void Pair_LogMessageEvent(string message, LogMessageType type)
         {
-            if(type == LogMessageType.Error)
+            if (type == LogMessageType.Error)
             {
                 return;
             }
@@ -1867,7 +1976,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if(Tab1.PositionsOpenAll.Count > 0)
+                if (Tab1.PositionsOpenAll.Count > 0)
                 {
                     return true;
                 }
@@ -1908,7 +2017,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if(Tab1.Connector == null)
+                if (Tab1.Connector == null)
                 {
                     return "";
                 }
@@ -2065,7 +2174,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if(Tab1.Connector == null)
+                if (Tab1.Connector == null)
                 {
                     return "";
                 }
@@ -2097,7 +2206,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if(Tab2.Connector == null)
+                if (Tab2.Connector == null)
                 {
                     return "";
                 }
@@ -2115,7 +2224,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 sec = sec.ToLower();
 
-                sec = sec.Replace(EndCurrencyTab1, "");
+                if (!string.IsNullOrEmpty(EndCurrencyTab1))
+                {
+                    sec = sec.Replace(EndCurrencyTab1, "");
+                }
 
                 return sec.ToLower();
             }
@@ -2128,7 +2240,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if(Tab3.Connector == null)
+                if (Tab3.Connector == null)
                 {
                     return "";
                 }
@@ -2360,7 +2472,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void CheckSecurityInTab(BotTabSimple tab, string currency)
         {
-            if(tab.Connector == null)
+            if (tab.Connector == null)
             {
                 return;
             }
@@ -2395,7 +2507,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(Tab1.Connector == null
+                if (Tab1.Connector == null
                     || Tab2.Connector == null
                     || Tab3.Connector == null)
                 {
@@ -2730,7 +2842,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (ProfitBySequenceChangeEvent != null)
             {
-                if(_lastProfitInEvent != profitPercent)
+                if (_lastProfitInEvent != profitPercent)
                 {
                     ProfitBySequenceChangeEvent(profitPercent, this);
                     _lastProfitInEvent = profitPercent;

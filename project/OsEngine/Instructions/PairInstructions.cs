@@ -104,7 +104,7 @@ namespace OsEngine.Instructions
 
             Ru = new InstructionLocalized()
             {
-                Description = "Робот для парного арбитража на основе коинтеграции. PairCointegrationSideTrader\r\n",
+                Description = "Робот для парного арбитража на основе коинтеграции. PairCointegrationSideTrader",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub49&items%5B%5D=item686"
             }
         };

@@ -34,5 +34,7 @@ namespace OsEngine
         public static IndexInstructions IndexPosts = new IndexInstructions();
 
         public static PairInstructions PairPosts = new PairInstructions();
+
+        public static PolygonInstructions PolygonPosts = new PolygonInstructions();
     }
 }

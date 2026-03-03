@@ -1903,7 +1903,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            //nRow.Cells.Add(new DataGridViewTextBoxCell());
 
             if (InteractiveInstructions.PairPosts.AllInstructionsInClass != null
                    && InteractiveInstructions.PairPosts.AllInstructionsInClass.Count > 0)
