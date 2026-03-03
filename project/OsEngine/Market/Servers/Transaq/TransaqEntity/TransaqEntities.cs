@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         [XmlAttribute(AttributeName = "remove")]
         public string Remove { get; set; }
     }
-    
+
     [XmlRoot(ElementName = "server_status")]
     public class ServerStatus
     {
@@ -120,7 +120,7 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
     }
 
     [XmlRoot(ElementName = "sec_info_upd")]
-    public class SecurityInfo
+    public class SecurityInfoUpd
     {
         [XmlElement(ElementName = "secid")]
         public string Secid { get; set; }
@@ -142,6 +142,94 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         public string Minprice { get; set; }
         [XmlElement(ElementName = "maxprice")]
         public string Maxprice { get; set; }
+    }
+
+    [XmlRoot("sec_info")]
+    public class SecurityInfo
+    {
+        [XmlElement("secid")]
+        public string SecId { get; set; }
+
+        [XmlElement("secname")]
+        public string SecName { get; set; }
+
+        [XmlElement("seccode")]
+        public string SecCode { get; set; }
+
+        [XmlElement("market")]
+        public string Market { get; set; }
+
+        [XmlElement("pname")]
+        public string PName { get; set; }
+
+        [XmlElement("mat_date")]
+        public string MatDate { get; set; }
+
+        [XmlElement("clearing_price")]
+        public string ClearingPrice { get; set; }
+
+        [XmlElement("minprice")]
+        public string MinPrice { get; set; }
+
+        [XmlElement("maxprice")]
+        public string MaxPrice { get; set; }
+
+        [XmlElement("buy_deposit")]
+        public string BuyDeposit { get; set; }
+
+        [XmlElement("sell_deposit")]
+        public string SellDeposit { get; set; }
+
+        [XmlElement("bgo_c")]
+        public string BgoC { get; set; }
+
+        [XmlElement("bgo_nc")]
+        public string BgoNc { get; set; }
+
+        [XmlElement("accruedint")]
+        public string AccruedInterest { get; set; }
+
+        [XmlElement("coupon_value")]
+        public string CouponValue { get; set; }
+
+        [XmlElement("coupon_date")]
+        public string CouponDate { get; set; }
+
+        [XmlElement("coupon_period")]
+        public string CouponPeriod { get; set; }
+
+        [XmlElement("facevalue")]
+        public string FaceValue { get; set; }
+
+        [XmlElement("put_call")]
+        public string PutCall { get; set; }
+
+        [XmlElement("point_cost")]
+        public string PointCost { get; set; }
+
+        [XmlElement("bgo_buy")]
+        public string BgoBuy { get; set; }
+
+        [XmlElement("opt_type")]
+        public string OptType { get; set; }
+
+        [XmlElement("lot_volume")]
+        public string LotVolume { get; set; }
+
+        [XmlElement("isin")]
+        public string Isin { get; set; }
+
+        [XmlElement("regnumber")]
+        public string RegNumber { get; set; }
+
+        [XmlElement("buybackprice")]
+        public string BuybackPrice { get; set; }
+
+        [XmlElement("buybackdate")]
+        public string BuybackDate { get; set; }
+
+        [XmlElement("currencyid")]
+        public string CurrencyId { get; set; }
     }
 
     [XmlRoot(ElementName = "quote")]
