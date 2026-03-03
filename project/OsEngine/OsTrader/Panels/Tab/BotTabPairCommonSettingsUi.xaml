@@ -54,6 +54,12 @@
         <ComboBox Name="ComboBoxRegime2" HorizontalAlignment="Left" Margin="375,164,0,0" VerticalAlignment="Top" Width="123"/>
         <CheckBox Name="CheckBoxCorrelationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="106,330,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxCointegrationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="379,330,0,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonPostPairCommonSettings" HorizontalAlignment="Left" Margin="10,234,0,0" VerticalAlignment="Top" Height="36" Width="35" Click="ButtonPostPairCommonSettings_Click">
+            <Grid>
+                <Image Name="PostGreenPairCommonSettings" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhitePairCommonSettings"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
 
     </Grid>

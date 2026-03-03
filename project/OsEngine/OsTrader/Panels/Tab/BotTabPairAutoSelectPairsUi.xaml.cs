@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Threading;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.OsTrader.Panels.Tab
@@ -153,6 +154,64 @@ namespace OsEngine.OsTrader.Panels.Tab
             this.Focus();
 
             _pairTrader.TabDeletedEvent += _pairTrader_TabDeletedEvent;
+
+            if (InteractiveInstructions.PairPosts.AllInstructionsInClass == null
+            || InteractiveInstructions.PairPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostAutoSelectPair.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenAutoSelectPair.Opacity = 1;
+                            PostWhiteAutoSelectPair.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenAutoSelectPair.Opacity = 0;
+                            PostWhiteAutoSelectPair.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenAutoSelectPair.Opacity = 1;
+                            PostWhiteAutoSelectPair.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void _pairTrader_TabDeletedEvent()
@@ -1418,6 +1477,22 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+
+        #region Posts collection
+
+        private void ButtonPostAutoSelectPair_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.PairPosts.Link13.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         #endregion
     }
