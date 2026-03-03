@@ -536,7 +536,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
                 else
                 {
-                    SendLogMessage($"Portfolio error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    if (responseMessage.ToString().StartsWith("<!DOCTYPE") == false
+                        && responseMessage.StatusCode != 0)
+                    {
+                        SendLogMessage($"Portfolio error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    }
+                       
                 }
             }
             catch (Exception ex)
@@ -685,7 +690,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
                 else
                 {
-                    SendLogMessage($"Positions error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    if (responseMessage.ToString().StartsWith("<!DOCTYPE") == false 
+                        && responseMessage.StatusCode != 0)
+                    {
+                        SendLogMessage($"Positions error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    }    
                 }
             }
             catch (Exception ex)
@@ -932,7 +941,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
                 else
                 {
-                    if (response.ToString().StartsWith("<!DOCTYPE") == false)
+                    if (response.ToString().StartsWith("<!DOCTYPE") == false 
+                        && response.StatusCode != 0)
                     {
                         SendLogMessage($"Candle history error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                     }
