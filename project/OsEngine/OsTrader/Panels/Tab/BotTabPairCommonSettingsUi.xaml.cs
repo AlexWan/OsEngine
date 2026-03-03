@@ -7,6 +7,8 @@ using OsEngine.Language;
 using System;
 using System.Windows;
 using OsEngine.Entity;
+using OsEngine.Market;
+using System.Windows.Threading;
 
 
 namespace OsEngine.OsTrader.Panels.Tab
@@ -110,6 +112,64 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonApply.Click += ButtonApply_Click;
             ButtonPositionSupport.Click += ButtonPositionSupport_Click;
             Closed += BotTabPairCommonSettingsUi_Closed;
+
+            if (InteractiveInstructions.PairPosts.AllInstructionsInClass == null
+                || InteractiveInstructions.PairPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostPairCommonSettings.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenPairCommonSettings.Opacity = 1;
+                            PostWhitePairCommonSettings.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenPairCommonSettings.Opacity = 0;
+                            PostWhitePairCommonSettings.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenPairCommonSettings.Opacity = 1;
+                            PostWhitePairCommonSettings.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void BotTabPairCommonSettingsUi_Closed(object sender, EventArgs e)
@@ -200,5 +260,21 @@ namespace OsEngine.OsTrader.Panels.Tab
                 MessageBox.Show(error.ToString());
             }
         }
+
+        #region Posts collection
+
+        private void ButtonPostPairCommonSettings_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.PairPosts.Link11.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }

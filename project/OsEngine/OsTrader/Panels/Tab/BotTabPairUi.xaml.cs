@@ -18,6 +18,7 @@ using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Journal;
 using OsEngine.Logging;
+using System.Windows.Threading;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -216,6 +217,64 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (_pair.ShowTradePanelOnChart == false)
             {
                 ButtonHideShowRightPanel_Click(null, null);
+            }
+
+            if (InteractiveInstructions.PairPosts.AllInstructionsInClass == null
+                || InteractiveInstructions.PairPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostTabPair.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenTabPair.Opacity = 1;
+                            PostWhiteTabPair.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenTabPair.Opacity = 0;
+                            PostWhiteTabPair.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenTabPair.Opacity = 1;
+                            PostWhiteTabPair.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1112,5 +1171,21 @@ namespace OsEngine.OsTrader.Panels.Tab
                 System.Windows.MessageBox.Show(ex.ToString());
             }
         }
+
+        #region Posts collection
+
+        private void ButtonPostTabPair_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.PairPosts.Link12.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }

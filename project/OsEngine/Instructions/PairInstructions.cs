@@ -19,7 +19,7 @@ namespace OsEngine.Instructions
 
                 if (currentLanguage == OsLocalType.Ru)
                 {
-                    return "Пары. Сборник статей";
+                    return "Парный арбитраж. Сборник статей";
                 }
                 else if (currentLanguage == OsLocalType.Eng)
                 {
@@ -46,6 +46,9 @@ namespace OsEngine.Instructions
                 result.Add(Link8);
                 result.Add(Link9);
                 result.Add(Link10);
+                result.Add(Link11);
+                result.Add(Link12);
+                result.Add(Link13);
 
                 return result;
             }
@@ -159,6 +162,39 @@ namespace OsEngine.Instructions
                 Description = "О базовой идее и прибыли в парном арбитраже",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub49&items%5B%5D=item316"
             }
-        }; 
+        };
+
+        public Instruction Link11 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Парный арбитраж. Общие настройки",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub49&items%5B%5D=item864"
+            }
+        };
+
+        public Instruction Link12 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Парный арбитраж. Окно пары",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub49&items%5B%5D=item865"
+            }
+        };
+
+        public Instruction Link13 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Парный арбитраж. Окно авто-выбора пар",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub49&items%5B%5D=item866"
+            }
+        };
     }
 }

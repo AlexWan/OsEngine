@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab"
         mc:Ignorable="d"
- Title="Pair Trader"  Height="690" Width="1263" MinHeight="550" MinWidth="700" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+ Title="Pair Trader"  Height="700" Width="1263" MinHeight="700" MinWidth="700" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -46,23 +46,28 @@
             <Label Name="LabelSec2Regime" Content="Regime" HorizontalAlignment="Left" Margin="10,224,0,0" VerticalAlignment="Top"/>
             <ComboBox Name="ComboBoxSec2Regime"  HorizontalAlignment="Left" Margin="106,224,0,0" VerticalAlignment="Top" Width="106"/>
             <Button Name="ButtonPairJournal" Content="Journal" HorizontalAlignment="Center" Margin="0,358,0,0" VerticalAlignment="Top" Width="285"/>
-
+            <Button Name="ButtonPostTabPair" HorizontalAlignment="Left" Margin="249,0,0,10" VerticalAlignment="Bottom" Height="36" Width="35" Click="ButtonPostTabPair_Click">
+                <Grid>
+                    <Image Name="PostGreenTabPair" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                    <Image Name="PostWhiteTabPair"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                </Grid>
+            </Button>
 
         </Grid>
         <Grid Name="GridIndicatorsSettings" Height="233" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="305">
             <Rectangle Stroke="Black" Margin="0,0,0,0"/>
-            <Label Name="LabelCorrelation" Content="Correlation" HorizontalAlignment="Left" Margin="32,10,0,0" VerticalAlignment="Top" FontSize="18"/>
+            <Label Name="LabelCorrelation" Content="Correlation" HorizontalAlignment="Left" Margin="22,10,0,0" VerticalAlignment="Top" FontSize="18"/>
             <TextBox Name="TextBoxCorrelationLookBack" HorizontalAlignment="Left" Margin="151,38,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
-            <Label Name="LabelCorrelationLookBack" Content="Look back" HorizontalAlignment="Left" Margin="65,38,0,0" VerticalAlignment="Top"/>
+            <Label Name="LabelCorrelationLookBack" Content="Look back" HorizontalAlignment="Left" Margin="55,38,0,0" VerticalAlignment="Top"/>
             <Button Name="ButtonCorrelationReload" Content="Reload" HorizontalAlignment="Left" Margin="151,66,0,0" VerticalAlignment="Top" Width="120"/>
 
-            <Label Name="LabelCointegration" Content="Cointegration" HorizontalAlignment="Left" Margin="32,101,0,0" VerticalAlignment="Top" FontSize="18"/>
+            <Label Name="LabelCointegration" Content="Cointegration" HorizontalAlignment="Left" Margin="22,101,0,0" VerticalAlignment="Top" FontSize="18"/>
             <TextBox Name="TextBoxCointegrationDeviation" HorizontalAlignment="Left" Margin="151,137,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-            <Label Name="LabelCointegrationDeviation" Content="Deviation" HorizontalAlignment="Left" Margin="65,137,0,0" VerticalAlignment="Top"/>
+            <Label Name="LabelCointegrationDeviation" Content="Deviation" HorizontalAlignment="Left" Margin="55,137,0,0" VerticalAlignment="Top"/>
 
             <TextBox Name="TextBoxCointegrationLookBack" HorizontalAlignment="Left" Margin="151,165,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
 
-            <Label Name="LabelCointegrationLookBack" Content="Look back" HorizontalAlignment="Left" Margin="65,165,0,0" VerticalAlignment="Top"/>
+            <Label Name="LabelCointegrationLookBack" Content="Look back" HorizontalAlignment="Left" Margin="55,165,0,0" VerticalAlignment="Top"/>
             <Button Name="ButtonCointegrationReload" Content="Reload" HorizontalAlignment="Left" Margin="151,193,0,0" VerticalAlignment="Top" Width="120"/>
             <CheckBox Name="CheckBoxCorrelationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="151,10,0,0" VerticalAlignment="Top"/>
             <CheckBox Name="CheckBoxCointegrationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="152,101,0,0" VerticalAlignment="Top"/>
