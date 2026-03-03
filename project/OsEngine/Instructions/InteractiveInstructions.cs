@@ -32,5 +32,7 @@ namespace OsEngine
         public static ClusterInstructions ClusterPosts = new ClusterInstructions();
 
         public static IndexInstructions IndexPosts = new IndexInstructions();
+
+        public static PairInstructions PairPosts = new PairInstructions();
     }
 }

@@ -5,6 +5,7 @@
 
 using OsEngine.Alerts;
 using OsEngine.Entity;
+using OsEngine.Instructions;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -12,6 +13,7 @@ using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -1901,13 +1903,55 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            //nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+            if (InteractiveInstructions.PairPosts.AllInstructionsInClass != null
+                   && InteractiveInstructions.PairPosts.AllInstructionsInClass.Count > 0)
+            {
+                AddImageToRow(nRow);
+            }
+            else
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+            }
 
             DataGridViewButtonCell button = new DataGridViewButtonCell(); // добавить пару
             button.Value = OsLocalization.Trader.Label236;
             nRow.Cells.Add(button);
 
             return nRow;
+        }
+
+        private void AddImageToRow(DataGridViewRow row)
+        {
+            try
+            {
+                DataGridViewImageCell imageCell = new DataGridViewImageCell();
+                imageCell.ImageLayout = DataGridViewImageCellLayout.Normal;
+                row.Cells.Add(imageCell);
+                imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                string altPath = Path.Combine(Application.StartupPath, @"Images\InstructionPosts\GreenPostCollection.png");
+
+                if (File.Exists(altPath))
+                {
+                    using (FileStream fs = new FileStream(altPath, FileMode.Open, FileAccess.Read))
+                    {
+                        Image originalImage = Image.FromStream(fs);
+                        Image resizedImage = new Bitmap(originalImage, new Size(25, 20));
+                        row.Cells[4].Value = resizedImage;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+
+                if (row.Cells.Count < 2)
+                {
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                }
+            }
         }
 
         /// <summary>
@@ -1959,7 +2003,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         DeletePair(tabNum, true);
                     }
                 }
-                else if (column == 1)
+                else if (column == 1 && row > 0 && _grid.Rows.Count != row + 1)
                 { // возможно кнопка подключения бумаги
                     if (_grid.Rows[row].Cells[0].Value != null)
                     {
@@ -2052,7 +2096,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _autoSelectPairsUi.Closed += _autoSelectPairsUi_Closed;
 
                 }
-                else if (column == 4)
+                else if (column == 4 && _grid.Rows.Count != row + 1)
                 {
                     // возможно кнопка открытия отдельного окна пары или общих настроек
 
@@ -2098,6 +2142,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     ui.Closed += Ui_Closed;
 
+                }
+                else if (column == 4 && _grid.Rows.Count == row + 1)
+                {
+                    ShowInstructionsForTheBotStation();
                 }
             }
             catch (Exception error)
@@ -2157,6 +2205,57 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _autoSelectPairsUi.Closed -= _autoSelectPairsUi_Closed;
             _autoSelectPairsUi = null;
+        }
+
+        #endregion
+
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ShowInstructionsForTheBotStation()
+        {
+            if (InteractiveInstructions.PairPosts.AllInstructionsInClass == null
+                    || InteractiveInstructions.PairPosts.AllInstructionsInClass.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.PairPosts.AllInstructionsInClass, InteractiveInstructions.PairPosts.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == System.Windows.WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = System.Windows.WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _instructionsUi.Closed -= _instructionsUi_Closed;
+                _instructionsUi = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
