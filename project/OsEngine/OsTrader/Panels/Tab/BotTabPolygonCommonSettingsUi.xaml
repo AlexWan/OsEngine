@@ -39,6 +39,12 @@
                 <Label Name="LabelProfitToSignal" Content="Profit to signal %" HorizontalAlignment="Left" Margin="11,64,0,0" VerticalAlignment="Top"/>
                 <ComboBox Name="ComboBoxActionOnSignalType" HorizontalAlignment="Left" Margin="128,92,0,0" VerticalAlignment="Top" Width="94"/>
                 <Label Name="LabelActionOnSignalType" Content="Signal action" HorizontalAlignment="Left" Margin="10,92,0,0" VerticalAlignment="Top"/>
+                <Button Grid.Column="1" Name="ButtonPostPolygonCommonSettings" HorizontalAlignment="Left" Margin="240,113,0,0" VerticalAlignment="Top" Height="36" Width="35" Click="ButtonPostPolygonCommonSettings_Click">
+                    <Grid>
+                        <Image Name="PostGreenPolygonCommonSettings" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                        <Image Name="PostWhitePolygonCommonSettings"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                    </Grid>
+                </Button>
             </Grid>
             <Grid Name="GridToTrade" Margin="0,2,0,0" Grid.Row="1">
                 <Grid.ColumnDefinitions>

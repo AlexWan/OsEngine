@@ -15,6 +15,7 @@ using OsEngine.Market;
 using System.Windows.Forms;
 using System.Threading;
 using OsEngine.Logging;
+using System.Windows.Threading;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -147,6 +148,64 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonSec3.Click += ButtonSec3_Click;
 
             Polygon.StartPaintLog(HostLog);
+
+            if (InteractiveInstructions.PolygonPosts.AllInstructionsInClass == null
+             || InteractiveInstructions.PolygonPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostTabPolygon.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenTabPolygon.Opacity = 1;
+                            PostWhiteTabPolygon.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenTabPolygon.Opacity = 0;
+                            PostWhiteTabPolygon.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenTabPolygon.Opacity = 1;
+                            PostWhiteTabPolygon.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void BotTabPolygonUi_Closed(object sender, EventArgs e)
@@ -1097,5 +1156,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
+        #region Posts collection
+
+        private void ButtonPostTabPolygon_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.PolygonPosts.Link11.ShowLinkInBrowser();
+            }
+            catch (Exception error)
+            {
+                Polygon.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }
