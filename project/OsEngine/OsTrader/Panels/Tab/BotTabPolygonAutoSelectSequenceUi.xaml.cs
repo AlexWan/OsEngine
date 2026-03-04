@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using OsEngine.Logging;
+using System.Windows.Threading;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -114,6 +115,64 @@ namespace OsEngine.OsTrader.Panels.Tab
             TextBoxSearchSecurity.KeyDown += TextBoxSearchSecurity_KeyDown;
 
             Closed += BotTabPolygonAutoSelectSequenceUi_Closed;
+
+            if (InteractiveInstructions.PolygonPosts.AllInstructionsInClass == null
+             || InteractiveInstructions.PolygonPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostPolygonAutoSelectSequence.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenPolygonAutoSelectSequence.Opacity = 1;
+                            PostWhitePolygonAutoSelectSequence.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenPolygonAutoSelectSequence.Opacity = 0;
+                            PostWhitePolygonAutoSelectSequence.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenPolygonAutoSelectSequence.Opacity = 1;
+                            PostWhitePolygonAutoSelectSequence.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         public bool IsClosed;
@@ -1416,6 +1475,22 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+
+        #region Posts collection
+
+        private void ButtonPostPolygonAutoSelectSequence_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.PolygonPosts.Link10.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         #endregion
     }

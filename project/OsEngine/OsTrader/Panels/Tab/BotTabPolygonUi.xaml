@@ -46,6 +46,12 @@
 
                 <ComboBox Name="ComboBoxActionOnSignalType" HorizontalAlignment="Left" Margin="127,105,0,0" VerticalAlignment="Top" Width="95"/>
                 <Label Name="LabelActionOnSignalType" Content="Signal action" HorizontalAlignment="Left" Margin="10,105,0,0" VerticalAlignment="Top"/>
+                <Button Grid.Column="1" Name="ButtonPostTabPolygon" HorizontalAlignment="Left" Margin="245,0,0,10" VerticalAlignment="Bottom" Height="36" Width="35" Click="ButtonPostTabPolygon_Click">
+                    <Grid>
+                        <Image Name="PostGreenTabPolygon" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                        <Image Name="PostWhiteTabPolygon"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                    </Grid>
+                </Button>
             </Grid>
             <Grid Name="GridToTrade" Grid.Row="2">
                 <Grid.ColumnDefinitions>

@@ -44,6 +44,12 @@
         <CheckBox Name="CheckBoxSelectAllInSecondStep" Content="Select all" HorizontalAlignment="Right" Margin="0,33,390,0" VerticalAlignment="Top"/>
         <Button Name="ButtonCreateTableSecondStep" Content="Create table" HorizontalAlignment="Left" Margin="419,32,0,0" VerticalAlignment="Top" Width="283"/>
         <CheckBox Name="CheckBoxSelectAllInFinalStep" Content="Select all" HorizontalAlignment="Right" Margin="0,31,10,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonPostPolygonAutoSelectSequence" HorizontalAlignment="Left" Margin="10,194,0,0" VerticalAlignment="Top" Height="36" Width="35" Click="ButtonPostPolygonAutoSelectSequence_Click">
+            <Grid>
+                <Image Name="PostGreenPolygonAutoSelectSequence" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhitePolygonAutoSelectSequence"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
     </Grid>
 </Window>
