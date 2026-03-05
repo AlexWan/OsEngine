@@ -870,6 +870,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                if(classSec == "All")
+                {
+                    return;
+                }
+
                 SortedSet<DateTime> sortedExpirations = new SortedSet<DateTime>();
                 SortedSet<decimal> sortedStrikes = new SortedSet<decimal>();
 
@@ -1947,7 +1952,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 CheckBoxIsEmulator.IsChecked = curCreator.EmulatorIsOn;
-                ComboBoxTypeServer.Text = curCreator.ServerType.ToString();
+               
                 ComboBoxCandleMarketDataType.Text = curCreator.CandleMarketDataType.ToString();
                 ComboBoxCandleCreateMethodType.Text = curCreator.CandleCreateMethodType.ToString();
                 ComboBoxCommissionType.Text = curCreator.CommissionType.ToString();

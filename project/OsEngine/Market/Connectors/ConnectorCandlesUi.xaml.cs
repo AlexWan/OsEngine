@@ -792,6 +792,11 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
+                if (classSec == "All")
+                {
+                    return;
+                }
+
                 SortedSet<DateTime> sortedExpirations = new SortedSet<DateTime>();
                 SortedSet<decimal> sortedStrikes = new SortedSet<decimal>();
 
