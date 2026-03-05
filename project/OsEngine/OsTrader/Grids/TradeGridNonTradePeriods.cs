@@ -41,9 +41,9 @@ namespace OsEngine.OsTrader.Grids
             SettingsPeriod2.Delete();
         }
 
-        public TradeGridRegime NonTradePeriod1Regime = TradeGridRegime.Off;
+        public TradeGridRegime NonTradePeriod1Regime = TradeGridRegime.OffAndCancelOrders;
 
-        public TradeGridRegime NonTradePeriod2Regime = TradeGridRegime.Off;
+        public TradeGridRegime NonTradePeriod2Regime = TradeGridRegime.OffAndCancelOrders;
 
         public string GetSaveString()
         {
