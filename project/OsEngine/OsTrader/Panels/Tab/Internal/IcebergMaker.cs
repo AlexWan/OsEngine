@@ -504,8 +504,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            if (_ordersInSystem == null ||
-               _lastOrderState == OrderStateType.Done)
+            if (_ordersInSystem == null 
+                || _lastOrderState == OrderStateType.Done
+               || _lastOrderState == OrderStateType.Cancel)
             {
                 _ordersInSystem = _ordersNeedToCreate[0];
                 

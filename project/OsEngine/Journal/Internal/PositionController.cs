@@ -695,7 +695,9 @@ namespace OsEngine.Journal.Internal
                         curPosition.SetOrder(updateOrder);
 
                         if (positionState != curPosition.State ||
-                            lastPosVolume != curPosition.OpenVolume)
+                            lastPosVolume != curPosition.OpenVolume
+                            || (curPosition.OpenOrders.Count > 1 && curPosition.OpenVolume == 0) // на случай если надо восстановить позицию после файл статуса
+                            )
                         {
                             _openLongChanged = true;
                             _openShortChanged = true;
@@ -1061,9 +1063,14 @@ namespace OsEngine.Journal.Internal
             {
                 // closed
                 // закрытая
-                if (_openPositions.Find(pos => pos != null && pos.Number == position.Number) != null)
+
+                for(int i = 0; i< _openPositions.Count; i++)
                 {
-                    _openPositions.Remove(position);
+                    if (OpenPositions[i].Number == position.Number)
+                    {
+                        _openPositions.RemoveAt(i);
+                        i--;
+                    }
                 }
             }
         }
@@ -1104,7 +1111,7 @@ namespace OsEngine.Journal.Internal
                 return _openLongPosition;
             }
         }
-        private List<Position> _openLongPosition;
+        private List<Position> _openLongPosition = new List<Position>();
 
         #endregion
 
@@ -1141,7 +1148,7 @@ namespace OsEngine.Journal.Internal
                 return _openShortPositions;
             }
         }
-        private List<Position> _openShortPositions;
+        private List<Position> _openShortPositions = new List<Position>();
 
         #endregion
 
