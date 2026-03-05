@@ -567,6 +567,17 @@ namespace OsEngine.Robots.FuturesStart
                 return;
             }
 
+            if (this.StartProgram == StartProgram.IsOsTrader)
+            {
+                DateTime lastPairTradeTime = GetLastEntryLogicTime(baseSource.Security.Name);
+
+                if (lastPairTradeTime.AddMinutes(1) > DateTime.Now)
+                { // если по этой паре в реале уже был вход в логику, за последнюю минуту
+                    return;
+                }
+                SetLastLogicEntryTime(baseSource.Security.Name, DateTime.Now);
+            }
+
             List<Position> futuresPositions = futuresSource.PositionsOpenAll;
 
             if (futuresPositions.Count > 0)
@@ -850,6 +861,38 @@ namespace OsEngine.Robots.FuturesStart
             }
 
             return volume;
+        }
+
+        private List<LastTradeTimeValue> _entryLogicByBaseSecurityInReal = new List<LastTradeTimeValue>();
+
+        private void SetLastLogicEntryTime(string securityBase, DateTime time)
+        {
+            for (int i = 0; i < _entryLogicByBaseSecurityInReal.Count; i++)
+            {
+                if (_entryLogicByBaseSecurityInReal[i].SecurityName == securityBase)
+                {
+                    _entryLogicByBaseSecurityInReal[i].Time = time;
+                    return;
+                }
+            }
+
+            LastTradeTimeValue newValue = new LastTradeTimeValue();
+            newValue.SecurityName = securityBase;
+            newValue.Time = time;
+            _entryLogicByBaseSecurityInReal.Add(newValue);
+        }
+
+        private DateTime GetLastEntryLogicTime(string securityBase)
+        {
+            for (int i = 0; i < _entryLogicByBaseSecurityInReal.Count; i++)
+            {
+                if (_entryLogicByBaseSecurityInReal[i].SecurityName == securityBase)
+                {
+                    return _entryLogicByBaseSecurityInReal[i].Time;
+                }
+            }
+
+            return DateTime.MinValue;
         }
 
         #endregion
