@@ -36,5 +36,7 @@ namespace OsEngine
         public static PairInstructions PairPosts = new PairInstructions();
 
         public static PolygonInstructions PolygonPosts = new PolygonInstructions();
+
+        public static ScreenerInstructions ScreenerPosts = new ScreenerInstructions();
     }
 }
