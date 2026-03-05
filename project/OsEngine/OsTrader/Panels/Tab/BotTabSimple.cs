@@ -3971,9 +3971,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     StartProgram, ManualPositionSupport.OrderTypeTime,
                     _connector.ServerFullName, ManualPositionSupport.LimitsMakerOnly);
 
-                closeOrder.SecurityNameCode = Security.Name;
+                closeOrder.SecurityNameCode = position.SecurityName;
                 closeOrder.SecurityClassCode = Security.NameClass;
-                closeOrder.PortfolioNumber = Portfolio.Number;
+                closeOrder.PortfolioNumber = position.PortfolioName;
 
                 if (volume < position.OpenVolume &&
                     closeOrder.Volume != volume)
