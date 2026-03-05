@@ -41,6 +41,7 @@ namespace OsEngine.Robots.AlgoStart
         private StrategyParameterInt _maxPositions;
         private StrategyParameterInt _clusterToTrade;
         private StrategyParameterInt _clustersLookBack;
+        private StrategyParameterButton _clusterShowLast;
 
         // GetVolume settings
         private StrategyParameterString _volumeType;
@@ -90,6 +91,8 @@ namespace OsEngine.Robots.AlgoStart
             _maxPositions = CreateParameter("Max positions", 10, 0, 20, 1);
             _clusterToTrade = CreateParameter("Volatility cluster to trade", 1, 1, 3, 1);
             _clustersLookBack = CreateParameter("Volatility cluster lookBack", 150, 10, 300, 1);
+            _clusterShowLast = CreateParameterButton("Show last clusters");
+            _clusterShowLast.UserClickOnButtonEvent += _clusterShowLast_UserClickOnButtonEvent;
             _zigZagChannelLen = CreateParameter("ZigZag channel length", 56, 0, 20, 1);
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
@@ -118,6 +121,40 @@ namespace OsEngine.Robots.AlgoStart
         private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
         {
             _tradePeriodsSettings.ShowDialog();
+        }
+
+        private void _clusterShowLast_UserClickOnButtonEvent()
+        {
+            try
+            {
+                string message = "Volatility clusters. Bot " + this.NameStrategyUniq + "\n";
+
+                message += "Cluster 1... ";
+                for (int i = 0; i < _volatilityStageClusters.ClusterOne.Count; i++)
+                {
+                    message += _volatilityStageClusters.ClusterOne[i].Connector.SecurityName;
+                }
+                message += "\n";
+
+                message += "Cluster 2... ";
+                for (int i = 0; i < _volatilityStageClusters.ClusterTwo.Count; i++)
+                {
+                    message += _volatilityStageClusters.ClusterTwo[i].Connector.SecurityName;
+                }
+                message += "\n";
+
+                message += "Cluster 3... ";
+                for (int i = 0; i < _volatilityStageClusters.ClusterThree.Count; i++)
+                {
+                    message += _volatilityStageClusters.ClusterThree[i].Connector.SecurityName;
+                }
+
+                SendNewLogMessage(message, Logging.LogMessageType.Error);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         // logic
