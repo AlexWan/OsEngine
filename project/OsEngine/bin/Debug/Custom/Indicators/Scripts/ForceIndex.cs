@@ -14,6 +14,10 @@ namespace OsEngine.Indicators
 
         private IndicatorParameterString _candlePoint;
 
+        private List<decimal> _forceValues = new List<decimal>();
+
+        private List<decimal> _emaValues = new List<decimal>();
+
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
@@ -31,31 +35,33 @@ namespace OsEngine.Indicators
 
         private decimal GetValue(List<Candle> candles, int index)
         {
-            while (index >= _range.Count)
+            while (_forceValues.Count <= index)
             {
-                _range.Add(GetRange(candles, index));
-            }
-            while (index >= _movingAverage.Count)
-            {
-                _movingAverage.Add(GetEma1(index, _range));
+                _forceValues.Add(0);
             }
 
-            if (index < _period.ValueInt || _movingAverage.Count < _period.ValueInt)
+            while (_emaValues.Count <= index)
             {
+                _emaValues.Add(0);
+            }
+
+            if (index == 0)
+            {
+                _forceValues[index] = 0;
+                _emaValues[index] = 0;
                 return 0;
             }
 
-            if (_movingAverage[index] == 0 || _movingAverage[index - 1] == 0)
-            {
-                return 0;
-            }
+            _forceValues[index] = CalculateForceValue(candles, index);
+            _emaValues[index] = CalculateEMA(index);
 
-            return Math.Round(_movingAverage[index], 2);
+            return Math.Round(_emaValues[index], 2);
         }
 
-        private decimal GetRange(List<Candle> candles, int index)
+        private decimal CalculateForceValue(List<Candle> candles, int index)
         {
-            decimal value = 0;
+            decimal priceValue = 0;
+            decimal prevPriceValue = 0;
 
             if (index == 0)
             {
@@ -64,58 +70,63 @@ namespace OsEngine.Indicators
 
             if (_candlePoint.ValueString == "Close")
             {
-                value = (1 - candles[index - 1].Close / candles[index].Close) * candles[index].Volume;
+                priceValue = candles[index].Close;
+                prevPriceValue = candles[index - 1].Close;
             }
             if (_candlePoint.ValueString == "Open")
             {
-                value = (1 - candles[index - 1].Open / candles[index].Open) * candles[index].Volume;
+                priceValue = candles[index].Open;
+                prevPriceValue = candles[index - 1].Open;
             }
             if (_candlePoint.ValueString == "High")
             {
-                value = (1 - candles[index - 1].High / candles[index].High) * candles[index].Volume;
+                priceValue = candles[index].High;
+                prevPriceValue = candles[index - 1].High;
             }
             if (_candlePoint.ValueString == "Low")
             {
-                value = (1 - candles[index - 1].Low / candles[index].Low) * candles[index].Volume;
+                priceValue = candles[index].Low;
+                prevPriceValue = candles[index - 1].Low;
             }
 
-            return value;
-        }
-
-        private decimal GetEma1(int index, List<decimal> list)
-        {
-            decimal result = 0;
-            if (index < _period.ValueInt)
+            if (priceValue == 0)
             {
                 return 0;
             }
+
+            return (1 - prevPriceValue / priceValue) * candles[index].Volume;
+        }
+
+        private decimal CalculateEMA(int index)
+        {
+            if (index < _period.ValueInt
+                || index >= _forceValues.Count)
+            {
+                return 0;
+            }
+
             if (index == _period.ValueInt)
             {
-                decimal lastMoving = 0;
+                decimal sum = 0;
 
                 for (int i = index - _period.ValueInt + 1; i < index + 1; i++)
                 {
-                    lastMoving += list[i];
+                    sum += _forceValues[i];
                 }
 
-                lastMoving = lastMoving / _period.ValueInt;
-                result = lastMoving;
-                return Math.Round(result, 8);
+                decimal average = sum / _period.ValueInt;
+                return Math.Round(average, 8);
             }
+
             if (index > _period.ValueInt)
             {
-                decimal a = Math.Round(2.0m / (_period.ValueInt + 1), 8);
-                decimal emaLast = _movingAverage[index - 1];
-                decimal p = list[index];
-                result = emaLast + (a * (p - emaLast));
+                decimal multiplier = Math.Round(2.0m / (_period.ValueInt + 1), 8);
+                decimal previousEMA = _emaValues[index - 1];
+                decimal result = previousEMA + multiplier * (_forceValues[index] - previousEMA);
                 return Math.Round(result, 8);
             }
-            return Math.Round(result, 8);
+
+            return 0;
         }
-
-        private List<decimal> _movingAverage = new List<decimal>();
-
-        private List<decimal> _range = new List<decimal>();
-
     }
 }
