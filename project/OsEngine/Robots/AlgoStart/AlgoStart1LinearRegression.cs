@@ -171,21 +171,21 @@ namespace OsEngine.Robots.AlgoStart
                 message += "Cluster 1... ";
                 for (int i = 0; i < _volatilityStageClusters.ClusterOne.Count; i++)
                 {
-                    message += _volatilityStageClusters.ClusterOne[i].Connector.SecurityName;
+                    message += _volatilityStageClusters.ClusterOne[i].Connector.SecurityName + " | ";
                 }
                 message += "\n";
 
                 message += "Cluster 2... ";
                 for (int i = 0; i < _volatilityStageClusters.ClusterTwo.Count; i++)
                 {
-                    message += _volatilityStageClusters.ClusterTwo[i].Connector.SecurityName;
+                    message += _volatilityStageClusters.ClusterTwo[i].Connector.SecurityName + " | ";
                 }
                 message += "\n";
 
                 message += "Cluster 3... ";
                 for (int i = 0; i < _volatilityStageClusters.ClusterThree.Count; i++)
                 {
-                    message += _volatilityStageClusters.ClusterThree[i].Connector.SecurityName;
+                    message += _volatilityStageClusters.ClusterThree[i].Connector.SecurityName + " | ";
                 }
 
                 SendNewLogMessage(message, Logging.LogMessageType.Error);
