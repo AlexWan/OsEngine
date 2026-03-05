@@ -1623,9 +1623,9 @@ position => position.State != PositionStateType.OpeningFail
         {
             try
             {
-                if (!_hostChart.CheckAccess())
+                if (!MainWindow.GetDispatcher.CheckAccess())
                 {
-                    _hostChart.Dispatcher.Invoke(new Action<string>(ShowMessageInNewThread), message);
+                    MainWindow.GetDispatcher.Invoke(new Action<string>(ShowMessageInNewThread), message);
                     return;
                 }
 
