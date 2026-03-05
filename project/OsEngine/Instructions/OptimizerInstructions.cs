@@ -43,6 +43,7 @@ namespace OsEngine.Instructions
                 result.Add(Link5);
                 result.Add(Link6);
                 result.Add(Link7);
+                result.Add(Link8);
 
                 return result;
             }
@@ -125,5 +126,15 @@ namespace OsEngine.Instructions
             }
         };
 
+        public Instruction Link8 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Скринеры в оптимизаторе",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab88&subcats%5B%5D=sub99&items%5B%5D=item743"
+            }
+        };
     }
 }

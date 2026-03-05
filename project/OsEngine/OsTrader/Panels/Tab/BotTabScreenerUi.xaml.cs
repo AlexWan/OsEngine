@@ -7,6 +7,7 @@ using OsEngine.Candles;
 using OsEngine.Candles.Factory;
 using OsEngine.Candles.Series;
 using OsEngine.Entity;
+using OsEngine.Instructions;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -23,6 +24,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Threading;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.OsTrader.Panels.Tab
@@ -185,6 +187,18 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ActivateCandlesTypesControls();
                 TryUpdateTimeFramePermissions();
+
+                if (InteractiveInstructions.ScreenerPosts.AllInstructionsInClass == null
+             || InteractiveInstructions.ScreenerPosts.AllInstructionsInClass.Count == 0)
+                {
+                    ButtonPostsTabScreener.Visibility = Visibility.Hidden;
+                }
+                else
+                {
+                    ButtonPostsTabScreener.Click += ButtonPostsTabScreener_Click;
+                }
+
+                StartButtonBlinkAnimation();
             }
             catch (Exception error)
             {
@@ -193,6 +207,56 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             this.Activate();
             this.Focus();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            GreenCollectionTabScreener.Opacity = 1;
+                            WhiteCollectionTabScreener.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            GreenCollectionTabScreener.Opacity = 0;
+                            WhiteCollectionTabScreener.Opacity = 1;
+                        }
+                        else
+                        {
+                            GreenCollectionTabScreener.Opacity = 1;
+                            WhiteCollectionTabScreener.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private BotTabScreener _screener;
@@ -2444,6 +2508,51 @@ namespace OsEngine.OsTrader.Panels.Tab
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ButtonPostsTabScreener_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    _instructionsUi = new InstructionsUi(
+                        InteractiveInstructions.ScreenerPosts.AllInstructionsInClass, InteractiveInstructions.ScreenerPosts.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _instructionsUi.Closed -= _instructionsUi_Closed;
+                _instructionsUi = null;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
