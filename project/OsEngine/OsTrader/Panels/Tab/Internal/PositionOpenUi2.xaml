@@ -72,8 +72,14 @@
             </TabItem>
 
         </TabControl>
-        <Button Name="ButtonSell" Content="Sell" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="200" Height="30" Click="ButtonSell_Click"/>
-        <Button Name="ButtonBuy" Content="Buy" HorizontalAlignment="Left" Margin="5,0,0,10" VerticalAlignment="Bottom" Width="200" Height="30" Click="ButtonBuy_Click"/>
+        <Button Name="ButtonSell" Content="Sell" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="175" Height="30" Click="ButtonSell_Click"/>
+        <Button Name="ButtonBuy" Content="Buy" HorizontalAlignment="Left" Margin="5,0,0,10" VerticalAlignment="Bottom" Width="175" Height="30" Click="ButtonBuy_Click"/>
         <WindowsFormsHost Name="WinFormsHostMarketDepth" Margin="188,0,4,298"/>
+        <Button Name="ButtonPostPositionOpen" HorizontalAlignment="Center" Margin="0,0,0,5" VerticalAlignment="Bottom" Height="36" Width="34" Click="ButtonPostPositionOpen_Click">
+            <Grid>
+                <Image Name="PostGreenPositionOpen" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhitePositionOpen"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
     </Grid>
 </Window>

@@ -4,6 +4,7 @@ using OsEngine.Layout;
 using OsEngine.Market;
 using System;
 using System.Windows;
+using System.Windows.Threading;
 
 /*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
@@ -96,6 +97,64 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             GlobalGUILayout.Listen(this, "mD_" + Tab.TabName);
 
             SetNowTimeInControlsFakeOpenPos();
+
+            if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
+            || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostPositionOpen.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenPositionOpen.Opacity = 1;
+                            PostWhitePositionOpen.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenPositionOpen.Opacity = 0;
+                            PostWhitePositionOpen.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenPositionOpen.Opacity = 1;
+                            PostWhitePositionOpen.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void Tab_EmulatorIsOnChangeStateEvent(bool value)
@@ -138,7 +197,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 CheckBoxIsEmulator.Click -= CheckBoxIsEmulator_Click;
                 Closed -= PositionOpenUi2_Closed;
 
-                if(Tab != null)
+                if (Tab != null)
                 {
                     Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
                     Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
@@ -147,7 +206,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     Tab = null;
                 }
 
-                if(_marketDepthPainter != null)
+                if (_marketDepthPainter != null)
                 {
                     _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
                     _marketDepthPainter.StopPaint();
@@ -165,7 +224,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             _marketDepthPainter = new MarketDepthPainter(Tab.TabName + "OpenPosGui", Tab.Connector);
             _marketDepthPainter.ProcessMarketDepth(Tab.MarketDepth);
-            _marketDepthPainter.StartPaint(WinFormsHostMarketDepth, null, null );
+            _marketDepthPainter.StartPaint(WinFormsHostMarketDepth, null, null);
             _marketDepthPainter.UserClickOnMDAndSelectPriceEvent += _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
         }
 
@@ -489,5 +548,21 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             Tab.SellAtFake(volume, price, timeOpen);
         }
+
+        #region Posts collection
+
+        private void ButtonPostPositionOpen_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.BotStationLightPosts.Link30.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }
