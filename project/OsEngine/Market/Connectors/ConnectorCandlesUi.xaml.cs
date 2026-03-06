@@ -21,6 +21,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Threading;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Market.Connectors
@@ -189,6 +190,13 @@ namespace OsEngine.Market.Connectors
 
                 ActivateCandlesTypesControls();
 
+                if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
+                    || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+                {
+                    ButtonPostConnectorCandles.Visibility = Visibility.Visible;
+                }
+
+                StartButtonBlinkAnimation();
             }
             catch (Exception error)
             {
@@ -199,6 +207,56 @@ namespace OsEngine.Market.Connectors
 
             this.Activate();
             this.Focus();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenConnectorCandles.Opacity = 1;
+                            PostWhiteConnectorCandles.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenConnectorCandles.Opacity = 0;
+                            PostWhiteConnectorCandles.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenConnectorCandles.Opacity = 1;
+                            PostWhiteConnectorCandles.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private ConnectorCandles _connectorBot;
@@ -2077,6 +2135,22 @@ namespace OsEngine.Market.Connectors
 
         #endregion
 
+        #region Posts collection
+
+        private void ButtonPostConnectorCandles_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.BotStationLightPosts.Link29.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
         #region Logging
 
         private void SendNewLogMessage(string message, LogMessageType type)
@@ -2090,6 +2164,5 @@ namespace OsEngine.Market.Connectors
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
-
     }
 }
