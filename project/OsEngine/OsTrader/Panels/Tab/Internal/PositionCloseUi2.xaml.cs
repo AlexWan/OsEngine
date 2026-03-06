@@ -6,6 +6,7 @@ using System;
 using System.Windows;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -134,6 +135,63 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             Task.Run(WatcherThreadPlace);
 
+            if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
+                || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostPositionClose.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenPositionClose.Opacity = 1;
+                            PostWhitePositionClose.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenPositionClose.Opacity = 0;
+                            PostWhitePositionClose.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenPositionClose.Opacity = 1;
+                            PostWhitePositionClose.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         public void SelectTabIndx(ClosePositionType closePositionType)
@@ -646,6 +704,22 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
+
+        #region Posts collection
+
+        private void ButtonPostPositionClose_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.BotStationLightPosts.Link31.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 
     public enum ClosePositionType

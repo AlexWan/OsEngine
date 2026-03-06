@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab.Internal"
         mc:Ignorable="d"
-         Title="Position close" Height="490" MinHeight="490" Width="520" MinWidth="520"  Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" >
+         Title="Position close" Height="515" MinHeight="515" Width="520" MinWidth="520"  Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" >
     <Grid>
         <Grid HorizontalAlignment="Left" Width="187" Margin="0,0,0,215">
             <Label Name="LabelServerType" Content="Server:" HorizontalAlignment="Left" Margin="1,30,0,0" VerticalAlignment="Top"/>
@@ -22,6 +22,12 @@
             <Label Name="LabelOpenVolumeValue" Content="1.3" HorizontalAlignment="Left" Margin="72,196,0,0" VerticalAlignment="Top" Width="115"/>
             <Label Name="LabelOpenSide" Content="Side:" HorizontalAlignment="Left" Margin="1,168,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelOpenSideValue" Content="Buy" HorizontalAlignment="Left" Margin="72,168,0,0" VerticalAlignment="Top" Width="115"/>
+            <Button Name="ButtonPostPositionClose" HorizontalAlignment="Left" Margin="7,0,0,10" VerticalAlignment="Bottom" Height="36" Width="34" Click="ButtonPostPositionClose_Click">
+                <Grid>
+                    <Image Name="PostGreenPositionClose" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                    <Image Name="PostWhitePositionClose"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+                </Grid>
+            </Button>
 
         </Grid>
         <TabControl Name="TabControlTypePosition" Margin="0,0,0,2" Height="212" VerticalAlignment="Bottom">
