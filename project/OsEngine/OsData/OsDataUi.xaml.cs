@@ -27,7 +27,7 @@ namespace OsEngine.OsData
 
             OsDataMaster master = new OsDataMaster();
 
-            _osDataMaster = new OsDataMasterPainter(master, 
+            _osDataMaster = new OsDataMasterPainter(master,
                 ChartHostPanel, HostLog, HostSource,
                 HostSet, LabelSetNameValue, LabelTimeStartValue,
                 LabelTimeEndValue, ProgressBarLoadProgress, TextBoxSearchSource);
@@ -113,16 +113,27 @@ namespace OsEngine.OsData
 
         private void OsDataUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
-            ui.ShowDialog();
-
-            if (ui.UserAcceptAction == false)
+            try
             {
-                e.Cancel = true;
-            }
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
+                ui.ShowDialog();
 
-            _osDataMaster.Dispose();
-            _osDataMaster = null;
+                if (ui.UserAcceptAction == false)
+                {
+                    e.Cancel = true;
+                }
+
+                if (_osDataMaster != null)
+                {
+                    _osDataMaster.Dispose();
+                    _osDataMaster = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                e.Cancel = false;
+            }
         }
 
         private void NewDataSetButton_Click(object sender, RoutedEventArgs e)
