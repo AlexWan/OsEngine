@@ -46,6 +46,9 @@ namespace OsEngine.Instructions
                 result.Add(Link8);
                 result.Add(Link9);
                 result.Add(Link10);
+                result.Add(Link11);
+                result.Add(Link12);
+                result.Add(Link13);
 
                 return result;
             }
@@ -180,6 +183,17 @@ namespace OsEngine.Instructions
             {
                 Description = "Риск менеджер",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&cats%5B%5D=tab76&subcats%5B%5D=sub28&items%5B%5D=item381"
+            }
+        };
+
+        public Instruction Link13 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Окно подключения потока данных",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub28&items%5B%5D=item870"
             }
         };
     }
