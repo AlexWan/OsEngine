@@ -99,7 +99,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             SetNowTimeInControlsFakeOpenPos();
 
             if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
-            || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+                || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
             {
                 ButtonPostPositionOpen.Visibility = Visibility.Visible;
             }
