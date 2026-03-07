@@ -67,6 +67,7 @@ namespace OsEngine.Instructions
                 result.Add(Link29);
                 result.Add(Link30);
                 result.Add(Link31);
+                result.Add(Link32);
 
                 return result;
             }
@@ -410,6 +411,17 @@ namespace OsEngine.Instructions
             {
                 Description = "Bot Station. Окно закрытия позиции",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub28&items%5B%5D=item872"
+            }
+        };
+
+        public Instruction Link32 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Настройка глобальных неторговых периодов",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub34&items%5B%5D=item820"
             }
         };
     }
