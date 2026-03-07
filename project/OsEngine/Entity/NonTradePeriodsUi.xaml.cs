@@ -11,6 +11,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace OsEngine.Entity
 {
@@ -296,6 +297,64 @@ namespace OsEngine.Entity
             CheckBoxTradeInSunday.Content = OsLocalization.Trader.Label480;
 
             this.Closed += NonTradePeriodsUi_Closed;
+
+            if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
+            || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostNonTradePeriods.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenNonTradePeriods.Opacity = 1;
+                            PostWhiteNonTradePeriods.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenNonTradePeriods.Opacity = 0;
+                            PostWhiteNonTradePeriods.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenNonTradePeriods.Opacity = 1;
+                            PostWhiteNonTradePeriods.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void LocalToPeriods(
@@ -1379,7 +1438,24 @@ namespace OsEngine.Entity
             public TextBox NonTradePeriodEndTextBox;
         }
 
+
+
         #endregion
 
+        #region Posts collection
+
+        private void ButtonPostNonTradePeriods_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.BotStationLightPosts.Link32.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }

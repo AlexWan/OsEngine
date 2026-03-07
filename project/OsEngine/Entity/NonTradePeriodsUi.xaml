@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Entity"
         mc:Ignorable="d"
-               Title="Securities" Height="348" Width="490" MinWidth="300" ResizeMode="NoResize" MinHeight="350" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+               Title="Securities" Height="361" Width="490" MinWidth="300" ResizeMode="NoResize" MinHeight="350" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <TabControl Margin="0,0,0,40" Name="TabControlPrime" Grid.ColumnSpan="2">
+        <TabControl Margin="0,0,0,44" Name="TabControlPrime" Grid.ColumnSpan="2">
             <TabItem Name="TabItemNonTradePeriods" Header="No trade periods common">
                 <Grid >
                     <CheckBox Name="CheckBoxNonTradePeriod1OnOff" Content="No trade period 1" HorizontalAlignment="Left" Margin="21,50,0,0" VerticalAlignment="Top"/>
@@ -193,9 +193,14 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <Button Name="ButtonLoadSet" Content="Load set" Margin="10,0,66,10" VerticalAlignment="Bottom" Click="ButtonLoadSet_Click" Grid.Column="1" Height="25"/>
-        <Button Name="ButtonSaveSet" Content="Save set" Margin="66,0,10,10" VerticalAlignment="Bottom" Click="ButtonSaveSet_Click" Height="25"/>
-
+        <Button Name="ButtonLoadSet" Content="Load set" Margin="29,0,40,10" VerticalAlignment="Bottom" Click="ButtonLoadSet_Click" Grid.Column="1" Height="25"/>
+        <Button Name="ButtonSaveSet" Content="Save set" Margin="40,0,29,10" VerticalAlignment="Bottom" Click="ButtonSaveSet_Click" Height="25"/>
+        <Button Name="ButtonPostNonTradePeriods" HorizontalAlignment="Left" Margin="226,0,0,4" VerticalAlignment="Bottom" Height="36" Width="36" Grid.ColumnSpan="2" Click="ButtonPostNonTradePeriods_Click">
+            <Grid>
+                <Image Name="PostGreenNonTradePeriods" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhiteNonTradePeriods"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
 
     </Grid>
 </Window>
