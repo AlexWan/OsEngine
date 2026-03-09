@@ -10,10 +10,12 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Entity;
+using OsEngine.Instructions;
 using OsEngine.Language;
 using OsEngine.Market.Servers.Entity;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace OsEngine.Market.Servers
 {
@@ -43,6 +45,8 @@ namespace OsEngine.Market.Servers
 
             _serversArray = servers;
             _serverType = servers[numServerInArray].ServerType;
+            _serverNeedToHideParameters = servers[numServerInArray].NeedToHideParameters;
+            _serverCanDoMultipleConnections = servers[numServerInArray].CanDoMultipleConnections;
 
             if (servers[numServerInArray].CanDoMultipleConnections == false)
             {
@@ -91,6 +95,67 @@ namespace OsEngine.Market.Servers
             this.Closed += AServerParameterUi_Closed;
 
             ServerMaster.ServerDeleteEvent += ServerMaster_ServerDeleteEvent;
+
+            if (InteractiveInstructions.ServerParameterPosts.GetInstructionsForServerType(_serverType, _serverNeedToHideParameters, _serverCanDoMultipleConnections).Count == 0)
+            {
+                ButtonPostsServerParameter.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                ButtonPostsServerParameter.Click += ButtonPostsAServerParameter_Click;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            GreenCollectionServerParameter.Opacity = 1;
+                            WhiteCollectionServerParameter.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            GreenCollectionServerParameter.Opacity = 0;
+                            WhiteCollectionServerParameter.Opacity = 1;
+                        }
+                        else
+                        {
+                            GreenCollectionServerParameter.Opacity = 1;
+                            WhiteCollectionServerParameter.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void UpDateTitle()
@@ -103,16 +168,16 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                if(_server == null)
+                if (_server == null)
                 {
                     return;
                 }
-                
+
                 string title = OsLocalization.Market.TitleAServerParametrUi + _server.ServerType;
 
                 bool haveNoTradePeriodsConnection = false;
 
-                for(int i = 0;i < _serversArray.Count;i++)
+                for (int i = 0; i < _serversArray.Count; i++)
                 {
                     if (_serversArray[i].IsNonTradePeriod == true)
                     {
@@ -120,17 +185,17 @@ namespace OsEngine.Market.Servers
                     }
                 }
 
-                if(haveNoTradePeriodsConnection == true)
+                if (haveNoTradePeriodsConnection == true)
                 {
                     title += " " + OsLocalization.Market.Label313;
                 }
 
-                if(title != Title)
+                if (title != Title)
                 {
                     Title = title;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
@@ -188,6 +253,10 @@ namespace OsEngine.Market.Servers
         }
 
         private ServerType _serverType;
+
+        private bool _serverNeedToHideParameters;
+
+        private bool _serverCanDoMultipleConnections;
 
         private bool _uiIsClosed;
 
@@ -324,7 +393,7 @@ namespace OsEngine.Market.Servers
                 int row = e.RowIndex;
                 int column = e.ColumnIndex;
 
-                if(row == -1)
+                if (row == -1)
                 {
                     return;
                 }
@@ -829,7 +898,7 @@ namespace OsEngine.Market.Servers
                 int row = e.RowIndex;
                 int col = e.ColumnIndex;
 
-                if(row < 0 || col < 0)
+                if (row < 0 || col < 0)
                 {
                     return;
                 }
@@ -1218,5 +1287,54 @@ namespace OsEngine.Market.Servers
         {
             _server.StopServer();
         }
+
+        #region Posts collection
+
+        private InstructionsUi _instructionsUi;
+
+        private void ButtonPostsAServerParameter_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_instructionsUi == null)
+                {
+                    List<OsEngine.Instructions.Instruction> instructions =
+                        InteractiveInstructions.ServerParameterPosts.GetInstructionsForServerType(_serverType, _serverNeedToHideParameters, _serverCanDoMultipleConnections);
+
+                    _instructionsUi = new InstructionsUi(
+                        instructions,
+                        InteractiveInstructions.ServerParameterPosts.AllInstructionsInClassDescription);
+                    _instructionsUi.Show();
+                    _instructionsUi.Closed += _instructionsUi_Closed;
+                }
+                else
+                {
+                    if (_instructionsUi.WindowState == WindowState.Minimized)
+                    {
+                        _instructionsUi.WindowState = WindowState.Normal;
+                    }
+                    _instructionsUi.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _instructionsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _instructionsUi.Closed -= _instructionsUi_Closed;
+                _instructionsUi = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }
