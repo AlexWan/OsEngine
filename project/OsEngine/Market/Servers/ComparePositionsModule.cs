@@ -21,7 +21,7 @@ namespace OsEngine.Market.Servers
             Server = server;
 
             Load();
-            
+
             LoadIgnoredSecurities();
 
             Thread worker = new Thread(UpdaterThreadWorker);
@@ -61,7 +61,7 @@ namespace OsEngine.Market.Servers
                 {
                     writer.WriteLine(_verificationPeriod + "#" + TimeDelaySeconds);
 
-                    for(int i = 0;i < PortfoliosToWatch.Count;i++)
+                    for (int i = 0; i < PortfoliosToWatch.Count; i++)
                     {
                         writer.WriteLine(PortfoliosToWatch[i]);
                     }
@@ -89,17 +89,17 @@ namespace OsEngine.Market.Servers
 
                     Enum.TryParse(firstSaveStr[0], out _verificationPeriod);
 
-                    if(firstSaveStr.Length > 1 
+                    if (firstSaveStr.Length > 1
                         && string.IsNullOrEmpty(firstSaveStr[1]) == false)
                     {
                         TimeDelaySeconds = Convert.ToInt32(firstSaveStr[1]);
                     }
 
-                    while(reader.EndOfStream == false)
+                    while (reader.EndOfStream == false)
                     {
                         string portfolio = reader.ReadLine();
 
-                        if(string.IsNullOrEmpty(portfolio)  == false)
+                        if (string.IsNullOrEmpty(portfolio) == false)
                         {
                             PortfoliosToWatch.Add(portfolio);
                         }
@@ -120,7 +120,7 @@ namespace OsEngine.Market.Servers
 
         private void UpdaterThreadWorker()
         {
-            while(true)
+            while (true)
             {
                 try
                 {
@@ -136,19 +136,19 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    if(PortfoliosToWatch.Count == 0)
+                    if (PortfoliosToWatch.Count == 0)
                     {
                         continue;
                     }
 
-                    if(Server.LastStartServerTime.AddMinutes(1) > DateTime.Now)
+                    if (Server.LastStartServerTime.AddMinutes(1) > DateTime.Now)
                     {
                         continue;
                     }
 
                     int minutesAwait = 1;
 
-                    if(_verificationPeriod == ComparePositionsVerificationPeriod.Min5)
+                    if (_verificationPeriod == ComparePositionsVerificationPeriod.Min5)
                     {
                         minutesAwait = 5;
                     }
@@ -174,9 +174,9 @@ namespace OsEngine.Market.Servers
 
                     List<ComparePositionsPortfolio> portfolios = UpdateCompareData();
 
-                    for(int i = 0; portfolios != null && i < portfolios.Count; i++)
+                    for (int i = 0; portfolios != null && i < portfolios.Count; i++)
                     {
-                        for(int j = 0;j < PortfoliosToWatch.Count; j++)
+                        for (int j = 0; j < PortfoliosToWatch.Count; j++)
                         {
                             if (PortfoliosToWatch[j] == portfolios[i].PortfolioName)
                             {
@@ -192,7 +192,7 @@ namespace OsEngine.Market.Servers
 
                     // 2 вторая проверка. Через N секунд. Если и тут ошибка - то высылаем
 
-                    if(haveErrorInSomePortfolio == true)
+                    if (haveErrorInSomePortfolio == true)
                     {
                         Thread.Sleep(TimeDelaySeconds);
 
@@ -217,7 +217,7 @@ namespace OsEngine.Market.Servers
                 }
                 catch (Exception e)
                 {
-                    SendLogMessage(e.ToString(),LogMessageType.Error);
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
                     Thread.Sleep(10000);
                 }
             }
@@ -225,13 +225,13 @@ namespace OsEngine.Market.Servers
 
         private bool HaveErrorInPortfolio(ComparePositionsPortfolio portfolio, bool canSendErrorMessage)
         {
-            if(portfolio == null)
+            if (portfolio == null)
             {
                 return false;
             }
 
-            if(portfolio.CompareSecurities == null 
-                || portfolio.CompareSecurities .Count == 0)
+            if (portfolio.CompareSecurities == null
+                || portfolio.CompareSecurities.Count == 0)
             {
                 return false;
             }
@@ -239,16 +239,16 @@ namespace OsEngine.Market.Servers
             string message = Server.ServerNameUnique + ". Error on compare securities in robot and portfolio \n";
             bool haveError = false;
 
-            for(int i = 0;i <  portfolio.CompareSecurities.Count;i++)
+            for (int i = 0; i < portfolio.CompareSecurities.Count; i++)
             {
                 ComparePositionsSecurity security = portfolio.CompareSecurities[i];
 
-                if(security.Status == ComparePositionsStatus.Normal)
+                if (security.Status == ComparePositionsStatus.Normal)
                 {
                     continue;
                 }
 
-                if(security.IsIgnored == true)
+                if (security.IsIgnored == true)
                 {
                     continue;
                 }
@@ -266,9 +266,9 @@ namespace OsEngine.Market.Servers
                 message += securityError;
             }
 
-            if(haveError)
+            if (haveError)
             {
-                if(canSendErrorMessage)
+                if (canSendErrorMessage)
                 {
                     SendLogMessage(message, LogMessageType.Error);
                 }
@@ -317,13 +317,13 @@ namespace OsEngine.Market.Servers
 
             List<Portfolio> portfolios = Server.Portfolios;
 
-            if(portfolios == null ||
+            if (portfolios == null ||
                 portfolios.Count == 0)
             {
                 return result;
             }
 
-            for(int i =0;i < portfolios.Count;i++)
+            for (int i = 0; i < portfolios.Count; i++)
             {
                 result.Add(portfolios[i].Number);
             }
@@ -339,13 +339,13 @@ namespace OsEngine.Market.Servers
 
             IServerPermission permission = ServerMaster.GetServerPermission(Server.ServerType);
 
-            if(permission != null)
+            if (permission != null)
             {
                 string[] ignoreNames = permission.ManuallyClosePositionOnBoard_ExceptionPositionNames;
 
-                for(int i = 0; ignoreNames != null && i < ignoreNames.Length;i++)
+                for (int i = 0; ignoreNames != null && i < ignoreNames.Length; i++)
                 {
-                    for(int j = 0;j < securities.Count;j++)
+                    for (int j = 0; j < securities.Count; j++)
                     {
                         if (securities[j] == ignoreNames[i])
                         {
@@ -356,11 +356,11 @@ namespace OsEngine.Market.Servers
                 }
             }
 
-            for(int i = 0;i < securities.Count;i++)
+            for (int i = 0; i < securities.Count; i++)
             {
                 ComparePositionsSecurity newSecurity = CompareSecurity(securities[i], portfolioName);
 
-                if(newSecurity.RobotsLong == 0 &&
+                if (newSecurity.RobotsLong == 0 &&
                     newSecurity.RobotsShort == 0 &&
                     newSecurity.RobotsCommon == 0 &&
                     newSecurity.PortfolioLong == 0 &&
@@ -370,7 +370,7 @@ namespace OsEngine.Market.Servers
                     continue;
                 }
 
-                for(int j = 0;j < IgnoredSecurities.Count;j++)
+                for (int j = 0; j < IgnoredSecurities.Count; j++)
                 {
                     if (IgnoredSecurities[j].Security == newSecurity.Security)
                     {
@@ -391,6 +391,11 @@ namespace OsEngine.Market.Servers
 
             // 1 считаем позиции по роботам
 
+            if (OsTraderMaster.Master == null)
+            {
+                return newSecurity;
+            }
+
             List<BotPanel> bots = OsTraderMaster.Master.PanelsArray;
 
             List<Position> openPositions = new List<Position>();
@@ -399,7 +404,7 @@ namespace OsEngine.Market.Servers
             {
                 List<Position> curPositions = bots[i].OpenPositions;
 
-                if (curPositions == null 
+                if (curPositions == null
                     || curPositions.Count == 0)
                 {
                     continue;
@@ -409,12 +414,12 @@ namespace OsEngine.Market.Servers
                 {
                     string pName = curPositions[j].PortfolioName;
 
-                    if(string.IsNullOrEmpty(pName))
+                    if (string.IsNullOrEmpty(pName))
                     {
                         continue;
                     }
 
-                    if(curPositions[j].SecurityName != securityName)
+                    if (curPositions[j].SecurityName != securityName)
                     {
                         continue;
                     }
@@ -436,7 +441,7 @@ namespace OsEngine.Market.Servers
             decimal botsLongPoses = 0;
             decimal botsShortPoses = 0;
 
-            for(int i = 0;i < openPositions.Count;i++)
+            for (int i = 0; i < openPositions.Count; i++)
             {
                 if (openPositions[i].OpenVolume == 0)
                 {
@@ -473,11 +478,11 @@ namespace OsEngine.Market.Servers
                 {
                     string curSecurity = marketPositions[i].SecurityNameCode;
 
-                    if(curSecurity == securityName)
+                    if (curSecurity == securityName)
                     {
                         portfolioCommon = marketPositions[i].ValueCurrent;
                     }
-                    else if(curSecurity.Replace("_SHORT", "") == securityName ||
+                    else if (curSecurity.Replace("_SHORT", "") == securityName ||
                         curSecurity.Replace("_Short", "") == securityName)
                     {
                         portfolioShortPoses = marketPositions[i].ValueCurrent;
@@ -501,10 +506,10 @@ namespace OsEngine.Market.Servers
 
             // 3 сравниваем. Устанавливаем статусы
 
-            if(newSecurity.PortfolioLong != 0
+            if (newSecurity.PortfolioLong != 0
                 || newSecurity.PortfolioShort != 0)
             { // биржа имеет внутри режим хеджирования, сверяем позиции учитывая это
-                if(newSecurity.PortfolioShort != newSecurity.RobotsShort
+                if (newSecurity.PortfolioShort != newSecurity.RobotsShort
                     || newSecurity.PortfolioLong != newSecurity.RobotsLong)
                 {
                     newSecurity.Status = ComparePositionsStatus.Error;
@@ -530,11 +535,11 @@ namespace OsEngine.Market.Servers
 
             List<Position> botsPositions = GetPositionsInPortfolioByRobots(portfolioName, serverName);
 
-            for(int i = 0;i < botsPositions.Count;i++)
+            for (int i = 0; i < botsPositions.Count; i++)
             {
                 bool isInArray = false;
 
-                for(int j = 0;j < result.Count;j++)
+                for (int j = 0; j < result.Count; j++)
                 {
                     if (result[j] == botsPositions[i].SecurityName)
                     {
@@ -542,7 +547,7 @@ namespace OsEngine.Market.Servers
                     }
                 }
 
-                if(isInArray == false)
+                if (isInArray == false)
                 {
                     result.Add(botsPositions[i].SecurityName);
                 }
@@ -552,7 +557,7 @@ namespace OsEngine.Market.Servers
 
             Portfolio myPortfolio = Server.GetPortfolioForName(portfolioName);
 
-            if(myPortfolio != null)
+            if (myPortfolio != null)
             {
                 List<PositionOnBoard> marketPositions = myPortfolio.GetPositionOnBoard();
 
@@ -589,11 +594,16 @@ namespace OsEngine.Market.Servers
 
         private List<Position> GetPositionsInPortfolioByRobots(string portfolioName, string serverName)
         {
-            List<BotPanel> bots = OsTraderMaster.Master.PanelsArray;
-
             List<Position> openPositions = new List<Position>();
 
-            if(bots == null)
+            if (OsTraderMaster.Master == null)
+            {
+                return openPositions;
+            }
+
+            List<BotPanel> bots = OsTraderMaster.Master.PanelsArray;
+
+            if (bots == null)
             {
                 return openPositions;
             }
@@ -619,7 +629,7 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    if(string.IsNullOrEmpty(curPositions[j].ServerName) == true)
+                    if (string.IsNullOrEmpty(curPositions[j].ServerName) == true)
                     {
                         continue;
                     }
@@ -632,7 +642,7 @@ namespace OsEngine.Market.Servers
                     string pName = curPositions[j].PortfolioName;
 
                     if (string.IsNullOrEmpty(pName) == false
-                        && 
+                        &&
                         (pName == portfolioName
                         || portfolioName.Contains(pName))
                         )
