@@ -38,5 +38,7 @@ namespace OsEngine
         public static PolygonInstructions PolygonPosts = new PolygonInstructions();
 
         public static ScreenerInstructions ScreenerPosts = new ScreenerInstructions();
+
+        public static ServerParameterInstructions ServerParameterPosts = new ServerParameterInstructions();
     }
 }
