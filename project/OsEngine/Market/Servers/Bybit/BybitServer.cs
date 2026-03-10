@@ -3708,6 +3708,8 @@ namespace OsEngine.Market.Servers.Bybit
 
                 string jsonPayload = parameters.Count > 0 ? GenerateQueryString(parameters) : "";
 
+                _rateGateOrders.WaitToProceed();
+
                 DateTime startTime = DateTime.Now;
                 IRestResponse responseMessage = CreatePrivateQuery(parameters, Method.POST, "/v5/order/create");
 
@@ -3792,6 +3794,8 @@ namespace OsEngine.Market.Servers.Bybit
                 parameters["orderLinkId"] = order.NumberUser.ToString();
                 parameters["price"] = newPrice.ToString().Replace(",", ".");
 
+                _rateGateOrders.WaitToProceed();
+
                 IRestResponse responseMessage = CreatePrivateQuery(parameters, Method.POST, "/v5/order/amend");
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
@@ -3862,6 +3866,8 @@ namespace OsEngine.Market.Servers.Bybit
             try
             {
                 //order.TimeCancel = DateTimeOffset.UtcNow.UtcDateTime;
+                _rateGateOrders.WaitToProceed();
+
                 IRestResponse responseMessage = CreatePrivateQuery(parameters, Method.POST, "/v5/order/cancel");
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
@@ -3938,6 +3944,9 @@ namespace OsEngine.Market.Servers.Bybit
                 }
 
                 parametrs.Add("symbol", security.Name.Split('.')[0]);
+
+                _rateGateOrders.WaitToProceed();
+
                 CreatePrivateQuery(parametrs, Method.POST, "/v5/order/cancel-all");
             }
             catch (Exception ex)
@@ -4436,12 +4445,13 @@ namespace OsEngine.Market.Servers.Bybit
 
         private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(15));
 
+        private RateGate _rateGateOrders = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
         private string _httpClientLocker = "httpClientLocker";
 
         public bool CheckApiKeyInformation(string ApiKey)
         {
             string apiFromServer = "";
-            _rateGate.WaitToProceed();
 
             try
             {
