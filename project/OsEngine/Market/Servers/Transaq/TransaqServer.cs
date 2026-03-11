@@ -1216,6 +1216,7 @@ namespace OsEngine.Market.Servers.Transaq
                     if (pos.SecurityNameCode == _securities[j].Name)
                     {
                         lot = _securities[j].Lot;
+                        break;
                     }
                 }
 
