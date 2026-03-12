@@ -208,6 +208,7 @@ namespace OsEngine.Instructions
             if (needToHideParameters == false)
             {
                 result.Add(LinkStandardSettings);
+                result.Add(LinkNonTradingPeriods);
             }
 
             if (canDoMultipleConnections)
@@ -877,6 +878,17 @@ namespace OsEngine.Instructions
                 Description = "Стандартные настройки коннектора OsEngine",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub34&items%5B%5D=item380"
             },
+        };
+
+        public Instruction LinkNonTradingPeriods = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Настройка глобальных неторговых периодов",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub34&items%5B%5D=item820"
+            }
         };
     }
 }
