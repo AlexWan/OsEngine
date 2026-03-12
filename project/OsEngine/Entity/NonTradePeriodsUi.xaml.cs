@@ -5,6 +5,7 @@
 
 using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -234,7 +235,7 @@ namespace OsEngine.Entity
             ButtonLoadSet.Content = OsLocalization.Market.Label98;
             ButtonSaveSet.Content = OsLocalization.Market.Label99;
 
-            if(OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
             {
                 TabItemStandardSettings.Header = "Преднастройки";
                 ButtonSetStandardMoexSpot.Content = "Установить стандартные настройки рынка Акций MOEX";
@@ -243,7 +244,7 @@ namespace OsEngine.Entity
             else
             {
                 TabItemStandardSettings.Visibility = Visibility.Collapsed;
-                
+
             }
 
             // general non trade periods 
@@ -299,12 +300,40 @@ namespace OsEngine.Entity
             this.Closed += NonTradePeriodsUi_Closed;
 
             if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
-            || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+                || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0
+                || !IsOpenedFromServerContext())
             {
-                ButtonPostNonTradePeriods.Visibility = Visibility.Visible;
+                ButtonPostNonTradePeriods.Visibility = Visibility.Hidden;
             }
 
             StartButtonBlinkAnimation();
+        }
+
+        private bool IsOpenedFromServerContext()
+        {
+            List<IServer> servers = ServerMaster.GetServers();
+
+            if (servers == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                AServer aServer = servers[i] as AServer;
+
+                if (aServer == null)
+                {
+                    continue;
+                }
+
+                if (aServer.ServerNameUnique + "nonTradePeriod" == _periods.NameUnique)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void StartButtonBlinkAnimation()
@@ -1360,9 +1389,9 @@ namespace OsEngine.Entity
                 _periods.SetMoexSpotNonTradePeriods();
                 SetCurrentSettingsInForm();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                ServerMaster.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
