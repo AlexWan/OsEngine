@@ -34,7 +34,7 @@ namespace OsEngine.OsData
                 _secId = "1822580";
                 _secClass = "Криптовалюты";
                 _secNameFull = "XXBTZUSD";
-                _fileSetBenchmark = @"Data\Benchmark\BTCUSD\Day\BTCUSD.txt";           
+                _fileSetBenchmark = @"Data\Benchmark\BTCUSD\Day\BTCUSD.txt";
             }
 
             if (benchmark == BenchmarkSecurity.SnP500.ToString())
@@ -70,7 +70,7 @@ namespace OsEngine.OsData
 
         public string FileSetBenchmark
         {
-            get { return _fileSetBenchmark; }             
+            get { return _fileSetBenchmark; }
         }
 
         public async Task GetData(Series series)
@@ -128,14 +128,23 @@ namespace OsEngine.OsData
 
                 SendNewLogMessage("Started downloading benchmark data.", LogMessageType.System);
 
-                while (!cts.Token.IsCancellationRequested) 
+                while (!cts.Token.IsCancellationRequested)
                 {
                     if (_server.ServerStatus == ServerConnectStatus.Connect)
                     {
                         await Task.Delay(6000, cts.Token).ConfigureAwait(false);
 
-                        DateTime timeStart = DateTime.Parse(_series.Points[0].AxisLabel).AddDays(-30);
-                        DateTime timeEnd = DateTime.Parse(_series.Points[^1].AxisLabel).AddDays(1);
+                        DateTime parsedStart = DateTime.Parse(_series.Points[0].AxisLabel);
+                        DateTime parsedEnd = DateTime.Parse(_series.Points[^1].AxisLabel);
+
+                        if (parsedStart == DateTime.MinValue
+                            || parsedEnd == DateTime.MinValue)
+                        {
+                            continue;
+                        }
+
+                        DateTime timeStart = parsedStart.AddDays(-30);
+                        DateTime timeEnd = parsedEnd.AddDays(1);
 
                         SettingsToLoadSecurity param = new();
 
@@ -169,13 +178,13 @@ namespace OsEngine.OsData
                         record.NewLogMessageEvent += SendNewLogMessage;
 
                         record.Process(_server);
-                                                
+
                         SendNewLogMessage("Finished downloading benchmark data.", LogMessageType.System);
 
                         break;
                     }
 
-                    await Task.Delay(100, cts.Token).ConfigureAwait(false);                                       
+                    await Task.Delay(100, cts.Token).ConfigureAwait(false);
                 }
 
                 if (cts.Token.IsCancellationRequested)
