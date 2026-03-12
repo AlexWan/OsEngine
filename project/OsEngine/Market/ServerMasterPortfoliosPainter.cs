@@ -329,7 +329,8 @@ namespace OsEngine.Market
                     }
                 }
 
-                if (curUpRow != 0 && curUpRow != -1)
+                if (curUpRow != 0 && curUpRow != -1
+                    && curUpRow < _gridPortfolio.Rows.Count)
                 {
                     _gridPortfolio.FirstDisplayedScrollingRowIndex = curUpRow;
                 }

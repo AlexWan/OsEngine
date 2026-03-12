@@ -947,16 +947,19 @@ namespace OsEngine.Market
                     visibleRow = gridToPaint.FirstDisplayedScrollingRowIndex;
                 }
 
-                if(gridToPaint.Rows.Count == 0 
+                if(gridToPaint.Rows.Count == 0
                     && ordersToPaint.Count == 0)
                 {
                     return;
                 }
 
+                gridToPaint.SuspendLayout();
+                gridToPaint.CurrentCell = null;
                 gridToPaint.Rows.Clear();
 
                 if (ordersToPaint.Count == 0)
                 {
+                    gridToPaint.ResumeLayout();
                     host.Child = gridToPaint;
                     return;
                 }
@@ -1006,9 +1009,12 @@ namespace OsEngine.Market
                 {
                     gridToPaint.FirstDisplayedScrollingRowIndex = visibleRow;
                 }
+
+                gridToPaint.ResumeLayout();
             }
             catch (Exception ex)
             {
+                gridToPaint.ResumeLayout();
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                 host.Child = gridToPaint;
             }
