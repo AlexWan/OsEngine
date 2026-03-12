@@ -129,7 +129,7 @@ namespace OsEngine.Market
                 }
                 else if (_gridSources.InvokeRequired)
                 {
-                    _gridSources.Invoke(new Action(ClearControls));
+                    _gridSources.BeginInvoke(new Action(ClearControls));
                     return;
                 }
 
@@ -218,7 +218,7 @@ namespace OsEngine.Market
                 }
                 if (_gridSources.InvokeRequired)
                 {
-                    _gridSources.Invoke(new Action(RePaintSourceGrid));
+                    _gridSources.BeginInvoke(new Action(RePaintSourceGrid));
                     return;
                 }
 
