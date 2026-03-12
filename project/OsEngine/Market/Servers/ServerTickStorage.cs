@@ -178,8 +178,12 @@ namespace OsEngine.Market.Servers
                         int lastSecond = allTrades[i1][tradeInfo.LastSaveIndex].Time.Second;
                         int lastMillisecond = allTrades[i1][tradeInfo.LastSaveIndex].MicroSeconds;
 
+                        string name = allTrades[i1][0].SecurityNameCode;
+
+                        name = name.Replace("/","");
+
                         StreamWriter writer =
-                            new StreamWriter(_pathName + @"\" + allTrades[i1][0].SecurityNameCode + ".txt", true);
+                            new StreamWriter(_pathName + @"\" + name + ".txt", true);
                         for (int i = tradeInfo.LastSaveIndex; i < allTrades[i1].Count - 1; i++)
                         {
                             if (allTrades[i1][i].MicroSeconds == 0)
