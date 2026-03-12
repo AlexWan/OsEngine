@@ -145,7 +145,8 @@ namespace OsEngine.OsTrader.Gui
             _host.Child = _grid;
 
             _grid.Click += _grid_Click;
-            _grid.CellBeginEdit += _grid_CellBeginEdit;
+            _grid.CellContentClick += _grid_CellContentClick;
+            _grid.CurrentCellDirtyStateChanged += _grid_CurrentCellDirtyStateChanged;
             _grid.CellEndEdit += _grid_CellEndEdit;
             _grid.MouseLeave += _grid_MouseLeave;
             _grid.CellMouseClick += _grid_CellMouseClick;
@@ -683,29 +684,17 @@ namespace OsEngine.OsTrader.Gui
 
         #region работа с чек-боксами включений и отключений
 
-        private int _lastChangeRow;
+        private DateTime _lastTimeClick = DateTime.MinValue;
 
-        private int _lastChangeColumn;
-
-        private void _grid_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        private void _grid_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
             try
             {
-                if (e.ColumnIndex < 3)
+                if (_grid.IsCurrentCellDirty
+                    && _grid.CurrentCell is DataGridViewCheckBoxCell)
                 {
-                    return;
+                    _grid.CommitEdit(DataGridViewDataErrorContexts.Commit);
                 }
-
-                if (_lastTimeClick.AddMilliseconds(500) > DateTime.Now)
-                {
-                    return;
-                }
-                _lastTimeClick = DateTime.Now;
-
-                _lastChangeRow = e.RowIndex;
-                _lastChangeColumn = e.ColumnIndex;
-
-                Task.Run(ChangeOnOffAwait);
             }
             catch (Exception ex)
             {
@@ -713,89 +702,61 @@ namespace OsEngine.OsTrader.Gui
             }
         }
 
-        private DateTime _lastTimeClick = DateTime.MinValue;
-
-        private async void ChangeOnOffAwait()
+        private void _grid_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             try
             {
-                await Task.Delay(200);
-                ChangeFocus();
-                await Task.Delay(200);
-                ChangeOnOff();
+                int columnIndex = e.ColumnIndex;
+                int rowIndex = e.RowIndex;
+
+                if (columnIndex != 5 && columnIndex != 6)
+                {
+                    return;
+                }
+
+                if (rowIndex < 0)
+                {
+                    return;
+                }
+
+                _lastTimeClick = DateTime.Now;
+
+                int botsCount = 0;
+
+                if (_master.PanelsArray != null)
+                {
+                    botsCount = _master.PanelsArray.Count;
+                }
+
+                object cellValue = _grid.Rows[rowIndex].Cells[columnIndex].Value;
+
+                if (cellValue == null)
+                {
+                    return;
+                }
+
+                bool isOn = Convert.ToBoolean(cellValue);
+
+                if (columnIndex == 5 && rowIndex < botsCount)
+                {
+                    OnOffBot(rowIndex, isOn);
+                }
+                else if (columnIndex == 5 && rowIndex == botsCount)
+                {
+                    OnOffAll(isOn);
+                }
+                else if (columnIndex == 6 && rowIndex < botsCount)
+                {
+                    OnOffEmulatorBot(rowIndex, isOn);
+                }
+                else if (columnIndex == 6 && rowIndex == botsCount)
+                {
+                    OnOffEmulatorAll(isOn);
+                }
             }
-            catch (Exception error)
+            catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(error.ToString());
-            }
-        }
-
-        private void ChangeFocus()
-        {
-            if (_grid.InvokeRequired)
-            {
-                _grid.Invoke(new Action(ChangeFocus));
-                return;
-            }
-
-            _grid.Rows[_lastChangeRow].Cells[0].Selected = true;
-        }
-
-        private void ChangeOnOff()
-        {
-            if (_grid.InvokeRequired)
-            {
-                _grid.Invoke(new Action(ChangeOnOff));
-                return;
-            }
-
-            int coluIndex = _lastChangeColumn;
-            int rowIndex = _lastChangeRow;
-
-            int botsCount = 0;
-
-            if (_master.PanelsArray != null)
-            {
-                botsCount = _master.PanelsArray.Count;
-            }
-
-            if (coluIndex == 5 &&
-                rowIndex < botsCount &&
-                _grid.Rows[rowIndex].Cells[5].Value != null)
-            {
-                string textInCell = _grid.Rows[rowIndex].Cells[5].Value.ToString();
-                bool isOn = Convert.ToBoolean(textInCell);
-
-                OnOffBot(rowIndex, isOn);
-            }
-            if (coluIndex == 5 &&
-                rowIndex == botsCount &&
-                _grid.Rows[rowIndex].Cells[5].Value != null)
-            {
-                string textInCell = _grid.Rows[rowIndex].Cells[5].Value.ToString();
-                bool isOn = Convert.ToBoolean(textInCell);
-
-                OnOffAll(isOn);
-            }
-
-            if (coluIndex == 6 &&
-                rowIndex < botsCount &&
-                _grid.Rows[rowIndex].Cells[6].Value != null)
-            {
-                string textInCell = _grid.Rows[rowIndex].Cells[6].Value.ToString();
-
-                bool isOn = Convert.ToBoolean(textInCell);
-
-                OnOffEmulatorBot(rowIndex, isOn);
-            }
-            if (coluIndex == 6 &&
-                rowIndex == botsCount &&
-                _grid.Rows[rowIndex].Cells[6].Value != null)
-            {
-                string textInCell = _grid.Rows[rowIndex].Cells[6].Value.ToString();
-                bool isOn = Convert.ToBoolean(textInCell);
-
-                OnOffEmulatorAll(isOn);
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
