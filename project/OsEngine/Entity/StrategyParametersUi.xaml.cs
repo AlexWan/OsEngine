@@ -5,9 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
+using System.Windows.Threading;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Layout;
@@ -50,7 +52,7 @@ namespace OsEngine.Entity
                 Title = settings.Title;
             }
 
-            if(string.IsNullOrEmpty(panel.PublicName) == false)
+            if (string.IsNullOrEmpty(panel.PublicName) == false)
             {
                 Title += " / " + panel.PublicName;
             }
@@ -61,9 +63,9 @@ namespace OsEngine.Entity
 
             List<List<IIStrategyParameter>> sorted = GetParamSortedByTabName();
 
-            for(int i = 0;i < sorted.Count;i++)
+            for (int i = 0; i < sorted.Count; i++)
             {
-                if(sorted[i][0].TabName == null)
+                if (sorted[i][0].TabName == null)
                 {
                     CreateTab(sorted[i], settings.FirstTabLabel);
                 }
@@ -72,8 +74,8 @@ namespace OsEngine.Entity
                     CreateTab(sorted[i], sorted[i][0].TabName);
                 }
             }
-            
-            for(int i = 0;i < settings.CustomTabs.Count;i++)
+
+            for (int i = 0; i < settings.CustomTabs.Count; i++)
             {
                 CreateCustomTab(settings.CustomTabs[i]);
             }
@@ -86,6 +88,66 @@ namespace OsEngine.Entity
             this.Focus();
 
             GlobalGUILayout.Listen(this, "botPanelParameters_" + panel.NameStrategyUniq);
+
+            _robotInstructions = InteractiveInstructions.StrategyParameterPosts.GetInstructionsForRobot(panel.GetNameStrategyType());
+
+            if (_robotInstructions == null || _robotInstructions.Count == 0)
+            {
+                ButtonStrategyParameterPosts.Visibility = Visibility.Hidden;
+            }
+
+            StartButtonBlinkAnimation();
+
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            GreenCollectionStrategyParameter.Opacity = 1;
+                            WhiteCollectionStrategyParameter.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            GreenCollectionStrategyParameter.Opacity = 0;
+                            WhiteCollectionStrategyParameter.Opacity = 1;
+                        }
+                        else
+                        {
+                            GreenCollectionStrategyParameter.Opacity = 1;
+                            WhiteCollectionStrategyParameter.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _panel?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                _panel?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void StrategyParametersUi_Closed(object sender, EventArgs e)
@@ -111,11 +173,11 @@ namespace OsEngine.Entity
 
                 _panel = null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                if(_panel != null)
+                if (_panel != null)
                 {
-                    _panel.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                    _panel.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                     _panel = null;
                 }
             }
@@ -125,11 +187,11 @@ namespace OsEngine.Entity
         {
             List<List<IIStrategyParameter>> sorted = new List<List<IIStrategyParameter>>();
 
-            for(int i = 0;i < _parameters.Count;i++)
+            for (int i = 0; i < _parameters.Count; i++)
             {
                 List<IIStrategyParameter> myList = sorted.Find(s => s[0].TabName == _parameters[i].TabName);
 
-                if(myList != null)
+                if (myList != null)
                 {
                     myList.Add(_parameters[i]);
                 }
@@ -141,9 +203,9 @@ namespace OsEngine.Entity
                 }
             }
 
-            for(int i = 0;i < sorted.Count;i++)
+            for (int i = 0; i < sorted.Count; i++)
             {// переставляем принудительно параметры без имени вкладки в первый слот вкладок
-                if(sorted[i][0].TabName == null && i != 0)
+                if (sorted[i][0].TabName == null && i != 0)
                 {
                     List<IIStrategyParameter> par = sorted[i];
                     sorted.RemoveAt(i);
@@ -168,13 +230,13 @@ namespace OsEngine.Entity
         {
             try
             {
-                ParamTabPainter painter = new ParamTabPainter(par, tabName, TabControlSettings, _panel.ParamGuiSettings); 
+                ParamTabPainter painter = new ParamTabPainter(par, tabName, TabControlSettings, _panel.ParamGuiSettings);
                 painter.ErrorEvent += Painter_ErrorEvent;
                 _tabs.Add(painter);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _panel?.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                _panel?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -214,9 +276,9 @@ namespace OsEngine.Entity
 
         private void Painter_ErrorEvent(string error)
         {
-            _panel?.SendNewLogMessage(error,Logging.LogMessageType.Error);
+            _panel?.SendNewLogMessage(error, Logging.LogMessageType.Error);
         }
-		
+
         private async void RePaintParameterTablesAsync()
         {
             bool _rePaint = _panel.ParamGuiSettings.IsRePaintParameterTables;
@@ -231,19 +293,19 @@ namespace OsEngine.Entity
                         Close();
                         return;
                     }
-					
+
                     if (_isParametersUiClosed == true)
                     {
                         return;
                     }
-                    
+
                     if (_rePaint != _panel?.ParamGuiSettings.IsRePaintParameterTables)
                     {
                         _rePaint = _panel.ParamGuiSettings.IsRePaintParameterTables;
 
                         for (int i = 0; i < _tabs.Count; i++)
                         {
-                            _tabs[i]?.PaintTable();                        
+                            _tabs[i]?.PaintTable();
                         }
                     }
                 }
@@ -348,7 +410,7 @@ namespace OsEngine.Entity
         {
             string result = "";
 
-            for(int i = 0; i < _parameters.Count; i++)
+            for (int i = 0; i < _parameters.Count; i++)
             {
                 IIStrategyParameter parameter = _parameters[i];
 
@@ -361,13 +423,13 @@ namespace OsEngine.Entity
                 {
                     StrategyParameterBool parameterBool = (StrategyParameterBool)parameter;
 
-                    result += 
+                    result +=
                         StrategyParameterType.Bool.ToString() + "#"
                         + parameterBool.Name + "#"
                         + parameterBool.ValueBool + "#"
                         + "\n";
                 }
-                else if(parameter.Type == StrategyParameterType.CheckBox)
+                else if (parameter.Type == StrategyParameterType.CheckBox)
                 {
                     StrategyParameterCheckBox parameterCheckBox = (StrategyParameterCheckBox)parameter;
 
@@ -377,7 +439,7 @@ namespace OsEngine.Entity
                         + parameterCheckBox.CheckState + "#"
                         + "\n";
                 }
-                else if(parameter.Type == StrategyParameterType.Decimal)
+                else if (parameter.Type == StrategyParameterType.Decimal)
                 {
                     StrategyParameterDecimal parameterDecimal = (StrategyParameterDecimal)parameter;
 
@@ -387,7 +449,7 @@ namespace OsEngine.Entity
                         + parameterDecimal.ValueDecimal + "#"
                         + "\n";
                 }
-                else if(parameter.Type == StrategyParameterType.DecimalCheckBox)
+                else if (parameter.Type == StrategyParameterType.DecimalCheckBox)
                 {
                     StrategyParameterDecimalCheckBox parameterCheckBoxDecimal = (StrategyParameterDecimalCheckBox)parameter;
 
@@ -398,7 +460,7 @@ namespace OsEngine.Entity
                         + parameterCheckBoxDecimal.CheckState + "#"
                         + "\n";
                 }
-                else if(parameter.Type == StrategyParameterType.Int)
+                else if (parameter.Type == StrategyParameterType.Int)
                 {
                     StrategyParameterInt parameterInt = (StrategyParameterInt)parameter;
 
@@ -437,21 +499,44 @@ namespace OsEngine.Entity
         {
             string[] rows = parametersString.Split('\n');
 
-            for(int i = 0;i < rows.Length;i++)
+            for (int i = 0; i < rows.Length; i++)
             {
                 string[] parameter = rows[i].Split('#');
 
-                for(int i2 = 0; i2< _tabs.Count; i2++)
+                for (int i2 = 0; i2 < _tabs.Count; i2++)
                 {
                     _tabs[i2].LoadParameterOnTable(parameter);
                 }
             }
         }
+
+        #region Posts collection
+
+        private List<OsEngine.Instructions.Instruction> _robotInstructions;
+
+        private void ButtonStrategyParameterPosts_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_robotInstructions == null || _robotInstructions.Count == 0)
+                {
+                    return;
+                }
+
+                _robotInstructions[0].ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                _panel?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 
     public class ParamTabPainter
     {
-        public ParamTabPainter(List<IIStrategyParameter> parameters, 
+        public ParamTabPainter(List<IIStrategyParameter> parameters,
             string tabName, System.Windows.Controls.TabControl tabControl, ParamGuiSettings parametersGuiSettings)
         {
             TabItem item = new TabItem();
@@ -464,7 +549,7 @@ namespace OsEngine.Entity
             _parameters = parameters;
 
             _parametersGuiSettings = parametersGuiSettings;
-			
+
             CreateTable();
             PaintTable();
         }
@@ -494,9 +579,9 @@ namespace OsEngine.Entity
                     _grid.CellClick -= _grid_Click;
                     _grid.DataError -= _grid_DataError;
 
-                    _grid.RowPostPaint -= _grid_RowPostPaint;         
-                    _grid.CellFormatting -= _grid_CellFormatting;     
-                    _grid.CellPainting -= _grid_CellPainting;   
+                    _grid.RowPostPaint -= _grid_RowPostPaint;
+                    _grid.CellFormatting -= _grid_CellFormatting;
+                    _grid.CellPainting -= _grid_CellPainting;
 
                     _grid.Rows.Clear();
                     DataGridFactory.ClearLinks(_grid);
@@ -514,8 +599,8 @@ namespace OsEngine.Entity
         private WindowsFormsHost _host;
 
         private DataGridView _grid;
-		
-        private ParamGuiSettings _parametersGuiSettings;				
+
+        private ParamGuiSettings _parametersGuiSettings;
 
         private void CreateTable()
         {
@@ -554,8 +639,8 @@ namespace OsEngine.Entity
 
             _host.Child = _grid;
         }
-		
-        public void PaintTable()	
+
+        public void PaintTable()
         {
             _grid.Rows.Clear();
 
@@ -589,13 +674,13 @@ namespace OsEngine.Entity
                         {
                             cell.Items.Add(param.ValuesString[i2]);
 
-                            if(param.ValueString == param.ValuesString[i2])
+                            if (param.ValueString == param.ValuesString[i2])
                             {
                                 isInArray = true;
                             }
                         }
 
-                        if(isInArray)
+                        if (isInArray)
                         {
                             cell.Value = param.ValueString;
                         }
@@ -662,9 +747,9 @@ namespace OsEngine.Entity
                     }
 
                     row.Cells[0].Value = param.Label;
-                    
+
                     row.Height = param.RowHeight;
-                    
+
                     row.Cells[0].Style.Font = new System.Drawing.Font("Areal", param.TextHeight);
                     row.Cells[0].Style.ForeColor = param.Color;
 
@@ -673,14 +758,14 @@ namespace OsEngine.Entity
                     row.Cells[1].Style.Font = new System.Drawing.Font("Areal", param.TextHeight);
                     row.Cells[1].Style.ForeColor = param.Color;
 
-                    
+
                 }
                 else if (_parameters[i].Type == StrategyParameterType.CheckBox)
                 {
                     DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
                     StrategyParameterCheckBox param = (StrategyParameterCheckBox)_parameters[i];
 
-                    row.Cells[0].Value = _parameters[i].Name; 
+                    row.Cells[0].Value = _parameters[i].Name;
                     cell.Value = param.CheckState;
 
                     row.Cells.Add(cell);
@@ -691,10 +776,10 @@ namespace OsEngine.Entity
                     {
                         DataGridViewCell cell = new DataGridViewTextBoxCell();
 
-                        DataGridViewColumn column = new DataGridViewColumn(cell); 
+                        DataGridViewColumn column = new DataGridViewColumn(cell);
                         column.Width = 20;
 
-                        _grid.Columns.Add(column);   
+                        _grid.Columns.Add(column);
                     }
 
                     StrategyParameterDecimalCheckBox param = (StrategyParameterDecimalCheckBox)_parameters[i];
@@ -742,7 +827,7 @@ namespace OsEngine.Entity
                 StrategyParameterButton param = (StrategyParameterButton)_parameters[index];
                 param.Click();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (ErrorEvent != null)
                 {
@@ -824,7 +909,7 @@ namespace OsEngine.Entity
         }
 
         private void _grid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-        {   
+        {
             try
             {
                 if (_parametersGuiSettings.ParameterDesigns.Count != 0 && e.Value != null)
@@ -923,7 +1008,7 @@ namespace OsEngine.Entity
 
                         if (value == true)
                         {
-                            ((StrategyParameterCheckBox) _parameters[i]).CheckState = CheckState.Checked;
+                            ((StrategyParameterCheckBox)_parameters[i]).CheckState = CheckState.Checked;
                         }
                         else
                         {
@@ -944,13 +1029,13 @@ namespace OsEngine.Entity
                         {
                             ((StrategyParameterDecimalCheckBox)_parameters[i]).CheckState = CheckState.Unchecked;
                         }
-                    }				
+                    }
                 }
-                catch(Exception ex) 
+                catch (Exception ex)
                 {
                     if (ErrorEvent != null)
                     {
-                        ErrorEvent("Parameters window exception:\n" 
+                        ErrorEvent("Parameters window exception:\n"
                             + _parameters[i].Name + "\n"
                             + ex.ToString());
                     }
@@ -970,32 +1055,32 @@ namespace OsEngine.Entity
 
         public void LoadParameterOnTable(string[] parameter)
         {
-            if(_grid == null 
-                || _grid.Rows == null 
+            if (_grid == null
+                || _grid.Rows == null
                 || _grid.Rows.Count == 0)
             {
                 return;
             }
 
-            if(parameter.Length < 2)
+            if (parameter.Length < 2)
             {
                 return;
             }
 
             string parameterType = parameter[0];
             string parameterName = parameter[1];
-            
-            if(parameterName == "")
+
+            if (parameterName == "")
             {
                 return;
             }
 
-            for(int i = 0;i < _grid.Rows.Count;i++)
+            for (int i = 0; i < _grid.Rows.Count; i++)
             {
                 DataGridViewRow row = _grid.Rows[i];
 
-                if (row.Cells == null 
-                    || row.Cells.Count == 0 
+                if (row.Cells == null
+                    || row.Cells.Count == 0
                     || row.Cells[0].Value == null)
                 {
                     continue;
@@ -1003,7 +1088,7 @@ namespace OsEngine.Entity
 
                 string gridName = row.Cells[0].Value.ToString();
 
-                if(parameterName != gridName)
+                if (parameterName != gridName)
                 {
                     continue;
                 }
@@ -1025,7 +1110,7 @@ namespace OsEngine.Entity
                 }
                 else if (parameterType == StrategyParameterType.DecimalCheckBox.ToString())
                 {
-                    DataGridViewTextBoxCell cell1 =  (DataGridViewTextBoxCell)row.Cells[1];
+                    DataGridViewTextBoxCell cell1 = (DataGridViewTextBoxCell)row.Cells[1];
                     cell1.Value = parameter[2];
 
                     DataGridViewCheckBoxCell cell2 = (DataGridViewCheckBoxCell)row.Cells[2];

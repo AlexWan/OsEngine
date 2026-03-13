@@ -40,5 +40,7 @@ namespace OsEngine
         public static ScreenerInstructions ScreenerPosts = new ScreenerInstructions();
 
         public static ServerParameterInstructions ServerParameterPosts = new ServerParameterInstructions();
+
+        public static StrategyParameterInstructions StrategyParameterPosts = new StrategyParameterInstructions();
     }
 }
