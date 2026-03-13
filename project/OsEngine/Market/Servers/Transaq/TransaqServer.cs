@@ -738,7 +738,7 @@ namespace OsEngine.Market.Servers.Transaq
                         security.NameClass = securityData.Board;
                         security.NameId = securityData.Secid;
                         security.Decimals = Convert.ToInt32(securityData.Decimals);
-                        security.Exchange = securityData.Board;
+                        security.Exchange = securityData.Market;
                         security.VolumeStep = 1;
 
                         if (securityData.Sectype == "FUT")
@@ -1201,6 +1201,8 @@ namespace OsEngine.Market.Servers.Transaq
                 pos.SecurityNameCode = node.SelectSingleNode("seccode")?.InnerText;
                 pos.PortfolioName = portfolio.Number;
 
+                string marketCode = node.SelectSingleNode("market")?.InnerText;
+
                 XmlNode beginNode = node.SelectSingleNode("open_balance");
                 XmlNode buyNode = node.SelectSingleNode("bought");
                 XmlNode sellNode = node.SelectSingleNode("sold");
@@ -1213,7 +1215,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 for (int j = 0; j < _securities.Count; j++)
                 {
-                    if (pos.SecurityNameCode == _securities[j].Name)
+                    if (pos.SecurityNameCode == _securities[j].Name && marketCode == _securities[j].Exchange)
                     {
                         lot = _securities[j].Lot;
                         break;
