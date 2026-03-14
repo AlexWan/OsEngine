@@ -186,7 +186,7 @@ namespace OsEngine.Instructions
             }
         };
 
-        public Instruction LinkTMONRebalancer = new Instruction()
+        public Instruction LinkTmonRebalancer = new Instruction()
         {
             Type = InstructionType.Post,
 

@@ -161,7 +161,7 @@ namespace OsEngine.Market
                     _gridSources.Columns.Clear();
                     DataGridFactory.ClearLinks(_gridSources);
 
-                    if (_gridSources.ContextMenuStrip != null 
+                    if (_gridSources.ContextMenuStrip != null
                         && _gridSources.ContextMenuStrip.Items.Count == 5)
                     {
                         _gridSources.ContextMenuStrip.Items[0].Click -= _gridSources_ShowSettingsWindow_Click;
@@ -218,7 +218,7 @@ namespace OsEngine.Market
                 }
                 if (_gridSources.InvokeRequired)
                 {
-                    _gridSources.BeginInvoke(new Action(RePaintSourceGrid));
+                    _gridSources.Invoke(new Action(RePaintSourceGrid));
                     return;
                 }
 
