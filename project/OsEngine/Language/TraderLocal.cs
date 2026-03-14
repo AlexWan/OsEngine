@@ -2511,5 +2511,9 @@ namespace OsEngine.Language
          "Eng:Current server time_" +
          "Ru:Текущее время сервера");
 
+        public string Label673 => OsLocalization.ConvertToLocString(
+         "Eng:CloseForced orders type_" +
+         "Ru:CloseForced тип ордеров");
+
     }
 }

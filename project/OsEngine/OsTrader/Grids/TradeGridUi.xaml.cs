@@ -134,6 +134,11 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxOpenOrdersMakerOnly.SelectedItem = tradeGrid.OpenOrdersMakerOnly.ToString();
             ComboBoxOpenOrdersMakerOnly.SelectionChanged += ComboBoxOpenOrdersMakerOnly_SelectionChanged;
 
+            ComboBoxCloseForcedRegimeOrderType.Items.Add(OrderPriceType.Market.ToString());
+            ComboBoxCloseForcedRegimeOrderType.Items.Add(OrderPriceType.Limit.ToString());
+            ComboBoxCloseForcedRegimeOrderType.SelectedItem = tradeGrid.CloseForcedRegimeOrderType.ToString();
+            ComboBoxCloseForcedRegimeOrderType.SelectionChanged += ComboBoxCloseForcedRegimeOrderType_SelectionChanged;
+
             LabelNonTradePeriod1IsActive.Visibility = Visibility.Hidden;
             LabelNonTradePeriod2IsActive.Visibility = Visibility.Hidden;
 
@@ -561,6 +566,7 @@ namespace OsEngine.OsTrader.Grids
             LabelNonTradePeriod2IsActive.Content = OsLocalization.Trader.Label638;
 
             LabelServerTime.Content = OsLocalization.Trader.Label672;
+            LabelOpenCloseForcedRegimeOrderType.Content = OsLocalization.Trader.Label673;
 
             // stop grid by event
             CheckBoxStopGridByMoveUpIsOn.Content = OsLocalization.Trader.Label481;
@@ -2629,6 +2635,19 @@ namespace OsEngine.OsTrader.Grids
             try
             {
                 TradeGrid.OpenOrdersMakerOnly = Convert.ToBoolean(ComboBoxOpenOrdersMakerOnly.SelectedItem.ToString());
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxCloseForcedRegimeOrderType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxCloseForcedRegimeOrderType.SelectedItem.ToString(), out TradeGrid.CloseForcedRegimeOrderType);
                 TradeGrid.Save();
             }
             catch (Exception ex)

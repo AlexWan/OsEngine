@@ -221,9 +221,10 @@
                     <ComboBox Name="ComboBoxNonTradePeriod2Regime" Margin="214,81,10,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonSetNonTradePeriods2" Content="Set periods 2" Margin="196,109,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods2_Click"/>
                     <Label Name="LabelNonTradePeriod2IsActive" Content="Active >>" HorizontalAlignment="Left" Margin="127,111,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#FF12FFE5"/>
-
                     <Label Name="LabelServerTime" Content="Current server time" HorizontalAlignment="Left" Margin="14,195,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxCurrentServerTime" Margin="196,195,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxCloseForcedRegimeOrderType" Margin="196,233,9,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelOpenCloseForcedRegimeOrderType" Content="CloseForced orders type" HorizontalAlignment="Left" Margin="15,233,0,0" VerticalAlignment="Top"/>
 
                     <Button Name="ButtonPosts" Margin="293,0,10,10" VerticalAlignment="Bottom"  Height="36">
                         <Grid>

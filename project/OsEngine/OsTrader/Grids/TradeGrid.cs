@@ -119,6 +119,7 @@ namespace OsEngine.OsTrader.Grids
             result += CheckMicroVolumes + "@";
             result += MaxDistanceToOrdersPercent + "@";
             result += OpenOrdersMakerOnly + "@";
+            result += CloseForcedRegimeOrderType.ToString() + "@";
             result += "@";
             result += "@";
 
@@ -208,6 +209,15 @@ namespace OsEngine.OsTrader.Grids
                 catch
                 {
                     OpenOrdersMakerOnly = true;
+                }
+
+                try
+                {
+                    Enum.TryParse(values[15], out CloseForcedRegimeOrderType);
+                }
+                catch
+                {
+                    CloseForcedRegimeOrderType = OrderPriceType.Market;
                 }
 
                 // non trade periods
@@ -471,6 +481,8 @@ namespace OsEngine.OsTrader.Grids
         public decimal MaxDistanceToOrdersPercent = 0;
 
         public bool OpenOrdersMakerOnly = true;
+
+        public OrderPriceType CloseForcedRegimeOrderType = OrderPriceType.Market;
 
         #endregion
 
@@ -2217,7 +2229,27 @@ namespace OsEngine.OsTrader.Grids
                         continue;
                     }
 
-                    Tab.CloseAtMarket(pos, pos.OpenVolume);
+                    if(Tab.StartProgram != StartProgram.IsOsTrader
+                        || this.CloseForcedRegimeOrderType == OrderPriceType.Market)
+                    {
+                        Tab.CloseAtMarket(pos, pos.OpenVolume);
+                    }
+                    else
+                    {
+                        decimal price = 0;
+
+                        if(pos.Direction == Side.Buy)
+                        {
+                            price = Tab.PriceBestBid - Tab.Security.PriceStep * 40;
+                        }
+                        else if(pos.Direction == Side.Sell)
+                        {
+                            price = Tab.PriceBestAsk + Tab.Security.PriceStep * 40;
+                        }
+
+                        Tab.CloseAtLimit(pos, price, pos.OpenVolume);
+                    }
+
                     havePositions = true;
                 }
             }
