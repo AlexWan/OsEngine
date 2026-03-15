@@ -5,10 +5,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using OsEngine.Entity;
 using OsEngine.Indicators;
-using OsEngine.Logging;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -325,13 +323,13 @@ public class StrategyLevermor : BotPanel
                 {
                     decimal trailingStopPrice = candles[candles.Count - 1].Close - candles[candles.Count - 1].Close * TralingStopLength.ValueDecimal / 100;
 
-                    _tab.CloseAtTrailingStop(positions[i], trailingStopPrice, trailingStopPrice);
+                    _tab.CloseAtTrailingStopMarket(positions[i], trailingStopPrice);
                 }
                 else
                 {
                     decimal trailingStopPrice = candles[candles.Count - 1].Close + candles[candles.Count - 1].Close * TralingStopLength.ValueDecimal / 100;
 
-                    _tab.CloseAtTrailingStop(positions[i], trailingStopPrice, trailingStopPrice);
+                    _tab.CloseAtTrailingStopMarket(positions[i], trailingStopPrice);
                 }
             }
         }
