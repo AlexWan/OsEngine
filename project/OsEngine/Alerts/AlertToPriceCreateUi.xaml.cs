@@ -6,8 +6,10 @@
 using System;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Threading;
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Market;
 
 namespace OsEngine.Alerts
 {
@@ -46,10 +48,10 @@ namespace OsEngine.Alerts
             ComboBoxOrderType.Items.Add(OrderPriceType.Market);
             ComboBoxOrderType.SelectedItem = MyAlert.OrderPriceType;
 
-            ComboBoxSlippageType.Items.Add(AlertSlippageType.Persent.ToString());
-            ComboBoxSlippageType.Items.Add(AlertSlippageType.PriceStep.ToString());
-            ComboBoxSlippageType.Items.Add(AlertSlippageType.Absolute.ToString());
-            ComboBoxSlippageType.SelectedItem = MyAlert.SlippageType.ToString();
+            ComboBoxSlippageType.Items.Add(AlertSlippageType.Persent);
+            ComboBoxSlippageType.Items.Add(AlertSlippageType.PriceStep);
+            ComboBoxSlippageType.Items.Add(AlertSlippageType.Absolute);
+            ComboBoxSlippageType.SelectedItem = MyAlert.SlippageType;
 
             TextBoxVolumeReaction.Text = MyAlert.VolumeReaction.ToString();
             TextBoxSlippage.Text = MyAlert.Slippage.ToString(new CultureInfo("RU-ru"));
@@ -67,10 +69,66 @@ namespace OsEngine.Alerts
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
 
-            LabelOsa.MouseDown += LabelOsa_MouseDown;
-
             this.Activate();
             this.Focus();
+
+            if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
+                || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostAlertToPriceCreate.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenAlertToPriceCreate.Opacity = 1;
+                            PostWhiteAlertToPriceCreate.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenAlertToPriceCreate.Opacity = 0;
+                            PostWhiteAlertToPriceCreate.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenAlertToPriceCreate.Opacity = 1;
+                            PostWhiteAlertToPriceCreate.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ChangeText()
@@ -95,44 +153,90 @@ namespace OsEngine.Alerts
 
         void LabelOsa_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            System.Diagnostics.Process.Start("http://o-s-a.net");
+            try
+            {
+                System.Diagnostics.Process.Start("http://o-s-a.net");
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         public AlertToPrice MyAlert;
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-
-            if (CheckBoxOnOff.IsChecked.HasValue)
+            try
             {
-                MyAlert.IsOn = CheckBoxOnOff.IsChecked.Value;
+                try
+                {
+                    TextBoxPriceActivation.Text.ToDecimal();
+                    TextBoxVolumeReaction.Text.ToDecimal();
+                    TextBoxSlippage.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Alerts.Message3);
+                    return;
+                }
+
+                if (CheckBoxOnOff.IsChecked.HasValue)
+                {
+                    MyAlert.IsOn = CheckBoxOnOff.IsChecked.Value;
+                }
+
+                Enum.TryParse(ComboBoxActivationType.SelectedItem.ToString(), out MyAlert.TypeActivation);
+
+                MyAlert.PriceActivation = TextBoxPriceActivation.Text.ToDecimal();
+
+                Enum.TryParse(ComboBoxSignalType.SelectedItem.ToString(), out MyAlert.SignalType);
+
+                Enum.TryParse(ComboBoxOrderType.SelectedItem.ToString(), out MyAlert.OrderPriceType);
+
+                MyAlert.VolumeReaction = TextBoxVolumeReaction.Text.ToDecimal();
+
+                MyAlert.Slippage = TextBoxSlippage.Text.ToDecimal();
+
+                int closePosition;
+
+                if (int.TryParse(TextBoxClosePosition.Text, out closePosition))
+                {
+                    MyAlert.NumberClosePosition = closePosition;
+                }
+
+                Enum.TryParse(ComboBoxSlippageType.SelectedItem.ToString(), true, out MyAlert.SlippageType);
+
+                if (CheckBoxWindow.IsChecked.HasValue)
+                {
+                    MyAlert.MessageIsOn = CheckBoxWindow.IsChecked.Value;
+                }
+
+                MyAlert.Message = TextBoxAlertMessage.Text;
+                Enum.TryParse(ComboBoxMusic.SelectedItem.ToString(), out MyAlert.MusicType);
+
+                Close();
             }
- 
-            Enum.TryParse(ComboBoxActivationType.SelectedItem.ToString(), out MyAlert.TypeActivation);
-
-            MyAlert.PriceActivation = TextBoxPriceActivation.Text.ToDecimal();
-
-            Enum.TryParse(ComboBoxSignalType.SelectedItem.ToString(), out MyAlert.SignalType);
-
-            Enum.TryParse(ComboBoxOrderType.SelectedItem.ToString(), out MyAlert.OrderPriceType);
-
-            MyAlert.VolumeReaction = TextBoxVolumeReaction.Text.ToDecimal();
-
-            MyAlert.Slippage = TextBoxSlippage.Text.ToDecimal();
-
-            MyAlert.NumberClosePosition = Convert.ToInt32(TextBoxClosePosition.Text);
-
-            Enum.TryParse(ComboBoxSlippageType.SelectedItem.ToString(), true, out MyAlert.SlippageType);
-
-            if (CheckBoxWindow.IsChecked.HasValue)
+            catch (Exception ex)
             {
-                MyAlert.MessageIsOn = CheckBoxWindow.IsChecked.Value;
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-
-            MyAlert.Message = TextBoxAlertMessage.Text;
-            Enum.TryParse(ComboBoxMusic.SelectedItem.ToString(), out MyAlert.MusicType);
-
-            Close();
         }
+
+        #region Posts collection
+
+        private void ButtonPostAlertToPriceCreate_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.BotStationLightPosts.Link33.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }

@@ -8,13 +8,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Market;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Alerts
 {
-
     /// <summary>
     /// Alert creation and editing window
     /// Окно создания и редактирования алерта
@@ -27,7 +28,7 @@ namespace OsEngine.Alerts
         /// </summary>
         /// <param name="alert">alert for editing, if null will be created new/алерт для редактирования, если null будет создан новый</param>
         /// <param name="keeper">alert storage/хранилище алертов</param>
-        public AlertToChartCreateUi(AlertToChart alert, AlertMaster keeper) 
+        public AlertToChartCreateUi(AlertToChart alert, AlertMaster keeper)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -64,10 +65,10 @@ namespace OsEngine.Alerts
             System.Drawing.Color color = System.Drawing.Color.DodgerBlue;
 
             ButtonColorLabel.Background =
-                new SolidColorBrush(Color.FromArgb(color.A, color.R,color.G, color.B));
+                new SolidColorBrush(Color.FromArgb(color.A, color.R, color.G, color.B));
 
             ButtonColorLine.Background =
-                new SolidColorBrush(Color.FromArgb(color.A, color.R,color.G, color.B));
+                new SolidColorBrush(Color.FromArgb(color.A, color.R, color.G, color.B));
 
             CheckBoxWindow.IsChecked = false;
             TextBoxAlertMessage.Text = OsLocalization.Alerts.Message2;
@@ -108,7 +109,7 @@ namespace OsEngine.Alerts
                 NeedToSave = true;
                 ComboBoxSlippageType.SelectedItem = alert.SlippageType;
             }
-            
+
             CheckBoxOnOff.Click += CheckBoxOnOff_Click;
             CheckBoxMusicAlert.Click += CheckBoxOnOff_Click;
             CheckBoxWindow.Click += CheckBoxOnOff_Click;
@@ -128,6 +129,64 @@ namespace OsEngine.Alerts
 
             this.Activate();
             this.Focus();
+
+            if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
+                || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostAlertToChart.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenAlertToChart.Opacity = 1;
+                            PostWhiteAlertToChart.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenAlertToChart.Opacity = 0;
+                            PostWhiteAlertToChart.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenAlertToChart.Opacity = 1;
+                            PostWhiteAlertToChart.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ChangeText()
@@ -158,9 +217,15 @@ namespace OsEngine.Alerts
 
         void LabelOsa_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            System.Diagnostics.Process.Start("http://o-s-a.net");
+            try
+            {
+                System.Diagnostics.Process.Start("http://o-s-a.net");
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
-
 
         /// <summary>
         /// hide unnecessary controls for trading
@@ -265,11 +330,8 @@ namespace OsEngine.Alerts
             ButtonColorLine.Background =
                 new SolidColorBrush(Color.FromArgb(labelLine.A, labelLine.R, labelLine.G, labelLine.B));
 
-
             CheckBoxWindow.IsChecked = MyAlert.IsMessageOn;
             TextBoxAlertMessage.Text = MyAlert.Message;
-            TextBoxVolumeReaction.Text = MyAlert.VolumeReaction.ToString();
-
             TextBoxSlippage.Text = MyAlert.Slippage.ToString(new CultureInfo("ru-RU"));
             ComboBoxSlippageType.SelectedItem = MyAlert.SlippageType;
             TextBoxClosePosition.Text = MyAlert.NumberClosePosition.ToString();
@@ -334,11 +396,11 @@ namespace OsEngine.Alerts
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (ComboBoxType.Text == ChartAlertType.Line.ToString() ||
-                _waitOne|| 
-                _waitTwo|| 
+                _waitOne ||
+                _waitTwo ||
                 _arrayCandles == null)
             {
-                 return;
+                return;
             }
 
             SetReadyLineAlert(_arrayCandles);
@@ -354,6 +416,7 @@ namespace OsEngine.Alerts
         }
 
         #endregion
+
         /// <summary>
         /// latest incoming data
         ///  последние входящие данные 
@@ -438,7 +501,7 @@ namespace OsEngine.Alerts
 
             if (arrayCandles == null ||
                 numberCandle < 0 ||
-                numberCandle > arrayCandles.Count ||
+                numberCandle >= arrayCandles.Count ||
                 valueY <= 0 ||
                 arrayCandles.Count < 10)
             {
@@ -525,9 +588,8 @@ namespace OsEngine.Alerts
         /// save alert
         /// сохранить Алерт
         /// </summary>
-        private void SaveAlert() 
+        private void SaveAlert()
         {
-
             if (MyAlert == null)
             {
                 return;
@@ -553,6 +615,7 @@ namespace OsEngine.Alerts
             catch (Exception)
             {
                 MessageBox.Show(OsLocalization.Alerts.Message3);
+                return;
             }
 
             if (MyAlert == null)
@@ -560,16 +623,18 @@ namespace OsEngine.Alerts
                 return;
             }
 
-            
             MyAlert.IsMusicOn = CheckBoxMusicAlert.IsChecked.Value;
             MyAlert.IsOn = CheckBoxOnOff.IsChecked.Value;
             MyAlert.IsMessageOn = CheckBoxWindow.IsChecked.Value;
 
             MyAlert.Label = TextBoxLabelAlert.Text;
-          //  MyAlert.ColorLabel = HostColorLabel.Child.BackColor;
+            //  MyAlert.ColorLabel = HostColorLabel.Child.BackColor;
 
-           // MyAlert.ColorLine = HostColorLine.Child.BackColor;
-            MyAlert.BorderWidth = Convert.ToInt32(ComboBoxFatLine.SelectedItem);
+            // MyAlert.ColorLine = HostColorLine.Child.BackColor;
+            if (ComboBoxFatLine.SelectedItem != null)
+            {
+                MyAlert.BorderWidth = Convert.ToInt32(ComboBoxFatLine.SelectedItem);
+            }
 
             MyAlert.Message = TextBoxAlertMessage.Text;
 
@@ -581,19 +646,22 @@ namespace OsEngine.Alerts
             MyAlert.Slippage = TextBoxSlippage.Text.ToDecimal();
             Enum.TryParse(ComboBoxSlippageType.SelectedItem.ToString(), true, out MyAlert.SlippageType);
 
-            MyAlert.NumberClosePosition = Convert.ToInt32(TextBoxClosePosition.Text);
+            int closePosition;
+
+            if (int.TryParse(TextBoxClosePosition.Text, out closePosition))
+            {
+                MyAlert.NumberClosePosition = closePosition;
+            }
+
             Enum.TryParse(ComboBoxOrderType.Text, true, out MyAlert.OrderPriceType);
 
-            Enum.TryParse(ComboBoxMusicType.Text,out MyAlert.Music);
+            Enum.TryParse(ComboBoxMusicType.Text, out MyAlert.Music);
 
-
-            System.Windows.Media.Color  labelColor = ((SolidColorBrush)ButtonColorLabel.Background).Color;
+            System.Windows.Media.Color labelColor = ((SolidColorBrush)ButtonColorLabel.Background).Color;
             MyAlert.ColorLabel = System.Drawing.Color.FromArgb(labelColor.A, labelColor.R, labelColor.G, labelColor.B);
 
             System.Windows.Media.Color lineColor = ((SolidColorBrush)ButtonColorLine.Background).Color;
             MyAlert.ColorLine = System.Drawing.Color.FromArgb(lineColor.A, lineColor.R, lineColor.G, lineColor.B);
-
-
         }
 
         /// <summary>
@@ -608,6 +676,7 @@ namespace OsEngine.Alerts
             {
                 return;
             }
+
             // create new alert
             // создаём новый алерт
             AlertToChart alert = new AlertToChart(_keeper.HostAlert);
@@ -654,7 +723,7 @@ namespace OsEngine.Alerts
 
             if (ComboBoxType.Text == ChartAlertType.FibonacciChannel.ToString())
             {
-               return GetChanalLines(candles);
+                return GetChanalLines(candles);
             }
 
             return null;
@@ -668,7 +737,6 @@ namespace OsEngine.Alerts
         /// <returns>lines/линии</returns>
         private ChartAlertLine[] GetSpeedAlertLines(List<Candle> candles)
         {
-
             //1) Specify first point/Указываем первую точку
             //2) Specify second point/Указываем вторую точку
             //3) Rectangle built between points/Между точками строиться прямоугольник
@@ -676,12 +744,11 @@ namespace OsEngine.Alerts
             //4) По вертикальному катету накладываем три точки. При этом на восходящем движении отсчет идет снизу вверх: пропорция 0.382______ 0.487_______ 0.618. Проводим через них три линии.
 
             decimal valueOneClick = _candleOneValue;
-
             decimal valueTwoClick;
-
             decimal divider = Convert.ToDecimal(Slider.Value - 100);
 
             valueTwoClick = _candleTwoValue + _candleTwoValue * Convert.ToDecimal(divider / 1000);
+
             // 1 if points are pressed on one straight line
             // 1 если нажаты точки на одной прямой
             if (valueTwoClick == valueOneClick)
@@ -694,11 +761,11 @@ namespace OsEngine.Alerts
                 ChartAlertLine[] lines = { AlertLineCreate(valueOne, valueTwo, numberOne, numberTwo, candles) };
                 return lines;
             }
+
             // 2 find the height of cathetus
             // 2 находим высоту катета
 
             decimal highKatet;
-
             bool isUpSpeedLine;
 
             if (valueTwoClick > valueOneClick)
@@ -745,10 +812,9 @@ namespace OsEngine.Alerts
             ChartAlertLine treeLine = AlertLineCreate(firstValueToAllLine, threeLineValue, firstNumberToAllLine,
             secondNumberToAllLine, candles);
 
-            ChartAlertLine[] alertLines = {oneLine, twoLine, treeLine};
+            ChartAlertLine[] alertLines = { oneLine, twoLine, treeLine };
 
             return alertLines;
-
         }
 
         /// <summary>
@@ -837,7 +903,7 @@ namespace OsEngine.Alerts
                 l0261value2 = twoPoint + divider * twoPoint * 2.61m;
 
                 l0423value1 = onePoint + divider * onePoint * 4.23m;
-                l0423value2 = twoPoint + divider * twoPoint * 4.423m;
+                l0423value2 = twoPoint + divider * twoPoint * 4.23m;
             }
             else
             {
@@ -873,7 +939,6 @@ namespace OsEngine.Alerts
 
             // 2 alerts
 
-
             ChartAlertLine oneLine = AlertLineCreate(onePoint, twoPoint, oneNumber, twoPNumber, candles);
 
             ChartAlertLine l023Line = AlertLineCreate(l023value1, l023value2, oneNumber, twoPNumber, candles);
@@ -890,7 +955,7 @@ namespace OsEngine.Alerts
 
             ChartAlertLine[] alertLines = new ChartAlertLine[10];
 
-            alertLines[0] =  oneLine;
+            alertLines[0] = oneLine;
             alertLines[1] = l023Line;
             alertLines[2] = l038Line;
             alertLines[3] = l050Line;
@@ -902,7 +967,6 @@ namespace OsEngine.Alerts
             alertLines[9] = l423Line;
 
             return alertLines;
-
         }
 
         /// <summary>
@@ -958,7 +1022,7 @@ namespace OsEngine.Alerts
 
             for (int i = candles.Count - 1; i > -1; i--)
             {
-                if (nowHour != candles[i].TimeStart.Hour 
+                if (nowHour != candles[i].TimeStart.Hour
                     || nowDay != candles[i].TimeStart.Day)
                 {
                     nowHour = candles[i].TimeStart.Hour;
@@ -978,8 +1042,8 @@ namespace OsEngine.Alerts
             // 6 calculate real position of alert. In hours.
             // 6 рассчитываем реальное положение алерта. В часах.
 
-            if (secondHourCandle <0 ||
-                firstHourCandle <0)
+            if (secondHourCandle < 0 ||
+                firstHourCandle < 0)
             {
                 return null;
             }
@@ -1008,9 +1072,16 @@ namespace OsEngine.Alerts
         /// </summary>
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            SaveAlert();
-            NeedToSave = true;
-            Close();
+            try
+            {
+                SaveAlert();
+                NeedToSave = true;
+                Close();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -1019,18 +1090,25 @@ namespace OsEngine.Alerts
         /// </summary>
         private void ButtonColorLabel_Click(object sender, RoutedEventArgs e)
         {
-            ColorCustomDialog ui = new ColorCustomDialog();
+            try
+            {
+                ColorCustomDialog ui = new ColorCustomDialog();
 
-            System.Windows.Media.Color labelColor = ((SolidColorBrush)ButtonColorLabel.Background).Color;
-            ui.Color = System.Drawing.Color.FromArgb(labelColor.A, labelColor.R, labelColor.G, labelColor.B);
+                System.Windows.Media.Color labelColor = ((SolidColorBrush)ButtonColorLabel.Background).Color;
+                ui.Color = System.Drawing.Color.FromArgb(labelColor.A, labelColor.R, labelColor.G, labelColor.B);
 
-            ui.ShowDialog();
+                ui.ShowDialog();
 
-            System.Drawing.Color newColor = ui.Color;
-            ButtonColorLabel.Background =
-                new SolidColorBrush(Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B));
+                System.Drawing.Color newColor = ui.Color;
+                ButtonColorLabel.Background =
+                    new SolidColorBrush(Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B));
 
-            SaveAlert();
+                SaveAlert();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -1039,17 +1117,24 @@ namespace OsEngine.Alerts
         /// </summary>
         private void ButtonColorLine_Click(object sender, RoutedEventArgs e)
         {
-            ColorCustomDialog ui = new ColorCustomDialog();
+            try
+            {
+                ColorCustomDialog ui = new ColorCustomDialog();
 
-            System.Windows.Media.Color lineColor = ((SolidColorBrush)ButtonColorLine.Background).Color;
-            ui.Color = System.Drawing.Color.FromArgb(lineColor.A, lineColor.R, lineColor.G, lineColor.B);
-            ui.ShowDialog();
+                System.Windows.Media.Color lineColor = ((SolidColorBrush)ButtonColorLine.Background).Color;
+                ui.Color = System.Drawing.Color.FromArgb(lineColor.A, lineColor.R, lineColor.G, lineColor.B);
+                ui.ShowDialog();
 
-            System.Drawing.Color newColor = ui.Color;
-            ButtonColorLine.Background =
-                new SolidColorBrush(Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B));
+                System.Drawing.Color newColor = ui.Color;
+                ButtonColorLine.Background =
+                    new SolidColorBrush(Color.FromArgb(newColor.A, newColor.R, newColor.G, newColor.B));
 
-            SaveAlert();
+                SaveAlert();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -1058,60 +1143,80 @@ namespace OsEngine.Alerts
         /// </summary>
         private void ButtonSendFirst_Click(object sender, RoutedEventArgs e)
         {
-            ChartAlertType type;
-
-            Enum.TryParse(ComboBoxType.Text, out type);
-
-            if (type == ChartAlertType.FibonacciChannel)
+            try
             {
-                if (_waitOne == false)
+                ChartAlertType type;
+
+                Enum.TryParse(ComboBoxType.Text, out type);
+
+                if (type == ChartAlertType.FibonacciChannel)
                 {
-                    _waitOne = true;
-                    _waitTwo = false;
+                    if (_waitOne == false)
+                    {
+                        _waitOne = true;
+                        _waitTwo = false;
+                    }
+                    else if (_waitOne)
+                    {
+                        _waitOne = false;
+                        _waitTwo = false;
+                    }
+                    Slider.Value = 100;
                 }
-                else if (_waitOne)
+                else if (type == ChartAlertType.Line)
                 {
+                    if (_waitOne == false)
+                    {
+                        _waitOne = true;
+                        _waitTwo = false;
+                    }
+                    else if (_waitOne)
+                    {
+                        _waitOne = false;
+                        _waitTwo = false;
+                    }
+                }
+                else if (type == ChartAlertType.FibonacciSpeedLine)
+                {
+                    if (_waitOne == false)
+                    {
+                        _waitOne = true;
+                        _waitTwo = false;
+                    }
+                    else if (_waitOne)
+                    {
+                        _waitOne = false;
+                        _waitTwo = false;
+                    }
+                    Slider.Value = 100;
+                }
+                else if (type == ChartAlertType.HorizontalLine)
+                {
+                    _waitHorisont = true;
                     _waitOne = false;
                     _waitTwo = false;
                 }
-                Slider.Value = 100;
             }
-            else if (type == ChartAlertType.Line)
+            catch (Exception ex)
             {
-                if (_waitOne == false)
-                {
-                    _waitOne = true;
-                    _waitTwo = false;
-                }
-                else if (_waitOne)
-                {
-                    _waitOne = false;
-                    _waitTwo = false;
-                }
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-            else if (type == ChartAlertType.FibonacciSpeedLine)
-            {
-                if (_waitOne == false)
-                {
-                    _waitOne = true;
-                    _waitTwo = false;
-                }
-                else if (_waitOne)
-                {
-                    _waitOne = false;
-                    _waitTwo = false;
-                }
-                Slider.Value = 100;
-            }
-            else if (type == ChartAlertType.HorizontalLine)
-            {
-                _waitHorisont = true;
-                _waitOne = false;
-                _waitTwo = false;
-            }
-
-          
         }
 
+        #region Posts collection
+
+        private void ButtonPostAlertToChart_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.BotStationLightPosts.Link33.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
     }
 }
