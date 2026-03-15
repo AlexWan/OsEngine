@@ -65,5 +65,11 @@
         </Label>
         <Label Name="LabelSlippageType" Content="Slippage type" HorizontalAlignment="Right" Margin="0,153,194,0" VerticalAlignment="Top" />
         <ComboBox Name="ComboBoxSlippageType" Margin="0,153,97,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="96" />
+        <Button Name="ButtonPostAlertToChart" HorizontalAlignment="Left" Margin="29,168,0,0" VerticalAlignment="Top" Height="36" Width="35" Click="ButtonPostAlertToChart_Click">
+            <Grid>
+                <Image Name="PostGreenAlertToChart" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
+                <Image Name="PostWhiteAlertToChart"  Source="/Images/InstructionPosts/WhitePost.png" Width="31" Height="25" Opacity="0" />
+            </Grid>
+        </Button>
     </Grid>
 </Window>
