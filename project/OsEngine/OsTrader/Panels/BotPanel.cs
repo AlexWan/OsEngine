@@ -1696,6 +1696,10 @@ position => position.State != PositionStateType.OpeningFail
         {
             try
             {
+                if(_riskManager == null)
+                {
+                    return;
+                }
                 _riskManager.ClearJournals();
 
                 List<Journal.Journal> journals = this.GetJournals();

@@ -733,7 +733,6 @@ namespace OsEngine.Robots.FuturesStart
 
             bool needToExit = false;
 
-
             if (pos.Direction == Side.Buy
                 && futuresLastPrice < keltner.DataSeries[2].Last)
             {
