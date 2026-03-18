@@ -2449,6 +2449,10 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     tabWithPosition.ShowClosePositionDialog(position);
                 }
+                else if (signal == SignalType.AddToPosition)
+                {
+                    tabWithPosition.ShowAddPositionDialog(position);
+                }
                 else if (signal == SignalType.ReloadStop)
                 {
                     tabWithPosition.ShowStopSendDialog(position);

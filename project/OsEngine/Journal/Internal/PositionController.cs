@@ -2098,7 +2098,7 @@ namespace OsEngine.Journal.Internal
 
             try
             {
-                ToolStripMenuItem[] items = new ToolStripMenuItem[6];
+                ToolStripMenuItem[] items = new ToolStripMenuItem[7];
 
                 items[0] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem1 };
                 items[0].Click += PositionCloseAll_Click;
@@ -2109,14 +2109,17 @@ namespace OsEngine.Journal.Internal
                 items[2] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem3 };
                 items[2].Click += PositionCloseForNumber_Click;
 
-                items[3] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
-                items[3].Click += PositionNewStop_Click;
+                items[3] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem14 };
+                items[3].Click += PositionAddToSelected_Click;
 
-                items[4] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
-                items[4].Click += PositionNewProfit_Click;
+                items[4] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
+                items[4].Click += PositionNewStop_Click;
 
-                items[5] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
-                items[5].Click += PositionClearDelete_Click;
+                items[5] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
+                items[5].Click += PositionNewProfit_Click;
+
+                items[6] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
+                items[6].Click += PositionClearDelete_Click;
 
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
@@ -2366,6 +2369,37 @@ namespace OsEngine.Journal.Internal
                 if (UserSelectActionEvent != null)
                 {
                     UserSelectActionEvent(GetPositionForNumber(number), SignalType.ReloadProfit);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void PositionAddToSelected_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int number;
+                try
+                {
+                    if (_gridOpenDeal.Rows == null ||
+                        _gridOpenDeal.Rows.Count == 0 ||
+                        _gridOpenDeal.CurrentCell == null)
+                    {
+                        return;
+                    }
+                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.AddToPosition);
                 }
             }
             catch (Exception error)

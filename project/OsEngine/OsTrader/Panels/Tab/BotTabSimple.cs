@@ -1636,6 +1636,50 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        private List<PositionAdding> _guisAddPos = new List<PositionAdding>();
+
+        /// <summary>
+        /// Show position adding window
+        /// </summary>
+        public void ShowAddPositionDialog(Position position)
+        {
+            try
+            {
+                for (int i = 0; i < _guisAddPos.Count; i++)
+                {
+                    if (_guisAddPos[i].Position.Number == position.Number)
+                    {
+                        _guisAddPos[i].Activate();
+                        _guisAddPos[i].SelectTabIndx(AddPositionType.Limit);
+                        return;
+                    }
+                }
+
+                PositionAdding ui = new PositionAdding(this, AddPositionType.Limit, position);
+                ui.Show();
+                _guisAddPos.Add(ui);
+                ui.Closing += UiAddPos_Closing;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UiAddPos_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            PositionAdding myUi = (PositionAdding)sender;
+
+            for (int i = 0; i < _guisAddPos.Count; i++)
+            {
+                if (_guisAddPos[i].Position.Number == myUi.Position.Number)
+                {
+                    _guisAddPos.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+
         /// <summary>
         /// Show stop order window
         /// </summary>
@@ -2773,6 +2817,69 @@ namespace OsEngine.OsTrader.Panels.Tab
             BuyAtStopMarketToPosition(position, volume, priceRedLine, activateType, 1);
         }
 
+        /// Add to existing long position with FAKE order
+        /// </summary>
+        /// <param name="position">position to add volume</param>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        public void BuyAtFakeToPosition(Position position, decimal volume, decimal price, DateTime time)
+        {
+            try
+            {
+                if (position.Direction == Side.Sell)
+                {
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label65, LogMessageType.Error);
+                    return;
+                }
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    return;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    return;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    return;
+                }
+
+                price = RoundPrice(price, Security, Side.Buy);
+
+                Order newOrder = _dealCreator.CreateOrder(
+                    Security, Side.Buy, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, StartProgram,
+                    OrderPositionConditionType.Open,
+                    ManualPositionSupport.OrderTypeTime,
+                    _connector.ServerFullName,
+                    ManualPositionSupport.LimitsMakerOnly, position.Number);
+
+                newOrder.SecurityNameCode = Security.Name;
+                newOrder.SecurityClassCode = Security.NameClass;
+                position.AddNewOpenOrder(newOrder);
+
+                SetNewLogMessage(Security.Name + " long position fake modification \n"
+                   + "Order direction: " + Side.Buy.ToString() + "\n"
+                   + "Price: " + price.ToString() + "\n"
+                   + "Volume: " + volume.ToString() + "\n"
+                   + "Position num: " + position.Number.ToString()
+                   , LogMessageType.Trade);
+
+                OrderFakeExecute(newOrder, time);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         /// <summary>
         /// Enter the short position at any price
         /// </summary>
@@ -3846,6 +3953,70 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void SellAtStopMarketToPosition(Position position, decimal volume, decimal priceRedLine, StopActivateType activateType)
         {
             SellAtStopMarketToPosition(position, volume, priceRedLine, activateType, 1);
+        }
+
+        /// <summary>
+        /// Add to existing short position with FAKE order
+        /// </summary>
+        /// <param name="position">position to add volume</param>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        public void SellAtFakeToPosition(Position position, decimal volume, decimal price, DateTime time)
+        {
+            try
+            {
+                if (position.Direction == Side.Buy)
+                {
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label66, LogMessageType.Error);
+                    return;
+                }
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    return;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    return;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    return;
+                }
+
+                price = RoundPrice(price, Security, Side.Sell);
+
+                Order newOrder = _dealCreator.CreateOrder(
+                    Security, Side.Sell, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, StartProgram,
+                    OrderPositionConditionType.Open,
+                    ManualPositionSupport.OrderTypeTime,
+                    _connector.ServerFullName,
+                    ManualPositionSupport.LimitsMakerOnly, position.Number);
+
+                newOrder.SecurityNameCode = Security.Name;
+                newOrder.SecurityClassCode = Security.NameClass;
+                position.AddNewOpenOrder(newOrder);
+
+                SetNewLogMessage(Security.Name + " short position fake modification \n"
+                   + "Order direction: " + Side.Sell.ToString() + "\n"
+                   + "Price: " + price.ToString() + "\n"
+                   + "Volume: " + volume.ToString() + "\n"
+                   + "Position num: " + position.Number.ToString()
+                   , LogMessageType.Trade);
+
+                OrderFakeExecute(newOrder, time);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -6674,6 +6845,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (signalType == SignalType.OpenNew)
                 {
                     ShowOpenPositionDialog();
+                }
+
+                if (signalType == SignalType.AddToPosition)
+                {
+                    if (position == null)
+                    {
+                        return;
+                    }
+                    ShowAddPositionDialog(position);
                 }
 
                 if (signalType == SignalType.DeletePos)

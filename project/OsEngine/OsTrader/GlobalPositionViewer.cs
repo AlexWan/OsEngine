@@ -971,7 +971,7 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
-                ToolStripMenuItem[] items = new ToolStripMenuItem[5];
+                ToolStripMenuItem[] items = new ToolStripMenuItem[6];
 
                 items[0] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem1 };
                 items[0].Click += PositionCloseAll_Click;
@@ -979,19 +979,23 @@ namespace OsEngine.OsTrader
                 items[1] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem3 };
                 items[1].Click += PositionCloseForNumber_Click;
 
-                items[2] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
-                items[2].Click += PositionNewStop_Click;
+                items[2] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem14 };
+                items[2].Click += PositionAddToSelected_Click;
 
-                items[3] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
-                items[3].Click += PositionNewProfit_Click;
+                items[3] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
+                items[3].Click += PositionNewStop_Click;
 
-                items[4] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
-                items[4].Click += PositionClearDelete_Click;
+                items[4] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
+                items[4].Click += PositionNewProfit_Click;
+
+                items[5] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
+                items[5].Click += PositionClearDelete_Click;
 
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
                 _gridOpenPoses.ContextMenuStrip = menu;
                 _gridOpenPoses.ContextMenuStrip.Show(_gridOpenPoses, new Point(mouse.X, mouse.Y));
+            
             }
             catch (Exception error)
             {
@@ -1101,6 +1105,35 @@ namespace OsEngine.OsTrader
                 if (UserSelectActionEvent != null)
                 {
                     UserSelectActionEvent(GetPositionForNumber(number), SignalType.ReloadProfit);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void PositionAddToSelected_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int number;
+                try
+                {
+                    if (_gridOpenPoses.CurrentCell == null)
+                    {
+                        return;
+                    }
+                    number = Convert.ToInt32(_gridOpenPoses.Rows[_gridOpenPoses.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.AddToPosition);
                 }
             }
             catch (Exception error)

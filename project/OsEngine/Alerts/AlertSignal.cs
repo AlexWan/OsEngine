@@ -114,6 +114,12 @@ namespace OsEngine.Alerts
         /// find position
         /// найти позицию
         /// </summary>
-        FindPosition
+        FindPosition,
+
+        /// <summary>
+        /// add to position
+        /// докупить в позицию
+        /// </summary>
+        AddToPosition
     }
 }
