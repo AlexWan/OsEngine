@@ -2512,8 +2512,48 @@ namespace OsEngine.Language
          "Ru:Текущее время сервера");
 
         public string Label673 => OsLocalization.ConvertToLocString(
-         "Eng:CloseForced orders type_" +
-         "Ru:CloseForced тип ордеров");
+        "Eng:CloseForced orders type_" +
+        "Ru:CloseForced тип ордеров_");
+
+        public string Label674 => OsLocalization.ConvertToLocString(
+         "Eng:Add to Position Window. Buy_" +
+         "Ru:Окно дооткрытия позиции. Покупаем_");
+
+        public string Label675 => OsLocalization.ConvertToLocString(
+         "Eng:Add to Position Window. Sell_" +
+         "Ru:Окно дооткрытия позиции. Продаем_");
+
+        public string Label676 => OsLocalization.ConvertToLocString(
+         "Eng:Buy at limit_" +
+         "Ru:Купить лимит ордером_");
+
+        public string Label677 => OsLocalization.ConvertToLocString(
+         "Eng:Buy at market_" +
+         "Ru:Купить маркет ордером_");
+
+        public string Label678 => OsLocalization.ConvertToLocString(
+         "Eng:Buy at stop_" +
+         "Ru:Купить стоп ордером_");
+
+        public string Label679 => OsLocalization.ConvertToLocString(
+         "Eng:Buy at fake_" +
+         "Ru:Купить фейк ордером_");
+
+        public string Label680 => OsLocalization.ConvertToLocString(
+         "Eng:Sell at limit_" +
+         "Ru:Продать лимит ордером_");
+
+        public string Label681 => OsLocalization.ConvertToLocString(
+         "Eng:Sell at market_" +
+         "Ru:Продать маркет ордером_");
+
+        public string Label682 => OsLocalization.ConvertToLocString(
+         "Eng:Sell at stop_" +
+         "Ru:Продать стоп ордером_");
+
+        public string Label683 => OsLocalization.ConvertToLocString(
+         "Eng:Sell at fake_" +
+         "Ru:Продать фейк ордером_");
 
     }
 }

@@ -59,6 +59,10 @@ namespace OsEngine.Language
             "Eng:Create position_" +
             "Ru:Создать позицию_");
 
+        public string PositionMenuItem14 => OsLocalization.ConvertToLocString(
+           "Eng:Add to selected_" +
+           "Ru:Докупить в выбранную_");
+
         public string TitleJournalUi => OsLocalization.ConvertToLocString(
             "Eng:Journal_" +
             "Ru:Журнал_");
