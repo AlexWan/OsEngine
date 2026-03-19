@@ -1,7 +1,11 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
-using OsEngine.Market;
 using System;
 using System.Windows;
 using System.Threading.Tasks;
@@ -181,7 +185,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     }
                     catch (Exception ex)
                     {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
                         timer.Stop();
                     }
                 };
@@ -190,7 +194,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception ex)
             {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -715,7 +719,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception ex)
             {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
             }
         }
 

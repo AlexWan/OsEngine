@@ -1,17 +1,22 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
 using OsEngine.Logging;
-using OsEngine.Market;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
-    public partial class PositionAdding : Window
+    public partial class PositionAddingUi2 : Window
     {
-        public PositionAdding(BotTabSimple tab, AddPositionType addPositionType, Position position)
+        public PositionAddingUi2(BotTabSimple tab, AddPositionType addPositionType, Position position)
         {
             InitializeComponent();
 
@@ -104,6 +109,64 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             SetNowTimeInControlsFakeOpenPos();
 
             Task.Run(WatcherThreadPlace);
+
+            if (InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass == null
+               || InteractiveInstructions.BotStationLightPosts.AllInstructionsInClass.Count == 0)
+            {
+                ButtonPostPositionAdding.Visibility = Visibility.Visible;
+            }
+
+            StartButtonBlinkAnimation();
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            PostGreenPositionAdding.Opacity = 1;
+                            PostWhitePositionAdding.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            PostGreenPositionAdding.Opacity = 0;
+                            PostWhitePositionAdding.Opacity = 1;
+                        }
+                        else
+                        {
+                            PostGreenPositionAdding.Opacity = 1;
+                            PostWhitePositionAdding.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         public BotTabSimple Tab;
@@ -475,7 +538,17 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         #region Posts collection
 
-
+        private void ButtonPostPositionAdding_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                InteractiveInstructions.BotStationLightPosts.Link34.ShowLinkInBrowser();
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         #endregion
     }
