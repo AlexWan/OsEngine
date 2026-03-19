@@ -27,6 +27,17 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string timeNano { get; set; }
     }
 
+    public class ResultMode
+    {
+        public List<ReasonMode> reasons { get; set; }
+    }
+
+    public class ReasonMode
+    {
+        public string reasonCode { get; set; }
+        public string reasonMsg { get; set; }
+    }
+
     public class APKeyInformation
     {
         public string id { get; set; }
