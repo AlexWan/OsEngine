@@ -1636,7 +1636,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private List<PositionAdding> _guisAddPos = new List<PositionAdding>();
+        private List<PositionAddingUi2> _guisAddPos = new List<PositionAddingUi2>();
 
         /// <summary>
         /// Show position adding window
@@ -1655,7 +1655,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                PositionAdding ui = new PositionAdding(this, AddPositionType.Limit, position);
+                PositionAddingUi2 ui = new PositionAddingUi2(this, AddPositionType.Limit, position);
                 ui.Show();
                 _guisAddPos.Add(ui);
                 ui.Closing += UiAddPos_Closing;
@@ -1668,7 +1668,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void UiAddPos_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            PositionAdding myUi = (PositionAdding)sender;
+            PositionAddingUi2 myUi = (PositionAddingUi2)sender;
 
             for (int i = 0; i < _guisAddPos.Count; i++)
             {

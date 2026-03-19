@@ -69,6 +69,8 @@ namespace OsEngine.Instructions
                 result.Add(Link31);
                 result.Add(Link32);
 
+                result.Add(Link34);
+
                 return result;
             }
         }
@@ -433,6 +435,17 @@ namespace OsEngine.Instructions
             {
                 Description = "Алерты в OsEngine",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&cats%5B%5D=tab88&cats%5B%5D=tab112&cats%5B%5D=tab80&subcats%5B%5D=sub28&items%5B%5D=item89"
+            }
+        };
+
+        public Instruction Link34 = new Instruction()
+        {
+            Type = InstructionType.Post,
+
+            Ru = new InstructionLocalized()
+            {
+                Description = "Bot Station. Окно дооткрытия позиции",
+                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub28&items%5B%5D=item879"
             }
         };
     }
