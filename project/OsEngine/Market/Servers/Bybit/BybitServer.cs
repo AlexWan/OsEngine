@@ -36,7 +36,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Server type", Net_type.MainNet.ToString(), new List<string>() { Net_type.MainNet.ToString(),
                 Net_type.Demo.ToString(), Net_type.Netherlands.ToString(), Net_type.HongKong.ToString(), Net_type.Turkey.ToString(), Net_type.Kazakhstan.ToString() });
-            CreateParameterEnum("Margin Mode", MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
+            CreateParameterEnum("Margin Mode", MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString(), MarginMode.Portfolio.ToString() });
             CreateParameterBoolean("Hedge Mode", true);
             ServerParameters[4].ValueChange += BybitServer_ValueChange;
             CreateParameterBoolean("Extended Data", false);
@@ -318,13 +318,38 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
+                string mode = "REGULAR_MARGIN";
+
+                if (margineMode == MarginMode.Isolated)
+                {
+                    mode = "ISOLATED_MARGIN";
+                }
+                else if (margineMode == MarginMode.Portfolio)
+                {
+                    mode = "PORTFOLIO_MARGIN";
+                }
+
                 Dictionary<string, object> parametrs = new Dictionary<string, object>();
-                parametrs["setMarginMode"] = margineMode == MarginMode.Cross ? "REGULAR_MARGIN" : "ISOLATED_MARGIN";
-                CreatePrivateQuery(parametrs, Method.POST, "/v5/account/set-margin-mode");
+                parametrs["setMarginMode"] = mode;
+                IRestResponse responseMessage = CreatePrivateQuery(parametrs, Method.POST, "/v5/account/set-margin-mode");
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<ResultMode> responseMode = JsonConvert.DeserializeObject<ResponseRestMessage<ResultMode>>(responseMessage.Content);
+
+                    if (responseMode.retCode != "0")
+                    {
+                        SendLogMessage($"Margin mode error. {responseMode.retCode} || {responseMode.result.reasons[0].reasonCode} || msg: {responseMode.retMsg} || {responseMode.result.reasons[0].reasonMsg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Margin mode error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                }
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Check Bybit API Keys and Unified AccountBalance Settings! {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Margin mode error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -343,11 +368,25 @@ namespace OsEngine.Market.Servers.Bybit
                 parametrs["coin"] = "USDT";
                 parametrs["mode"] = HedgeMode == true ? "3" : "0"; //Position mode. 0: Merged Single. 3: Both Sides
 
-                CreatePrivateQuery(parametrs, Method.POST, "/v5/position/switch-mode");
+                IRestResponse responseMessage = CreatePrivateQuery(parametrs, Method.POST, "/v5/position/switch-mode");
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<object> responseMode = JsonConvert.DeserializeObject<ResponseRestMessage<object>>(responseMessage.Content);
+
+                    if (responseMode.retCode != "0" && !responseMode.retMsg.Contains("Pm mode cannot support"))
+                    {
+                        SendLogMessage($"Position mode error. {responseMode.retCode} || msg: {responseMode.retMsg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Position mode error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                }
             }
             catch (Exception ex)
             {
-                SendLogMessage($"SetPositionMode: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Position mode error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -3673,7 +3712,8 @@ namespace OsEngine.Market.Servers.Bybit
                 bool reduceOnly = false;
 
                 if (HedgeMode
-                    && order.SecurityClassCode == "LinearPerpetual")
+                    && order.SecurityClassCode == "LinearPerpetual"
+                    && margineMode != MarginMode.Portfolio)
                 {
                     if (order.PositionConditionType == OrderPositionConditionType.Close)
                     {
@@ -4060,7 +4100,11 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (responseMessage.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"Get all open orders request error: {responseMessage.StatusCode} || {responseMessage.Content}", LogMessageType.Error);
+                    if (responseMessage.StatusCode != 0)
+                    {
+                        SendLogMessage($"Get all open orders request error: {responseMessage.StatusCode} || {responseMessage.Content}", LogMessageType.Error);
+                    }
+
                     return;
                 }
 
@@ -4824,7 +4868,8 @@ namespace OsEngine.Market.Servers.Bybit
     public enum MarginMode
     {
         Cross,
-        Isolated
+        Isolated,
+        Portfolio
     }
 
     public enum Category
