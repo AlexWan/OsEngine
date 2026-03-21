@@ -300,6 +300,19 @@ namespace OsEngine.Market.Servers.BitMart
             get { return false; }
         }
 
+        public OrderLifeTimePermission OrdersLifeTimeRealization
+        {
+            get
+            {
+                return new OrderLifeTimePermission
+                {
+                    GtcIsReady = true,
+                    SpecifiedIsReady = true,
+                    DayIsReady = false
+                };
+            }
+        }
+
         #endregion
     }
 }

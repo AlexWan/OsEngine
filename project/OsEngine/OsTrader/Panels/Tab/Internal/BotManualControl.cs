@@ -85,7 +85,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Constructor
         /// </summary>
-        public BotManualControl(string name, BotTabSimple botTab,StartProgram startProgram)
+        public BotManualControl(string name, BotTabSimple botTab, StartProgram startProgram)
         {
             _name = name;
             _startProgram = startProgram;
@@ -100,10 +100,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             StopDistance = 30;
             StopSlippage = 5;
-           
+
             ProfitDistance = 30;
             ProfitSlippage = 5;
-           
+
             DoubleExitSlippage = 10;
             SecondToOpen = new TimeSpan(0, 0, 0, 50);
             SecondToClose = new TimeSpan(0, 0, 0, 50);
@@ -125,11 +125,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     Activate();
                 }
 
-                lock(_tabsAddLocker)
+                lock (_tabsAddLocker)
                 {
                     TabsToCheck.Add(this);
                 }
-                
+
             }
         }
 
@@ -169,7 +169,33 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     DoubleExitSlippage = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), out TypeDoubleExitOrder);
                     Enum.TryParse(reader.ReadLine(), out ValuesType);
-                    Enum.TryParse(reader.ReadLine(), out OrderTypeTime);
+
+                    try
+                    {
+                        string orderTypeTimeStr = reader.ReadLine();
+
+                        if (!string.IsNullOrEmpty(orderTypeTimeStr))
+                        {
+                            OrderTypeTime parsedType;
+
+                            if (Enum.TryParse(orderTypeTimeStr, out parsedType))
+                            {
+                                OrderTypeTime = parsedType;
+                            }
+                            else
+                            {
+                                OrderTypeTime = OrderTypeTime.Specified;
+                            }
+                        }
+                        else
+                        {
+                            OrderTypeTime = OrderTypeTime.Specified;
+                        }
+                    }
+                    catch
+                    {
+                        OrderTypeTime = OrderTypeTime.Specified;
+                    }
 
                     try
                     {
@@ -194,7 +220,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public void Save()
         {
-            if(_startProgram == StartProgram.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -205,7 +231,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 string dir = Path.GetDirectoryName(path);
 
-                if(Directory.Exists(dir) == false)
+                if (Directory.Exists(dir) == false)
                 {
                     Directory.CreateDirectory(dir);
                 }
@@ -256,7 +282,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     string path = @"Engine\" + _name + @"StrategSettings.txt";
 
                     FileInfo file = new FileInfo(path);
-                    if(file.IsReadOnly)
+                    if (file.IsReadOnly)
                     {
                         file.IsReadOnly = false;
                     }
@@ -264,7 +290,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     File.Delete(path);
                 }
 
-                if(TabsToCheck != null)
+                if (TabsToCheck != null)
                 {
                     lock (_tabsAddLocker)
                     {
@@ -279,7 +305,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     }
                 }
 
-                if(_botTab != null)
+                if (_botTab != null)
                 {
                     _botTab = null;
                 }
@@ -323,49 +349,49 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             bool valueIsChanged = false;
 
-            if(DoubleExitIsOn == true)
+            if (DoubleExitIsOn == true)
             {
                 DoubleExitIsOn = false;
                 valueIsChanged = true;
             }
-          
-            if(ProfitIsOn == true)
+
+            if (ProfitIsOn == true)
             {
                 ProfitIsOn = false;
                 valueIsChanged = true;
             }
-            
-            if(SecondToCloseIsOn == true)
+
+            if (SecondToCloseIsOn == true)
             {
                 SecondToCloseIsOn = false;
                 valueIsChanged = true;
             }
-            
+
             if (SecondToOpenIsOn == true)
             {
                 SecondToOpenIsOn = false;
                 valueIsChanged = true;
             }
-            
-            if(SetbackToCloseIsOn == true)
+
+            if (SetbackToCloseIsOn == true)
             {
                 SetbackToCloseIsOn = false;
                 valueIsChanged = true;
             }
-            
-            if(SetbackToOpenIsOn == true)
+
+            if (SetbackToOpenIsOn == true)
             {
                 SetbackToOpenIsOn = false;
                 valueIsChanged = true;
             }
-            
-            if(StopIsOn == true)
+
+            if (StopIsOn == true)
             {
                 StopIsOn = false;
                 valueIsChanged = true;
             }
-            
-            if(valueIsChanged == true)
+
+            if (valueIsChanged == true)
             {
                 Save();
             }
@@ -530,7 +556,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             try
             {
-                if(_botTab == null)
+                if (_botTab == null)
                 {
                     return;
                 }
@@ -555,18 +581,18 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         // ignore
                     }
 
-                    if(position == null)
+                    if (position == null)
                     {
                         continue;
-                    }    
-                    
+                    }
+
 
                     for (int i2 = 0; position.OpenOrders != null && i2 < position.OpenOrders.Count; i2++)
                     {
                         // open orders
                         Order openOrder = position.OpenOrders[i2];
 
-                        if(openOrder == null)
+                        if (openOrder == null)
                         {
                             continue;
                         }
@@ -588,7 +614,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
-                        if(openOrder.OrderTypeTime == OrderTypeTime.Specified)
+                        if (openOrder.OrderTypeTime == OrderTypeTime.Specified)
                         {
                             if (SecondToOpenIsOn &&
                                 openOrder.TimeCreate.Add(openOrder.LifeTime) < ServerTime)
@@ -631,19 +657,19 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         // close orders
                         Order closeOrder = position.CloseOrders[i2];
 
-                        if(closeOrder == null)
+                        if (closeOrder == null)
                         {
                             continue;
                         }
 
-                        if (closeOrder.State != OrderStateType.Active 
+                        if (closeOrder.State != OrderStateType.Active
                             && closeOrder.State != OrderStateType.Partial
                             && closeOrder.State != OrderStateType.Pending)
                         {
                             continue;
                         }
 
-                        if(string.IsNullOrEmpty(closeOrder.NumberMarket))
+                        if (string.IsNullOrEmpty(closeOrder.NumberMarket))
                         {
                             continue;
                         }
@@ -710,7 +736,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 if (position.Direction == Side.Buy)
                 {
-                    decimal priceRedLine = position.EntryPrice - GetStopDistance(position,bot.Security);
+                    decimal priceRedLine = position.EntryPrice - GetStopDistance(position, bot.Security);
                     decimal priceOrder = priceRedLine - GetStopSlippageDistance(position, bot.Security);
 
                     bot.CloseAtStop(position, priceRedLine, priceOrder);
@@ -803,7 +829,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Get slippage for profit
         /// </summary>
-        public decimal GetProfitDistanceSlippage(Position position,Security security)
+        public decimal GetProfitDistanceSlippage(Position position, Security security)
         {
             decimal result = 0;
 

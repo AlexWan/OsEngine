@@ -269,6 +269,19 @@ namespace OsEngine.Market.Servers.MOEX
             get { return false; }
         }
 
+        public OrderLifeTimePermission OrdersLifeTimeRealization
+        {
+            get
+            {
+                return new OrderLifeTimePermission
+                {
+                    GtcIsReady = true,
+                    SpecifiedIsReady = true,
+                    DayIsReady = false
+                };
+            }
+        }
+
         #endregion
     }
 }

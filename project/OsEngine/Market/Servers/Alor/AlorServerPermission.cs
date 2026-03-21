@@ -296,6 +296,19 @@ namespace OsEngine.Market.Servers.Alor
             get { return true; }
         }
 
+        public OrderLifeTimePermission OrdersLifeTimeRealization
+        {
+            get
+            {
+                return new OrderLifeTimePermission
+                {
+                    GtcIsReady = true,
+                    SpecifiedIsReady = true,
+                    DayIsReady = false
+                };
+            }
+        }
+
         #endregion
     }
 }

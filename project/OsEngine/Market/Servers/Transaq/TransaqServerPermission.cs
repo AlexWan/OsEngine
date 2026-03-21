@@ -294,6 +294,19 @@ namespace OsEngine.Market.Servers.Transaq
             get { return true; }
         }
 
+        public OrderLifeTimePermission OrdersLifeTimeRealization
+        {
+            get
+            {
+                return new OrderLifeTimePermission
+                {
+                    GtcIsReady = true,
+                    SpecifiedIsReady = true,
+                    DayIsReady = false
+                };
+            }
+        }
+
         #endregion
     }
 }

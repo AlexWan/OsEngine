@@ -4904,7 +4904,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">life time</param>
         /// <param name="isStopOrProfit">whether the order is a result of a stop or a profit </param>
         private Position ShortCreate(decimal price, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
-            bool isStopOrProfit, string signalType)
+     bool isStopOrProfit, string signalType)
         {
             try
             {
@@ -4931,14 +4931,16 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Security, Side.Sell);
 
+                // Get order lifetime from manual control settings
+                OrderTypeTime orderTypeTime = GetOrderLifeTimeFromSettings();
+
                 Position newDeal = _dealCreator.CreatePosition(
                     TabName, direction, price, volume, priceType,
                     timeLife, Security, Portfolio, StartProgram,
-                    ManualPositionSupport.OrderTypeTime,
+                    orderTypeTime, // Use the validated value
                     ManualPositionSupport.LimitsMakerOnly);
 
                 newDeal.SignalTypeOpen = signalType;
-
                 newDeal.NameBotClass = this.BotClassName;
 
                 newDeal.OpenOrders[0].IsStopOrProfit = isStopOrProfit;
@@ -5048,7 +5050,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeLife">life time</param>
         /// <param name="isStopOrProfit">whether the order is a result of a stop or a profit</param>
         private Position LongCreate(decimal price, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
-            bool isStopOrProfit, string signalType)
+     bool isStopOrProfit, string signalType)
         {
             try
             {
@@ -5056,7 +5058,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (volume == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label63 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label63 + "\n" + _connector.SecurityName,
+                        LogMessageType.System);
                     return null;
                 }
 
@@ -5074,10 +5077,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Security, Side.Buy);
 
+                // Get order lifetime from manual control settings
+                OrderTypeTime orderTypeTime = GetOrderLifeTimeFromSettings();
+
                 Position newDeal = _dealCreator.CreatePosition(
                     TabName, direction, price, volume, priceType,
                     timeLife, Security, Portfolio, StartProgram,
-                    ManualPositionSupport.OrderTypeTime,
+                    orderTypeTime, // Use the validated value
                     ManualPositionSupport.LimitsMakerOnly);
 
                 newDeal.SignalTypeOpen = signalType;
@@ -5699,6 +5705,57 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Get order lifetime from manual control settings
+        /// </summary>
+        private OrderTypeTime GetOrderLifeTimeFromSettings()
+        {
+            try
+            {
+                if (ManualPositionSupport == null)
+                {
+                    return OrderTypeTime.Specified;
+                }
+
+                // Validate that the selected type is supported by the connector
+                OrderTypeTime selectedType = ManualPositionSupport.OrderTypeTime;
+
+                IServerPermission permission = _connector?.MyServer != null
+                    ? ServerMaster.GetServerPermission(_connector.MyServer.ServerType)
+                    : null;
+
+                if (permission != null && permission.OrdersLifeTimeRealization != null)
+                {
+                    OrderLifeTimePermission perm = permission.OrdersLifeTimeRealization;
+
+                    switch (selectedType)
+                    {
+                        case OrderTypeTime.GTC:
+                            if (perm.GtcIsReady) return OrderTypeTime.GTC;
+                            break;
+                        case OrderTypeTime.Specified:
+                            if (perm.SpecifiedIsReady) return OrderTypeTime.Specified;
+                            break;
+                        case OrderTypeTime.Day:
+                            if (perm.DayIsReady) return OrderTypeTime.Day;
+                            break;
+                    }
+
+                    // Fallback to Specified if selected type not supported
+                    if (perm.SpecifiedIsReady)
+                    {
+                        return OrderTypeTime.Specified;
+                    }
+                }
+
+                return selectedType;
+            }
+            catch
+            {
+                return OrderTypeTime.Specified;
+            }
         }
 
         #endregion

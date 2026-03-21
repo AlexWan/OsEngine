@@ -292,6 +292,19 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             get { return false; }
         }
 
+        public OrderLifeTimePermission OrdersLifeTimeRealization
+        {
+            get
+            {
+                return new OrderLifeTimePermission
+                {
+                    GtcIsReady = true,
+                    SpecifiedIsReady = true,
+                    DayIsReady = false
+                };
+            }
+        }
+
         #endregion
     }
 }
