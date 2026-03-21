@@ -116,7 +116,18 @@ namespace OsEngine.Market.Servers
 
         bool CanChangeOrderMarketNumber { get; }
 
+        OrderLifeTimePermission OrdersLifeTimeRealization { get; }
+
         #endregion
+    }
+
+    public class OrderLifeTimePermission
+    {
+        public bool GtcIsReady = false;
+
+        public bool SpecifiedIsReady = true;
+
+        public bool DayIsReady = false;
     }
 
     public class TimeFramePermission
