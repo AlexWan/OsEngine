@@ -13,6 +13,7 @@
           "Grpc.Net.Client": "2.71.0",
           "Microsoft.CSharp": "4.7.0",
           "Microsoft.CodeAnalysis.CSharp": "4.13.0",
+          "Microsoft.Web.WebView2": "1.0.3240.44",
           "Newtonsoft.Json": "13.0.3",
           "System.Runtime.CompilerServices.Unsafe": "6.1.2",
           "System.ServiceModel.Duplex": "6.0.0",
@@ -32,6 +33,9 @@
           "FinamApi": "1.0.0.0",
           "Jayrock.Json": "0.9.16530.0",
           "LiteDB": "5.0.19.0",
+          "Microsoft.Web.WebView2.Core": "1.0.3240.44",
+          "Microsoft.Web.WebView2.WinForms": "1.0.3240.44",
+          "Microsoft.Web.WebView2.Wpf": "1.0.3240.44",
           "MtApi5": "2.0.1.0",
           "MtClient": "1.0.0.0",
           "NSec.Cryptography": "25.4.0.0",
@@ -218,6 +222,25 @@
       },
       "Microsoft.NETCore.Platforms/1.1.1": {},
       "Microsoft.NETCore.Targets/1.1.3": {},
+      "Microsoft.Web.WebView2/1.0.3240.44": {
+        "runtimeTargets": {
+          "runtimes/win-arm64/native/WebView2Loader.dll": {
+            "rid": "win-arm64",
+            "assetType": "native",
+            "fileVersion": "1.0.3240.44"
+          },
+          "runtimes/win-x64/native/WebView2Loader.dll": {
+            "rid": "win-x64",
+            "assetType": "native",
+            "fileVersion": "1.0.3240.44"
+          },
+          "runtimes/win-x86/native/WebView2Loader.dll": {
+            "rid": "win-x86",
+            "assetType": "native",
+            "fileVersion": "1.0.3240.44"
+          }
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "runtime": {
           "lib/net6.0/Newtonsoft.Json.dll": {
@@ -440,22 +463,7 @@
           "System.Runtime": "4.3.1"
         }
       },
-      "System.Text.Encoding.CodePages/9.0.5": {
-        "runtime": {
-          "lib/net9.0/System.Text.Encoding.CodePages.dll": {
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.525.21509"
-          }
-        },
-        "runtimeTargets": {
-          "runtimes/win/lib/net9.0/System.Text.Encoding.CodePages.dll": {
-            "rid": "win",
-            "assetType": "runtime",
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.525.21509"
-          }
-        }
-      },
+      "System.Text.Encoding.CodePages/9.0.5": {},
       "System.Text.Encoding.Extensions/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.1",
@@ -475,14 +483,7 @@
           "System.Threading.Tasks": "4.3.0"
         }
       },
-      "System.Threading.Channels/9.0.5": {
-        "runtime": {
-          "lib/net9.0/System.Threading.Channels.dll": {
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.525.21509"
-          }
-        }
-      },
+      "System.Threading.Channels/9.0.5": {},
       "System.Threading.Tasks/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.1",
@@ -595,6 +596,30 @@
           "LiteDB.dll": {
             "assemblyVersion": "5.0.19.0",
             "fileVersion": "5.0.19.0"
+          }
+        }
+      },
+      "Microsoft.Web.WebView2.Core/1.0.3240.44": {
+        "runtime": {
+          "Microsoft.Web.WebView2.Core.dll": {
+            "assemblyVersion": "1.0.3240.44",
+            "fileVersion": "1.0.3240.44"
+          }
+        }
+      },
+      "Microsoft.Web.WebView2.WinForms/1.0.3240.44": {
+        "runtime": {
+          "Microsoft.Web.WebView2.WinForms.dll": {
+            "assemblyVersion": "1.0.3240.44",
+            "fileVersion": "1.0.3240.44"
+          }
+        }
+      },
+      "Microsoft.Web.WebView2.Wpf/1.0.3240.44": {
+        "runtime": {
+          "Microsoft.Web.WebView2.Wpf.dll": {
+            "assemblyVersion": "1.0.3240.44",
+            "fileVersion": "1.0.3240.44"
           }
         }
       },
@@ -817,6 +842,13 @@
       "sha512": "sha512-3Wrmi0kJDzClwAC+iBdUBpEKmEle8FQNsCs77fkiOIw/9oYA07bL1EZNX0kQ2OMN3xpwvl0vAtOCYY3ndDNlhQ==",
       "path": "microsoft.netcore.targets/1.1.3",
       "hashPath": "microsoft.netcore.targets.1.1.3.nupkg.sha512"
+    },
+    "Microsoft.Web.WebView2/1.0.3240.44": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-5NWh8SVJy8QOdT0p2CkZqmPHPxPdVr2SyiF+RWfNzCOb3oXoK8Y6Ze85Zw849PFMqyknU/gAgJbAiiHG+kVo6A==",
+      "path": "microsoft.web.webview2/1.0.3240.44",
+      "hashPath": "microsoft.web.webview2.1.0.3240.44.nupkg.sha512"
     },
     "Newtonsoft.Json/13.0.3": {
       "type": "package",
@@ -1117,6 +1149,21 @@
       "sha512": ""
     },
     "LiteDB/5.0.19.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Web.WebView2.Core/1.0.3240.44": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Web.WebView2.WinForms/1.0.3240.44": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Web.WebView2.Wpf/1.0.3240.44": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

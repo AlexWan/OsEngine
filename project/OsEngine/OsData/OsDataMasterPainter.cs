@@ -869,12 +869,6 @@ namespace OsEngine.OsData
 
                 Enum.TryParse(_gridSources.Rows[_gridSources.CurrentCell.RowIndex].Cells[0].Value.ToString(), out ServerType type);
 
-                if(type == ServerType.Finam)
-                {
-                    type = ServerType.MoexDataServer;
-                    SendNewLogMessage("Внимание! Finam сервера с марта 2026 года не доступны. Вместо них используйте MoexDataServer.", LogMessageType.Error);
-                }
-
                 if (ServerMaster.GetServers() == null)
                 {
                     ServerMaster.CreateServer(type, false);

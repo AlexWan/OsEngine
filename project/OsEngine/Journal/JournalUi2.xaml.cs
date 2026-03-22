@@ -65,9 +65,6 @@ namespace OsEngine.Journal
             ComboBoxBenchmark.Items.Add(BenchmarkSecurity.SnP500.ToString());
             ComboBoxBenchmark.Items.Add(BenchmarkSecurity.IMOEX.ToString());
             ComboBoxBenchmark.SelectedItem = BenchmarkSecurity.Off.ToString();
-            LabelBenchmark.Content = OsLocalization.Journal.Label23;
-            ComboBoxBenchmark.Visibility = Visibility.Hidden;
-            LabelBenchmark.Visibility = Visibility.Hidden;
 
             _currentCulture = OsLocalization.CurCulture;
 
@@ -113,7 +110,7 @@ namespace OsEngine.Journal
             ButtonAutoReload.IsChecked = false;
 
             LabelEqutyCharteType.Content = OsLocalization.Journal.Label8;
-          
+            LabelBenchmark.Content = OsLocalization.Journal.Label23;
 
             TabItemSecurities.Header = OsLocalization.Journal.TabItemSecurities;
             TabItemPortfolio.Header = OsLocalization.Journal.TabItemPortfolio;
@@ -1302,7 +1299,7 @@ namespace OsEngine.Journal
                     && ComboBoxBenchmark.SelectedItem.ToString() != BenchmarkSecurity.Off.ToString() &&
                     chartType == "Absolute")
                 {
-                  /*  _startValuePortfolio = positionsAll[0].PortfolioValueOnOpenPosition;
+                    _startValuePortfolio = positionsAll[0].PortfolioValueOnOpenPosition;
 
                     Series benchmarkLine = GetBenchmarkPoints(nullLine, maxYVal, minYval);
 
@@ -1331,7 +1328,7 @@ namespace OsEngine.Journal
                                 minYval = benchmarkValue;
                             }
                         }
-                    }*/
+                    }
                 }
 
                 if (minYval != decimal.MaxValue &&
@@ -1382,8 +1379,6 @@ namespace OsEngine.Journal
         {
             try
             {
-                return null;
-
                 _benchmark = new Benchmark(ComboBoxBenchmark.SelectedItem.ToString());
                 _benchmark.NewLogMessageEvent += SendNewLogMessage;
                 _benchmark.DownloadBenchmarkEvent += Benchmark_DownloadBenchmarkEvent;
