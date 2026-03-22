@@ -796,7 +796,7 @@ namespace OsEngine.Market
                     }
                     else if (type == ServerType.Finam)
                     {
-                        newServer = new FinamServer();
+                        newServer = new MoexDataServer();
                     }
                     else if (type == ServerType.Deribit)
                     {
