@@ -11,6 +11,7 @@ using OsEngine.Market.Servers.Entity;
 using OsEngine.OsData.BinaryEntity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.OsTrader.Panels.Tab.SynteticBondTab;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -4433,6 +4434,17 @@ namespace OsEngine.Market.Servers.Tester
                 for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
                 {
                     namesSecurity.Add(currentTabs[i2].CandleConnector.SecurityName);
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                List<BotTabSyntheticBond> synthTabs = bots[i].TabsSyntheticBond;
+
+                for (int i2 = 0; synthTabs != null && i2 < synthTabs.Count; i2++)
+                {
+                    List<string> secNames = synthTabs[i2].GetAllSecurityNames();
+                    namesSecurity.AddRange(secNames);
                 }
             }
 

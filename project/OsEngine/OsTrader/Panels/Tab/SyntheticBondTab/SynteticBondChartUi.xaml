@@ -1,0 +1,46 @@
+﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.SynteticBondTab.SynteticBondChartUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab.SynteticBondTab"
+        mc:Ignorable="d"
+        Title="SynteticBondChartUi" Height="450" Width="900" MinHeight="550" MinWidth="700" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" >
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="80*"/>
+            <ColumnDefinition Width="20*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50*"/>
+            <RowDefinition Height="50*"/>
+            <RowDefinition Height="50*"/>
+            <RowDefinition Height="50*"/>
+        </Grid.RowDefinitions>
+
+        <WindowsFormsHost Grid.Row="0" Name="HostSec1" Margin="5,5,5,5"/>
+        <WindowsFormsHost Grid.Row="1" Name="HostSec2" Margin="5,5,5,5"/>
+        <WindowsFormsHost Grid.Row="2" Name="HostContango" Margin="5,5,5,5"/>
+        <WindowsFormsHost Grid.Row="3" Name="HostCointegration" Margin="5,5,5,5"/>
+
+        <Label Content="Security 1" Name="Security1Label" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center"  VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="150"/>
+        <Label Grid.Row="0" Grid.Column="1"  Content="Last: " Name="LastSec1Label" HorizontalAlignment="Left" Width="100"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Name="LastSec1TextBox" HorizontalAlignment="Left" Width="60" Margin="110,5,5,5" />
+
+        <Label Content="Security 2" Name="Security2Label" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center"  VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="150"/>
+        <Label Grid.Row="1" Grid.Column="1"  Content="Last: " Name="LastSec2Label" HorizontalAlignment="Left" Width="100"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Name="LastSec2TextBox" HorizontalAlignment="Left" Width="60" Margin="110,5,5,5" />
+
+        <Label Content="Contango" Name="ContangoLabel" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center"  VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="150"/>
+        <Label Grid.Row="2" Grid.Column="1"  Content="Last: " Name="LastContangoLabel" HorizontalAlignment="Left" Width="100"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Name="LastContangoTextBox" HorizontalAlignment="Left" Width="60" Margin="110,5,5,5" />
+
+        <Label Content="Cointegration" Name="CointegrationLabel" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Center"  VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="150"/>
+        <Label Grid.Row="3" Grid.Column="1"  Content="Last: " Name="LastCointegrationLabel" HorizontalAlignment="Left" Width="100"/>
+        <TextBox Grid.Row="3" Grid.Column="1" Name="LastCointegrationTextBox" HorizontalAlignment="Left" Width="60" Margin="110,5,5,5" />
+
+
+    </Grid>
+</Window>

@@ -2555,5 +2555,236 @@ namespace OsEngine.Language
          "Eng:Sell at fake_" +
          "Ru:Продать фейк ордером_");
 
+        public string Label684 => OsLocalization.ConvertToLocString(
+         "Eng:Base_" +
+         "Ru:База_");
+
+        public string Label685 => OsLocalization.ConvertToLocString(
+         "Eng:Futures_" +
+         "Ru:Фьючерс_");
+
+        public string Label686 => OsLocalization.ConvertToLocString(
+         "Eng:Separation_" +
+         "Ru:Раздвижка_");
+
+        public string Label687 => OsLocalization.ConvertToLocString(
+         "Eng:in %_" +
+         "Ru:в %_");
+
+        public string Label688 => OsLocalization.ConvertToLocString(
+         "Eng:Days_" +
+         "Ru:Дней_");
+
+        public string Label689 => OsLocalization.ConvertToLocString(
+         "Eng:Profit per day_" +
+         "Ru:Профит в день_");
+
+        public string Label690 => OsLocalization.ConvertToLocString(
+         "Eng:Position_" +
+         "Ru:Позиция_");
+
+        public string Label691 => OsLocalization.ConvertToLocString(
+            "Eng:You want to remove the robot. Are you sure?_" +
+            "Ru:Вы собираетесь удалить робота. Вы уверены?_");
+
+        public string Label692 => OsLocalization.ConvertToLocString(
+            "Eng:You are going to delete the futures. Are you sure?_" +
+            "Ru:Вы собираетесь удалить фьючерс. Вы уверены?_");
+
+        public string Label693 => OsLocalization.ConvertToLocString(
+            "Eng:Division_" +
+            "Ru:Деление_");
+
+        public string Label694 => OsLocalization.ConvertToLocString(
+            "Eng:Multiplication_" +
+            "Ru:Умножение_");
+
+        public string Label695 => OsLocalization.ConvertToLocString(
+            "Eng:Difference_" +
+            "Ru:Разница_");
+
+        public string Label696 => OsLocalization.ConvertToLocString(
+            "Eng:Addition_" +
+            "Ru:Сложение_");
+
+        public string Label697 => OsLocalization.ConvertToLocString(
+            "Eng:Window of offsets and modifications_" +
+            "Ru:Окно смещений и модификаций_");
+
+        public string Label698 => OsLocalization.ConvertToLocString(
+            "Eng:Current mode_" +
+            "Ru:Текущий режим_");
+
+        public string Label699 => OsLocalization.ConvertToLocString(
+            "Eng:Chart windows_" +
+            "Ru:Окно чарта_");
+
+        public string Label700 => OsLocalization.ConvertToLocString(
+            "Eng:Current spread_" +
+            "Ru:Текущий спред_");
+
+        public string Label701 => OsLocalization.ConvertToLocString(
+            "Eng:Max volume_" +
+            "Ru:Объем макс_");
+
+        public string Label702 => OsLocalization.ConvertToLocString(
+            "Eng:Current volume_" +
+            "Ru:Объем взят_");
+
+        public string Label703 => OsLocalization.ConvertToLocString(
+            "Eng:Entering a position_" +
+            "Ru:Вход в позицию_");
+
+        public string Label704 => OsLocalization.ConvertToLocString(
+            "Eng:Exit from the position_" +
+            "Ru:Выход из позиции_");
+
+        public string Label705 => OsLocalization.ConvertToLocString(
+            "Eng:Mode_" +
+            "Ru:Режим_");
+
+        public string Label706 => OsLocalization.ConvertToLocString(
+            "Eng:Total volume_" +
+            "Ru:Объем общий_");
+
+        public string Label707 => OsLocalization.ConvertToLocString(
+            "Eng:One order_" +
+            "Ru:Один ордер_");
+
+        public string Label708 => OsLocalization.ConvertToLocString(
+            "Eng:Lifetime of the order (sec)_" +
+            "Ru:Время жизни ордера (сек)_");
+
+        public string Label709 => OsLocalization.ConvertToLocString(
+            "Eng:Position_" +
+            "Ru:Положение_");
+
+        public string Label710 => OsLocalization.ConvertToLocString(
+            "Eng:Min. spread_" +
+            "Ru:Мин. спред_");
+
+        public string Label711 => OsLocalization.ConvertToLocString(
+            "Eng:Max. spread_" +
+            "Ru:Макс. спред_");
+
+        public string Label712 => OsLocalization.ConvertToLocString(
+            "Eng:Pause_" +
+            "Ru:Пауза_");
+
+        public string Label713 => OsLocalization.ConvertToLocString(
+          "Eng:Cointegration deviation_" +
+          "Ru:Отклонение коинтеграции_");
+
+        public string Label714 => OsLocalization.ConvertToLocString(
+          "Eng:Cointegration lookback_" +
+          "Ru:Длина коинтеграции_");
+
+        public string Label715 => OsLocalization.ConvertToLocString(
+          "Eng:Slippage_" +
+          "Ru:Проскальзывание_");
+
+        public string Label716 => OsLocalization.ConvertToLocString(
+          "Eng:Cointegration lookback_" +
+          "Ru:Длина контанго_");
+
+        public string Label717 => OsLocalization.ConvertToLocString(
+          "Eng:Last_" +
+          "Ru:Последнее_");
+
+        public string Label718 => OsLocalization.ConvertToLocString(
+          "Eng:Min spread_" +
+          "Ru:Мин спред_");
+
+        public string Label719 => OsLocalization.ConvertToLocString(
+          "Eng:Max spread_" +
+          "Ru:Макс спред_");
+
+        public string Label720 => OsLocalization.ConvertToLocString(
+          "Eng:Exit before expiration (days)_" +
+          "Ru:Выход до экспирации (дни)_");
+
+        public string Label721 => OsLocalization.ConvertToLocString(
+          "Eng:Order frequency (sec)_" +
+          "Ru:Частота ордеров (сек)_");
+
+        public string Label722 => OsLocalization.ConvertToLocString(
+          "Eng:Current server time_" +
+          "Ru:Текущее время сервера_");
+
+        public string Label723 => OsLocalization.ConvertToLocString(
+          "Eng:Volume type_" +
+          "Ru:Тип объема_");
+
+        public string Label724 => OsLocalization.ConvertToLocString(
+          "Eng:Contracts_" +
+          "Ru:Контракты_");
+
+        public string Label725 => OsLocalization.ConvertToLocString(
+          "Eng:Contract currency_" +
+          "Ru:Валюта контракта_");
+
+        public string Label726 => OsLocalization.ConvertToLocString(
+          "Eng:Deposit percent_" +
+          "Ru:Процент от депозита_");
+
+        public string Label727 => OsLocalization.ConvertToLocString(
+          "Eng:Open buy first sell second_" +
+          "Ru:Купить базу, продать фьючерс_");
+
+        public string Label728 => OsLocalization.ConvertToLocString(
+          "Eng:Open sell first buy second_" +
+          "Ru:Продать базу, купить фьючерс_");
+
+        public string Label729 => OsLocalization.ConvertToLocString(
+          "Eng:Close script_" +
+          "Ru:Закрыть сценарий_");
+
+        public string Label730 => OsLocalization.ConvertToLocString(
+          "Eng:Close all scripts_" +
+          "Ru:Закрыть все сценарии_");
+
+        public string Label731 => OsLocalization.ConvertToLocString(
+          "Eng:Scripts_" +
+          "Ru:Сценарий_");
+
+        public string Label732 => OsLocalization.ConvertToLocString(
+          "Eng:Create scripts_" +
+          "Ru:Создать сценарий_");
+
+        public string Label733 => OsLocalization.ConvertToLocString(
+          "Eng:You want to create a new script. Are you sure?_" +
+          "Ru:Вы хотите создать новый сценарий. Вы уверены?_");
+
+        public string Label734 => OsLocalization.ConvertToLocString(
+          "Eng:You want to delete the selected script. Are you sure?_" +
+          "Ru:Вы хотите удалить выбранный сценарий. Вы уверены?_");
+
+        public string Label735 => OsLocalization.ConvertToLocString(
+          "Eng:Non-trade period mode_" +
+          "Ru:Режим в неторговый период_");
+
+        public string Label738 => OsLocalization.ConvertToLocString(
+          "Eng:Step #_" +
+          "Ru:Шаг №_");
+
+        public string Label739 => OsLocalization.ConvertToLocString(
+          "Eng:Filled volume_" +
+          "Ru:Исполненный объём_");
+
+        public string Label740 => OsLocalization.ConvertToLocString(
+          "Eng:Expected volume_" +
+          "Ru:Ожидаемый объём_");
+
+        public string Label741 => OsLocalization.ConvertToLocString(
+          "Eng:Status_" +
+          "Ru:Статус_");
+
+        public string Label742 => OsLocalization.ConvertToLocString(
+          "Eng:Waiting_" +
+          "Ru:Ожидание_");
+
+        public string Label743 => OsLocalization.ConvertToLocString(
+          "Eng:Total_" +
+          "Ru:Итого_");
     }
 }
