@@ -24,7 +24,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
     {
         #region Constructor
 
-        private SynteticBondSeries _synteticBond;
+        private SyntheticBondSeries _synteticBond;
 
         private SyntheticBond _futuresSyntheticBondSettings;
 
@@ -35,7 +35,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         private DispatcherTimer _updateTimer;
 
 
-        public SynteticBondTradeUi(SynteticBondSeries synteticBond, ref SyntheticBond futuresSyntheticBondSettings)
+        public SynteticBondTradeUi(SyntheticBondSeries synteticBond, ref SyntheticBond futuresSyntheticBondSettings)
         {
             InitializeComponent();
 

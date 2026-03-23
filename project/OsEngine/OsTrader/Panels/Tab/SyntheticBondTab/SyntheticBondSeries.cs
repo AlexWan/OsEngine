@@ -17,11 +17,11 @@ using System.Windows;
 
 namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 {
-    public class SynteticBondSeries
+    public class SyntheticBondSeries
     {
         #region Constructor
 
-        public SynteticBondSeries(StartProgram startProgram, string tabName)
+        public SyntheticBondSeries(StartProgram startProgram, string tabName)
         {
             StartProgram = startProgram;
             SynteticBondName = tabName;
@@ -115,6 +115,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         public void OnSettingsChanged()
         {
+            _separationCaches.Clear();
             SaveSettingsSyntheticBond();
             SettingsChangedEvent?.Invoke();
         }
@@ -435,9 +436,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                         continue;
                     }
 
-                    UpdateCointegration(settings);
-
                     UpdateSeparation(settings);
+
+                    UpdateCointegration(settings);
 
                     UpdateDaysBeforeExpiration(settings);
 
@@ -492,9 +493,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                             continue;
                         }
 
-                        UpdateCointegration(syntheticBond);
-
                         UpdateSeparation(syntheticBond);
+
+                        UpdateCointegration(syntheticBond);
 
                         UpdateDaysBeforeExpiration(syntheticBond);
 
@@ -554,8 +555,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
         {
             try
             {
-                List<Candle> candlesSec1 = bond.FuturesIsbergParameters.BotTab.CandlesAll;
-                List<Candle> candlesSec2 = bond.BaseIsbergParameters.BotTab.CandlesAll;
+                List<Candle> candlesSec1 = bond.BaseIsbergParameters.BotTab.CandlesAll; ;
+                List<Candle> candlesSec2 = bond.FuturesIsbergParameters.BotTab.CandlesAll;
                 List<Candle> candlesRationingBase = null;
                 List<Candle> candlesRationingFutures = null;
 
@@ -832,31 +833,31 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
                 if (bond.MainRationingMode == RationingMode.Addition)
                 {
-                    valueOpen = first.Open + second.Open;
-                    valueHigh = first.High + second.High;
-                    valueLow = first.Low + second.Low;
-                    valueClose = first.Close + second.Close;
+                    valueOpen = second.Open + first.Open;
+                    valueHigh = second.High + first.High;
+                    valueLow = second.Low + first.Low;
+                    valueClose = second.Close + first.Close;
                 }
                 else if (bond.MainRationingMode == RationingMode.Multiplication)
                 {
-                    valueOpen = first.Open * second.Open;
-                    valueHigh = first.High * second.High;
-                    valueLow = first.Low * second.Low;
-                    valueClose = first.Close * second.Close;
+                    valueOpen = second.Open * first.Open;
+                    valueHigh = second.High * first.High;
+                    valueLow = second.Low * first.Low;
+                    valueClose = second.Close * first.Close;
                 }
                 else if (bond.MainRationingMode == RationingMode.Division)
                 {
-                    valueOpen = first.Open / second.Open;
-                    valueHigh = first.High / second.High;
-                    valueLow = first.Low / second.Low;
-                    valueClose = first.Close / second.Close;
+                    valueOpen = second.Open / first.Open;
+                    valueHigh = second.High / first.High;
+                    valueLow = second.Low / first.Low;
+                    valueClose = second.Close / first.Close;
                 }
                 else if (bond.MainRationingMode == RationingMode.Difference)
                 {
-                    valueOpen = first.Open - second.Open;
-                    valueHigh = first.High - second.High;
-                    valueLow = first.Low - second.Low;
-                    valueClose = first.Close - second.Close;
+                    valueOpen = second.Open - first.Open;
+                    valueHigh = second.High - first.High;
+                    valueLow = second.Low - first.Low;
+                    valueClose = second.Close - first.Close;
                 }
 
                 PairIndicatorValue bondIndicatorAbsoluteValue = new PairIndicatorValue();
@@ -1378,8 +1379,21 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                     oldLastValue = oldCointegration[oldCount - 1].Value;
                 }
 
+                List<Candle> candlesSec1;
+                List<Candle> candlesSec2;
+                GetProcessedCandles(bond, out candlesSec1, out candlesSec2);
+
+                if (candlesSec1 == null || candlesSec1.Count == 0)
+                {
+                    candlesSec1 = bond.BaseIsbergParameters.BotTab.CandlesAll;
+                }
+                if (candlesSec2 == null || candlesSec2.Count == 0)
+                {
+                    candlesSec2 = bond.FuturesIsbergParameters.BotTab.CandlesAll;
+                }
+
                 bool needBeautifulValues = StartProgram == StartProgram.IsOsTrader;
-                bond.CointegrationBuilder.ReloadCointegration(bond.BaseIsbergParameters.BotTab.CandlesAll, bond.FuturesIsbergParameters.BotTab.CandlesAll, needBeautifulValues);
+                bond.CointegrationBuilder.ReloadCointegration(candlesSec1, candlesSec2, needBeautifulValues);
 
                 MinBalancesChangeEvent?.Invoke(bond);
 
@@ -1748,6 +1762,19 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
         public event Action<SyntheticBond> MinBalancesChangeEvent;
 
         public event Action SettingsChangedEvent;
+
+        public void GetProcessedCandles(SyntheticBond bond, out List<Candle> processedSec1, out List<Candle> processedSec2)
+        {
+            processedSec1 = null;
+            processedSec2 = null;
+
+            SeparationCache cache;
+            if (_separationCaches.TryGetValue(bond, out cache) && cache != null)
+            {
+                processedSec1 = cache.ProcessedSec1;
+                processedSec2 = cache.ProcessedSec2;
+            }
+        }
 
         #endregion
 

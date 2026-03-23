@@ -21,7 +21,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
     {
         #region Constructor
 
-        private SynteticBondSeries _synteticBond;
+        private SyntheticBondSeries _synteticBond;
 
         private SyntheticBond _settingsFuturesSyntheticBond;
 
@@ -29,7 +29,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         private ChartCandleMaster _chartSec2;
 
-        public SynteticBondChartUi(SynteticBondSeries synteticBond, ref SyntheticBond modificationFuturesSyntheticBond)
+        public SynteticBondChartUi(SyntheticBondSeries synteticBond, ref SyntheticBond modificationFuturesSyntheticBond)
         {
             InitializeComponent();
 
@@ -73,15 +73,14 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             BotTabSimple baseTab = _settingsFuturesSyntheticBond.BaseIsbergParameters.BotTab;
             BotTabSimple futuresTab = _settingsFuturesSyntheticBond.FuturesIsbergParameters.BotTab;
 
-            baseTab.CandleUpdateEvent += BaseTab_CandleUpdateEvent;
-            futuresTab.CandleUpdateEvent += FuturesTab_CandleUpdateEvent;
+            baseTab.CandleUpdateEvent += Tab_CandleUpdateEvent;
+            futuresTab.CandleUpdateEvent += Tab_CandleUpdateEvent;
 
             if (baseTab.StartProgram == StartProgram.IsTester)
             {
-                baseTab.CandleFinishedEvent += BaseTab_CandleUpdateEvent;
-                futuresTab.CandleFinishedEvent += FuturesTab_CandleUpdateEvent;
+                baseTab.CandleFinishedEvent += Tab_CandleUpdateEvent;
+                futuresTab.CandleFinishedEvent += Tab_CandleUpdateEvent;
             }
-
 
             _synteticBond.ContangoChangeEvent += SynteticBond_ContangoChangeEvent;
             _synteticBond.CointegrationChangeEvent += SynteticBond_CointegrationChangeEvent;
@@ -117,10 +116,35 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         private void PaintCandles()
         {
             BotTabSimple baseTabForChart = _settingsFuturesSyntheticBond.BaseIsbergParameters.BotTab;
+            BotTabSimple futuresTabForChart = _settingsFuturesSyntheticBond.FuturesIsbergParameters.BotTab;
 
             _chartSec1 = new ChartCandleMaster(baseTabForChart.TabName + "sec1", baseTabForChart.StartProgram);
             _chartSec1.StartPaint(null, HostSec1, null);
-            _chartSec1.SetCandles(baseTabForChart.CandlesAll);
+
+            _chartSec2 = new ChartCandleMaster(futuresTabForChart.TabName + "sec2", futuresTabForChart.StartProgram);
+            _chartSec2.StartPaint(null, HostSec2, null);
+
+            List<Candle> processedSec1;
+            List<Candle> processedSec2;
+            _synteticBond.GetProcessedCandles(_settingsFuturesSyntheticBond, out processedSec1, out processedSec2);
+
+            if (processedSec1 != null && processedSec1.Count > 0)
+            {
+                _chartSec1.SetCandles(processedSec1);
+            }
+            else
+            {
+                _chartSec1.SetCandles(baseTabForChart.CandlesAll);
+            }
+
+            if (processedSec2 != null && processedSec2.Count > 0)
+            {
+                _chartSec2.SetCandles(processedSec2);
+            }
+            else
+            {
+                _chartSec2.SetCandles(futuresTabForChart.CandlesAll);
+            }
 
             for (int i = 0; i < baseTabForChart.Indicators.Count; i++)
             {
@@ -130,15 +154,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
             }
 
-            _chartSec2 = new ChartCandleMaster(_settingsFuturesSyntheticBond.FuturesIsbergParameters.BotTab.TabName + "sec2", _settingsFuturesSyntheticBond.FuturesIsbergParameters.BotTab.StartProgram);
-            _chartSec2.StartPaint(null, HostSec2, null);
-            _chartSec2.SetCandles(_settingsFuturesSyntheticBond.FuturesIsbergParameters.BotTab.CandlesAll);
-
-            for (int i = 0; i < _settingsFuturesSyntheticBond.FuturesIsbergParameters.BotTab.Indicators.Count; i++)
+            for (int i = 0; i < futuresTabForChart.Indicators.Count; i++)
             {
-                if (_chartSec2.IndicatorIsCreate(_settingsFuturesSyntheticBond.FuturesIsbergParameters.BotTab.Indicators[i].Name) == false)
+                if (_chartSec2.IndicatorIsCreate(futuresTabForChart.Indicators[i].Name) == false)
                 {
-                    _chartSec2.CreateIndicator(_settingsFuturesSyntheticBond.FuturesIsbergParameters.BotTab.Indicators[i], _settingsFuturesSyntheticBond.FuturesIsbergParameters.BotTab.Indicators[i].NameArea);
+                    _chartSec2.CreateIndicator(futuresTabForChart.Indicators[i], futuresTabForChart.Indicators[i].NameArea);
                 }
             }
         }
@@ -155,29 +175,22 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         #region Candle event handlers
 
-        private void BaseTab_CandleUpdateEvent(List<Candle> candles)
+        private void Tab_CandleUpdateEvent(List<Candle> candles)
         {
-            if (_chartSec1 != null)
+            List<Candle> processedSec1;
+            List<Candle> processedSec2;
+            _synteticBond.GetProcessedCandles(_settingsFuturesSyntheticBond, out processedSec1, out processedSec2);
+
+            if (processedSec1 != null && processedSec1.Count > 0 && _chartSec1 != null)
             {
-                _chartSec1.SetCandles(candles);
+                _chartSec1.SetCandles(processedSec1);
+                UpdateLastPriceLabel(LastSec1TextBox, processedSec1);
             }
 
-            if (_chartSec1 != null && _chartSec1.ChartCandle != null)
+            if (processedSec2 != null && processedSec2.Count > 0 && _chartSec2 != null)
             {
-                UpdateLastPriceLabel(LastSec1TextBox, candles);
-            }
-        }
-
-        private void FuturesTab_CandleUpdateEvent(List<Candle> candles)
-        {
-            if (_chartSec2 != null)
-            {
-                _chartSec2.SetCandles(candles);
-            }
-
-            if (_chartSec2 != null && _chartSec2.ChartCandle != null)
-            {
-                UpdateLastPriceLabel(LastSec2TextBox, candles);
+                _chartSec2.SetCandles(processedSec2);
+                UpdateLastPriceLabel(LastSec2TextBox, processedSec2);
             }
         }
 
@@ -221,6 +234,22 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
 
             UpdateContangoChart();
+
+            List<Candle> processedSec1;
+            List<Candle> processedSec2;
+            _synteticBond.GetProcessedCandles(_settingsFuturesSyntheticBond, out processedSec1, out processedSec2);
+
+            if (processedSec1 != null && processedSec1.Count > 0)
+            {
+                _chartSec1.SetCandles(processedSec1);
+                UpdateLastPriceLabel(LastSec1TextBox, processedSec1);
+            }
+
+            if (processedSec2 != null && processedSec2.Count > 0)
+            {
+                _chartSec2.SetCandles(processedSec2);
+                UpdateLastPriceLabel(LastSec2TextBox, processedSec2);
+            }
         }
 
         private void SynteticBond_CointegrationChangeEvent(SyntheticBond settings)
@@ -585,10 +614,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         series.Points[series.Points.Count - 1].BackSecondaryColor = Color.DarkRed;
                     }
 
-                    string toolTip = "";
-
-                    toolTip = "Time " + time + "\n" +
-                         "Value: " + val.ToStringWithNoEndZero();
+                    string toolTip = "Time: " + time + "\nValue: " + val.ToStringWithNoEndZero() + "\nIndex: " + (i + 1);
 
                     series.Points[series.Points.Count - 1].ToolTip = toolTip;
 
@@ -697,8 +723,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (baseTab != null)
                 {
-                    baseTab.CandleUpdateEvent -= BaseTab_CandleUpdateEvent;
-                    baseTab.CandleFinishedEvent -= BaseTab_CandleUpdateEvent;
+                    baseTab.CandleUpdateEvent -= Tab_CandleUpdateEvent;
+                    baseTab.CandleFinishedEvent -= Tab_CandleUpdateEvent;
 
                     baseTab.PositionOpeningSuccesEvent -= Tab_PositionChangeEvent;
                     baseTab.PositionOpeningFailEvent -= Tab_PositionChangeEvent;
@@ -708,8 +734,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (futuresTab != null)
                 {
-                    futuresTab.CandleUpdateEvent -= FuturesTab_CandleUpdateEvent;
-                    futuresTab.CandleFinishedEvent -= FuturesTab_CandleUpdateEvent;
+                    futuresTab.CandleUpdateEvent -= Tab_CandleUpdateEvent;
+                    futuresTab.CandleFinishedEvent -= Tab_CandleUpdateEvent;
 
                     futuresTab.PositionOpeningSuccesEvent -= Tab_PositionChangeEvent;
                     futuresTab.PositionOpeningFailEvent -= Tab_PositionChangeEvent;

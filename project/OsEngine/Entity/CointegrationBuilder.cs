@@ -135,7 +135,6 @@ namespace OsEngine.Entity
 
             List<double> curDeviation = GetDevArray(movesOne, movesTwo, optimalMult);
 
-
             int rounder = 6;
 
             if (needToRoundValues)
