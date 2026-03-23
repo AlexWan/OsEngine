@@ -29,12 +29,52 @@ namespace OsEngine.OsData
         {
             if (benchmark == BenchmarkSecurity.BTC.ToString())
             {
+                _serverType = ServerType.BybitData;
+                _secName = "BTCUSDT";
+                _secId = "BTCUSDT";
+                _secClass = "Spot_USDT";
+                _secNameFull = "BTCUSDT";
+                _fileSetBenchmark = @"Data\Benchmark\BTCUSDT\Hour4\BTCUSDT.txt";
+            }
+
+            if (benchmark == BenchmarkSecurity.IMOEX.ToString())
+            {
+                _serverType = ServerType.MoexDataServer;
+                _secName = "IMOEX";
+                _secId = "IMOEX#stock#index#SNDX#Индексы фондового рынка";
+                _secClass = "Индексы фондового рынка#SNDX";
+                _secNameFull = "Индекс МосБиржи";
+                _fileSetBenchmark = @"Data\Benchmark\IMOEX\Day\IMOEX.txt";
+            }
+
+            if (benchmark == BenchmarkSecurity.MCFTR.ToString())
+            {
+                _serverType = ServerType.MoexDataServer;
+                _secName = "MCFTR";
+                _secId = "MCFTR#stock#index#RTSI#Индексы РТС";
+                _secClass = "Индексы РТС#RTSI";
+                _secNameFull = "Индекс МосБиржи полной доходности «брутто»";
+                _fileSetBenchmark = @"Data\Benchmark\MCFTR\Day\MCFTR.txt";
+            }
+
+            if (benchmark == BenchmarkSecurity.SnP500.ToString())
+            {
+                _serverType = ServerType.YahooFinance;
+                _secName = "^SPX";
+                _secId = "^SPX";
+                _secClass = "Else";
+                _secNameFull = "S&P500 Index";
+                _fileSetBenchmark = @"Data\Benchmark\^SPX\Day\^SPX.txt";
+            }
+
+            /*if (benchmark == BenchmarkSecurity.BTC.ToString())
+            {
                 _serverType = ServerType.Finam;
                 _secName = "BTC/USD";
                 _secId = "1822580";
                 _secClass = "Криптовалюты";
                 _secNameFull = "XXBTZUSD";
-                _fileSetBenchmark = @"Data\Benchmark\BTCUSD\Day\BTCUSD.txt";
+                _fileSetBenchmark = @"Data\Benchmark\BTCUSD\Day\BTCUSD.txt";           
             }
 
             if (benchmark == BenchmarkSecurity.SnP500.ToString())
@@ -65,12 +105,12 @@ namespace OsEngine.OsData
                 _secClass = "Индексы Россия";
                 _secNameFull = "IMOEX";
                 _fileSetBenchmark = @"Data\Benchmark\Индекс МосБиржи\Day\Индекс МосБиржи.txt";
-            }
+            }*/
         }
 
         public string FileSetBenchmark
         {
-            get { return _fileSetBenchmark; }
+            get { return _fileSetBenchmark; }             
         }
 
         public async Task GetData(Series series)
@@ -128,7 +168,7 @@ namespace OsEngine.OsData
 
                 SendNewLogMessage("Started downloading benchmark data.", LogMessageType.System);
 
-                while (!cts.Token.IsCancellationRequested)
+                while (!cts.Token.IsCancellationRequested) 
                 {
                     if (_server.ServerStatus == ServerConnectStatus.Connect)
                     {
@@ -166,6 +206,12 @@ namespace OsEngine.OsData
                         param.TimeEnd = timeEnd;
                         param.MarketDepthDepth = 5;
 
+                        if (_serverType == ServerType.BybitData) // у BybitData нет дневок, качаем 4 часовики
+                        {
+                            param.Tf4HourIsOn = true;
+                            param.TfDayIsOn = false;
+                        }
+
                         SecurityToLoad record = new SecurityToLoad();
                         record.SecName = _secName;
                         record.SecId = _secId;
@@ -178,13 +224,13 @@ namespace OsEngine.OsData
                         record.NewLogMessageEvent += SendNewLogMessage;
 
                         record.Process(_server);
-
+                                                
                         SendNewLogMessage("Finished downloading benchmark data.", LogMessageType.System);
 
                         break;
                     }
 
-                    await Task.Delay(100, cts.Token).ConfigureAwait(false);
+                    await Task.Delay(100, cts.Token).ConfigureAwait(false);                                       
                 }
 
                 if (cts.Token.IsCancellationRequested)
