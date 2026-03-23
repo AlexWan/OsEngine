@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -34,6 +34,7 @@ namespace OsEngine.Market.Servers.Finam
         public FinamServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
+            _tokenProvider = new FinamTokenProvider(this);
 
             if (!Directory.Exists(@"Data\Temp\FinamTempFiles\"))
             {
@@ -43,7 +44,21 @@ namespace OsEngine.Market.Servers.Finam
 
         public void Connect(WebProxy proxy)
         {
+            string token = GetToken();
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                SendLogMessage("Finam connect aborted: token not received.", LogMessageType.Error);
+                return;
+            }
+
             HttpResponseMessage response = CheckFinamServer();
+
+            if (response == null)
+            {
+                SendLogMessage("Connect server error: no response", LogMessageType.Error);
+                return;
+            }
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -121,6 +136,13 @@ namespace OsEngine.Market.Servers.Finam
         public DateTime ServerTime { get; set; }
 
         public List<IServerParameter> ServerParameters { get; set; }
+
+        private readonly FinamTokenProvider _tokenProvider;
+
+        public string GetToken()
+        {
+            return _tokenProvider.GetToken();
+        }
 
         #endregion
 

@@ -1,10 +1,13 @@
-﻿using OsEngine.Entity;
+using OsEngine.Entity;
 using OsEngine.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers.Finam.Entity
 {
@@ -247,13 +250,13 @@ namespace OsEngine.Market.Servers.Finam.Entity
                 monthStart += timeStart.Month;
             }
 
-            if (TimeStart.Day.ToString().Length == 1)
+            if (timeStart.Day.ToString().Length == 1)
             {
-                dayStart += "0" + TimeStart.Day;
+                dayStart += "0" + timeStart.Day;
             }
             else
             {
-                dayStart += TimeStart.Day;
+                dayStart += timeStart.Day;
             }
 
             string timeStartInStrToName =
@@ -287,69 +290,8 @@ namespace OsEngine.Market.Servers.Finam.Entity
                                         + monthEnd
                                         + dayEnd;
 
-            string timeFrom = timeStart.ToShortDateString();
-            string timeTo = timeEnd.ToShortDateString();
-
-            string urlToSec = SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName;
-
-            string url = ServerPrefics + "/" + "export9.out?";
-
-            if (SecurityFinam.Url.Contains("undefined"))
-            {
-                url += "apply=0&";
-                url += "p=" + 1 + "&";
-                url += "e=" + ".txt" + "&";
-                url += "dtf=" + 1 + "&";
-                url += "tmf=" + 1 + "&";
-                url += "MSOR=" + 1 + "&";
-                url += "mstimever=" + "on" + "&";
-                url += "sep=" + "1" + "&";
-                url += "sep2=" + "1" + "&";
-                url += "datf=" + "12" + "&";
-                url += "at=" + "0" + "&";
-                url += "from=" + timeFrom + "&";
-                url += "to=" + timeTo + "&";
-                url += "em=" + SecurityFinam.Id + "&";
-                url += "code=" + SecurityFinam.Code + "&";
-                url += "f=" + SecurityFinam.Code + "_" + timeStartInStrToName + "_" + timeEndInStrToName + "&";
-                url += "cn=" + SecurityFinam.Code + "&";
-                url += "market=undefined&";
-                url += "yf=" + (timeStart.Year) + "&";
-                url += "yt=" + (timeEnd.Year) + "&";
-                url += "df=" + (timeStart.Day) + "&";
-                url += "dt=" + (timeEnd.Day) + "&";
-                url += "mf=" + (timeStart.Month - 1) + "&";
-                url += "mt=" + (timeEnd.Month - 1) + "&";
-                url += "token=0";
-            }
-            else
-            {
-                url += "market=" + SecurityFinam.MarketId + "&";
-                url += "em=" + SecurityFinam.Id + "&";
-                url += "code=" + SecurityFinam.Code + "&";
-                url += "df=" + (timeStart.Day) + "&";
-                url += "mf=" + (timeStart.Month - 1) + "&";
-                url += "yf=" + (timeStart.Year) + "&";
-                url += "from=" + timeFrom + "&";
-                url += "apply=0&";
-                url += "dt=" + (timeEnd.Day) + "&";
-                url += "mt=" + (timeEnd.Month - 1) + "&";
-                url += "yt=" + (timeEnd.Year) + "&";
-                url += "to=" + timeTo + "&";
-                url += "p=" + 1 + "&";
-                url += "f=" + urlToSec + "&";
-                url += "e=" + ".txt" + "&";
-                url += "cn=" + SecurityFinam.Name + "&";
-                url += "dtf=" + 1 + "&";
-                url += "tmf=" + 1 + "&";
-                url += "MSOR=" + 1 + "&";
-                url += "mstime=" + "on" + "&";
-                url += "mstimever=" + "1" + "&";
-                url += "sep=" + "1" + "&";
-                url += "sep2=" + "1" + "&";
-                url += "datf=" + "12" + "&";
-                url += "at=" + "0";
-            }
+            string finamToken = _server.GetToken();
+            string url = BuildFinamUrl(timeStart, timeEnd, 1, 12, SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName, finamToken);
 
             // if we have already downloaded this trades series, try to get it from the general storage
             // если мы уже эту серию трейдов качали, пробуем достать её из общего хранилища
@@ -454,16 +396,18 @@ namespace OsEngine.Market.Servers.Finam.Entity
 
             if (TimeActual != DateTime.MinValue)
             {
-                TimeActual = timeStart;
+                timeStart = TimeActual;
             }
 
             List<Candle> candles = new List<Candle>();
+
+            string finamToken = _server.GetToken();
 
             const int FinamDataMonthsAvailable = 3; // Финам позволяет грузить данные внутредневных свеч не более 4 месяцев на запрос. Ставим на месяц меньше для надежности.
 
             while (timeStart.AddMonths(FinamDataMonthsAvailable) < timeEnd && TimeFrame != TimeFrame.Day)
             {
-                List<Candle> candlesOneDay = GetCandles(timeStart, timeStart.AddMonths(FinamDataMonthsAvailable));
+                List<Candle> candlesOneDay = GetCandles(timeStart, timeStart.AddMonths(FinamDataMonthsAvailable), finamToken);
 
                 timeStart = timeStart.AddMonths(FinamDataMonthsAvailable);
 
@@ -473,7 +417,7 @@ namespace OsEngine.Market.Servers.Finam.Entity
                 }
             }
 
-            List<Candle> candlesToday = GetCandles(timeStart, timeEnd);
+            List<Candle> candlesToday = GetCandles(timeStart, timeEnd, finamToken);
 
             if (candlesToday != null)
             {
@@ -495,7 +439,7 @@ namespace OsEngine.Market.Servers.Finam.Entity
         /// <param name="timeStart"></param>
         /// <param name="timeEnd"></param>
         /// <returns></returns>
-        private List<Candle> GetCandles(DateTime timeStart, DateTime timeEnd)
+        private List<Candle> GetCandles(DateTime timeStart, DateTime timeEnd, string finamToken)
         {
             //http://195.128.78.52/GBPUSD_141201_141206.csv?market=5&em=86&code=GBPUSD&df=1&mf=11&yf=2014&from=01.12.2014&dt=6&mt=11&yt=2014&to=06.12.2014&
             //p=2&f=GBPUSD_141201_141206&e=.csv&cn=GBPUSD&dtf=1&tmf=3&MSOR=1&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=1
@@ -505,99 +449,49 @@ namespace OsEngine.Market.Servers.Finam.Entity
                 return null;
             }
 
-            string timeStartInStrToName = timeStart.Year.ToString()[2].ToString() + timeStart.Year.ToString()[3].ToString() + timeStart.Month + TimeStart.Day;
+            string timeStartInStrToName = timeStart.Year.ToString()[2].ToString() + timeStart.Year.ToString()[3].ToString() + timeStart.Month + timeStart.Day;
 
             string timeEndInStrToName = timeEnd.Year.ToString()[2].ToString() + timeEnd.Year.ToString()[3].ToString() + timeEnd.Month + timeEnd.Day;
-
-            string timeFrom = timeStart.ToShortDateString();
-            string timeTo = timeEnd.ToShortDateString();
-
             string fileName = SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName;
-
-            string url = ServerPrefics + "/" + "export9.out?";
-
-            if (SecurityFinam.Url.Contains("undefined"))
-            {
-                url += "apply=0&";
-                url += "p=" + _timeFrameFinam + "&";
-                url += "e=" + ".txt" + "&";
-                url += "dtf=" + 1 + "&";
-                url += "tmf=" + 1 + "&";
-                url += "MSOR=" + 1 + "&";
-                url += "mstimever=" + "on" + "&";
-                url += "sep=" + "1" + "&";
-                url += "sep2=" + "1" + "&";
-                url += "datf=" + "5" + "&";
-                url += "at=" + "0" + "&";
-                url += "from=" + timeFrom + "&";
-                url += "to=" + timeTo + "&";
-                url += "em=" + SecurityFinam.Id + "&";
-                url += "code=" + SecurityFinam.Code + "&";
-                url += "f=" + SecurityFinam.Code + "_" + timeStartInStrToName + "_" + timeEndInStrToName + "&";
-                url += "cn=" + SecurityFinam.Code + "&";
-                url += "market=undefined&";
-                url += "yf=" + (timeStart.Year) + "&";
-                url += "yt=" + (timeEnd.Year) + "&";
-                url += "df=" + (timeStart.Day) + "&";
-                url += "dt=" + (timeEnd.Day) + "&";
-                url += "mf=" + (timeStart.Month - 1) + "&";
-                url += "mt=" + (timeEnd.Month - 1) + "&";
-                url += "token=0";
-            }
-            else
-            {
-                url += "market=" + SecurityFinam.MarketId + "&";
-                url += "em=" + SecurityFinam.Id + "&";
-                url += "code=" + SecurityFinam.Code + "&";
-                url += "df=" + (timeStart.Day) + "&";
-                url += "mf=" + (timeStart.Month - 1) + "&";
-                url += "yf=" + (timeStart.Year) + "&";
-                url += "from=" + timeFrom + "&";
-                url += "dt=" + (timeEnd.Day) + "&";
-                url += "mt=" + (timeEnd.Month - 1) + "&";
-                url += "yt=" + (timeEnd.Year) + "&";
-                url += "to=" + timeTo + "&";
-                url += "apply=0&";
-                url += "p=" + _timeFrameFinam + "&";
-                url += "f=" + fileName + "&";
-                url += "e=" + ".txt" + "&";
-                url += "cn=" + SecurityFinam.Name + "&";
-                url += "dtf=" + 1 + "&";
-                url += "tmf=" + 1 + "&";
-                url += "MSOR=" + 1 + "&";
-                url += "mstime=" + "on" + "&";
-                url += "mstimever=" + "1" + "&";
-                url += "sep=" + "1" + "&";
-                url += "sep2=" + "1" + "&";
-                url += "datf=" + "5" + "&";
-                url += "at=" + "0";
-            }
+            string url = BuildFinamUrl(timeStart, timeEnd, Convert.ToInt32(_timeFrameFinam), 5, fileName, finamToken);
 
             //url = "http://export.finam.ru/export9.out?market=1&em=16842&code=GAZP&df=26&mf=8&yf=2023&from=26.09.2023&dt=28&mt=8&yt=2023&to=28.09.2023&p=3&f=GAZP_20230926_20230928&e=.txt&cn=GAZP&dtf=1&tmf=1&MSOR=0&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=0";
 
-            string response = _server.HttpClient.GetStringAsync(url).GetAwaiter().GetResult();
+            string response = DownloadFinamStringWithRetry(url);
 
-            if (response != "")
+            if (string.IsNullOrEmpty(response))
             {
-                List<Candle> candles = new List<Candle>();
+                return null;
+            }
 
-                response = response.Replace("\r\n", "&");
+            List<Candle> candles = new List<Candle>();
 
-                string[] tradesInStr = response.Split('&');
+            response = response.Replace("\r\n", "&");
 
-                if (tradesInStr.Length == 1)
+            string[] tradesInStr = response.Split('&');
+
+            if (tradesInStr.Length == 1)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < tradesInStr.Length; i++)
+            {
+                if (tradesInStr[i] == "")
                 {
-                    return null;
+                    continue;
                 }
 
-                for (int i = 0; i < tradesInStr.Length; i++)
+                string row = AdaptFinamCandleRowForOsEngine(tradesInStr[i]);
+                if (row == null)
                 {
-                    if (tradesInStr[i] == "")
-                    {
-                        continue;
-                    }
+                    continue;
+                }
+
+                try
+                {
                     candles.Add(new Candle());
-                    candles[candles.Count - 1].SetCandleFromString(tradesInStr[i]);
+                    candles[candles.Count - 1].SetCandleFromString(row);
                     candles[candles.Count - 1].TimeStart = candles[candles.Count - 1].TimeStart.Add(-_timeFrameSpan);
 
                     if (candles.Count > 1)
@@ -609,10 +503,192 @@ namespace OsEngine.Market.Servers.Finam.Entity
                         }
                     }
                 }
-                return candles;
+                catch
+                {
+                    candles.RemoveAt(candles.Count - 1);
+                }
+            }
+
+            return candles;
+        }
+
+        /// <summary>
+        /// Приводит строку свечи экспорта Finam (<c>datf=1</c>) к формату, который ожидает <see cref="Candle.SetCandleFromString"/>.
+        /// </summary>
+        private static string AdaptFinamCandleRowForOsEngine(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return null;
+            }
+
+            string t = raw.Trim();
+            if (t.Length != 0 && t[0] == '<')
+            {
+                return null;
+            }
+
+            string[] p = t.Split(',', StringSplitOptions.TrimEntries);
+
+            if (p.Length >= 9)
+            {
+                return BuildOsEngineCandleRow(p, dateFieldIndex: 2);
+            }
+
+            if (p.Length >= 7)
+            {
+                return BuildOsEngineCandleRow(p, dateFieldIndex: 0);
+            }
+
+            return t;
+        }
+
+        private static string BuildOsEngineCandleRow(string[] parts, int dateFieldIndex)
+        {
+            string[] cols = new string[7];
+            cols[0] = NormalizeFinamYyyyMmDd(parts[dateFieldIndex]);
+            Array.Copy(parts, dateFieldIndex + 1, cols, 1, 6);
+            return string.Join(",", cols);
+        }
+
+        /// <summary>
+        /// Нормализует дату из Finam к полному календарному виду <c>YYYYMMDD</c>.
+        /// </summary>
+        private static string NormalizeFinamYyyyMmDd(string dateCell)
+        {
+            if (string.IsNullOrWhiteSpace(dateCell))
+            {
+                return dateCell;
+            }
+
+            ReadOnlySpan<char> d = dateCell.AsSpan().Trim();
+            if (d.Length == 8)
+            {
+                return d.ToString();
+            }
+
+            if (d.Length == 6 && int.TryParse(d, NumberStyles.Integer, CultureInfo.InvariantCulture, out int yymmdd))
+            {
+                int yy = yymmdd / 10000;
+                int mm = yymmdd / 100 % 100;
+                int dd = yymmdd % 100;
+                // Порог как у Finam/старых выгрузок: 70–99 → 19xx, 00–69 → 20xx (не стандартное окно двухзначного года BCL).
+                int year = yy >= 70 ? 1900 + yy : 2000 + yy;
+                return (year * 10000 + mm * 100 + dd).ToString();
+            }
+
+            return d.ToString();
+        }
+
+        /// <summary>
+        /// Повторы при обрыве/лимитах: экспоненциальная задержка с потолком и лёгкий jitter.
+        /// </summary>
+        private string DownloadFinamStringWithRetry(string url)
+        {
+            const int maxAttempts = 8;
+            int delayMs = 500;
+            const int delayCapMs = 12000;
+            Exception lastEx = null;
+
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                try
+                {
+                    return _server.HttpClient.GetStringAsync(url).GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    lastEx = ex;
+                    if (attempt < maxAttempts - 1 && IsTransientFinamHttpError(ex))
+                    {
+                        int wait = Math.Min(delayCapMs, delayMs) + Random.Shared.Next(0, 280);
+                        if (attempt == 0)
+                        {
+                            _server.SendLogMessage(
+                                "Finam: загрузка данных временно приостановлена — ожидание снятия лимита запросов / восстановления связи, затем повтор.",
+                                LogMessageType.System);
+                        }
+
+                        Thread.Sleep(wait);
+                        delayMs = Math.Min(delayCapMs, delayMs * 2);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (lastEx != null)
+            {
+                _server.SendLogMessage("Candles data downloading error: " + lastEx, LogMessageType.Error);
             }
 
             return null;
+        }
+
+        private static bool IsTransientFinamHttpError(Exception ex)
+        {
+            if (ex == null)
+            {
+                return false;
+            }
+
+            if (ex is HttpRequestException || ex is IOException || ex is TaskCanceledException)
+            {
+                return true;
+            }
+
+            if (ex is OperationCanceledException)
+            {
+                return true;
+            }
+
+            return IsTransientFinamHttpError(ex.InnerException);
+        }
+
+        private string BuildFinamUrl(DateTime timeStart, DateTime timeEnd, int period, int dataFormat, string fileName, string finamToken)
+        {
+            string timeFrom = timeStart.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture);
+            string timeTo = timeEnd.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture);
+            string code = SecurityFinam.Code;
+            string marketId = SecurityFinam.MarketId;
+            string cnValue = SecurityFinam.Url != null && SecurityFinam.Url.Contains("undefined") ? code : SecurityFinam.Name;
+
+            StringBuilder url = new StringBuilder();
+            url.Append(ServerPrefics).Append("/export9.out?");
+            url.Append("market=").Append(marketId).Append("&");
+            url.Append("em=").Append(SecurityFinam.Id).Append("&");
+            url.Append("code=").Append(Uri.EscapeDataString(code)).Append("&");
+            url.Append("df=").Append(timeStart.Day).Append("&");
+            url.Append("mf=").Append(timeStart.Month - 1).Append("&");
+            url.Append("yf=").Append(timeStart.Year).Append("&");
+            url.Append("from=").Append(Uri.EscapeDataString(timeFrom)).Append("&");
+            url.Append("dt=").Append(timeEnd.Day).Append("&");
+            url.Append("mt=").Append(timeEnd.Month - 1).Append("&");
+            url.Append("yt=").Append(timeEnd.Year).Append("&");
+            url.Append("to=").Append(Uri.EscapeDataString(timeTo)).Append("&");
+            url.Append("apply=0&");
+            url.Append("p=").Append(period).Append("&");
+            url.Append("f=").Append(Uri.EscapeDataString(fileName)).Append("&");
+            url.Append("e=.txt&");
+            url.Append("cn=").Append(Uri.EscapeDataString(cnValue)).Append("&");
+            url.Append("dtf=1&");
+            url.Append("tmf=1&");
+            url.Append("MSOR=1&");
+            url.Append("mstime=on&");
+            url.Append("mstimever=1&");
+            url.Append("sep=1&");
+            url.Append("sep2=1&");
+            url.Append("datf=").Append(dataFormat).Append("&");
+            url.Append("at=0");
+
+            if (string.IsNullOrWhiteSpace(finamToken) == false)
+            {
+                url.Append("&finam_token=").Append(Uri.EscapeDataString(finamToken.Trim()));
+            }
+
+            return url.ToString();
         }
     }
 }

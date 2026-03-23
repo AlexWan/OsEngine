@@ -1,0 +1,21 @@
+<Window x:Class="OsEngine.Market.Servers.Finam.FinamAuthWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="Finam"
+        Width="480"
+        Height="360"
+        MinWidth="200"
+        MinHeight="200"
+        WindowStartupLocation="Manual"
+        Left="-12000"
+        Top="-12000"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        ResizeMode="NoResize"
+        WindowStyle="None">
+    <!-- Окно за пределами экрана: WebView в дереве, пользователь не видит «плашку»; сеть/скрипты работают. -->
+    <Grid>
+        <wv2:WebView2 x:Name="WebView"/>
+    </Grid>
+</Window>
