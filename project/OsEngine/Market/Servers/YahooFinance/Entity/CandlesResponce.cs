@@ -51,7 +51,7 @@ namespace OsEngine.Market.Servers.YahooFinance.Entity
         public double fiftyTwoWeekLow { get; set; }
         public double regularMarketDayHigh { get; set; }
         public double regularMarketDayLow { get; set; }
-        public int regularMarketVolume { get; set; }
+        public long regularMarketVolume { get; set; }
         public string longName { get; set; }
         public string shortName { get; set; }
         public double chartPreviousClose { get; set; }

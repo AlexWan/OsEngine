@@ -461,10 +461,16 @@ namespace OsEngine.Market.Servers.MOEX
                 List<Candle> sourseCandle = GetAllCandles(security, startTime, 10, endTime);
                 candles = ConcateCandles(sourseCandle, 10, minutesInTf);
             }
-            else if (minutesInTf >= 60)
+            else if (minutesInTf >= 60 &&
+                     minutesInTf < 1440)
             {
                 List<Candle> sourseCandle = GetAllCandles(security, startTime, 60, endTime);
                 candles = ConcateCandles(sourseCandle, 60, minutesInTf);
+            }
+            else if (minutesInTf == 1440)
+            {
+                List<Candle> sourseCandle = GetAllCandles(security, startTime, 24, endTime);
+                candles = ConcateCandles(sourseCandle, 1440, minutesInTf);
             }
 
             Candle previousCandle = new Candle();
@@ -473,7 +479,7 @@ namespace OsEngine.Market.Servers.MOEX
             {
                 Candle newCandle = candles[i];
 
-                if (newCandle.TimeStart.TimeOfDay == TimeSpan.Zero)
+                if (newCandle.TimeStart.TimeOfDay == TimeSpan.Zero && minutesInTf < 1440)
                 {
                     candles.RemoveAt(i);
                     i--;

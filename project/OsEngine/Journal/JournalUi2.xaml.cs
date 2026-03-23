@@ -25,7 +25,6 @@ using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Media;
 using System.Windows.Threading;
-using static OsEngine.Market.Servers.Deribit.Entity.ResponseChannelUserChanges;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
 using Color = System.Drawing.Color;

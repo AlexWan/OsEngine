@@ -183,6 +183,8 @@ namespace OsEngine.Market.Servers.YahooFinance
                     }                    
                 }
 
+                securities.Add(AddSnP500());
+
                 if (SecurityEvent != null)
                 {
                     SecurityEvent(securities);
@@ -193,6 +195,25 @@ namespace OsEngine.Market.Servers.YahooFinance
             {
                 SendLogMessage(e.Message, LogMessageType.Error);
             }
+        }
+
+        private Security AddSnP500()
+        {
+            Security security = new Security();
+
+            security.Name = "^SPX";
+            security.NameFull = "S&P500 Index";
+            security.NameClass = "Else";
+            security.NameId = security.Name;
+            security.SecurityType = SecurityType.Index;
+            security.Lot = 1;
+            security.PriceStep = 1;
+            security.Decimals = 0;
+            security.PriceStepCost = 1;
+            security.State = SecurityStateType.Activ;
+            security.Exchange = ServerType.YahooFinance.ToString();
+
+            return security;
         }
 
         private void GetFileFromFtp()

@@ -80,7 +80,7 @@ namespace OsEngine.Market.Servers.MOEX
         }
         public bool DataFeedTfDayCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTfTickCanLoad
         {
