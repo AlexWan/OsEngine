@@ -230,7 +230,7 @@ namespace OsEngine.Entity
         /// </summary>
         public decimal PriceLimitHigh;
 
-        // For options
+        #region Options
 
         /// <summary>
         /// option type
@@ -249,8 +249,44 @@ namespace OsEngine.Entity
         /// дата экспирации
         /// </summary>
         public DateTime Expiration;
-        // save and load
-        // сохранение и загрузка
+
+        #endregion
+
+        #region Bonds
+
+        /// <summary>
+        /// стартовая сумма, обозначенная в условиях выпуска облигации, которую эмитент обязуется вернуть инвестору ко дню погашения.
+        /// </summary>
+        public decimal NominalInitial;
+
+        /// <summary>
+        /// текущая сумма, обозначенная в условиях выпуска облигации, которую эмитент обязуется вернуть инвестору ко дню погашения.
+        /// </summary>
+        public decimal NominalCurrent;
+
+        /// <summary>
+        /// дата погашения облигации
+        /// </summary>
+        public DateTime MaturityDate;
+
+        /// <summary>
+        /// дата размещения облигации
+        /// </summary>
+        public DateTime PlacementDate;
+
+        /// <summary>
+        /// цена погашения облигации
+        /// </summary>
+        public decimal PlacementPrice;
+
+        /// <summary>
+        /// накопленный купонный доход облигации
+        /// </summary>
+        public decimal AciValue;
+
+        #endregion
+
+        // Save and load
 
         /// <summary>
         /// upload from the line

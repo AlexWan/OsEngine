@@ -677,6 +677,23 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
+
+                    newSecurity.NominalCurrent = GetValue(item.Nominal);
+                    newSecurity.NominalInitial = GetValue(item.InitialNominal);
+
+                    if(item.MaturityDate != null)
+                    {
+                        newSecurity.MaturityDate = TimeZoneInfo.ConvertTimeFromUtc(item.MaturityDate.ToDateTime(), _mskTimeZone); // convert to MSK;
+                    }
+          
+                    if(item.PlacementDate != null)
+                    {
+                        newSecurity.PlacementDate = TimeZoneInfo.ConvertTimeFromUtc(item.PlacementDate.ToDateTime(), _mskTimeZone); // convert to MSK;
+                    }
+                  
+                    newSecurity.PlacementPrice = GetValue(item.PlacementPrice);
+                    newSecurity.AciValue = GetValue(item.AciValue);
+
                     _securities.Add(newSecurity);
                     _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
                 }
