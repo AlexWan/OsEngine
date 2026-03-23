@@ -51,7 +51,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         string synteticBondName = reader.ReadLine();
                         int synteticBondNumber = Convert.ToInt32(reader.ReadLine());
 
-                        SynteticBondSeries newBond = new SynteticBondSeries(StartProgram, synteticBondName);
+                        SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, synteticBondName);
                         newBond.SyntheticBondNum = synteticBondNumber;
                         newBond.SecuritySubscribeEvent += SecuritySubscribeEvent;
                         newBond.ContangoChangeEvent += SynteticBond_SeparationChangeEvent;
@@ -181,7 +181,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             {
                 for (int i = 0; i < SynteticBondSeries.Count; i++)
                 {
-                    SynteticBondSeries synteticBondSeries = SynteticBondSeries[i];
+                    SyntheticBondSeries synteticBondSeries = SynteticBondSeries[i];
 
                     if (synteticBondSeries.BaseTab != null)
                     {
@@ -286,7 +286,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         private WindowsFormsHost _host;
         private DataGridView _grid;
-        public List<SynteticBondSeries> SynteticBondSeries = new List<SynteticBondSeries>();
+        public List<SyntheticBondSeries> SynteticBondSeries = new List<SyntheticBondSeries>();
 
         private bool _emulatorIsOn = false;
         private bool _eventsIsOn = true;
@@ -327,7 +327,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             for (int i = 0; i < SynteticBondSeries.Count; i++)
             {
-                SynteticBondSeries series = SynteticBondSeries[i];
+                SyntheticBondSeries series = SynteticBondSeries[i];
 
                 if (series.SyntheticBonds == null)
                 {
@@ -377,7 +377,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
             for (int i = 0; i < SynteticBondSeries.Count; i++)
             {
-                SynteticBondSeries series = SynteticBondSeries[i];
+                SyntheticBondSeries series = SynteticBondSeries[i];
 
                 if (series.BaseTab != null
                     && series.BaseTab.Security != null)
@@ -477,7 +477,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 for (int i = 0; i < SynteticBondSeries.Count; i++)
                 {
-                    SynteticBondSeries curBond = SynteticBondSeries[i];
+                    SyntheticBondSeries curBond = SynteticBondSeries[i];
 
                     for (int j = 0; curBond.SyntheticBonds != null && j < curBond.SyntheticBonds.Count; j++)
                     {
@@ -697,7 +697,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
             for (int i = 0; SynteticBondSeries != null && i < SynteticBondSeries.Count; i++)
             {
-                SynteticBondSeries bond = SynteticBondSeries[i];
+                SyntheticBondSeries bond = SynteticBondSeries[i];
 
                 if (bond.SyntheticBonds == null)
                 {
@@ -743,7 +743,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             return rows;
         }
 
-        private DataGridViewRow GetFirstSynteticBondGridRow(SynteticBondSeries bond, SyntheticBond syntheticBondSettings)
+        private DataGridViewRow GetFirstSynteticBondGridRow(SyntheticBondSeries bond, SyntheticBond syntheticBondSettings)
         {
             DataGridViewRow nRow = new DataGridViewRow();
 
@@ -1129,7 +1129,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (SynteticBondSeries.Count == 0)
                 {
-                    SynteticBondSeries newBond = new SynteticBondSeries(StartProgram, "SynteticBond" + number + TabName);
+                    SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, "SynteticBond" + number + TabName);
                     newBond.SyntheticBondNum = number;
                     newBond.ContangoChangeEvent += SynteticBond_SeparationChangeEvent;
 
@@ -1152,7 +1152,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 {
                     if (SynteticBondSeries[i].SyntheticBondNum > number)
                     {
-                        SynteticBondSeries newBond = new SynteticBondSeries(StartProgram, "SynteticBond" + number + TabName);
+                        SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, "SynteticBond" + number + TabName);
                         newBond.SyntheticBondNum = number;
                         newBond.ContangoChangeEvent += SynteticBond_SeparationChangeEvent;
 
@@ -1181,7 +1181,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (!inserted)
                 {
-                    SynteticBondSeries newBond = new SynteticBondSeries(StartProgram, "SynteticBond" + number + TabName);
+                    SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, "SynteticBond" + number + TabName);
                     newBond.SyntheticBondNum = number;
                     newBond.ContangoChangeEvent += SynteticBond_SeparationChangeEvent;
 
@@ -1248,7 +1248,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 int column = e.ColumnIndex;
                 int row = e.RowIndex;
 
-                Dictionary<int, SynteticBondSeries> bondsDictionary = new Dictionary<int, SynteticBondSeries>(); // key - номер строки с базой облигации, value - кол-во фьючерсов
+                Dictionary<int, SyntheticBondSeries> bondsDictionary = new Dictionary<int, SyntheticBondSeries>(); // key - номер строки с базой облигации, value - кол-во фьючерсов
 
                 int rowCount = 1;
                 for (int i = 0; i < SynteticBondSeries.Count; i++)
@@ -1283,11 +1283,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                             return;
                         }
 
-                        SynteticBondSeries bondDictionary = bondsDictionary[row];
+                        SyntheticBondSeries bondDictionary = bondsDictionary[row];
 
                         for (int i = SynteticBondSeries.Count - 1; i >= 0; i--)
                         {
-                            SynteticBondSeries synteticBond = SynteticBondSeries[i];
+                            SyntheticBondSeries synteticBond = SynteticBondSeries[i];
 
                             if (bondDictionary.BaseTab.TabName != synteticBond.BaseTab.TabName) continue;
 
@@ -1307,7 +1307,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 {
                     if (bondsDictionary.ContainsKey(row))
                     {
-                        SynteticBondSeries bond = bondsDictionary[row];
+                        SyntheticBondSeries bond = bondsDictionary[row];
 
                         bond.ChooseBaseSecurity();
                         bond.SaveSettingsSyntheticBond();
@@ -1317,7 +1317,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 {
                     if (bondsDictionary.ContainsKey(row)) // Выбор фьючерса ( основная строка облигации)
                     {
-                        SynteticBondSeries bond = bondsDictionary[row];
+                        SyntheticBondSeries bond = bondsDictionary[row];
                         SyntheticBond firstSettings = bond.SyntheticBonds[0];
 
                         firstSettings.FuturesIsbergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribeEvent;
@@ -1362,7 +1362,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                             return;
                         }
 
-                        SynteticBondSeries bond = bondsDictionary[foundKey];
+                        SyntheticBondSeries bond = bondsDictionary[foundKey];
 
                         if (row == bond.SyntheticBonds.Count + foundKey) // Добавить новый фьючерс
                         {
@@ -1440,7 +1440,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         return;
                     }
 
-                    SynteticBondSeries bondDictionary = bondsDictionary[foundKey];
+                    SyntheticBondSeries bondDictionary = bondsDictionary[foundKey];
 
                     if (bondsDictionary.ContainsKey(row)) // Удаление фьючерса ( основная строка облигации)
                     {
@@ -1463,7 +1463,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                     for (int i = SynteticBondSeries.Count - 1; i >= 0; i--)
                     {
-                        SynteticBondSeries synteticBond = SynteticBondSeries[i];
+                        SyntheticBondSeries synteticBond = SynteticBondSeries[i];
 
                         if (bondDictionary.BaseTab.TabName != synteticBond.BaseTab.TabName) continue;
 
@@ -1515,7 +1515,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         return;
                     }
 
-                    SynteticBondSeries bond = bondsDictionary[foundKey];
+                    SyntheticBondSeries bond = bondsDictionary[foundKey];
 
                     SyntheticBond modificationSyntheticBond = null;
                     if (isFirstRow) // Выбор чарта фьючерса ( основная строка облигации)
@@ -1566,7 +1566,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         return;
                     }
 
-                    SynteticBondSeries bond = bondsDictionary[foundKey];
+                    SyntheticBondSeries bond = bondsDictionary[foundKey];
 
                     SyntheticBond modificationSyntheticBond = null;
                     if (isFirstRow) // Выбор чарта фьючерса ( основная строка облигации)
@@ -1617,7 +1617,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         return;
                     }
 
-                    SynteticBondSeries bond = bondsDictionary[foundKey];
+                    SyntheticBondSeries bond = bondsDictionary[foundKey];
 
                     SyntheticBond modificationSyntheticBond = null;
                     if (isFirstRow) // Выбор чарта фьючерса ( основная строка облигации)
@@ -1676,7 +1676,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
             for (int i = 0; i < SynteticBondSeries.Count; i++)
             {
-                SynteticBondSeries series = SynteticBondSeries[i];
+                SyntheticBondSeries series = SynteticBondSeries[i];
 
                 if (series.BaseTab == null
                     || series.BaseTab.IsConnected == false

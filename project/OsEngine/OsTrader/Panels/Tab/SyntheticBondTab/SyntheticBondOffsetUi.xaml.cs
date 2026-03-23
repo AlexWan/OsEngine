@@ -16,11 +16,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
     {
         #region Constructor
 
-        private SynteticBondSeries _synteticBond;
+        private SyntheticBondSeries _synteticBond;
 
         private SyntheticBond _futuresSyntheticBond;
 
-        public SyntheticBondOffsetUi(SynteticBondSeries synteticBond, ref SyntheticBond modificationFuturesSyntheticBond)
+        public SyntheticBondOffsetUi(SyntheticBondSeries synteticBond, ref SyntheticBond modificationFuturesSyntheticBond)
         {
             InitializeComponent();
 

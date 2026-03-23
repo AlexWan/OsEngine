@@ -786,7 +786,7 @@ namespace OsEngine.OsOptimizer
 
                     for (int i2 = 0; i2 < synthBond.SynteticBondSeries.Count; i2++)
                     {
-                        SynteticBondSeries series = synthBond.SynteticBondSeries[i2];
+                        SyntheticBondSeries series = synthBond.SynteticBondSeries[i2];
 
                         if (series.BaseTab != null
                             && series.BaseTab.Connector != null
