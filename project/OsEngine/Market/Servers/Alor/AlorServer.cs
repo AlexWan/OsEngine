@@ -536,6 +536,11 @@ namespace OsEngine.Market.Servers.Alor
                         }
                     }
 
+                    if(newSecurity.SecurityType == SecurityType.Bond)
+                    {
+
+                    }
+
                     if(string.IsNullOrEmpty(item.priceMax) == false)
                     {
                         newSecurity.PriceLimitHigh = item.priceMax.ToDecimal();

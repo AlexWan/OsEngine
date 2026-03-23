@@ -26,6 +26,8 @@ using System.Net.Http;
 using Grpc.Net.Client;
 using Grpc.Core;
 using System.Threading.Tasks;
+using OsEngine.Market.Servers.Bybit.Entities;
+using OsEngine.Market.Servers.Transaq.TransaqEntity;
 
 namespace OsEngine.Market.Servers.TInvest
 {
@@ -1757,10 +1759,23 @@ namespace OsEngine.Market.Servers.TInvest
                 HistoricCandle histCandle = response.Candles[i];
 
                 Candle candle = new Candle();
-                candle.Open = GetValue(histCandle.Open);
-                candle.Close = GetValue(histCandle.Close);
-                candle.High = GetValue(histCandle.High);
-                candle.Low = GetValue(histCandle.Low);
+
+                if(security.SecurityType == SecurityType.Bond
+                    && security.NominalCurrent != 0)
+                {
+                    candle.Open = GetValue(histCandle.Open) / 100 * security.NominalCurrent;
+                    candle.Close = GetValue(histCandle.Close) / 100 * security.NominalCurrent;
+                    candle.High = GetValue(histCandle.High) / 100 * security.NominalCurrent;
+                    candle.Low = GetValue(histCandle.Low) / 100 * security.NominalCurrent;
+                }
+                else
+                {
+                    candle.Open = GetValue(histCandle.Open);
+                    candle.Close = GetValue(histCandle.Close);
+                    candle.High = GetValue(histCandle.High);
+                    candle.Low = GetValue(histCandle.Low);
+                }
+
                 candle.Volume = histCandle.Volume;
                 candle.TimeStart = TimeZoneInfo.ConvertTimeFromUtc(histCandle.Time.ToDateTime(), _mskTimeZone);
 
@@ -2513,6 +2528,12 @@ namespace OsEngine.Market.Servers.TInvest
                         newTrade.OpenInterest = oi.OpenInterest_;
                     }
 
+                    if(security.SecurityType == SecurityType.Bond
+                        && security.NominalCurrent != 0)
+                    {
+                        newTrade.Price = newTrade.Price / 100 * security.NominalCurrent;
+                    }
+
                     NewTradesEvent?.Invoke(newTrade);
                 }
                 else if (marketData.Orderbook != null)
@@ -2524,20 +2545,47 @@ namespace OsEngine.Market.Servers.TInvest
                         return;
                     }
 
+                    bool isBondNeedToNormalization = false;
+
+                    if (security.SecurityType == SecurityType.Bond
+                     && security.NominalCurrent != 0)
+                    {
+                        isBondNeedToNormalization = true;
+                    }
+
                     MarketDepth depth = new MarketDepth();
                     depth.SecurityNameCode = security.Name;
                     depth.Time = TimeZoneInfo.ConvertTimeFromUtc(orderbook.Time.ToDateTime(), _mskTimeZone);
 
                     depth.Bids = new List<MarketDepthLevel>(orderbook.Bids.Count);
+
                     foreach (var bid in orderbook.Bids)
                     {
-                        depth.Bids.Add(new MarketDepthLevel { Price = (double)GetValue(bid.Price), Bid = (double)bid.Quantity });
+                        if(isBondNeedToNormalization)
+                        {
+                            depth.Bids.Add(new MarketDepthLevel 
+                            { Price = (double)(GetValue(bid.Price) / 100 * security.NominalCurrent),
+                                Bid = (double)bid.Quantity });
+                        }
+                        else
+                        {
+                            depth.Bids.Add(new MarketDepthLevel { Price = (double)GetValue(bid.Price), Bid = (double)bid.Quantity });
+                        }
                     }
 
                     depth.Asks = new List<MarketDepthLevel>(orderbook.Asks.Count);
                     foreach (var ask in orderbook.Asks)
                     {
-                        depth.Asks.Add(new MarketDepthLevel { Price = (double)GetValue(ask.Price), Ask = (double)ask.Quantity });
+                        if (isBondNeedToNormalization)
+                        {
+                            depth.Asks.Add(new MarketDepthLevel 
+                            { Price = (double)(GetValue(ask.Price) / 100 * security.NominalCurrent), 
+                                Ask = (double)ask.Quantity });
+                        }
+                        else
+                        {
+                            depth.Asks.Add(new MarketDepthLevel { Price = (double)GetValue(ask.Price), Ask = (double)ask.Quantity });
+                        }   
                     }
 
                     if (depth.Asks.Count > 0 || depth.Bids.Count > 0)
@@ -2545,8 +2593,16 @@ namespace OsEngine.Market.Servers.TInvest
                         MarketDepthEvent?.Invoke(depth);
                     }
 
-                    security.PriceLimitHigh = GetValue(marketData.Orderbook.LimitUp);
-                    security.PriceLimitLow = GetValue(marketData.Orderbook.LimitDown);
+                    if (isBondNeedToNormalization)
+                    {
+                        security.PriceLimitHigh = GetValue(marketData.Orderbook.LimitUp) / 100 * security.NominalCurrent;
+                        security.PriceLimitLow = GetValue(marketData.Orderbook.LimitDown) / 100 * security.NominalCurrent;
+                    }
+                    else
+                    {
+                        security.PriceLimitHigh = GetValue(marketData.Orderbook.LimitUp);
+                        security.PriceLimitLow = GetValue(marketData.Orderbook.LimitDown);
+                    }
                 }
                 else if (marketData.Candle != null)
                 {
@@ -2558,10 +2614,23 @@ namespace OsEngine.Market.Servers.TInvest
                     }
 
                     Candle osCandle = new Candle();
-                    osCandle.Open = GetValue(tinvestCandle.Open);
-                    osCandle.High = GetValue(tinvestCandle.High);
-                    osCandle.Low = GetValue(tinvestCandle.Low);
-                    osCandle.Close = GetValue(tinvestCandle.Close);
+
+                    if (security.SecurityType == SecurityType.Bond
+                         && security.NominalCurrent != 0)
+                    {
+                        osCandle.Open = GetValue(tinvestCandle.Open) / 100 * security.NominalCurrent;
+                        osCandle.High = GetValue(tinvestCandle.High) / 100 * security.NominalCurrent;
+                        osCandle.Low = GetValue(tinvestCandle.Low) / 100 * security.NominalCurrent;
+                        osCandle.Close = GetValue(tinvestCandle.Close) / 100 * security.NominalCurrent;
+                    }
+                    else
+                    {
+                        osCandle.Open = GetValue(tinvestCandle.Open);
+                        osCandle.High = GetValue(tinvestCandle.High);
+                        osCandle.Low = GetValue(tinvestCandle.Low);
+                        osCandle.Close = GetValue(tinvestCandle.Close);
+                    }
+
                     osCandle.Volume = tinvestCandle.Volume;
                     osCandle.TimeStart = TimeZoneInfo.ConvertTimeFromUtc(tinvestCandle.Time.ToDateTime(), _mskTimeZone);
                     osCandle.State = CandleState.Finished;
@@ -2770,6 +2839,12 @@ namespace OsEngine.Market.Servers.TInvest
             if (_openInterestData.ContainsKey(mySec.Name))
             {
                 newTrade.OpenInterest = _openInterestData[mySec.Name].OpenInterest_;
+            }
+
+            if (mySec.SecurityType == SecurityType.Bond
+               && mySec.NominalCurrent != 0)
+            {
+                newTrade.Price = newTrade.Price / 100 * mySec.NominalCurrent;
             }
 
             NewTradesEvent?.Invoke(newTrade);
@@ -3302,7 +3377,15 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 MyTrade trade = new MyTrade();
                                 trade.SecurityNameCode = security.Name;
+
                                 trade.Price = GetValue(orderTrade.Price);
+
+                                if (security.SecurityType == SecurityType.Bond
+                                 && security.NominalCurrent != 0)
+                                {
+                                    trade.Price = trade.Price * (security.NominalCurrent / 100);
+                                }
+
                                 trade.Volume = orderTrade.Quantity / security.Lot;
                                 trade.NumberOrderParent = order.NumberMarket;
                                 trade.NumberTrade = orderTrade.TradeId;
@@ -3452,11 +3535,19 @@ namespace OsEngine.Market.Servers.TInvest
                     sec.Name == order.SecurityNameCode);
                 }
 
+                decimal orderPrice = order.Price;
+
+                if(security.SecurityType == SecurityType.Bond
+                    && security.NominalCurrent != 0)
+                {
+                    orderPrice = order.Price / (security.NominalCurrent / 100);
+                }
+
                 PostOrderRequest request = new PostOrderRequest();
                 request.Direction = order.Side == Side.Buy ? OrderDirection.Buy : OrderDirection.Sell;
                 request.OrderType = order.TypeOrder == OrderPriceType.Limit ? OrderType.Limit : OrderType.Market; // еще есть BestPrice
                 request.Quantity = Convert.ToInt32(order.Volume);
-                request.Price = ConvertToQuotation(order.Price);
+                request.Price = ConvertToQuotation(orderPrice);
                 request.ConfirmMarginTrade = true;
 
                 if (security.SecurityType == SecurityType.Bond) // set price type to points in case security type is bond
@@ -3658,6 +3749,27 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
                 }
+
+                Security security = _securities.Where(s => _securityStreamMap.ContainsKey(s.NameId)).FirstOrDefault((sec) =>
+                 sec.Name == order.SecurityNameCode);
+
+                if (security == null)
+                {
+                    security = _pollSubscribedSecurities.Find((sec) => sec.Name == order.SecurityNameCode);
+                }
+
+                if (security == null)
+                {
+                    security = _securities.Find((sec) =>
+                    sec.Name == order.SecurityNameCode);
+                }
+
+                if (security.SecurityType == SecurityType.Bond
+                    && security.NominalCurrent != 0)
+                {
+                    newPrice = newPrice / (security.NominalCurrent / 100);
+                }
+
                 ReplaceOrderRequest request = new ReplaceOrderRequest();
                 request.AccountId = order.PortfolioNumber;
                 request.OrderId = order.NumberMarket;
@@ -3731,7 +3843,14 @@ namespace OsEngine.Market.Servers.TInvest
                         order.NumberUser = _orderNumbers[response.OrderRequestId];
                     }
 
+                    if (security.SecurityType == SecurityType.Bond
+                        && security.NominalCurrent != 0)
+                    {
+                        newPrice = newPrice / 100 * security.NominalCurrent;
+                    }
+
                     order.Price = newPrice;
+
                     order.Volume = request.Quantity;
                     order.VolumeExecute = 0;
                     order.TimeCallBack = TimeZoneInfo.ConvertTimeFromUtc(response.ResponseMetadata.ServerTime.ToDateTime(), _mskTimeZone);// convert to MSK
@@ -4011,6 +4130,13 @@ namespace OsEngine.Market.Servers.TInvest
 
                         trade.SecurityNameCode = order.SecurityNameCode;
                         trade.Price = GetValue(stage.Price) / security.PriceStepCost * security.PriceStep;
+
+                        if (security.SecurityType == SecurityType.Bond
+                           && security.NominalCurrent != 0)
+                        {
+                            trade.Price = trade.Price * (security.NominalCurrent/100);
+                        }
+
                         trade.Volume = stage.Quantity;
                         trade.NumberOrderParent = state.OrderId;
                         trade.NumberTrade = stage.TradeId;

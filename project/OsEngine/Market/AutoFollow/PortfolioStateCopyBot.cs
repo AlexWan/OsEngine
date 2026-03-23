@@ -506,7 +506,7 @@ namespace OsEngine.Market.AutoFollow
 
                     if (_tradePeriodsSettings.CanTradeThisTime(_mainTab.TimeServerCurrent) == false)
                     {
-                        return;
+                        continue;
                     }
 
                     // отслеживание изменений в портфеле

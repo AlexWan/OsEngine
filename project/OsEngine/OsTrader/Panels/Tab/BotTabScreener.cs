@@ -987,7 +987,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (TabsReadyToLoad() == false)
+                if (TabsReadyToLoad() == false
+                    && Tabs.Count == 0)
                 {
                     return;
                 }
