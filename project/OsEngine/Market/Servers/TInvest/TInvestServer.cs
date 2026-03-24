@@ -28,6 +28,7 @@ using Grpc.Core;
 using System.Threading.Tasks;
 using OsEngine.Market.Servers.Bybit.Entities;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
+using OsEngine.OsData;
 
 namespace OsEngine.Market.Servers.TInvest
 {
@@ -145,6 +146,12 @@ namespace OsEngine.Market.Servers.TInvest
                 try
                 {
                     if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if(_securitiesDictionary.Count == 0)
                     {
                         Thread.Sleep(1000);
                         continue;
@@ -995,6 +1002,27 @@ namespace OsEngine.Market.Servers.TInvest
             return null;
         }
 
+        private string GetClassName(Tinkoff.InvestApi.V1.Instrument instrument)
+        {
+            // shares newSecurity.NameClass = SecurityType.Stock.ToString() + " " + item.Currency;
+            // bonds  newSecurity.NameClass = SecurityType.Bond.ToString() + " " + item.Currency;
+            // etfs   newSecurity.NameClass = SecurityType.Fund.ToString() + " " + item.Currency;
+            // indexes  newSecurity.NameClass = SecurityType.Index.ToString() + " " + item.Currency;
+            // currency newSecurity.NameClass = "Currency pair";
+            // futures newSecurity.NameClass = SecurityType.Futures.ToString();
+
+            string uid = instrument.Uid;
+
+            Security mySecurity = GetSecurityByIdFast(uid);
+
+            if(mySecurity == null)
+            {
+                return null;
+            }
+
+            return mySecurity.NameClass;
+        }
+
         public event Action<List<Security>> SecurityEvent;
 
         #endregion
@@ -1007,6 +1035,11 @@ namespace OsEngine.Market.Servers.TInvest
 
         public void GetPortfolios()
         {
+            if(_securitiesDictionary.Count == 0)
+            {
+                return;
+            }
+
             GetPortfolioRecursion(0);
         }
 
@@ -1249,6 +1282,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
+                newPos.SecurityNameClass = GetClassName(instrument.Instrument);
 
                 sectionPoses.Add(newPos);
 
@@ -1296,6 +1330,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
+                newPos.SecurityNameClass = GetClassName(instrument.Instrument);
 
                 sectionPoses.Add(newPos);
 
@@ -1342,6 +1377,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
+                newPos.SecurityNameClass = GetClassName(instrument.Instrument);
 
                 sectionPoses.Add(newPos);
 
@@ -3084,6 +3120,7 @@ namespace OsEngine.Market.Servers.TInvest
                             }
 
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
+                            newPos.SecurityNameClass = GetClassName(instrument.Instrument);
 
                             portf.SetNewPosition(newPos);
                         }
@@ -3118,6 +3155,7 @@ namespace OsEngine.Market.Servers.TInvest
                             newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                             newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
+                            newPos.SecurityNameClass = GetClassName(instrument.Instrument);
 
                             portf.SetNewPosition(newPos);
 
@@ -3153,6 +3191,7 @@ namespace OsEngine.Market.Servers.TInvest
                             newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
                             newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
+                            newPos.SecurityNameClass = GetClassName(instrument.Instrument);
 
                             portf.SetNewPosition(newPos);
                         }

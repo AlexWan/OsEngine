@@ -92,6 +92,12 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
+                if (_regime.ValueString == "Off")
+                {
+                    Thread.Sleep(1000);
+                    return;
+                }
+
                 _securitiesAll = _mainTab.Connector.MyServer.Securities;
 
                 if (_securitiesAll == null
@@ -114,11 +120,13 @@ namespace OsEngine.Market.AutoFollow
 
                 for (int i = 0; i < positionsOnExchange.Count; i++)
                 {
+                    PositionOnBoard positionOnEx = positionsOnExchange[i];
+
                     bool isIgnored = false;
 
                     for (int j = 0; j < _defaultIgnoredSec.Count; j++)
                     {
-                        if (_defaultIgnoredSec[j] == positionsOnExchange[i].SecurityNameCode)
+                        if (_defaultIgnoredSec[j] == positionOnEx.SecurityNameCode)
                         {
                             isIgnored = true;
                             break;
@@ -126,19 +134,33 @@ namespace OsEngine.Market.AutoFollow
                     }
 
                     if (isIgnored)
+                    {
                         continue;
+                    }
+                        
+                    Security secInServer = null;
 
-                    Security secInServer = _securitiesAll.Find(s => s.Name.StartsWith(positionsOnExchange[i].SecurityNameCode));
+                    if(string.IsNullOrEmpty(positionOnEx.SecurityNameClass) == false)
+                    {
+                        secInServer = _securitiesAll.Find(s => 
+                        s.Name.Equals(positionOnEx.SecurityNameCode) &&
+                         s.NameClass.Equals(positionOnEx.SecurityNameClass)
+                        );
+                    }
+                    else
+                    {
+                        secInServer = _securitiesAll.Find(s => s.Name.Equals(positionOnEx.SecurityNameCode));
+                    }
 
                     if (secInServer == null) // в инструментах коннектора не нашли инструмент из портфеля
                     {
-                        SendNewLogMessage(positionsOnExchange[i].SecurityNameCode + OsLocalization.Market.Message107 + OsLocalization.Market.Message108, Logging.LogMessageType.Error);
+                        SendNewLogMessage(positionOnEx.SecurityNameCode + OsLocalization.Market.Message107 + OsLocalization.Market.Message108, Logging.LogMessageType.Error);
                         continue;
                     }
 
-                    Side posExchangeDirection = positionsOnExchange[i].ValueCurrent < 0 ? Side.Sell : Side.Buy;
+                    Side posExchangeDirection = positionOnEx.ValueCurrent < 0 ? Side.Sell : Side.Buy;
 
-                    _notIgnoredSec.Add(new Tuple<Security, Side, decimal>(secInServer, posExchangeDirection, positionsOnExchange[i].ValueCurrent));
+                    _notIgnoredSec.Add(new Tuple<Security, Side, decimal>(secInServer, posExchangeDirection, positionOnEx.ValueCurrent));
                 }
 
 
@@ -394,7 +416,7 @@ namespace OsEngine.Market.AutoFollow
 
                         if (_securitiesAll != null)
                         {
-                            Security secInServer = _securitiesAll.Find(s => s.Name.StartsWith(_grid.Rows[rowIndex].Cells[0].Value.ToString()));
+                            Security secInServer = _securitiesAll.Find(s => s.Name.Equals(_grid.Rows[rowIndex].Cells[0].Value.ToString()));
 
                             if (secInServer == null)
                             {
@@ -518,11 +540,13 @@ namespace OsEngine.Market.AutoFollow
 
                     for (int i = 0; i < positionsOnExchange.Count; i++)
                     {
+                        PositionOnBoard positionOnEx = positionsOnExchange[i];
+
                         bool isIgnored = false;
 
                         for (int j = 0; j < _defaultIgnoredSec.Count; j++)
                         {
-                            if (_defaultIgnoredSec[j] == positionsOnExchange[i].SecurityNameCode)
+                            if (_defaultIgnoredSec[j] == positionOnEx.SecurityNameCode)
                             {
                                 isIgnored = true;
                                 break;
@@ -532,28 +556,42 @@ namespace OsEngine.Market.AutoFollow
                         if (isIgnored)
                             continue;
    
-                        Side posExchangeDirection = positionsOnExchange[i].ValueCurrent < 0 ? Side.Sell : Side.Buy;
+                        Side posExchangeDirection = positionOnEx.ValueCurrent < 0 ? Side.Sell : Side.Buy;
 
-                        Security security = _securitiesAll.Find(s => s.Name.StartsWith(positionsOnExchange[i].SecurityNameCode));
+                        Security security = null;
+
+                        if (string.IsNullOrEmpty(positionOnEx.SecurityNameClass) == false)
+                        {
+                            security = _securitiesAll.Find(s =>
+                            s.Name.Equals(positionOnEx.SecurityNameCode) &&
+                             s.NameClass.Equals(positionOnEx.SecurityNameClass)
+                            );
+                        }
+                        else
+                        {
+                            security = _securitiesAll.Find(s => s.Name.Equals(positionOnEx.SecurityNameCode));
+                        }
 
                         if (security == null)
                         {
-                            SendNewLogMessage(positionsOnExchange[i].SecurityNameCode + OsLocalization.Market.Message107, Logging.LogMessageType.Error);
+                            SendNewLogMessage(positionOnEx.SecurityNameCode + OsLocalization.Market.Message107, Logging.LogMessageType.Error);
                             continue;
                         }
   
-                        BotTabSimple tab = _posTabs.Tabs.Find(t => t.Security.Name.StartsWith(positionsOnExchange[i].SecurityNameCode));
+                        BotTabSimple tab = _posTabs.Tabs.Find(t => t.Security.Name.Equals(positionOnEx.SecurityNameCode));
 
                         if (tab != null && tab.PositionsOpenAll.Count == 1)   // у бота есть позиция с таким инструментом
                         {
-                            if(positionsOnExchange[i].ValueCurrent == 0) // бумаги нет в портфеле
+                            if(positionOnEx.ValueCurrent == 0) // бумаги нет в портфеле
                             {
                                 tab.CloseAtFake(tab.PositionsOpenAll[0], tab.PositionsOpenAll[0].MaxVolume, tab.PriceBestAsk, DateTime.Now);
+
                                 _mainTab.Portfolio.PositionOnBoard.Remove(positionsOnExchange[i]);
+
                                 continue;
                             }
                             else if (tab.PositionsOpenAll[0].Direction != posExchangeDirection 
-                                || tab.PositionsOpenAll[0].OpenVolume != Math.Abs(positionsOnExchange[i].ValueCurrent))      // проверка направления и объема
+                                || tab.PositionsOpenAll[0].OpenVolume != Math.Abs(positionOnEx.ValueCurrent))      // проверка направления и объема
                             {
                                 tab.CloseAtFake(tab.PositionsOpenAll[0], tab.PositionsOpenAll[0].MaxVolume, tab.PriceBestAsk, DateTime.Now);
 
@@ -563,11 +601,11 @@ namespace OsEngine.Market.AutoFollow
                                 {
                                     _notIgnoredSec.Remove(changedSec);
 
-                                    _notIgnoredSec.Add(new Tuple<Security, Side, decimal>(security, posExchangeDirection, positionsOnExchange[i].ValueCurrent));
+                                    _notIgnoredSec.Add(new Tuple<Security, Side, decimal>(security, posExchangeDirection, positionOnEx.ValueCurrent));
                                 }
                     
                                 Position newDeal = tab._dealCreator.CreatePosition(tab.TabName, posExchangeDirection, posExchangeDirection == Side.Buy ? tab.PriceBestAsk : tab.PriceBestBid,
-                                                   Math.Abs(positionsOnExchange[i].ValueCurrent), OrderPriceType.Market, tab.ManualPositionSupport.SecondToOpen, security, tab.Portfolio,
+                                                   Math.Abs(positionOnEx.ValueCurrent), OrderPriceType.Market, tab.ManualPositionSupport.SecondToOpen, security, tab.Portfolio,
                                                    tab.StartProgram, tab.ManualPositionSupport.OrderTypeTime, tab.ManualPositionSupport.LimitsMakerOnly);
 
                                 newDeal.NameBotClass = tab.BotClassName;

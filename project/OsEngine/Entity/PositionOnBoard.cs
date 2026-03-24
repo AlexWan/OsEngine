@@ -31,13 +31,18 @@ namespace OsEngine.Entity
         public decimal UnrealizedPnl;
 
         /// <summary>
-        /// Tool for which the position is open
+        /// Portfolio 
+        /// </summary>
+        public string PortfolioName;
+
+        /// <summary>
+        /// Security name
         /// </summary>
         public string SecurityNameCode;
 
         /// <summary>
-        /// Portfolio on which the position is open
+        /// Security class
         /// </summary>
-        public string PortfolioName;
+        public string SecurityNameClass;
     }
 }
