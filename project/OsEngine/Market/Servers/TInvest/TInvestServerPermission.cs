@@ -296,9 +296,9 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 return new OrderLifeTimePermission
                 {
-                    GtcIsReady = true,
+                    GtcIsReady = false,
                     SpecifiedIsReady = true,
-                    DayIsReady = false
+                    DayIsReady = true
                 };
             }
         }
