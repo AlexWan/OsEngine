@@ -3205,6 +3205,12 @@ namespace OsEngine.Market.Servers.Alor
             {
                 hour += 1;
             }
+
+            if(hour >= 24)
+            {
+                hour = 23;
+            }
+
             int minute = Convert.ToInt32(time.Substring(3, 2));
             int second = Convert.ToInt32(time.Substring(6, 2));
             int ms = Convert.ToInt32(time.Substring(10, 3));
