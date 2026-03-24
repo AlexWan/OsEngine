@@ -2532,15 +2532,7 @@ namespace OsEngine.Market.Servers.Alor
             requestObj.instrument.symbol = order.SecurityNameCode;
             requestObj.user = new User();
             requestObj.user.portfolio = order.PortfolioNumber.Split('_')[0];
-
-            if (order.LimitsMakerOnly == true)
-            {
-                requestObj.timeInForce = "bookorcancel";
-            }
-            else
-            {
-                requestObj.timeInForce = "goodtillcancelled";
-            }
+            requestObj.timeInForce = ConvertOrderLifeTime(order.OrderTypeTime, order.LimitsMakerOnly);
 
             return requestObj;
         }
@@ -2566,6 +2558,26 @@ namespace OsEngine.Market.Servers.Alor
             requestObj.user.portfolio = order.PortfolioNumber.Split('_')[0];
 
             return requestObj;
+        }
+
+        private string ConvertOrderLifeTime(OrderTypeTime orderTypeTime, bool limitsMakerOnly)
+        {
+            if (limitsMakerOnly)
+            {
+                return "bookorcancel";
+            }
+
+            if (orderTypeTime == OrderTypeTime.Day)
+            {
+                return "oneday";
+            }
+
+            if (orderTypeTime == OrderTypeTime.GTC)
+            {
+                return "goodtillcancelled";
+            }
+
+            return "goodtillcancelled";
         }
 
         List<AlorChangePriceOrder> _changePriceOrders = new List<AlorChangePriceOrder>();

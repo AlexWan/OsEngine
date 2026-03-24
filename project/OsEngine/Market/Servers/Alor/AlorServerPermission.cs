@@ -304,7 +304,7 @@ namespace OsEngine.Market.Servers.Alor
                 {
                     GtcIsReady = true,
                     SpecifiedIsReady = true,
-                    DayIsReady = false
+                    DayIsReady = true
                 };
             }
         }
