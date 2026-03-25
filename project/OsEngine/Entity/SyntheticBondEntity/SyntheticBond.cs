@@ -1,4 +1,4 @@
-﻿using OsEngine.OsTrader.Isberg;
+﻿using OsEngine.OsTrader.Iceberg;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Tab.SyntheticBondTab;
 using System.Collections.Generic;
@@ -84,13 +84,13 @@ namespace OsEngine.Entity.SynteticBondEntity
         /// | Предоставляет доступ к BotTab фьючерса для рыночных данных (свечи, цена, информация об инструменте).
         /// Торговые параметры находятся в каждом BondScenario.
         /// </summary>
-        public ArbitrationParameters FuturesIsbergParameters;
+        public ArbitrationParameters FuturesIcebergParameters;
 
         /// <summary>
         /// Provides access to the base BotTab for market data.
         /// | Предоставляет доступ к BotTab базы для рыночных данных.
         /// </summary>
-        public ArbitrationParameters BaseIsbergParameters;
+        public ArbitrationParameters BaseIcebergParameters;
 
         /// <summary>
         /// The current minimum balance between the base and the futures | Текущий минимальный остаток между базой и фьючерсом

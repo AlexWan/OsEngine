@@ -1,5 +1,5 @@
 ﻿using OsEngine.Entity;
-using OsEngine.OsTrader.Isberg;
+using OsEngine.OsTrader.Iceberg;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.IO;

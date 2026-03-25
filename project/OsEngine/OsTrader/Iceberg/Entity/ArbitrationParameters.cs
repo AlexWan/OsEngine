@@ -3,9 +3,8 @@ using OsEngine.Entity.SynteticBondEntity;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
-using static Google.Api.LabelDescriptor.Types;
 
-namespace OsEngine.OsTrader.Isberg
+namespace OsEngine.OsTrader.Iceberg
 {
     public class ArbitrationParameters
     {

@@ -3,7 +3,7 @@ using OsEngine.Entity.SynteticBondEntity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.OsTrader.Isberg;
+using OsEngine.OsTrader.Iceberg;
 using OsEngine.OsTrader.Panels.Tab.SyntheticBondTab;
 using System;
 using System.Collections.Generic;
@@ -80,16 +80,16 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
 
             if (_futuresSyntheticBondSettings == null ||
-                _futuresSyntheticBondSettings.FuturesIsbergParameters == null ||
-                 _futuresSyntheticBondSettings.FuturesIsbergParameters.BotTab == null ||
-                  _futuresSyntheticBondSettings.FuturesIsbergParameters.BotTab.Connector == null ||
-                  _futuresSyntheticBondSettings.FuturesIsbergParameters.BotTab.Connector.SecurityName == null)
+                _futuresSyntheticBondSettings.FuturesIcebergParameters == null ||
+                 _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab == null ||
+                  _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.Connector == null ||
+                  _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.Connector.SecurityName == null)
             {
                 futuresSecurityLabel = OsLocalization.Trader.Label685 + " | None";
             }
             else
             {
-                futuresSecurityLabel = OsLocalization.Trader.Label685 + " | " + _futuresSyntheticBondSettings.FuturesIsbergParameters.BotTab.Connector.SecurityName.ToString();
+                futuresSecurityLabel = OsLocalization.Trader.Label685 + " | " + _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.Connector.SecurityName.ToString();
             }
 
             EnterBaseNameLabel.Content = baseSecurityLabel;
@@ -320,15 +320,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 if (_futuresSyntheticBondSettings == null
-                    || _futuresSyntheticBondSettings.FuturesIsbergParameters == null
-                    || _futuresSyntheticBondSettings.FuturesIsbergParameters.BotTab == null)
+                    || _futuresSyntheticBondSettings.FuturesIcebergParameters == null
+                    || _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab == null)
                 {
                     ServerTimeTextBox.Text = "None";
                     ServerTimeTextBox.Foreground = Brushes.Red;
                 }
                 else
                 {
-                    ServerTimeTextBox.Text = _futuresSyntheticBondSettings.FuturesIsbergParameters.BotTab.TimeServerCurrent.ToString("HH:mm:ss");
+                    ServerTimeTextBox.Text = _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.TimeServerCurrent.ToString("HH:mm:ss");
                     ServerTimeTextBox.ClearValue(TextBox.ForegroundProperty);
                 }
 
@@ -1130,7 +1130,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             get
             {
-                return _futuresSyntheticBondSettings.FuturesIsbergParameters.BotTab.TabName;
+                return _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.TabName;
             }
         }
 
@@ -2547,9 +2547,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                string futuresTabName = _futuresSyntheticBondSettings.FuturesIsbergParameters.BotTab.TabName;
-                BotTabSimple baseBotTab = _futuresSyntheticBondSettings.BaseIsbergParameters.BotTab;
-                BotTabSimple futuresBotTab = _futuresSyntheticBondSettings.FuturesIsbergParameters.BotTab;
+                string futuresTabName = _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.TabName;
+                BotTabSimple baseBotTab = _futuresSyntheticBondSettings.BaseIcebergParameters.BotTab;
+                BotTabSimple futuresBotTab = _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab;
 
                 BondScenario newScenario = new BondScenario(futuresTabName, scenarioName);
                 newScenario.SetBotTabs(baseBotTab, futuresBotTab);

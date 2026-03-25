@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-namespace OsEngine.OsTrader.Isberg
+namespace OsEngine.OsTrader.Iceberg
 {
     public class ArbitrationIceberg
     {

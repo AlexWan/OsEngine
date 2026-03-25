@@ -3598,6 +3598,18 @@ namespace OsEngine.Market.Servers.TInvest
                 request.AccountId = order.PortfolioNumber;
                 request.TimeInForce = TimeInForceType.TimeInForceDay; // по-умолчанию сегодняшний день
 
+                if(order.TypeOrder == OrderPriceType.Limit)
+                {
+                    if(order.OrderTypeTime == OrderTypeTime.Day)
+                    {
+                        request.TimeInForce = TimeInForceType.TimeInForceDay;
+                    }
+                    else if (order.OrderTypeTime == OrderTypeTime.Specified)
+                    {
+                        request.TimeInForce = TimeInForceType.TimeInForceUnspecified;
+                    }
+                }
+
                 // генерируем новый номер ордера и добавляем его в словарь
                 Guid newUid = Guid.NewGuid();
                 string orderId = newUid.ToString();

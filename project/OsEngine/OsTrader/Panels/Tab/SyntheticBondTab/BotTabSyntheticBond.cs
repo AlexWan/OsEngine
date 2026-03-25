@@ -8,7 +8,7 @@ using OsEngine.Entity;
 using OsEngine.Entity.SynteticBondEntity;
 using OsEngine.Language;
 using OsEngine.Logging;
-using OsEngine.OsTrader.Isberg;
+using OsEngine.OsTrader.Iceberg;
 using OsEngine.OsTrader.Panels.Tab.SyntheticBondTab;
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using OsEngine.OsTrader.Iceberg;
 
 namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 {
@@ -338,16 +339,16 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 {
                     SyntheticBond settings = series.SyntheticBonds[j];
 
-                    if (settings.BaseIsbergParameters != null
-                        && settings.BaseIsbergParameters.BotTab != null)
+                    if (settings.BaseIcebergParameters != null
+                        && settings.BaseIcebergParameters.BotTab != null)
                     {
-                        settings.BaseIsbergParameters.BotTab.Clear();
+                        settings.BaseIcebergParameters.BotTab.Clear();
                     }
 
-                    if (settings.FuturesIsbergParameters != null
-                        && settings.FuturesIsbergParameters.BotTab != null)
+                    if (settings.FuturesIcebergParameters != null
+                        && settings.FuturesIcebergParameters.BotTab != null)
                     {
-                        settings.FuturesIsbergParameters.BotTab.Clear();
+                        settings.FuturesIcebergParameters.BotTab.Clear();
                     }
 
                     if (settings.BaseRationingSecurity != null)
@@ -394,11 +395,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 {
                     SyntheticBond settings = series.SyntheticBonds[j];
 
-                    if (settings.FuturesIsbergParameters != null
-                        && settings.FuturesIsbergParameters.BotTab != null
-                        && settings.FuturesIsbergParameters.BotTab.Security != null)
+                    if (settings.FuturesIcebergParameters != null
+                        && settings.FuturesIcebergParameters.BotTab != null
+                        && settings.FuturesIcebergParameters.BotTab.Security != null)
                     {
-                        names.Add(settings.FuturesIsbergParameters.BotTab.Security.Name);
+                        names.Add(settings.FuturesIcebergParameters.BotTab.Security.Name);
                     }
 
                     if (settings.BaseRationingSecurity != null
@@ -481,16 +482,16 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                     for (int j = 0; curBond.SyntheticBonds != null && j < curBond.SyntheticBonds.Count; j++)
                     {
-                        if (curBond.SyntheticBonds[j].BaseIsbergParameters != null &&
-                            curBond.SyntheticBonds[j].BaseIsbergParameters.BotTab != null)
+                        if (curBond.SyntheticBonds[j].BaseIcebergParameters != null &&
+                            curBond.SyntheticBonds[j].BaseIcebergParameters.BotTab != null)
                         {
-                            journals.Add(curBond.SyntheticBonds[j].BaseIsbergParameters.BotTab.GetJournal());
+                            journals.Add(curBond.SyntheticBonds[j].BaseIcebergParameters.BotTab.GetJournal());
                         }
 
-                        if (curBond.SyntheticBonds[j].FuturesIsbergParameters != null &&
-                            curBond.SyntheticBonds[j].FuturesIsbergParameters.BotTab != null)
+                        if (curBond.SyntheticBonds[j].FuturesIcebergParameters != null &&
+                            curBond.SyntheticBonds[j].FuturesIcebergParameters.BotTab != null)
                         {
-                            journals.Add(curBond.SyntheticBonds[j].FuturesIsbergParameters.BotTab.GetJournal());
+                            journals.Add(curBond.SyntheticBonds[j].FuturesIcebergParameters.BotTab.GetJournal());
                         }
                     }
                 }
@@ -770,13 +771,13 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             DataGridViewButtonCell futuresCell = new DataGridViewButtonCell(); // 2 фьючерс облигации
 
             if (syntheticBondSettings == null ||
-                (syntheticBondSettings.FuturesIsbergParameters.BotTab.Connector != null && syntheticBondSettings.FuturesIsbergParameters.BotTab.Connector.SecurityName == null))
+                (syntheticBondSettings.FuturesIcebergParameters.BotTab.Connector != null && syntheticBondSettings.FuturesIcebergParameters.BotTab.Connector.SecurityName == null))
             {
                 futuresCell.Value = "None";
                 futuresCell.Style.ForeColor = Color.Red;
             }
             else
-                futuresCell.Value = syntheticBondSettings.FuturesIsbergParameters.BotTab.Connector.SecurityName;
+                futuresCell.Value = syntheticBondSettings.FuturesIcebergParameters.BotTab.Connector.SecurityName;
 
             futuresCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             nRow.Cells.Add(futuresCell);
@@ -840,12 +841,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
             else
             {
-                if (MaxSyntheticBondSettings != null && MaxSyntheticBondSettings.FuturesIsbergParameters.BotTab.TabName == syntheticBondSettings.FuturesIsbergParameters.BotTab.TabName)
+                if (MaxSyntheticBondSettings != null && MaxSyntheticBondSettings.FuturesIcebergParameters.BotTab.TabName == syntheticBondSettings.FuturesIcebergParameters.BotTab.TabName)
                 {
                     percentCell.Style.ForeColor = Color.Green;
                 }
 
-                if (MinSyntheticBondSettings != null && MinSyntheticBondSettings.FuturesIsbergParameters.BotTab.TabName == syntheticBondSettings.FuturesIsbergParameters.BotTab.TabName)
+                if (MinSyntheticBondSettings != null && MinSyntheticBondSettings.FuturesIcebergParameters.BotTab.TabName == syntheticBondSettings.FuturesIcebergParameters.BotTab.TabName)
                 {
                     percentCell.Style.ForeColor = Color.Orange;
                 }
@@ -915,9 +916,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
             DataGridViewButtonCell futuresCell = new DataGridViewButtonCell(); // 2 фьючерс облигации
 
-            if (syntheticBondSettings.FuturesIsbergParameters.BotTab.Connector.SecurityName != null)
+            if (syntheticBondSettings.FuturesIcebergParameters.BotTab.Connector.SecurityName != null)
             {
-                futuresCell.Value = syntheticBondSettings.FuturesIsbergParameters.BotTab.Connector.SecurityName;
+                futuresCell.Value = syntheticBondSettings.FuturesIcebergParameters.BotTab.Connector.SecurityName;
             }
             else
             {
@@ -987,12 +988,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
             else
             {
-                if (MaxSyntheticBondSettings != null && MaxSyntheticBondSettings.FuturesIsbergParameters.BotTab.TabName == syntheticBondSettings.FuturesIsbergParameters.BotTab.TabName)
+                if (MaxSyntheticBondSettings != null && MaxSyntheticBondSettings.FuturesIcebergParameters.BotTab.TabName == syntheticBondSettings.FuturesIcebergParameters.BotTab.TabName)
                 {
                     percentCell.Style.ForeColor = Color.Green;
                 }
 
-                if (MinSyntheticBondSettings != null && MinSyntheticBondSettings.FuturesIsbergParameters.BotTab.TabName == syntheticBondSettings.FuturesIsbergParameters.BotTab.TabName)
+                if (MinSyntheticBondSettings != null && MinSyntheticBondSettings.FuturesIcebergParameters.BotTab.TabName == syntheticBondSettings.FuturesIcebergParameters.BotTab.TabName)
                 {
                     percentCell.Style.ForeColor = Color.Orange;
                 }
@@ -1212,11 +1213,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             BotTabSimple baseBotTab = new BotTabSimple(baseTabName, StartProgram);
             BotTabSimple futuresBotTab = new BotTabSimple(futuresTabName, StartProgram);
 
-            bondSettings.BaseIsbergParameters = new ArbitrationParameters();
-            bondSettings.BaseIsbergParameters.BotTab = baseBotTab;
+            bondSettings.BaseIcebergParameters = new ArbitrationParameters();
+            bondSettings.BaseIcebergParameters.BotTab = baseBotTab;
 
-            bondSettings.FuturesIsbergParameters = new ArbitrationParameters();
-            bondSettings.FuturesIsbergParameters.BotTab = futuresBotTab;
+            bondSettings.FuturesIcebergParameters = new ArbitrationParameters();
+            bondSettings.FuturesIcebergParameters.BotTab = futuresBotTab;
 
             // Create the default "Script 1" scenario
             BondScenario defaultScenario = new BondScenario(futuresTabName, "Script 1");
@@ -1320,8 +1321,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         SyntheticBondSeries bond = bondsDictionary[row];
                         SyntheticBond firstSettings = bond.SyntheticBonds[0];
 
-                        firstSettings.FuturesIsbergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribeEvent;
-                        firstSettings.FuturesIsbergParameters.BotTab.Clear();
+                        firstSettings.FuturesIcebergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribeEvent;
+                        firstSettings.FuturesIcebergParameters.BotTab.Clear();
 
                         bond.CloseTradeWindow(firstSettings);
 
@@ -1331,9 +1332,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         }
                         firstSettings.Scenarios.Clear();
 
-                        string futuresTabName = firstSettings.FuturesIsbergParameters.BotTab.TabName;
+                        string futuresTabName = firstSettings.FuturesIcebergParameters.BotTab.TabName;
                         BondScenario defaultScenario = new BondScenario(futuresTabName, "Script 1");
-                        defaultScenario.SetBotTabs(firstSettings.BaseIsbergParameters.BotTab, firstSettings.FuturesIsbergParameters.BotTab);
+                        defaultScenario.SetBotTabs(firstSettings.BaseIcebergParameters.BotTab, firstSettings.FuturesIcebergParameters.BotTab);
                         firstSettings.Scenarios.Add(defaultScenario);
 
                         firstSettings.CointegrationBuilder = new CointegrationBuilder();
@@ -1371,7 +1372,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                             int index = 1;
                             for (int i = 0; i < bond.SyntheticBonds.Count; i++)
                             {
-                                if (botName + (bond.SyntheticBonds.Count + index) == bond.SyntheticBonds[i].FuturesIsbergParameters.BotTab.TabName)
+                                if (botName + (bond.SyntheticBonds.Count + index) == bond.SyntheticBonds[i].FuturesIcebergParameters.BotTab.TabName)
                                 {
                                     index++;
                                 }
@@ -1384,11 +1385,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                             BotTabSimple newBaseBotTab = new BotTabSimple(newBaseTabName, StartProgram);
                             BotTabSimple futuresBotTab = new BotTabSimple(newFuturesTabName, StartProgram);
 
-                            settingsFutures.BaseIsbergParameters = new ArbitrationParameters();
-                            settingsFutures.BaseIsbergParameters.BotTab = newBaseBotTab;
+                            settingsFutures.BaseIcebergParameters = new ArbitrationParameters();
+                            settingsFutures.BaseIcebergParameters.BotTab = newBaseBotTab;
 
-                            settingsFutures.FuturesIsbergParameters = new ArbitrationParameters();
-                            settingsFutures.FuturesIsbergParameters.BotTab = futuresBotTab;
+                            settingsFutures.FuturesIcebergParameters = new ArbitrationParameters();
+                            settingsFutures.FuturesIcebergParameters.BotTab = futuresBotTab;
 
                             BondScenario defaultScenario = new BondScenario(newFuturesTabName, "Script 1");
                             defaultScenario.SetBotTabs(newBaseBotTab, futuresBotTab);
@@ -1446,8 +1447,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     {
                         SyntheticBond firstSettings = bondDictionary.SyntheticBonds[0];
 
-                        firstSettings.FuturesIsbergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribeEvent;
-                        firstSettings.FuturesIsbergParameters.BotTab.Clear();
+                        firstSettings.FuturesIcebergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribeEvent;
+                        firstSettings.FuturesIcebergParameters.BotTab.Clear();
 
                         for (int s = firstSettings.Scenarios.Count - 1; s >= 0; s--)
                         {
@@ -1472,8 +1473,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                             if (foundKey + i2 + 1 != row) continue;
 
                             SyntheticBond settingsToRemove = synteticBond.SyntheticBonds[i2 + 1];
-                            settingsToRemove.FuturesIsbergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribeEvent;
-                            settingsToRemove.FuturesIsbergParameters.BotTab.Delete();
+                            settingsToRemove.FuturesIcebergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribeEvent;
+                            settingsToRemove.FuturesIcebergParameters.BotTab.Delete();
 
                             for (int s = 0; s < settingsToRemove.Scenarios.Count; s++)
                             {
@@ -1696,10 +1697,10 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 {
                     SyntheticBond settings = series.SyntheticBonds[j];
 
-                    if (settings.FuturesIsbergParameters == null
-                        || settings.FuturesIsbergParameters.BotTab == null
-                        || settings.FuturesIsbergParameters.BotTab.IsConnected == false
-                        || settings.FuturesIsbergParameters.BotTab.IsReadyToTrade == false)
+                    if (settings.FuturesIcebergParameters == null
+                        || settings.FuturesIcebergParameters.BotTab == null
+                        || settings.FuturesIcebergParameters.BotTab.IsConnected == false
+                        || settings.FuturesIcebergParameters.BotTab.IsReadyToTrade == false)
                     {
                         allReady = false;
                         break;

@@ -810,16 +810,16 @@ namespace OsEngine.OsOptimizer
                         {
                             SyntheticBond settings = series.SyntheticBonds[i3];
 
-                            if (settings.FuturesIsbergParameters != null
-                                && settings.FuturesIsbergParameters.BotTab != null
-                                && settings.FuturesIsbergParameters.BotTab.Connector != null
-                                && settings.FuturesIsbergParameters.BotTab.Connector.SecurityName != null)
+                            if (settings.FuturesIcebergParameters != null
+                                && settings.FuturesIcebergParameters.BotTab != null
+                                && settings.FuturesIcebergParameters.BotTab.Connector != null
+                                && settings.FuturesIcebergParameters.BotTab.Connector.SecurityName != null)
                             {
-                                Security futSec = FindSecurityByName(settings.FuturesIsbergParameters.BotTab.Connector.SecurityName);
+                                Security futSec = FindSecurityByName(settings.FuturesIcebergParameters.BotTab.Connector.SecurityName);
 
                                 if (futSec != null)
                                 {
-                                    server.GetDataToSecurity(futSec, settings.FuturesIsbergParameters.BotTab.Connector.TimeFrame,
+                                    server.GetDataToSecurity(futSec, settings.FuturesIcebergParameters.BotTab.Connector.TimeFrame,
                                         report.Faze.TimeStart, report.Faze.TimeEnd);
                                 }
                             }

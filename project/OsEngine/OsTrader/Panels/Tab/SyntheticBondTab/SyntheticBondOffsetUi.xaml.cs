@@ -41,14 +41,14 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 BaseSynteticBondOffsetsLabel.Content = _synteticBond.BaseTab.Connector.SecurityName;
             }
 
-            if (_futuresSyntheticBond.FuturesIsbergParameters.BotTab.Connector == null ||
-                (_futuresSyntheticBond.FuturesIsbergParameters.BotTab.Connector != null && _futuresSyntheticBond.FuturesIsbergParameters.BotTab.Connector.SecurityName == null))
+            if (_futuresSyntheticBond.FuturesIcebergParameters.BotTab.Connector == null ||
+                (_futuresSyntheticBond.FuturesIcebergParameters.BotTab.Connector != null && _futuresSyntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName == null))
             {
                 FuturesSynteticBondOffsetsLabel.Content = "None";
             }
             else
             {
-                FuturesSynteticBondOffsetsLabel.Content = _futuresSyntheticBond.FuturesIsbergParameters.BotTab.Connector.SecurityName;
+                FuturesSynteticBondOffsetsLabel.Content = _futuresSyntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName;
             }
 
             MultiplicatorBaseTextBox.Text = _futuresSyntheticBond.BaseMultiplicator.ToString();
@@ -310,7 +310,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             get
             {
-                return _futuresSyntheticBond.FuturesIsbergParameters.BotTab.TabName;
+                return _futuresSyntheticBond.FuturesIcebergParameters.BotTab.TabName;
             }
         }
 
@@ -513,7 +513,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             {
                 if (_futuresSyntheticBond.FuturesRationingSecurity == null)
                 {
-                    _futuresSyntheticBond.FuturesRationingSecurity = new BotTabSimple(_futuresSyntheticBond.FuturesIsbergParameters.BotTab.TabName + "Rationing", _futuresSyntheticBond.FuturesIsbergParameters.BotTab.StartProgram);
+                    _futuresSyntheticBond.FuturesRationingSecurity = new BotTabSimple(_futuresSyntheticBond.FuturesIcebergParameters.BotTab.TabName + "Rationing", _futuresSyntheticBond.FuturesIcebergParameters.BotTab.StartProgram);
                     return;
                 }
 
@@ -532,7 +532,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             {
                 if (_futuresSyntheticBond.BaseRationingSecurity == null)
                 {
-                    _futuresSyntheticBond.BaseRationingSecurity = new BotTabSimple(_futuresSyntheticBond.BaseIsbergParameters.BotTab.TabName + "Rationing", _futuresSyntheticBond.BaseIsbergParameters.BotTab.StartProgram);
+                    _futuresSyntheticBond.BaseRationingSecurity = new BotTabSimple(_futuresSyntheticBond.BaseIcebergParameters.BotTab.TabName + "Rationing", _futuresSyntheticBond.BaseIcebergParameters.BotTab.StartProgram);
                     return;
                 }
 
