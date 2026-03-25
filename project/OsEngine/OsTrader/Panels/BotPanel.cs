@@ -13,7 +13,7 @@ using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab;
-using OsEngine.OsTrader.Panels.Tab.SynteticBondTab;
+using OsEngine.OsTrader.Panels.Tab.SyntheticBondTab;
 using OsEngine.OsTrader.RiskManager;
 using System;
 using System.Collections.Generic;

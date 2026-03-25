@@ -1,13 +1,17 @@
-﻿using OsEngine.Entity;
-using OsEngine.Entity.SynteticBondEntity;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
+using OsEngine.Entity.SyntheticBondEntity;
 using OsEngine.Language;
 using OsEngine.Market;
-using OsEngine.OsTrader.Panels.Tab.SyntheticBondTab;
 using System;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
+namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 {
     /// <summary>
     /// Логика взаимодействия для SyntheticBondOffsetUi.xaml
@@ -16,45 +20,45 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
     {
         #region Constructor
 
-        private SyntheticBondSeries _synteticBond;
+        private SyntheticBondSeries _syntheticBondSeries;
 
-        private SyntheticBond _futuresSyntheticBond;
+        private SyntheticBond _syntheticBond;
 
-        public SyntheticBondOffsetUi(SyntheticBondSeries synteticBond, ref SyntheticBond modificationFuturesSyntheticBond)
+        public SyntheticBondOffsetUi(SyntheticBondSeries synteticBondSeries, ref SyntheticBond syntheticBond)
         {
             InitializeComponent();
 
-            _synteticBond = synteticBond;
-            _futuresSyntheticBond = modificationFuturesSyntheticBond;
+            _syntheticBondSeries = synteticBondSeries;
+            _syntheticBond = syntheticBond;
 
             Title = OsLocalization.Trader.Label697;
 
             Closed += SyntheticBondOffsetUi_Closed;
 
-            if (_synteticBond.BaseTab.Connector == null ||
-                (_synteticBond.BaseTab.Connector != null && _synteticBond.BaseTab.Connector.SecurityName == null))
+            if (_syntheticBondSeries.BaseTab.Connector == null ||
+                (_syntheticBondSeries.BaseTab.Connector != null && _syntheticBondSeries.BaseTab.Connector.SecurityName == null))
             {
                 BaseSynteticBondOffsetsLabel.Content = "None";
             }
             else
             {
-                BaseSynteticBondOffsetsLabel.Content = _synteticBond.BaseTab.Connector.SecurityName;
+                BaseSynteticBondOffsetsLabel.Content = _syntheticBondSeries.BaseTab.Connector.SecurityName;
             }
 
-            if (_futuresSyntheticBond.FuturesIcebergParameters.BotTab.Connector == null ||
-                (_futuresSyntheticBond.FuturesIcebergParameters.BotTab.Connector != null && _futuresSyntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName == null))
+            if (_syntheticBond.FuturesIcebergParameters.BotTab.Connector == null ||
+                (_syntheticBond.FuturesIcebergParameters.BotTab.Connector != null && _syntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName == null))
             {
                 FuturesSynteticBondOffsetsLabel.Content = "None";
             }
             else
             {
-                FuturesSynteticBondOffsetsLabel.Content = _futuresSyntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName;
+                FuturesSynteticBondOffsetsLabel.Content = _syntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName;
             }
 
-            MultiplicatorBaseTextBox.Text = _futuresSyntheticBond.BaseMultiplicator.ToString();
+            MultiplicatorBaseTextBox.Text = _syntheticBond.BaseMultiplicator.ToString();
             MultiplicatorBaseTextBox.TextChanged += MultiplicatorBaseTextBox_TextChanged;
 
-            MultiplicatorFuturesTextBox.Text = _futuresSyntheticBond.FuturesMultiplicator.ToString();
+            MultiplicatorFuturesTextBox.Text = _syntheticBond.FuturesMultiplicator.ToString();
             MultiplicatorFuturesTextBox.TextChanged += MultiplicatorFuturesTextBox_TextChanged;
 
             CreateRationingUsingAnotherToolBaseComboBox();
@@ -66,18 +70,18 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             RationingToolBaseButton.Click += RationingToolBaseButton_Click;
             RationingToolFuturesButton.Click += RationingToolFuturesButton_Click;
 
-            if (_futuresSyntheticBond.BaseRationingSecurity != null
-                && _futuresSyntheticBond.BaseRationingSecurity.Connector != null
-                && _futuresSyntheticBond.BaseRationingSecurity.Connector.SecurityName != null)
+            if (_syntheticBond.BaseRationingSecurity != null
+                && _syntheticBond.BaseRationingSecurity.Connector != null
+                && _syntheticBond.BaseRationingSecurity.Connector.SecurityName != null)
             {
-                RationingToolBaseButton.Content = _futuresSyntheticBond.BaseRationingSecurity.Connector.SecurityName;
+                RationingToolBaseButton.Content = _syntheticBond.BaseRationingSecurity.Connector.SecurityName;
             }
 
-            if (_futuresSyntheticBond.FuturesRationingSecurity != null
-                && _futuresSyntheticBond.FuturesRationingSecurity.Connector != null
-                && _futuresSyntheticBond.FuturesRationingSecurity.Connector.SecurityName != null)
+            if (_syntheticBond.FuturesRationingSecurity != null
+                && _syntheticBond.FuturesRationingSecurity.Connector != null
+                && _syntheticBond.FuturesRationingSecurity.Connector.SecurityName != null)
             {
-                RationingToolFuturesButton.Content = _futuresSyntheticBond.FuturesRationingSecurity.Connector.SecurityName;
+                RationingToolFuturesButton.Content = _syntheticBond.FuturesRationingSecurity.Connector.SecurityName;
             }
 
             CreateRationingModeBaseComboBox();
@@ -89,16 +93,16 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             CreateComboBoxSimbolFurmula();
             ComboBoxSimbolFurmula.SelectionChanged += ComboBoxSimbolFurmula_SelectionChanged;
 
-            TimeOffsetBaseTextBox.Text = _futuresSyntheticBond.BaseTimeOffset.ToString();
+            TimeOffsetBaseTextBox.Text = _syntheticBond.BaseTimeOffset.ToString();
             TimeOffsetBaseTextBox.TextChanged += TimeOffsetBaseTextBox_TextChanged;
 
-            TimeOffsetFuturesTextBox.Text = _futuresSyntheticBond.FuturesTimeOffset.ToString();
+            TimeOffsetFuturesTextBox.Text = _syntheticBond.FuturesTimeOffset.ToString();
             TimeOffsetFuturesTextBox.TextChanged += TimeOffsetFuturesTextBox_TextChanged;
 
-            TimeOffsetBaseRationingTextBox.Text = _futuresSyntheticBond.BaseTimeOffsetRationing.ToString();
+            TimeOffsetBaseRationingTextBox.Text = _syntheticBond.BaseTimeOffsetRationing.ToString();
             TimeOffsetBaseRationingTextBox.TextChanged += TimeOffsetBaseRationingTextBox_TextChanged;
 
-            TimeOffsetFuturesRationingTextBox.Text = _futuresSyntheticBond.FuturesTimeOffsetRationing.ToString();
+            TimeOffsetFuturesRationingTextBox.Text = _syntheticBond.FuturesTimeOffsetRationing.ToString();
             TimeOffsetFuturesRationingTextBox.TextChanged += TimeOffsetFuturesRationingTextBox_TextChanged;
         }
 
@@ -130,19 +134,19 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = RationingMode.Addition.ToString(),
             });
 
-            if (_futuresSyntheticBond.MainRationingMode == RationingMode.Division)
+            if (_syntheticBond.MainRationingMode == RationingMode.Division)
             {
                 ComboBoxSimbolFurmula.SelectedIndex = 0;
             }
-            else if (_futuresSyntheticBond.MainRationingMode == RationingMode.Multiplication)
+            else if (_syntheticBond.MainRationingMode == RationingMode.Multiplication)
             {
                 ComboBoxSimbolFurmula.SelectedIndex = 1;
             }
-            else if (_futuresSyntheticBond.MainRationingMode == RationingMode.Difference)
+            else if (_syntheticBond.MainRationingMode == RationingMode.Difference)
             {
                 ComboBoxSimbolFurmula.SelectedIndex = 2;
             }
-            else if (_futuresSyntheticBond.MainRationingMode == RationingMode.Addition)
+            else if (_syntheticBond.MainRationingMode == RationingMode.Addition)
             {
                 ComboBoxSimbolFurmula.SelectedIndex = 3;
             }
@@ -166,11 +170,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     Name = "On"
                 });
 
-                if (_futuresSyntheticBond.FuturesUseRationing == false)
+                if (_syntheticBond.FuturesUseRationing == false)
                 {
                     RationingUsingAnotherToolFuturesComboBox.SelectedIndex = 0;
                 }
-                else if (_futuresSyntheticBond.FuturesUseRationing == true)
+                else if (_syntheticBond.FuturesUseRationing == true)
                 {
                     RationingUsingAnotherToolFuturesComboBox.SelectedIndex = 1;
                 }
@@ -199,11 +203,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     Name = "On"
                 });
 
-                if (_futuresSyntheticBond.BaseUseRationing == false)
+                if (_syntheticBond.BaseUseRationing == false)
                 {
                     RationingUsingAnotherToolBaseComboBox.SelectedIndex = 0;
                 }
-                else if (_futuresSyntheticBond.BaseUseRationing == true)
+                else if (_syntheticBond.BaseUseRationing == true)
                 {
                     RationingUsingAnotherToolBaseComboBox.SelectedIndex = 1;
                 }
@@ -242,19 +246,19 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = RationingMode.Addition.ToString(),
             });
 
-            if (_futuresSyntheticBond.FuturesRationingMode == RationingMode.Division)
+            if (_syntheticBond.FuturesRationingMode == RationingMode.Division)
             {
                 RationingModeFuturesComboBox.SelectedIndex = 0;
             }
-            else if (_futuresSyntheticBond.FuturesRationingMode == RationingMode.Multiplication)
+            else if (_syntheticBond.FuturesRationingMode == RationingMode.Multiplication)
             {
                 RationingModeFuturesComboBox.SelectedIndex = 1;
             }
-            else if (_futuresSyntheticBond.FuturesRationingMode == RationingMode.Difference)
+            else if (_syntheticBond.FuturesRationingMode == RationingMode.Difference)
             {
                 RationingModeFuturesComboBox.SelectedIndex = 2;
             }
-            else if (_futuresSyntheticBond.FuturesRationingMode == RationingMode.Addition)
+            else if (_syntheticBond.FuturesRationingMode == RationingMode.Addition)
             {
                 RationingModeFuturesComboBox.SelectedIndex = 3;
             }
@@ -288,19 +292,19 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = RationingMode.Addition.ToString(),
             });
 
-            if (_futuresSyntheticBond.BaseRationingMode == RationingMode.Division)
+            if (_syntheticBond.BaseRationingMode == RationingMode.Division)
             {
                 RationingModeBaseComboBox.SelectedIndex = 0;
             }
-            else if (_futuresSyntheticBond.BaseRationingMode == RationingMode.Multiplication)
+            else if (_syntheticBond.BaseRationingMode == RationingMode.Multiplication)
             {
                 RationingModeBaseComboBox.SelectedIndex = 1;
             }
-            else if (_futuresSyntheticBond.BaseRationingMode == RationingMode.Difference)
+            else if (_syntheticBond.BaseRationingMode == RationingMode.Difference)
             {
                 RationingModeBaseComboBox.SelectedIndex = 2;
             }
-            else if (_futuresSyntheticBond.BaseRationingMode == RationingMode.Addition)
+            else if (_syntheticBond.BaseRationingMode == RationingMode.Addition)
             {
                 RationingModeBaseComboBox.SelectedIndex = 2;
             }
@@ -310,7 +314,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             get
             {
-                return _futuresSyntheticBond.FuturesIcebergParameters.BotTab.TabName;
+                return _syntheticBond.FuturesIcebergParameters.BotTab.TabName;
             }
         }
 
@@ -352,7 +356,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _futuresSyntheticBond.FuturesTimeOffset = Convert.ToInt32(TimeOffsetFuturesTextBox.Text);
+                _syntheticBond.FuturesTimeOffset = Convert.ToInt32(TimeOffsetFuturesTextBox.Text);
             }
             catch (Exception ex)
             {
@@ -369,7 +373,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _futuresSyntheticBond.FuturesTimeOffsetRationing = Convert.ToInt32(TimeOffsetFuturesRationingTextBox.Text);
+                _syntheticBond.FuturesTimeOffsetRationing = Convert.ToInt32(TimeOffsetFuturesRationingTextBox.Text);
             }
             catch (Exception ex)
             {
@@ -386,7 +390,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _futuresSyntheticBond.BaseTimeOffsetRationing = Convert.ToInt32(TimeOffsetBaseRationingTextBox.Text);
+                _syntheticBond.BaseTimeOffsetRationing = Convert.ToInt32(TimeOffsetBaseRationingTextBox.Text);
             }
             catch (Exception ex)
             {
@@ -403,7 +407,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _futuresSyntheticBond.BaseTimeOffset = Convert.ToInt32(TimeOffsetBaseTextBox.Text);
+                _syntheticBond.BaseTimeOffset = Convert.ToInt32(TimeOffsetBaseTextBox.Text);
             }
             catch (Exception ex)
             {
@@ -422,19 +426,19 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (RationingModeFuturesComboBox.SelectedIndex == 0)
                 {
-                    _futuresSyntheticBond.FuturesRationingMode = RationingMode.Division;
+                    _syntheticBond.FuturesRationingMode = RationingMode.Division;
                 }
                 else if (RationingModeFuturesComboBox.SelectedIndex == 1)
                 {
-                    _futuresSyntheticBond.FuturesRationingMode = RationingMode.Multiplication;
+                    _syntheticBond.FuturesRationingMode = RationingMode.Multiplication;
                 }
                 else if (RationingModeFuturesComboBox.SelectedIndex == 2)
                 {
-                    _futuresSyntheticBond.FuturesRationingMode = RationingMode.Difference;
+                    _syntheticBond.FuturesRationingMode = RationingMode.Difference;
                 }
                 else if (RationingModeFuturesComboBox.SelectedIndex == 3)
                 {
-                    _futuresSyntheticBond.FuturesRationingMode = RationingMode.Addition;
+                    _syntheticBond.FuturesRationingMode = RationingMode.Addition;
                 }
             }
             catch (Exception ex)
@@ -454,19 +458,19 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (ComboBoxSimbolFurmula.SelectedIndex == 0)
                 {
-                    _futuresSyntheticBond.MainRationingMode = RationingMode.Division;
+                    _syntheticBond.MainRationingMode = RationingMode.Division;
                 }
                 else if (ComboBoxSimbolFurmula.SelectedIndex == 1)
                 {
-                    _futuresSyntheticBond.MainRationingMode = RationingMode.Multiplication;
+                    _syntheticBond.MainRationingMode = RationingMode.Multiplication;
                 }
                 else if (ComboBoxSimbolFurmula.SelectedIndex == 2)
                 {
-                    _futuresSyntheticBond.MainRationingMode = RationingMode.Difference;
+                    _syntheticBond.MainRationingMode = RationingMode.Difference;
                 }
                 else if (ComboBoxSimbolFurmula.SelectedIndex == 3)
                 {
-                    _futuresSyntheticBond.MainRationingMode = RationingMode.Addition;
+                    _syntheticBond.MainRationingMode = RationingMode.Addition;
                 }
             }
             catch (Exception ex)
@@ -486,19 +490,19 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (RationingModeBaseComboBox.SelectedIndex == 0)
                 {
-                    _futuresSyntheticBond.BaseRationingMode = RationingMode.Division;
+                    _syntheticBond.BaseRationingMode = RationingMode.Division;
                 }
                 else if (RationingModeBaseComboBox.SelectedIndex == 1)
                 {
-                    _futuresSyntheticBond.BaseRationingMode = RationingMode.Multiplication;
+                    _syntheticBond.BaseRationingMode = RationingMode.Multiplication;
                 }
                 else if (RationingModeBaseComboBox.SelectedIndex == 2)
                 {
-                    _futuresSyntheticBond.BaseRationingMode = RationingMode.Difference;
+                    _syntheticBond.BaseRationingMode = RationingMode.Difference;
                 }
                 else if (RationingModeBaseComboBox.SelectedIndex == 3)
                 {
-                    _futuresSyntheticBond.BaseRationingMode = RationingMode.Addition;
+                    _syntheticBond.BaseRationingMode = RationingMode.Addition;
                 }
             }
             catch (Exception ex)
@@ -511,14 +515,14 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             try
             {
-                if (_futuresSyntheticBond.FuturesRationingSecurity == null)
+                if (_syntheticBond.FuturesRationingSecurity == null)
                 {
-                    _futuresSyntheticBond.FuturesRationingSecurity = new BotTabSimple(_futuresSyntheticBond.FuturesIcebergParameters.BotTab.TabName + "Rationing", _futuresSyntheticBond.FuturesIcebergParameters.BotTab.StartProgram);
+                    _syntheticBond.FuturesRationingSecurity = new BotTabSimple(_syntheticBond.FuturesIcebergParameters.BotTab.TabName + "Rationing", _syntheticBond.FuturesIcebergParameters.BotTab.StartProgram);
                     return;
                 }
 
-                _futuresSyntheticBond.FuturesRationingSecurity.ShowConnectorDialog();
-                _futuresSyntheticBond.FuturesRationingSecurity.SecuritySubscribeEvent += RationingSecuritySubscribeEvent;
+                _syntheticBond.FuturesRationingSecurity.ShowConnectorDialog();
+                _syntheticBond.FuturesRationingSecurity.SecuritySubscribeEvent += RationingSecuritySubscribeEvent;
             }
             catch (Exception ex)
             {
@@ -530,14 +534,14 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             try
             {
-                if (_futuresSyntheticBond.BaseRationingSecurity == null)
+                if (_syntheticBond.BaseRationingSecurity == null)
                 {
-                    _futuresSyntheticBond.BaseRationingSecurity = new BotTabSimple(_futuresSyntheticBond.BaseIcebergParameters.BotTab.TabName + "Rationing", _futuresSyntheticBond.BaseIcebergParameters.BotTab.StartProgram);
+                    _syntheticBond.BaseRationingSecurity = new BotTabSimple(_syntheticBond.BaseIcebergParameters.BotTab.TabName + "Rationing", _syntheticBond.BaseIcebergParameters.BotTab.StartProgram);
                     return;
                 }
 
-                _futuresSyntheticBond.BaseRationingSecurity.ShowConnectorDialog();
-                _futuresSyntheticBond.BaseRationingSecurity.SecuritySubscribeEvent += SecurityBaseSubscribeEvent;
+                _syntheticBond.BaseRationingSecurity.ShowConnectorDialog();
+                _syntheticBond.BaseRationingSecurity.SecuritySubscribeEvent += SecurityBaseSubscribeEvent;
             }
             catch (Exception ex)
             {
@@ -556,7 +560,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 RationingToolFuturesButton.Content = security.Name.ToString();
-                _futuresSyntheticBond.FuturesRationingSecurity.SecuritySubscribeEvent -= RationingSecuritySubscribeEvent;
+                _syntheticBond.FuturesRationingSecurity.SecuritySubscribeEvent -= RationingSecuritySubscribeEvent;
             }
             catch (Exception ex)
             {
@@ -575,7 +579,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 RationingToolBaseButton.Content = security.Name.ToString();
-                _futuresSyntheticBond.BaseRationingSecurity.SecuritySubscribeEvent -= SecurityBaseSubscribeEvent;
+                _syntheticBond.BaseRationingSecurity.SecuritySubscribeEvent -= SecurityBaseSubscribeEvent;
             }
             catch (Exception ex)
             {
@@ -594,11 +598,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (RationingUsingAnotherToolFuturesComboBox.SelectedIndex == 0)
                 {
-                    _futuresSyntheticBond.FuturesUseRationing = false;
+                    _syntheticBond.FuturesUseRationing = false;
                 }
                 else if (RationingUsingAnotherToolFuturesComboBox.SelectedIndex == 1)
                 {
-                    _futuresSyntheticBond.FuturesUseRationing = true;
+                    _syntheticBond.FuturesUseRationing = true;
                 }
             }
             catch (Exception ex)
@@ -618,11 +622,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (RationingUsingAnotherToolBaseComboBox.SelectedIndex == 0)
                 {
-                    _futuresSyntheticBond.BaseUseRationing = false;
+                    _syntheticBond.BaseUseRationing = false;
                 }
                 else if (RationingUsingAnotherToolBaseComboBox.SelectedIndex == 1)
                 {
-                    _futuresSyntheticBond.BaseUseRationing = true;
+                    _syntheticBond.BaseUseRationing = true;
                 }
             }
             catch (Exception ex)
@@ -640,7 +644,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _futuresSyntheticBond.BaseMultiplicator = MultiplicatorBaseTextBox.Text.ToDecimal();
+                _syntheticBond.BaseMultiplicator = MultiplicatorBaseTextBox.Text.ToDecimal();
             }
             catch (Exception ex)
             {
@@ -657,7 +661,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _futuresSyntheticBond.FuturesMultiplicator = MultiplicatorFuturesTextBox.Text.ToDecimal();
+                _syntheticBond.FuturesMultiplicator = MultiplicatorFuturesTextBox.Text.ToDecimal();
             }
             catch (Exception ex)
             {

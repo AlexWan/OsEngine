@@ -11,7 +11,7 @@ using OsEngine.Market.Servers.Entity;
 using OsEngine.OsData.BinaryEntity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
-using OsEngine.OsTrader.Panels.Tab.SynteticBondTab;
+using OsEngine.OsTrader.Panels.Tab.SyntheticBondTab;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
