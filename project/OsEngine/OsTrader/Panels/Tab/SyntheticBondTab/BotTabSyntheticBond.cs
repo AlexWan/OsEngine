@@ -5,7 +5,7 @@
 
 using OsEngine.Alerts;
 using OsEngine.Entity;
-using OsEngine.Entity.SynteticBondEntity;
+using OsEngine.Entity.SyntheticBondEntity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.OsTrader.Iceberg;
@@ -17,9 +17,8 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using OsEngine.OsTrader.Iceberg;
 
-namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
+namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 {
     public class BotTabSyntheticBond : IIBotTab
     {
@@ -30,33 +29,33 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             TabName = nameTab;
             StartProgram = startProgram;
 
-            LoadSynteticBond();
+            LoadSyntheticBond();
         }
 
-        private void LoadSynteticBond()
+        private void LoadSyntheticBond()
         {
             try
             {
-                if (!File.Exists(@"Engine\" + TabName + @"SynteticBondNamesToLoad.txt"))
+                if (!File.Exists(@"Engine\" + TabName + @"SyntheticBondNamesToLoad.txt"))
                 {
                     return;
                 }
 
-                using (StreamReader reader = new StreamReader(@"Engine\" + TabName + @"SynteticBondNamesToLoad.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + TabName + @"SyntheticBondNamesToLoad.txt"))
                 {
                     _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
                     _emulatorIsOn = Convert.ToBoolean(reader.ReadLine());
 
                     while (reader.EndOfStream == false)
                     {
-                        string synteticBondName = reader.ReadLine();
-                        int synteticBondNumber = Convert.ToInt32(reader.ReadLine());
+                        string syntheticBondName = reader.ReadLine();
+                        int syntheticBondNumber = Convert.ToInt32(reader.ReadLine());
 
-                        SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, synteticBondName);
-                        newBond.SyntheticBondNum = synteticBondNumber;
+                        SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, syntheticBondName);
+                        newBond.SyntheticBondNum = syntheticBondNumber;
                         newBond.SecuritySubscribeEvent += SecuritySubscribeEvent;
-                        newBond.ContangoChangeEvent += SynteticBond_SeparationChangeEvent;
-                        SynteticBondSeries.Add(newBond);
+                        newBond.ContangoChangeEvent += SyntheticBond_SeparationChangeEvent;
+                        SyntheticBondSeries.Add(newBond);
                     }
 
                     reader.Close();
@@ -69,7 +68,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
         }
 
-        private void SaveSynteticBond()
+        private void SaveSyntheticBond()
         {
             if (StartProgram == StartProgram.IsOsOptimizer)
             {
@@ -78,15 +77,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"SynteticBondNamesToLoad.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"SyntheticBondNamesToLoad.txt", false))
                 {
                     writer.WriteLine(_eventsIsOn);
                     writer.WriteLine(_emulatorIsOn);
 
-                    for (int i = 0; i < SynteticBondSeries.Count; i++)
+                    for (int i = 0; i < SyntheticBondSeries.Count; i++)
                     {
-                        writer.WriteLine("SynteticBond" + (i + 1) + TabName);
-                        writer.WriteLine(SynteticBondSeries[i].SyntheticBondNum);
+                        writer.WriteLine("SyntheticBond" + (i + 1) + TabName);
+                        writer.WriteLine(SyntheticBondSeries[i].SyntheticBondNum);
                     }
 
                     writer.Close();
@@ -124,9 +123,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
             set
             {
-                for (int i = 0; i < SynteticBondSeries.Count; i++)
+                for (int i = 0; i < SyntheticBondSeries.Count; i++)
                 {
-                    SynteticBondSeries[i].EmulatorIsOn = value;
+                    SyntheticBondSeries[i].EmulatorIsOn = value;
                 }
 
                 if (_emulatorIsOn == value)
@@ -134,7 +133,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
                 _emulatorIsOn = value;
-                SaveSynteticBond();
+                SaveSyntheticBond();
             }
         }
 
@@ -148,9 +147,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
             set
             {
-                for (int i = 0; i < SynteticBondSeries.Count; i++)
+                for (int i = 0; i < SyntheticBondSeries.Count; i++)
                 {
-                    SynteticBondSeries[i].EventsIsOn = value;
+                    SyntheticBondSeries[i].EventsIsOn = value;
                 }
 
                 if (_eventsIsOn == value)
@@ -159,7 +158,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _eventsIsOn = value;
-                SaveSynteticBond();
+                SaveSyntheticBond();
             }
         }
 
@@ -180,13 +179,13 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             get
             {
-                for (int i = 0; i < SynteticBondSeries.Count; i++)
+                for (int i = 0; i < SyntheticBondSeries.Count; i++)
                 {
-                    SyntheticBondSeries synteticBondSeries = SynteticBondSeries[i];
+                    SyntheticBondSeries syntheticBondSeries = SyntheticBondSeries[i];
 
-                    if (synteticBondSeries.BaseTab != null)
+                    if (syntheticBondSeries.BaseTab != null)
                     {
-                        return synteticBondSeries.BaseTab.TimeServerCurrent;
+                        return syntheticBondSeries.BaseTab.TimeServerCurrent;
                     }
                 }
 
@@ -236,15 +235,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     // ignore
                 }
 
-                for (int i = 0; i < SynteticBondSeries.Count; i++)
+                for (int i = 0; i < SyntheticBondSeries.Count; i++)
                 {
-                    SynteticBondSeries[i].DeleteSynteticBond();
+                    SyntheticBondSeries[i].DeleteSyntheticBond();
                 }
 
-                if (SynteticBondSeries != null)
+                if (SyntheticBondSeries != null)
                 {
-                    SynteticBondSeries.Clear();
-                    SynteticBondSeries = null;
+                    SyntheticBondSeries.Clear();
+                    SyntheticBondSeries = null;
                 }
 
                 if (_grid != null)
@@ -287,7 +286,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         private WindowsFormsHost _host;
         private DataGridView _grid;
-        public List<SyntheticBondSeries> SynteticBondSeries = new List<SyntheticBondSeries>();
+        public List<SyntheticBondSeries> SyntheticBondSeries = new List<SyntheticBondSeries>();
 
         private bool _emulatorIsOn = false;
         private bool _eventsIsOn = true;
@@ -326,9 +325,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         public void Clear()
         {
-            for (int i = 0; i < SynteticBondSeries.Count; i++)
+            for (int i = 0; i < SyntheticBondSeries.Count; i++)
             {
-                SyntheticBondSeries series = SynteticBondSeries[i];
+                SyntheticBondSeries series = SyntheticBondSeries[i];
 
                 if (series.SyntheticBonds == null)
                 {
@@ -376,9 +375,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             List<string> names = new List<string>();
 
-            for (int i = 0; i < SynteticBondSeries.Count; i++)
+            for (int i = 0; i < SyntheticBondSeries.Count; i++)
             {
-                SyntheticBondSeries series = SynteticBondSeries[i];
+                SyntheticBondSeries series = SyntheticBondSeries[i];
 
                 if (series.BaseTab != null
                     && series.BaseTab.Security != null)
@@ -476,9 +475,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             {
                 List<Journal.Journal> journals = new List<Journal.Journal>();
 
-                for (int i = 0; i < SynteticBondSeries.Count; i++)
+                for (int i = 0; i < SyntheticBondSeries.Count; i++)
                 {
-                    SyntheticBondSeries curBond = SynteticBondSeries[i];
+                    SyntheticBondSeries curBond = SyntheticBondSeries[i];
 
                     for (int j = 0; curBond.SyntheticBonds != null && j < curBond.SyntheticBonds.Count; j++)
                     {
@@ -696,9 +695,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
             rows.Add(GetFirstGridRow());
 
-            for (int i = 0; SynteticBondSeries != null && i < SynteticBondSeries.Count; i++)
+            for (int i = 0; SyntheticBondSeries != null && i < SyntheticBondSeries.Count; i++)
             {
-                SyntheticBondSeries bond = SynteticBondSeries[i];
+                SyntheticBondSeries bond = SyntheticBondSeries[i];
 
                 if (bond.SyntheticBonds == null)
                 {
@@ -709,11 +708,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 {
                     if (i2 == 0)
                     {
-                        rows.Add(GetFirstSynteticBondGridRow(bond, bond.SyntheticBonds[i2]));
+                        rows.Add(GetFirstSyntheticBondGridRow(bond, bond.SyntheticBonds[i2]));
                         continue;
                     }
 
-                    rows.Add(GetSecondSynteticBondGridRow(bond.SyntheticBonds[i2]));
+                    rows.Add(GetSecondSyntheticBondGridRow(bond.SyntheticBonds[i2]));
                 }
 
                 DataGridViewRow lastFuturesRow = new DataGridViewRow();
@@ -744,7 +743,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             return rows;
         }
 
-        private DataGridViewRow GetFirstSynteticBondGridRow(SyntheticBondSeries bond, SyntheticBond syntheticBondSettings)
+        private DataGridViewRow GetFirstSyntheticBondGridRow(SyntheticBondSeries bond, SyntheticBond syntheticBondSettings)
         {
             DataGridViewRow nRow = new DataGridViewRow();
 
@@ -900,7 +899,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             return nRow;
         }
 
-        private DataGridViewRow GetSecondSynteticBondGridRow(SyntheticBond syntheticBondSettings)
+        private DataGridViewRow GetSecondSyntheticBondGridRow(SyntheticBond syntheticBondSettings)
         {
             DataGridViewRow nRow = new DataGridViewRow();
 
@@ -1128,49 +1127,49 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             {
                 int number = 1;
 
-                if (SynteticBondSeries.Count == 0)
+                if (SyntheticBondSeries.Count == 0)
                 {
-                    SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, "SynteticBond" + number + TabName);
+                    SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, "SyntheticBond" + number + TabName);
                     newBond.SyntheticBondNum = number;
-                    newBond.ContangoChangeEvent += SynteticBond_SeparationChangeEvent;
+                    newBond.ContangoChangeEvent += SyntheticBond_SeparationChangeEvent;
 
                     newBond.SyntheticBonds = new List<SyntheticBond>();
-                    string baseTabName = "SynteticBond" + number + TabName + "Base";
+                    string baseTabName = "SyntheticBond" + number + TabName + "Base";
                     SyntheticBond bondSettings = CreateNewBondSettings(baseTabName, number);
                     newBond.SyntheticBonds.Add(bondSettings);
 
                     newBond.SecuritySubscribeEvent += SecuritySubscribeEvent;
 
-                    SynteticBondSeries.Add(newBond);
-                    newBond.SaveSettingsSyntheticBond();
+                    SyntheticBondSeries.Add(newBond);
+                    newBond.SaveSyntheticBonds();
                     SetJournalsInPosViewer();
                     return;
                 }
 
                 bool inserted = false;
 
-                for (int i = 0; i < SynteticBondSeries.Count; i++)
+                for (int i = 0; i < SyntheticBondSeries.Count; i++)
                 {
-                    if (SynteticBondSeries[i].SyntheticBondNum > number)
+                    if (SyntheticBondSeries[i].SyntheticBondNum > number)
                     {
-                        SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, "SynteticBond" + number + TabName);
+                        SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, "SyntheticBond" + number + TabName);
                         newBond.SyntheticBondNum = number;
-                        newBond.ContangoChangeEvent += SynteticBond_SeparationChangeEvent;
+                        newBond.ContangoChangeEvent += SyntheticBond_SeparationChangeEvent;
 
                         if (newBond.SyntheticBonds == null)
                         {
                             newBond.SyntheticBonds = new List<SyntheticBond>();
                         }
 
-                        string baseTabName = "SynteticBond" + number + TabName + "Base";
+                        string baseTabName = "SyntheticBond" + number + TabName + "Base";
                         SyntheticBond bondSettings = CreateNewBondSettings(baseTabName, number);
                         newBond.SyntheticBonds.Add(bondSettings);
 
                         newBond.SecuritySubscribeEvent += SecuritySubscribeEvent;
 
-                        SynteticBondSeries.Insert(i, newBond);
+                        SyntheticBondSeries.Insert(i, newBond);
                         inserted = true;
-                        newBond.SaveSettingsSyntheticBond();
+                        newBond.SaveSyntheticBonds();
                         SetJournalsInPosViewer();
                         break;
                     }
@@ -1182,19 +1181,19 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (!inserted)
                 {
-                    SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, "SynteticBond" + number + TabName);
+                    SyntheticBondSeries newBond = new SyntheticBondSeries(StartProgram, "SyntheticBond" + number + TabName);
                     newBond.SyntheticBondNum = number;
-                    newBond.ContangoChangeEvent += SynteticBond_SeparationChangeEvent;
+                    newBond.ContangoChangeEvent += SyntheticBond_SeparationChangeEvent;
 
                     newBond.SyntheticBonds = new List<SyntheticBond>();
-                    string baseTabName = "SynteticBond" + number + TabName + "Base";
+                    string baseTabName = "SyntheticBond" + number + TabName + "Base";
                     SyntheticBond bondSettings = CreateNewBondSettings(baseTabName, number);
 
                     newBond.SyntheticBonds.Add(bondSettings);
                     newBond.SecuritySubscribeEvent += SecuritySubscribeEvent;
 
-                    SynteticBondSeries.Add(newBond);
-                    newBond.SaveSettingsSyntheticBond();
+                    SyntheticBondSeries.Add(newBond);
+                    newBond.SaveSyntheticBonds();
                     SetJournalsInPosViewer();
                 }
             }
@@ -1206,7 +1205,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         private SyntheticBond CreateNewBondSettings(string baseTabName, int number)
         {
-            string futuresTabName = "SynteticBond" + number + TabName + "Futures";
+            string futuresTabName = "SyntheticBond" + number + TabName + "Futures";
 
             SyntheticBond bondSettings = new SyntheticBond();
 
@@ -1252,17 +1251,17 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Dictionary<int, SyntheticBondSeries> bondsDictionary = new Dictionary<int, SyntheticBondSeries>(); // key - номер строки с базой облигации, value - кол-во фьючерсов
 
                 int rowCount = 1;
-                for (int i = 0; i < SynteticBondSeries.Count; i++)
+                for (int i = 0; i < SyntheticBondSeries.Count; i++)
                 {
-                    bondsDictionary[rowCount] = SynteticBondSeries[i];
+                    bondsDictionary[rowCount] = SyntheticBondSeries[i];
 
-                    if (SynteticBondSeries[i].SyntheticBonds == null)
+                    if (SyntheticBondSeries[i].SyntheticBonds == null)
                     {
                         rowCount += +1; // 1 это кнопка добавления фьючерса
                     }
                     else
                     {
-                        rowCount += SynteticBondSeries[i].SyntheticBonds.Count + 1; // 1 это кнопка добавления фьючерса
+                        rowCount += SyntheticBondSeries[i].SyntheticBonds.Count + 1; // 1 это кнопка добавления фьючерса
                     }
                 }
 
@@ -1271,7 +1270,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     if (_grid.Rows.Count - 1 == row) // создание новой облигации
                     {
                         CreateSyntheticBond();
-                        SaveSynteticBond();
+                        SaveSyntheticBond();
                         RePaintGrid();
                     }
                     else if (bondsDictionary.ContainsKey(row)) // удаление облигации
@@ -1286,21 +1285,21 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                         SyntheticBondSeries bondDictionary = bondsDictionary[row];
 
-                        for (int i = SynteticBondSeries.Count - 1; i >= 0; i--)
+                        for (int i = SyntheticBondSeries.Count - 1; i >= 0; i--)
                         {
-                            SyntheticBondSeries synteticBond = SynteticBondSeries[i];
+                            SyntheticBondSeries syntheticBond = SyntheticBondSeries[i];
 
-                            if (bondDictionary.BaseTab.TabName != synteticBond.BaseTab.TabName) continue;
+                            if (bondDictionary.BaseTab.TabName != syntheticBond.BaseTab.TabName) continue;
 
-                            synteticBond.ContangoChangeEvent -= SynteticBond_SeparationChangeEvent;
-                            synteticBond.SecuritySubscribeEvent -= SecuritySubscribeEvent;
-                            synteticBond.DeleteSynteticBond();
-                            SynteticBondSeries.RemoveAt(i);
+                            syntheticBond.ContangoChangeEvent -= SyntheticBond_SeparationChangeEvent;
+                            syntheticBond.SecuritySubscribeEvent -= SecuritySubscribeEvent;
+                            syntheticBond.DeleteSyntheticBond();
+                            SyntheticBondSeries.RemoveAt(i);
 
                             break;
                         }
 
-                        SaveSynteticBond();
+                        SaveSyntheticBond();
                         RePaintGrid();
                     }
                 }
@@ -1311,7 +1310,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         SyntheticBondSeries bond = bondsDictionary[row];
 
                         bond.ChooseBaseSecurity();
-                        bond.SaveSettingsSyntheticBond();
+                        bond.SaveSyntheticBonds();
                     }
                 }
                 else if (column == 2) // выбор бумаги для фьючерса или добавление нового фьючерса
@@ -1344,7 +1343,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         firstSettings.ProfitPerDay = 0;
 
                         bond.ChooseFuturesSecurity(firstSettings);
-                        bond.SaveSettingsSyntheticBond();
+                        bond.SaveSyntheticBonds();
                         RePaintGrid();
                     }
                     else
@@ -1367,7 +1366,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                         if (row == bond.SyntheticBonds.Count + foundKey) // Добавить новый фьючерс
                         {
-                            string botName = bond.SynteticBondName + "Futures";
+                            string botName = bond.SyntheticBondName + "Futures";
 
                             int index = 1;
                             for (int i = 0; i < bond.SyntheticBonds.Count; i++)
@@ -1379,7 +1378,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                             }
 
                             string newFuturesTabName = botName + (bond.SyntheticBonds.Count + index);
-                            string newBaseTabName = bond.SynteticBondName + "Base" + (bond.SyntheticBonds.Count + index);
+                            string newBaseTabName = bond.SyntheticBondName + "Base" + (bond.SyntheticBonds.Count + index);
 
                             SyntheticBond settingsFutures = new SyntheticBond();
                             BotTabSimple newBaseBotTab = new BotTabSimple(newBaseTabName, StartProgram);
@@ -1397,10 +1396,10 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                             settingsFutures.CointegrationBuilder = new CointegrationBuilder();
 
-                            bond.ContangoChangeEvent += SynteticBond_SeparationChangeEvent;
+                            bond.ContangoChangeEvent += SyntheticBond_SeparationChangeEvent;
                             bond.SyntheticBonds.Add(settingsFutures);
                             bond.PropagateBaseSecurityToAll();
-                            bond.SaveSettingsSyntheticBond();
+                            bond.SaveSyntheticBonds();
                             RePaintGrid();
                         }
                         else // выбрать бумагу для фьючерса
@@ -1410,7 +1409,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                                 if (row == foundKey + i)
                                 {
                                     bond.ChooseFuturesSecurity(bond.SyntheticBonds[i]);
-                                    bond.SaveSettingsSyntheticBond();
+                                    bond.SaveSyntheticBonds();
                                     break;
                                 }
                             }
@@ -1456,23 +1455,23 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                         }
                         firstSettings.Scenarios.Clear();
 
-                        bondDictionary.ContangoChangeEvent -= SynteticBond_SeparationChangeEvent;
-                        bondDictionary.SaveSettingsSyntheticBond();
+                        bondDictionary.ContangoChangeEvent -= SyntheticBond_SeparationChangeEvent;
+                        bondDictionary.SaveSyntheticBonds();
                         RePaintGrid();
                         return;
                     }
 
-                    for (int i = SynteticBondSeries.Count - 1; i >= 0; i--)
+                    for (int i = SyntheticBondSeries.Count - 1; i >= 0; i--)
                     {
-                        SyntheticBondSeries synteticBond = SynteticBondSeries[i];
+                        SyntheticBondSeries syntheticBond = SyntheticBondSeries[i];
 
-                        if (bondDictionary.BaseTab.TabName != synteticBond.BaseTab.TabName) continue;
+                        if (bondDictionary.BaseTab.TabName != syntheticBond.BaseTab.TabName) continue;
 
-                        for (int i2 = 0; i2 < synteticBond.SyntheticBonds.Count; i2++)
+                        for (int i2 = 0; i2 < syntheticBond.SyntheticBonds.Count; i2++)
                         {
                             if (foundKey + i2 + 1 != row) continue;
 
-                            SyntheticBond settingsToRemove = synteticBond.SyntheticBonds[i2 + 1];
+                            SyntheticBond settingsToRemove = syntheticBond.SyntheticBonds[i2 + 1];
                             settingsToRemove.FuturesIcebergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribeEvent;
                             settingsToRemove.FuturesIcebergParameters.BotTab.Delete();
 
@@ -1481,9 +1480,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                                 settingsToRemove.Scenarios[s].Delete();
                             }
 
-                            synteticBond.ContangoChangeEvent -= SynteticBond_SeparationChangeEvent;
-                            synteticBond.SyntheticBonds.RemoveAt(i2 + 1);
-                            synteticBond.SaveSettingsSyntheticBond();
+                            syntheticBond.ContangoChangeEvent -= SyntheticBond_SeparationChangeEvent;
+                            syntheticBond.SyntheticBonds.RemoveAt(i2 + 1);
+                            syntheticBond.SaveSyntheticBonds();
 
                             break;
                         }
@@ -1660,24 +1659,24 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         #region Helpers
 
-        private void SynteticBond_SeparationChangeEvent(SyntheticBond syntheticBondSettings)
+        private void SyntheticBond_SeparationChangeEvent(SyntheticBond syntheticBondSettings)
         {
             SeparationChangeEvent?.Invoke(syntheticBondSettings);
         }
 
         private void CheckAllSecuritiesReadiness()
         {
-            if (SynteticBondSeries == null
-                || SynteticBondSeries.Count == 0)
+            if (SyntheticBondSeries == null
+                || SyntheticBondSeries.Count == 0)
             {
                 return;
             }
 
             bool allReady = true;
 
-            for (int i = 0; i < SynteticBondSeries.Count; i++)
+            for (int i = 0; i < SyntheticBondSeries.Count; i++)
             {
-                SyntheticBondSeries series = SynteticBondSeries[i];
+                SyntheticBondSeries series = SyntheticBondSeries[i];
 
                 if (series.BaseTab == null
                     || series.BaseTab.IsConnected == false

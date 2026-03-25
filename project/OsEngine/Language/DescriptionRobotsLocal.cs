@@ -1323,6 +1323,8 @@ namespace OsEngine.Language
             "Eng:Grid screener in the counter-trend using Bollinger and volume filters and the general direction of the market. Includes grid launch at level break. Optional - working days / non-trading periods inside the day._" +
             "Ru:Контртрендовый скринер, выбрасывающий сетку по пробою уровней Bollinger. Торгуются НЕ ликвидные инструменты, идущие в другую сторону от основного рынка. Дополнительно- рабочие дни / не торговые периоды внутри дня_");
 
-
+        public string DescriptionLabel329 => OsLocalization.ConvertToLocString(
+            "Eng:An empty strategy for manual synthetic bond trading_" +
+            "Ru:Пустая стратегия для ручной торговли синтетическими облигациями._");
     }
 }

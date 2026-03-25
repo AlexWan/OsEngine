@@ -1,9 +1,9 @@
-﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.SynteticBondTab.SyntheticBondOffsetUi"
+﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.SyntheticBondTab.SyntheticBondOffsetUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab.SynteticBondTab"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab.SyntheticBondTab"
         mc:Ignorable="d"
         Title="Price offsets and modifications" Height="330" Width="650" MinHeight="330" MinWidth="650" MaxHeight="280" MaxWidth="650" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>

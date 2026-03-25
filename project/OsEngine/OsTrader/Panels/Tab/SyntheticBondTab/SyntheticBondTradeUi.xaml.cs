@@ -1,5 +1,10 @@
-﻿using OsEngine.Entity;
-using OsEngine.Entity.SynteticBondEntity;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
+using OsEngine.Entity.SyntheticBondEntity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -13,20 +18,19 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
-using static Google.Api.LabelDescriptor.Types;
 
 namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 {
     /// <summary>
     /// Логика взаимодействия для SynteticBondTradeUi.xaml
     /// </summary>
-    public partial class SynteticBondTradeUi : Window
+    public partial class SyntheticBondTradeUi : Window
     {
         #region Constructor
 
-        private SyntheticBondSeries _synteticBond;
+        private SyntheticBondSeries _syntheticBondSeries;
 
-        private SyntheticBond _futuresSyntheticBondSettings;
+        private SyntheticBond _syntheticBond;
 
         private BondScenario _selectedScenario;
 
@@ -35,17 +39,17 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         private DispatcherTimer _updateTimer;
 
 
-        public SynteticBondTradeUi(SyntheticBondSeries synteticBond, ref SyntheticBond futuresSyntheticBondSettings)
+        public SyntheticBondTradeUi(SyntheticBondSeries syntheticBondSeries, ref SyntheticBond syntheticBond)
         {
             InitializeComponent();
 
-            _synteticBond = synteticBond;
+            _syntheticBondSeries = syntheticBondSeries;
 
-            _futuresSyntheticBondSettings = futuresSyntheticBondSettings;
+            _syntheticBond = syntheticBond;
 
-            if (_futuresSyntheticBondSettings.Scenarios.Count > 0)
+            if (_syntheticBond.Scenarios.Count > 0)
             {
-                _selectedScenario = _futuresSyntheticBondSettings.Scenarios[0];
+                _selectedScenario = _syntheticBond.Scenarios[0];
             }
 
             CurrentModeLabel.Content = OsLocalization.Trader.Label698;
@@ -68,28 +72,28 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             string baseSecurityLabel;
             string futuresSecurityLabel;
 
-            if (_synteticBond.BaseTab == null ||
-                  _synteticBond.BaseTab.Connector == null ||
-                  _synteticBond.BaseTab.Connector.SecurityName == null)
+            if (_syntheticBondSeries.BaseTab == null ||
+                  _syntheticBondSeries.BaseTab.Connector == null ||
+                  _syntheticBondSeries.BaseTab.Connector.SecurityName == null)
             {
                 baseSecurityLabel = OsLocalization.Trader.Label684 + " | None";
             }
             else
             {
-                baseSecurityLabel = OsLocalization.Trader.Label684 + " | " + _synteticBond.BaseTab.Connector.SecurityName.ToString();
+                baseSecurityLabel = OsLocalization.Trader.Label684 + " | " + _syntheticBondSeries.BaseTab.Connector.SecurityName.ToString();
             }
 
-            if (_futuresSyntheticBondSettings == null ||
-                _futuresSyntheticBondSettings.FuturesIcebergParameters == null ||
-                 _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab == null ||
-                  _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.Connector == null ||
-                  _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.Connector.SecurityName == null)
+            if (_syntheticBond == null ||
+                _syntheticBond.FuturesIcebergParameters == null ||
+                 _syntheticBond.FuturesIcebergParameters.BotTab == null ||
+                  _syntheticBond.FuturesIcebergParameters.BotTab.Connector == null ||
+                  _syntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName == null)
             {
                 futuresSecurityLabel = OsLocalization.Trader.Label685 + " | None";
             }
             else
             {
-                futuresSecurityLabel = OsLocalization.Trader.Label685 + " | " + _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.Connector.SecurityName.ToString();
+                futuresSecurityLabel = OsLocalization.Trader.Label685 + " | " + _syntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName.ToString();
             }
 
             EnterBaseNameLabel.Content = baseSecurityLabel;
@@ -195,13 +199,13 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             MinSpreadTextBox.Text = _selectedScenario != null ? _selectedScenario.MinSpread.ToString() : "0";
             MinSpreadTextBox.TextChanged += MinSpreadTextBox_TextChanged;
 
-            TextBoxContangoLookBack.Text = _futuresSyntheticBondSettings.SeparationLength.ToString();
+            TextBoxContangoLookBack.Text = _syntheticBond.SeparationLength.ToString();
             TextBoxContangoLookBack.TextChanged += TextBoxContangoLookBack_TextChanged;
 
-            TextBoxCointegrationDeviation.Text = _futuresSyntheticBondSettings.CointegrationBuilder.CointegrationDeviation.ToString();
+            TextBoxCointegrationDeviation.Text = _syntheticBond.CointegrationBuilder.CointegrationDeviation.ToString();
             TextBoxCointegrationDeviation.TextChanged += TextBoxCointegrationDeviation_TextChanged;
 
-            TextBoxCointegrationLookBack.Text = _futuresSyntheticBondSettings.CointegrationBuilder.CointegrationLookBack.ToString();
+            TextBoxCointegrationLookBack.Text = _syntheticBond.CointegrationBuilder.CointegrationLookBack.ToString();
             TextBoxCointegrationLookBack.TextChanged += TextBoxCointegrationLookBack_TextChanged;
 
             EnterTextBoxAssetPortfolioSec1.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.AssetPortfolio ?? string.Empty;
@@ -310,25 +314,25 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 ExitCurrentVolumeSec1TextBox.Text = sec1Volume.ToString();
                 ExitCurrentVolumeSec2TextBox.Text = sec2Volume.ToString();
 
-                if (_futuresSyntheticBondSettings.PercentSeparationCandles.Count > 0)
+                if (_syntheticBond.PercentSeparationCandles.Count > 0)
                 {
-                    CurrentSpreadTextBox.Text = _futuresSyntheticBondSettings.PercentSeparationCandles[^1].Value.ToString();
+                    CurrentSpreadTextBox.Text = _syntheticBond.PercentSeparationCandles[^1].Value.ToString();
                 }
                 else
                 {
                     CurrentSpreadTextBox.Text = "None";
                 }
 
-                if (_futuresSyntheticBondSettings == null
-                    || _futuresSyntheticBondSettings.FuturesIcebergParameters == null
-                    || _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab == null)
+                if (_syntheticBond == null
+                    || _syntheticBond.FuturesIcebergParameters == null
+                    || _syntheticBond.FuturesIcebergParameters.BotTab == null)
                 {
                     ServerTimeTextBox.Text = "None";
                     ServerTimeTextBox.Foreground = Brushes.Red;
                 }
                 else
                 {
-                    ServerTimeTextBox.Text = _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.TimeServerCurrent.ToString("HH:mm:ss");
+                    ServerTimeTextBox.Text = _syntheticBond.FuturesIcebergParameters.BotTab.TimeServerCurrent.ToString("HH:mm:ss");
                     ServerTimeTextBox.ClearValue(TextBox.ForegroundProperty);
                 }
 
@@ -1130,7 +1134,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             get
             {
-                return _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.TabName;
+                return _syntheticBond.FuturesIcebergParameters.BotTab.TabName;
             }
         }
 
@@ -1366,7 +1370,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _futuresSyntheticBondSettings.SeparationLength = result;
+                _syntheticBond.SeparationLength = result;
             }
             catch (Exception ex)
             {
@@ -1389,7 +1393,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _futuresSyntheticBondSettings.CointegrationBuilder.CointegrationLookBack = result;
+                _syntheticBond.CointegrationBuilder.CointegrationLookBack = result;
             }
             catch (Exception ex)
             {
@@ -1412,7 +1416,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _futuresSyntheticBondSettings.CointegrationBuilder.CointegrationDeviation = result;
+                _syntheticBond.CointegrationBuilder.CointegrationDeviation = result;
             }
             catch (Exception ex)
             {
@@ -1431,7 +1435,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 _selectedScenario.ArbitrationIceberg.MainParameters.AssetPortfolio = EnterTextBoxAssetPortfolioSec1.Text;
                 ExitTextBoxAssetPortfolioSec1.Text = EnterTextBoxAssetPortfolioSec1.Text;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1450,7 +1454,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].AssetPortfolio = EnterTextBoxAssetPortfolioSec2.Text;
                 ExitTextBoxAssetPortfolioSec2.Text = EnterTextBoxAssetPortfolioSec2.Text;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1479,7 +1483,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitLifetimeOrder = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec2ComboBox, ExitLifetimeOrderSec2TextBox, ExitOrderFrequencySec2TextBox);
             }
             catch (Exception ex)
@@ -1509,7 +1513,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.MainParameters.ExitLifetimeOrder = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec1ComboBox, ExitLifetimeOrderSec1TextBox, ExitOrderFrequencySec1TextBox);
             }
             catch (Exception ex)
@@ -1539,7 +1543,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterLifetimeOrder = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec2ComboBox, EnterLifetimeOrderSec2TextBox, EnterOrderFrequencySec2TextBox);
             }
             catch (Exception ex)
@@ -1569,7 +1573,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.MainParameters.EnterLifetimeOrder = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec1ComboBox, EnterLifetimeOrderSec1TextBox, EnterOrderFrequencySec1TextBox);
             }
             catch (Exception ex)
@@ -1599,7 +1603,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderFrequency = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec1ComboBox, EnterLifetimeOrderSec1TextBox, EnterOrderFrequencySec1TextBox);
             }
             catch (Exception ex)
@@ -1629,7 +1633,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderFrequency = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec2ComboBox, EnterLifetimeOrderSec2TextBox, EnterOrderFrequencySec2TextBox);
             }
             catch (Exception ex)
@@ -1659,7 +1663,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderFrequency = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec1ComboBox, ExitLifetimeOrderSec1TextBox, ExitOrderFrequencySec1TextBox);
             }
             catch (Exception ex)
@@ -1689,7 +1693,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderFrequency = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec2ComboBox, ExitLifetimeOrderSec2TextBox, ExitOrderFrequencySec2TextBox);
             }
             catch (Exception ex)
@@ -1719,7 +1723,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitSlippage = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1748,7 +1752,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterSlippage = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1777,7 +1781,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.MainParameters.ExitSlippage = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1806,7 +1810,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 }
 
                 _selectedScenario.ArbitrationIceberg.MainParameters.EnterSlippage = result;
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1838,7 +1842,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderPosition = SynteticBondOrderPosition.Middle;
                 }
 
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1873,7 +1877,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     _selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderPosition = SynteticBondOrderPosition.Middle;
                 }
 
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1908,7 +1912,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderPosition = SynteticBondOrderPosition.Middle;
                 }
 
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1943,7 +1947,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     _selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderPosition = SynteticBondOrderPosition.Middle;
                 }
 
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -1976,7 +1980,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec2ComboBox, ExitLifetimeOrderSec2TextBox, ExitOrderFrequencySec2TextBox);
                 UpdateTabControlsLockState();
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2009,7 +2013,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec2ComboBox, EnterLifetimeOrderSec2TextBox, EnterOrderFrequencySec2TextBox);
                 UpdateTabControlsLockState();
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2042,7 +2046,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec1ComboBox, ExitLifetimeOrderSec1TextBox, ExitOrderFrequencySec1TextBox);
                 UpdateTabControlsLockState();
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2075,7 +2079,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec1ComboBox, EnterLifetimeOrderSec1TextBox, EnterOrderFrequencySec1TextBox);
                 UpdateTabControlsLockState();
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2105,7 +2109,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOneOrderVolume = result;
                 ValidateOneOrderVolume(ExitOneOrderSec2TextBox, ExitTotalVolumeSec2TextBox);
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2135,7 +2139,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOneOrderVolume = result;
                 ValidateOneOrderVolume(EnterOneOrderSec2TextBox, EnterTotalVolumeSec2TextBox);
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2165,7 +2169,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 _selectedScenario.ArbitrationIceberg.MainParameters.ExitOneOrderVolume = result;
                 ValidateOneOrderVolume(ExitOneOrderSec1TextBox, ExitTotalVolumeSec1TextBox);
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2195,7 +2199,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 _selectedScenario.ArbitrationIceberg.MainParameters.EnterOneOrderVolume = result;
                 ValidateOneOrderVolume(EnterOneOrderSec1TextBox, EnterTotalVolumeSec1TextBox);
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2228,7 +2232,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 ValidatePositiveValue(EnterTotalVolumeSec2TextBox);
                 ValidateOneOrderVolume(EnterOneOrderSec2TextBox, EnterTotalVolumeSec2TextBox);
                 ValidateOneOrderVolume(ExitOneOrderSec2TextBox, ExitTotalVolumeSec2TextBox);
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2261,7 +2265,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 ValidatePositiveValue(EnterTotalVolumeSec1TextBox);
                 ValidateOneOrderVolume(EnterOneOrderSec1TextBox, EnterTotalVolumeSec1TextBox);
                 ValidateOneOrderVolume(ExitOneOrderSec1TextBox, ExitTotalVolumeSec1TextBox);
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2293,7 +2297,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 ExitVolumeTypeSec1ComboBox.SelectedIndex = EnterVolumeTypeSec1ComboBox.SelectedIndex;
 
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2325,7 +2329,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 ExitVolumeTypeSec2ComboBox.SelectedIndex = EnterVolumeTypeSec2ComboBox.SelectedIndex;
 
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2475,7 +2479,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                if (_futuresSyntheticBondSettings.Scenarios.Count <= 1)
+                if (_syntheticBond.Scenarios.Count <= 1)
                 {
                     ServerMaster.SendNewLogMessage(
                         "Невозможно удалить последний сценарий.",
@@ -2501,7 +2505,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 BondScenario scenarioToDelete = _selectedScenario;
 
-                _futuresSyntheticBondSettings.Scenarios.Remove(scenarioToDelete);
+                _syntheticBond.Scenarios.Remove(scenarioToDelete);
 
                 scenarioToDelete.Delete();
 
@@ -2509,7 +2513,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 UpdateScenarioTextBoxDefault();
 
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2525,12 +2529,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (string.IsNullOrEmpty(scenarioName))
                 {
-                    scenarioName = "Script " + (_futuresSyntheticBondSettings.Scenarios.Count + 1).ToString();
+                    scenarioName = "Script " + (_syntheticBond.Scenarios.Count + 1).ToString();
                 }
 
-                for (int i = 0; i < _futuresSyntheticBondSettings.Scenarios.Count; i++)
+                for (int i = 0; i < _syntheticBond.Scenarios.Count; i++)
                 {
-                    if (_futuresSyntheticBondSettings.Scenarios[i].Name == scenarioName)
+                    if (_syntheticBond.Scenarios[i].Name == scenarioName)
                     {
                         ServerMaster.SendNewLogMessage(
                             "Сценарий с именем '" + scenarioName + "' уже существует.",
@@ -2547,15 +2551,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                string futuresTabName = _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab.TabName;
-                BotTabSimple baseBotTab = _futuresSyntheticBondSettings.BaseIcebergParameters.BotTab;
-                BotTabSimple futuresBotTab = _futuresSyntheticBondSettings.FuturesIcebergParameters.BotTab;
+                string futuresTabName = _syntheticBond.FuturesIcebergParameters.BotTab.TabName;
+                BotTabSimple baseBotTab = _syntheticBond.BaseIcebergParameters.BotTab;
+                BotTabSimple futuresBotTab = _syntheticBond.FuturesIcebergParameters.BotTab;
 
                 BondScenario newScenario = new BondScenario(futuresTabName, scenarioName);
                 newScenario.SetBotTabs(baseBotTab, futuresBotTab);
                 SubscribeToScenario(newScenario);
 
-                _futuresSyntheticBondSettings.Scenarios.Add(newScenario);
+                _syntheticBond.Scenarios.Add(newScenario);
 
                 ScenarioComboBox.Items.Add(new ComboBoxItem
                 {
@@ -2567,7 +2571,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 UpdateScenarioTextBoxDefault();
 
-                _synteticBond.OnSettingsChanged();
+                _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2583,9 +2587,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             ScenarioComboBox.Items.Clear();
 
-            for (int i = 0; i < _futuresSyntheticBondSettings.Scenarios.Count; i++)
+            for (int i = 0; i < _syntheticBond.Scenarios.Count; i++)
             {
-                string name = _futuresSyntheticBondSettings.Scenarios[i].Name;
+                string name = _syntheticBond.Scenarios[i].Name;
                 ScenarioComboBox.Items.Add(new ComboBoxItem
                 {
                     Content = name,
@@ -2601,7 +2605,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         private void UpdateScenarioTextBoxDefault()
         {
-            ScenarioTextBox.Text = "Script " + (_futuresSyntheticBondSettings.Scenarios.Count + 1).ToString();
+            ScenarioTextBox.Text = "Script " + (_syntheticBond.Scenarios.Count + 1).ToString();
         }
 
         private void ScenarioComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -2609,12 +2613,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             try
             {
                 int index = ScenarioComboBox.SelectedIndex;
-                if (index < 0 || index >= _futuresSyntheticBondSettings.Scenarios.Count)
+                if (index < 0 || index >= _syntheticBond.Scenarios.Count)
                 {
                     return;
                 }
 
-                _selectedScenario = _futuresSyntheticBondSettings.Scenarios[index];
+                _selectedScenario = _syntheticBond.Scenarios[index];
                 RefreshScenarioUi();
             }
             catch (Exception ex)
@@ -3048,9 +3052,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         private void SubscribeToScenarioEvents()
         {
-            for (int i = 0; i < _futuresSyntheticBondSettings.Scenarios.Count; i++)
+            for (int i = 0; i < _syntheticBond.Scenarios.Count; i++)
             {
-                SubscribeToScenario(_futuresSyntheticBondSettings.Scenarios[i]);
+                SubscribeToScenario(_syntheticBond.Scenarios[i]);
             }
         }
 

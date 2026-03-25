@@ -4,7 +4,7 @@
 */
 
 using OsEngine.Entity;
-using OsEngine.Entity.SynteticBondEntity;
+using OsEngine.Entity.SyntheticBondEntity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -784,9 +784,9 @@ namespace OsEngine.OsOptimizer
                 {// BotTabSyntheticBond
                     BotTabSyntheticBond synthBond = (BotTabSyntheticBond)sources[i];
 
-                    for (int i2 = 0; i2 < synthBond.SynteticBondSeries.Count; i2++)
+                    for (int i2 = 0; i2 < synthBond.SyntheticBondSeries.Count; i2++)
                     {
-                        SyntheticBondSeries series = synthBond.SynteticBondSeries[i2];
+                        SyntheticBondSeries series = synthBond.SyntheticBondSeries[i2];
 
                         if (series.BaseTab != null
                             && series.BaseTab.Connector != null
@@ -1295,10 +1295,10 @@ namespace OsEngine.OsOptimizer
                     else if (curBot != null
                         && curBot.TabsSyntheticBond != null
                         && curBot.TabsSyntheticBond.Count > 0
-                        && curBot.TabsSyntheticBond[0].SynteticBondSeries.Count > 0
-                        && curBot.TabsSyntheticBond[0].SynteticBondSeries[0].BaseTab != null
-                        && curBot.TabsSyntheticBond[0].SynteticBondSeries[0].BaseTab.Connector != null
-                        && curBot.TabsSyntheticBond[0].SynteticBondSeries[0].BaseTab.Connector.ServerUid == serverNum)
+                        && curBot.TabsSyntheticBond[0].SyntheticBondSeries.Count > 0
+                        && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].BaseTab != null
+                        && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].BaseTab.Connector != null
+                        && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].BaseTab.Connector.ServerUid == serverNum)
                     {
                         bot = curBot;
                         _botsInTest.RemoveAt(i);

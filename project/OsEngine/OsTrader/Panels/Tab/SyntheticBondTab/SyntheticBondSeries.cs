@@ -1,5 +1,10 @@
-﻿using OsEngine.Entity;
-using OsEngine.Entity.SynteticBondEntity;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
+using OsEngine.Entity.SyntheticBondEntity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
@@ -23,13 +28,13 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
         public SyntheticBondSeries(StartProgram startProgram, string tabName)
         {
             StartProgram = startProgram;
-            SynteticBondName = tabName;
+            SyntheticBondName = tabName;
 
             LoadSettingsSyntheticBond();
 
             if (startProgram == StartProgram.IsOsTrader)
             {
-                Thread thread = new Thread(MainSynteticBondThread);
+                Thread thread = new Thread(MainSyntheticBondThread);
                 thread.Start();
             }
             else if (startProgram == StartProgram.IsTester
@@ -39,7 +44,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
-        public void SaveSettingsSyntheticBond()
+        public void SaveSyntheticBonds()
         {
             if (StartProgram == StartProgram.IsOsOptimizer)
             {
@@ -53,7 +58,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + SynteticBondName + @"SynteticBondModificationsFuturesToLoad.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt", false))
                 {
                     for (int i = 0; i < SyntheticBonds.Count; i++)
                     {
@@ -115,7 +120,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
         public void OnSettingsChanged()
         {
             _separationCaches.Clear();
-            SaveSettingsSyntheticBond();
+            SaveSyntheticBonds();
             SettingsChangedEvent?.Invoke();
         }
 
@@ -250,14 +255,14 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
         {
             try
             {
-                if (!File.Exists(@"Engine\" + SynteticBondName + @"SynteticBondModificationsFuturesToLoad.txt"))
+                if (!File.Exists(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt"))
                 {
                     return;
                 }
 
                 SyntheticBonds = new List<SyntheticBond>();
 
-                using (StreamReader reader = new StreamReader(@"Engine\" + SynteticBondName + @"SynteticBondModificationsFuturesToLoad.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt"))
                 {
                     while (reader.EndOfStream == false)
                     {
@@ -279,7 +284,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
-        public void DeleteSynteticBond()
+        public void DeleteSyntheticBond()
         {
             try
             {
@@ -301,12 +306,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
                 SyntheticBonds.Clear();
 
-                if (!File.Exists(@"Engine\" + SynteticBondName + @"SynteticBondModificationsFuturesToLoad.txt"))
+                if (!File.Exists(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt"))
                 {
                     return;
                 }
 
-                File.Delete(@"Engine\" + SynteticBondName + @"SynteticBondModificationsFuturesToLoad.txt");
+                File.Delete(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt");
             }
             catch (Exception error)
             {
@@ -475,7 +480,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         #region Main thread
 
-        private void MainSynteticBondThread()
+        private void MainSyntheticBondThread()
         {
             while (true)
             {
@@ -1524,7 +1529,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             {
                 string key = modificationSyntheticBond.FuturesIcebergParameters.BotTab.TabName;
 
-                if (_bondsChartUi.TryGetValue(key, out SynteticBondChartUi existingWindow))
+                if (_bondsChartUi.TryGetValue(key, out SyntheticBondChartUi existingWindow))
                 {
                     existingWindow.Activate();
                     existingWindow.WindowState = WindowState.Normal;
@@ -1532,7 +1537,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                     return;
                 }
 
-                SynteticBondChartUi bondChartUi = new SynteticBondChartUi(this, ref modificationSyntheticBond);
+                SyntheticBondChartUi bondChartUi = new SyntheticBondChartUi(this, ref modificationSyntheticBond);
                 bondChartUi.Closed += BondChartUi_Closed;
 
                 bondChartUi.Tag = key;
@@ -1550,7 +1555,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         private void BondChartUi_Closed(object sender, EventArgs e)
         {
-            SynteticBondChartUi closedWindow = (SynteticBondChartUi)sender;
+            SyntheticBondChartUi closedWindow = (SyntheticBondChartUi)sender;
             closedWindow.Closed -= BondChartUi_Closed;
             _bondsChartUi.TryRemove(closedWindow.Key, out _);
 
@@ -1567,7 +1572,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             {
                 string key = modificationSyntheticBond.FuturesIcebergParameters.BotTab.TabName;
 
-                if (_bondsTradeUi.TryGetValue(key, out SynteticBondTradeUi existingWindow))
+                if (_bondsTradeUi.TryGetValue(key, out SyntheticBondTradeUi existingWindow))
                 {
                     existingWindow.Activate();
                     existingWindow.WindowState = WindowState.Normal;
@@ -1575,7 +1580,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                     return;
                 }
 
-                SynteticBondTradeUi bondTradeUi = new SynteticBondTradeUi(this, ref modificationSyntheticBond);
+                SyntheticBondTradeUi bondTradeUi = new SyntheticBondTradeUi(this, ref modificationSyntheticBond);
                 bondTradeUi.Closed += BondTradeUi_Closed;
 
                 bondTradeUi.Tag = key;
@@ -1593,7 +1598,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         private void BondTradeUi_Closed(object sender, EventArgs e)
         {
-            SynteticBondTradeUi closedWindow = (SynteticBondTradeUi)sender;
+            SyntheticBondTradeUi closedWindow = (SyntheticBondTradeUi)sender;
             closedWindow.Closed -= BondTradeUi_Closed;
             _bondsTradeUi.TryRemove(closedWindow.Key, out _);
 
@@ -1611,7 +1616,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
             string key = settings.FuturesIcebergParameters.BotTab.TabName;
 
-            if (_bondsTradeUi.TryRemove(key, out SynteticBondTradeUi window))
+            if (_bondsTradeUi.TryRemove(key, out SyntheticBondTradeUi window))
             {
                 window.Closed -= BondTradeUi_Closed;
 
@@ -1632,8 +1637,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         private StartProgram StartProgram;
 
-        private ConcurrentDictionary<string, SynteticBondTradeUi> _bondsTradeUi = new ConcurrentDictionary<string, SynteticBondTradeUi>();
-        private ConcurrentDictionary<string, SynteticBondChartUi> _bondsChartUi = new ConcurrentDictionary<string, SynteticBondChartUi>();
+        private ConcurrentDictionary<string, SyntheticBondTradeUi> _bondsTradeUi = new ConcurrentDictionary<string, SyntheticBondTradeUi>();
+        private ConcurrentDictionary<string, SyntheticBondChartUi> _bondsChartUi = new ConcurrentDictionary<string, SyntheticBondChartUi>();
         private ConcurrentDictionary<string, SyntheticBondOffsetUi> _bondsOffsetUi = new ConcurrentDictionary<string, SyntheticBondOffsetUi>();
 
         private ConcurrentDictionary<SyntheticBond, SeparationCache> _separationCaches = new ConcurrentDictionary<SyntheticBond, SeparationCache>();
@@ -1642,7 +1647,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         #region Public properties
 
-        public string SynteticBondName;
+        public string SyntheticBondName;
 
         public BotTabSimple BaseTab
         {

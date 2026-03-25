@@ -1,5 +1,5 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Entity.SynteticBondEntity;
+using OsEngine.Entity.SyntheticBondEntity;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
