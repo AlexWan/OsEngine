@@ -57,7 +57,21 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ComboBoxValuesType.SelectedItem = _strategySettings.ValuesType.ToString();
 
                 // Order lifetime type - заполняем на основе возможностей коннектора
-                FillOrderLifeTimeComboBox();
+
+                if (startProgram == StartProgram.IsTester
+                    || startProgram == StartProgram.IsOsOptimizer)
+                {
+                    ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Specified.ToString());
+                    ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.GTC.ToString());
+                    ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Day.ToString());
+                    CheckBoxLimitsMakerOnly.IsEnabled = false;
+
+                    ComboBoxOrdersTypeTime.SelectedItem = _strategySettings.OrderTypeTime.ToString();
+                }
+                else if (startProgram == StartProgram.IsOsTrader)
+                {
+                    FillOrderLifeTimeComboBox();
+                }
 
                 // stop
                 CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
@@ -313,7 +327,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     return;
                 }
 
-                OrderTypeTime typeTime = OrderTypeTime.GTC;
+                OrderTypeTime typeTime = OrderTypeTime.Specified;
 
                 if (Enum.TryParse(ComboBoxOrdersTypeTime.SelectedItem.ToString(), out typeTime) == false)
                 {
@@ -334,16 +348,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     CheckBoxSecondToCloseIsOn.IsEnabled = false;
                     TextBoxSecondToOpen.IsEnabled = false;
                     TextBoxSecondToClose.IsEnabled = false;
-
-                    // Auto-uncheck if they were checked
-                    if (CheckBoxSecondToOpenIsOn.IsChecked == true)
-                    {
-                        CheckBoxSecondToOpenIsOn.IsChecked = false;
-                    }
-                    if (CheckBoxSecondToCloseIsOn.IsChecked == true)
-                    {
-                        CheckBoxSecondToCloseIsOn.IsChecked = false;
-                    }
                 }
             }
             catch (Exception ex)
@@ -433,8 +437,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 Enum.TryParse(ComboBoxValuesType.SelectedItem.ToString(), out _strategySettings.ValuesType);
 
-                // Save order lifetime type with validation
-                SaveOrderLifeTime();
+                if (_strategySettings._startProgram == StartProgram.IsOsTrader)
+                {
+                    // Save order lifetime type with validation
+                    SaveOrderLifeTime();
+                }
+                else
+                {
+                    Enum.TryParse(ComboBoxOrdersTypeTime.SelectedItem.ToString(), out _strategySettings.OrderTypeTime);
+                }
 
                 _strategySettings.LimitsMakerOnly = CheckBoxLimitsMakerOnly.IsChecked.Value;
 
