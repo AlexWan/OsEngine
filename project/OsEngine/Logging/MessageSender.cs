@@ -37,15 +37,6 @@ namespace OsEngine.Logging
         public bool TelegramNoNameSendOn;
         public bool TelegramUserSendOn;
 
-        public bool MailSendOn;
-
-        public bool MailSystemSendOn;
-        public bool MailSignalSendOn;
-        public bool MailErrorSendOn;
-        public bool MailConnectSendOn;
-        public bool MailTradeSendOn;
-        public bool MailNoNameSendOn;
-
         public bool SmsSendOn;
 
         public bool SmsSystemSendOn;
@@ -54,6 +45,16 @@ namespace OsEngine.Logging
         public bool SmsConnectSendOn;
         public bool SmsTradeSendOn;
         public bool SmsNoNameSendOn;
+
+        public bool VkSendOn;
+
+        public bool VkSystemSendOn;
+        public bool VkSignalSendOn;
+        public bool VkErrorSendOn;
+        public bool VkConnectSendOn;
+        public bool VkTradeSendOn;
+        public bool VkNoNameSendOn;
+        public bool VkUserSendOn;
 
         private string _name; // name / имя
 
@@ -94,16 +95,6 @@ namespace OsEngine.Logging
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"MessageSender.txt"))
                 {
-
-                    MailSendOn =  Convert.ToBoolean(reader.ReadLine());
-
-                    MailSystemSendOn = Convert.ToBoolean(reader.ReadLine());
-                    MailSignalSendOn = Convert.ToBoolean(reader.ReadLine());
-                    MailErrorSendOn = Convert.ToBoolean(reader.ReadLine());
-                    MailConnectSendOn = Convert.ToBoolean(reader.ReadLine());
-                    MailTradeSendOn = Convert.ToBoolean(reader.ReadLine());
-                    MailNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
-
                     SmsSendOn = Convert.ToBoolean(reader.ReadLine());
 
                     SmsSystemSendOn = Convert.ToBoolean(reader.ReadLine());
@@ -132,6 +123,16 @@ namespace OsEngine.Logging
                     TelegramNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
                     TelegramUserSendOn = Convert.ToBoolean(reader.ReadLine());
 
+                    VkSendOn = Convert.ToBoolean(reader.ReadLine());
+
+                    VkSystemSendOn = Convert.ToBoolean(reader.ReadLine());
+                    VkSignalSendOn = Convert.ToBoolean(reader.ReadLine());
+                    VkErrorSendOn = Convert.ToBoolean(reader.ReadLine());
+                    VkConnectSendOn = Convert.ToBoolean(reader.ReadLine());
+                    VkTradeSendOn = Convert.ToBoolean(reader.ReadLine());
+                    VkNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
+                    VkUserSendOn = Convert.ToBoolean(reader.ReadLine());
+
                     reader.Close();
                 }
             }
@@ -152,15 +153,6 @@ namespace OsEngine.Logging
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"MessageSender.txt", false))
                 {
-                    writer.WriteLine(MailSendOn);
-
-                    writer.WriteLine(MailSystemSendOn);
-                    writer.WriteLine(MailSignalSendOn);
-                    writer.WriteLine(MailErrorSendOn);
-                    writer.WriteLine(MailConnectSendOn);
-                    writer.WriteLine(MailTradeSendOn);
-                    writer.WriteLine(MailNoNameSendOn);
-
                     writer.WriteLine(SmsSendOn);
 
                     writer.WriteLine(SmsSystemSendOn);
@@ -188,7 +180,17 @@ namespace OsEngine.Logging
                     writer.WriteLine(TelegramTradeSendOn);
                     writer.WriteLine(TelegramNoNameSendOn);
                     writer.WriteLine(TelegramUserSendOn);
-                    
+
+                    writer.WriteLine(VkSendOn);
+
+                    writer.WriteLine(VkSystemSendOn);
+                    writer.WriteLine(VkSignalSendOn);
+                    writer.WriteLine(VkErrorSendOn);
+                    writer.WriteLine(VkConnectSendOn);
+                    writer.WriteLine(VkTradeSendOn);
+                    writer.WriteLine(VkNoNameSendOn);
+                    writer.WriteLine(VkUserSendOn);
+
                     writer.Close();
                 }
             }
@@ -256,7 +258,41 @@ namespace OsEngine.Logging
                     ServerTelegram.GetServer().Send(message, _name);
                 }
             }
-            
+
+            if (VkSendOn)
+            {
+                if (message.Type == LogMessageType.Connect 
+                    && VkConnectSendOn)
+                {
+                    ServerVk.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Error 
+                    && VkErrorSendOn)
+                {
+                    ServerVk.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Signal 
+                    && VkSignalSendOn)
+                {
+                    ServerVk.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.System 
+                    && VkSystemSendOn)
+                {
+                    ServerVk.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Trade 
+                    && VkTradeSendOn)
+                {
+                    ServerVk.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.User 
+                    && VkUserSendOn)
+                {
+                    ServerVk.GetServer().Send(message, _name);
+                }
+            }
+
             if (WebhookSendOn)
             {
                 if (message.Type == LogMessageType.Connect &&
@@ -286,34 +322,6 @@ namespace OsEngine.Logging
                 }
             }
 
-            if (MailSendOn)
-            {
-                if (message.Type == LogMessageType.Connect &&
-                    MailConnectSendOn)
-                {
-                    ServerMail.GetServer().Send(message, _name);
-                }
-                if (message.Type == LogMessageType.Error &&
-                MailErrorSendOn)
-                {
-                    ServerMail.GetServer().Send(message, _name);
-                }
-                if (message.Type == LogMessageType.Signal &&
-                    MailSignalSendOn)
-                {
-                    ServerMail.GetServer().Send(message, _name);
-                }
-                if (message.Type == LogMessageType.System &&
-                    MailSystemSendOn)
-                {
-                    ServerMail.GetServer().Send(message, _name);
-                }
-                if (message.Type == LogMessageType.Trade &&
-                    MailTradeSendOn)
-                {
-                    ServerMail.GetServer().Send(message, _name);
-                }
-            }
             if (SmsSendOn)
             {
                 if (message.Type == LogMessageType.Connect &&
@@ -321,8 +329,8 @@ namespace OsEngine.Logging
                 {
                     ServerSms.GetSmsServer().Send(message.GetString());
                 }
-                if (message.Type == LogMessageType.Error &&
-                SmsErrorSendOn)
+                if (message.Type == LogMessageType.Error && 
+                    SmsErrorSendOn)
                 {
                     ServerSms.GetSmsServer().Send(message.GetString());
                 }

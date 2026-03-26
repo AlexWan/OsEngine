@@ -4,7 +4,7 @@
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         Title="Newsletter" Height="450" Width="650" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid Margin="0,0,0,0">
-        
+
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
@@ -19,7 +19,8 @@
         <Button Grid.Column ="1" Grid.Row="3"  Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" 
                 Margin="0,5,10,10" VerticalAlignment="Bottom" Width="142" Click="ButtonAccept_Click"/>
         <Rectangle Grid.Column="1" Grid.Row="0" Margin="5,5,5,5" HorizontalAlignment="Left" Width="315"/>
-        <Label Grid.Column="1" Grid.Row="0" Name="Label4" Content="Email" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack"  FontSize="18"/>
+
+        <!-- SMS Section -->
         <Label Name="Label3" Content="SMS" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack" FontSize="18"/>
         <Label Name="Label5" Content="Regime" HorizontalAlignment="Left" Margin="45,40,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxModeSms" HorizontalAlignment="Left" Margin="137,40,0,0" VerticalAlignment="Top" Width="155"></ComboBox>
@@ -28,17 +29,23 @@
         <CheckBox Name="CheckBoxSmsSystem" Content="System" HorizontalAlignment="Left" Margin="206,90,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxSmsError" Content="Error" HorizontalAlignment="Left" Margin="45,112,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxSmsConnect" Content="Connection" HorizontalAlignment="Left" Margin="206,112,0,0" VerticalAlignment="Top"/>
-        <Label Grid.Column="1" Name="Label52" Content="Regime" HorizontalAlignment="Left" Margin="45,40,0,0" VerticalAlignment="Top"/>
-        <ComboBox Grid.Column="1"  Name="ComboBoxModeMail" Margin="137,40,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="158"></ComboBox>
-        <CheckBox Grid.Column="1" Name="CheckBoxMailSignal" Content="Signal" HorizontalAlignment="Left" Margin="45,68,0,0" VerticalAlignment="Top"/>
-        <CheckBox Grid.Column="1" Name="CheckBoxMailTrade" Content="Trade" HorizontalAlignment="Left" Margin="45,90,0,0" VerticalAlignment="Top"/>
-        <CheckBox Grid.Column="1" Name="CheckBoxMailSystem" Content="System" HorizontalAlignment="Left" Margin="206,90,0,0" VerticalAlignment="Top"/>
-        <CheckBox Grid.Column="1" Name="CheckBoxMailError" Content="Error" HorizontalAlignment="Left" Margin="45,112,0,0" VerticalAlignment="Top"/>
-        <CheckBox Grid.Column="1" Name="CheckBoxMailConnect" Content="Connection" HorizontalAlignment="Left" Margin="206,112,0,0" VerticalAlignment="Top"/>
-        <Button Grid.Row="0" Name="ButtonMailGlobeSet" Content="Configure server" Margin="45,150,0,0" VerticalAlignment="Top" Click="ButtonMailGlobeSet_Click" HorizontalAlignment="Left" Width="249" Grid.Column="1" />
         <Button Name="ButtonSmsGlobeSet" Content="Configure server" HorizontalAlignment="Left" VerticalAlignment="Top" Width="256" Click="ButtonSmsGlobeSet_Click" Margin="45,150,0,0" />
+
+        <!-- Email Section replaced with VK Messenger -->
+        <Label Grid.Column="1" Name="Label4" Content="VK Messenger" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack" FontSize="18"/>
+        <Label Grid.Column="1" Name="Label52" Content="Regime" HorizontalAlignment="Left" Margin="45,40,0,0" VerticalAlignment="Top"/>
+        <ComboBox Grid.Column="1" Name="ComboBoxModeVk" Margin="137,40,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="158"></ComboBox>
+        <CheckBox Grid.Column="1" Name="CheckBoxVkSignal" Content="Signal" HorizontalAlignment="Left" Margin="45,68,0,0" VerticalAlignment="Top"/>
+        <CheckBox Grid.Column="1" Name="CheckBoxVkUser" Content="User" HorizontalAlignment="Left" Margin="206,68,0,0" VerticalAlignment="Top"/>
+        <CheckBox Grid.Column="1" Name="CheckBoxVkTrade" Content="Trade" HorizontalAlignment="Left" Margin="45,90,0,0" VerticalAlignment="Top"/>
+        <CheckBox Grid.Column="1" Name="CheckBoxVkSystem" Content="System" HorizontalAlignment="Left" Margin="206,90,0,0" VerticalAlignment="Top"/>
+        <CheckBox Grid.Column="1" Name="CheckBoxVkError" Content="Error" HorizontalAlignment="Left" Margin="45,112,0,0" VerticalAlignment="Top"/>
+        <CheckBox Grid.Column="1" Name="CheckBoxVkConnect" Content="Connection" HorizontalAlignment="Left" Margin="206,112,0,0" VerticalAlignment="Top"/>
+        <Button Grid.Column="1" Name="ButtonVkGlobeSet" Content="Configure server" Margin="45,150,0,0" VerticalAlignment="Top" Click="ButtonVkGlobeSet_Click" HorizontalAlignment="Left" Width="249" />
+
+        <!-- Webhook Section -->
         <Rectangle Grid.Row="1" Margin="5,5,5,5"/>
-        <Label Grid.Column="0" Grid.Row="1" Name="Label19" Content="Webhooks" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack"  FontSize="18"/>
+        <Label Grid.Column="0" Grid.Row="1" Name="Label19" Content="Webhooks" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack" FontSize="18"/>
         <Label Grid.Column="0" Grid.Row="1" Name="Label53" Content="Regime" HorizontalAlignment="Left" Margin="45,40,0,0" VerticalAlignment="Top"/>
         <ComboBox Grid.Column="0" Grid.Row="1" Name="ComboBoxModeWebhook" Margin="137,40,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="158"/>
         <CheckBox Grid.Column="0" Grid.Row="1" Name="CheckBoxWebhookSignal" Content="Signal" HorizontalAlignment="Left" Margin="45,68,0,0" VerticalAlignment="Top"/>
@@ -47,9 +54,10 @@
         <CheckBox Grid.Column="0" Grid.Row="1" Name="CheckBoxWebhookError" Content="Error" HorizontalAlignment="Left" Margin="45,112,0,0" VerticalAlignment="Top"/>
         <CheckBox Grid.Column="0" Grid.Row="1" Name="CheckBoxWebhookConnect" Content="Connection" HorizontalAlignment="Left" Margin="206,112,0,0" VerticalAlignment="Top"/>
         <Button Grid.Column="0" Grid.Row="1" Name="ButtonWebhookGlobeSet" Content="Configure server" Margin="45,150,0,0" VerticalAlignment="Top" Click="ButtonWebhookGlobeSet_Click" HorizontalAlignment="Left" Width="249" />
-        
+
+        <!-- Telegram Section -->
         <Rectangle Grid.Column="1" Grid.Row="1" Margin="5,5,5,5"/>
-        <Label Grid.Column="1" Grid.Row="1" Name="Label22" Content="Telegram" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack"  FontSize="18"/>
+        <Label Grid.Column="1" Grid.Row="1" Name="Label22" Content="Telegram" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="ExtraBlack" FontSize="18"/>
         <Label Grid.Column="1" Grid.Row="1" Name="Label54" Content="Regime" HorizontalAlignment="Left" Margin="45,40,0,0" VerticalAlignment="Top"/>
         <ComboBox Grid.Column="1" Grid.Row="1" Name="ComboBoxModeTelegram" Margin="137,40,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="158"/>
         <CheckBox Grid.Column="1" Grid.Row="1" Name="CheckBoxTelegramSignal" Content="Signal" HorizontalAlignment="Left" Margin="45,68,0,0" VerticalAlignment="Top"/>

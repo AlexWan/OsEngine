@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
@@ -83,6 +82,9 @@ namespace OsEngine.Robots.Trend
             // Subscribe to receive events/commands from Telegram
             ServerTelegram.GetServer().TelegramCommandEvent += TelegramCommandHandler;
 
+            // Subscribe to receive events/commands from VK
+            ServerVk.GetServer().VkCommandEvent += ParabolicSarTrade_VkCommandEvent;
+
             // Subscribe to the indicator update event
             ParametrsChangeByUser += ParabolicSarTrade_ParametrsChangeByUser;
 
@@ -127,6 +129,37 @@ namespace OsEngine.Robots.Trend
             else if (cmd == Command.GetStatus)
             {
                 SendNewLogMessage($"Bot {_tab.TabName} is {_regime}. Emulator - {_tab.EmulatorIsOn}, " +
+                                  $"Server Status - {_tab.ServerStatus}.", LogMessageType.User);
+            }
+        }
+
+        private void ParabolicSarTrade_VkCommandEvent(string botName, CommandVk cmd)
+        {
+            if (botName != null && !_tab.TabName.Equals(botName))
+                return;
+
+            if (cmd == CommandVk.StopAllBots || cmd == CommandVk.StopBot)
+            {
+                _regime.ValueString = BotTradeRegime.Off.ToString();
+
+                SendNewLogMessage($"Changed Bot {_tab.TabName} Regime to Off " +
+                                  $"by vk command {cmd}", LogMessageType.User);
+            }
+            else if (cmd == CommandVk.StartAllBots || cmd == CommandVk.StartBot)
+            {
+                _regime.ValueString = BotTradeRegime.On.ToString();
+
+                //changing bot mode to its previous state or On
+                SendNewLogMessage($"Changed bot {_tab.TabName} mode to state {_regime} " +
+                                  $"by vk command {cmd}", LogMessageType.User);
+            }
+            else if (cmd == CommandVk.CancelAllActiveOrders)
+            {
+                //Some logic for cancel all active orders
+            }
+            else if (cmd == CommandVk.GetStatus)
+            {
+                SendNewLogMessage($"Bot vk {_tab.TabName} is {_regime}. Emulator - {_tab.EmulatorIsOn}, " +
                                   $"Server Status - {_tab.ServerStatus}.", LogMessageType.User);
             }
         }

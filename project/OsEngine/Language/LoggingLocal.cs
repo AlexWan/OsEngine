@@ -47,6 +47,10 @@ namespace OsEngine.Language
             "Eng:Configure Telegram_" +
             "Ru:Настроить Телеграм_");
 
+        public string Button4 => OsLocalization.ConvertToLocString(
+            "Eng:Configure VK_" +
+            "Ru:Настроить ВК_");
+
         public string ButtonClearExtraLog => OsLocalization.ConvertToLocString(
            "Eng:Clean up_" +
            "Ru:Очистить _");
@@ -174,5 +178,21 @@ namespace OsEngine.Language
         public string Label31 => OsLocalization.ConvertToLocString(
             "Eng:Clear_" +
             "Ru:Очистить_");
+
+        public string Label32 => OsLocalization.ConvertToLocString(
+            "Eng:VK Messenger_" +
+            "Ru:ВК Мессенджер_");
+
+        public string Label33 => OsLocalization.ConvertToLocString(
+            "Eng:Access Token_" +
+            "Ru:Ключ доступа_");
+
+        public string Label34 => OsLocalization.ConvertToLocString(
+            "Eng:User ID_" +
+            "Ru:ID пользователя_");
+
+        public string Label35 => OsLocalization.ConvertToLocString(
+           "Eng:Check User ID. Only numbers are acceptable_" +
+           "Ru:Проверьте ID пользователя. Допустимы только цифры_");
     }
 }
