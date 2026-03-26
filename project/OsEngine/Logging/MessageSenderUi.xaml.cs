@@ -18,7 +18,7 @@ namespace OsEngine.Logging
         /// distribution manager
         /// менедженр рассылки
         /// </summary>
-        private readonly MessageSender _sender; 
+        private readonly MessageSender _sender;
 
         public MessageSenderUi(MessageSender sender) // constructor / конструктор
         {
@@ -31,16 +31,16 @@ namespace OsEngine.Logging
             Title = OsLocalization.Logging.TitleMessageSenderUi;
 
             Label3.Content = OsLocalization.Logging.Label3;
-            Label4.Content = OsLocalization.Logging.Label4;
+            Label4.Content = OsLocalization.Logging.Label32;
             Label19.Content = OsLocalization.Logging.Label19;
             Label22.Content = OsLocalization.Logging.Label22;
             Label5.Content = OsLocalization.Logging.Label5;
             Label52.Content = OsLocalization.Logging.Label5;
             Label53.Content = OsLocalization.Logging.Label5;
-            Label54.Content = OsLocalization.Logging.Label5;    
+            Label54.Content = OsLocalization.Logging.Label5;
             ButtonAccept.Content = OsLocalization.Logging.Button1;
             ButtonSmsGlobeSet.Content = OsLocalization.Logging.Button2;
-            ButtonMailGlobeSet.Content = OsLocalization.Logging.Button2;
+            ButtonVkGlobeSet.Content = OsLocalization.Logging.Button4;
             ButtonWebhookGlobeSet.Content = OsLocalization.Logging.Button2;
             ButtonTelegramGlobeSet.Content = OsLocalization.Logging.Button3;
 
@@ -50,11 +50,12 @@ namespace OsEngine.Logging
             CheckBoxSmsSystem.Content = OsLocalization.Logging.Label9;
             CheckBoxSmsConnect.Content = OsLocalization.Logging.Label10;
 
-            CheckBoxMailSignal.Content = OsLocalization.Logging.Label6;
-            CheckBoxMailTrade.Content = OsLocalization.Logging.Label7;
-            CheckBoxMailError.Content = OsLocalization.Logging.Label8;
-            CheckBoxMailSystem.Content = OsLocalization.Logging.Label9;
-            CheckBoxMailConnect.Content = OsLocalization.Logging.Label10;
+            CheckBoxVkSignal.Content = OsLocalization.Logging.Label6;
+            CheckBoxVkUser.Content = OsLocalization.Logging.Label26;
+            CheckBoxVkTrade.Content = OsLocalization.Logging.Label7;
+            CheckBoxVkSystem.Content = OsLocalization.Logging.Label9;
+            CheckBoxVkError.Content = OsLocalization.Logging.Label8;
+            CheckBoxVkConnect.Content = OsLocalization.Logging.Label10;
 
             CheckBoxWebhookSignal.Content = OsLocalization.Logging.Label6;
             CheckBoxWebhookTrade.Content = OsLocalization.Logging.Label7;
@@ -79,6 +80,7 @@ namespace OsEngine.Logging
         /// </summary>
         private void LoadDateOnForm()
         {
+            // Webhook settings
             ComboBoxModeWebhook.Items.Add(OsLocalization.Logging.Label1);
             ComboBoxModeWebhook.Items.Add(OsLocalization.Logging.Label2);
 
@@ -97,6 +99,7 @@ namespace OsEngine.Logging
             CheckBoxWebhookSystem.IsChecked = _sender.WebhookSystemSendOn;
             CheckBoxWebhookConnect.IsChecked = _sender.WebhookConnectSendOn;
 
+            // Telegram settings
             ComboBoxModeTelegram.Items.Add(OsLocalization.Logging.Label1);
             ComboBoxModeTelegram.Items.Add(OsLocalization.Logging.Label2);
 
@@ -114,27 +117,9 @@ namespace OsEngine.Logging
             CheckBoxTelegramError.IsChecked = _sender.TelegramErrorSendOn;
             CheckBoxTelegramSystem.IsChecked = _sender.TelegramSystemSendOn;
             CheckBoxTelegramConnect.IsChecked = _sender.TelegramConnectSendOn;
-            CheckBoxTelegramUser.IsChecked = _sender.TelegramUserSendOn;  
+            CheckBoxTelegramUser.IsChecked = _sender.TelegramUserSendOn;
 
-            ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label1);
-            ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label2);
-
-            if (_sender.MailSendOn)
-            {
-                ComboBoxModeMail.Text = OsLocalization.Logging.Label1;
-            }
-            else
-            {
-                ComboBoxModeMail.Text = OsLocalization.Logging.Label2;
-            }
-
-            CheckBoxMailSignal.IsChecked = _sender.MailSignalSendOn;
-            CheckBoxMailTrade.IsChecked = _sender.MailTradeSendOn;
-            CheckBoxMailError.IsChecked = _sender.MailErrorSendOn;
-            CheckBoxMailSystem.IsChecked = _sender.MailSystemSendOn;
-            CheckBoxMailConnect.IsChecked = _sender.MailConnectSendOn;
-
-
+            // SMS settings
             ComboBoxModeSms.Items.Add(OsLocalization.Logging.Label1);
             ComboBoxModeSms.Items.Add(OsLocalization.Logging.Label2);
 
@@ -152,6 +137,26 @@ namespace OsEngine.Logging
             CheckBoxSmsError.IsChecked = _sender.SmsErrorSendOn;
             CheckBoxSmsSystem.IsChecked = _sender.SmsSystemSendOn;
             CheckBoxSmsConnect.IsChecked = _sender.SmsConnectSendOn;
+
+            // VK settings (replaced Mail settings)
+            ComboBoxModeVk.Items.Add(OsLocalization.Logging.Label1);
+            ComboBoxModeVk.Items.Add(OsLocalization.Logging.Label2);
+
+            if (_sender.VkSendOn)
+            {
+                ComboBoxModeVk.Text = OsLocalization.Logging.Label1;
+            }
+            else
+            {
+                ComboBoxModeVk.Text = OsLocalization.Logging.Label2;
+            }
+
+            CheckBoxVkSignal.IsChecked = _sender.VkSignalSendOn;
+            CheckBoxVkTrade.IsChecked = _sender.VkTradeSendOn;
+            CheckBoxVkError.IsChecked = _sender.VkErrorSendOn;
+            CheckBoxVkSystem.IsChecked = _sender.VkSystemSendOn;
+            CheckBoxVkConnect.IsChecked = _sender.VkConnectSendOn;
+            CheckBoxVkUser.IsChecked = _sender.VkUserSendOn;
         }
 
         /// <summary>
@@ -160,6 +165,7 @@ namespace OsEngine.Logging
         /// </summary>
         private void Save()
         {
+            // Webhook save
             if (ComboBoxModeWebhook.Text == OsLocalization.Logging.Label1)
             {
                 _sender.WebhookSendOn = true;
@@ -175,6 +181,7 @@ namespace OsEngine.Logging
             _sender.WebhookSystemSendOn = CheckBoxWebhookSystem.IsChecked.Value;
             _sender.WebhookConnectSendOn = CheckBoxWebhookConnect.IsChecked.Value;
 
+            // Telegram save
             if (ComboBoxModeTelegram.Text == OsLocalization.Logging.Label1)
             {
                 _sender.TelegramSendOn = true;
@@ -191,23 +198,7 @@ namespace OsEngine.Logging
             _sender.TelegramConnectSendOn = CheckBoxTelegramConnect.IsChecked.Value;
             _sender.TelegramUserSendOn = CheckBoxTelegramUser.IsChecked.Value;
 
-
-            if (ComboBoxModeMail.Text == OsLocalization.Logging.Label1)
-            {
-                _sender.MailSendOn = true;
-            }
-            else
-            {
-                _sender.MailSendOn = false;
-            }
-
-            _sender.MailSignalSendOn =  CheckBoxMailSignal.IsChecked.Value;
-            _sender.MailTradeSendOn = CheckBoxMailTrade.IsChecked.Value;
-            _sender.MailErrorSendOn = CheckBoxMailError.IsChecked.Value;
-            _sender.MailSystemSendOn = CheckBoxMailSystem.IsChecked.Value;
-            _sender.MailConnectSendOn = CheckBoxMailConnect.IsChecked.Value;
-
-
+            // SMS save
             if (ComboBoxModeSms.Text == OsLocalization.Logging.Label1)
             {
                 _sender.SmsSendOn = true;
@@ -222,7 +213,24 @@ namespace OsEngine.Logging
             _sender.SmsErrorSendOn = CheckBoxSmsError.IsChecked.Value;
             _sender.SmsSystemSendOn = CheckBoxSmsSystem.IsChecked.Value;
             _sender.SmsConnectSendOn = CheckBoxSmsConnect.IsChecked.Value;
-            
+
+            // VK save 
+            if (ComboBoxModeVk.Text == OsLocalization.Logging.Label1)
+            {
+                _sender.VkSendOn = true;
+            }
+            else
+            {
+                _sender.VkSendOn = false;
+            }
+
+            _sender.VkSignalSendOn = CheckBoxVkSignal.IsChecked.Value;
+            _sender.VkTradeSendOn = CheckBoxVkTrade.IsChecked.Value;
+            _sender.VkErrorSendOn = CheckBoxVkError.IsChecked.Value;
+            _sender.VkSystemSendOn = CheckBoxVkSystem.IsChecked.Value;
+            _sender.VkConnectSendOn = CheckBoxVkConnect.IsChecked.Value;
+            _sender.VkUserSendOn = CheckBoxVkUser.IsChecked.Value;
+
             _sender.Save();
         }
 
@@ -237,11 +245,6 @@ namespace OsEngine.Logging
             ServerWebhook.GetServer().ShowDialog();
         }
 
-        private void ButtonMailGlobeSet_Click(object sender, RoutedEventArgs e) // button to configure the mailing server / кнопка настроить сервер почтовой рассылки
-        {
-            ServerMail.GetServer().ShowDialog();
-        }
-
         private void ButtonSmsGlobeSet_Click(object sender, RoutedEventArgs e) // button to configure the SMS messaging server / кнопка настроить сервер Смс рассылки
         {
             ServerSms.GetSmsServer().ShowDialog();
@@ -252,9 +255,9 @@ namespace OsEngine.Logging
             ServerTelegram.GetServer().ShowDialog();
         }
 
-        private void ComboBoxModeMail_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ButtonVkGlobeSet_Click(object sender, RoutedEventArgs e) // button to configure the VK server / кнопка настроить сервер VK
         {
-
+            ServerVk.GetServer().ShowDialog();
         }
     }
 }
