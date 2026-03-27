@@ -3,11 +3,9 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Candles.Series;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market.Connectors;
-using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -19,28 +17,20 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 
-
 namespace OsEngine.Market.AutoFollow
 {
     [Bot("PortfolioStateCopyBot")]
     public class PortfolioStateCopyBot : BotPanel
     {
         private BotTabSimple _mainTab;
+
         private BotTabScreener _posTabs;
 
-        private WindowsFormsHost _host;
-        private DataGridView _grid;
-
         private StrategyParameterString _regime;
-
-        private NonTradePeriods _tradePeriodsSettings;
-        private StrategyParameterButton _tradePeriodsShowDialogButton;
 
         private List<string> _defaultIgnoredSec = ["RUB", "Rub", "rub", "USDT", "USD", "Usd", "Eur", "EUR"];
 
         private List<Tuple<Security, Side, decimal>> _notIgnoredSec = [];
-
-        private List<Security> _securitiesAll;
 
         public PortfolioStateCopyBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -82,150 +72,35 @@ namespace OsEngine.Market.AutoFollow
     
             _grid.Click += _grid_Click;
 
-            _mainTab.SecuritySubscribeEvent += _mainTab_SecuritySubscribeEvent;
-
             Thread worker = new Thread(WorkerPlace);
             worker.Start();
         }
 
-        private void _mainTab_SecuritySubscribeEvent(Security sec)
+        private void LoadIgnoredPos()
         {
             try
             {
-                if (_regime.ValueString == "Off")
+                if (!File.Exists(@"Engine\" + NameStrategyUniq + "-IgnoredPos.txt"))
                 {
-                    Thread.Sleep(1000);
+                    CreateTable();
+
+                    string allPos = "";
+
+                    for (int i = 0; i < _grid.Rows.Count - 1; i++)
+                    {
+                        allPos += _grid.Rows[i].Cells[0].Value.ToString() + "%";
+                    }
+
+                    allPos = allPos.TrimEnd('%');
+
+                    File.WriteAllText(@"Engine\" + NameStrategyUniq + "-IgnoredPos.txt", allPos);
+
                     return;
                 }
 
-                _securitiesAll = _mainTab.Connector.MyServer.Securities;
+                _defaultIgnoredSec = File.ReadAllText(@"Engine\" + NameStrategyUniq + @"-IgnoredPos.txt").Split('%').ToList();
 
-                if (_securitiesAll == null
-                    || _securitiesAll.Count == 0)
-                {
-                    SendNewLogMessage(OsLocalization.Market.Message112, Logging.LogMessageType.Error);
-                    return;
-                }
-
-
-                // поиск не игнорируемых бумаг
-                List<PositionOnBoard> positionsOnExchange = _mainTab.Portfolio.PositionOnBoard;
-
-                if (positionsOnExchange == null
-                   || positionsOnExchange.Count == 0)
-                {
-                    SendNewLogMessage(OsLocalization.Market.Message111, Logging.LogMessageType.Error);
-                    return;
-                }
-
-                for (int i = 0; i < positionsOnExchange.Count; i++)
-                {
-                    PositionOnBoard positionOnEx = positionsOnExchange[i];
-
-                    bool isIgnored = false;
-
-                    for (int j = 0; j < _defaultIgnoredSec.Count; j++)
-                    {
-                        if (_defaultIgnoredSec[j] == positionOnEx.SecurityNameCode)
-                        {
-                            isIgnored = true;
-                            break;
-                        }
-                    }
-
-                    if (isIgnored)
-                    {
-                        continue;
-                    }
-                        
-                    Security secInServer = null;
-
-                    if(string.IsNullOrEmpty(positionOnEx.SecurityNameClass) == false)
-                    {
-                        secInServer = _securitiesAll.Find(s => 
-                        s.Name.Equals(positionOnEx.SecurityNameCode) &&
-                         s.NameClass.Equals(positionOnEx.SecurityNameClass)
-                        );
-                    }
-                    else
-                    {
-                        secInServer = _securitiesAll.Find(s => s.Name.Equals(positionOnEx.SecurityNameCode));
-                    }
-
-                    if (secInServer == null) // в инструментах коннектора не нашли инструмент из портфеля
-                    {
-                        SendNewLogMessage(positionOnEx.SecurityNameCode + OsLocalization.Market.Message107 + OsLocalization.Market.Message108, Logging.LogMessageType.Error);
-                        continue;
-                    }
-
-                    Side posExchangeDirection = positionOnEx.ValueCurrent < 0 ? Side.Sell : Side.Buy;
-
-                    _notIgnoredSec.Add(new Tuple<Security, Side, decimal>(secInServer, posExchangeDirection, positionOnEx.ValueCurrent));
-                }
-
-
-                if (_posTabs.Tabs.Count > 0 && _posTabs.PositionsOpenAll.Count > 0)
-                {
-                    // Позиции восстановлены после перезапуска
-                    return;
-                }
-
-                IServer sourceServer = _mainTab.Connector.MyServer;
-
-                // настраиваем скринер
-                _posTabs.SecuritiesClass = sec.NameClass;
-                _posTabs.TimeFrame = TimeFrame.Hour1;
-                _posTabs.PortfolioName = _mainTab.Portfolio.Number;
-                _posTabs.ServerType = sourceServer.ServerType;
-                _posTabs.ServerName = sourceServer.ServerNameAndPrefix;
-
-                _posTabs.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
-                ((Simple)_posTabs.CandleSeriesRealization).TimeFrame = TimeFrame.Hour1;
-                ((Simple)_posTabs.CandleSeriesRealization).TimeFrameParameter.ValueString = TimeFrame.Hour1.ToString();
-
-                // добавление бумаг в скринер
-                List<ActivatedSecurity> securitiesToScreener = new List<ActivatedSecurity>();
-
-                for (int i = 0; i < _notIgnoredSec.Count; i++)
-                {
-                    ActivatedSecurity secToScreener = new ActivatedSecurity();
-                    secToScreener.SecurityClass = _notIgnoredSec[i].Item1.NameClass;
-                    secToScreener.SecurityName = _notIgnoredSec[i].Item1.Name;
-                    secToScreener.IsOn = true;
-                    securitiesToScreener.Add(secToScreener);
-                }
-
-                for (int i = 0; i < securitiesToScreener.Count; i++)
-                {
-                    if (_posTabs.SecuritiesNames.Find(s => s.SecurityName == securitiesToScreener[i].SecurityName) == null)
-                    {
-                        _posTabs.SecuritiesNames.Add(securitiesToScreener[i]);
-                    }
-                }
-
-                _posTabs.SaveSettings();
-                _posTabs.NeedToReloadTabs = true;
-
-                WaitTabsDownload();
-
-                // создаём позиции из того, что уже есть в портфеле
-                for (int j = 0; j < _notIgnoredSec.Count; j++)
-                {
-                    BotTabSimple tab = _posTabs.Tabs.Find(t => t.Security.Name == _notIgnoredSec[j].Item1.Name);
-
-                    if (tab != null)
-                    {
-                        Position newDeal = tab._dealCreator.CreatePosition(tab.TabName, _notIgnoredSec[j].Item2, _notIgnoredSec[j].Item2 == Side.Buy ? tab.PriceBestAsk : tab.PriceBestBid,
-                                           Math.Abs(_notIgnoredSec[j].Item3), OrderPriceType.Market, tab.ManualPositionSupport.SecondToOpen, _notIgnoredSec[j].Item1, tab.Portfolio,
-                                           tab.StartProgram, tab.ManualPositionSupport.OrderTypeTime, tab.ManualPositionSupport.LimitsMakerOnly);
-
-                        newDeal.NameBotClass = tab.BotClassName;
-
-                        tab._journal.SetNewDeal(newDeal);
-
-                        tab.OrderFakeExecute(newDeal.OpenOrders[0], DateTime.Now);
-                    }
-                }
+                CreateTable();
             }
             catch (Exception ex)
             {
@@ -233,33 +108,21 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
-        private void WaitTabsDownload()
+        private void DeleteBotEvent()
         {
-            DateTime startWait = DateTime.Now;
-
-            while (_posTabs.Tabs.Count != _notIgnoredSec.Count)
+            if (File.Exists(@"Engine\" + NameStrategyUniq + "-IgnoredPos.txt"))
             {
-                if(DateTime.Now > startWait.AddSeconds(10))
-                {
-                    break;
-                }
+                File.Delete(@"Engine\" + NameStrategyUniq + "-IgnoredPos.txt");
             }
 
-            for (int k = 0; k < _posTabs.Tabs.Count; k++) 
-            {
-                if (_posTabs.Tabs[k].Security == null || _posTabs.Tabs[k].PriceBestAsk == 0 || _posTabs.Tabs[k].PriceBestBid == 0)
-                {
-                    k--;
-                }
-
-                if (DateTime.Now > startWait.AddSeconds(50))
-                {
-                    break;
-                }
-            }
+            _botIsDelete = true;
         }
 
-        #region work with grid
+        #region Work with grid
+
+        private WindowsFormsHost _host;
+
+        private DataGridView _grid;
 
         private void CreateTable()
         {
@@ -405,18 +268,9 @@ namespace OsEngine.Market.AutoFollow
                             return;
                         }
 
-                        if (_securitiesAll != null)
-                        {
-                            Security secInServer = _securitiesAll.Find(s => s.Name.Equals(_grid.Rows[rowIndex].Cells[0].Value.ToString()));
+                        List<Security> _securitiesAll = _mainTab.Connector.MyServer.Securities;
 
-                            if (secInServer == null)
-                            {
-                                CustomMessageBoxUi boxUi = new CustomMessageBoxUi(_grid.Rows[rowIndex].Cells[0].Value + OsLocalization.Market.Message107 + OsLocalization.Market.Message109);
-                                boxUi.ShowDialog();
-                                return;
-                            }
-                        }
-                        else
+                        if (_securitiesAll == null)
                         {
                             CustomMessageBoxUi boxUi = new CustomMessageBoxUi(OsLocalization.Market.Message113);
                             boxUi.ShowDialog();
@@ -446,42 +300,9 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
-        // Loading saved table data
-        private void LoadIgnoredPos()
-        {
-            try
-            {
-                if (!File.Exists(@"Engine\" + NameStrategyUniq + "-IgnoredPos.txt"))
-                {
-                    CreateTable();
-
-                    string allPos = "";
-
-                    for (int i = 0; i < _grid.Rows.Count - 1; i++)
-                    {
-                        allPos += _grid.Rows[i].Cells[0].Value.ToString() + "%";
-                    }
-
-                    allPos = allPos.TrimEnd('%');
-
-                    File.WriteAllText(@"Engine\" + NameStrategyUniq + "-IgnoredPos.txt", allPos);
-
-                    return;
-                }
-
-                _defaultIgnoredSec = File.ReadAllText(@"Engine\" + NameStrategyUniq + @"-IgnoredPos.txt").Split('%').ToList();
-
-                CreateTable();
-            }
-            catch (Exception ex)
-            {
-                SendNewLogMessage(ex.Message, Logging.LogMessageType.Error);
-            }
-        }
-
         #endregion
 
-        // Worker place
+        #region Worker place
 
         private bool _botIsDelete = false;
 
@@ -512,6 +333,13 @@ namespace OsEngine.Market.AutoFollow
                     }
 
                     if (_tradePeriodsSettings.CanTradeThisTime(_mainTab.TimeServerCurrent) == false)
+                    {
+                        continue;
+                    }
+
+                    List<Security> _securitiesAll = _mainTab.Connector.MyServer.Securities;
+
+                    if (_securitiesAll == null)
                     {
                         continue;
                     }
@@ -690,21 +518,46 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
-        // Delete Bot
-        private void DeleteBotEvent()
+        private void WaitTabsDownload()
         {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + "-IgnoredPos.txt"))
+            DateTime startWait = DateTime.Now;
+
+            while (_posTabs.Tabs.Count != _notIgnoredSec.Count)
             {
-                File.Delete(@"Engine\" + NameStrategyUniq + "-IgnoredPos.txt");
+                if (DateTime.Now > startWait.AddSeconds(10))
+                {
+                    break;
+                }
             }
 
-            _botIsDelete = true;
+            for (int k = 0; k < _posTabs.Tabs.Count; k++)
+            {
+                if (_posTabs.Tabs[k].Security == null || _posTabs.Tabs[k].PriceBestAsk == 0 || _posTabs.Tabs[k].PriceBestBid == 0)
+                {
+                    k--;
+                }
+
+                if (DateTime.Now > startWait.AddSeconds(50))
+                {
+                    break;
+                }
+            }
         }
+
+        #endregion
+
+        #region No trade periods
+
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
+        private NonTradePeriods _tradePeriodsSettings;
 
         private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
         {
             _tradePeriodsSettings.ShowDialog();
         }
+
+        #endregion
 
     }
 }
