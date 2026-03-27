@@ -39,8 +39,8 @@ namespace OsEngine.Market.AutoFollow
         private List<string> _defaultIgnoredSec = ["RUB", "Rub", "rub", "USDT", "USD", "Usd", "Eur", "EUR"];
 
         private List<Tuple<Security, Side, decimal>> _notIgnoredSec = [];
+
         private List<Security> _securitiesAll;
-        private bool _hasBotStarted = false;
 
         public PortfolioStateCopyBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -167,7 +167,6 @@ namespace OsEngine.Market.AutoFollow
                 if (_posTabs.Tabs.Count > 0 && _posTabs.PositionsOpenAll.Count > 0)
                 {
                     // Позиции восстановлены после перезапуска
-                    _hasBotStarted = true;
                     return;
                 }
 
@@ -227,8 +226,6 @@ namespace OsEngine.Market.AutoFollow
                         tab.OrderFakeExecute(newDeal.OpenOrders[0], DateTime.Now);
                     }
                 }
-
-                _hasBotStarted = true;
             }
             catch (Exception ex)
             {
@@ -244,7 +241,6 @@ namespace OsEngine.Market.AutoFollow
             {
                 if(DateTime.Now > startWait.AddSeconds(10))
                 {
-                    SendNewLogMessage(OsLocalization.Market.Message110, Logging.LogMessageType.Error);
                     break;
                 }
             }
@@ -258,7 +254,6 @@ namespace OsEngine.Market.AutoFollow
 
                 if (DateTime.Now > startWait.AddSeconds(50))
                 {
-                    SendNewLogMessage(OsLocalization.Market.Message110, Logging.LogMessageType.Error);
                     break;
                 }
             }
@@ -369,8 +364,6 @@ namespace OsEngine.Market.AutoFollow
 
                             // удалить позицию и вкладку
 
-                            _hasBotStarted = false;
-
                             BotTabSimple tab = _posTabs.Tabs.Find(t => t.Security.Name.StartsWith(newSec));
 
                             if (tab != null && tab.PositionsOpenAll.Count == 1)   // у бота есть позиция с таким инструментом
@@ -382,8 +375,6 @@ namespace OsEngine.Market.AutoFollow
                                 _posTabs.SaveSettings();
                                 _posTabs.NeedToReloadTabs = true;
                             }    
-
-                            _hasBotStarted = true;
                         }
 
                         _defaultIgnoredSec.Add(newSec);
@@ -455,7 +446,6 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
-
         // Loading saved table data
         private void LoadIgnoredPos()
         {
@@ -514,13 +504,8 @@ namespace OsEngine.Market.AutoFollow
                         continue;
                     }
 
-                    if (!_mainTab.IsConnected)
-                    {
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
-                    if (!_hasBotStarted)
+                    if (_mainTab.IsConnected == false
+                        || _mainTab.IsReadyToTrade == false)
                     {
                         Thread.Sleep(1000);
                         continue;
@@ -554,8 +539,10 @@ namespace OsEngine.Market.AutoFollow
                         }
 
                         if (isIgnored)
+                        {
                             continue;
-   
+                        }
+                            
                         Side posExchangeDirection = positionOnEx.ValueCurrent < 0 ? Side.Sell : Side.Buy;
 
                         Security security = null;
@@ -580,7 +567,7 @@ namespace OsEngine.Market.AutoFollow
   
                         BotTabSimple tab = _posTabs.Tabs.Find(t => t.Security.Name.Equals(positionOnEx.SecurityNameCode));
 
-                        if (tab != null && tab.PositionsOpenAll.Count == 1)   // у бота есть позиция с таким инструментом
+                        if (tab != null && tab.PositionsOpenAll.Count > 0)   // у бота есть позиция с таким инструментом
                         {
                             if(positionOnEx.ValueCurrent == 0) // бумаги нет в портфеле
                             {
@@ -719,10 +706,5 @@ namespace OsEngine.Market.AutoFollow
             _tradePeriodsSettings.ShowDialog();
         }
 
-        // The name of the robot in OsEngine
-        public override string GetNameStrategyType()
-        {
-            return "PortfolioStateCopyBot";
-        }
     }
 }

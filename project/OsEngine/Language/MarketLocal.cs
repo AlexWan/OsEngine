@@ -1786,10 +1786,6 @@ namespace OsEngine.Language
           "Eng: Deletion is not possible_" +
           "Ru: Удаление невозможно_");
 
-        public string Message110 => OsLocalization.ConvertToLocString(
-          "Eng:The data for the screener tabs did not load completely. There may be a loading error_" +
-          "Ru:Данные для вкладок скринера не загрузились полностью. Возможно ошибка загрузки._");
-
         public string Message111 => OsLocalization.ConvertToLocString(
           "Eng:There are no positions in the portfolio. Check the connection_" +
           "Ru:Нет позиций в портфеле. Проверьте подключение_");

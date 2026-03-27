@@ -334,19 +334,33 @@ namespace OsEngine.Market.Servers.Finam
 
         private void CompleteWithToken(string token)
         {
-            if (_completed || string.IsNullOrWhiteSpace(token))
+            try
             {
-                return;
+                if (_completed || string.IsNullOrWhiteSpace(token))
+                {
+                    return;
+                }
+
+                _completed = true;
+                CapturedToken = token;
+
+                Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        DialogResult = true;
+                        Close();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                });
             }
-
-            _completed = true;
-            CapturedToken = token;
-
-            Dispatcher.Invoke(() =>
+            catch
             {
-                DialogResult = true;
-                Close();
-            });
+                // ignore
+            }
         }
 
         private static string ExtractTokenFromUriString(string uri)
