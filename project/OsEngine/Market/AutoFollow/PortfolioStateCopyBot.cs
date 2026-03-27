@@ -344,9 +344,10 @@ namespace OsEngine.Market.AutoFollow
                         continue;
                     }
 
-                    // отслеживание изменений в портфеле
+                    // 1 модерация позиций в существующих источниках
+
                     List<PositionOnBoard> positionsOnExchange = _mainTab.Portfolio.PositionOnBoard;
-     
+
                     List<Position> botPositions = _posTabs.PositionsOpenAll;
 
                     List<ActivatedSecurity> securitiesToScreener = new List<ActivatedSecurity>();
@@ -370,7 +371,7 @@ namespace OsEngine.Market.AutoFollow
                         {
                             continue;
                         }
-                            
+
                         Side posExchangeDirection = positionOnEx.ValueCurrent < 0 ? Side.Sell : Side.Buy;
 
                         Security security = null;
@@ -392,12 +393,12 @@ namespace OsEngine.Market.AutoFollow
                             SendNewLogMessage(positionOnEx.SecurityNameCode + OsLocalization.Market.Message107, Logging.LogMessageType.Error);
                             continue;
                         }
-  
+
                         BotTabSimple tab = _posTabs.Tabs.Find(t => t.Security.Name.Equals(positionOnEx.SecurityNameCode));
 
                         if (tab != null && tab.PositionsOpenAll.Count > 0)   // у бота есть позиция с таким инструментом
                         {
-                            if(positionOnEx.ValueCurrent == 0) // бумаги нет в портфеле
+                            if (positionOnEx.ValueCurrent == 0) // бумаги нет в портфеле
                             {
                                 tab.CloseAtFake(tab.PositionsOpenAll[0], tab.PositionsOpenAll[0].MaxVolume, tab.PriceBestAsk, DateTime.Now);
 
@@ -405,7 +406,7 @@ namespace OsEngine.Market.AutoFollow
 
                                 continue;
                             }
-                            else if (tab.PositionsOpenAll[0].Direction != posExchangeDirection 
+                            else if (tab.PositionsOpenAll[0].Direction != posExchangeDirection
                                 || tab.PositionsOpenAll[0].OpenVolume != Math.Abs(positionOnEx.ValueCurrent))      // проверка направления и объема
                             {
                                 tab.CloseAtFake(tab.PositionsOpenAll[0], tab.PositionsOpenAll[0].MaxVolume, tab.PriceBestAsk, DateTime.Now);
@@ -418,7 +419,7 @@ namespace OsEngine.Market.AutoFollow
 
                                     _notIgnoredSec.Add(new Tuple<Security, Side, decimal>(security, posExchangeDirection, positionOnEx.ValueCurrent));
                                 }
-                    
+
                                 Position newDeal = tab._dealCreator.CreatePosition(tab.TabName, posExchangeDirection, posExchangeDirection == Side.Buy ? tab.PriceBestAsk : tab.PriceBestBid,
                                                    Math.Abs(positionOnEx.ValueCurrent), OrderPriceType.Market, tab.ManualPositionSupport.SecondToOpen, security, tab.Portfolio,
                                                    tab.StartProgram, tab.ManualPositionSupport.OrderTypeTime, tab.ManualPositionSupport.LimitsMakerOnly);
@@ -429,11 +430,11 @@ namespace OsEngine.Market.AutoFollow
 
                                 tab.OrderFakeExecute(newDeal.OpenOrders[0], DateTime.Now);
                             }
-      
+
                             continue;
 
                         }
-                        else // добавить инструмент 
+                        else // добавить позицию
                         {
                             if (positionsOnExchange[i].ValueCurrent == 0) // ещё сделки нет
                             {
@@ -453,13 +454,15 @@ namespace OsEngine.Market.AutoFollow
                         }
                     }
 
-                    if(securitiesToScreener.Count > 0) // создать новые позиции
+                    // 2 создать новые ИСТОЧНИКИ
+
+                    if (securitiesToScreener.Count > 0)
                     {
-                        for(int i = 0;i < securitiesToScreener.Count;i++)
+                        for (int i = 0; i < securitiesToScreener.Count; i++)
                         {
                             bool isInArray = false;
 
-                            for(int i2 = 0;i2 < _posTabs.SecuritiesNames.Count;i2++)
+                            for (int i2 = 0; i2 < _posTabs.SecuritiesNames.Count; i2++)
                             {
                                 if (_posTabs.SecuritiesNames[i2].Equals(securitiesToScreener[i]))
                                 {
@@ -467,7 +470,7 @@ namespace OsEngine.Market.AutoFollow
                                     break;
                                 }
                             }
-                            if(isInArray == false)
+                            if (isInArray == false)
                             {
                                 _posTabs.SecuritiesNames.Add(securitiesToScreener[i]);
                             }
@@ -499,32 +502,85 @@ namespace OsEngine.Market.AutoFollow
                         }
                     }
 
-                    // проверка удаления бумаг
-                    for (int k = 0; k < _notIgnoredSec.Count; k++)
+                    // 3 проверка удаления Источников, если по ним нет позиций на бирже
+
+                    for (int i = 0; i < _posTabs.Tabs.Count; i++)
                     {
-                        PositionOnBoard removedSec = positionsOnExchange.Find(p => p.SecurityNameCode == _notIgnoredSec[k].Item1.Name);
+                        BotTabSimple tabCurrent = _posTabs.Tabs[i];
 
-                        if (removedSec == null) //  этой бумаги уже нет в портфеле
+                        List<Position> openPositionsInTab = tabCurrent.PositionsOpenAll;
+
+                        if (openPositionsInTab.Count == 0)
                         {
-                            _posTabs.RemoveTabBySecurityName(_notIgnoredSec[k].Item1.Name, _notIgnoredSec[k].Item1.NameClass);
-
-                            _notIgnoredSec.Remove(_notIgnoredSec[k]);
+                            _posTabs.RemoveTabBySecurityName(tabCurrent.Security.Name, tabCurrent.Security.NameClass);
+                            Thread.Sleep(1000);
+                            break;
                         }
-                    }
-    
-                    if (_notIgnoredSec.Count == 0 && _posTabs.Tabs.Count > 0)
-                    {
-                        for (int i = 0; i < _posTabs.Tabs.Count; i++)
+
+                        if (openPositionsInTab.Count > 0)
                         {
-                            if (_posTabs.Tabs[i].PositionsOpenAll.Count == 0)
+                            bool haveOnExchange = false;
+
+                            for (int i2 = 0; i2 < positionsOnExchange.Count; i2++)
                             {
-                                _posTabs.RemoveTabBySecurityName(_posTabs.Tabs[i].Security.Name, _posTabs.Tabs[i].Security.NameClass);
-                                _posTabs.Tabs.Remove(_posTabs.Tabs[i]);
+                                PositionOnBoard positionOnEx = positionsOnExchange[i2];
+
+                                bool mySecurity = false;
+
+                                if(string.IsNullOrEmpty(positionOnEx.SecurityNameClass) == false)
+                                {
+                                    if(positionOnEx.SecurityNameCode == tabCurrent.Security.Name
+                                        && positionOnEx.SecurityNameClass == tabCurrent.Security.NameClass)
+                                    {
+                                        mySecurity = true;
+                                    }
+                                }
+                                else
+                                {
+                                    if (positionOnEx.SecurityNameCode == tabCurrent.Security.Name)
+                                    {
+                                        mySecurity = true;
+                                    }
+                                }
+
+                                if(mySecurity == true
+                                    && positionOnEx.ValueCurrent != 0)
+                                    
+                                {
+                                    haveOnExchange = true;
+                                }
                             }
 
+                            if(haveOnExchange == false)
+                            {
+                                _posTabs.RemoveTabBySecurityName(tabCurrent.Security.Name, tabCurrent.Security.NameClass);
+                                Thread.Sleep(1000);
+                                break;
+                            }
                         }
                     }
 
+                    // 4 проверяем дубли позиций. Если в источнике позиций больше одной
+
+                    for (int i = 0; i < _posTabs.Tabs.Count; i++)
+                    {
+                        BotTabSimple tabCurrent = _posTabs.Tabs[i];
+
+                        List<Position> openPositionsInTab = tabCurrent.PositionsOpenAll;
+
+                        if (openPositionsInTab.Count > 1)
+                        {
+                            Position[] poses = openPositionsInTab.ToArray();
+
+                            for(int i2 = 1;i2 < poses.Length;i2++)
+                            {
+                                tabCurrent._journal.DeletePosition(poses[i2]);
+                            }
+
+                            Thread.Sleep(3000);
+                            break;
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
