@@ -85,7 +85,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             try
             {
-                RestRequest requestRest = new RestRequest("/v1/time", Method.GET);
+                RestRequest requestRest = new RestRequest("/v3/time", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
 
                 if (_myProxy != null)
