@@ -1355,14 +1355,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     && SecuritiesNames[i].SecurityClass == securityClass)
                 {
                     SecuritiesNames.RemoveAt(i);
-                    NeedToReloadTabs = true;
                     securityDeleted = true;
-                    break;
+                    i--;
                 }
             }
 
             if (securityDeleted == true)
             {
+                NeedToReloadTabs = true;
                 SaveSettings();
             }
         }

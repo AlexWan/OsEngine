@@ -455,7 +455,23 @@ namespace OsEngine.Market.AutoFollow
 
                     if(securitiesToScreener.Count > 0) // создать новые позиции
                     {
-                        _posTabs.SecuritiesNames.AddRange(securitiesToScreener);
+                        for(int i = 0;i < securitiesToScreener.Count;i++)
+                        {
+                            bool isInArray = false;
+
+                            for(int i2 = 0;i2 < _posTabs.SecuritiesNames.Count;i2++)
+                            {
+                                if (_posTabs.SecuritiesNames[i2].Equals(securitiesToScreener[i]))
+                                {
+                                    isInArray = true;
+                                    break;
+                                }
+                            }
+                            if(isInArray == false)
+                            {
+                                _posTabs.SecuritiesNames.Add(securitiesToScreener[i]);
+                            }
+                        }
 
                         _posTabs.SaveSettings();
                         _posTabs.NeedToReloadTabs = true;
