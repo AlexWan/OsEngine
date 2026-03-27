@@ -19,7 +19,7 @@ namespace OsEngine.Logging
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
-            
+
             ServerTelegram serverTelegram = ServerTelegram.GetServer();
 
             TextBoxMyBotToken.Text = serverTelegram.BotToken;
@@ -43,15 +43,7 @@ namespace OsEngine.Logging
 
             if (long.TryParse(TextBoxChatId.Text, out serverTelegram.ChatId))
             {
-                if(CheckBoxTelegramProcessingCommand.IsChecked == null || !CheckBoxTelegramProcessingCommand.IsChecked.Value)
-                {
-                    CheckBoxTelegramProcessingCommand.IsChecked = false;
-                }
-                else
-                {
-                    serverTelegram.ProcessingCommand = true;
-                }
-                
+                serverTelegram.ProcessingCommand = CheckBoxTelegramProcessingCommand.IsChecked == true;
                 serverTelegram.Save();
                 Close();
             }

@@ -40,15 +40,7 @@ namespace OsEngine.Logging
 
             if (long.TryParse(TextBoxUserId.Text, out serverVk.UserId))
             {
-                if (CheckBoxProcessingCommand.IsChecked == null || !CheckBoxProcessingCommand.IsChecked.Value)
-                {
-                    CheckBoxProcessingCommand.IsChecked = false;
-                }
-                else
-                {
-                    serverVk.ProcessingCommand = true;
-                }
-
+                serverVk.ProcessingCommand = CheckBoxProcessingCommand.IsChecked == true;
                 serverVk.Save();
                 Close();
             }
