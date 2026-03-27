@@ -5,6 +5,7 @@
 
 using OsEngine.Logging;
 using System;
+using System.Threading;
 using System.Windows;
 
 namespace OsEngine.Market.Servers.Finam
@@ -68,17 +69,6 @@ namespace OsEngine.Market.Servers.Finam
                         return null;
                     }
 
-                    void OpenAuth()
-                    {
-                        FinamAuthWindow win = new FinamAuthWindow();
-                        bool? result = win.ShowDialog();
-
-                        if (result == true)
-                        {
-                            captured = win.CapturedToken;
-                        }
-                    }
-
                     if (app.Dispatcher.CheckAccess())
                     {
                         OpenAuth();
@@ -87,6 +77,26 @@ namespace OsEngine.Market.Servers.Finam
                     {
                         app.Dispatcher.Invoke(OpenAuth);
                     }
+
+                    DateTime endAwaitTime = DateTime.Now.AddSeconds(20);
+
+                    while(true)
+                    {
+                        if (DateTime.Now > endAwaitTime)
+                        {
+                            _server.SendLogMessage($"Finam. Ошибка авторизации. Нет ответа дольше 20 секунд. \n Сервера не доступны с IP за пределами РФ. Пробуйте отключать ВПН и прокси", LogMessageType.Error);
+                            return null;
+                        }
+
+                        if(string.IsNullOrEmpty(_winUi.CapturedToken) == false)
+                        {
+                            captured = _winUi.CapturedToken;
+                            break;
+                        }
+
+                        Thread.Sleep(1000);
+                    }
+
                 }
                 catch (Exception ex)
                 {
@@ -108,6 +118,14 @@ namespace OsEngine.Market.Servers.Finam
                     return _token;
                 }
             }
+        }
+
+        private FinamAuthWindow _winUi;
+
+        private void OpenAuth()
+        {
+            _winUi = new FinamAuthWindow();
+            _winUi.Show();
         }
     }
 }
