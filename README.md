@@ -1,5 +1,7 @@
 ![image](https://github.com/user-attachments/assets/9c948445-cfae-47b6-8932-89b7329247f2)
 
+[![gitcgr](https://gitcgr.com/badge/AlexWan/OsEngine.svg)](https://gitcgr.com/AlexWan/OsEngine)
+
 
 ## Что такое OsEngine?
 
