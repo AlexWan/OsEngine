@@ -2042,11 +2042,24 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 jsonContent.Add("symbol", order.SecurityNameCode);
                 jsonContent.Add("side", order.Side == Side.Buy ? "buy" : "sell");
                 jsonContent.Add("orderType", order.TypeOrder.ToString().ToLower());
-                jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
+
+                if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
+
+                    if (order.OrderTypeTime == OrderTypeTime.GTC)
+                    {
+                        jsonContent.Add("force", "gtc");
+                    }
+                    else
+                    {
+                        jsonContent.Add("force", "gtc");
+                    }
+                }
+
                 jsonContent.Add("size", order.Volume.ToString().Replace(",", "."));
                 jsonContent.Add("clientOid", order.NumberUser);
-                jsonContent.Add("force", "gtc");
-
+                
                 string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
                 IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/spot/trade/place-order", Method.POST, null, jsonRequest);

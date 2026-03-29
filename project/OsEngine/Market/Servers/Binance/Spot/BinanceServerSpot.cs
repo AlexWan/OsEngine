@@ -2443,9 +2443,17 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     param.Add("symbol=", order.SecurityNameCode.ToUpper());
                     param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
                     param.Add("&type=", TypeOrder);
+
                     if (TypeOrder.Equals("LIMIT"))
                     {
-                        param.Add("&timeInForce=", "GTC");
+                        if (order.OrderTypeTime == OrderTypeTime.GTC)
+                        {
+                            param.Add("&timeInForce=", "GTC");
+                        }
+                        else 
+                        {
+                            param.Add("&timeInForce=", "GTC");
+                        } 
                     }
                     param.Add("&newClientOrderId=", "x-RKXTQ2AK" + order.NumberUser.ToString());
 
@@ -2461,6 +2469,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     param.Add("&quantity=",
                         order.Volume.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+                    
                     if (TypeOrder.Equals("LIMIT"))
                     {
                         param.Add("&price=",
@@ -2468,7 +2477,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
                     }
 
-                    var res = CreateQuery(BinanceExchangeType.MarginExchange, Method.POST, "/sapi/v1/margin/order", param, true);
+                    string res = CreateQuery(BinanceExchangeType.MarginExchange, Method.POST, "/sapi/v1/margin/order", param, true);
 
                     if (res != null && res.Contains("clientOrderId"))
                     {
@@ -2504,22 +2513,29 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     param.Add("symbol=", order.SecurityNameCode.ToUpper());
                     param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
                     param.Add("&type=", TypeOrder);
+
                     if (TypeOrder.Equals("LIMIT"))
                     {
-                        param.Add("&timeInForce=", "GTC");
+                        if (order.OrderTypeTime == OrderTypeTime.GTC)
+                        {
+                            param.Add("&timeInForce=", "GTC");
+                        }
+                        else
+                        {
+                            param.Add("&timeInForce=", "GTC");
+                        } 
                     }
+
                     param.Add("&newClientOrderId=", "x-RKXTQ2AK" + order.NumberUser.ToString());
-                    param.Add("&quantity=",
-                        order.Volume.ToString(CultureInfo.InvariantCulture)
+                    param.Add("&quantity=",order.Volume.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
                     if (TypeOrder.Equals("LIMIT"))
                     {
-                        param.Add("&price=",
-                      order.Price.ToString(CultureInfo.InvariantCulture)
+                        param.Add("&price=",order.Price.ToString(CultureInfo.InvariantCulture)
                           .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
                     }
 
-                    var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.POST, "api/v3/order", param, true);
+                    string res = CreateQuery(BinanceExchangeType.SpotExchange, Method.POST, "api/v3/order", param, true);
 
                     if (res != null && res.Contains("clientOrderId"))
                     {

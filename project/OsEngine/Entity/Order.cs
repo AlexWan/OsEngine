@@ -700,11 +700,6 @@ namespace OsEngine.Entity
         /// <summary>
         /// Order will be throughout the day. 
         /// </summary>
-        Day,
-
-        /// <summary>
-        /// Order will be throughout the trade session.
-        /// </summary>
-        TradeSession
+        Day
     }
 }

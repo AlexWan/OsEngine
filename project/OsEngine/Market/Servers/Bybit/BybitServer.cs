@@ -3732,6 +3732,15 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (order.TypeOrder == OrderPriceType.Limit)
                 {
+                    if (order.OrderTypeTime == OrderTypeTime.GTC)
+                    {
+                        parameters["timeInForce"] = "GTC";
+                    }
+                    else
+                    {
+                        parameters["timeInForce"] = "GTC";
+                    }
+
                     parameters["price"] = order.Price.ToString().Replace(",", ".");
                 }
                 else if ((string)parameters["category"] == Category.spot.ToString())
