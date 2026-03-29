@@ -2676,7 +2676,21 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 jsonContent.Add("side", posSide);
                 jsonContent.Add("orderType", order.TypeOrder.ToString().ToLower());
-                jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
+
+                if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
+
+                    if (order.OrderTypeTime == OrderTypeTime.GTC)
+                    {
+                        jsonContent.Add("force", "gtc");
+                    }
+                    else
+                    {
+                        jsonContent.Add("force", "gtc");
+                    }
+                }
+                
                 jsonContent.Add("size", order.Volume.ToString().Replace(",", "."));
                 jsonContent.Add("clientOid", order.NumberUser);
 

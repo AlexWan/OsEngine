@@ -2580,7 +2580,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public void SendOrder(Order order)
         {
-
             try
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -2604,7 +2603,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     }
                 }
                 param.Add("&type=", order.TypeOrder == OrderPriceType.Limit ? "LIMIT" : "MARKET");
-                //param.Add("&timeInForce=", "GTC");
                 param.Add("&newClientOrderId=", "x-gnrPHWyE" + order.NumberUser.ToString());
                 param.Add("&quantity=",
                     order.Volume.ToString(CultureInfo.InvariantCulture)
@@ -2618,11 +2616,17 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 if (order.TypeOrder == OrderPriceType.Limit)
                 {
-                    param.Add("&timeInForce=", "GTC");
-                    param.Add("&price=",
-                        order.Price.ToString(CultureInfo.InvariantCulture)
-                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+                    if (order.OrderTypeTime == OrderTypeTime.GTC)
+                    {
+                        param.Add("&timeInForce=", "GTC");
+                    }
+                    else
+                    {
+                        param.Add("&timeInForce=", "GTC");
+                    }
 
+                    param.Add("&price=",order.Price.ToString(CultureInfo.InvariantCulture)
+                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
                 }
 
                 var res = CreateQuery(Method.POST, "/" + type_str_selector + "/v1/order", param, true);
