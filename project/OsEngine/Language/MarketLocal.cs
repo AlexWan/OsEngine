@@ -1776,7 +1776,7 @@ namespace OsEngine.Language
 
         public string Message107 => OsLocalization.ConvertToLocString(
         "Eng: security was not found in the connector's securities. Perhaps this is the currency for transactions._" +
-        "Ru: не найден в торгуемых у коннектора. Возможно это валюта для операций._");
+        "Ru: не найден в торгуемых у коннектора. Возможно это валюта для операций. Либо надо включить соответствующую площадку в настройках коннектора._");
 
         public string Message108 => OsLocalization.ConvertToLocString(
           "Eng: Add to the ignored list_" +

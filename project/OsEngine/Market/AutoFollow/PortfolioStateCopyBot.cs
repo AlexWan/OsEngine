@@ -398,7 +398,8 @@ namespace OsEngine.Market.AutoFollow
 
                         if (tab != null && tab.PositionsOpenAll.Count > 0)   // у бота есть позиция с таким инструментом
                         {
-                            if (positionOnEx.ValueCurrent == 0) // бумаги нет в портфеле
+                            if (positionOnEx.ValueCurrent == 0 // бумаги нет в портфеле
+                                || positionOnEx.PortfolioName != _mainTab.Portfolio.Number) // ведущий портфель изменился
                             {
                                 tab.CloseAtFake(tab.PositionsOpenAll[0], tab.PositionsOpenAll[0].MaxVolume, tab.PriceBestAsk, DateTime.Now);
 
@@ -421,7 +422,7 @@ namespace OsEngine.Market.AutoFollow
                                 }
 
                                 Position newDeal = tab._dealCreator.CreatePosition(tab.TabName, posExchangeDirection, posExchangeDirection == Side.Buy ? tab.PriceBestAsk : tab.PriceBestBid,
-                                                   Math.Abs(positionOnEx.ValueCurrent), OrderPriceType.Market, tab.ManualPositionSupport.SecondToOpen, security, tab.Portfolio,
+                                                   Math.Abs(positionOnEx.ValueCurrent), OrderPriceType.Market, tab.ManualPositionSupport.SecondToOpen, security, _mainTab.Portfolio,
                                                    tab.StartProgram, tab.ManualPositionSupport.OrderTypeTime, tab.ManualPositionSupport.LimitsMakerOnly);
 
                                 newDeal.NameBotClass = tab.BotClassName;
@@ -436,10 +437,10 @@ namespace OsEngine.Market.AutoFollow
                         }
                         else // добавить позицию
                         {
-                            if (positionsOnExchange[i].ValueCurrent == 0) // ещё сделки нет
+                            if (positionOnEx.ValueCurrent == 0) // ещё сделки нет
                             {
-                                if (positionsOnExchange[i].ValueBlocked == 0)
-                                    _mainTab.Portfolio.PositionOnBoard.Remove(positionsOnExchange[i]);
+                                if (positionOnEx.ValueBlocked == 0)
+                                    _mainTab.Portfolio.PositionOnBoard.Remove(positionOnEx);
 
                                 continue;
                             }
@@ -450,7 +451,7 @@ namespace OsEngine.Market.AutoFollow
                             secToScreener.IsOn = true;
                             securitiesToScreener.Add(secToScreener);
 
-                            _notIgnoredSec.Add(new Tuple<Security, Side, decimal>(security, posExchangeDirection, positionsOnExchange[i].ValueCurrent));
+                            _notIgnoredSec.Add(new Tuple<Security, Side, decimal>(security, posExchangeDirection, positionOnEx.ValueCurrent));
                         }
                     }
 
@@ -464,7 +465,7 @@ namespace OsEngine.Market.AutoFollow
 
                             for (int i2 = 0; i2 < _posTabs.SecuritiesNames.Count; i2++)
                             {
-                                if (_posTabs.SecuritiesNames[i2].Equals(securitiesToScreener[i]))
+                                if (_posTabs.SecuritiesNames[i2].SecurityName.Equals(securitiesToScreener[i].SecurityName))
                                 {
                                     isInArray = true;
                                     break;
@@ -476,6 +477,14 @@ namespace OsEngine.Market.AutoFollow
                             }
                         }
 
+                        if(_posTabs.SecuritiesNames.Count > 20)
+                        {
+
+                        }
+
+                        _posTabs.ServerType = _mainTab.Connector.ServerType;
+                        _posTabs.ServerName = _mainTab.Connector.ServerFullName;
+                        _posTabs.PortfolioName = _mainTab.Portfolio.Number;
                         _posTabs.SaveSettings();
                         _posTabs.NeedToReloadTabs = true;
 
