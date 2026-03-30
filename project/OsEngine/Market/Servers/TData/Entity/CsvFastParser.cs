@@ -177,7 +177,7 @@ namespace OsEngine.Market.Servers.TData.Entity
 
                     ReadOnlySpan<char> volSlice = span.Slice(comma4 + 1, comma5 - comma4 - 1);
                     string volString = volSlice.ToString();
-                    trade.Volume = Math.Abs(volString.ToDecimal());
+                    trade.Volume = Math.Abs(volString.ToDecimal()) * security.Lot;
 
                     trade.Id = (DateTime.UtcNow.Ticks + trade.Time.Millisecond).ToString();
                 }
