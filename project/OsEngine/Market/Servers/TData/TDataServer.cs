@@ -131,7 +131,7 @@ namespace OsEngine.Market.Servers.TData
 
                     for (int k = 0; k < dates.Entries.Count; k++)
                     {
-                       _datesArchives.Add(dates.Entries[k].Date);
+                        _datesArchives.Add(dates.Entries[k].Date);
                     }
                 }
                 else
@@ -168,7 +168,7 @@ namespace OsEngine.Market.Servers.TData
         public List<IServerParameter> ServerParameters { get; set; }
 
         private string _baseUrl = "https://invest-public-api.tinkoff.ru";
-       
+
         private Dictionary<string, TSecurityResponse> _candlesArchivesInfoSpot = [];
 
         private Dictionary<string, TSecurityResponse> _candlesArchivesInfoFut = [];
@@ -181,13 +181,15 @@ namespace OsEngine.Market.Servers.TData
 
         private DateTime _startTimeTradeArchive = new DateTime(2018, 12, 19);
 
-        private HashSet<string> _datesArchives = new(200); // "2018-03-23"
+        private HashSet<string> _datesArchives = new(200); // "2018-01-23"
 
         private string _tradesDirectory = @"Data\TDataStorage\Trades\";
 
         private string _candlesDirectory = @"Data\TDataStorage\Candles\";
 
         private string _tempDirectory = @"Data\Temp\TDataTempFiles\";
+
+        private Dictionary<string, decimal> _securitiesLots = [];
 
         #endregion
 
@@ -201,6 +203,8 @@ namespace OsEngine.Market.Servers.TData
 
             try
             {
+                GetLotsBySecurities();
+
                 GetSpotSecurities();
 
                 GetFuturesSecurities();
@@ -217,12 +221,35 @@ namespace OsEngine.Market.Servers.TData
 
             if (_securities.Count > 0)
             {
+                _securities.Sort((x, y) => string.Compare(x.NameFull, y.NameFull, StringComparison.OrdinalIgnoreCase));
+
                 SendLogMessage($"{_securities.Count} securities loaded", LogMessageType.System);
             }
 
             SecurityEvent?.Invoke(_securities);
         }
-  
+
+        private void GetLotsBySecurities()
+        {
+            try
+            {
+                string[] lotsLines = File.ReadAllLines("TDataSecuritiesLots.txt");
+
+                for (int i = 0; i < lotsLines.Length; i++)
+                {
+                    string[] nameAndLot = lotsLines[i].Split('#', StringSplitOptions.RemoveEmptyEntries);
+
+                    decimal lot = nameAndLot[1].ToDecimal();
+
+                    _securitiesLots.Add(nameAndLot[0], lot);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Securities lots parse error: {ex.Message}", LogMessageType.Error);
+            }
+        }
+
         private void CombineDataBySecurities(Dictionary<string, TSecurityResponse> targetDict, List<TSecurityResponse> candlesResponse)
         {
             try
@@ -240,7 +267,7 @@ namespace OsEngine.Market.Servers.TData
 
                 foreach (KeyValuePair<string, TSecurityResponse> pair in sourceDict)
                 {
-                     targetDict[pair.Key] = pair.Value;
+                    targetDict[pair.Key] = pair.Value;
                 }
             }
             catch (Exception ex)
@@ -261,12 +288,12 @@ namespace OsEngine.Market.Servers.TData
 
                 while (enumerator.MoveNext())
                 {
-                    if(enumerator.Current.Value.ClassCode != "TQBR")
+                    if (enumerator.Current.Value.ClassCode != "TQBR")
                         root.Instruments.Remove(enumerator.Current.Key);
                 }
 
                 List<TSecurityResponse> tqbrInstruments = new List<TSecurityResponse>(root.Instruments.Values);
- 
+
                 for (int i = 0; i < tqbrInstruments.Count; i++)
                 {
                     TSecurityResponse item = tqbrInstruments[i];
@@ -274,7 +301,6 @@ namespace OsEngine.Market.Servers.TData
                     Security newSecurity = new Security();
 
                     newSecurity.Exchange = "MOEX";
-                    newSecurity.Lot = 1;
                     newSecurity.Name = item.Ticker;
                     newSecurity.NameFull = item.Name;
                     newSecurity.NameClass = item.ClassCode;
@@ -282,7 +308,7 @@ namespace OsEngine.Market.Servers.TData
                     newSecurity.SecurityType = SecurityType.Stock;
                     newSecurity.PriceStep = 0;
                     newSecurity.PriceStepCost = 0;
-                    newSecurity.Lot = 1;
+                    newSecurity.Lot = _securitiesLots.TryGetValue(item.Ticker, out decimal lot) ? lot : 1;
 
                     _securities.Add(newSecurity);
                 }
@@ -318,7 +344,7 @@ namespace OsEngine.Market.Servers.TData
             if (response != null)
             {
                 RootResponse root = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(response);
- 
+
                 List<TSecurityResponse> futures = new List<TSecurityResponse>(root.Instruments.Values);
 
                 for (int i = 0; i < futures.Count; i++)
@@ -328,7 +354,6 @@ namespace OsEngine.Market.Servers.TData
                     Security newSecurity = new Security();
 
                     newSecurity.Exchange = "MOEX";
-                    newSecurity.Lot = 1;
                     newSecurity.Name = item.Ticker;
                     newSecurity.NameFull = item.Name;
                     newSecurity.NameClass = item.ClassCode;
@@ -389,7 +414,6 @@ namespace OsEngine.Market.Servers.TData
                     Security newSecurity = new Security();
 
                     newSecurity.Exchange = "MOEX";
-                    newSecurity.Lot = 1;
                     newSecurity.Name = item.Ticker;
                     newSecurity.NameFull = item.Name;
                     newSecurity.NameClass = item.ClassCode;
@@ -397,7 +421,7 @@ namespace OsEngine.Market.Servers.TData
                     newSecurity.SecurityType = SecurityType.CurrencyPair;
                     newSecurity.PriceStep = 0;
                     newSecurity.PriceStepCost = 0;
-                    newSecurity.Lot = 1;
+                    newSecurity.Lot = _securitiesLots.TryGetValue(item.Ticker, out decimal lot) ? lot : 1;
 
                     _securities.Add(newSecurity);
                 }
@@ -444,6 +468,13 @@ namespace OsEngine.Market.Servers.TData
 
                 List<TSecurityResponse> tqbrInstruments = new List<TSecurityResponse>(root.Instruments.Values);
 
+                Dictionary<string, decimal> someBondLots = new()
+                {
+                    {"RU000A10A8E8", 1000},
+                    {"RU000A0ZYWZ2", 100 },
+                    {"XS0114288789", 1000 }
+                };
+
                 for (int i = 0; i < tqbrInstruments.Count; i++)
                 {
                     TSecurityResponse item = tqbrInstruments[i];
@@ -451,7 +482,6 @@ namespace OsEngine.Market.Servers.TData
                     Security newSecurity = new Security();
 
                     newSecurity.Exchange = "MOEX";
-                    newSecurity.Lot = 1;
                     newSecurity.Name = item.Ticker;
                     newSecurity.NameFull = item.Name;
                     newSecurity.NameClass = item.ClassCode;
@@ -459,7 +489,7 @@ namespace OsEngine.Market.Servers.TData
                     newSecurity.SecurityType = SecurityType.Bond;
                     newSecurity.PriceStep = 0;
                     newSecurity.PriceStepCost = 0;
-                    newSecurity.Lot = 1;
+                    newSecurity.Lot = someBondLots.TryGetValue(item.Ticker, out decimal lot) ? lot : 1;
 
                     _securities.Add(newSecurity);
                 }
@@ -607,7 +637,7 @@ namespace OsEngine.Market.Servers.TData
                                 if (hasDate && fileDate.Date < startTime.Date || fileDate.Date > endTime.Date)
                                     continue;
 
-                                List<Candle> dailyCandles = GetCandlesFromCsv(dailyFiles[j], security.SecurityType);   // парсим файлы из папки 
+                                List<Candle> dailyCandles = GetCandlesFromCsv(dailyFiles[j], security);   // парсим файлы из папки 
 
                                 if (dailyCandles.Count > 0)
                                     allCandles.AddRange(dailyCandles);
@@ -633,7 +663,7 @@ namespace OsEngine.Market.Servers.TData
                                     if (hasDate && fileDate.Date < startTime.Date || fileDate.Date > endTime.Date)
                                         continue;
 
-                                    List<Candle> dailyCandles = GetCandlesFromCsv(dailyFiles[j], security.SecurityType);
+                                    List<Candle> dailyCandles = GetCandlesFromCsv(dailyFiles[j], security);
 
                                     if (dailyCandles.Count > 0)
                                         allCandles.AddRange(dailyCandles);
@@ -680,7 +710,7 @@ namespace OsEngine.Market.Servers.TData
             return false;
         }
 
-        private List<Candle> GetCandlesFromCsv(string csvFilePath, SecurityType secType)
+        private List<Candle> GetCandlesFromCsv(string csvFilePath, Security security)
         {
             // e6123145-9665-43e0-8413-cd61b8aa9b13;2026-01-01T23:00:00Z;300.53;300.53;300.53;299.9;182; OCHLV
 
@@ -693,22 +723,22 @@ namespace OsEngine.Market.Servers.TData
 
                 string[] candleParts = lines[i].Split(';', StringSplitOptions.RemoveEmptyEntries);
 
-                if(candleParts.Length < 7)
+                if (candleParts.Length < 7)
                     continue;
 
                 Candle newCandle = new Candle();
 
                 newCandle.TimeStart = DateTime.ParseExact(candleParts[1], "yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).AddHours(3);
 
-                newCandle.Open = secType == SecurityType.Bond ? candleParts[2].ToDecimal() * 10 : candleParts[2].ToDecimal();
-                newCandle.Close = secType == SecurityType.Bond ? candleParts[3].ToDecimal() * 10 : candleParts[3].ToDecimal();
-                newCandle.High = secType == SecurityType.Bond ? candleParts[4].ToDecimal() * 10 : candleParts[4].ToDecimal();
-                newCandle.Low = secType == SecurityType.Bond ? candleParts[5].ToDecimal() * 10 : candleParts[5].ToDecimal();
-                newCandle.Volume = candleParts[6].ToDecimal();
-                
+                newCandle.Open = security.SecurityType == SecurityType.Bond ? candleParts[2].ToDecimal() * 10 : candleParts[2].ToDecimal();
+                newCandle.Close = security.SecurityType == SecurityType.Bond ? candleParts[3].ToDecimal() * 10 : candleParts[3].ToDecimal();
+                newCandle.High = security.SecurityType == SecurityType.Bond ? candleParts[4].ToDecimal() * 10 : candleParts[4].ToDecimal();
+                newCandle.Low = security.SecurityType == SecurityType.Bond ? candleParts[5].ToDecimal() * 10 : candleParts[5].ToDecimal();
+                newCandle.Volume = candleParts[6].ToDecimal() * security.Lot;
+
                 candles.Add(newCandle);
             }
- 
+
             return candles;
         }
 
@@ -909,7 +939,7 @@ namespace OsEngine.Market.Servers.TData
                     if (!_datesArchives.Contains(dayStr))
                     {
                         SendLogMessage($"There is no archive for {dates[i].ToShortDateString()}", LogMessageType.System);
-                        continue;                       
+                        continue;
                     }
 
                     // архив есть, качаем
@@ -922,10 +952,10 @@ namespace OsEngine.Market.Servers.TData
                         if (csvFilePath != null)
                         {
                             List<Trade> dailyTrades = csvFastParser.GetTradesFromCsv(csvFilePath, security);
- 
+
                             if (dailyTrades.Count > 0)
                             {
-                              allTrades.AddRange(dailyTrades);
+                                allTrades.AddRange(dailyTrades);
                             }
                             else
                             {
@@ -1061,7 +1091,7 @@ namespace OsEngine.Market.Servers.TData
                 File.Delete(gzipPath);
             }
         }
-       
+
         #endregion
 
         #region 6 Queries
@@ -1219,6 +1249,6 @@ namespace OsEngine.Market.Servers.TData
         public void SetLeverage(Security security, decimal leverage) { }
 
         #endregion
-    
+
     }
 }
