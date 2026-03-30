@@ -7,6 +7,7 @@
         public string side;
         public string type;
         public string price;
+        public string timeInForce;
         public string size;
         public string leverage;
         public string closeOrder;

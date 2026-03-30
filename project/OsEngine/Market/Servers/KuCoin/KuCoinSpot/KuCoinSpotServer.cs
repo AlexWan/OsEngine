@@ -1676,7 +1676,21 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 data.symbol = order.SecurityNameCode;
                 data.side = order.Side.ToString().ToLower();
                 data.type = order.TypeOrder.ToString().ToLower();
-                data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
+
+                if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    data.price = order.Price.ToString().Replace(",", ".");
+
+                    if (order.OrderTypeTime == OrderTypeTime.GTC)
+                    {
+                        data.timeInForce = "GTC";
+                    }
+                    else
+                    {
+                        data.timeInForce = "GTC";
+                    }
+                }
+
                 data.size = order.Volume.ToString().Replace(",", ".");
 
                 JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
