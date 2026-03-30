@@ -238,8 +238,8 @@ namespace OsEngine.Entity
             if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
             {
                 TabItemStandardSettings.Header = "Преднастройки";
-                ButtonSetStandardMoexSpot.Content = "Установить стандартные настройки рынка Акций MOEX";
-                ButtonSetStandardMoexFutures.Content = "Установить стандартные настройки срочного(фьючерсы и опционы) рынка MOEX";
+                ButtonSetStandardMoexSpot.Content = "Установить настройки рынка MOEX СПОТ (акции, облигации) площадки";
+                ButtonSetStandardMoexFutures.Content = "Установить настройки рынка MOEX СРОЧНОЙ (фьючерсы, опционы) площадки";
             }
             else
             {
@@ -1373,7 +1373,7 @@ namespace OsEngine.Entity
 
         #region Standard settings
 
-        private void ButtonSetStandardMoexSpot_Click(object sender, RoutedEventArgs e)
+        private void ButtonSetStandardMoex_Click(object sender, RoutedEventArgs e)
         {
             try
             {

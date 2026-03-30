@@ -188,8 +188,8 @@
             </TabItem>
             <TabItem Name="TabItemStandardSettings" Header="Standard settings">
                 <Grid >
-                    <Button Name="ButtonSetStandardMoexSpot" Content="Set standard MOEX settings for Spot section" Margin="10,28,10,0" VerticalAlignment="Top" Click="ButtonSetStandardMoexSpot_Click"/>
                     <Button Name="ButtonSetStandardMoexFutures" Content="Set standard MOEX settings for Futures section" Margin="10,58,10,0" VerticalAlignment="Top" Click="ButtonSetStandardMoexFutures_Click"/>
+                    <Button Name="ButtonSetStandardMoexSpot" Content="Set standard MOEX settings for Spot section" Margin="10,28,10,0" VerticalAlignment="Top" Click="ButtonSetStandardMoex_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>

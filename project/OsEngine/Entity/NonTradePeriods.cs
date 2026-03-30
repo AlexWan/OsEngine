@@ -156,7 +156,7 @@ namespace OsEngine.Entity
             NonTradePeriodGeneral.NonTradePeriod3OnOff = false;
             NonTradePeriodGeneral.NonTradePeriod4OnOff = false;
             NonTradePeriodGeneral.NonTradePeriod5OnOff = false;
-            
+
             TradeInMonday = true;
             TradeInTuesday = true;
             TradeInWednesday = true;
@@ -168,7 +168,7 @@ namespace OsEngine.Entity
             // Monday
 
             NonTradePeriodMonday.NonTradePeriod1OnOff = true;
-            NonTradePeriodMonday.NonTradePeriod1Start = new TimeOfDay() { Hour =0,Minute = 0, Second = 0, Millisecond = 0 };
+            NonTradePeriodMonday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
             NonTradePeriodMonday.NonTradePeriod1End = new TimeOfDay() { Hour = 6, Minute = 52, Second = 0, Millisecond = 0 };
 
             NonTradePeriodMonday.NonTradePeriod2OnOff = true;
@@ -318,15 +318,15 @@ namespace OsEngine.Entity
             NonTradePeriodMonday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
             NonTradePeriodMonday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodMonday.NonTradePeriod2OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod2OnOff = false;
             NonTradePeriodMonday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodMonday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodMonday.NonTradePeriod3OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod3OnOff = false;
             NonTradePeriodMonday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
             NonTradePeriodMonday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodMonday.NonTradePeriod4OnOff = true;
+            NonTradePeriodMonday.NonTradePeriod4OnOff = false;
             NonTradePeriodMonday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodMonday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
 
@@ -340,15 +340,15 @@ namespace OsEngine.Entity
             NonTradePeriodTuesday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
             NonTradePeriodTuesday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodTuesday.NonTradePeriod2OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod2OnOff = false;
             NonTradePeriodTuesday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodTuesday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodTuesday.NonTradePeriod3OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod3OnOff = false;
             NonTradePeriodTuesday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
             NonTradePeriodTuesday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodTuesday.NonTradePeriod4OnOff = true;
+            NonTradePeriodTuesday.NonTradePeriod4OnOff = false;
             NonTradePeriodTuesday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodTuesday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
 
@@ -363,15 +363,15 @@ namespace OsEngine.Entity
             NonTradePeriodWednesday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
             NonTradePeriodWednesday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodWednesday.NonTradePeriod2OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod2OnOff = false;
             NonTradePeriodWednesday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodWednesday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodWednesday.NonTradePeriod3OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod3OnOff = false;
             NonTradePeriodWednesday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
             NonTradePeriodWednesday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodWednesday.NonTradePeriod4OnOff = true;
+            NonTradePeriodWednesday.NonTradePeriod4OnOff = false;
             NonTradePeriodWednesday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodWednesday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
 
@@ -385,15 +385,15 @@ namespace OsEngine.Entity
             NonTradePeriodThursday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
             NonTradePeriodThursday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodThursday.NonTradePeriod2OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod2OnOff = false;
             NonTradePeriodThursday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodThursday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodThursday.NonTradePeriod3OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod3OnOff = false;
             NonTradePeriodThursday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
             NonTradePeriodThursday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodThursday.NonTradePeriod4OnOff = true;
+            NonTradePeriodThursday.NonTradePeriod4OnOff = false;
             NonTradePeriodThursday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodThursday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
 
@@ -407,15 +407,15 @@ namespace OsEngine.Entity
             NonTradePeriodFriday.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0, Second = 0, Millisecond = 0 };
             NonTradePeriodFriday.NonTradePeriod1End = new TimeOfDay() { Hour = 8, Minute = 52, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodFriday.NonTradePeriod2OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod2OnOff = false;
             NonTradePeriodFriday.NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodFriday.NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 02, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodFriday.NonTradePeriod3OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod3OnOff = false;
             NonTradePeriodFriday.NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 58, Second = 0, Millisecond = 0 };
             NonTradePeriodFriday.NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 07, Second = 0, Millisecond = 0 };
 
-            NonTradePeriodFriday.NonTradePeriod4OnOff = true;
+            NonTradePeriodFriday.NonTradePeriod4OnOff = false;
             NonTradePeriodFriday.NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 48, Second = 0, Millisecond = 0 };
             NonTradePeriodFriday.NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 07, Second = 0, Millisecond = 0 };
 
