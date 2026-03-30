@@ -10,6 +10,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public string type;
         public string price;
         public string size;
+        public string timeInForce;
     }
 
     public class CancelAllOrdersRequestData

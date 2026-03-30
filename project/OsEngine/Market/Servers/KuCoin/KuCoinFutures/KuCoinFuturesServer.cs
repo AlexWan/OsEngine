@@ -2213,8 +2213,21 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 data.symbol = order.SecurityNameCode;
                 data.side = order.Side.ToString().ToLower();
                 data.type = order.TypeOrder.ToString().ToLower();
-                data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
 
+                if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    data.price = order.Price.ToString().Replace(",", ".");
+
+                    if (order.OrderTypeTime == OrderTypeTime.GTC)
+                    {
+                        data.timeInForce = "GTC";
+                    }
+                    else
+                    {
+                        data.timeInForce = "GTC";
+                    }
+                }
+                
                 decimal volume = order.Volume / GetVolume(order.SecurityNameCode);
                 data.size = volume.ToString().Replace(",", ".");
                 data.leverage = _leverage;

@@ -2374,6 +2374,19 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 string size = outputVolume.ToString();
                 string price = order.Price.ToString(CultureInfo.InvariantCulture);
                 string timeInForce = "gtc";
+
+                if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    if (order.OrderTypeTime == OrderTypeTime.GTC)
+                    {
+                        timeInForce = "gtc";
+                    }
+                    else
+                    {
+                        timeInForce = "gtc";
+                    }
+                }
+                 
                 string reduceOnly = "false";
 
                 if (order.TypeOrder == OrderPriceType.Market)
