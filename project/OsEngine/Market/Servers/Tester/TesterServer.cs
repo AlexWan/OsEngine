@@ -3317,6 +3317,7 @@ namespace OsEngine.Market.Servers.Tester
                 // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
 
                 string firstRowInFile = reader.ReadLine();
+                string lastString2 = firstRowInFile;
 
                 if (string.IsNullOrEmpty(firstRowInFile))
                 {
@@ -3342,10 +3343,28 @@ namespace OsEngine.Market.Servers.Tester
 
                     CultureInfo culture = CultureInfo;
 
-                    for (int i2 = 0; i2 < 100; i2++)
+                    int countOfTrades = 0;
+
+                    for (int i2 = 0; i2 < 5000; i2++)
                     {
+                        if(reader.EndOfStream == true)
+                        {
+                            break;
+                        }
+
+                        string curStr = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(curStr))
+                        {
+                            continue;
+                        }
+
+                        lastString2 = curStr;
+
                         Trade tradeN = new Trade();
-                        tradeN.SetTradeFromString(reader.ReadLine());
+                        tradeN.SetTradeFromString(lastString2);
+
+                        countOfTrades++;
 
                         decimal open = (decimal)Convert.ToDouble(tradeN.Price);
 
@@ -3422,7 +3441,7 @@ namespace OsEngine.Market.Servers.Tester
                     }
 
                     if (minPriceStep == 1 &&
-                        countFive == 20)
+                        countFive == countOfTrades)
                     {
                         minPriceStep = 5;
                     }
@@ -3431,18 +3450,18 @@ namespace OsEngine.Market.Servers.Tester
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
 
                     // last data / последняя дата
-                    string lastString2 = firstRowInFile;
+                    
 
                     while (!reader.EndOfStream)
                     {
-                        string curRow = reader.ReadLine();
+                        string lastRowInFile = reader.ReadLine();
 
-                        if (string.IsNullOrEmpty(curRow))
+                        if (string.IsNullOrEmpty(lastRowInFile))
                         {
                             continue;
                         }
 
-                        lastString2 = curRow;
+                        lastString2 = lastRowInFile;
                     }
 
                     Trade trade2 = new Trade();

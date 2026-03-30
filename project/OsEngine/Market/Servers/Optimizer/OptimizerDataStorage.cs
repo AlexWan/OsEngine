@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using System.Windows.Markup;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -814,6 +815,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
 
                 string str = reader.ReadLine();
+                string lastString2 = str;
 
                 try
                 {
@@ -832,10 +834,28 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     CultureInfo culture = CultureInfo.InvariantCulture;
 
-                    for (int i2 = 0; i2 < 100; i2++)
+                    int countOfTrades = 0;
+
+                    for (int i2 = 0; i2 < 5000; i2++)
                     {
+                        if(reader.EndOfStream == true)
+                        {
+                            break;
+                        }
+
+                        string curStr = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(curStr))
+                        {
+                            continue;
+                        }
+
+                        lastString2 = curStr;
+
                         Trade tradeN = new Trade();
-                        tradeN.SetTradeFromString(reader.ReadLine());
+                        tradeN.SetTradeFromString(lastString2);
+
+                        countOfTrades++;
 
                         decimal open = (decimal)Convert.ToDouble(tradeN.Price);
 
@@ -918,21 +938,26 @@ namespace OsEngine.Market.Servers.Optimizer
 
 
                     if (minPriceStep == 1 &&
-                        countFive == 20)
+                        countFive == countOfTrades)
                     {
                         minPriceStep = 5;
                     }
-
 
                     security[security.Count - 1].Security.PriceStep = minPriceStep;
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
 
                     // last date / последняя дата
-                    string lastString2 = null;
 
                     while (!reader.EndOfStream)
                     {
-                        lastString2 = reader.ReadLine();
+                        string lastRowInFile = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(lastRowInFile))
+                        {
+                            continue;
+                        }
+
+                        lastString2 = lastRowInFile;
                     }
 
                     Trade trade2 = new Trade();
