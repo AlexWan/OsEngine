@@ -42,5 +42,7 @@ namespace OsEngine
         public static ServerParameterInstructions ServerParameterPosts = new ServerParameterInstructions();
 
         public static StrategyParameterInstructions StrategyParameterPosts = new StrategyParameterInstructions();
+
+        public static MessageSenderInstructions MessageSenderPosts = new MessageSenderInstructions();
     }
 }

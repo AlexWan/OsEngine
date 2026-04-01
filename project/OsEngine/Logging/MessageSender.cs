@@ -78,7 +78,7 @@ namespace OsEngine.Logging
         public void ShowDialog()
         {
             MessageSenderUi ui = new MessageSenderUi(this);
-            ui.ShowDialog();
+            ui.Show();
         }
 
         /// <summary>
