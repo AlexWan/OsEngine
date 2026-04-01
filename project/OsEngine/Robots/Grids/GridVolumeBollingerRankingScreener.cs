@@ -568,6 +568,16 @@ namespace OsEngine.Robots.Grids
                 volume += candles[i].Close * candles[i].Volume;
             }
 
+            if(
+                (StartProgram == StartProgram.IsTester || StartProgram == StartProgram.IsOsOptimizer)
+                && (tab.Security.Name == "SBER.txt" || tab.Security.Name == "SBERP.txt") 
+                && (tab.TimeServerCurrent.Year < 2025 
+                || (tab.TimeServerCurrent.Year == 2025 && tab.TimeServerCurrent.Month <= 7))
+                )
+            {
+                volume = volume * 10;
+            }
+
             value.SummVolumeLast100Candles = volume;
 
             if (_volumeRankingValues.Count > 1)

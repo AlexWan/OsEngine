@@ -51,7 +51,7 @@ namespace OsEngine.Robots.Grids
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
             _tab.Connector.TestStartEvent += Connector_TestStartEvent;
 
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" }, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start trade time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End trade time", 24, 0, 0, 0, "Base");
             _bollingerLength = CreateParameter("Bollinger length", 21, 7, 48, 1, "Base");
@@ -152,8 +152,8 @@ namespace OsEngine.Robots.Grids
 
             decimal lastPrice = candles[^1].Close;
 
-            if (lastPrice > lastUpLine
-                || lastPrice < lastDownLine)
+            if ((lastPrice > lastUpLine && _regime != "OnlyLong")
+                || (lastPrice < lastDownLine && _regime != "OnlyShort"))
             {
                 TradeGrid grid = _tab.GridsMaster.CreateNewTradeGrid();
 
