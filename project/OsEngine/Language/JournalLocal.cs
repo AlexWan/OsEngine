@@ -167,6 +167,14 @@ namespace OsEngine.Language
          "Eng:A B S O L U T E_" +
          "Ru:А Б С О Л Ю Т_");
 
+        public string Label26 => OsLocalization.ConvertToLocString(
+         "Eng:First, select a benchmark_" +
+         "Ru:Сначала выберите бенчмарк_");
+
+        public string Label27 => OsLocalization.ConvertToLocString(
+         "Eng:Update benchmark data? Old data will be deleted and reloaded_" +
+         "Ru:Обновить данные бенчмарка? Старые данные будут удалены и загружены заново_");
+
 
 
 
