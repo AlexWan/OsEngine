@@ -662,6 +662,52 @@ namespace OsEngine.Journal
             }
         }
 
+        private void ButtonRefreshBenchmark_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string benchmarkName = ComboBoxBenchmark.SelectedItem.ToString();
+
+                if (benchmarkName == BenchmarkSecurity.Off.ToString())
+                {
+                    System.Windows.MessageBox.Show(OsLocalization.Journal.Label26);
+                    return;
+                }
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Label27);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                Benchmark benchmark = new Benchmark(benchmarkName);
+                string filePath = benchmark.FileSetBenchmark;
+
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+
+                _countLoadBenchmark = 0;
+                _checkBenchmarkData = false;
+
+                if (_benchmark != null)
+                {
+                    _benchmark.NewLogMessageEvent -= SendNewLogMessage;
+                    _benchmark.DownloadBenchmarkEvent -= Benchmark_DownloadBenchmarkEvent;
+                    _benchmark = null;
+                }
+
+                RePaint();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
         #endregion
 
         #region Statistics table
@@ -1430,7 +1476,8 @@ namespace OsEngine.Journal
         {
             try
             {
-                if (!File.Exists(_benchmark.FileSetBenchmark))
+                if (_benchmark == null
+                    || !File.Exists(_benchmark.FileSetBenchmark))
                 {
                     return null;
                 }
