@@ -10,6 +10,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 
 namespace OsEngine.Market.Servers.BybitData
@@ -254,7 +255,7 @@ namespace OsEngine.Market.Servers.BybitData
 
         #region 5 Data
 
-        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(1200));
+        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(500));
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
@@ -691,7 +692,7 @@ namespace OsEngine.Market.Servers.BybitData
 
         #region Queries
 
-        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(15));
+        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
         private string _restUrl = "https://api.bybit.com";
 
@@ -726,7 +727,9 @@ namespace OsEngine.Market.Servers.BybitData
                 {
                     if (response_msg.Contains("\"retCode\": 10006"))
                     {
-                        SendLogMessage($"Limit 1000.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
+                        //SendLogMessage($"Limit 1000.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
+                        Thread.Sleep(1000);
+                        return CreatePublicQuery(parameters, httpMethod, uri);
                     }
                     else
                     {

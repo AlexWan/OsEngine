@@ -1323,7 +1323,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         #region 5 Data
 
-        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(1200));
+        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
         private string _rateGateGetCandleHistoryLocker = "_rateGateGetCandleHistoryLocker";
 
@@ -1956,7 +1956,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private List<string> _subscribedOptionTradeBaseCoins = new List<string>();
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
         public void Subscribe(Security security)
         {
@@ -4502,7 +4502,9 @@ namespace OsEngine.Market.Servers.Bybit
 
         private const string RecvWindow = "50000";
 
-        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(15));
+        private RateGate _rateGatePrivate = new RateGate(1, TimeSpan.FromMilliseconds(15));
+
+        private RateGate _rateGatePublic = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
         private RateGate _rateGateOrders = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
@@ -4560,7 +4562,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             lock (_httpClientLocker)
             {
-                _rateGate.WaitToProceed();
+                _rateGatePrivate.WaitToProceed();
             }
 
             try
@@ -4603,6 +4605,13 @@ namespace OsEngine.Market.Servers.Bybit
 
                 IRestResponse response = client.Execute(request);
 
+                if (response.Content != null && response.Content.Contains("\"retCode\":10006"))
+                {
+                    //SendLogMessage($"Rate limit exceeded (10006) for {uri}. Waiting 1 seconds and retry.", LogMessageType.Error);
+                    Thread.Sleep(1000);
+                    return CreatePrivateQuery(parameters, method, uri);
+                }
+
                 return response;
 
                 //if (response.StatusCode == HttpStatusCode.OK)
@@ -4640,7 +4649,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             lock (_httpClientLocker)
             {
-                _rateGate.WaitToProceed();
+                _rateGatePublic.WaitToProceed();
             }
 
             try
@@ -4657,6 +4666,13 @@ namespace OsEngine.Market.Servers.Bybit
                 }
 
                 IRestResponse response = client.Execute(requestRest);
+
+                if (response.Content != null && response.Content.Contains("\"retCode\":10006"))
+                {
+                    //SendLogMessage($"Rate limit exceeded (10006) for {uri}. Waiting 2 seconds and retry.", LogMessageType.Error);
+                    Thread.Sleep(1000);
+                    return CreatePublicQuery(parameters, method, uri);
+                }
 
                 return response;
 
