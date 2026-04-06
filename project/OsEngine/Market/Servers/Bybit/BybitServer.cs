@@ -1323,7 +1323,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         #region 5 Data
 
-        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(1200));
 
         private string _rateGateGetCandleHistoryLocker = "_rateGateGetCandleHistoryLocker";
 
@@ -1382,11 +1382,17 @@ namespace OsEngine.Market.Servers.Bybit
 
                 do
                 {
+                    _rateGateGetCandleHistory.WaitToProceed();
+
                     IRestResponse responseMessage = CreatePublicQuery(parametrs, Method.GET, "/v5/market/kline");
 
                     if (responseMessage.StatusCode != HttpStatusCode.OK)
                     {
-                        SendLogMessage($"Candle History error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                        if (responseMessage.StatusCode != 0)
+                        {
+                            SendLogMessage($"Candle History error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                        }
+
                         break;
                     }
 

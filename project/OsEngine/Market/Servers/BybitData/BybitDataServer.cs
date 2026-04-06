@@ -254,6 +254,8 @@ namespace OsEngine.Market.Servers.BybitData
 
         #region 5 Data
 
+        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(1200));
+
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             try
@@ -286,6 +288,8 @@ namespace OsEngine.Market.Servers.BybitData
 
                 do
                 {
+                    _rateGateGetCandleHistory.WaitToProceed();
+
                     string candlesQuery = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/kline");
 
                     if (candlesQuery == null)
