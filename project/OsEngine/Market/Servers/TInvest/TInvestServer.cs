@@ -1624,7 +1624,7 @@ namespace OsEngine.Market.Servers.TInvest
                 if (endDateTime > endTime) // не заказываем лишних данных
                     endDateTime = endTime;
 
-                List<Candle> range = GetCandleHistoryFromDays(startTime, endDateTime, security, tf);
+                List<Candle> range = GetCandleHistoryFromDays(startTime, endDateTime, security, tf, 0);
 
                 if (range == null) // Если запрошен некорректный таймфрейм, то возвращает null
                     return null;
@@ -1638,7 +1638,7 @@ namespace OsEngine.Market.Servers.TInvest
             return filterCorrectCandles(candles);
         }
 
-        List<Candle> filterCorrectCandles(List<Candle> candles)
+        private List<Candle> filterCorrectCandles(List<Candle> candles)
         {
             if (candles == null || candles.Count == 0)
                 return candles;
@@ -1662,7 +1662,7 @@ namespace OsEngine.Market.Servers.TInvest
             return filtered;
         }
 
-        private List<Candle> GetCandleHistoryFromDays(DateTime fromDateTime, DateTime toDateTime, Security security, TimeFrame tf)
+        private List<Candle> GetCandleHistoryFromDays(DateTime fromDateTime, DateTime toDateTime, Security security, TimeFrame tf, int tryCount)
         {
             CandleInterval requestedCandleInterval = CreateTimeFrameInterval(tf);
 
@@ -1714,6 +1714,14 @@ namespace OsEngine.Market.Servers.TInvest
             }
 
             List<Candle> candles = ConvertToOsEngineCandles(candlesResp, security);
+
+            if((candles == null 
+                || candles.Count < 2)
+                && tryCount < 3)
+            {
+                tryCount++;
+                return GetCandleHistoryFromDays(fromDateTime, toDateTime, security, tf, tryCount);
+            }
 
             return candles;
         }
