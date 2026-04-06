@@ -317,7 +317,13 @@ namespace OsEngine.OsTrader.Gui
                         }
                     }
 
-                    if (_master._startProgram == StartProgram.IsOsTrader
+                    if ((_master._startProgram == StartProgram.IsOsTrader
+                        || _master._startProgram == StartProgram.IsTester)
+                       && coluIndex == 4)
+                    {
+                        ServerMaster.ShowMatrixManagerDialog();
+                    }
+                    else if (_master._startProgram == StartProgram.IsOsTrader
                        && coluIndex == 5)
                     {
                         ServerMaster.ShowApiDialog();

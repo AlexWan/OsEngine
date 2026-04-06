@@ -95,43 +95,78 @@ namespace OsEngine.Logging
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"MessageSender.txt"))
                 {
-                    SmsSendOn = Convert.ToBoolean(reader.ReadLine());
+                    string[] saveArr = reader.ReadToEnd().Split('\n');
 
-                    SmsSystemSendOn = Convert.ToBoolean(reader.ReadLine());
-                    SmsSignalSendOn = Convert.ToBoolean(reader.ReadLine());
-                    SmsErrorSendOn = Convert.ToBoolean(reader.ReadLine());
-                    SmsConnectSendOn = Convert.ToBoolean(reader.ReadLine());
-                    SmsTradeSendOn = Convert.ToBoolean(reader.ReadLine());
-                    SmsNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
+                    if (saveArr.Length == 31)
+                    {
+                        SmsSendOn = Convert.ToBoolean(saveArr[0]);
 
-                    WebhookSendOn = Convert.ToBoolean(reader.ReadLine());
+                        SmsSystemSendOn = Convert.ToBoolean(saveArr[1]);
+                        SmsSignalSendOn = Convert.ToBoolean(saveArr[2]);
+                        SmsErrorSendOn = Convert.ToBoolean(saveArr[3]);
+                        SmsConnectSendOn = Convert.ToBoolean(saveArr[4]);
+                        SmsTradeSendOn = Convert.ToBoolean(saveArr[5]);
+                        SmsNoNameSendOn = Convert.ToBoolean(saveArr[6]);
 
-                    WebhookSystemSendOn = Convert.ToBoolean(reader.ReadLine());
-                    WebhookSignalSendOn = Convert.ToBoolean(reader.ReadLine());
-                    WebhookErrorSendOn = Convert.ToBoolean(reader.ReadLine());
-                    WebhookConnectSendOn = Convert.ToBoolean(reader.ReadLine());
-                    WebhookTradeSendOn = Convert.ToBoolean(reader.ReadLine());
-                    WebhookNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
+                        WebhookSendOn = Convert.ToBoolean(saveArr[7]);
 
-                    TelegramSendOn = Convert.ToBoolean(reader.ReadLine());
+                        WebhookSystemSendOn = Convert.ToBoolean(saveArr[8]);
+                        WebhookSignalSendOn = Convert.ToBoolean(saveArr[9]);
+                        WebhookErrorSendOn = Convert.ToBoolean(saveArr[10]);
+                        WebhookConnectSendOn = Convert.ToBoolean(saveArr[11]);
+                        WebhookTradeSendOn = Convert.ToBoolean(saveArr[12]);
+                        WebhookNoNameSendOn = Convert.ToBoolean(saveArr[13]);
 
-                    TelegramSystemSendOn = Convert.ToBoolean(reader.ReadLine());
-                    TelegramSignalSendOn = Convert.ToBoolean(reader.ReadLine());
-                    TelegramErrorSendOn = Convert.ToBoolean(reader.ReadLine());
-                    TelegramConnectSendOn = Convert.ToBoolean(reader.ReadLine());
-                    TelegramTradeSendOn = Convert.ToBoolean(reader.ReadLine());
-                    TelegramNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
-                    TelegramUserSendOn = Convert.ToBoolean(reader.ReadLine());
+                        TelegramSendOn = Convert.ToBoolean(saveArr[14]);
 
-                    VkSendOn = Convert.ToBoolean(reader.ReadLine());
+                        TelegramSystemSendOn = Convert.ToBoolean(saveArr[15]);
+                        TelegramSignalSendOn = Convert.ToBoolean(saveArr[16]);
+                        TelegramErrorSendOn = Convert.ToBoolean(saveArr[17]);
+                        TelegramConnectSendOn = Convert.ToBoolean(saveArr[18]);
+                        TelegramTradeSendOn = Convert.ToBoolean(saveArr[19]);
+                        TelegramNoNameSendOn = Convert.ToBoolean(saveArr[20]);
+                        TelegramUserSendOn = Convert.ToBoolean(saveArr[21]);
 
-                    VkSystemSendOn = Convert.ToBoolean(reader.ReadLine());
-                    VkSignalSendOn = Convert.ToBoolean(reader.ReadLine());
-                    VkErrorSendOn = Convert.ToBoolean(reader.ReadLine());
-                    VkConnectSendOn = Convert.ToBoolean(reader.ReadLine());
-                    VkTradeSendOn = Convert.ToBoolean(reader.ReadLine());
-                    VkNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
-                    VkUserSendOn = Convert.ToBoolean(reader.ReadLine());
+                        VkSendOn = Convert.ToBoolean(saveArr[22]);
+
+                        VkSystemSendOn = Convert.ToBoolean(saveArr[23]);
+                        VkSignalSendOn = Convert.ToBoolean(saveArr[24]);
+                        VkErrorSendOn = Convert.ToBoolean(saveArr[25]);
+                        VkConnectSendOn = Convert.ToBoolean(saveArr[26]);
+                        VkTradeSendOn = Convert.ToBoolean(saveArr[27]);
+                        VkNoNameSendOn = Convert.ToBoolean(saveArr[28]);
+                        VkUserSendOn = Convert.ToBoolean(saveArr[29]);
+                    }
+                    else
+                    {
+                        SmsSendOn = Convert.ToBoolean(saveArr[7]);
+
+                        SmsSystemSendOn = Convert.ToBoolean(saveArr[8]);
+                        SmsSignalSendOn = Convert.ToBoolean(saveArr[9]);
+                        SmsErrorSendOn = Convert.ToBoolean(saveArr[10]);
+                        SmsConnectSendOn = Convert.ToBoolean(saveArr[11]);
+                        SmsTradeSendOn = Convert.ToBoolean(saveArr[12]);
+                        SmsNoNameSendOn = Convert.ToBoolean(saveArr[13]);
+
+                        WebhookSendOn = Convert.ToBoolean(saveArr[14]);
+
+                        WebhookSystemSendOn = Convert.ToBoolean(saveArr[15]);
+                        WebhookSignalSendOn = Convert.ToBoolean(saveArr[16]);
+                        WebhookErrorSendOn = Convert.ToBoolean(saveArr[17]);
+                        WebhookConnectSendOn = Convert.ToBoolean(saveArr[18]);
+                        WebhookTradeSendOn = Convert.ToBoolean(saveArr[19]);
+                        WebhookNoNameSendOn = Convert.ToBoolean(saveArr[20]);
+
+                        TelegramSendOn = Convert.ToBoolean(saveArr[21]);
+
+                        TelegramSystemSendOn = Convert.ToBoolean(saveArr[22]);
+                        TelegramSignalSendOn = Convert.ToBoolean(saveArr[23]);
+                        TelegramErrorSendOn = Convert.ToBoolean(saveArr[24]);
+                        TelegramConnectSendOn = Convert.ToBoolean(saveArr[25]);
+                        TelegramTradeSendOn = Convert.ToBoolean(saveArr[26]);
+                        TelegramNoNameSendOn = Convert.ToBoolean(saveArr[27]);
+                        TelegramUserSendOn = Convert.ToBoolean(saveArr[28]);
+                    }
 
                     reader.Close();
                 }
@@ -140,7 +175,6 @@ namespace OsEngine.Logging
             {
                 // ignore
             }
-
         }
 
         /// <summary>

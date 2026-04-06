@@ -280,6 +280,36 @@ namespace OsEngine.Market
             }
         }
 
+        public static void TesterStarted()
+        {
+            if (ServerMasterActivateInTesterRegimeEvent != null)
+            {
+                ServerMasterActivateInTesterRegimeEvent();
+            }
+        }
+
+        public static void RealStarted()
+        {
+            if (ServerMasterActivateInTesterRegimeEvent != null)
+            {
+                ServerMasterActivateInTesterRegimeEvent();
+            }
+        }
+
+        public static void OptimizerStarted()
+        {
+            if (ServerMasterActivateInOptimizerRegimeEvent != null)
+            {
+                ServerMasterActivateInOptimizerRegimeEvent();
+            }
+        }
+
+        public static event Action ServerMasterActivateInTesterRegimeEvent;
+
+        public static event Action ServerMasterActivateInRealRegimeEvent;
+
+        public static event Action ServerMasterActivateInOptimizerRegimeEvent;
+
         #endregion
 
         #region Creating and storing servers
@@ -2042,9 +2072,19 @@ namespace OsEngine.Market
             }
         }
 
+        public static void ShowMatrixManagerDialog()
+        {
+            if (ShowMatrixManagerDialogEvent != null)
+            {
+                ShowMatrixManagerDialogEvent();
+            }
+        }
+
         public static event Action ShowApiDialogEvent;
 
         public static event Action ShowClientManagerDialogEvent;
+
+        public static event Action ShowMatrixManagerDialogEvent;
 
         #endregion
 

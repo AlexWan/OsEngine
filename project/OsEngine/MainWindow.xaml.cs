@@ -656,6 +656,7 @@ namespace OsEngine
             try
             {
                 _startProgram = StartProgram.IsTester;
+                ServerMaster.TesterStarted();
                 Hide();
                 TesterUi candleOneUi = new TesterUi();
                 candleOneUi.ShowDialog();
@@ -675,6 +676,7 @@ namespace OsEngine
             try
             {
                 _startProgram = StartProgram.IsTester;
+                ServerMaster.TesterStarted();
                 Hide();
                 TesterUiLite candleOneUi = new TesterUiLite();
                 candleOneUi.ShowDialog();
@@ -694,6 +696,7 @@ namespace OsEngine
             try
             {
                 _startProgram = StartProgram.IsOsTrader;
+                ServerMaster.RealStarted();
                 Hide();
                 RobotUi candleOneUi = new RobotUi();
                 candleOneUi.ShowDialog();
@@ -713,6 +716,7 @@ namespace OsEngine
             try
             {
                 _startProgram = StartProgram.IsOsTrader;
+                ServerMaster.RealStarted();
                 Hide();
                 RobotUiLite candleOneUi = new RobotUiLite();
                 candleOneUi.ShowDialog();
@@ -770,6 +774,7 @@ namespace OsEngine
             try
             {
                 _startProgram = StartProgram.IsOsOptimizer;
+                ServerMaster.OptimizerStarted();
                 Hide();
                 OptimizerUi ui = new OptimizerUi();
                 ui.ShowDialog();
