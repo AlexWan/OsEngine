@@ -43,6 +43,14 @@ namespace OsEngine.Language
             "Eng:Futures expiration. By default, the date of the last candle._" +
             "Ru:Экспирация фьючерса. По умолчанию дата последней свечи_");
 
+        public string HintMessageLabel9 => OsLocalization.ConvertToLocString(
+            "Eng:Minimum order volume for the instrument._" +
+            "Ru:Минимальный объём заявки для инструмента_");
+
+        public string HintMessageLabel10 => OsLocalization.ConvertToLocString(
+            "Eng:Volume step. Determines the increment used for volume rounding._" +
+            "Ru:Шаг объёма. Определяет шаг округления объёма заявки_");
+
         public string HintMessageError0 => OsLocalization.ConvertToLocString(
             "Eng:The value of Price Step must be a positive number._" +
             "Ru:Значение Шага цены должно быть положительным числом_");
@@ -66,6 +74,14 @@ namespace OsEngine.Language
         public string HintMessageError5 => OsLocalization.ConvertToLocString(
             "Eng:The saving process was interrupted. One of the fields contains an invalid value: _" +
             "Ru:Процесс сохранения прерван. В одном из полей не допустимое значение: _");
+
+        public string HintMessageError6 => OsLocalization.ConvertToLocString(
+            "Eng:The value of Min volume must be a positive number._" +
+            "Ru:Значение Мин. объём должно быть положительным числом_");
+
+        public string HintMessageError7 => OsLocalization.ConvertToLocString(
+            "Eng:The value of Volume step must be a positive number._" +
+            "Ru:Значение Шаг объёма должно быть положительным числом_");
 
         public string HintMessageLeverageButton => OsLocalization.ConvertToLocString(
             "Eng:Connect the Сonnector to the exchange and wait for the instruments to connect. The window will then become available._" +
