@@ -31,6 +31,8 @@ namespace OsEngine.Entity
             TextBoxStep.Text = security.PriceStep.ToString(culture);
             TextBoxStepCost.Text = security.PriceStepCost.ToString(culture);
             TextBoxVolumeDecimals.Text = security.DecimalsVolume.ToString(culture);
+            TextBoxMinVolume.Text = security.MinTradeAmount.ToString(culture);
+            TextBoxVolumeStep.Text = security.VolumeStep.ToString(culture);
             TextBoxExpiration.Text = security.Expiration.ToString(culture);
 
             Title = OsLocalization.Entity.TitleSecurityUi;
@@ -42,6 +44,8 @@ namespace OsEngine.Entity
             SecuritiesExpiration.Content = OsLocalization.Entity.SecuritiesColumn18;
 
             SecuritiesVolumeDecimals.Content = OsLocalization.Entity.SecuritiesColumn7;
+            SecuritiesMinVolume.Content = OsLocalization.Entity.SecuritiesColumn12;
+            SecuritiesVolumeStep.Content = OsLocalization.Entity.SecuritiesColumn19;
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
 
             LabelName.Content = security.Name;
@@ -65,6 +69,8 @@ namespace OsEngine.Entity
             decimal step;
             decimal stepCost;
             int volDecimals;
+            decimal minVolume;
+            decimal volumeStep;
             DateTime expiration;
 
             try
@@ -75,6 +81,8 @@ namespace OsEngine.Entity
                 step = TextBoxStep.Text.ToDecimal();
                 stepCost = TextBoxStepCost.Text.ToDecimal();
                 volDecimals = Convert.ToInt32(TextBoxVolumeDecimals.Text);
+                minVolume = TextBoxMinVolume.Text.ToDecimal();
+                volumeStep = TextBoxVolumeStep.Text.ToDecimal();
                 expiration = Convert.ToDateTime(TextBoxExpiration.Text);
 
                 string message = OsLocalization.Message.HintMessageError5 + "\n";
@@ -112,6 +120,18 @@ namespace OsEngine.Entity
                     index++;
                 }
 
+                if (minVolume < 0)
+                {
+                    message += index + 1 + ") " + OsLocalization.Message.HintMessageError6 + "\n";
+                    index++;
+                }
+
+                if (volumeStep < 0)
+                {
+                    message += index + 1 + ") " + OsLocalization.Message.HintMessageError7 + "\n";
+                    index++;
+                }
+
                 if (message != OsLocalization.Message.HintMessageError5 + "\n")
                 {
                     CustomMessageBoxUi ui = new CustomMessageBoxUi(message);
@@ -132,6 +152,8 @@ namespace OsEngine.Entity
             _security.PriceStep = step;
             _security.PriceStepCost = stepCost;
             _security.DecimalsVolume = volDecimals;
+            _security.MinTradeAmount = minVolume;
+            _security.VolumeStep = volumeStep;
             _security.Expiration = expiration;
             IsChanged = true;
             Close();
@@ -170,6 +192,18 @@ namespace OsEngine.Entity
         private void ButtonInfoVolume_Click(object sender, RoutedEventArgs e)
         {
             CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel4);
+            ui.ShowDialog();
+        }
+
+        private void ButtonInfoMinVolume_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel9);
+            ui.ShowDialog();
+        }
+
+        private void ButtonInfoVolumeStep_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel10);
             ui.ShowDialog();
         }
 
