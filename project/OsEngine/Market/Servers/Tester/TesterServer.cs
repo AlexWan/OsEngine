@@ -2501,6 +2501,8 @@ namespace OsEngine.Market.Servers.Tester
                         decimal priceStep = array[i][4].ToDecimal();
                         decimal goSell = 0;
                         DateTime expiration = DateTime.MinValue;
+                        decimal minVolume = 0;
+                        decimal volumeStep = 0;
 
                         int volDecimals = 0;
 
@@ -2517,6 +2519,16 @@ namespace OsEngine.Market.Servers.Tester
                         if (array[i].Length > 7)
                         {
                             secu.Expiration = Convert.ToDateTime(array[i][7]);
+                        }
+
+                        if (array[i].Length > 8)
+                        {
+                            minVolume = array[i][8].ToDecimal();
+                        }
+
+                        if (array[i].Length > 9)
+                        {
+                            volumeStep = array[i][9].ToDecimal();
                         }
 
                         if (lot != 0)
@@ -2544,6 +2556,16 @@ namespace OsEngine.Market.Servers.Tester
                         if (goSell != 0)
                         {
                             secu.MarginSell = goSell;
+                        }
+
+                        if (minVolume != 0)
+                        {
+                            secu.MinTradeAmount = minVolume;
+                        }
+
+                        if (volumeStep != 0)
+                        {
+                            secu.VolumeStep = volumeStep;
                         }
                     }
                 }
@@ -2654,7 +2676,9 @@ namespace OsEngine.Market.Servers.Tester
                     securityToSave.PriceStep.ToString(culture),
                     securityToSave.DecimalsVolume.ToString(culture),
                     securityToSave.MarginSell.ToString(culture),
-                    securityToSave.Expiration.ToString(culture)
+                    securityToSave.Expiration.ToString(culture),
+                    securityToSave.MinTradeAmount.ToString(culture),
+                    securityToSave.VolumeStep.ToString(culture)
                 });
             }
 
@@ -2679,7 +2703,9 @@ namespace OsEngine.Market.Servers.Tester
                     securityToSave.PriceStep.ToString(culture),
                     securityToSave.DecimalsVolume.ToString(culture),
                     securityToSave.MarginSell.ToString(culture),
-                    securityToSave.Expiration.ToString(culture)
+                    securityToSave.Expiration.ToString(culture),
+                    securityToSave.MinTradeAmount.ToString(culture),
+                    securityToSave.VolumeStep.ToString(culture)
                 });
             }
 
@@ -2698,7 +2724,9 @@ namespace OsEngine.Market.Servers.Tester
                             saves[i][4] + "$" +
                             saves[i][5] + "$" +
                             saves[i][6] + "$" +
-                            saves[i][7]
+                            saves[i][7] + "$" +
+                            saves[i][8] + "$" +
+                            saves[i][9]
                             );
                     }
 
