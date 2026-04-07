@@ -2371,7 +2371,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     outputVolume = -1 * order.Volume / GetVolume(order.SecurityNameCode);
                 }
 
-                string size = outputVolume.ToString();
+                string size = outputVolume.ToString("0.#####").Replace(",", ".");
                 string price = order.Price.ToString(CultureInfo.InvariantCulture);
                 string timeInForce = "gtc";
 
