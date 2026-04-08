@@ -312,6 +312,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ((TesterServer)servers[0]).TestingStartEvent += BotTabScreener_TestingStartEvent;
                     ((TesterServer)servers[0]).TestingEndEvent += BotTabScreener_TestingEndEvent;
+                    ((TesterServer)servers[0]).EndNextMinuteWithCandlesEvent += BotTabScreener_EndNextMinuteWithCandlesEvent;
                     ServerType = ServerType.Tester;
                     ServerName = ServerType.Tester.ToString();
                 }
@@ -3188,10 +3189,36 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Synch finish candles Event
 
+        private void BotTabScreener_EndNextMinuteWithCandlesEvent()
+        {
+            try
+            {
+                if (CandlesSyncFinishedEvent == null)
+                {
+                    return;
+                }
+
+                CandlesSyncFinishedEvent(Tabs);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         private void SynchFinishCandlesMethod(List<Candle> candles, BotTabSimple tab)
         {
             try
             {
+                // это работает для реала только. В тестере другая схема, через завершение времени в котором были свечи
+                // у скринера завершилась первая свеча в реале
+                // высылаем поток, который через 2 секунды оповестит все внешние системы о том что свечи завершились
+
+                if (StartProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
                 if (CandlesSyncFinishedEvent == null)
                 {
                     return;
@@ -3204,35 +3231,36 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 DateTime candleTime = candles[^1].TimeStart;
 
-                // 1 смотрим чтобы по всем источникам в завершённых свечках было одно время
-
-                for (int i = 0; i < Tabs.Count; i++)
+                if (_lastTimeSendCandleSyncFinishedEvent == candleTime)
                 {
-                    BotTabSimple tabCurrent = Tabs[i];
-
-                    List<Candle> candlesCurrent = tabCurrent.CandlesFinishedOnly;
-
-                    if (candlesCurrent == null
-                        || candlesCurrent.Count == 0)
-                    {
-                        return;
-                    }
-
-                    DateTime candleCurrentTime = candlesCurrent[^1].TimeStart;
-
-                    if (candleCurrentTime != candleTime)
-                    {
-                        return;
-                    }
+                    return;
                 }
 
-                // 2 выбрасываем событие
+                _lastTimeSendCandleSyncFinishedEvent = candleTime;
 
-                CandlesSyncFinishedEvent(Tabs);
+                Thread worker = new Thread(TrySendCandleSyncFinishedEventInReal);
+                worker.Start();
+                return;
             }
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private DateTime _lastTimeSendCandleSyncFinishedEvent;
+
+        private void TrySendCandleSyncFinishedEventInReal()
+        {
+            try
+            {
+                Thread.Sleep(2000);
+
+                CandlesSyncFinishedEvent(Tabs);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
