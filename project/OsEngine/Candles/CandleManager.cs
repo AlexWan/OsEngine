@@ -293,16 +293,22 @@ namespace OsEngine.Entity
         {
             try
             {
+                AServer aServer = (AServer)_server;
+
+                TryMergeWithFileSysData(series, aServer);
+
                 if ((series.CandleCreateMethodType != "Simple" && series.CandleCreateMethodType != "TimeShiftCandle")
                     ||
                     series.TimeFrameSpan.TotalMinutes < 1)
                 {
-                    List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                    series.PreLoad(allTrades);
+                    if(series.TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.Tick)
+                    {
+                        List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                        series.PreLoad(allTrades);
+                    }
                 }
                 else
                 {
-                    AServer aServer = (AServer)_server;
                     int candlesToRequestCount =
                         ((OsEngine.Market.Servers.Entity.ServerParameterInt)aServer.GetStandardServerParameter(3)).Value;
 
@@ -310,7 +316,8 @@ namespace OsEngine.Entity
                     {
                         candlesToRequestCount = 50;
                     }
-                    List<Candle> candles = _server.GetLastCandleHistory(series.Security, series.TimeFrameBuilder, candlesToRequestCount);
+                    List<Candle> candles = 
+                        _server.GetLastCandleHistory(series.Security, series.TimeFrameBuilder, candlesToRequestCount);
 
                     if (candles != null)
                     {
@@ -324,6 +331,133 @@ namespace OsEngine.Entity
             catch(Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TryMergeWithFileSysData(CandleSeries series, AServer server)
+        {
+            if(_startProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
+            if (series.IsMergedByCandlesFromFile == false
+             && series.CandleCreateMethodType == "TimeShiftCandle")
+            {
+                series.IsMergedByCandlesFromFile = true;
+            }
+
+            if (series.IsMergedByCandlesFromFile == false)
+            {
+                series.IsMergedByCandlesFromFile = true;
+
+                if (server.IsSaveCandlesInFileSys == true)
+                {
+                    List<Candle> candlesStorage = server._candleStorage.GetCandles(series.Specification, server.CountCandlesInFileSys);
+
+                    if (series.TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+                    {
+                        // нужно вставками прогружать каждую свечу по отдельности. 
+                        series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
+
+                        for (int i = 0; candlesStorage != null && i < candlesStorage.Count; i++)
+                        {
+                            Candle candle = candlesStorage[i];
+
+                            bool isInArray = false;
+
+                            for (int j = 0; j < series.CandlesAll.Count; j++)
+                            {
+                                if (series.CandlesAll[j].TimeStart == candle.TimeStart)
+                                {
+                                    series.CandlesAll[j] = candle;
+                                    isInArray = true;
+                                    break;
+                                }
+                                else if (j == 0
+                                   && candle.TimeStart < series.CandlesAll[j].TimeStart)
+                                {
+                                    series.CandlesAll.Insert(j, candle);
+                                    isInArray = true;
+                                    break;
+                                }
+                                else if (j != 0
+                                    && candle.TimeStart > series.CandlesAll[j - 1].TimeStart
+                                    && candle.TimeStart < series.CandlesAll[j].TimeStart)
+                                {
+                                    series.CandlesAll.Insert(j, candle);
+                                    isInArray = true;
+                                    break;
+                                }
+                            }
+
+                            if (isInArray == false)
+                            {
+                                series.CandlesAll.Add(candle);
+                            }
+                        }
+
+                        if (series.CandlesAll.Count > server.CountCandlesInFileSys)
+                        {
+                            series.CandlesAll =
+                                series.CandlesAll.GetRange(
+                                    series.CandlesAll.Count - server.CountCandlesInFileSys,
+                                    server.CountCandlesInFileSys);
+                        }
+
+                    }
+                    else
+                    {
+                        series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
+                    }
+
+                    List<Candle> candlesAll = series.CandlesAll;
+
+                    if (candlesStorage != null
+                        && candlesStorage.Count > 0
+                        && candlesAll != null)
+                    {
+                        // копируем в новый массив данные по открытому интересу
+                        for (int i = 0, j = 0; i < candlesStorage.Count && j < candlesAll.Count; i++, j++)
+                        {
+                            Candle candleStorage = candlesStorage[i];
+                            Candle candleAll = candlesAll[j];
+
+                            if (candleStorage.TimeStart == candleAll.TimeStart)
+                            {
+                                if (candleStorage.OpenInterest > candleAll.OpenInterest)
+                                {
+                                    candleAll.OpenInterest = candleStorage.OpenInterest;
+                                }
+                            }
+                            else if (candleStorage.TimeStart > candleAll.TimeStart)
+                            {
+                                i--;
+                            }
+                            else if (candleStorage.TimeStart < candleAll.TimeStart)
+                            {
+                                j--;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (series.IsMergedByTradesFromFile == false)
+            {
+                series.IsMergedByTradesFromFile = true;
+
+                if (server.IsSaveTradesInFileSys == true
+                    && series.TimeFrameBuilder.SaveTradesInCandles
+                    && series.CandlesAll.Count > 0)
+                {
+                    List<Trade> trades = server.GetAllTradesToSecurity(series.Security);
+
+                    if (trades != null && trades.Count > 0)
+                    {
+                        series.LoadTradesInCandles(trades);
+                    }
+                }
             }
         }
 

@@ -143,9 +143,9 @@ namespace OsEngine.Candles.Series
             }
             else if (ValueType.ValueString == "Percent")
             {
-                decimal distance = CandlesAll[CandlesAll.Count - 1].Close - CandlesAll[CandlesAll.Count - 1].Open;
+                decimal distance = price - CandlesAll[CandlesAll.Count - 1].Open;
 
-                decimal movePercent = distance / (price / 100);
+                decimal movePercent = distance / (CandlesAll[CandlesAll.Count - 1].Open / 100);
 
                 if (_rencoLastSide == Side.None && Math.Abs(movePercent) >= renDist)
                 {
@@ -316,7 +316,8 @@ namespace OsEngine.Candles.Series
                     UpdateChangeCandle();
                 }
 
-                if (newCandle.TimeStart.Day == CandlesAll[CandlesAll.Count - 1].TimeStart.Day)
+                if (CandlesAll.Count > 1
+                    && newCandle.TimeStart.Day == CandlesAll[CandlesAll.Count - 2].TimeStart.Day)
                 {
                     // recursion. When intraday gaps happen
                     UpDateCandle(time, price, volume, canPushUp, side);
@@ -325,7 +326,7 @@ namespace OsEngine.Candles.Series
                 return;
             }
 
-            if (CandlesAll != null)
+            else if (CandlesAll != null)
             {
                 // если пришли данные внутри свечи
 

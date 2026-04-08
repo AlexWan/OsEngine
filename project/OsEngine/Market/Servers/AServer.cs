@@ -394,6 +394,14 @@ namespace OsEngine.Market.Servers
 
         private ServerParameterBool _needToCheckDataFeedOnDisconnect;
 
+        public bool IsSaveTradesInFileSys
+        {
+            get
+            {
+                return _needToSaveTicksParam.Value;
+            }
+        }
+
         /// <summary>
         /// parameter with the number of days for saving ticks
         /// </summary>
@@ -404,10 +412,26 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private ServerParameterBool _needToSaveCandlesParam;
 
+        public bool IsSaveCandlesInFileSys
+        {
+            get
+            {
+                return _needToSaveCandlesParam.Value;
+            }
+        }
+
         /// <summary>
         /// number of candles for which trades should be loaded at the start of the connector
         /// </summary>
         public ServerParameterInt _needToLoadCandlesCountParam;
+
+        public int CountCandlesInFileSys
+        {
+            get
+            {
+                return _needToLoadCandlesCountParam.Value;
+            }
+        }
 
         /// <summary>
         /// whether trades should be filled with data on the best bid and ask.
@@ -2444,7 +2468,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// object for accessing candle storage in the file system
         /// </summary>
-        private ServerCandleStorage _candleStorage;
+        public ServerCandleStorage _candleStorage;
 
         /// <summary>
         /// multithreaded access locker in StartThisSecurity
@@ -2592,124 +2616,6 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
         {
-            if (series.IsMergedByCandlesFromFile == false
-                && series.CandleCreateMethodType == "TimeShiftCandle")
-            {
-                series.IsMergedByCandlesFromFile = true;
-            }
-
-            if (series.IsMergedByCandlesFromFile == false)
-            {
-                series.IsMergedByCandlesFromFile = true;
-
-                if (_needToSaveCandlesParam.Value == true)
-                {
-                    List<Candle> candlesStorage = _candleStorage.GetCandles(series.Specification, _needToLoadCandlesCountParam.Value);
-
-                    if (series.TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
-                    {
-                        // нужно вставками прогружать каждую свечу по отдельности. 
-                        series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
-
-                        for (int i = 0; candlesStorage != null && i < candlesStorage.Count; i++)
-                        {
-                            Candle candle = candlesStorage[i];
-
-                            bool isInArray = false;
-
-                            for (int j = 0; j < series.CandlesAll.Count; j++)
-                            {
-                                if (series.CandlesAll[j].TimeStart == candle.TimeStart)
-                                {
-                                    series.CandlesAll[j] = candle;
-                                    isInArray = true;
-                                    break;
-                                }
-                                else if (j == 0
-                                   && candle.TimeStart < series.CandlesAll[j].TimeStart)
-                                {
-                                    series.CandlesAll.Insert(j, candle);
-                                    isInArray = true;
-                                    break;
-                                }
-                                else if (j != 0
-                                    && candle.TimeStart > series.CandlesAll[j - 1].TimeStart
-                                    && candle.TimeStart < series.CandlesAll[j].TimeStart)
-                                {
-                                    series.CandlesAll.Insert(j, candle);
-                                    isInArray = true;
-                                    break;
-                                }
-                            }
-
-                            if (isInArray == false)
-                            {
-                                series.CandlesAll.Add(candle);
-                            }
-                        }
-
-                        if (series.CandlesAll.Count > _needToLoadCandlesCountParam.Value)
-                        {
-                            series.CandlesAll =
-                                series.CandlesAll.GetRange(
-                                    series.CandlesAll.Count - _needToLoadCandlesCountParam.Value,
-                                    _needToLoadCandlesCountParam.Value);
-                        }
-
-                    }
-                    else
-                    {
-                        series.CandlesAll = series.CandlesAll.Merge(candlesStorage);
-                    }
-
-                    List<Candle> candlesAll = series.CandlesAll;
-
-                    if (candlesStorage != null
-                        && candlesStorage.Count > 0
-                        && candlesAll != null)
-                    {
-                        // копируем в новый массив данные по открытому интересу
-                        for (int i = 0, j = 0; i < candlesStorage.Count && j < candlesAll.Count; i++, j++)
-                        {
-                            Candle candleStorage = candlesStorage[i];
-                            Candle candleAll = candlesAll[j];
-
-                            if (candleStorage.TimeStart == candleAll.TimeStart)
-                            {
-                                if (candleStorage.OpenInterest > candleAll.OpenInterest)
-                                {
-                                    candleAll.OpenInterest = candleStorage.OpenInterest;
-                                }
-                            }
-                            else if (candleStorage.TimeStart > candleAll.TimeStart)
-                            {
-                                i--;
-                            }
-                            else if (candleStorage.TimeStart < candleAll.TimeStart)
-                            {
-                                j--;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (series.IsMergedByTradesFromFile == false)
-            {
-                series.IsMergedByTradesFromFile = true;
-
-                if (_needToSaveTicksParam.Value == true
-                    && series.TimeFrameBuilder.SaveTradesInCandles)
-                {
-                    List<Trade> trades = GetAllTradesToSecurity(series.Security);
-
-                    if (trades != null && trades.Count > 0)
-                    {
-                        series.LoadTradesInCandles(trades);
-                    }
-                }
-            }
-
             if (_needToRemoveCandlesFromMemory.Value == true
                 && series.CandlesAll.Count > _needToLoadCandlesCountParam.Value
                 && _serverTime.Minute % 15 == 0
