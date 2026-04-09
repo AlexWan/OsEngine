@@ -9,7 +9,7 @@ namespace OsEngine.Market.Servers.TData
     {
         public ServerType ServerType
         {
-            get { return ServerType.TData; }
+            get { return ServerType.TDataHistory; }
         }
 
         #region DataFeedPermissions

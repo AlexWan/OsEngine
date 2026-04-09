@@ -513,7 +513,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitGetData);
                 serverTypes.Add(ServerType.MetaTrader5);
                 serverTypes.Add(ServerType.QscalpMarketDepth);
-                serverTypes.Add(ServerType.TData);
+                serverTypes.Add(ServerType.TDataHistory);
 
                 return serverTypes;
             }
@@ -650,7 +650,7 @@ namespace OsEngine.Market
 
                     SaveMostPopularServers(type);
 
-                    if (type == ServerType.TData)
+                    if (type == ServerType.TDataHistory)
                     {
                         newServer = new TDataServer();
                     }
@@ -1706,7 +1706,7 @@ namespace OsEngine.Market
                 {
                     serverPermission = new QscalpMarketDepthServerPermission();
                 }
-                else if (type == ServerType.TData)
+                else if (type == ServerType.TDataHistory)
                 {
                     serverPermission = new TDataServerPermission();
                 }
@@ -2534,6 +2534,6 @@ namespace OsEngine.Market
         /// downloading historical data from T-Invest archives
         /// скачивание исторических данных из архивов T-Invest
         /// </summary>
-        TData
+        TDataHistory
     }
 }

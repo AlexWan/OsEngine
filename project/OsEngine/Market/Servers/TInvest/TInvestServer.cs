@@ -2357,7 +2357,6 @@ namespace OsEngine.Market.Servers.TInvest
         private DateTime _lastPositionsDataTime = DateTime.MinValue;
         private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
 
-
         private string _marketDataStreamLocker = "_marketDataStreamLocker";
 
         public void Subscribe(Security security)
@@ -2626,13 +2625,15 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (_tSecuritiesRiskFutures.TryGetValue(security.NameId, out riskFutures) == true)
                         {
+                            decimal price = newTrade.Price / security.PriceStep * security.PriceStepCost;
+
                             if(riskFutures.MarginBuyCoeffClient != 0)
                             {
-                                security.MarginBuy = newTrade.Price * riskFutures.MarginBuyCoeffClient;
+                                security.MarginBuy = price * riskFutures.MarginBuyCoeffClient;
                             }
                             if (riskFutures.MarginSellCoeffClient != 0)
                             {
-                                security.MarginSell = newTrade.Price * riskFutures.MarginSellCoeffClient;
+                                security.MarginSell = price * riskFutures.MarginSellCoeffClient;
                             }
                         }
                     }
