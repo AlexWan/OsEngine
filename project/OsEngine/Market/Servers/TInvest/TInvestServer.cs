@@ -26,7 +26,6 @@ using System.Net.Http;
 using Grpc.Net.Client;
 using Grpc.Core;
 using System.Threading.Tasks;
-using OsEngine.OsData;
 
 namespace OsEngine.Market.Servers.TInvest
 {

@@ -771,6 +771,15 @@ namespace OsEngine.Market.Servers.Alor
 
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
         
+            for(int i = 1; candles != null && i < candles.Count;i++)
+            {
+                if (candles[i].TimeStart == candles[i-1].TimeStart)
+                {
+                    candles.RemoveAt(i);
+                    i--;
+                }
+            }
+
             while(candles.Count > candleCount)
             {
                 candles.RemoveAt(0);

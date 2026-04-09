@@ -849,6 +849,25 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     Candles = val.ValueCandles;
 
+                    if (Candles.Count > 1)
+                    {
+                        for (int i = Candles.Count - 1; i > 0 && i > Candles.Count - 20; i--)
+                        {
+                            try
+                            {
+                                if (Candles[i].TimeStart == Candles[i - 1].TimeStart)
+                                {
+                                    Candles.RemoveAt(i);
+                                    i++;
+                                }
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
+                        }
+                    }
+
                     _chartMaster.SetCandles(Candles);
 
                     if (_startProgram == StartProgram.IsOsTrader)
@@ -944,16 +963,22 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     Candles = val.ValueCandles;
 
-                    if (Candles.Count > 1 &&
-                        Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
+                    if (Candles.Count > 1)
                     {
-                        try
+                        for(int i = Candles.Count -1; i > 0 && i > Candles.Count - 20; i--)
                         {
-                            Candles.RemoveAt(Candles.Count - 1);
-                        }
-                        catch
-                        {
-                            // ignore
+                            try
+                            {
+                                if (Candles[i].TimeStart == Candles[i - 1].TimeStart)
+                                {
+                                    Candles.RemoveAt(i);
+                                    i++;
+                                }
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
                         }
                     }
 
@@ -1384,8 +1409,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-
-
             // take the second value
             List<Candle> candlesTwo = null;
 
@@ -1411,7 +1434,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     candlesTwo = Normalization(candlesTwo, valTwo);
                 }
-
             }
             if (candlesTwo == null)
             {
@@ -1529,7 +1551,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         if (candlesOne[i1].TimeStart == candlesTwo[i2].TimeStart)
                         {
-                            exitCandles.Add(GetCandle(null, candlesOne[i1], candlesTwo[i2], sign));
+                            if(exitCandles == null 
+                                || exitCandles.Count == 0
+                                || exitCandles[^1].TimeStart != candlesOne[i1].TimeStart)
+                            {
+                                exitCandles.Add(GetCandle(null, candlesOne[i1], candlesTwo[i2], sign));
+                            }
                         }
                         else if (candlesOne[i1].TimeStart > candlesTwo[i2].TimeStart)
                         {
