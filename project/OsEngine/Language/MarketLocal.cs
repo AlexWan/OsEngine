@@ -1316,6 +1316,11 @@ namespace OsEngine.Language
           "Eng:The connector is being forced to restart_" +
           "Ru:Запущена процедура принудительного перезапуска коннектора _");
 
+        public string Label322 => OsLocalization.ConvertToLocString(
+          "Eng:Failed to load candles. The T-Investments server is not available. Restarting the connector_" +
+          "Ru:Не удалось загрузить свечи. Сервер Т-Инвестиции не доступен.  Перезапускаем коннектор _");
+
+
 
 
 

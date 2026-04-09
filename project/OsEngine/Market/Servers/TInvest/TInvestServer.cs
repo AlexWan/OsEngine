@@ -1704,13 +1704,13 @@ namespace OsEngine.Market.Servers.TInvest
             Timestamp from = Timestamp.FromDateTime(fromDateTime);
             Timestamp to = Timestamp.FromDateTime(toDateTime);
 
-            _rateGateMarketData.WaitToProceed();
-
             GetCandlesResponse candlesResp = null;
             int retries = 3; // try to get 'em this many times
 
             while (candlesResp == null && retries-- > 0)
             {
+                _rateGateMarketData.WaitToProceed();
+
                 try
                 {
                     GetCandlesRequest getCandlesRequest = new GetCandlesRequest();
@@ -1729,16 +1729,25 @@ namespace OsEngine.Market.Servers.TInvest
                     string message = GetGRPCErrorMessage(ex);
 
                     if (message == "no server message")
+                    {
                         SendLogMessage($"Couldn't get candles for {security.Name}. Info: probably invalid time interval {fromDateTime}UTC - {toDateTime}UTC", LogMessageType.System);
+                        _getCandlesErrorsCount++;
+                    }
                     else
+                    {
                         SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.System);
+                        _getCandlesErrorsCount++;
+                    }  
                 }
                 catch (Exception ex)
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
+                        _getCandlesErrorsCount = 0;
                         break; // connection broke before we could get candles
                     }
+
+                    _getCandlesErrorsCount++;
 
                     SendLogMessage($"Error getting candles for {security.Name}: " + ex.ToString(),
                         LogMessageType.System);
@@ -1749,14 +1758,30 @@ namespace OsEngine.Market.Servers.TInvest
 
             if((candles == null 
                 || candles.Count < 2)
-                && tryCount < 3)
+                && tryCount < 5)
             {
+                Thread.Sleep(100);
                 tryCount++;
-                return GetCandleHistoryFromDays(fromDateTime, toDateTime, security, tf, tryCount);
+                candles = GetCandleHistoryFromDays(fromDateTime, toDateTime, security, tf, tryCount);
             }
 
+            if (candles == null
+                || candles.Count == 0)
+            {
+                if (_getCandlesErrorsCount >=8
+                     && ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage(OsLocalization.Market.Label322, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+
+            _getCandlesErrorsCount = 0;
             return candles;
         }
+
+        private int _getCandlesErrorsCount;
 
         // расписания торгов разных бирж по дням
         private Dictionary<DateTime, TradingSchedulesResponse> _tradingSchedules = new Dictionary<DateTime, TradingSchedulesResponse>();
