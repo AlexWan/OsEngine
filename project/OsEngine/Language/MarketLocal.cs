@@ -1312,7 +1312,9 @@ namespace OsEngine.Language
           "Eng:Do you want to delete the security? All data will be lost!_" +
           "Ru:Хотите удалить торговый инструмент? Все данные будут утеряны! _");
 
-
+        public string Label321 => OsLocalization.ConvertToLocString(
+          "Eng:The connector is being forced to restart_" +
+          "Ru:Запущена процедура принудительного перезапуска коннектора _");
 
 
 

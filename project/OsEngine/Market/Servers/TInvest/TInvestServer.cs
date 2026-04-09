@@ -136,6 +136,8 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
+        private DateTime _lastTimeEntryLogicConnectionCheckThread;
+
         private void ConnectionCheckThread()
         {
             while (true)
@@ -153,6 +155,23 @@ namespace OsEngine.Market.Servers.TInvest
                         Thread.Sleep(1000);
                         continue;
                     }
+
+                    DateTime utcTime = DateTime.UtcNow;
+
+                    if(_lastTimeEntryLogicConnectionCheckThread != DateTime.MinValue 
+                        && _lastTimeEntryLogicConnectionCheckThread.Hour == 2
+                        && utcTime.Hour == 3)
+                    {
+                        _lastTimeEntryLogicConnectionCheckThread = utcTime;
+
+                        SendLogMessage(OsLocalization.Market.Label321, LogMessageType.System);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                        Thread.Sleep(2000);
+                        continue;
+                    }
+
+                    _lastTimeEntryLogicConnectionCheckThread = utcTime;
 
                     bool streamsIsLost = false;
                     string lostStreamName = null;
