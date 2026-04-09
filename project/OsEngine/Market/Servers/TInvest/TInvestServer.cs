@@ -26,8 +26,6 @@ using System.Net.Http;
 using Grpc.Net.Client;
 using Grpc.Core;
 using System.Threading.Tasks;
-using OsEngine.Market.Servers.Bybit.Entities;
-using OsEngine.Market.Servers.Transaq.TransaqEntity;
 using OsEngine.OsData;
 
 namespace OsEngine.Market.Servers.TInvest
@@ -911,6 +909,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Futures;
                     newSecurity.VolumeStep = 1;
+
+                    decimal magrinBuyRiskCoeffClient = GetValue(item.DlongClient);
+                    decimal magrinSellRiskCoeffMoex = GetValue(item.DshortClient);
+
                     newSecurity.MarginBuy = GetValue(item.InitialMarginOnBuy);
                     newSecurity.MarginSell = GetValue(item.InitialMarginOnSell);
 
@@ -922,8 +924,18 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
                     _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
-                }
 
+                    TinSecuritiesRisksFutures riskFutures = null;
+
+                    if (_tSecuritiesRiskFutures.TryGetValue(newSecurity.NameId, out riskFutures) == false)
+                    {
+                        riskFutures = new TinSecuritiesRisksFutures();
+                        riskFutures.MarginBuyCoeffClient = magrinBuyRiskCoeffClient;
+                        riskFutures.MarginSellCoeffClient = magrinSellRiskCoeffMoex;
+
+                        _tSecuritiesRiskFutures.Add(newSecurity.NameId, riskFutures);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -989,6 +1001,8 @@ namespace OsEngine.Market.Servers.TInvest
         private List<Security> _securities = new List<Security>();
 
         private Dictionary<string, Security> _securitiesDictionary = new Dictionary<string, Security>();
+
+        private Dictionary<string, TinSecuritiesRisksFutures> _tSecuritiesRiskFutures = new Dictionary<string, TinSecuritiesRisksFutures>();
 
         private Security GetSecurityByIdFast(string instrumentId)
         {
@@ -1891,6 +1905,8 @@ namespace OsEngine.Market.Servers.TInvest
         //private readonly string _gRPCHost = "sandbox-invest-public-api.tbank.ru:443"; // sandbox 
         private readonly string _gRPCHost = "https://invest-public-api.tinkoff.ru:443"; // prod  as of v1.40 should be tbank.ru but doesn't work due to SSL certificate issue
         private Metadata _gRpcMetadata;
+        private Metadata _gRpcMetadataTwo;
+
         private GrpcChannel _channel;
         private CancellationTokenSource _cancellationTokenSource;
         private WebProxy _proxy;
@@ -1944,6 +1960,11 @@ namespace OsEngine.Market.Servers.TInvest
                 _gRpcMetadata.Add("Authorization", $"Bearer {_accessToken}");
                 _gRpcMetadata.Add("x-app-name", "OsEngine");
 
+                _gRpcMetadataTwo = new Metadata();
+
+                _gRpcMetadataTwo.Add("Authorization", $"Bearer {_accessToken}");
+                _gRpcMetadataTwo.Add("x-app-name", "HappyUsersSoft");
+                
                 _cancellationTokenSource = new CancellationTokenSource();
 
                 _channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
@@ -2579,6 +2600,24 @@ namespace OsEngine.Market.Servers.TInvest
                     }
 
                     NewTradesEvent?.Invoke(newTrade);
+
+                    if(security.SecurityType == SecurityType.Futures
+                        && newTrade.Price != 0)
+                    {
+                        TinSecuritiesRisksFutures riskFutures = null;
+
+                        if (_tSecuritiesRiskFutures.TryGetValue(security.NameId, out riskFutures) == true)
+                        {
+                            if(riskFutures.MarginBuyCoeffClient != 0)
+                            {
+                                security.MarginBuy = newTrade.Price * riskFutures.MarginBuyCoeffClient;
+                            }
+                            if (riskFutures.MarginSellCoeffClient != 0)
+                            {
+                                security.MarginSell = newTrade.Price * riskFutures.MarginSellCoeffClient;
+                            }
+                        }
+                    }
                 }
                 else if (marketData.Orderbook != null)
                 {
@@ -3753,9 +3792,11 @@ namespace OsEngine.Market.Servers.TInvest
 
             PostOrderResponse response = null;
 
+            Metadata metaData = GetMetaData(order.SecurityNameCode);
+
             try
             {
-                response = _ordersClient.PostOrder(request, _gRpcMetadata);
+                response = _ordersClient.PostOrder(request, metaData);
             }
             catch (RpcException ex)
             {
@@ -3779,6 +3820,65 @@ namespace OsEngine.Market.Servers.TInvest
             }
 
             return response;
+        }
+
+        private Dictionary<string, TinSecuritiesData> _tSecurities = new Dictionary<string, TinSecuritiesData>();
+
+        private Metadata GetMetaData(string securityName)
+        {
+            // создаём базовый список
+            if (_tSecurities.Count == 0)
+            {
+                _tSecurities.Add("TPAY", new TinSecuritiesData());  // TPAY - пассисный доход
+                _tSecurities.Add("TDIV@", new TinSecuritiesData()); // TDIV@ - дивидендные акции
+                _tSecurities.Add("TRND@", new TinSecuritiesData()); // TRND@ - трендовые акции
+                _tSecurities.Add("TKVM", new TinSecuritiesData());  // TKVM - квадратные метры
+                _tSecurities.Add("TLCB@", new TinSecuritiesData()); // TLCB@ - валютные облигации
+                _tSecurities.Add("TOFZ@", new TinSecuritiesData()); // TOFZ@ - офзшки
+
+                _tSecurities.Add("TGLD@", new TinSecuritiesData()); // TGLD@ - золото
+                _tSecurities.Add("TITR@", new TinSecuritiesData()); // TITR@ - российские технологии
+                _tSecurities.Add("T", new TinSecuritiesData());     // Т - акции Т Технологии
+                _tSecurities.Add("TMON@", new TinSecuritiesData()); // TMON@ - фонд денежного рынка
+                _tSecurities.Add("TMOS@", new TinSecuritiesData()); // TMOS@ - Крупнейшие компании РФ
+
+                _tSecurities.Add("TKVC", new TinSecuritiesData());  // TKVC - стартапы России
+                _tSecurities.Add("TRRE", new TinSecuritiesData());  // TRRE - репаблик РЕДС Москва
+                _tSecurities.Add("TRUR@", new TinSecuritiesData()); // TRUR@ - фонд "вечный портфель"
+                _tSecurities.Add("TVEN", new TinSecuritiesData());  // TVEN - фонд "венчурные инвестиции"
+            }
+
+            TinSecuritiesData mySecurity;
+
+            if (_tSecurities.TryGetValue(securityName, out mySecurity) == true)
+            {
+                DateTime now = DateTime.Now;
+
+                if (now.Year == 2026
+                    && now.Month == 4
+                    && now.Day <= 20)
+                {
+                    return _gRpcMetadataTwo;
+                }
+
+                if (mySecurity.TimeOfTrade.DayOfYear == now.DayOfYear)
+                {
+                    mySecurity.OrdersCount++;
+
+                    if(mySecurity.OrdersCount < 15)
+                    {
+                        return _gRpcMetadataTwo;
+                    }
+                }
+                else
+                {
+                    mySecurity.TimeOfTrade = now;
+                    mySecurity.OrdersCount = 0;
+                }
+            }
+
+            return _gRpcMetadata;
+            
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -3972,9 +4072,11 @@ namespace OsEngine.Market.Servers.TInvest
 
                 CancelOrderResponse response = null;
 
+                Metadata metaData = GetMetaData(order.SecurityNameCode);
+
                 try
                 {
-                    response = _ordersClient.CancelOrder(request, _gRpcMetadata);
+                    response = _ordersClient.CancelOrder(request, metaData);
                 }
                 catch (RpcException ex)
                 {
@@ -4590,5 +4692,19 @@ namespace OsEngine.Market.Servers.TInvest
         public DateTime LastMessageTime { get; set; }
         public string Name { get; set; } // For logging purposes
         public Task ReadingTask { get; set; }
+    }
+
+    public class TinSecuritiesData
+    {
+        public DateTime TimeOfTrade;
+
+        public int OrdersCount;
+    }
+
+    public class TinSecuritiesRisksFutures
+    {
+        public decimal MarginBuyCoeffClient;
+
+        public decimal MarginSellCoeffClient;
     }
 }
