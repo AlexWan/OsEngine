@@ -507,14 +507,28 @@ namespace OsEngine.Market.Servers.TInvest
                     CurrenciesResponse currenciesResponse = null;
 
                     currenciesResponse = _instrumentsClient.Currencies(new InstrumentsRequest(), headers: _gRpcMetadata);
-                    UpdateCurrenciesFromServer(currenciesResponse);
+                    
+                    if(UpdateCurrenciesFromServer(currenciesResponse) == false)
+                    {
+                        SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                        return;
+                    }
 
                     if (_useStock || _useOther)
                     {
                         _rateGateInstruments.WaitToProceed();
 
                         SharesResponse result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata);
-                        UpdateSharesFromServer(result);
+
+                        if(UpdateSharesFromServer(result) == false)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                            return;
+                        }
                     }
 
                     if (_useFutures)
@@ -522,7 +536,14 @@ namespace OsEngine.Market.Servers.TInvest
                         _rateGateInstruments.WaitToProceed();
 
                         FuturesResponse result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata);
-                        UpdateFuturesFromServer(result);
+
+                        if(UpdateFuturesFromServer(result) == false)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                            return;
+                        }
                     }
 
                     if (_useOptions)
@@ -556,16 +577,35 @@ namespace OsEngine.Market.Servers.TInvest
                         _rateGateInstruments.WaitToProceed();
 
                         BondsResponse result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata);
-                        UpdateBondsFromServer(result);
+                        if(UpdateBondsFromServer(result) == false)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                            return;
+                        }
 
                         _rateGateInstruments.WaitToProceed();
 
                         EtfsResponse etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata);
-                        UpdateEtfsFromServer(etfs);
+                        if(UpdateEtfsFromServer(etfs) == false)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                            return;
+                        }
 
                         _rateGateInstruments.WaitToProceed();
+
                         IndicativesResponse indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata);
-                        UpdateIndicativesFromServer(indicatives);
+                        if(UpdateIndicativesFromServer(indicatives) == false)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                            return;
+                        }
                     }
 
                     if (_securities.Count > 0)
@@ -595,7 +635,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage(OsLocalization.Market.Label288 + ex.ToString(), LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Label323 + ex.ToString(), LogMessageType.Error);
 
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
@@ -603,14 +643,14 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        private void UpdateSharesFromServer(SharesResponse sharesResponse)
+        private bool UpdateSharesFromServer(SharesResponse sharesResponse)
         {
             try
             {
                 if (sharesResponse == null ||
                     sharesResponse.Instruments.Count == 0)
                 {
-                    return;
+                    return false;
                 }
 
                 for (int i = 0; i < sharesResponse.Instruments.Count; i++)
@@ -647,25 +687,36 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
-                    _securities.Add(newSecurity);
-                    _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+
+                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    {
+                        _securities.Add(newSecurity);
+                    }
+
+                    Security outSec = null;
+                    if (_securitiesDictionary.TryGetValue(newSecurity.NameId, out outSec) == false)
+                    {
+                        _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+                    }
                 }
 
             }
             catch (Exception e)
             {
                 SendLogMessage($"Error loading stocks: {e.Message}", LogMessageType.System);
+                return false;
             }
+            return true;
         }
 
-        private void UpdateBondsFromServer(BondsResponse bondsResponse)
+        private bool UpdateBondsFromServer(BondsResponse bondsResponse)
         {
             try
             {
                 if (bondsResponse == null ||
                     bondsResponse.Instruments.Count == 0)
                 {
-                    return;
+                    return false;
                 }
 
                 for (int i = 0; i < bondsResponse.Instruments.Count; i++)
@@ -719,25 +770,36 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.PlacementPrice = GetValue(item.PlacementPrice);
                     newSecurity.AciValue = GetValue(item.AciValue);
 
-                    _securities.Add(newSecurity);
-                    _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    {
+                        _securities.Add(newSecurity);
+                    }
+
+                    Security outSec = null;
+                    if (_securitiesDictionary.TryGetValue(newSecurity.NameId, out outSec) == false)
+                    {
+                        _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+                    }
                 }
 
             }
             catch (Exception e)
             {
                 SendLogMessage($"Error loading bonds: {e.Message}", LogMessageType.System);
+                return false;
             }
+
+            return true;
         }
 
-        private void UpdateEtfsFromServer(EtfsResponse etfs)
+        private bool UpdateEtfsFromServer(EtfsResponse etfs)
         {
             try
             {
                 if (etfs == null ||
                     etfs.Instruments.Count == 0)
                 {
-                    return;
+                    return false;
                 }
 
                 for (int i = 0; i < etfs.Instruments.Count; i++)
@@ -773,24 +835,35 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
-                    _securities.Add(newSecurity);
-                    _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+
+                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    {
+                        _securities.Add(newSecurity);
+                    }
+
+                    Security outSec = null;
+                    if (_securitiesDictionary.TryGetValue(newSecurity.NameId, out outSec) == false)
+                    {
+                        _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+                    }
                 }
             }
             catch (Exception e)
             {
                 SendLogMessage($"Error loading ETFs: {e.Message}", LogMessageType.System);
+                return false;
             }
+            return true;
         }
 
-        private void UpdateIndicativesFromServer(IndicativesResponse indicatives)
+        private bool UpdateIndicativesFromServer(IndicativesResponse indicatives)
         {
             try
             {
                 if (indicatives == null ||
                     indicatives.Instruments.Count == 0)
                 {
-                    return;
+                    return false;
                 }
 
                 for (int i = 0; i < indicatives.Instruments.Count; i++)
@@ -814,25 +887,36 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
-                    _securities.Add(newSecurity);
-                    _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+
+                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    {
+                        _securities.Add(newSecurity);
+                    }
+
+                    Security outSec = null;
+                    if (_securitiesDictionary.TryGetValue(newSecurity.NameId, out outSec) == false)
+                    {
+                        _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+                    }
                 }
 
             }
             catch (Exception e)
             {
                 SendLogMessage($"Error loading indicatives: {e.Message}", LogMessageType.System);
+                return false;
             }
+            return true;
         }
 
-        private void UpdateCurrenciesFromServer(CurrenciesResponse currenciesResponse)
+        private bool UpdateCurrenciesFromServer(CurrenciesResponse currenciesResponse)
         {
             try
             {
                 if (currenciesResponse == null ||
                     currenciesResponse.Instruments.Count == 0)
                 {
-                    return;
+                    return false;
                 }
 
                 for (int i = 0; i < currenciesResponse.Instruments.Count; i++)
@@ -868,27 +952,37 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.Lot = item.Lot;
                     newSecurity.VolumeStep = 1;
 
-
                     newSecurity.State = SecurityStateType.Activ;
-                    _securities.Add(newSecurity);
-                    _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+
+                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    {
+                        _securities.Add(newSecurity);
+                    }
+
+                    Security outSec = null;
+                    if (_securitiesDictionary.TryGetValue(newSecurity.NameId, out outSec) == false)
+                    {
+                        _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+                    }
                 }
 
             }
             catch (Exception e)
             {
                 SendLogMessage($"Error loading currency pairs: {e.Message}", LogMessageType.System);
+                return false;
             }
+            return true;
         }
 
-        private void UpdateFuturesFromServer(FuturesResponse futures)
+        private bool UpdateFuturesFromServer(FuturesResponse futures)
         {
             try
             {
                 if (futures == null ||
                     futures.Instruments.Count == 0)
                 {
-                    return;
+                    return false;
                 }
 
                 for (int i = 0; i < futures.Instruments.Count; i++)
@@ -940,8 +1034,17 @@ namespace OsEngine.Market.Servers.TInvest
                     }
 
                     newSecurity.State = SecurityStateType.Activ;
-                    _securities.Add(newSecurity);
-                    _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+
+                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    {
+                        _securities.Add(newSecurity);
+                    }
+
+                    Security outSec = null;
+                    if (_securitiesDictionary.TryGetValue(newSecurity.NameId, out outSec) == false)
+                    {
+                        _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
+                    }
 
                     TinSecuritiesRisksFutures riskFutures = null;
 
@@ -958,7 +1061,9 @@ namespace OsEngine.Market.Servers.TInvest
             catch (Exception e)
             {
                 SendLogMessage($"Error loading futures: {e.Message}", LogMessageType.System);
+                return false;
             }
+            return true;
         }
 
         private void UpdateOptionsFromServer(OptionsResponse options)

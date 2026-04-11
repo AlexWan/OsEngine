@@ -1320,6 +1320,10 @@ namespace OsEngine.Language
           "Eng:Failed to load candles. The T-Investments server is not available. Restarting the connector_" +
           "Ru:Не удалось загрузить свечи. Сервер Т-Инвестиции не доступен.  Перезапускаем коннектор _");
 
+        public string Label323 => OsLocalization.ConvertToLocString(
+          "Eng:Error while loading securities. The T-Investments server is not available. The connector has been restarted. Cheburnet is offline_" +
+          "Ru:Ошибка при загрузке инструментов. Сервер Т-Инвестиции не доступен. Коннектор отправлен на перезапуск. Чебурнет перегружен... _");
+
 
 
 
