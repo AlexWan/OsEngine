@@ -902,6 +902,11 @@ namespace OsEngine.Robots.FuturesStart
 
         private void SetContangoValues(BotTabSimple baseSource, BotTabSimple futuresSource)
         {
+            if (baseSource.PriceBestAsk == 0)
+            {
+                return;
+            }
+
             ContangoValue value = null;
 
             for (int i = 0; i < _contangoValues.Count; i++)
