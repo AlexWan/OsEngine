@@ -1323,7 +1323,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         #region 5 Data
 
-        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(80));
 
         private string _rateGateGetCandleHistoryLocker = "_rateGateGetCandleHistoryLocker";
 
@@ -1371,22 +1371,28 @@ namespace OsEngine.Market.Servers.Bybit
                     return null;
                 }
 
-                Dictionary<string, object> parametrs = new Dictionary<string, object>();
-                parametrs["category"] = category;
-                parametrs["symbol"] = security.Name.Split('.')[0];
-                parametrs["interval"] = supported_intervals[timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes];
-                parametrs["limit"] = 1000;
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+                parameters["category"] = category;
+                parameters["symbol"] = security.Name.Split('.')[0];
+                parameters["interval"] = supported_intervals[timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes];
+                parameters["limit"] = 1000;
                 List<Candle> candles = new List<Candle>();
-                parametrs["start"] = TimeManager.GetTimeStampMilliSecondsToDateTime(startTime);
-                parametrs["end"] = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
+                parameters["start"] = TimeManager.GetTimeStampMilliSecondsToDateTime(startTime);
+                parameters["end"] = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
 
                 do
                 {
-                    IRestResponse responseMessage = CreatePublicQuery(parametrs, Method.GET, "/v5/market/kline");
+                    _rateGateGetCandleHistory.WaitToProceed();
+
+                    IRestResponse responseMessage = RequestCandleHistoryWithRetries(parameters, Method.GET, "/v5/market/kline");
 
                     if (responseMessage.StatusCode != HttpStatusCode.OK)
                     {
-                        SendLogMessage($"Candle History error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                        if (responseMessage.StatusCode != 0)
+                        {
+                            SendLogMessage($"Candle History error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                        }
+                            
                         break;
                     }
 
@@ -1397,7 +1403,7 @@ namespace OsEngine.Market.Servers.Bybit
                         candles.InsertRange(0, newCandles);
                         if (candles[0].TimeStart > startTime)
                         {
-                            parametrs["end"] = TimeManager.GetTimeStampMilliSecondsToDateTime(candles[0].TimeStart.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * -1));
+                            parameters["end"] = TimeManager.GetTimeStampMilliSecondsToDateTime(candles[0].TimeStart.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * -1));
                         }
                         else
                         {
@@ -1422,6 +1428,26 @@ namespace OsEngine.Market.Servers.Bybit
             }
 
             return null;
+        }
+
+        private IRestResponse RequestCandleHistoryWithRetries(Dictionary<string, object> parameters, Method method, string uri)
+        {
+            IRestResponse result = null;
+            for (int i = 0; i < 3; i++)
+            {
+                result = CreatePublicQuery(parameters, Method.GET, "/v5/market/kline");
+
+                if (result.Content != null 
+                    && !result.Content.Contains("\"retCode\":10006"))
+                {
+                    break;
+                }
+
+                //SendLogMessage($"Rate limit exceeded (10006) for {uri}", LogMessageType.Error);
+                Thread.Sleep(1000);
+            }
+
+            return result;
         }
 
         private List<Candle> GetListCandles(string candlesQuery)
