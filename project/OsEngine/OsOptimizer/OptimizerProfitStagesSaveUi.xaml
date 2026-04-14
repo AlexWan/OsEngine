@@ -10,16 +10,21 @@
         <Grid.RowDefinitions>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Button Content="Save in file" Margin="60,0,60,19" VerticalAlignment="Bottom"/>
-        <Label Content="Profit % >" HorizontalAlignment="Left" Margin="44,17,0,0" VerticalAlignment="Top"/>
-        <TextBox Margin="158,17,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
-        <TextBox Margin="20,129,20,54" TextWrapping="Wrap" Height="NaN"/>
-        <Label Content="Profit pos % &gt;" HorizontalAlignment="Left" Margin="44,45,0,0" VerticalAlignment="Top"/>
-        <TextBox Margin="158,45,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
-        <Label Content="Average profit % &gt;" HorizontalAlignment="Left" Margin="44,73,0,0" VerticalAlignment="Top"/>
-        <TextBox Margin="158,73,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
-        <Label Content="Draw down % &lt;" HorizontalAlignment="Left" Margin="44,101,0,0" VerticalAlignment="Top"/>
-        <TextBox Margin="158,101,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+
+        <Label Name="LabelProfitDepositPercent" Content="Profit % >" HorizontalAlignment="Left" Margin="44,17,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxProfitDepositPercent" Margin="158,17,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+
+        <Label Name="LabelProfitPositionsPercent" Content="Profit pos % &gt;" HorizontalAlignment="Left" Margin="44,45,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxProfitPositionsPercent" Margin="158,45,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+
+        <Label Name="LabelAverageProfitPercent" Content="Average profit % &gt;" HorizontalAlignment="Left" Margin="44,73,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxAverageProfitPercent" Margin="158,73,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+
+        <Label Name="LabelDrawDownPercent" Content="Draw down % &lt;" HorizontalAlignment="Left" Margin="44,101,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxDrawDownPercent" Margin="158,101,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+
+        <TextBox Name="TextBoxResultRobots" Margin="20,129,20,54" TextWrapping="Wrap" Height="NaN"/>
+        <Button Name="ButtonSaveResultsInFile" Content="Save in file" Margin="60,0,60,19" VerticalAlignment="Bottom" Click="ButtonSaveResultsInFile_Click"/>
 
     </Grid>
 </Window>

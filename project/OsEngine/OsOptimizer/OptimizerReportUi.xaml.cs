@@ -806,12 +806,12 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            if (e.ColumnIndex == 11)
+            if (e.ColumnIndex == 12)
             {
                 ShowBotChartDialog(e);
             }
 
-            if (e.ColumnIndex == 12)
+            if (e.ColumnIndex == 13)
             {
                 ShowParametersDialog(e);
             }
@@ -1273,7 +1273,33 @@ namespace OsEngine.OsOptimizer
             {
                 if (_saveProfitStagesUi == null)
                 {
-                    _saveProfitStagesUi = new OptimizerProfitStagesSaveUi(_chartSeriesResult);
+
+                    if (_reports == null)
+                    {
+                        return;
+                    }
+
+                    if (_gridFazesEnd.CurrentCell == null)
+                    {
+                        return;
+                    }
+
+                    int num = 0;
+                    num = _gridFazesEnd.CurrentCell.RowIndex;
+
+                    if (num >= _reports.Count)
+                    {
+                        return;
+                    }
+
+                    OptimizerFazeReport fazeReport = _reports[num];
+
+                    if (fazeReport == null)
+                    {
+                        return;
+                    }
+
+                    _saveProfitStagesUi = new OptimizerProfitStagesSaveUi(fazeReport);
                     _saveProfitStagesUi.Closed += _saveProfitStagesUi_Closed;
                     _saveProfitStagesUi.Show();
                 }

@@ -3148,12 +3148,12 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            if (e.ColumnIndex == 11)
+            if (e.ColumnIndex == 12)
             {
                 ShowBotChartDialog(e);
             }
 
-            if (e.ColumnIndex == 12)
+            if (e.ColumnIndex == 13)
             {
                 ShowParametersDialog(e);
             }
