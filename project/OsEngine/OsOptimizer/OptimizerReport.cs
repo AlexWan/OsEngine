@@ -84,6 +84,11 @@ namespace OsEngine.OsOptimizer
             {
                 return true;
             }
+            else if (sortType == SortBotsType.ProfitPositionPercent &&
+                     rep1.ProfitPositionPercent < rep2.ProfitPositionPercent)
+            {
+                return true;
+            }
             else if (sortType == SortBotsType.MaxDrawDawn &&
                      rep1.MaxDrawDawn < rep2.MaxDrawDawn)
             {
@@ -327,6 +332,7 @@ namespace OsEngine.OsOptimizer
 
                 tab.SecurityName = tabsSimple[i].Security.Name;
                 tab.PositionsCount = positions.Count;
+                tab.ProfitPositionPercent = PositionStatisticGenerator.GetProfitDialPercent(posesArray);
                 tab.TotalProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(posesArray, false);
                 tab.TotalProfitPercent = PositionStatisticGenerator.GetAllProfitPercent(posesArray, false);
                 tab.MaxDrawDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
@@ -352,6 +358,7 @@ namespace OsEngine.OsOptimizer
             if (TabsReports.Count == 1)
             {
                 PositionsCount = TabsReports[0].PositionsCount;
+                ProfitPositionPercent = TabsReports[0].ProfitPositionPercent;
                 TotalProfit = TabsReports[0].TotalProfit;
                 TotalProfitPercent = TabsReports[0].TotalProfitPercent;
                 MaxDrawDawn = TabsReports[0].MaxDrawDawn;
@@ -370,6 +377,7 @@ namespace OsEngine.OsOptimizer
                 Position[] posesArray = allPositionsForAllTabs.ToArray();
 
                 PositionsCount = allPositionsForAllTabs.Count;
+                ProfitPositionPercent = PositionStatisticGenerator.GetProfitDialPercent(posesArray);
                 TotalProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(posesArray, false);
                 TotalProfitPercent = PositionStatisticGenerator.GetAllProfitPercent(posesArray, false);
                 MaxDrawDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
@@ -383,6 +391,8 @@ namespace OsEngine.OsOptimizer
         }
 
         public int PositionsCount;
+
+        public decimal ProfitPositionPercent;
 
         public decimal TotalProfit;
 
@@ -408,7 +418,7 @@ namespace OsEngine.OsOptimizer
 
             // Сохраняем основное
             result.Append(BotName + "@");
-            result.Append(PositionsCount + "@");
+            result.Append(PositionsCount + "_" + ProfitPositionPercent + "@");
             result.Append(TotalProfit + "@");
             result.Append(MaxDrawDawn + "@");
             result.Append(AverageProfit + "@");
@@ -448,7 +458,13 @@ namespace OsEngine.OsOptimizer
             string[] str = saveStr.Split('@');
 
             BotName = str[0];
-            PositionsCount = Convert.ToInt32(str[1]);
+            PositionsCount = Convert.ToInt32(str[1].Split('_')[0]);
+
+            if(str[1].Split('_').Length > 1)
+            {
+                ProfitPositionPercent = str[1].Split('_')[1].ToDecimal();
+            }
+
             TotalProfit = str[2].ToDecimal();
             MaxDrawDawn = str[3].ToDecimal();
             AverageProfit = str[4].ToDecimal();
@@ -485,6 +501,8 @@ namespace OsEngine.OsOptimizer
 
         public int PositionsCount;
 
+        public decimal ProfitPositionPercent;
+
         public decimal TotalProfit;
 
         public decimal TotalProfitPercent;
@@ -519,6 +537,7 @@ namespace OsEngine.OsOptimizer
             result += Recovery + "*";
             result += TotalProfitPercent + "*";
             result += SharpRatio + "*";
+            result += ProfitPositionPercent + "*";
 
             return result;
         }
@@ -544,7 +563,15 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            SharpRatio = save[11].ToDecimal();
+            try
+            {
+                SharpRatio = save[11].ToDecimal();
+                ProfitPositionPercent = save[12].ToDecimal();
+            }
+            catch
+            {
+                // ignore
+            }
         }
     }
 }

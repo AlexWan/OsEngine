@@ -1,0 +1,25 @@
+﻿<Window x:Class="OsEngine.OsOptimizer.OptimizerProfitStagesSaveUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsOptimizer"
+        mc:Ignorable="d"
+        Title="Numbers of best robots" Height="224" Width="233" MinWidth="300" MinHeight="250" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+    <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Button Content="Save in file" Margin="60,0,60,19" VerticalAlignment="Bottom"/>
+        <Label Content="Profit % >" HorizontalAlignment="Left" Margin="44,17,0,0" VerticalAlignment="Top"/>
+        <TextBox Margin="158,17,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+        <TextBox Margin="20,129,20,54" TextWrapping="Wrap" Height="NaN"/>
+        <Label Content="Profit pos % &gt;" HorizontalAlignment="Left" Margin="44,45,0,0" VerticalAlignment="Top"/>
+        <TextBox Margin="158,45,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+        <Label Content="Average profit % &gt;" HorizontalAlignment="Left" Margin="44,73,0,0" VerticalAlignment="Top"/>
+        <TextBox Margin="158,73,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+        <Label Content="Draw down % &lt;" HorizontalAlignment="Left" Margin="44,101,0,0" VerticalAlignment="Top"/>
+        <TextBox Margin="158,101,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>
