@@ -651,8 +651,10 @@ namespace OsEngine.Entity
         /// <summary>
         /// request a series of candlesticks for an instrument with certain settings
         /// </summary>
-        public CandleSeries GetSeries(TimeFrameBuilder timeFrameBuilder, Security security)
+        public List<CandleSeries> GetSeries(TimeFrameBuilder timeFrameBuilder, Security security)
         {
+            List<CandleSeries> resultSeries = new List<CandleSeries>();
+
             for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
             {
                 CandleSeries curSeries = _activeSeriesBasedOnTrades[i];
@@ -668,7 +670,7 @@ namespace OsEngine.Entity
                     continue;
                 }
 
-                return _activeSeriesBasedOnTrades[i];
+                resultSeries.Add(_activeSeriesBasedOnTrades[i]);
             }
 
             for (int i = 0; _activeSeriesBasedOnMd != null && i < _activeSeriesBasedOnMd.Count; i++)
@@ -685,11 +687,10 @@ namespace OsEngine.Entity
                 {
                     continue;
                 }
-
-                return _activeSeriesBasedOnMd[i];
+                resultSeries.Add(_activeSeriesBasedOnMd[i]);
             }
 
-            return null;
+            return resultSeries;
         }
 
         #endregion

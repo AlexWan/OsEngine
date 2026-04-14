@@ -2926,6 +2926,14 @@ namespace OsEngine.Market.Servers
                     return null;
                 }
 
+                List<Candle> candlesFromManager = TryGetCandlesFromCandleManager(security,timeFrameBuilder,candleCount);
+
+                if(candlesFromManager != null
+                    && candlesFromManager.Count > 0)
+                {
+                    return candlesFromManager;
+                }
+
                 return ServerRealization.GetLastCandleHistory(security, timeFrameBuilder, candleCount);
             }
             catch (Exception ex)
@@ -2936,6 +2944,61 @@ namespace OsEngine.Market.Servers
 
                 return null;
             }
+        }
+
+        private List<Candle> TryGetCandlesFromCandleManager(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            try
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return null;
+                }
+
+                if (ServerRealization == null)
+                {
+                    return null;
+                }
+
+                List<CandleSeries> series = _candleManager.GetSeries(timeFrameBuilder, security);
+
+                List<Candle> myCandles = new List<Candle>();
+
+                for (int i = 0; i < series.Count; i++)
+                {
+                    CandleSeries currentSeries = series[i];
+                    if (currentSeries.IsStarted == true
+                        && currentSeries.CandlesAll != null
+                        && currentSeries.CandlesAll.Count > 0)
+                    {
+                        myCandles = currentSeries.CandlesAll;
+                        break;
+                    }
+                }
+
+                if(myCandles == null 
+                    || myCandles.Count == 0)
+                {
+                    return null;
+                }
+
+                List<Candle> resultCandles = new List<Candle>();
+
+                for(int i = 0;i < myCandles.Count;i++)
+                {
+                    Candle currentCandle = myCandles[i];
+                    Candle newCandle = new Candle();
+                    newCandle.SetCandleFromString(currentCandle.StringToSave);
+                    resultCandles.Add(newCandle);
+                }
+
+                return resultCandles;
+            }
+            catch //(Exception ex)
+            {
+                /*SendLogMessage("Cash candles error: " + ex.ToString(), LogMessageType.Error);*/
+            }
+            return null;
         }
 
         /// <summary>

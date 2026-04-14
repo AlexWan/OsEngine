@@ -1837,11 +1837,13 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         SendLogMessage($"Couldn't get candles for {security.Name}. Info: probably invalid time interval {fromDateTime}UTC - {toDateTime}UTC", LogMessageType.System);
                         _getCandlesErrorsCount++;
+                        Thread.Sleep(300);
                     }
                     else
                     {
                         SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.System);
                         _getCandlesErrorsCount++;
+                        Thread.Sleep(300);
                     }  
                 }
                 catch (Exception ex)
@@ -1853,6 +1855,7 @@ namespace OsEngine.Market.Servers.TInvest
                     }
 
                     _getCandlesErrorsCount++;
+                    Thread.Sleep(300);
 
                     SendLogMessage($"Error getting candles for {security.Name}: " + ex.ToString(),
                         LogMessageType.System);
