@@ -23,8 +23,7 @@
         <Label Name="LabelDrawDownPercent" Content="Draw down % &lt;" HorizontalAlignment="Left" Margin="44,101,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxDrawDownPercent" Margin="158,101,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
 
-        <TextBox Name="TextBoxResultRobots" Margin="20,129,20,54" TextWrapping="Wrap" Height="NaN"/>
-        <Button Name="ButtonSaveResultsInFile" Content="Save in file" Margin="60,0,60,19" VerticalAlignment="Bottom" Click="ButtonSaveResultsInFile_Click"/>
+        <TextBox Name="TextBoxResultRobots" Margin="20,129,20,10" TextWrapping="Wrap" Height="NaN"/>
 
     </Grid>
 </Window>

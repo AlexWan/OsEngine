@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System;
 using OsEngine.Market;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.OsOptimizer
 {
@@ -30,23 +31,16 @@ namespace OsEngine.OsOptimizer
             TextBoxAverageProfitPercent.TextChanged += TextBoxAverageProfitPercent_TextChanged;
             TextBoxDrawDownPercent.TextChanged += TextBoxDrawDownPercent_TextChanged;
 
+            Title = OsLocalization.Optimizer.Label71;
+
             PaintResultTextBox();
 
             this.Closed += OptimizerProfitStagesSaveUi_Closed;
         }
 
-
         private void OptimizerProfitStagesSaveUi_Closed(object sender, System.EventArgs e)
         {
             _fazeReport = null;
-        }
-
-        private void ButtonSaveResultsInFile_Click(object sender, RoutedEventArgs e)
-        {
-
-
-
-
         }
 
         #region Set settings
@@ -150,7 +144,6 @@ namespace OsEngine.OsOptimizer
             }
 
             TextBoxResultRobots.Text = result;
-
         }
 
         #endregion
