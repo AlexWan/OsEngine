@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Entity.SyntheticBondEntity;
+using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -1348,6 +1349,12 @@ namespace OsEngine.OsOptimizer
                         TimeToEndChangeEvent(timeToEnd);
                     }
                 }
+            }
+
+            if (bot != null)
+            {
+                // грузим индикаторы робота в кэш сервер
+                AindicatorCacheServer.TrySetIndicatorValuesInCache(bot);
             }
 
             if (bot != null)

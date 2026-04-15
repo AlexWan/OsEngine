@@ -474,5 +474,9 @@ namespace OsEngine.Language
         public string Label72 => OsLocalization.ConvertToLocString(
            "Eng:Save in file_" +
            "Ru:Сохранить в файл_");
+
+        public string Label73 => OsLocalization.ConvertToLocString(
+           "Eng:Cache indicators_" +
+           "Ru:Кэшировать индикаторы_");
     }
 }

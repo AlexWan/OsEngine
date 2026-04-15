@@ -9,7 +9,6 @@ using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
 using OsEngine.Attributes;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Threading;
 
 namespace OsEngine.Indicators
@@ -397,6 +396,24 @@ namespace OsEngine.Indicators
         public List<ParameterDigit> ParametersDigit = new List<ParameterDigit>();
 
         /// <summary>
+        /// unique string parameters
+        /// </summary>
+        public string ParametersSpecification
+        {
+            get
+            {
+                string result = "";
+
+                for (int i = 0; i < _parameters.Count; i++)
+                {
+                    result += _parameters[i].GetStringToSave();
+                }
+
+                return result;
+            }
+        }
+
+        /// <summary>
         /// parameter has changed settings
         /// </summary>
         private void Parameter_ValueChange()
@@ -573,8 +590,28 @@ namespace OsEngine.Indicators
 
         private DateTime _lastUpdateCandleTime;
 
+        public string CandleSeriesSpecification;
+
+        public string SecurityName;
+
         public void Process(List<Candle> candles)
         {
+            if(StartProgram == StartProgram.IsOsOptimizer)
+            {
+                if (_tryGetCacheOnce == false)
+                {
+                    _tryGetCacheOnce = true;
+                    _cache = AindicatorCacheServer.TryGetValuesToIndicator(this, SecurityName, CandleSeriesSpecification, candles);
+                }
+                if(_cache != null)
+                {
+                    if(TryProcessFromCache(candles) == true)
+                    {
+                        return;
+                    }
+                }
+            }
+
             ProcessLoop(candles, 1);
         }
 
@@ -791,6 +828,37 @@ namespace OsEngine.Indicators
         }
 
         public event Action<IIndicator> NeedToReloadEvent;
+
+        #endregion
+
+        #region Cache values
+
+        private bool _tryGetCacheOnce = false;
+
+        private AindicatorCache _cache; 
+
+        private bool TryProcessFromCache(List<Candle> candles)
+        {
+            if (candles[^1].TimeStart > _cache.CandleEnd)
+            {
+                _cache = null;
+                return false;
+            }
+
+            for(int i = 0;i < _cache.DataSeries.Count;i++)
+            {
+                IndicatorDataSeries mySeries = DataSeries[i];
+                IndicatorDataSeries cacheSeries = _cache.DataSeries[i];
+
+                while (mySeries.Values.Count < cacheSeries.Values.Count
+                    && mySeries.Values.Count < candles.Count)
+                {
+                    mySeries.Values.Add(cacheSeries.Values[mySeries.Values.Count]);
+                }
+            }
+
+            return true;
+        }
 
         #endregion
 

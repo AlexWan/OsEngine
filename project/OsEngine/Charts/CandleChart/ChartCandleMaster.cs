@@ -1584,6 +1584,7 @@ namespace OsEngine.Charts.CandleChart
                             if (EventIsOn == false) 
                             {
                                 Type indType = _indicators[i].GetType();
+
                                 if (indType.BaseType.Name == "Aindicator")
                                 {
                                     ((Aindicator)_indicators[i]).Reload();
@@ -1619,7 +1620,9 @@ namespace OsEngine.Charts.CandleChart
                     {
                         for (int i = 0; i < _indicators.Count; i++)
                         {
-                            _indicators[i].Process(candles);
+                            IIndicator currentIndicator = _indicators[i];
+
+                            currentIndicator.Process(candles);
                         }
                     }
                 }
@@ -1903,6 +1906,31 @@ namespace OsEngine.Charts.CandleChart
         {
             if (_startProgram == StartProgram.IsOsOptimizer)
             {
+                _securityOnThisChart = security;
+                _seriesSpecification = timeFrameBuilder.Specification;
+
+                if(_securityOnThisChart == null
+                    || _seriesSpecification == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _indicators.Count; i++)
+                {
+                    IIndicator currentIndicator = _indicators[i];
+
+                    if (_startProgram == StartProgram.IsOsOptimizer)
+                    {
+                        Type indType = currentIndicator.GetType();
+
+                        if (indType.BaseType.Name == "Aindicator")
+                        {
+                            ((Aindicator)currentIndicator).CandleSeriesSpecification = _seriesSpecification;
+                            ((Aindicator)currentIndicator).SecurityName = this._securityOnThisChart;
+                        }
+                    }
+                }
+
                 return;
             }
 
@@ -1973,6 +2001,8 @@ namespace OsEngine.Charts.CandleChart
         /// бумага отображаемая на чарте
         /// </summary>
         private string _securityOnThisChart;
+
+        private string _seriesSpecification;
 
         /// <summary>
         /// timeframe of this chart's paper

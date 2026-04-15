@@ -20,6 +20,7 @@ using System.Threading;
 using System.Globalization;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market;
+using OsEngine.Indicators;
 
 namespace OsEngine.OsOptimizer
 {
@@ -51,6 +52,7 @@ namespace OsEngine.OsOptimizer
             _percentOnFiltration = 30;
 
             Load();
+            AindicatorCacheServer.IsOn = _cacheIndicatorsIsOn;
             LoadClearingInfo();
             LoadNonTradePeriods();
 
@@ -121,6 +123,7 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_orderExecutionType);
                     writer.WriteLine(_slippageToSimpleOrder);
                     writer.WriteLine(_slippageToStopOrder);
+                    writer.WriteLine(_cacheIndicatorsIsOn);
 
                     writer.Close();
                 }
@@ -169,6 +172,7 @@ namespace OsEngine.OsOptimizer
                     Enum.TryParse(reader.ReadLine(), out _orderExecutionType);
                     _slippageToSimpleOrder = Convert.ToInt32(reader.ReadLine());
                     _slippageToStopOrder = Convert.ToInt32(reader.ReadLine());
+                    _cacheIndicatorsIsOn = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -226,7 +230,7 @@ namespace OsEngine.OsOptimizer
             ProgressBarStatus status;
             try
             {
-                status = ProgressBarStatuses.Find(st => st.Num == numServer);
+                status = ProgressBarStatuses.Find(st => st != null && st.Num == numServer);
             }
             catch
             {
@@ -329,6 +333,18 @@ namespace OsEngine.OsOptimizer
             }
         }
         private bool _isScript;
+
+        public bool CacheIndicatorsIsOn
+        {
+            get { return _cacheIndicatorsIsOn; }
+            set
+            {
+                _cacheIndicatorsIsOn = value;
+                AindicatorCacheServer.IsOn = _cacheIndicatorsIsOn;
+                Save();
+            }
+        }
+        private bool _cacheIndicatorsIsOn;
 
         public List<SecurityTester> SecurityTester
         {

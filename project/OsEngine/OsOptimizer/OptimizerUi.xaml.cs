@@ -27,6 +27,8 @@ using System.Linq;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Threading;
 using OsEngine.Instructions;
+using OsEngine.Charts.CandleChart.Indicators;
+using OsEngine.Indicators;
 
 
 namespace OsEngine.OsOptimizer
@@ -76,6 +78,12 @@ namespace OsEngine.OsOptimizer
             CommissionValueLabel.Content = OsLocalization.Optimizer.Label41;
             CommissionValueTextBox.Text = _master.CommissionValue.ToString();
             CommissionValueTextBox.TextChanged += CommissionValueTextBoxOnTextChanged;
+
+            CheckBoxCacheIndicatorsIsOn.Content = OsLocalization.Optimizer.Label73;
+            CheckBoxCacheIndicatorsIsOn.IsChecked = _master.CacheIndicatorsIsOn;
+            CheckBoxCacheIndicatorsIsOn.Checked += CheckBoxCacheIndicatorsIsOn_Checked;
+            CheckBoxCacheIndicatorsIsOn.Unchecked += CheckBoxCacheIndicatorsIsOn_Checked;
+
 
             // filters/фильтры
             CheckBoxFilterProfitIsOn.IsChecked = _master.FilterProfitIsOn;
@@ -413,6 +421,7 @@ namespace OsEngine.OsOptimizer
             CommissionValueTextBox.IsEnabled = false;
             TextBoxStrategyName.IsEnabled = false;
             ButtonStrategyReload.IsEnabled = false;
+            CheckBoxCacheIndicatorsIsOn.IsEnabled = false;
         }
 
         private void StartUserActivity()
@@ -442,6 +451,7 @@ namespace OsEngine.OsOptimizer
             CommissionValueTextBox.IsEnabled = true;
             TextBoxStrategyName.IsEnabled = true;
             ButtonStrategyReload.IsEnabled = true;
+            CheckBoxCacheIndicatorsIsOn.IsEnabled = true;
         }
 
         private DateTime _lastTestEndEventTime = DateTime.MinValue;
@@ -769,6 +779,8 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonGo_Click(object sender, RoutedEventArgs e)
         {
+            AindicatorCacheServer.Clear();
+
             SaveParametersFromTable();
 
             if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9 &&
@@ -1028,6 +1040,18 @@ namespace OsEngine.OsOptimizer
         private void ButtonResults_Click(object sender, RoutedEventArgs e)
         {
             ShowResultDialog();
+        }
+
+        private void CheckBoxCacheIndicatorsIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _master.CacheIndicatorsIsOn = CheckBoxCacheIndicatorsIsOn.IsChecked.Value;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         public void ShowResultDialog()

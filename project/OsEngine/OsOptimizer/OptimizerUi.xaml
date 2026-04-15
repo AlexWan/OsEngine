@@ -31,7 +31,7 @@
                         <TextBox Name="TextBoxStartPortfolio" HorizontalAlignment="Left" Height="28" Margin="12,131,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="214"/>
                         <Label Name="Label13" Content="Initial funds" HorizontalAlignment="Left" Margin="12,106,0,0" VerticalAlignment="Top"/>
                         <Label Name="CommissionTypeLabel" Content="Commission Type" HorizontalAlignment="Left" Margin="12,164,0,0" VerticalAlignment="Top"/>
-                        <ComboBox Name="CommissionTypeComboBox" Margin="12,190,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="110" Height="28"/>
+                        <ComboBox Name="CommissionTypeComboBox" Margin="12,189,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="110" Height="30"/>
                         <Label  Name="CommissionValueLabel" Content="Commission Value" HorizontalAlignment="Left" Margin="125,164,0,0" VerticalAlignment="Top"/>
                         <TextBox Name="CommissionValueTextBox" Margin="125,190,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="101" Height="28"/>
                         <WindowsFormsHost Name="HostLog" Margin="10,224,10,10" Foreground="Black"/>
@@ -44,8 +44,9 @@
                         <Label Name="Label12" Content="Optimization strategy" HorizontalAlignment="Left" Margin="12,48,0,0" VerticalAlignment="Top"/>
                         <Button Name="ButtonStrategySelect" Content="Select" HorizontalAlignment="Left" Margin="156,53,0,0" VerticalAlignment="Top" Width="69" Click="ButtonStrategySelect_Click"/>
                         <TextBox Name="TextBoxStrategyName" HorizontalAlignment="Left" IsReadOnly="True" Margin="12,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="139" Height="37"/>
-                        <Button Name="ButtonPositionSupport" Content="Position support"  HorizontalAlignment="Left" Margin="231,190,0,0" VerticalAlignment="Top" Width="195" Click="ButtonPositionSupport_Click" />
+                        <Button Name="ButtonPositionSupport" Content="Position support"  HorizontalAlignment="Left" Margin="231,190,0,0" VerticalAlignment="Top" Width="195" Click="ButtonPositionSupport_Click" Height="28" />
                         <Button Name="ButtonStrategyReload" Content="Reload" HorizontalAlignment="Left" Margin="156,83,0,0" VerticalAlignment="Top" Width="69" Click="ButtonStrategyReload_Click"/>
+                        <CheckBox Name="CheckBoxCacheIndicatorsIsOn" Content="Cache indicators" HorizontalAlignment="Left" Margin="431,192,0,0" VerticalAlignment="Top"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemParameters" Header="Parameters" FontSize="14" Width="120">

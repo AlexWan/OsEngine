@@ -812,8 +812,7 @@ namespace OsEngine.Market.Connectors
                 {
                     if (_lastReconnectTime.AddSeconds(1) > DateTime.Now)
                     {
-                        if (StartProgram != StartProgram.IsOsOptimizer
-                            && ConnectorStartedReconnectEvent != null)
+                        if (ConnectorStartedReconnectEvent != null)
                         {
                             ConnectorStartedReconnectEvent(SecurityName, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerFullName);
                         }

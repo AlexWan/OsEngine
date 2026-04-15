@@ -84,7 +84,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _chartMaster = new ChartCandleMaster(TabName, StartProgram);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
-                _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerFullName);
+
+                if(_connector.SecurityName != null && _connector.PortfolioName != null && _connector.ServerFullName != null)
+                {
+                    _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerFullName);
+                }
+                
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _chartMaster.IndicatorUpdateEvent += _chartMaster_IndicatorUpdateEvent;
                 _chartMaster.IndicatorManuallyCreateEvent += _chartMaster_IndicatorManuallyCreateEvent;
@@ -6785,6 +6790,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
+
+                if(StartProgram == StartProgram.IsOsOptimizer
+                    && LastTimeCandleUpdate == DateTime.MinValue)
+                {
+                    _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.PortfolioName);
+                }
+
+                LastTimeCandleUpdate = Connector.MarketTime;
+
                 AlertControlPosition();
 
                 if (PositionOpenerToStop != null &&
