@@ -10,7 +10,6 @@ using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
-using OsEngine.OsTrader.Iceberg;
 using OsEngine.OsTrader.Panels.Tab.SynteticBondTab;
 using System;
 using System.Collections.Concurrent;
@@ -25,12 +24,13 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
     {
         #region Constructor
 
-        public SyntheticBondSeries(StartProgram startProgram, string tabName)
+        public SyntheticBondSeries(string uniqueName, int uniqueNumber, StartProgram startProgram)
         {
             StartProgram = startProgram;
-            SyntheticBondName = tabName;
+            UniqueName = uniqueName;
+            UniqueNumber = uniqueNumber;
 
-            LoadSettingsSyntheticBond();
+            Load();
 
             if (startProgram == StartProgram.IsOsTrader)
             {
@@ -44,7 +44,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
-        public void SaveSyntheticBonds()
+        public void Save()
         {
             if (StartProgram == StartProgram.IsOsOptimizer)
             {
@@ -58,56 +58,24 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + UniqueName + @"SyntheticBondNamesToLoad.txt", false))
                 {
+                    writer.WriteLine(UniqueNumber.ToString());
+
+                    if (_patternBaseTab != null &&
+                        _patternBaseTab.TabName != null)
+                        writer.WriteLine(_patternBaseTab.TabName.ToString());
+                    else
+                        writer.WriteLine("None");
+
+                    writer.WriteLine(SyntheticBonds.Count.ToString());
+
                     for (int i = 0; i < SyntheticBonds.Count; i++)
                     {
-                        SyntheticBond modification = SyntheticBonds[i];
-
-                        writer.WriteLine(modification.BaseIcebergParameters.BotTab.TabName);
-                        writer.WriteLine(modification.FuturesIcebergParameters.BotTab.TabName);
-
-                        writer.WriteLine(modification.BaseMultiplicator.ToString());
-                        writer.WriteLine(modification.FuturesMultiplicator.ToString());
-                        writer.WriteLine(modification.BaseUseRationing.ToString());
-                        writer.WriteLine(modification.FuturesUseRationing.ToString());
-                        writer.WriteLine(modification.BaseRationingMode.ToString());
-                        writer.WriteLine(modification.FuturesRationingMode.ToString());
-
-                        writer.WriteLine(modification.BaseRationingSecurity == null
-                            ? "None"
-                            : modification.BaseRationingSecurity.TabName);
-
-                        writer.WriteLine(modification.FuturesRationingSecurity == null
-                            ? "None"
-                            : modification.FuturesRationingSecurity.TabName);
-
-                        writer.WriteLine(modification.BaseTimeOffset.ToString());
-                        writer.WriteLine(modification.FuturesTimeOffset.ToString());
-                        writer.WriteLine(modification.BaseTimeOffsetRationing.ToString());
-                        writer.WriteLine(modification.FuturesTimeOffsetRationing.ToString());
-
-                        writer.WriteLine(modification.CointegrationBuilder.CointegrationLookBack.ToString());
-                        writer.WriteLine(modification.CointegrationBuilder.CointegrationDeviation.ToString());
-                        writer.WriteLine(modification.SeparationLength.ToString());
-                        writer.WriteLine(modification.MainRationingMode.ToString());
-
-                        writer.WriteLine("Scenarios:" + modification.Scenarios.Count.ToString());
-                        for (int s = 0; s < modification.Scenarios.Count; s++)
-                        {
-                            BondScenario scenario = modification.Scenarios[s];
-                            writer.WriteLine(scenario.Name);
-                            writer.WriteLine(scenario.MaxSpread.ToString());
-                            writer.WriteLine(scenario.MinSpread.ToString());
-                        }
-                    }
-                }
-
-                for (int i = 0; i < SyntheticBonds.Count; i++)
-                {
-                    for (int s = 0; s < SyntheticBonds[i].Scenarios.Count; s++)
-                    {
-                        SyntheticBonds[i].Scenarios[s].ArbitrationIceberg?.Save();
+                        SyntheticBond syntheticBond = SyntheticBonds[i];
+                        writer.WriteLine(syntheticBond.UniqueName);
+                        writer.WriteLine(syntheticBond.UniqueNumber);
+                        syntheticBond.Save();
                     }
                 }
             }
@@ -120,160 +88,39 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
         public void OnSettingsChanged()
         {
             _separationCaches.Clear();
-            SaveSyntheticBonds();
+            Save();
             SettingsChangedEvent?.Invoke();
         }
 
-        private void CreateSyntheticBondFromFile(ref SyntheticBond syntheticBond, StreamReader reader)
+        public void Load()
         {
             try
             {
-                string baseTabName = reader.ReadLine();
-                string futuresTabName = reader.ReadLine();
-
-                BotTabSimple baseBotTab = new BotTabSimple(baseTabName, StartProgram);
-                baseBotTab.SecuritySubscribeEvent += SecuritySubscribe;
-
-                BotTabSimple futuresBotTab = new BotTabSimple(futuresTabName, StartProgram);
-                futuresBotTab.SecuritySubscribeEvent += SecuritySubscribe;
-
-                syntheticBond.BaseIcebergParameters = new ArbitrationParameters();
-                syntheticBond.BaseIcebergParameters.BotTab = baseBotTab;
-
-                syntheticBond.FuturesIcebergParameters = new ArbitrationParameters();
-                syntheticBond.FuturesIcebergParameters.BotTab = futuresBotTab;
-
-                syntheticBond.Scenarios = new List<BondScenario>();
-
-                syntheticBond.BaseMultiplicator = Convert.ToInt32(reader.ReadLine());
-                syntheticBond.FuturesMultiplicator = Convert.ToInt32(reader.ReadLine());
-                syntheticBond.BaseUseRationing = Convert.ToBoolean(reader.ReadLine());
-                syntheticBond.FuturesUseRationing = Convert.ToBoolean(reader.ReadLine());
-
-                string baseRationingMode = reader.ReadLine();
-                if (baseRationingMode == "Division") syntheticBond.BaseRationingMode = RationingMode.Division;
-                else if (baseRationingMode == "Multiplication") syntheticBond.BaseRationingMode = RationingMode.Multiplication;
-                else if (baseRationingMode == "Difference") syntheticBond.BaseRationingMode = RationingMode.Difference;
-                else if (baseRationingMode == "Addition") syntheticBond.BaseRationingMode = RationingMode.Addition;
-
-                string futuresRationingMode = reader.ReadLine();
-                if (futuresRationingMode == "Division") syntheticBond.FuturesRationingMode = RationingMode.Division;
-                else if (futuresRationingMode == "Multiplication") syntheticBond.FuturesRationingMode = RationingMode.Multiplication;
-                else if (futuresRationingMode == "Difference") syntheticBond.FuturesRationingMode = RationingMode.Difference;
-                else if (futuresRationingMode == "Addition") syntheticBond.FuturesRationingMode = RationingMode.Addition;
-
-                string baseRationingSecurity = reader.ReadLine();
-                if (baseRationingSecurity == "None")
-                {
-                    syntheticBond.BaseRationingSecurity = null;
-                }
-                else
-                {
-                    syntheticBond.BaseRationingSecurity = new BotTabSimple(baseRationingSecurity, StartProgram);
-                    syntheticBond.BaseRationingSecurity.SecuritySubscribeEvent += SecuritySubscribe;
-                }
-
-                string futuresRationingSecurity = reader.ReadLine();
-                if (futuresRationingSecurity == "None")
-                {
-                    syntheticBond.FuturesRationingSecurity = null;
-                }
-                else
-                {
-                    syntheticBond.FuturesRationingSecurity = new BotTabSimple(futuresRationingSecurity, StartProgram);
-                    syntheticBond.FuturesRationingSecurity.SecuritySubscribeEvent += SecuritySubscribe;
-                }
-
-                syntheticBond.BaseTimeOffset = Convert.ToInt32(reader.ReadLine());
-                syntheticBond.FuturesTimeOffset = Convert.ToInt32(reader.ReadLine());
-                syntheticBond.BaseTimeOffsetRationing = Convert.ToInt32(reader.ReadLine());
-                syntheticBond.FuturesTimeOffsetRationing = Convert.ToInt32(reader.ReadLine());
-
-                syntheticBond.CointegrationBuilder = new CointegrationBuilder();
-                syntheticBond.CointegrationBuilder.CointegrationLookBack = Convert.ToInt32(reader.ReadLine());
-                syntheticBond.CointegrationBuilder.CointegrationDeviation = reader.ReadLine().ToDecimal();
-                syntheticBond.SeparationLength = reader.ReadLine().ToDecimal();
-
-                string rationingMainMode = reader.ReadLine();
-                if (rationingMainMode == "Division") syntheticBond.MainRationingMode = RationingMode.Division;
-                else if (rationingMainMode == "Multiplication") syntheticBond.MainRationingMode = RationingMode.Multiplication;
-                else if (rationingMainMode == "Difference") syntheticBond.MainRationingMode = RationingMode.Difference;
-                else if (rationingMainMode == "Addition") syntheticBond.MainRationingMode = RationingMode.Addition;
-
-                string scenariosLine = reader.ReadLine();
-
-                if (scenariosLine != null && scenariosLine.StartsWith("Scenarios:"))
-                {
-                    int scenarioCount;
-                    if (!int.TryParse(scenariosLine.Substring("Scenarios:".Length), out scenarioCount))
-                    {
-                        scenarioCount = 0;
-                    }
-
-                    for (int s = 0; s < scenarioCount; s++)
-                    {
-                        string scenarioName = reader.ReadLine() ?? "Script 1";
-                        decimal maxSpread = reader.ReadLine().ToDecimal();
-                        decimal minSpread = reader.ReadLine().ToDecimal();
-
-                        BondScenario scenario = new BondScenario(futuresTabName, scenarioName);
-                        scenario.MaxSpread = maxSpread;
-                        scenario.MinSpread = minSpread;
-                        scenario.SetBotTabs(baseBotTab, futuresBotTab);
-                        syntheticBond.Scenarios.Add(scenario);
-                    }
-
-                    if (syntheticBond.Scenarios.Count == 0)
-                    {
-                        BondScenario defaultScenario = new BondScenario(futuresTabName, "Script 1");
-                        defaultScenario.SetBotTabs(baseBotTab, futuresBotTab);
-                        syntheticBond.Scenarios.Add(defaultScenario);
-                    }
-                }
-                else
-                {
-                    decimal legacyMaxSpread = scenariosLine != null ? scenariosLine.ToDecimal() : 0;
-                    decimal legacyMinSpread = reader.ReadLine().ToDecimal();
-                    reader.ReadLine();
-                    reader.ReadLine();
-                    reader.ReadLine();
-
-                    BondScenario defaultScenario = new BondScenario(futuresTabName, "Script 1");
-                    defaultScenario.MaxSpread = legacyMaxSpread;
-                    defaultScenario.MinSpread = legacyMinSpread;
-                    defaultScenario.SetBotTabs(baseBotTab, futuresBotTab);
-                    syntheticBond.Scenarios.Add(defaultScenario);
-                }
-            }
-            catch (Exception error)
-            {
-                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        public void LoadSettingsSyntheticBond()
-        {
-            try
-            {
-                if (!File.Exists(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt"))
+                if (!File.Exists(@"Engine\" + UniqueName + @"SyntheticBondNamesToLoad.txt"))
                 {
                     return;
                 }
 
                 SyntheticBonds = new List<SyntheticBond>();
 
-                using (StreamReader reader = new StreamReader(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + UniqueName + @"SyntheticBondNamesToLoad.txt"))
                 {
-                    while (reader.EndOfStream == false)
+                    UniqueNumber = Convert.ToInt32(reader.ReadLine());
+
+                    string patternBaseTabName = reader.ReadLine();
+
+                    if (patternBaseTabName != "None")
+                        _patternBaseTab = new BotTabSimple(patternBaseTabName, StartProgram);
+
+                    int syntheticBondCount = Convert.ToInt32(reader.ReadLine());
+
+                    for (int i = 0; i < syntheticBondCount; i++)
                     {
-                        SyntheticBond syntheticBond = new SyntheticBond();
-
-                        CreateSyntheticBondFromFile(ref syntheticBond, reader);
-
+                        string syntheticBondName = reader.ReadLine();
+                        int syntheticBondNumber = Convert.ToInt32(reader.ReadLine());
+                        SyntheticBond syntheticBond = new SyntheticBond(syntheticBondName, syntheticBondNumber, StartProgram);
                         SyntheticBonds.Add(syntheticBond);
                     }
-
-                    reader.Close();
                 }
 
                 PropagateBaseSecurityToAll();
@@ -284,34 +131,40 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
-        public void DeleteSyntheticBond()
+        public void Clear()
+        {
+            for (int i = 0; i < SyntheticBonds.Count; i++)
+            {
+                SyntheticBond syntheticBond = SyntheticBonds[i];
+                syntheticBond.Clear();
+            }
+        }
+
+        public void Delete()
         {
             try
             {
+                if (_patternBaseTab != null)
+                {
+                    _patternBaseTab.Delete();
+                    _patternBaseTab = null;
+                }
+
+                if (SyntheticBonds == null)
+                    return;
+
                 for (int i = 0; i < SyntheticBonds.Count; i++)
                 {
-                    SyntheticBond futures = SyntheticBonds[i];
-
-                    futures.BaseIcebergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribe;
-                    futures.BaseIcebergParameters.BotTab.Delete();
-
-                    futures.FuturesIcebergParameters.BotTab.SecuritySubscribeEvent -= SecuritySubscribe;
-                    futures.FuturesIcebergParameters.BotTab.Delete();
-
-                    for (int s = 0; s < futures.Scenarios.Count; s++)
-                    {
-                        futures.Scenarios[s].Delete();
-                    }
+                    SyntheticBond syntheticBond = SyntheticBonds[i];
+                    syntheticBond.Delete();
                 }
 
                 SyntheticBonds.Clear();
 
-                if (!File.Exists(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt"))
+                if (File.Exists(@"Engine\" + UniqueName + @"SyntheticBondNamesToLoad.txt"))
                 {
-                    return;
+                    File.Delete(@"Engine\" + UniqueName + @"SyntheticBondNamesToLoad.txt");
                 }
-
-                File.Delete(@"Engine\" + SyntheticBondName + @"SynteticBondModificationsFuturesToLoad.txt");
             }
             catch (Exception error)
             {
@@ -319,13 +172,47 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
+        public bool IsReadyToTrade()
+        {
+            try
+            {
+                if (SyntheticBonds == null)
+                    return false;
+                else if (SyntheticBonds.Count == 0)
+                    return false;
+
+                bool isReadyToTrade = true;
+                for (int i = 0; i < SyntheticBonds.Count; i++)
+                {
+                    SyntheticBond syntheticBond = SyntheticBonds[i];
+
+                    if (syntheticBond.IsReadyToTrade() == false)
+                        return false;
+                }
+
+                return isReadyToTrade;
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                return false;
+            }
+        }
+
         public void ChooseBaseSecurity()
         {
             try
             {
-                BaseTab.SecuritySubscribeEvent += SecuritySubscribe;
-                BaseTab.DialogClosed += OnBaseSecurityDialogClosed;
-                BaseTab.ShowConnectorDialog();
+                if (_patternBaseTab != null)
+                {
+                    _patternBaseTab.Delete();
+                    _patternBaseTab = null;
+                }
+
+                _patternBaseTab = new BotTabSimple(UniqueName + "PatternBaseTab", StartProgram);
+                _patternBaseTab.DialogClosed += OnBaseSecurityDialogClosed;
+                _patternBaseTab.SecuritySubscribeEvent += SecuritySubscribe;
+                _patternBaseTab.ShowConnectorDialog();
             }
             catch (Exception error)
             {
@@ -335,36 +222,76 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         private void OnBaseSecurityDialogClosed()
         {
-            BaseTab.DialogClosed -= OnBaseSecurityDialogClosed;
+            _patternBaseTab.DialogClosed -= OnBaseSecurityDialogClosed;
             PropagateBaseSecurityToAll();
         }
 
         public void PropagateBaseSecurityToAll()
         {
-            if (SyntheticBonds == null || SyntheticBonds.Count <= 1)
+            if (SyntheticBonds == null ||
+               (SyntheticBonds != null && SyntheticBonds.Count == 0))
             {
                 return;
             }
 
-            BotTabSimple sourceTab = SyntheticBonds[0].BaseIcebergParameters.BotTab;
-
-            if (sourceTab == null || sourceTab.Connector == null)
+            if (_patternBaseTab == null ||
+               (_patternBaseTab != null && _patternBaseTab.Connector == null))
             {
                 return;
             }
 
-            ConnectorCandles sourceConnector = sourceTab.Connector;
+            ConnectorCandles sourceConnector = _patternBaseTab.Connector;
 
-            for (int i = 1; i < SyntheticBonds.Count; i++)
+            for (int i = 0; i < SyntheticBonds.Count; i++)
             {
-                BotTabSimple targetTab = SyntheticBonds[i].BaseIcebergParameters.BotTab;
+                SyntheticBond syntheticBond = SyntheticBonds[i];
 
-                if (targetTab == null || targetTab.Connector == null)
+                bool needUpdatePatternBaseTab = true;
+
+                BotTabSimple targetPatternTab = syntheticBond.PatternBaseTab;
+
+                if (targetPatternTab == null ||
+                   (targetPatternTab != null && targetPatternTab.Connector == null))
+                    needUpdatePatternBaseTab = false;
+                else if (targetPatternTab.Connector.SecurityName != _patternBaseTab.Connector.SecurityName)
+                    needUpdatePatternBaseTab = true;
+
+                if (needUpdatePatternBaseTab)
                 {
-                    continue;
+                    ConnectorCandles targetConnector = targetPatternTab.Connector;
+                    UpdateBotTab(ref targetConnector, ref sourceConnector);
                 }
 
-                ConnectorCandles targetConnector = targetTab.Connector;
+                for (int i2 = 0; i2 < syntheticBond.ActiveScenarios.Count; i2++)
+                {
+                    BondScenario scenario = syntheticBond.ActiveScenarios[i2];
+
+                    for (int i3 = 0; i3 < scenario.ArbitrationIceberg.MainLegs.Count; i3++)
+                    {
+                        BotTabSimple targetTab = scenario.ArbitrationIceberg.MainLegs[i3].BotTab;
+
+                        bool needUpdate = true;
+
+                        if (targetTab == null ||
+                           (targetTab != null && targetTab.Connector == null))
+                            needUpdate = false;
+                        else if (targetTab.Connector.SecurityName != _patternBaseTab.Connector.SecurityName)
+                            needUpdate = true;
+
+                        if (needUpdate)
+                        {
+                            ConnectorCandles targetConnector = targetTab.Connector;
+                            UpdateBotTab(ref targetConnector, ref sourceConnector);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void UpdateBotTab(ref ConnectorCandles targetConnector, ref ConnectorCandles sourceConnector)
+        {
+            try
+            {
                 targetConnector.ServerFullName = sourceConnector.ServerFullName;
                 targetConnector.PortfolioName = sourceConnector.PortfolioName;
                 targetConnector.EmulatorIsOn = sourceConnector.EmulatorIsOn;
@@ -382,12 +309,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                 targetConnector.Save();
                 targetConnector.ReconnectHard();
             }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
-        public void ChooseFuturesSecurity(SyntheticBond settings)
+        public void ChooseFuturesSecurity(SyntheticBond syntheticBond)
         {
-            settings.FuturesIcebergParameters.BotTab.SecuritySubscribeEvent += SecuritySubscribe;
-            settings.FuturesIcebergParameters.BotTab.ShowConnectorDialog();
+            syntheticBond.UpdateFuturesSecurity();
         }
 
         private void SecuritySubscribe(Security security)
@@ -433,47 +363,22 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             {
                 for (int i = 0; SyntheticBonds != null && i < SyntheticBonds.Count; i++)
                 {
-                    SyntheticBond settings = SyntheticBonds[i];
+                    SyntheticBond syntheticBond = SyntheticBonds[i];
 
-                    if (CheckTradingReadyForTester(settings) == false)
-                    {
+                    if (syntheticBond.IsReadyToTrade() == false)
                         continue;
-                    }
 
-                    UpdateSeparation(settings);
+                    UpdateSeparation(syntheticBond);
 
-                    UpdateCointegration(settings);
+                    UpdateCointegration(syntheticBond);
 
-                    UpdateDaysBeforeExpiration(settings);
-
-                    UpdateProfitPerDay(settings);
+                    UpdateProfitPerDay(syntheticBond);
                 }
             }
             catch (Exception error)
             {
                 ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-        }
-
-        private bool CheckTradingReadyForTester(SyntheticBond settings)
-        {
-            if (settings.BaseIcebergParameters == null
-                || settings.BaseIcebergParameters.BotTab == null
-                || settings.BaseIcebergParameters.BotTab.CandlesAll == null
-                || settings.BaseIcebergParameters.BotTab.CandlesAll.Count == 0)
-            {
-                return false;
-            }
-
-            if (settings.FuturesIcebergParameters == null
-                || settings.FuturesIcebergParameters.BotTab == null
-                || settings.FuturesIcebergParameters.BotTab.CandlesAll == null
-                || settings.FuturesIcebergParameters.BotTab.CandlesAll.Count == 0)
-            {
-                return false;
-            }
-
-            return true;
         }
 
         #endregion
@@ -492,16 +397,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                     {
                         SyntheticBond syntheticBond = SyntheticBonds[i];
 
-                        if (CheckTadingReady(syntheticBond) == false)
-                        {
+                        if (syntheticBond.IsReadyToTrade() == false)
                             continue;
-                        }
 
                         UpdateSeparation(syntheticBond);
 
                         UpdateCointegration(syntheticBond);
-
-                        UpdateDaysBeforeExpiration(syntheticBond);
 
                         UpdateProfitPerDay(syntheticBond);
                     }
@@ -533,71 +434,53 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
-        private void UpdateDaysBeforeExpiration(SyntheticBond bond)
+        private void UpdateSeparation(SyntheticBond syntheticBond)
         {
             try
             {
-                if (bond.FuturesIcebergParameters.BotTab.Security != null)
-                {
-                    if (bond.FuturesIcebergParameters.BotTab.Security.Expiration != DateTime.MinValue && bond.FuturesIcebergParameters.BotTab.Security.Expiration != DateTime.UnixEpoch)
-                    {
-                        bond.DaysBeforeExpiration = (bond.FuturesIcebergParameters.BotTab.Security.Expiration - bond.FuturesIcebergParameters.BotTab.TimeServerCurrent).Days;
-                    }
-                    else
-                    {
-                        bond.DaysBeforeExpiration = -1;
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
+                if (syntheticBond.PatternBaseTab == null ||
+                    syntheticBond.PatternFuturesTab == null)
+                    return;
 
-        private void UpdateSeparation(SyntheticBond bond)
-        {
-            try
-            {
-                List<Candle> candlesSec1 = bond.BaseIcebergParameters.BotTab.CandlesAll; ;
-                List<Candle> candlesSec2 = bond.FuturesIcebergParameters.BotTab.CandlesAll;
+                List<Candle> candlesSec1 = syntheticBond.PatternBaseTab.CandlesAll;
+                List<Candle> candlesSec2 = syntheticBond.PatternFuturesTab.CandlesAll;
                 List<Candle> candlesRationingBase = null;
                 List<Candle> candlesRationingFutures = null;
 
-                if (bond.BaseUseRationing)
+                if (syntheticBond.BaseUseRationing)
                 {
-                    if (bond.BaseRationingSecurity == null)
+                    if (syntheticBond.BaseRationingSecurity == null)
                     {
                         return;
                     }
-                    else if (bond.BaseRationingSecurity.CandlesAll == null)
+                    else if (syntheticBond.BaseRationingSecurity.CandlesAll == null)
                     {
                         return;
                     }
-                    else if (bond.BaseRationingSecurity.CandlesAll.Count == 0)
+                    else if (syntheticBond.BaseRationingSecurity.CandlesAll.Count == 0)
                     {
                         return;
                     }
 
-                    candlesRationingBase = bond.BaseRationingSecurity.CandlesAll;
+                    candlesRationingBase = syntheticBond.BaseRationingSecurity.CandlesAll;
                 }
 
-                if (bond.FuturesUseRationing)
+                if (syntheticBond.FuturesUseRationing)
                 {
-                    if (bond.FuturesRationingSecurity == null)
+                    if (syntheticBond.FuturesRationingSecurity == null)
                     {
                         return;
                     }
-                    else if (bond.FuturesRationingSecurity.CandlesAll == null)
+                    else if (syntheticBond.FuturesRationingSecurity.CandlesAll == null)
                     {
                         return;
                     }
-                    else if (bond.FuturesRationingSecurity.CandlesAll.Count == 0)
+                    else if (syntheticBond.FuturesRationingSecurity.CandlesAll.Count == 0)
                     {
                         return;
                     }
 
-                    candlesRationingFutures = bond.FuturesRationingSecurity.CandlesAll;
+                    candlesRationingFutures = syntheticBond.FuturesRationingSecurity.CandlesAll;
                 }
 
                 int sec1Count = candlesSec1 != null ? candlesSec1.Count : 0;
@@ -611,7 +494,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                 }
 
                 SeparationCache cache;
-                _separationCaches.TryGetValue(bond, out cache);
+                _separationCaches.TryGetValue(syntheticBond, out cache);
 
                 if (cache != null
                     && cache.ProcessedSec1 != null && cache.ProcessedSec1.Count > 0
@@ -623,93 +506,100 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                 {
                     bool sec1Updated = UpdateLastProcessedCandle(
                         candlesSec1[sec1Count - 1],
-                        bond.BaseTimeOffset,
-                        bond.BaseMultiplicator,
-                        bond.BaseUseRationing,
+                        syntheticBond.BaseTimeOffset,
+                        syntheticBond.BaseMultiplicator,
+                        syntheticBond.BaseUseRationing,
                         candlesRationingBase,
-                        bond.BaseTimeOffsetRationing,
-                        bond.BaseRationingMode,
+                        syntheticBond.BaseTimeOffsetRationing,
+                        syntheticBond.BaseRationingMode,
                         cache.ProcessedSec1);
 
                     if (sec1Updated)
                     {
                         bool sec2Updated = UpdateLastProcessedCandle(
                             candlesSec2[sec2Count - 1],
-                            bond.FuturesTimeOffset,
-                            bond.FuturesMultiplicator,
-                            bond.FuturesUseRationing,
+                            syntheticBond.FuturesTimeOffset,
+                            syntheticBond.FuturesMultiplicator,
+                            syntheticBond.FuturesUseRationing,
                             candlesRationingFutures,
-                            bond.FuturesTimeOffsetRationing,
-                            bond.FuturesRationingMode,
+                            syntheticBond.FuturesTimeOffsetRationing,
+                            syntheticBond.FuturesRationingMode,
                             cache.ProcessedSec2);
 
                         if (sec2Updated)
                         {
-                            UpdateSeparationAndNotify(cache.ProcessedSec1, cache.ProcessedSec2, bond);
+                            UpdateSeparationAndNotify(cache.ProcessedSec1, cache.ProcessedSec2, syntheticBond);
                             return;
                         }
                     }
                 }
 
-                int tailSize = (int)bond.SeparationLength * 2;
+                int tailSize = (int)syntheticBond.SeparationLength * 2;
 
                 candlesSec1 = TakeTail(candlesSec1, tailSize);
                 candlesSec2 = TakeTail(candlesSec2, tailSize);
 
                 // 1 сдвигаем время
 
-                candlesSec1 = GetOffsetCandles(candlesSec1, bond.BaseTimeOffset);
-                candlesSec2 = GetOffsetCandles(candlesSec2, bond.FuturesTimeOffset);
+                candlesSec1 = GetOffsetCandles(candlesSec1, syntheticBond.BaseTimeOffset);
+                candlesSec2 = GetOffsetCandles(candlesSec2, syntheticBond.FuturesTimeOffset);
 
-                if (bond.BaseUseRationing)
+                if (syntheticBond.BaseUseRationing)
                 {
                     candlesRationingBase = TakeTail(candlesRationingBase, tailSize);
-                    candlesRationingBase = GetOffsetCandles(candlesRationingBase, bond.BaseTimeOffsetRationing);
+                    candlesRationingBase = GetOffsetCandles(candlesRationingBase, syntheticBond.BaseTimeOffsetRationing);
                 }
 
-                if (bond.FuturesUseRationing)
+                if (syntheticBond.FuturesUseRationing)
                 {
                     candlesRationingFutures = TakeTail(candlesRationingFutures, tailSize);
-                    candlesRationingFutures = GetOffsetCandles(candlesRationingFutures, bond.FuturesTimeOffsetRationing);
+                    candlesRationingFutures = GetOffsetCandles(candlesRationingFutures, syntheticBond.FuturesTimeOffsetRationing);
+                }
+
+                if (candlesSec1.Count > 0 &&
+                    candlesSec2.Count > 0 &&
+                    candlesSec1[^1].TimeStart != candlesSec2[^1].TimeStart)
+                {
+                    return;
                 }
 
                 // 2 умножаем на коэффициенты
 
-                candlesSec1 = GetCoeffCandles(candlesSec1, bond.BaseMultiplicator);
-                candlesSec2 = GetCoeffCandles(candlesSec2, bond.FuturesMultiplicator);
+                candlesSec1 = GetCoeffCandles(candlesSec1, syntheticBond.BaseMultiplicator);
+                candlesSec2 = GetCoeffCandles(candlesSec2, syntheticBond.FuturesMultiplicator);
 
                 // 3 нормализуем
 
-                if (bond.BaseUseRationing && bond.BaseRationingMode == RationingMode.Division)
+                if (syntheticBond.BaseUseRationing && syntheticBond.BaseRationingMode == RationingMode.Division)
                 {
                     candlesSec1 = GetDivision(candlesSec1, candlesRationingBase);
                 }
-                else if (bond.BaseUseRationing && bond.BaseRationingMode == RationingMode.Multiplication)
+                else if (syntheticBond.BaseUseRationing && syntheticBond.BaseRationingMode == RationingMode.Multiplication)
                 {
                     candlesSec1 = GetMult(candlesSec1, candlesRationingBase);
                 }
-                else if (bond.BaseUseRationing && bond.BaseRationingMode == RationingMode.Difference)
+                else if (syntheticBond.BaseUseRationing && syntheticBond.BaseRationingMode == RationingMode.Difference)
                 {
                     candlesSec1 = GetDiff(candlesSec1, candlesRationingBase);
                 }
-                else if (bond.BaseUseRationing && bond.BaseRationingMode == RationingMode.Addition)
+                else if (syntheticBond.BaseUseRationing && syntheticBond.BaseRationingMode == RationingMode.Addition)
                 {
                     candlesSec1 = GetAddition(candlesSec1, candlesRationingBase);
                 }
 
-                if (bond.FuturesUseRationing && bond.FuturesRationingMode == RationingMode.Division)
+                if (syntheticBond.FuturesUseRationing && syntheticBond.FuturesRationingMode == RationingMode.Division)
                 {
                     candlesSec2 = GetDivision(candlesSec2, candlesRationingFutures);
                 }
-                else if (bond.FuturesUseRationing && bond.FuturesRationingMode == RationingMode.Multiplication)
+                else if (syntheticBond.FuturesUseRationing && syntheticBond.FuturesRationingMode == RationingMode.Multiplication)
                 {
                     candlesSec2 = GetMult(candlesSec2, candlesRationingFutures);
                 }
-                else if (bond.FuturesUseRationing && bond.FuturesRationingMode == RationingMode.Difference)
+                else if (syntheticBond.FuturesUseRationing && syntheticBond.FuturesRationingMode == RationingMode.Difference)
                 {
                     candlesSec2 = GetDiff(candlesSec2, candlesRationingFutures);
                 }
-                else if (bond.FuturesUseRationing && bond.FuturesRationingMode == RationingMode.Addition)
+                else if (syntheticBond.FuturesUseRationing && syntheticBond.FuturesRationingMode == RationingMode.Addition)
                 {
                     candlesSec2 = GetAddition(candlesSec2, candlesRationingFutures);
                 }
@@ -717,7 +607,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                 if (cache == null)
                 {
                     cache = new SeparationCache();
-                    _separationCaches[bond] = cache;
+                    _separationCaches[syntheticBond] = cache;
                 }
 
                 cache.ProcessedSec1 = candlesSec1;
@@ -729,7 +619,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
                 // 4 Отнимаем одно от другого
 
-                UpdateSeparationAndNotify(candlesSec1, candlesSec2, bond);
+                UpdateSeparationAndNotify(candlesSec1, candlesSec2, syntheticBond);
             }
             catch (Exception error)
             {
@@ -737,7 +627,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
-        private void UpdateSeparationAndNotify(List<Candle> candlesSec1, List<Candle> candlesSec2, SyntheticBond bond)
+        private void UpdateSeparationAndNotify(List<Candle> candlesSec1, List<Candle> candlesSec2, SyntheticBond syntheticBond)
         {
             decimal oldPercentValue = -1;
             DateTime oldPercentTime = DateTime.MinValue;
@@ -746,29 +636,29 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             int oldPercentCount = 0;
             int oldAbsoluteCount = 0;
 
-            if (bond.PercentSeparationCandles != null && bond.PercentSeparationCandles.Count > 0)
+            if (syntheticBond.PercentSeparationCandles != null && syntheticBond.PercentSeparationCandles.Count > 0)
             {
-                oldPercentCount = bond.PercentSeparationCandles.Count;
-                PairIndicatorValue lastPercent = bond.PercentSeparationCandles[bond.PercentSeparationCandles.Count - 1];
+                oldPercentCount = syntheticBond.PercentSeparationCandles.Count;
+                PairIndicatorValue lastPercent = syntheticBond.PercentSeparationCandles[syntheticBond.PercentSeparationCandles.Count - 1];
                 oldPercentValue = lastPercent.Value;
                 oldPercentTime = lastPercent.Time;
             }
 
-            if (bond.AbsoluteSeparationCandles != null && bond.AbsoluteSeparationCandles.Count > 0)
+            if (syntheticBond.AbsoluteSeparationCandles != null && syntheticBond.AbsoluteSeparationCandles.Count > 0)
             {
-                oldAbsoluteCount = bond.AbsoluteSeparationCandles.Count;
-                PairIndicatorValue lastAbsolute = bond.AbsoluteSeparationCandles[bond.AbsoluteSeparationCandles.Count - 1];
+                oldAbsoluteCount = syntheticBond.AbsoluteSeparationCandles.Count;
+                PairIndicatorValue lastAbsolute = syntheticBond.AbsoluteSeparationCandles[syntheticBond.AbsoluteSeparationCandles.Count - 1];
                 oldAbsoluteValue = lastAbsolute.Value;
                 oldAbsoluteTime = lastAbsolute.Time;
             }
 
-            UpdateSubtractTheCandles(candlesSec1, candlesSec2, ref bond);
+            UpdateSubtractTheCandles(candlesSec1, candlesSec2, ref syntheticBond);
 
             bool changed = false;
 
-            if (bond.PercentSeparationCandles != null && bond.PercentSeparationCandles.Count > 0)
+            if (syntheticBond.PercentSeparationCandles != null && syntheticBond.PercentSeparationCandles.Count > 0)
             {
-                PairIndicatorValue newLastPercent = bond.PercentSeparationCandles[bond.PercentSeparationCandles.Count - 1];
+                PairIndicatorValue newLastPercent = syntheticBond.PercentSeparationCandles[syntheticBond.PercentSeparationCandles.Count - 1];
                 if (oldPercentCount == 0
                     || newLastPercent.Value != oldPercentValue
                     || newLastPercent.Time != oldPercentTime)
@@ -783,9 +673,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
             if (changed == false)
             {
-                if (bond.AbsoluteSeparationCandles != null && bond.AbsoluteSeparationCandles.Count > 0)
+                if (syntheticBond.AbsoluteSeparationCandles != null && syntheticBond.AbsoluteSeparationCandles.Count > 0)
                 {
-                    PairIndicatorValue newLastAbsolute = bond.AbsoluteSeparationCandles[bond.AbsoluteSeparationCandles.Count - 1];
+                    PairIndicatorValue newLastAbsolute = syntheticBond.AbsoluteSeparationCandles[syntheticBond.AbsoluteSeparationCandles.Count - 1];
                     if (oldAbsoluteCount == 0
                         || newLastAbsolute.Value != oldAbsoluteValue
                         || newLastAbsolute.Time != oldAbsoluteTime)
@@ -801,7 +691,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
             if (changed)
             {
-                ContangoChangeEvent?.Invoke(bond);
+                ContangoChangeEvent?.Invoke(syntheticBond);
             }
         }
 
@@ -1369,11 +1259,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             return true;
         }
 
-        private void UpdateCointegration(SyntheticBond bond)
+        private void UpdateCointegration(SyntheticBond syntheticBond)
         {
             try
             {
-                List<PairIndicatorValue> oldCointegration = bond.CointegrationBuilder.Cointegration;
+                List<PairIndicatorValue> oldCointegration = syntheticBond.CointegrationBuilder.Cointegration;
                 int oldCount = 0;
                 decimal oldLastValue = 0;
 
@@ -1385,23 +1275,24 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
                 List<Candle> candlesSec1;
                 List<Candle> candlesSec2;
-                GetProcessedCandles(bond, out candlesSec1, out candlesSec2);
+                GetProcessedCandles(syntheticBond, out candlesSec1, out candlesSec2);
 
-                if (candlesSec1 == null || candlesSec1.Count == 0)
-                {
-                    candlesSec1 = bond.BaseIcebergParameters.BotTab.CandlesAll;
-                }
-                if (candlesSec2 == null || candlesSec2.Count == 0)
-                {
-                    candlesSec2 = bond.FuturesIcebergParameters.BotTab.CandlesAll;
-                }
+                if (candlesSec1 == null ||
+                  (candlesSec1 != null && candlesSec1.Count == 0))
+                    candlesSec1 = syntheticBond.PatternBaseTab.CandlesAll;
+
+                if (candlesSec2 == null ||
+                    (candlesSec2 != null && candlesSec2.Count == 0))
+                    candlesSec2 = syntheticBond.PatternFuturesTab.CandlesAll;
+
+                if (candlesSec1 == null || candlesSec2 == null) return;
 
                 bool needBeautifulValues = StartProgram == StartProgram.IsOsTrader;
-                bond.CointegrationBuilder.ReloadCointegration(candlesSec1, candlesSec2, needBeautifulValues);
+                syntheticBond.CointegrationBuilder.ReloadCointegration(candlesSec1, candlesSec2, needBeautifulValues);
 
-                MinBalancesChangeEvent?.Invoke(bond);
+                MinBalancesChangeEvent?.Invoke(syntheticBond);
 
-                List<PairIndicatorValue> newCointegration = bond.CointegrationBuilder.Cointegration;
+                List<PairIndicatorValue> newCointegration = syntheticBond.CointegrationBuilder.Cointegration;
                 int newCount = 0;
 
                 if (newCointegration != null)
@@ -1422,7 +1313,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
                 if (changed)
                 {
-                    CointegrationChangeEvent?.Invoke(bond);
+                    CointegrationChangeEvent?.Invoke(syntheticBond);
                 }
             }
             catch (Exception error)
@@ -1431,60 +1322,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
-        public bool CheckTadingReady(SyntheticBond bond)
-        {
-            if (bond.BaseIcebergParameters == null)
-            {
-                return false;
-            }
-            else if (bond.BaseIcebergParameters.BotTab == null)
-            {
-                return false;
-            }
-            else if (bond.BaseIcebergParameters.BotTab.ServerStatus != ServerConnectStatus.Connect)
-            {
-                return false;
-            }
-            else if (bond.BaseIcebergParameters.BotTab.CandlesAll == null)
-            {
-                return false;
-            }
-            else if (bond.BaseIcebergParameters.BotTab.CandlesAll.Count == 0)
-            {
-                return false;
-            }
-            else if (bond.FuturesIcebergParameters == null)
-            {
-                return false;
-            }
-            else if (bond.FuturesIcebergParameters.BotTab == null)
-            {
-                return false;
-            }
-            else if (bond.FuturesIcebergParameters.BotTab.ServerStatus != ServerConnectStatus.Connect)
-            {
-                return false;
-            }
-            else if (bond.FuturesIcebergParameters.BotTab.CandlesAll == null)
-            {
-                return false;
-            }
-            else if (bond.FuturesIcebergParameters.BotTab.CandlesAll.Count == 0)
-            {
-                return false;
-            }
-            return true;
-        }
-
         #endregion
 
         #region Offset logic
 
-        public void ShowOffsetWindow(ref SyntheticBond modificationSyntheticBond)
+        public void ShowOffsetWindow(ref SyntheticBond syntheticBond)
         {
             try
             {
-                string key = modificationSyntheticBond.FuturesIcebergParameters.BotTab.TabName;
+                string key = syntheticBond.SelectedScenario.ArbitrationIceberg.MainLegs[0].BotTab.TabName;
 
                 if (_bondsOffsetUi.TryGetValue(key, out SyntheticBondOffsetUi existingWindow))
                 {
@@ -1494,7 +1340,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                     return;
                 }
 
-                SyntheticBondOffsetUi bondOffsetUi = new SyntheticBondOffsetUi(this, ref modificationSyntheticBond);
+                SyntheticBondOffsetUi bondOffsetUi = new SyntheticBondOffsetUi(this, ref syntheticBond);
                 bondOffsetUi.Closed += BondOffsetUi_Closed;
 
                 bondOffsetUi.Tag = key;
@@ -1523,11 +1369,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         #region Chart logic
 
-        public void ShowChartWindow(ref SyntheticBond modificationSyntheticBond)
+        public void ShowChartWindow(ref SyntheticBond syntheticBond)
         {
             try
             {
-                string key = modificationSyntheticBond.FuturesIcebergParameters.BotTab.TabName;
+                string key = syntheticBond.SelectedScenario.ArbitrationIceberg.MainLegs[0].BotTab.TabName;
 
                 if (_bondsChartUi.TryGetValue(key, out SyntheticBondChartUi existingWindow))
                 {
@@ -1537,7 +1383,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                     return;
                 }
 
-                SyntheticBondChartUi bondChartUi = new SyntheticBondChartUi(this, ref modificationSyntheticBond);
+                SyntheticBondChartUi bondChartUi = new SyntheticBondChartUi(this, ref syntheticBond);
                 bondChartUi.Closed += BondChartUi_Closed;
 
                 bondChartUi.Tag = key;
@@ -1566,11 +1412,16 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         #region Trade logic
 
-        public void ShowTradeWindow(ref SyntheticBond modificationSyntheticBond)
+        public void ShowTradeWindow(ref SyntheticBond syntheticBond)
         {
             try
             {
-                string key = modificationSyntheticBond.FuturesIcebergParameters.BotTab.TabName;
+                if (syntheticBond.PatternFuturesTab == null)
+                {
+                    return;
+                }
+
+                string key = syntheticBond.SelectedScenario.ArbitrationIceberg.MainLegs[0].BotTab.TabName;
 
                 if (_bondsTradeUi.TryGetValue(key, out SyntheticBondTradeUi existingWindow))
                 {
@@ -1580,7 +1431,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                     return;
                 }
 
-                SyntheticBondTradeUi bondTradeUi = new SyntheticBondTradeUi(this, ref modificationSyntheticBond);
+                SyntheticBondTradeUi bondTradeUi = new SyntheticBondTradeUi(this, ref syntheticBond);
                 bondTradeUi.Closed += BondTradeUi_Closed;
 
                 bondTradeUi.Tag = key;
@@ -1605,16 +1456,16 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             OnSettingsChanged();
         }
 
-        public void CloseTradeWindow(SyntheticBond settings)
+        public void CloseTradeWindow(SyntheticBond syntheticBond)
         {
-            if (settings == null
-                || settings.FuturesIcebergParameters == null
-                || settings.FuturesIcebergParameters.BotTab == null)
+            if (syntheticBond.SelectedScenario == null ||
+                (syntheticBond.SelectedScenario != null &&
+                (syntheticBond.SelectedScenario.ArbitrationIceberg.MainLegs[0].BotTab == null)))
             {
                 return;
             }
 
-            string key = settings.FuturesIcebergParameters.BotTab.TabName;
+            string key = syntheticBond.SelectedScenario.ArbitrationIceberg.MainLegs[0].BotTab.TabName;
 
             if (_bondsTradeUi.TryRemove(key, out SyntheticBondTradeUi window))
             {
@@ -1643,80 +1494,78 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         private ConcurrentDictionary<SyntheticBond, SeparationCache> _separationCaches = new ConcurrentDictionary<SyntheticBond, SeparationCache>();
 
+        private BotTabSimple _patternBaseTab;
+
         #endregion
 
         #region Public properties
 
-        public string SyntheticBondName;
-
-        public BotTabSimple BaseTab
-        {
-            get
-            {
-                if (SyntheticBonds != null && SyntheticBonds.Count > 0
-                    && SyntheticBonds[0].BaseIcebergParameters != null
-                    && SyntheticBonds[0].BaseIcebergParameters.BotTab != null)
-                {
-                    return SyntheticBonds[0].BaseIcebergParameters.BotTab;
-                }
-                return _legacyBaseTab;
-            }
-            set
-            {
-                _legacyBaseTab = value;
-            }
-        }
-
-        private BotTabSimple _legacyBaseTab;
+        public string UniqueName;
 
         public List<SyntheticBond> SyntheticBonds;
 
-        public int SyntheticBondNum;
+        public int UniqueNumber;
 
-        public decimal TotalVolumeSec1;
+        public BotTabSimple PatternBaseTab
+        {
+            get { return _patternBaseTab; }
+            set
+            {
+                if (_patternBaseTab != null)
+                {
+                    _patternBaseTab.Delete();
+                    _patternBaseTab = null;
+                }
 
-        public decimal TotalVolumeSec2;
-
-        public decimal OneOrderVolumeSec1;
-
-        public decimal OneOrderVolumeSec2;
-
-        public TimeSpan LifetimeOrder;
-
-        public SynteticBondOrderPosition OrderPositionSec1;
-
-        public SynteticBondOrderPosition OrderPositionSec2;
+                _patternBaseTab = value;
+            }
+        }
 
         public bool EventsIsOn
         {
             get
             {
-                return BaseTab.EventsIsOn;
+                return _patternBaseTab.EventsIsOn;
             }
             set
             {
+                if (_patternBaseTab == null)
+                    return;
+
+                if (_patternBaseTab.EventsIsOn != value)
+                    _patternBaseTab.EventsIsOn = value;
+
                 for (int i = 0; i < SyntheticBonds.Count; i++)
                 {
-                    SyntheticBond futures = SyntheticBonds[i];
+                    SyntheticBond syntheticBond = SyntheticBonds[i];
 
-                    if (futures.BaseIcebergParameters.BotTab.EventsIsOn != value)
+                    for (int i2 = 0; i2 < syntheticBond.ActiveScenarios.Count; i2++)
                     {
-                        futures.BaseIcebergParameters.BotTab.EventsIsOn = value;
-                    }
+                        BondScenario scenario = syntheticBond.ActiveScenarios[i2];
 
-                    if (futures.FuturesIcebergParameters.BotTab.EventsIsOn != value)
-                    {
-                        futures.FuturesIcebergParameters.BotTab.EventsIsOn = value;
-                    }
+                        if (scenario.ArbitrationIceberg.MainLegs[0].BotTab != null &&
+                            scenario.ArbitrationIceberg.MainLegs[0].BotTab.EventsIsOn != value)
+                        {
+                            scenario.ArbitrationIceberg.MainLegs[0].BotTab.EventsIsOn = value;
+                        }
 
-                    if (futures.BaseRationingSecurity != null && futures.BaseRationingSecurity.EventsIsOn != value)
-                    {
-                        futures.BaseRationingSecurity.EventsIsOn = value;
-                    }
+                        if (scenario.ArbitrationIceberg.SecondaryLegs[0].BotTab != null &&
+                            scenario.ArbitrationIceberg.SecondaryLegs[0].BotTab.EventsIsOn != value)
+                        {
+                            scenario.ArbitrationIceberg.SecondaryLegs[0].BotTab.EventsIsOn = value;
+                        }
 
-                    if (futures.FuturesRationingSecurity != null && futures.FuturesRationingSecurity.EventsIsOn != value)
-                    {
-                        futures.FuturesRationingSecurity.EventsIsOn = value;
+                        if (syntheticBond.BaseRationingSecurity != null &&
+                            syntheticBond.BaseRationingSecurity.EventsIsOn != value)
+                        {
+                            syntheticBond.BaseRationingSecurity.EventsIsOn = value;
+                        }
+
+                        if (syntheticBond.FuturesRationingSecurity != null &&
+                            syntheticBond.FuturesRationingSecurity.EventsIsOn != value)
+                        {
+                            syntheticBond.FuturesRationingSecurity.EventsIsOn = value;
+                        }
                     }
                 }
             }
@@ -1726,32 +1575,47 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
         {
             get
             {
-                return BaseTab.EmulatorIsOn;
+                return _patternBaseTab.EmulatorIsOn;
             }
             set
             {
+                if (_patternBaseTab == null)
+                    return;
+
+                if (_patternBaseTab.EmulatorIsOn != value)
+                    _patternBaseTab.EmulatorIsOn = value;
+
                 for (int i = 0; i < SyntheticBonds.Count; i++)
                 {
-                    SyntheticBond futures = SyntheticBonds[i];
+                    SyntheticBond syntheticBond = SyntheticBonds[i];
 
-                    if (futures.BaseIcebergParameters.BotTab.EmulatorIsOn != value)
+                    for (int i2 = 0; i2 < syntheticBond.ActiveScenarios.Count; i2++)
                     {
-                        futures.BaseIcebergParameters.BotTab.EmulatorIsOn = value;
-                    }
+                        BondScenario scenario = syntheticBond.ActiveScenarios[i2];
 
-                    if (futures.BaseRationingSecurity != null && futures.BaseRationingSecurity.EmulatorIsOn != value)
-                    {
-                        futures.BaseRationingSecurity.EmulatorIsOn = value;
-                    }
+                        if (scenario.ArbitrationIceberg.MainLegs[0].BotTab != null &&
+                            scenario.ArbitrationIceberg.MainLegs[0].BotTab.EmulatorIsOn != value)
+                        {
+                            scenario.ArbitrationIceberg.MainLegs[0].BotTab.EmulatorIsOn = value;
+                        }
 
-                    if (futures.FuturesIcebergParameters.BotTab.EmulatorIsOn != value)
-                    {
-                        futures.FuturesIcebergParameters.BotTab.EmulatorIsOn = value;
-                    }
+                        if (scenario.ArbitrationIceberg.SecondaryLegs[0].BotTab != null &&
+                            scenario.ArbitrationIceberg.SecondaryLegs[0].BotTab.EmulatorIsOn != value)
+                        {
+                            scenario.ArbitrationIceberg.SecondaryLegs[0].BotTab.EmulatorIsOn = value;
+                        }
 
-                    if (futures.FuturesIcebergParameters != null && futures.FuturesRationingSecurity.EmulatorIsOn != value)
-                    {
-                        futures.FuturesRationingSecurity.EmulatorIsOn = value;
+                        if (syntheticBond.BaseRationingSecurity != null &&
+                            syntheticBond.BaseRationingSecurity.EmulatorIsOn != value)
+                        {
+                            syntheticBond.BaseRationingSecurity.EmulatorIsOn = value;
+                        }
+
+                        if (syntheticBond.FuturesRationingSecurity != null &&
+                            syntheticBond.FuturesRationingSecurity.EmulatorIsOn != value)
+                        {
+                            syntheticBond.FuturesRationingSecurity.EmulatorIsOn = value;
+                        }
                     }
                 }
             }

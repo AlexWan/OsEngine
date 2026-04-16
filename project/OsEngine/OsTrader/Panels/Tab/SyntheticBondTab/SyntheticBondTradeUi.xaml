@@ -75,14 +75,14 @@
                     <Label Grid.Row="1" Grid.Column="0" Name="LabelCointegrationLookBack" Content="Cointegration lookback" VerticalAlignment="Center" Padding="2,0,0,0"/>
                     <TextBox Grid.Row="1" Grid.Column="1" Name="TextBoxCointegrationLookBack" Height="23" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
 
-                    <Label Grid.Row="2" Grid.Column="0" Name="LabelContangoLookBack" Content="Contango lookback" VerticalAlignment="Center" Padding="2,0,0,0"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Name="TextBoxContangoLookBack" Height="23" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                    <!-- <Label Grid.Row="2" Grid.Column="0" Name="LabelContangoLookBack" Content="Contango lookback" VerticalAlignment="Center" Padding="2,0,0,0"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Name="TextBoxContangoLookBack" Height="23" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
 
-                    <Label Grid.Row="3" Grid.Column="0" Name="LabelScenario" Content="Script:" VerticalAlignment="Center" Padding="2,0,0,0"/>
-                    <ComboBox Grid.Row="3" Grid.Column="1" Name="ScenarioComboBox" Height="23" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                <Label Grid.Row="3" Grid.Column="0" Name="LabelScenario" Content="Script:" VerticalAlignment="Center" Padding="2,0,0,0"/>
+                <ComboBox Grid.Row="3" Grid.Column="1" Name="ScenarioComboBox" Height="23" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
 
-                    <TextBox Grid.Row="4" Grid.Column="0" Name="ScenarioTextBox" Height="23" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Left" Margin="0,0,3,0"/>
-                    <Button Grid.Row="4" Grid.Column="1" Name="CreateScriptButton" Content="Create script" Height="23" VerticalAlignment="Center" Click="CreateScriptButton_Click"/>
+                <TextBox Grid.Row="4" Grid.Column="0" Name="ScenarioTextBox" Height="23" VerticalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Left" Margin="0,0,3,0"/>
+                <Button Grid.Row="4" Grid.Column="1" Name="CreateScriptButton" Content="Create script" Height="23" VerticalAlignment="Center" Click="CreateScriptButton_Click"/> -->
 
                     <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Bottom">
                         <Grid.ColumnDefinitions>
@@ -91,11 +91,11 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Button Grid.Column="0" Name="StartButton" Content="Start"
-                                Margin="2,3,2,3" Height="25" VerticalAlignment="Center" Click="StartButton_Click"/>
+                            Margin="2,3,2,3" Height="25" VerticalAlignment="Center" Click="StartButton_Click"/>
                         <Button Grid.Column="1" Name="PauseButton" Content="Pause"
-                                Margin="2,3,2,3" Height="25" VerticalAlignment="Center" Click="PauseButton_Click"/>
+                            Margin="2,3,2,3" Height="25" VerticalAlignment="Center" Click="PauseButton_Click"/>
                         <Button Grid.Column="2" Name="DeleteScenarioButton" Content="Delete"
-                                Margin="2,3,2,3" Height="25" VerticalAlignment="Center" Click="DeleteScenarioButton_Click"/>
+                            Margin="2,3,2,3" Height="25" VerticalAlignment="Center" Click="DeleteScenarioButton_Click"/>
                     </Grid>
                 </Grid>
             </GroupBox>
@@ -111,14 +111,14 @@
                     </Grid.RowDefinitions>
 
                     <Button Grid.Row="0" Name="NonTradePeriodButton" Content="Non trade period"
-                            Height="25" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,2,0,2"/>
+                        Height="25" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,2,0,2"/>
 
                     <Label Grid.Row="2" Name="ServerTimeLabel" Content="Current server time"
-                           VerticalAlignment="Center" HorizontalAlignment="Center" Padding="2,0,0,0"/>
+                       VerticalAlignment="Center" HorizontalAlignment="Center" Padding="2,0,0,0"/>
 
                     <TextBox Grid.Row="3" Name="ServerTimeTextBox" Height="23"
-                             VerticalAlignment="Center" IsReadOnly="True"
-                             VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                         VerticalAlignment="Center" IsReadOnly="True"
+                         VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                 </Grid>
             </GroupBox>
         </Grid>
@@ -372,93 +372,16 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <GroupBox Grid.Column="0" Margin="5,5,3,5" Padding="5,2,5,5" BorderBrush="#FF555555">
-                        <GroupBox.Header>
-                            <Label Name="OpenStepsBaseNameLabel" Content="Security 1" FontWeight="SemiBold" Padding="0" VerticalAlignment="Center"/>
-                        </GroupBox.Header>
-                        <DataGrid Name="OpenStepsBaseDataGrid"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  IsReadOnly="True"
-                                  FontSize="12"
-                                  SelectionMode="Single"
-                                  SelectionUnit="FullRow"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  GridLinesVisibility="None"
-                                  HeadersVisibility="Column"
-                                  BorderBrush="#FF151A1E"
-                                  Style="{StaticResource DataGridStyle}">
-                            <DataGrid.ColumnHeaderStyle>
-                                <Style TargetType="DataGridColumnHeader">
-                                    <Setter Property="Background" Value="#FF151A1E"/>
-                                    <Setter Property="Foreground" Value="#FF9A9C9E"/>
-                                    <Setter Property="BorderBrush" Value="#FF555555"/>
-                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                                    <Setter Property="MinHeight" Value="30"/>
-                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="5"/>
-                                    <Setter Property="FontWeight" Value="Normal"/>
-                                    <Setter Property="ContentTemplate">
-                                        <Setter.Value>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" TextAlignment="Center"/>
-                                            </DataTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#2a323a"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGrid.ColumnHeaderStyle>
-                        </DataGrid>
-                    </GroupBox>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="10*"/>
+                        <RowDefinition Height="4*"/>
+                    </Grid.RowDefinitions>
 
-                    <GroupBox Grid.Column="1" Margin="3,5,5,5" Padding="5,2,5,5" BorderBrush="#FF555555">
-                        <GroupBox.Header>
-                            <Label Name="OpenStepsFuturesNameLabel" Content="Security 2" FontWeight="SemiBold" Padding="0" VerticalAlignment="Center"/>
-                        </GroupBox.Header>
-                        <DataGrid Name="OpenStepsFuturesDataGrid"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  IsReadOnly="True"
-                                  FontSize="12"
-                                  SelectionMode="Single"
-                                  SelectionUnit="FullRow"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  GridLinesVisibility="None"
-                                  HeadersVisibility="Column"
-                                  BorderBrush="#FF151A1E"
-                                  Style="{StaticResource DataGridStyle}">
-                            <DataGrid.ColumnHeaderStyle>
-                                <Style TargetType="DataGridColumnHeader">
-                                    <Setter Property="Background" Value="#FF151A1E"/>
-                                    <Setter Property="Foreground" Value="#FF9A9C9E"/>
-                                    <Setter Property="BorderBrush" Value="#FF555555"/>
-                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                                    <Setter Property="MinHeight" Value="30"/>
-                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="5"/>
-                                    <Setter Property="FontWeight" Value="Normal"/>
-                                    <Setter Property="ContentTemplate">
-                                        <Setter.Value>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" TextAlignment="Center"/>
-                                            </DataTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#2a323a"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGrid.ColumnHeaderStyle>
-                        </DataGrid>
-                    </GroupBox>
+                    <WindowsFormsHost Grid.Column="0" Grid.Row="0" Name="OpenStepsBaseHost" Margin="2,5,2,5"/>
+                    <WindowsFormsHost Grid.Column="0" Grid.Row="1" Name="OpenStepsBaseStatisticHost" Margin="2,5,2,5"/>
+
+                    <WindowsFormsHost Grid.Row="0" Grid.Column="1" Name="OpenStepsFuturesHost" Margin="2,5,2,5"/>
+                    <WindowsFormsHost Grid.Row="1" Grid.Column="1" Name="OpenStepsFuturesStatisticHost" Margin="2,5,2,5"/>
                 </Grid>
             </TabItem>
 
@@ -469,93 +392,17 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <GroupBox Grid.Column="0" Margin="5,5,3,5" Padding="5,2,5,5" BorderBrush="#FF555555">
-                        <GroupBox.Header>
-                            <Label Name="CloseStepsBaseNameLabel" Content="Security 1" FontWeight="SemiBold" Padding="0" VerticalAlignment="Center"/>
-                        </GroupBox.Header>
-                        <DataGrid Name="CloseStepsBaseDataGrid"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  IsReadOnly="True"
-                                  FontSize="12"
-                                  SelectionMode="Single"
-                                  SelectionUnit="FullRow"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  GridLinesVisibility="None"
-                                  HeadersVisibility="Column"
-                                  BorderBrush="#FF151A1E"
-                                  Style="{StaticResource DataGridStyle}">
-                            <DataGrid.ColumnHeaderStyle>
-                                <Style TargetType="DataGridColumnHeader">
-                                    <Setter Property="Background" Value="#FF151A1E"/>
-                                    <Setter Property="Foreground" Value="#FF9A9C9E"/>
-                                    <Setter Property="BorderBrush" Value="#FF555555"/>
-                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                                    <Setter Property="MinHeight" Value="30"/>
-                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="5"/>
-                                    <Setter Property="FontWeight" Value="Normal"/>
-                                    <Setter Property="ContentTemplate">
-                                        <Setter.Value>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" TextAlignment="Center"/>
-                                            </DataTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#2a323a"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGrid.ColumnHeaderStyle>
-                        </DataGrid>
-                    </GroupBox>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="10*"/>
+                        <RowDefinition Height="4*"/>
+                    </Grid.RowDefinitions>
 
-                    <GroupBox Grid.Column="1" Margin="3,5,5,5" Padding="5,2,5,5" BorderBrush="#FF555555">
-                        <GroupBox.Header>
-                            <Label Name="CloseStepsFuturesNameLabel" Content="Security 2" FontWeight="SemiBold" Padding="0" VerticalAlignment="Center"/>
-                        </GroupBox.Header>
-                        <DataGrid Name="CloseStepsFuturesDataGrid"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  IsReadOnly="True"
-                                  FontSize="12"
-                                  SelectionMode="Single"
-                                  SelectionUnit="FullRow"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                  GridLinesVisibility="None"
-                                  HeadersVisibility="Column"
-                                  BorderBrush="#FF151A1E"
-                                  Style="{StaticResource DataGridStyle}">
-                            <DataGrid.ColumnHeaderStyle>
-                                <Style TargetType="DataGridColumnHeader">
-                                    <Setter Property="Background" Value="#FF151A1E"/>
-                                    <Setter Property="Foreground" Value="#FF9A9C9E"/>
-                                    <Setter Property="BorderBrush" Value="#FF555555"/>
-                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                                    <Setter Property="MinHeight" Value="30"/>
-                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="5"/>
-                                    <Setter Property="FontWeight" Value="Normal"/>
-                                    <Setter Property="ContentTemplate">
-                                        <Setter.Value>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" TextAlignment="Center"/>
-                                            </DataTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#2a323a"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGrid.ColumnHeaderStyle>
-                        </DataGrid>
-                    </GroupBox>
+                    <WindowsFormsHost Grid.Column="0" Grid.Row="0" Name="CloseStepsBaseHost" Margin="2,5,2,5"/>
+                    <WindowsFormsHost Grid.Column="0" Grid.Row="1" Name="CloseStepsBaseStatisticHost" Margin="2,5,2,5"/>
+
+                    <WindowsFormsHost Grid.Column ="1" Grid.Row="0" Name="CloseStepsFuturesHost" Margin="2,5,2,5"/>
+                    <WindowsFormsHost Grid.Column ="1" Grid.Row="1" Name="CloseStepsFuturesStatisticHost" Margin="2,5,2,5"/>
+
                 </Grid>
             </TabItem>
         </TabControl>
@@ -570,20 +417,20 @@
             <Label Grid.Row="0" Name="LogLabel" Content="Log" VerticalAlignment="Center" HorizontalAlignment="Left" Padding="2,0,0,0"/>
 
             <DataGrid Grid.Row="1"
-                      Name="LogDataGrid"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False"
-                      IsReadOnly="True"
-                      Margin="0,2,0,0"
-                      FontSize="13"
-                      Style="{StaticResource DataGridStyle}">
+                  Name="LogDataGrid"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  Margin="0,2,0,0"
+                  FontSize="13"
+                  Style="{StaticResource DataGridStyle}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Время" Width="150"
-                                        Binding="{Binding Time, StringFormat='{}{0:dd.MM.yyyy HH:mm:ss}'}"/>
+                                    Binding="{Binding Time, StringFormat='{}{0:dd.MM.yyyy HH:mm:ss}'}"/>
                     <DataGridTextColumn Header="Тип" Width="80"
-                                        Binding="{Binding Type}"/>
+                                    Binding="{Binding Type}"/>
                     <DataGridTextColumn Header="Сообщение" Width="*"
-                                        Binding="{Binding Message}">
+                                    Binding="{Binding Message}">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="TextWrapping" Value="Wrap"/>

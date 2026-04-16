@@ -15,9 +15,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Threading;
+using ComboBox = System.Windows.Controls.ComboBox;
+using TextBox = System.Windows.Controls.TextBox;
 
 namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 {
@@ -28,17 +30,6 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
     {
         #region Constructor
 
-        private SyntheticBondSeries _syntheticBondSeries;
-
-        private SyntheticBond _syntheticBond;
-
-        private BondScenario _selectedScenario;
-
-        private bool _isUpdatingUi;
-
-        private DispatcherTimer _updateTimer;
-
-
         public SyntheticBondTradeUi(SyntheticBondSeries syntheticBondSeries, ref SyntheticBond syntheticBond)
         {
             InitializeComponent();
@@ -47,9 +38,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
             _syntheticBond = syntheticBond;
 
-            if (_syntheticBond.Scenarios.Count > 0)
+            if (_syntheticBond.ActiveScenarios.Count > 0)
             {
-                _selectedScenario = _syntheticBond.Scenarios[0];
+                _selectedScenario = _syntheticBond.ActiveScenarios[0];
             }
 
             CurrentModeLabel.Content = OsLocalization.Trader.Label698;
@@ -60,9 +51,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             MaxSpreadLabel.Content = OsLocalization.Trader.Label719 + " (%)";
             LabelCointegrationDeviation.Content = OsLocalization.Trader.Label713;
             LabelCointegrationLookBack.Content = OsLocalization.Trader.Label714;
-            LabelContangoLookBack.Content = OsLocalization.Trader.Label716;
-            LabelScenario.Content = OsLocalization.Trader.Label731;
-            CreateScriptButton.Content = OsLocalization.Trader.Label732;
+            //LabelContangoLookBack.Content = OsLocalization.Trader.Label716;
+            //LabelScenario.Content = OsLocalization.Trader.Label731;
+            //CreateScriptButton.Content = OsLocalization.Trader.Label732;
 
             EnterPositionTabItem.Header = OsLocalization.Trader.Label703;
             ExitFromPositionTabItem.Header = OsLocalization.Trader.Label704;
@@ -72,36 +63,36 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             string baseSecurityLabel;
             string futuresSecurityLabel;
 
-            if (_syntheticBondSeries.BaseTab == null ||
-                  _syntheticBondSeries.BaseTab.Connector == null ||
-                  _syntheticBondSeries.BaseTab.Connector.SecurityName == null)
+            if (_syntheticBondSeries.PatternBaseTab == null ||
+                (_syntheticBondSeries.PatternBaseTab != null &&
+                (_syntheticBondSeries.PatternBaseTab.Connector == null ||
+                (_syntheticBondSeries.PatternBaseTab.Connector != null ||
+                string.IsNullOrEmpty(_syntheticBondSeries.PatternBaseTab.Connector.SecurityName)))))
             {
                 baseSecurityLabel = OsLocalization.Trader.Label684 + " | None";
             }
             else
             {
-                baseSecurityLabel = OsLocalization.Trader.Label684 + " | " + _syntheticBondSeries.BaseTab.Connector.SecurityName.ToString();
+                baseSecurityLabel = OsLocalization.Trader.Label684 + " | " + _syntheticBondSeries.PatternBaseTab.Connector.SecurityName.ToString();
             }
 
+
             if (_syntheticBond == null ||
-                _syntheticBond.FuturesIcebergParameters == null ||
-                 _syntheticBond.FuturesIcebergParameters.BotTab == null ||
-                  _syntheticBond.FuturesIcebergParameters.BotTab.Connector == null ||
-                  _syntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName == null)
+            (_syntheticBond.PatternFuturesTab == null ||
+            (_syntheticBond.PatternFuturesTab != null &&
+            (_syntheticBond.PatternFuturesTab.Connector == null ||
+            (_syntheticBond.PatternFuturesTab.Connector != null &&
+            (string.IsNullOrEmpty(_syntheticBond.PatternFuturesTab.Connector.SecurityName)))))))
             {
                 futuresSecurityLabel = OsLocalization.Trader.Label685 + " | None";
             }
             else
             {
-                futuresSecurityLabel = OsLocalization.Trader.Label685 + " | " + _syntheticBond.FuturesIcebergParameters.BotTab.Connector.SecurityName.ToString();
+                futuresSecurityLabel = OsLocalization.Trader.Label685 + " | " + _syntheticBond.PatternFuturesTab.Connector.SecurityName.ToString();
             }
 
             EnterBaseNameLabel.Content = baseSecurityLabel;
             EnterFuturesNameLabel.Content = futuresSecurityLabel;
-            OpenStepsBaseNameLabel.Content = baseSecurityLabel;
-            OpenStepsFuturesNameLabel.Content = futuresSecurityLabel;
-            CloseStepsBaseNameLabel.Content = baseSecurityLabel;
-            CloseStepsFuturesNameLabel.Content = futuresSecurityLabel;
             EnterVolumeTypeSec1Label.Content = OsLocalization.Trader.Label723;
             EnterVolumeTypeSec2Label.Content = OsLocalization.Trader.Label723;
             EnterTotalVolumeSec1Label.Content = OsLocalization.Trader.Label706;
@@ -149,7 +140,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             LogLabel.Content = OsLocalization.Trader.Label332;
 
             CreateScenarioComboBox();
-            ScenarioComboBox.SelectionChanged += ScenarioComboBox_SelectionChanged;
+            //ScenarioComboBox.SelectionChanged += ScenarioComboBox_SelectionChanged;
             UpdateScenarioTextBoxDefault();
 
             CreateTradeModeComboBox();
@@ -199,8 +190,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             MinSpreadTextBox.Text = _selectedScenario != null ? _selectedScenario.MinSpread.ToString() : "0";
             MinSpreadTextBox.TextChanged += MinSpreadTextBox_TextChanged;
 
-            TextBoxContangoLookBack.Text = _syntheticBond.SeparationLength.ToString();
-            TextBoxContangoLookBack.TextChanged += TextBoxContangoLookBack_TextChanged;
+            //TextBoxContangoLookBack.Text = _syntheticBond.SeparationLength.ToString();
+            //TextBoxContangoLookBack.TextChanged += TextBoxContangoLookBack_TextChanged;
 
             TextBoxCointegrationDeviation.Text = _syntheticBond.CointegrationBuilder.CointegrationDeviation.ToString();
             TextBoxCointegrationDeviation.TextChanged += TextBoxCointegrationDeviation_TextChanged;
@@ -208,73 +199,73 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             TextBoxCointegrationLookBack.Text = _syntheticBond.CointegrationBuilder.CointegrationLookBack.ToString();
             TextBoxCointegrationLookBack.TextChanged += TextBoxCointegrationLookBack_TextChanged;
 
-            EnterTextBoxAssetPortfolioSec1.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.AssetPortfolio ?? string.Empty;
+            EnterTextBoxAssetPortfolioSec1.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].AssetPortfolio ?? string.Empty;
             ExitTextBoxAssetPortfolioSec1.Text = EnterTextBoxAssetPortfolioSec1.Text;
             EnterTextBoxAssetPortfolioSec1.TextChanged += EnterTextBoxAssetPortfolioSec1_TextChanged;
 
-            EnterTextBoxAssetPortfolioSec2.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].AssetPortfolio ?? string.Empty;
+            EnterTextBoxAssetPortfolioSec2.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].AssetPortfolio ?? string.Empty;
             ExitTextBoxAssetPortfolioSec2.Text = EnterTextBoxAssetPortfolioSec2.Text;
             EnterTextBoxAssetPortfolioSec2.TextChanged += EnterTextBoxAssetPortfolioSec2_TextChanged;
 
-            EnterTotalVolumeSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.TotalVolume.ToString() ?? "0";
+            EnterTotalVolumeSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].EnterOneOrderVolume.ToString() ?? "0";
             ExitTotalVolumeSec1TextBox.Text = EnterTotalVolumeSec1TextBox.Text;
             EnterTotalVolumeSec1TextBox.TextChanged += EnterTotalVolumeSec1TextBox_TextChanged;
 
-            EnterTotalVolumeSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].TotalVolume.ToString() ?? "0";
+            EnterTotalVolumeSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].EnterOneOrderVolume.ToString() ?? "0";
             ExitTotalVolumeSec2TextBox.Text = EnterTotalVolumeSec2TextBox.Text;
             EnterTotalVolumeSec2TextBox.TextChanged += EnterTotalVolumeSec2TextBox_TextChanged;
 
-            EnterOneOrderSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.EnterOneOrderVolume.ToString() ?? "0";
+            EnterOneOrderSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].EnterOneOrderVolume.ToString() ?? "0";
             EnterOneOrderSec1TextBox.TextChanged += EnterOneOrderSec1TextBox_TextChanged;
 
-            ExitOneOrderSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.ExitOneOrderVolume.ToString() ?? "0";
+            ExitOneOrderSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].ExitOneOrderVolume.ToString() ?? "0";
             ExitOneOrderSec1TextBox.TextChanged += ExitOneOrderSec1TextBox_TextChanged;
 
-            EnterOneOrderSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].EnterOneOrderVolume.ToString() ?? "0";
+            EnterOneOrderSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].EnterOneOrderVolume.ToString() ?? "0";
             EnterOneOrderSec2TextBox.TextChanged += EnterOneOrderSec2TextBox_TextChanged;
 
-            ExitOneOrderSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].ExitOneOrderVolume.ToString() ?? "0";
+            ExitOneOrderSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].ExitOneOrderVolume.ToString() ?? "0";
             ExitOneOrderSec2TextBox.TextChanged += ExitOneOrderSec2TextBox_TextChanged;
 
-            EnterSlippageSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.EnterSlippage.ToString() ?? "0";
+            EnterSlippageSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].EnterSlippage.ToString() ?? "0";
             EnterSlippageSec1TextBox.TextChanged += EnterSlippageSec1TextBox_TextChanged;
 
-            ExitSlippageSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.ExitSlippage.ToString() ?? "0";
+            ExitSlippageSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].ExitSlippage.ToString() ?? "0";
             ExitSlippageSec1TextBox.TextChanged += ExitSlippageSec1TextBox_TextChanged;
 
-            EnterSlippageSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].EnterSlippage.ToString() ?? "0";
+            EnterSlippageSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].EnterSlippage.ToString() ?? "0";
             EnterSlippageSec2TextBox.TextChanged += EnterSlippageSec2TextBox_TextChanged;
 
-            ExitSlippageSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].ExitSlippage.ToString() ?? "0";
+            ExitSlippageSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].ExitSlippage.ToString() ?? "0";
             ExitSlippageSec2TextBox.TextChanged += ExitSlippageSec2TextBox_TextChanged;
 
-            EnterLifetimeOrderSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.EnterLifetimeOrder.ToString() ?? "0";
+            EnterLifetimeOrderSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].EnterLifetimeOrder.ToString() ?? "0";
             EnterLifetimeOrderSec1TextBox.TextChanged += EnterLifetimeOrderSec1TextBox_TextChanged;
 
-            ExitLifetimeOrderSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.ExitLifetimeOrder.ToString() ?? "0";
+            ExitLifetimeOrderSec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].ExitLifetimeOrder.ToString() ?? "0";
             ExitLifetimeOrderSec1TextBox.TextChanged += ExitLifetimeOrderSec1TextBox_TextChanged;
 
-            EnterLifetimeOrderSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].EnterLifetimeOrder.ToString() ?? "0";
+            EnterLifetimeOrderSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].EnterLifetimeOrder.ToString() ?? "0";
             EnterLifetimeOrderSec2TextBox.TextChanged += EnterLifetimeOrderSec2TextBox_TextChanged;
 
-            ExitLifetimeOrderSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].ExitLifetimeOrder.ToString() ?? "0";
+            ExitLifetimeOrderSec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].ExitLifetimeOrder.ToString() ?? "0";
             ExitLifetimeOrderSec2TextBox.TextChanged += ExitLifetimeOrderSec2TextBox_TextChanged;
 
-            EnterOrderFrequencySec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.EnterOrderFrequency.ToString() ?? "0";
+            EnterOrderFrequencySec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].EnterOrderFrequency.ToString() ?? "0";
             EnterOrderFrequencySec1TextBox.TextChanged += EnterOrderFrequencySec1TextBox_TextChanged;
 
-            EnterOrderFrequencySec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].EnterOrderFrequency.ToString() ?? "0";
+            EnterOrderFrequencySec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].EnterOrderFrequency.ToString() ?? "0";
             EnterOrderFrequencySec2TextBox.TextChanged += EnterOrderFrequencySec2TextBox_TextChanged;
 
-            ExitOrderFrequencySec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainParameters.ExitOrderFrequency.ToString() ?? "0";
+            ExitOrderFrequencySec1TextBox.Text = _selectedScenario?.ArbitrationIceberg.MainLegs[0].ExitOrderFrequency.ToString() ?? "0";
             ExitOrderFrequencySec1TextBox.TextChanged += ExitOrderFrequencySec1TextBox_TextChanged;
 
-            ExitOrderFrequencySec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryParameters[0].ExitOrderFrequency.ToString() ?? "0";
+            ExitOrderFrequencySec2TextBox.Text = _selectedScenario?.ArbitrationIceberg.SecondaryLegs[0].ExitOrderFrequency.ToString() ?? "0";
             ExitOrderFrequencySec2TextBox.TextChanged += ExitOrderFrequencySec2TextBox_TextChanged;
 
             NonTradePeriodButton.Click += NonTradePeriodButton_Click;
 
-            CreatePositionDataGrids();
+            CreatePositionStepsDataGrids();
 
             SubscribeToScenarioEvents();
 
@@ -306,8 +297,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             try
             {
-                decimal sec1Volume = _selectedScenario?.ArbitrationIceberg?.MainParameters?.CurrentPosition?.OpenVolume ?? 0;
-                decimal sec2Volume = _selectedScenario?.ArbitrationIceberg?.SecondaryParameters?[0]?.CurrentPosition?.OpenVolume ?? 0;
+                decimal sec1Volume = _selectedScenario?.ArbitrationIceberg?.MainLegs[0]?.ArbitrationLegStatistic.CurrentPosition?.OpenVolume ?? 0;
+                decimal sec2Volume = _selectedScenario?.ArbitrationIceberg?.SecondaryLegs[0]?.ArbitrationLegStatistic.CurrentPosition?.OpenVolume ?? 0;
 
                 EnterCurrentVolumeSec1TextBox.Text = sec1Volume.ToString();
                 EnterCurrentVolumeSec2TextBox.Text = sec2Volume.ToString();
@@ -323,21 +314,21 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     CurrentSpreadTextBox.Text = "None";
                 }
 
-                if (_syntheticBond == null
-                    || _syntheticBond.FuturesIcebergParameters == null
-                    || _syntheticBond.FuturesIcebergParameters.BotTab == null)
+                if (_syntheticBond == null ||
+                    (_syntheticBond != null &&
+                   (_syntheticBond.PatternFuturesTab == null)))
                 {
                     ServerTimeTextBox.Text = "None";
                     ServerTimeTextBox.Foreground = Brushes.Red;
                 }
                 else
                 {
-                    ServerTimeTextBox.Text = _syntheticBond.FuturesIcebergParameters.BotTab.TimeServerCurrent.ToString("HH:mm:ss");
+                    ServerTimeTextBox.Text = _syntheticBond.PatternFuturesTab.TimeServerCurrent.ToString("HH:mm:ss");
                     ServerTimeTextBox.ClearValue(TextBox.ForegroundProperty);
                 }
 
                 UpdateTabControlsLockState();
-                UpdatePositionDataGrids();
+                UpdatePositionStepsDataGrids();
 
                 if (_selectedScenario.ArbitrationIceberg.CurrentStatus == ArbitrationStatus.On)
                 {
@@ -365,41 +356,41 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 return;
             }
 
-            ArbitrationParameters mainParams = _selectedScenario.ArbitrationIceberg.MainParameters;
-            ArbitrationParameters secParams = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0];
+            ArbitrationLeg mainLEg = _selectedScenario.ArbitrationIceberg.MainLegs[0];
+            ArbitrationLeg secondaryLeg = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0];
 
             bool needUpdate = false;
 
             // Проверяем TextBox-ы
-            if (EnterTotalVolumeSec1TextBox.Text != mainParams.TotalVolume.ToString()
-                || EnterTotalVolumeSec2TextBox.Text != secParams.TotalVolume.ToString()
-                || EnterOneOrderSec1TextBox.Text != mainParams.EnterOneOrderVolume.ToString()
-                || EnterOneOrderSec2TextBox.Text != secParams.EnterOneOrderVolume.ToString()
-                || ExitOneOrderSec1TextBox.Text != mainParams.ExitOneOrderVolume.ToString()
-                || ExitOneOrderSec2TextBox.Text != secParams.ExitOneOrderVolume.ToString()
-                || EnterSlippageSec1TextBox.Text != mainParams.EnterSlippage.ToString()
-                || EnterSlippageSec2TextBox.Text != secParams.EnterSlippage.ToString()
-                || ExitSlippageSec1TextBox.Text != mainParams.ExitSlippage.ToString()
-                || ExitSlippageSec2TextBox.Text != secParams.ExitSlippage.ToString()
-                || EnterLifetimeOrderSec1TextBox.Text != mainParams.EnterLifetimeOrder.ToString()
-                || EnterLifetimeOrderSec2TextBox.Text != secParams.EnterLifetimeOrder.ToString()
-                || ExitLifetimeOrderSec1TextBox.Text != mainParams.ExitLifetimeOrder.ToString()
-                || ExitLifetimeOrderSec2TextBox.Text != secParams.ExitLifetimeOrder.ToString()
-                || EnterOrderFrequencySec1TextBox.Text != mainParams.EnterOrderFrequency.ToString()
-                || EnterOrderFrequencySec2TextBox.Text != secParams.EnterOrderFrequency.ToString()
-                || ExitOrderFrequencySec1TextBox.Text != mainParams.ExitOrderFrequency.ToString()
-                || ExitOrderFrequencySec2TextBox.Text != secParams.ExitOrderFrequency.ToString()
-                || EnterTextBoxAssetPortfolioSec1.Text != (mainParams.AssetPortfolio ?? string.Empty)
-                || EnterTextBoxAssetPortfolioSec2.Text != (secParams.AssetPortfolio ?? string.Empty))
+            if (EnterTotalVolumeSec1TextBox.Text != mainLEg.TotalVolume.ToString()
+                || EnterTotalVolumeSec2TextBox.Text != secondaryLeg.TotalVolume.ToString()
+                || EnterOneOrderSec1TextBox.Text != mainLEg.EnterOneOrderVolume.ToString()
+                || EnterOneOrderSec2TextBox.Text != secondaryLeg.EnterOneOrderVolume.ToString()
+                || ExitOneOrderSec1TextBox.Text != mainLEg.ExitOneOrderVolume.ToString()
+                || ExitOneOrderSec2TextBox.Text != secondaryLeg.ExitOneOrderVolume.ToString()
+                || EnterSlippageSec1TextBox.Text != mainLEg.EnterSlippage.ToString()
+                || EnterSlippageSec2TextBox.Text != secondaryLeg.EnterSlippage.ToString()
+                || ExitSlippageSec1TextBox.Text != mainLEg.ExitSlippage.ToString()
+                || ExitSlippageSec2TextBox.Text != secondaryLeg.ExitSlippage.ToString()
+                || EnterLifetimeOrderSec1TextBox.Text != mainLEg.EnterLifetimeOrder.ToString()
+                || EnterLifetimeOrderSec2TextBox.Text != secondaryLeg.EnterLifetimeOrder.ToString()
+                || ExitLifetimeOrderSec1TextBox.Text != mainLEg.ExitLifetimeOrder.ToString()
+                || ExitLifetimeOrderSec2TextBox.Text != secondaryLeg.ExitLifetimeOrder.ToString()
+                || EnterOrderFrequencySec1TextBox.Text != mainLEg.EnterOrderFrequency.ToString()
+                || EnterOrderFrequencySec2TextBox.Text != secondaryLeg.EnterOrderFrequency.ToString()
+                || ExitOrderFrequencySec1TextBox.Text != mainLEg.ExitOrderFrequency.ToString()
+                || ExitOrderFrequencySec2TextBox.Text != secondaryLeg.ExitOrderFrequency.ToString()
+                || EnterTextBoxAssetPortfolioSec1.Text != (mainLEg.AssetPortfolio ?? string.Empty)
+                || EnterTextBoxAssetPortfolioSec2.Text != (secondaryLeg.AssetPortfolio ?? string.Empty))
             {
                 needUpdate = true;
             }
 
             // Проверяем ComboBox-ы OrderType
-            int enterOrderTypeSec1Index = mainParams.EnterOrderType == OrderPriceType.Market ? 0 : 1;
-            int enterOrderTypeSec2Index = secParams.EnterOrderType == OrderPriceType.Market ? 0 : 1;
-            int exitOrderTypeSec1Index = mainParams.ExitOrderType == OrderPriceType.Market ? 0 : 1;
-            int exitOrderTypeSec2Index = secParams.ExitOrderType == OrderPriceType.Market ? 0 : 1;
+            int enterOrderTypeSec1Index = mainLEg.EnterOrderType == OrderPriceType.Market ? 0 : 1;
+            int enterOrderTypeSec2Index = secondaryLeg.EnterOrderType == OrderPriceType.Market ? 0 : 1;
+            int exitOrderTypeSec1Index = mainLEg.ExitOrderType == OrderPriceType.Market ? 0 : 1;
+            int exitOrderTypeSec2Index = secondaryLeg.ExitOrderType == OrderPriceType.Market ? 0 : 1;
 
             if (EnterOrderTypeSec1ComboBox.SelectedIndex != enterOrderTypeSec1Index
                 || EnterOrderTypeSec2ComboBox.SelectedIndex != enterOrderTypeSec2Index
@@ -410,8 +401,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
 
             // Проверяем ComboBox-ы VolumeType
-            int enterVolumeTypeSec1Index = GetVolumeTypeIndex(mainParams.VolumeType);
-            int enterVolumeTypeSec2Index = GetVolumeTypeIndex(secParams.VolumeType);
+            int enterVolumeTypeSec1Index = GetVolumeTypeIndex(mainLEg.VolumeType);
+            int enterVolumeTypeSec2Index = GetVolumeTypeIndex(secondaryLeg.VolumeType);
 
             if (EnterVolumeTypeSec1ComboBox.SelectedIndex != enterVolumeTypeSec1Index
                 || EnterVolumeTypeSec2ComboBox.SelectedIndex != enterVolumeTypeSec2Index)
@@ -420,10 +411,10 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
 
             // Проверяем ComboBox-ы OrderPosition
-            int enterOrderPosSec1Index = GetOrderPositionIndex(mainParams.EnterOrderPosition);
-            int enterOrderPosSec2Index = GetOrderPositionIndex(secParams.EnterOrderPosition);
-            int exitOrderPosSec1Index = GetOrderPositionIndex(mainParams.ExitOrderPosition);
-            int exitOrderPosSec2Index = GetOrderPositionIndex(secParams.ExitOrderPosition);
+            int enterOrderPosSec1Index = GetOrderPositionIndex(mainLEg.EnterOrderPosition);
+            int enterOrderPosSec2Index = GetOrderPositionIndex(secondaryLeg.EnterOrderPosition);
+            int exitOrderPosSec1Index = GetOrderPositionIndex(mainLEg.ExitOrderPosition);
+            int exitOrderPosSec2Index = GetOrderPositionIndex(secondaryLeg.ExitOrderPosition);
 
             if (EnterOrderPositionSec1ComboBox.SelectedIndex != enterOrderPosSec1Index
                 || EnterOrderPositionSec2ComboBox.SelectedIndex != enterOrderPosSec2Index
@@ -449,35 +440,35 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             _isUpdatingUi = true;
 
             // TextBox-ы
-            EnterTotalVolumeSec1TextBox.Text = mainParams.TotalVolume.ToString();
-            ExitTotalVolumeSec1TextBox.Text = mainParams.TotalVolume.ToString();
-            EnterTotalVolumeSec2TextBox.Text = secParams.TotalVolume.ToString();
-            ExitTotalVolumeSec2TextBox.Text = secParams.TotalVolume.ToString();
+            EnterTotalVolumeSec1TextBox.Text = mainLEg.TotalVolume.ToString();
+            ExitTotalVolumeSec1TextBox.Text = mainLEg.TotalVolume.ToString();
+            EnterTotalVolumeSec2TextBox.Text = secondaryLeg.TotalVolume.ToString();
+            ExitTotalVolumeSec2TextBox.Text = secondaryLeg.TotalVolume.ToString();
 
-            EnterOneOrderSec1TextBox.Text = mainParams.EnterOneOrderVolume.ToString();
-            ExitOneOrderSec1TextBox.Text = mainParams.ExitOneOrderVolume.ToString();
-            EnterOneOrderSec2TextBox.Text = secParams.EnterOneOrderVolume.ToString();
-            ExitOneOrderSec2TextBox.Text = secParams.ExitOneOrderVolume.ToString();
+            EnterOneOrderSec1TextBox.Text = mainLEg.EnterOneOrderVolume.ToString();
+            ExitOneOrderSec1TextBox.Text = mainLEg.ExitOneOrderVolume.ToString();
+            EnterOneOrderSec2TextBox.Text = secondaryLeg.EnterOneOrderVolume.ToString();
+            ExitOneOrderSec2TextBox.Text = secondaryLeg.ExitOneOrderVolume.ToString();
 
-            EnterSlippageSec1TextBox.Text = mainParams.EnterSlippage.ToString();
-            ExitSlippageSec1TextBox.Text = mainParams.ExitSlippage.ToString();
-            EnterSlippageSec2TextBox.Text = secParams.EnterSlippage.ToString();
-            ExitSlippageSec2TextBox.Text = secParams.ExitSlippage.ToString();
+            EnterSlippageSec1TextBox.Text = mainLEg.EnterSlippage.ToString();
+            ExitSlippageSec1TextBox.Text = mainLEg.ExitSlippage.ToString();
+            EnterSlippageSec2TextBox.Text = secondaryLeg.EnterSlippage.ToString();
+            ExitSlippageSec2TextBox.Text = secondaryLeg.ExitSlippage.ToString();
 
-            EnterLifetimeOrderSec1TextBox.Text = mainParams.EnterLifetimeOrder.ToString();
-            ExitLifetimeOrderSec1TextBox.Text = mainParams.ExitLifetimeOrder.ToString();
-            EnterLifetimeOrderSec2TextBox.Text = secParams.EnterLifetimeOrder.ToString();
-            ExitLifetimeOrderSec2TextBox.Text = secParams.ExitLifetimeOrder.ToString();
+            EnterLifetimeOrderSec1TextBox.Text = mainLEg.EnterLifetimeOrder.ToString();
+            ExitLifetimeOrderSec1TextBox.Text = mainLEg.ExitLifetimeOrder.ToString();
+            EnterLifetimeOrderSec2TextBox.Text = secondaryLeg.EnterLifetimeOrder.ToString();
+            ExitLifetimeOrderSec2TextBox.Text = secondaryLeg.ExitLifetimeOrder.ToString();
 
-            EnterOrderFrequencySec1TextBox.Text = mainParams.EnterOrderFrequency.ToString();
-            ExitOrderFrequencySec1TextBox.Text = mainParams.ExitOrderFrequency.ToString();
-            EnterOrderFrequencySec2TextBox.Text = secParams.EnterOrderFrequency.ToString();
-            ExitOrderFrequencySec2TextBox.Text = secParams.ExitOrderFrequency.ToString();
+            EnterOrderFrequencySec1TextBox.Text = mainLEg.EnterOrderFrequency.ToString();
+            ExitOrderFrequencySec1TextBox.Text = mainLEg.ExitOrderFrequency.ToString();
+            EnterOrderFrequencySec2TextBox.Text = secondaryLeg.EnterOrderFrequency.ToString();
+            ExitOrderFrequencySec2TextBox.Text = secondaryLeg.ExitOrderFrequency.ToString();
 
-            EnterTextBoxAssetPortfolioSec1.Text = mainParams.AssetPortfolio ?? string.Empty;
-            ExitTextBoxAssetPortfolioSec1.Text = mainParams.AssetPortfolio ?? string.Empty;
-            EnterTextBoxAssetPortfolioSec2.Text = secParams.AssetPortfolio ?? string.Empty;
-            ExitTextBoxAssetPortfolioSec2.Text = secParams.AssetPortfolio ?? string.Empty;
+            EnterTextBoxAssetPortfolioSec1.Text = mainLEg.AssetPortfolio ?? string.Empty;
+            ExitTextBoxAssetPortfolioSec1.Text = mainLEg.AssetPortfolio ?? string.Empty;
+            EnterTextBoxAssetPortfolioSec2.Text = secondaryLeg.AssetPortfolio ?? string.Empty;
+            ExitTextBoxAssetPortfolioSec2.Text = secondaryLeg.AssetPortfolio ?? string.Empty;
 
             // ComboBox-ы OrderType
             EnterOrderTypeSec1ComboBox.SelectedIndex = enterOrderTypeSec1Index;
@@ -643,15 +634,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = SynteticBondOrderPosition.Middle.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderPosition == SynteticBondOrderPosition.Ask)
+            if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderPosition == SynteticBondOrderPosition.Ask)
             {
                 ExitOrderPositionSec2ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderPosition == SynteticBondOrderPosition.Bid)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderPosition == SynteticBondOrderPosition.Bid)
             {
                 ExitOrderPositionSec2ComboBox.SelectedIndex = 1;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderPosition == SynteticBondOrderPosition.Middle)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderPosition == SynteticBondOrderPosition.Middle)
             {
                 ExitOrderPositionSec2ComboBox.SelectedIndex = 2;
             }
@@ -679,15 +670,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = SynteticBondOrderPosition.Middle.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderPosition == SynteticBondOrderPosition.Ask)
+            if (_selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderPosition == SynteticBondOrderPosition.Ask)
             {
                 ExitOrderPositionSec1ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderPosition == SynteticBondOrderPosition.Bid)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderPosition == SynteticBondOrderPosition.Bid)
             {
                 ExitOrderPositionSec1ComboBox.SelectedIndex = 1;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderPosition == SynteticBondOrderPosition.Middle)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderPosition == SynteticBondOrderPosition.Middle)
             {
                 ExitOrderPositionSec1ComboBox.SelectedIndex = 2;
             }
@@ -726,15 +717,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = SynteticBondOrderPosition.Middle.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderPosition == SynteticBondOrderPosition.Ask)
+            if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderPosition == SynteticBondOrderPosition.Ask)
             {
                 EnterOrderPositionSec2ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderPosition == SynteticBondOrderPosition.Bid)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderPosition == SynteticBondOrderPosition.Bid)
             {
                 EnterOrderPositionSec2ComboBox.SelectedIndex = 1;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderPosition == SynteticBondOrderPosition.Middle)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderPosition == SynteticBondOrderPosition.Middle)
             {
                 EnterOrderPositionSec2ComboBox.SelectedIndex = 2;
             }
@@ -762,15 +753,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = SynteticBondOrderPosition.Middle.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderPosition == SynteticBondOrderPosition.Ask)
+            if (_selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderPosition == SynteticBondOrderPosition.Ask)
             {
                 EnterOrderPositionSec1ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderPosition == SynteticBondOrderPosition.Bid)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderPosition == SynteticBondOrderPosition.Bid)
             {
                 EnterOrderPositionSec1ComboBox.SelectedIndex = 1;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderPosition == SynteticBondOrderPosition.Middle)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderPosition == SynteticBondOrderPosition.Middle)
             {
                 EnterOrderPositionSec1ComboBox.SelectedIndex = 2;
             }
@@ -792,11 +783,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = OrderPriceType.Limit.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderType == OrderPriceType.Market)
+            if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderType == OrderPriceType.Market)
             {
                 ExitOrderTypeSec2ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderType == OrderPriceType.Limit)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderType == OrderPriceType.Limit)
             {
                 ExitOrderTypeSec2ComboBox.SelectedIndex = 1;
             }
@@ -818,11 +809,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = OrderPriceType.Limit.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderType == OrderPriceType.Market)
+            if (_selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderType == OrderPriceType.Market)
             {
                 ExitOrderTypeSec1ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderType == OrderPriceType.Limit)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderType == OrderPriceType.Limit)
             {
                 ExitOrderTypeSec1ComboBox.SelectedIndex = 1;
             }
@@ -844,11 +835,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = OrderPriceType.Limit.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderType == OrderPriceType.Market)
+            if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderType == OrderPriceType.Market)
             {
                 EnterOrderTypeSec2ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderType == OrderPriceType.Limit)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderType == OrderPriceType.Limit)
             {
                 EnterOrderTypeSec2ComboBox.SelectedIndex = 1;
             }
@@ -870,11 +861,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = OrderPriceType.Limit.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderType == OrderPriceType.Market)
+            if (_selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderType == OrderPriceType.Market)
             {
                 EnterOrderTypeSec1ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderType == OrderPriceType.Limit)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderType == OrderPriceType.Limit)
             {
                 EnterOrderTypeSec1ComboBox.SelectedIndex = 1;
             }
@@ -902,15 +893,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = VolumeType.DepositPercent.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.MainParameters.VolumeType == VolumeType.Contracts)
+            if (_selectedScenario.ArbitrationIceberg.MainLegs[0].VolumeType == VolumeType.Contracts)
             {
                 EnterVolumeTypeSec1ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.VolumeType == VolumeType.ContractCurrency)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].VolumeType == VolumeType.ContractCurrency)
             {
                 EnterVolumeTypeSec1ComboBox.SelectedIndex = 1;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.VolumeType == VolumeType.DepositPercent)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].VolumeType == VolumeType.DepositPercent)
             {
                 EnterVolumeTypeSec1ComboBox.SelectedIndex = 2;
             }
@@ -938,15 +929,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = VolumeType.DepositPercent.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].VolumeType == VolumeType.Contracts)
+            if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].VolumeType == VolumeType.Contracts)
             {
                 EnterVolumeTypeSec2ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].VolumeType == VolumeType.ContractCurrency)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].VolumeType == VolumeType.ContractCurrency)
             {
                 EnterVolumeTypeSec2ComboBox.SelectedIndex = 1;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].VolumeType == VolumeType.DepositPercent)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].VolumeType == VolumeType.DepositPercent)
             {
                 EnterVolumeTypeSec2ComboBox.SelectedIndex = 2;
             }
@@ -974,15 +965,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = VolumeType.DepositPercent.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.MainParameters.VolumeType == VolumeType.Contracts)
+            if (_selectedScenario.ArbitrationIceberg.MainLegs[0].VolumeType == VolumeType.Contracts)
             {
                 ExitVolumeTypeSec1ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.VolumeType == VolumeType.ContractCurrency)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].VolumeType == VolumeType.ContractCurrency)
             {
                 ExitVolumeTypeSec1ComboBox.SelectedIndex = 1;
             }
-            else if (_selectedScenario.ArbitrationIceberg.MainParameters.VolumeType == VolumeType.DepositPercent)
+            else if (_selectedScenario.ArbitrationIceberg.MainLegs[0].VolumeType == VolumeType.DepositPercent)
             {
                 ExitVolumeTypeSec1ComboBox.SelectedIndex = 2;
             }
@@ -1010,15 +1001,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 Name = VolumeType.DepositPercent.ToString()
             });
 
-            if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].VolumeType == VolumeType.Contracts)
+            if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].VolumeType == VolumeType.Contracts)
             {
                 ExitVolumeTypeSec2ComboBox.SelectedIndex = 0;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].VolumeType == VolumeType.ContractCurrency)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].VolumeType == VolumeType.ContractCurrency)
             {
                 ExitVolumeTypeSec2ComboBox.SelectedIndex = 1;
             }
-            else if (_selectedScenario.ArbitrationIceberg.SecondaryParameters[0].VolumeType == VolumeType.DepositPercent)
+            else if (_selectedScenario.ArbitrationIceberg.SecondaryLegs[0].VolumeType == VolumeType.DepositPercent)
             {
                 ExitVolumeTypeSec2ComboBox.SelectedIndex = 2;
             }
@@ -1081,12 +1072,14 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             try
             {
+                Closed -= SyntheticBondOffsetUi_Closed;
+
                 _updateTimer.Stop();
                 _updateTimer.Tick -= UpdateTimer_Tick;
-                Closed -= SyntheticBondOffsetUi_Closed;
+                //ScenarioComboBox.SelectionChanged -= ScenarioComboBox_SelectionChanged;
                 MinSpreadTextBox.TextChanged -= MinSpreadTextBox_TextChanged;
                 MaxSpreadTextBox.TextChanged -= MaxSpreadTextBox_TextChanged;
-                TextBoxContangoLookBack.TextChanged -= TextBoxContangoLookBack_TextChanged;
+                //TextBoxContangoLookBack.TextChanged -= TextBoxContangoLookBack_TextChanged;
                 TextBoxCointegrationLookBack.TextChanged -= TextBoxCointegrationLookBack_TextChanged;
                 TextBoxCointegrationDeviation.TextChanged -= TextBoxCointegrationDeviation_TextChanged;
                 EnterTextBoxAssetPortfolioSec1.TextChanged -= EnterTextBoxAssetPortfolioSec1_TextChanged;
@@ -1123,6 +1116,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 EnterOrderFrequencySec2TextBox.TextChanged -= EnterOrderFrequencySec2TextBox_TextChanged;
                 ExitOrderFrequencySec1TextBox.TextChanged -= ExitOrderFrequencySec1TextBox_TextChanged;
                 ExitOrderFrequencySec2TextBox.TextChanged -= ExitOrderFrequencySec2TextBox_TextChanged;
+
+                _gridOpenStepsStatisticBase.CellClick -= _gridOpenStepsStatisticBase_CellClick;
+                _gridOpenStepsStatisticFutures.CellClick -= _gridOpenStepsStatisticFutures_CellClick;
+                _gridCloseStepsStatisticBase.CellClick -= _gridCloseStepsStatisticBase_CellClick;
+                _gridCloseStepsStatisticFutures.CellClick -= _gridCloseStepsStatisticFutures_CellClick;
             }
             catch
             {
@@ -1134,11 +1132,13 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             get
             {
-                return _syntheticBond.FuturesIcebergParameters.BotTab.TabName;
+                return _selectedScenario.ArbitrationIceberg.MainLegs[0].BotTab.TabName;
             }
         }
 
         #endregion
+
+        #region Helpers
 
         private void ClearAllValidationStyles()
         {
@@ -1163,8 +1163,6 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             ExitOrderFrequencySec1TextBox.ClearValue(TextBox.ForegroundProperty);
             ExitOrderFrequencySec2TextBox.ClearValue(TextBox.ForegroundProperty);
         }
-
-        #region Validation helpers
 
         private bool TryParseDecimal(TextBox textBox, out decimal result)
         {
@@ -1278,7 +1276,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             TextBox[] textBoxesToCheck = new TextBox[]
             {
                 MaxSpreadTextBox, MinSpreadTextBox,
-                TextBoxContangoLookBack, TextBoxCointegrationDeviation, TextBoxCointegrationLookBack,
+                //TextBoxContangoLookBack, TextBoxCointegrationDeviation, TextBoxCointegrationLookBack,
                 EnterTotalVolumeSec1TextBox, EnterTotalVolumeSec2TextBox,
                 EnterOneOrderSec1TextBox, EnterOneOrderSec2TextBox,
                 ExitOneOrderSec1TextBox, ExitOneOrderSec2TextBox,
@@ -1359,18 +1357,18 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxContangoLookBack.Text))
-                {
-                    return;
-                }
+                //if (string.IsNullOrEmpty(TextBoxContangoLookBack.Text))
+                //{
+                //    return;
+                //}
 
-                int result;
-                if (!TryParseInt(TextBoxContangoLookBack, out result))
-                {
-                    return;
-                }
+                //int result;
+                //if (!TryParseInt(TextBoxContangoLookBack, out result))
+                //{
+                //    return;
+                //}
 
-                _syntheticBond.SeparationLength = result;
+                //_syntheticBond.SeparationLength = result;
             }
             catch (Exception ex)
             {
@@ -1433,7 +1431,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.AssetPortfolio = EnterTextBoxAssetPortfolioSec1.Text;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].AssetPortfolio = EnterTextBoxAssetPortfolioSec1.Text;
                 ExitTextBoxAssetPortfolioSec1.Text = EnterTextBoxAssetPortfolioSec1.Text;
                 _syntheticBondSeries.OnSettingsChanged();
             }
@@ -1452,7 +1450,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].AssetPortfolio = EnterTextBoxAssetPortfolioSec2.Text;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].AssetPortfolio = EnterTextBoxAssetPortfolioSec2.Text;
                 ExitTextBoxAssetPortfolioSec2.Text = EnterTextBoxAssetPortfolioSec2.Text;
                 _syntheticBondSeries.OnSettingsChanged();
             }
@@ -1482,7 +1480,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitLifetimeOrder = result;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitLifetimeOrder = result;
                 _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec2ComboBox, ExitLifetimeOrderSec2TextBox, ExitOrderFrequencySec2TextBox);
             }
@@ -1512,7 +1510,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.ExitLifetimeOrder = result;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitLifetimeOrder = result;
                 _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec1ComboBox, ExitLifetimeOrderSec1TextBox, ExitOrderFrequencySec1TextBox);
             }
@@ -1542,7 +1540,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterLifetimeOrder = result;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterLifetimeOrder = result;
                 _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec2ComboBox, EnterLifetimeOrderSec2TextBox, EnterOrderFrequencySec2TextBox);
             }
@@ -1572,7 +1570,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.EnterLifetimeOrder = result;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterLifetimeOrder = result;
                 _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec1ComboBox, EnterLifetimeOrderSec1TextBox, EnterOrderFrequencySec1TextBox);
             }
@@ -1602,7 +1600,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderFrequency = result;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderFrequency = result;
                 _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec1ComboBox, EnterLifetimeOrderSec1TextBox, EnterOrderFrequencySec1TextBox);
             }
@@ -1632,7 +1630,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderFrequency = result;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderFrequency = result;
                 _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec2ComboBox, EnterLifetimeOrderSec2TextBox, EnterOrderFrequencySec2TextBox);
             }
@@ -1662,7 +1660,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderFrequency = result;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderFrequency = result;
                 _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec1ComboBox, ExitLifetimeOrderSec1TextBox, ExitOrderFrequencySec1TextBox);
             }
@@ -1692,7 +1690,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderFrequency = result;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderFrequency = result;
                 _syntheticBondSeries.OnSettingsChanged();
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec2ComboBox, ExitLifetimeOrderSec2TextBox, ExitOrderFrequencySec2TextBox);
             }
@@ -1722,7 +1720,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitSlippage = result;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitSlippage = result;
                 _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
@@ -1751,7 +1749,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterSlippage = result;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterSlippage = result;
                 _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
@@ -1780,7 +1778,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.ExitSlippage = result;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitSlippage = result;
                 _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
@@ -1809,7 +1807,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.EnterSlippage = result;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterSlippage = result;
                 _syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
@@ -1831,15 +1829,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (ExitOrderPositionSec2ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderPosition = SynteticBondOrderPosition.Ask;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderPosition = SynteticBondOrderPosition.Ask;
                 }
                 else if (ExitOrderPositionSec2ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderPosition = SynteticBondOrderPosition.Bid;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderPosition = SynteticBondOrderPosition.Bid;
                 }
                 else if (ExitOrderPositionSec2ComboBox.SelectedIndex == 2)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderPosition = SynteticBondOrderPosition.Middle;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderPosition = SynteticBondOrderPosition.Middle;
                 }
 
                 _syntheticBondSeries.OnSettingsChanged();
@@ -1866,15 +1864,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (ExitOrderPositionSec1ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderPosition = SynteticBondOrderPosition.Ask;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderPosition = SynteticBondOrderPosition.Ask;
                 }
                 else if (ExitOrderPositionSec1ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderPosition = SynteticBondOrderPosition.Bid;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderPosition = SynteticBondOrderPosition.Bid;
                 }
                 else if (ExitOrderPositionSec1ComboBox.SelectedIndex == 2)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderPosition = SynteticBondOrderPosition.Middle;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderPosition = SynteticBondOrderPosition.Middle;
                 }
 
                 _syntheticBondSeries.OnSettingsChanged();
@@ -1901,15 +1899,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (EnterOrderPositionSec2ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderPosition = SynteticBondOrderPosition.Ask;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderPosition = SynteticBondOrderPosition.Ask;
                 }
                 else if (EnterOrderPositionSec2ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderPosition = SynteticBondOrderPosition.Bid;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderPosition = SynteticBondOrderPosition.Bid;
                 }
                 else if (EnterOrderPositionSec2ComboBox.SelectedIndex == 2)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderPosition = SynteticBondOrderPosition.Middle;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderPosition = SynteticBondOrderPosition.Middle;
                 }
 
                 _syntheticBondSeries.OnSettingsChanged();
@@ -1936,15 +1934,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (EnterOrderPositionSec1ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderPosition = SynteticBondOrderPosition.Ask;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderPosition = SynteticBondOrderPosition.Ask;
                 }
                 else if (EnterOrderPositionSec1ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderPosition = SynteticBondOrderPosition.Bid;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderPosition = SynteticBondOrderPosition.Bid;
                 }
                 else if (EnterOrderPositionSec1ComboBox.SelectedIndex == 2)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderPosition = SynteticBondOrderPosition.Middle;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderPosition = SynteticBondOrderPosition.Middle;
                 }
 
                 _syntheticBondSeries.OnSettingsChanged();
@@ -1971,11 +1969,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (ExitOrderTypeSec2ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderType = OrderPriceType.Market;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderType = OrderPriceType.Market;
                 }
                 else if (ExitOrderTypeSec2ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderType = OrderPriceType.Limit;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderType = OrderPriceType.Limit;
                 }
 
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec2ComboBox, ExitLifetimeOrderSec2TextBox, ExitOrderFrequencySec2TextBox);
@@ -2004,11 +2002,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (EnterOrderTypeSec2ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderType = OrderPriceType.Market;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderType = OrderPriceType.Market;
                 }
                 else if (EnterOrderTypeSec2ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderType = OrderPriceType.Limit;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderType = OrderPriceType.Limit;
                 }
 
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec2ComboBox, EnterLifetimeOrderSec2TextBox, EnterOrderFrequencySec2TextBox);
@@ -2037,11 +2035,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (ExitOrderTypeSec1ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderType = OrderPriceType.Market;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderType = OrderPriceType.Market;
                 }
                 else if (ExitOrderTypeSec1ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderType = OrderPriceType.Limit;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderType = OrderPriceType.Limit;
                 }
 
                 ValidateLifetimeAndFrequency(ExitOrderTypeSec1ComboBox, ExitLifetimeOrderSec1TextBox, ExitOrderFrequencySec1TextBox);
@@ -2070,11 +2068,11 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (EnterOrderTypeSec1ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderType = OrderPriceType.Market;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderType = OrderPriceType.Market;
                 }
                 else if (EnterOrderTypeSec1ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderType = OrderPriceType.Limit;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderType = OrderPriceType.Limit;
                 }
 
                 ValidateLifetimeAndFrequency(EnterOrderTypeSec1ComboBox, EnterLifetimeOrderSec1TextBox, EnterOrderFrequencySec1TextBox);
@@ -2107,7 +2105,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOneOrderVolume = result;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOneOrderVolume = result;
                 ValidateOneOrderVolume(ExitOneOrderSec2TextBox, ExitTotalVolumeSec2TextBox);
                 _syntheticBondSeries.OnSettingsChanged();
             }
@@ -2137,7 +2135,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOneOrderVolume = result;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOneOrderVolume = result;
                 ValidateOneOrderVolume(EnterOneOrderSec2TextBox, EnterTotalVolumeSec2TextBox);
                 _syntheticBondSeries.OnSettingsChanged();
             }
@@ -2167,7 +2165,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.ExitOneOrderVolume = result;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOneOrderVolume = result;
                 ValidateOneOrderVolume(ExitOneOrderSec1TextBox, ExitTotalVolumeSec1TextBox);
                 _syntheticBondSeries.OnSettingsChanged();
             }
@@ -2197,7 +2195,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.EnterOneOrderVolume = result;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOneOrderVolume = result;
                 ValidateOneOrderVolume(EnterOneOrderSec1TextBox, EnterTotalVolumeSec1TextBox);
                 _syntheticBondSeries.OnSettingsChanged();
             }
@@ -2227,7 +2225,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].TotalVolume = result;
+                _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].TotalVolume = result;
                 ExitTotalVolumeSec2TextBox.Text = EnterTotalVolumeSec2TextBox.Text;
                 ValidatePositiveValue(EnterTotalVolumeSec2TextBox);
                 ValidateOneOrderVolume(EnterOneOrderSec2TextBox, EnterTotalVolumeSec2TextBox);
@@ -2260,7 +2258,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.MainParameters.TotalVolume = result;
+                _selectedScenario.ArbitrationIceberg.MainLegs[0].TotalVolume = result;
                 ExitTotalVolumeSec1TextBox.Text = EnterTotalVolumeSec1TextBox.Text;
                 ValidatePositiveValue(EnterTotalVolumeSec1TextBox);
                 ValidateOneOrderVolume(EnterOneOrderSec1TextBox, EnterTotalVolumeSec1TextBox);
@@ -2284,15 +2282,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (EnterVolumeTypeSec1ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.VolumeType = VolumeType.Contracts;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].VolumeType = VolumeType.Contracts;
                 }
                 else if (EnterVolumeTypeSec1ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.VolumeType = VolumeType.ContractCurrency;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].VolumeType = VolumeType.ContractCurrency;
                 }
                 else if (EnterVolumeTypeSec1ComboBox.SelectedIndex == 2)
                 {
-                    _selectedScenario.ArbitrationIceberg.MainParameters.VolumeType = VolumeType.DepositPercent;
+                    _selectedScenario.ArbitrationIceberg.MainLegs[0].VolumeType = VolumeType.DepositPercent;
                 }
 
                 ExitVolumeTypeSec1ComboBox.SelectedIndex = EnterVolumeTypeSec1ComboBox.SelectedIndex;
@@ -2316,15 +2314,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (EnterVolumeTypeSec2ComboBox.SelectedIndex == 0)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].VolumeType = VolumeType.Contracts;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].VolumeType = VolumeType.Contracts;
                 }
                 else if (EnterVolumeTypeSec2ComboBox.SelectedIndex == 1)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].VolumeType = VolumeType.ContractCurrency;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].VolumeType = VolumeType.ContractCurrency;
                 }
                 else if (EnterVolumeTypeSec2ComboBox.SelectedIndex == 2)
                 {
-                    _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].VolumeType = VolumeType.DepositPercent;
+                    _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].VolumeType = VolumeType.DepositPercent;
                 }
 
                 ExitVolumeTypeSec2ComboBox.SelectedIndex = EnterVolumeTypeSec2ComboBox.SelectedIndex;
@@ -2361,8 +2359,6 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                     return;
                 }
 
-                _selectedScenario.ArbitrationIceberg.Pause();
-
                 if (TradeModeComboBox.SelectedIndex == 0)
                 {
                     _selectedScenario.ArbitrationIceberg.CurrentMode = ArbitrationMode.OpenBuyFirstSellSecond;
@@ -2382,6 +2378,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 StartButton.Background = null;
                 PauseButton.Background = Brushes.DarkOrange;
+
+                //_selectedScenario.ArbitrationIceberg.Pause();
             }
             catch (Exception ex)
             {
@@ -2430,7 +2428,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 StartButton.Background = Brushes.DarkGreen;
                 PauseButton.Background = null;
 
-                _selectedScenario.ArbitrationIceberg.Start();
+                _selectedScenario.ArbitrationIceberg.Start(_selectedScenario.ArbitrationIceberg.CurrentMode);
             }
             catch (Exception ex)
             {
@@ -2462,7 +2460,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 StartButton.Background = null;
                 PauseButton.Background = Brushes.DarkOrange;
 
-                _selectedScenario.ArbitrationIceberg.Pause();
+                _selectedScenario.ArbitrationIceberg.CurrentStatus = ArbitrationStatus.Pause;
             }
             catch (Exception ex)
             {
@@ -2476,14 +2474,6 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             {
                 if (_selectedScenario == null)
                 {
-                    return;
-                }
-
-                if (_syntheticBond.Scenarios.Count <= 1)
-                {
-                    ServerMaster.SendNewLogMessage(
-                        "Невозможно удалить последний сценарий.",
-                        Logging.LogMessageType.Error);
                     return;
                 }
 
@@ -2505,15 +2495,35 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 BondScenario scenarioToDelete = _selectedScenario;
 
-                _syntheticBond.Scenarios.Remove(scenarioToDelete);
+                for (int i = 0; i < _syntheticBond.ActiveScenarios.Count; i++)
+                {
+                    if (scenarioToDelete.ScenarioNumber == _syntheticBond.ActiveScenarios[i].ScenarioNumber)
+                    {
+                        _syntheticBond.ActiveScenarios.RemoveAt(i);
+                        break;
+                    }
+                }
 
-                scenarioToDelete.Delete();
+                _syntheticBond.DeletedScenarios.Add(scenarioToDelete);
+
+                if (_syntheticBond.ActiveScenarios.Count == 0)
+                {
+                    int number = _syntheticBond.GetAvailableScenarioNumber();
+                    BondScenario scenario = _syntheticBond.CreateNewScenario("Script " + number);
+                    scenario.IsActiveScenario = true;
+                    _syntheticBond.SelectedScenario = scenario;
+                }
+                else
+                {
+                    _syntheticBond.ActiveScenarios[0].IsActiveScenario = true;
+                    _selectedScenario = _syntheticBond.ActiveScenarios[0];
+                }
 
                 CreateScenarioComboBox();
 
                 UpdateScenarioTextBoxDefault();
 
-                _syntheticBondSeries.OnSettingsChanged();
+                _syntheticBond.Save();
             }
             catch (Exception ex)
             {
@@ -2525,53 +2535,47 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             try
             {
-                string scenarioName = ScenarioTextBox.Text.Trim();
+                //string scenarioName = ScenarioTextBox.Text.Trim();
 
-                if (string.IsNullOrEmpty(scenarioName))
-                {
-                    scenarioName = "Script " + (_syntheticBond.Scenarios.Count + 1).ToString();
-                }
+                //if (string.IsNullOrEmpty(scenarioName))
+                //{
+                //    int number = _syntheticBond.GetAvailableScenarioNumber();
+                //    scenarioName = "Script " + number.ToString();
+                //}
 
-                for (int i = 0; i < _syntheticBond.Scenarios.Count; i++)
-                {
-                    if (_syntheticBond.Scenarios[i].Name == scenarioName)
-                    {
-                        ServerMaster.SendNewLogMessage(
-                            "Сценарий с именем '" + scenarioName + "' уже существует.",
-                            Logging.LogMessageType.Error);
-                        return;
-                    }
-                }
+                //for (int i = 0; i < _syntheticBond.ActiveScenarios.Count; i++)
+                //{
+                //    if (_syntheticBond.ActiveScenarios[i].UniqueName == scenarioName)
+                //    {
+                //        ServerMaster.SendNewLogMessage(
+                //            "Сценарий с именем '" + scenarioName + "' уже существует.",
+                //            Logging.LogMessageType.Error);
+                //        return;
+                //    }
+                //}
 
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label733);
-                ui.ShowDialog();
+                //AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label733);
+                //ui.ShowDialog();
 
-                if (ui.UserAcceptAction == false)
-                {
-                    return;
-                }
+                //if (ui.UserAcceptAction == false)
+                //{
+                //    return;
+                //}
 
-                string futuresTabName = _syntheticBond.FuturesIcebergParameters.BotTab.TabName;
-                BotTabSimple baseBotTab = _syntheticBond.BaseIcebergParameters.BotTab;
-                BotTabSimple futuresBotTab = _syntheticBond.FuturesIcebergParameters.BotTab;
+                //BondScenario newScenario = _syntheticBond.CreateNewScenario(scenarioName);
+                //SubscribeToScenario(newScenario);
 
-                BondScenario newScenario = new BondScenario(futuresTabName, scenarioName);
-                newScenario.SetBotTabs(baseBotTab, futuresBotTab);
-                SubscribeToScenario(newScenario);
+                //ScenarioComboBox.Items.Add(new ComboBoxItem
+                //{
+                //    Content = scenarioName,
+                //    Name = scenarioName.Replace(" ", "_")
+                //});
 
-                _syntheticBond.Scenarios.Add(newScenario);
+                //ScenarioComboBox.SelectedIndex = ScenarioComboBox.Items.Count - 1;
 
-                ScenarioComboBox.Items.Add(new ComboBoxItem
-                {
-                    Content = scenarioName,
-                    Name = scenarioName.Replace(" ", "_")
-                });
+                //UpdateScenarioTextBoxDefault();
 
-                ScenarioComboBox.SelectedIndex = ScenarioComboBox.Items.Count - 1;
-
-                UpdateScenarioTextBoxDefault();
-
-                _syntheticBondSeries.OnSettingsChanged();
+                //_syntheticBondSeries.OnSettingsChanged();
             }
             catch (Exception ex)
             {
@@ -2581,45 +2585,77 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         #endregion
 
+        #region Fields
+
+        private SyntheticBondSeries _syntheticBondSeries;
+
+        private SyntheticBond _syntheticBond;
+
+        private BondScenario _selectedScenario;
+
+        private bool _isUpdatingUi;
+
+        private DispatcherTimer _updateTimer;
+
+        private DataGridView _gridOpenStepsBase;
+
+        private DataGridView _gridOpenStepsStatisticBase;
+
+        private DataGridView _gridOpenStepsFutures;
+
+        private DataGridView _gridOpenStepsStatisticFutures;
+
+        private DataGridView _gridCloseStepsBase;
+
+        private DataGridView _gridCloseStepsStatisticBase;
+
+        private DataGridView _gridCloseStepsFutures;
+
+        private DataGridView _gridCloseStepsStatisticFutures;
+
+        #endregion
+
         #region Scenario management
 
         private void CreateScenarioComboBox()
         {
-            ScenarioComboBox.Items.Clear();
+            //ScenarioComboBox.Items.Clear();
 
-            for (int i = 0; i < _syntheticBond.Scenarios.Count; i++)
-            {
-                string name = _syntheticBond.Scenarios[i].Name;
-                ScenarioComboBox.Items.Add(new ComboBoxItem
-                {
-                    Content = name,
-                    Name = name.Replace(" ", "_")
-                });
-            }
+            //for (int i = 0; i < _syntheticBond.ActiveScenarios.Count; i++)
+            //{
+            //    string name = _syntheticBond.ActiveScenarios[i].ScriptName;
+            //    ScenarioComboBox.Items.Add(new ComboBoxItem
+            //    {
+            //        Content = name,
+            //        Name = name.Replace(" ", "_")
+            //    });
+            //}
 
-            if (ScenarioComboBox.Items.Count > 0)
-            {
-                ScenarioComboBox.SelectedIndex = 0;
-            }
+            //if (ScenarioComboBox.Items.Count > 0)
+            //{
+            //    ScenarioComboBox.SelectedIndex = 0;
+            //}
         }
 
         private void UpdateScenarioTextBoxDefault()
         {
-            ScenarioTextBox.Text = "Script " + (_syntheticBond.Scenarios.Count + 1).ToString();
+            //int number = _syntheticBond.GetAvailableScenarioNumber() + 1;
+            //ScenarioTextBox.Text = "Script " + number.ToString();
         }
 
         private void ScenarioComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
-                int index = ScenarioComboBox.SelectedIndex;
-                if (index < 0 || index >= _syntheticBond.Scenarios.Count)
-                {
-                    return;
-                }
+                //int index = ScenarioComboBox.SelectedIndex;
+                //if (index < 0 || index >= _syntheticBond.ActiveScenarios.Count)
+                //{
+                //    return;
+                //}
 
-                _selectedScenario = _syntheticBond.Scenarios[index];
-                RefreshScenarioUi();
+                //_selectedScenario = _syntheticBond.ActiveScenarios[index];
+                //_syntheticBond.SelectedScenario = _selectedScenario;
+                //RefreshScenarioUi();
             }
             catch (Exception ex)
             {
@@ -2641,35 +2677,35 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             MaxSpreadTextBox.Text = _selectedScenario.MaxSpread.ToString();
             MinSpreadTextBox.Text = _selectedScenario.MinSpread.ToString();
 
-            EnterTotalVolumeSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainParameters.TotalVolume.ToString();
+            EnterTotalVolumeSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].TotalVolume.ToString();
             ExitTotalVolumeSec1TextBox.Text = EnterTotalVolumeSec1TextBox.Text;
 
-            EnterTotalVolumeSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].TotalVolume.ToString();
+            EnterTotalVolumeSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].TotalVolume.ToString();
             ExitTotalVolumeSec2TextBox.Text = EnterTotalVolumeSec2TextBox.Text;
 
-            EnterOneOrderSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainParameters.EnterOneOrderVolume.ToString();
-            ExitOneOrderSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainParameters.ExitOneOrderVolume.ToString();
-            EnterOneOrderSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOneOrderVolume.ToString();
-            ExitOneOrderSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOneOrderVolume.ToString();
+            EnterOneOrderSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOneOrderVolume.ToString();
+            ExitOneOrderSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOneOrderVolume.ToString();
+            EnterOneOrderSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOneOrderVolume.ToString();
+            ExitOneOrderSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOneOrderVolume.ToString();
 
-            EnterSlippageSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainParameters.EnterSlippage.ToString();
-            ExitSlippageSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainParameters.ExitSlippage.ToString();
-            EnterSlippageSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterSlippage.ToString();
-            ExitSlippageSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitSlippage.ToString();
+            EnterSlippageSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterSlippage.ToString();
+            ExitSlippageSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitSlippage.ToString();
+            EnterSlippageSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterSlippage.ToString();
+            ExitSlippageSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitSlippage.ToString();
 
-            EnterLifetimeOrderSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainParameters.EnterLifetimeOrder.ToString();
-            ExitLifetimeOrderSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainParameters.ExitLifetimeOrder.ToString();
-            EnterLifetimeOrderSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterLifetimeOrder.ToString();
-            ExitLifetimeOrderSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitLifetimeOrder.ToString();
+            EnterLifetimeOrderSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterLifetimeOrder.ToString();
+            ExitLifetimeOrderSec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitLifetimeOrder.ToString();
+            EnterLifetimeOrderSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterLifetimeOrder.ToString();
+            ExitLifetimeOrderSec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitLifetimeOrder.ToString();
 
-            EnterOrderFrequencySec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainParameters.EnterOrderFrequency.ToString();
-            ExitOrderFrequencySec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainParameters.ExitOrderFrequency.ToString();
-            EnterOrderFrequencySec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].EnterOrderFrequency.ToString();
-            ExitOrderFrequencySec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].ExitOrderFrequency.ToString();
+            EnterOrderFrequencySec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].EnterOrderFrequency.ToString();
+            ExitOrderFrequencySec1TextBox.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].ExitOrderFrequency.ToString();
+            EnterOrderFrequencySec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].EnterOrderFrequency.ToString();
+            ExitOrderFrequencySec2TextBox.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ExitOrderFrequency.ToString();
 
-            EnterTextBoxAssetPortfolioSec1.Text = _selectedScenario.ArbitrationIceberg.MainParameters.AssetPortfolio ?? string.Empty;
+            EnterTextBoxAssetPortfolioSec1.Text = _selectedScenario.ArbitrationIceberg.MainLegs[0].AssetPortfolio ?? string.Empty;
             ExitTextBoxAssetPortfolioSec1.Text = EnterTextBoxAssetPortfolioSec1.Text;
-            EnterTextBoxAssetPortfolioSec2.Text = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0].AssetPortfolio ?? string.Empty;
+            EnterTextBoxAssetPortfolioSec2.Text = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].AssetPortfolio ?? string.Empty;
             ExitTextBoxAssetPortfolioSec2.Text = EnterTextBoxAssetPortfolioSec2.Text;
 
             CreateTradeModeComboBox();
@@ -2702,7 +2738,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             ValidateLifetimeAndFrequency(ExitOrderTypeSec1ComboBox, ExitLifetimeOrderSec1TextBox, ExitOrderFrequencySec1TextBox);
             ValidateLifetimeAndFrequency(ExitOrderTypeSec2ComboBox, ExitLifetimeOrderSec2TextBox, ExitOrderFrequencySec2TextBox);
 
-            UpdatePositionDataGrids();
+            UpdatePositionStepsDataGrids();
 
             _isUpdatingUi = false;
         }
@@ -2711,339 +2747,455 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         #region Step DataGrids
 
-        private void CreatePositionDataGrids()
+        private DataGridView CreateDataGrid(int columnCount)
         {
-            AddStepColumns(OpenStepsBaseDataGrid);
-            AddStepColumns(OpenStepsFuturesDataGrid);
-            AddStepColumns(CloseStepsBaseDataGrid);
-            AddStepColumns(CloseStepsFuturesDataGrid);
+            DataGridView grid = DataGridFactory.GetDataGridView(
+                DataGridViewSelectionMode.CellSelect,
+                DataGridViewAutoSizeRowsMode.AllCells,
+                false);
+            grid.ScrollBars = ScrollBars.Vertical;
+
+            DataGridViewTextBoxCell cellTemplate = new DataGridViewTextBoxCell();
+            cellTemplate.Style = grid.DefaultCellStyle;
+
+            for (int i = 0; i < columnCount; i++)
+            {
+                DataGridViewColumn column = new DataGridViewColumn
+                {
+                    CellTemplate = cellTemplate,
+                    HeaderText = "",
+                    ReadOnly = true,
+                    AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+                };
+
+                grid.Columns.Add(column);
+            }
+
+            return grid;
         }
 
-        private void AddStepColumns(DataGrid grid)
+        private void CreatePositionStepsDataGrids()
         {
-            DataGridTemplateColumn positionNumberColumn = new DataGridTemplateColumn();
-            positionNumberColumn.Header = OsLocalization.Entity.PositionColumn1;
-            positionNumberColumn.MinWidth = 60;
-            positionNumberColumn.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
+            const int stepsColumnCount = 5;
+            const int statisticColumnCount = 4;
 
-            FrameworkElementFactory buttonFactory = new FrameworkElementFactory(typeof(Button));
-            buttonFactory.SetBinding(Button.ContentProperty, new Binding("PositionNumber"));
-            buttonFactory.SetBinding(Button.TagProperty, new Binding("PositionTag"));
-            buttonFactory.AddHandler(Button.ClickEvent, new RoutedEventHandler(StepPositionButton_Click));
-            buttonFactory.SetValue(Button.CursorProperty, System.Windows.Input.Cursors.Hand);
-            buttonFactory.SetValue(Button.HorizontalContentAlignmentProperty, HorizontalAlignment.Center);
+            // Open steps
+            _gridOpenStepsBase = CreateDataGrid(stepsColumnCount);
+            OpenStepsBaseHost.Child = _gridOpenStepsBase;
 
-            DataTemplate buttonTemplate = new DataTemplate();
-            buttonTemplate.VisualTree = buttonFactory;
-            positionNumberColumn.CellTemplate = buttonTemplate;
+            _gridOpenStepsStatisticBase = CreateDataGrid(statisticColumnCount);
+            OpenStepsBaseStatisticHost.Child = _gridOpenStepsStatisticBase;
+            _gridOpenStepsStatisticBase.CellClick += _gridOpenStepsStatisticBase_CellClick;
 
-            grid.Columns.Add(positionNumberColumn);
+            _gridOpenStepsFutures = CreateDataGrid(stepsColumnCount);
+            OpenStepsFuturesHost.Child = _gridOpenStepsFutures;
 
-            grid.Columns.Add(new DataGridTextColumn
-            {
-                Header = OsLocalization.Trader.Label738,
-                Binding = new Binding("StepNumber"),
-                MinWidth = 40,
-                Width = new DataGridLength(0.7, DataGridLengthUnitType.Star)
-            });
+            _gridOpenStepsStatisticFutures = CreateDataGrid(statisticColumnCount);
+            OpenStepsFuturesStatisticHost.Child = _gridOpenStepsStatisticFutures;
+            _gridOpenStepsStatisticFutures.CellClick += _gridOpenStepsStatisticFutures_CellClick;
 
-            grid.Columns.Add(new DataGridTextColumn
-            {
-                Header = OsLocalization.Trader.Label739,
-                Binding = new Binding("FilledVolume"),
-                MinWidth = 60,
-                Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-            });
+            // Close steps
+            _gridCloseStepsBase = CreateDataGrid(stepsColumnCount);
+            CloseStepsBaseHost.Child = _gridCloseStepsBase;
 
-            grid.Columns.Add(new DataGridTextColumn
-            {
-                Header = OsLocalization.Trader.Label740,
-                Binding = new Binding("ExpectedVolume"),
-                MinWidth = 60,
-                Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-            });
+            _gridCloseStepsStatisticBase = CreateDataGrid(statisticColumnCount);
+            CloseStepsBaseStatisticHost.Child = _gridCloseStepsStatisticBase;
+            _gridCloseStepsStatisticBase.CellClick += _gridCloseStepsStatisticBase_CellClick;
 
-            DataGridTemplateColumn statusColumn = new DataGridTemplateColumn();
-            statusColumn.Header = OsLocalization.Trader.Label741;
-            statusColumn.MinWidth = 60;
-            statusColumn.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
+            _gridCloseStepsFutures = CreateDataGrid(stepsColumnCount);
+            CloseStepsFuturesHost.Child = _gridCloseStepsFutures;
 
-            FrameworkElementFactory statusTextFactory = new FrameworkElementFactory(typeof(TextBlock));
-            statusTextFactory.SetBinding(TextBlock.TextProperty, new Binding("StatusText"));
-            statusTextFactory.SetBinding(TextBlock.ForegroundProperty, new Binding("StatusBrush"));
-            statusTextFactory.SetValue(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Center);
-            statusTextFactory.SetValue(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center);
-            statusTextFactory.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
-
-            DataTemplate statusTemplate = new DataTemplate();
-            statusTemplate.VisualTree = statusTextFactory;
-            statusColumn.CellTemplate = statusTemplate;
-
-            grid.Columns.Add(statusColumn);
+            _gridCloseStepsStatisticFutures = CreateDataGrid(statisticColumnCount);
+            CloseStepsFuturesStatisticHost.Child = _gridCloseStepsStatisticFutures;
+            _gridCloseStepsStatisticFutures.CellClick += _gridCloseStepsStatisticFutures_CellClick;
         }
 
-        private void UpdatePositionDataGrids()
+        private void _gridCloseStepsStatisticFutures_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (OpenStepsBaseDataGrid == null)
+            if (_gridCloseStepsStatisticFutures == null ||
+                    (_gridCloseStepsStatisticFutures != null && _gridCloseStepsStatisticFutures.Rows == null) ||
+                    (_gridCloseStepsStatisticFutures != null && _gridCloseStepsStatisticFutures.Rows != null && _gridCloseStepsStatisticFutures.Rows.Count == 0))
             {
                 return;
             }
 
+            GridCellClick(sender, e, _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ArbitrationLegStatistic.CurrentPosition, _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].BotTab.StartProgram);
+        }
+
+        private void _gridCloseStepsStatisticBase_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_gridCloseStepsStatisticBase == null ||
+                    (_gridCloseStepsStatisticBase != null && _gridCloseStepsStatisticBase.Rows == null) ||
+                    (_gridCloseStepsStatisticBase != null && _gridCloseStepsStatisticBase.Rows != null && _gridCloseStepsStatisticBase.Rows.Count == 0))
+            {
+                return;
+            }
+
+            GridCellClick(sender, e, _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ArbitrationLegStatistic.CurrentPosition, _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].BotTab.StartProgram);
+        }
+
+        private void _gridOpenStepsStatisticFutures_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_gridOpenStepsStatisticFutures == null ||
+                    (_gridOpenStepsStatisticFutures != null && _gridOpenStepsStatisticFutures.Rows == null) ||
+                    (_gridOpenStepsStatisticFutures != null && _gridOpenStepsStatisticFutures.Rows != null && _gridOpenStepsStatisticFutures.Rows.Count == 0))
+            {
+                return;
+            }
+
+            GridCellClick(sender, e, _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].ArbitrationLegStatistic.CurrentPosition, _selectedScenario.ArbitrationIceberg.SecondaryLegs[0].BotTab.StartProgram);
+        }
+
+        private void _gridOpenStepsStatisticBase_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_gridOpenStepsStatisticBase == null ||
+                    (_gridOpenStepsStatisticBase != null && _gridOpenStepsStatisticBase.Rows == null) ||
+                    (_gridOpenStepsStatisticBase != null && _gridOpenStepsStatisticBase.Rows != null && _gridOpenStepsStatisticBase.Rows.Count == 0))
+            {
+                return;
+            }
+
+            GridCellClick(sender, e, _selectedScenario.ArbitrationIceberg.MainLegs[0].ArbitrationLegStatistic.CurrentPosition, _selectedScenario.ArbitrationIceberg.MainLegs[0].BotTab.StartProgram);
+        }
+
+        private void GridCellClick(object sender, DataGridViewCellEventArgs e, Position position, StartProgram startProgram)
+        {
+            int column = e.ColumnIndex;
+            int row = e.RowIndex;
+
+            if (column != 0)
+                return;
+
+            if (row == 0)
+                return;
+
+            if (position == null)
+                return;
+
+            PositionUi positionUi = new PositionUi(position, startProgram);
+            positionUi.ShowDialog();
+        }
+
+        private void UpdatePositionStepsDataGrids()
+        {
             try
             {
-                List<StepDisplayRow> openBaseSteps = new List<StepDisplayRow>();
-                List<StepDisplayRow> openFuturesSteps = new List<StepDisplayRow>();
-                List<StepDisplayRow> closeBaseSteps = new List<StepDisplayRow>();
-                List<StepDisplayRow> closeFuturesSteps = new List<StepDisplayRow>();
+                ArbitrationLeg mainLeg = _selectedScenario.ArbitrationIceberg.MainLegs[0];
+                ArbitrationLeg secondaryLeg = _selectedScenario.ArbitrationIceberg.SecondaryLegs[0];
 
-                if (_selectedScenario != null
-                    && _selectedScenario.ArbitrationIceberg != null)
-                {
-                    ArbitrationParameters baseParams = _selectedScenario.ArbitrationIceberg.MainParameters;
-                    ArbitrationParameters futuresParams = _selectedScenario.ArbitrationIceberg.SecondaryParameters[0];
+                UpdateOpenStepsBase(mainLeg);
+                UpdateOpenStepsStatisticBase(mainLeg);
+                UpdateOpenStepsFutures(secondaryLeg);
+                UpdateOpenStepsStatisticFutures(secondaryLeg);
 
-                    BuildStepRows(baseParams, true, openBaseSteps);
-                    BuildStepRows(futuresParams, true, openFuturesSteps);
-                    BuildStepRows(baseParams, false, closeBaseSteps);
-                    BuildStepRows(futuresParams, false, closeFuturesSteps);
-
-                    AddSummaryRow(openBaseSteps, baseParams, true);
-                    AddSummaryRow(openFuturesSteps, futuresParams, true);
-                    AddSummaryRow(closeBaseSteps, baseParams, false);
-                    AddSummaryRow(closeFuturesSteps, futuresParams, false);
-                }
-
-                RefreshStepGrid(OpenStepsBaseDataGrid, openBaseSteps);
-                RefreshStepGrid(OpenStepsFuturesDataGrid, openFuturesSteps);
-                RefreshStepGrid(CloseStepsBaseDataGrid, closeBaseSteps);
-                RefreshStepGrid(CloseStepsFuturesDataGrid, closeFuturesSteps);
+                UpdateCloseStepsBase(mainLeg);
+                UpdateCloseStepsStatisticBase(mainLeg);
+                UpdateCloseStepsFutures(secondaryLeg);
+                UpdateCloseStepsStatisticFutures(secondaryLeg);
             }
             catch (Exception ex)
             {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
-        private void BuildStepRows(
-            ArbitrationParameters param,
-            bool isEnter,
-            List<StepDisplayRow> rows)
+        private void UpdateCloseStepsStatisticFutures(ArbitrationLeg secondaryLeg)
         {
-            List<ArbitrationStep> steps = isEnter
-                ? param.EnterArbitrationSteps
-                : param.ExitArbitrationSteps;
-
-            if (steps == null || steps.Count == 0)
+            if (_gridCloseStepsStatisticFutures == null) return;
+            if (_gridCloseStepsStatisticFutures.InvokeRequired)
             {
+                _gridCloseStepsStatisticFutures.Invoke(new Action<ArbitrationLeg>(UpdateCloseStepsStatisticFutures), secondaryLeg);
                 return;
             }
 
-            Position position = param.CurrentPosition;
-            Order activeOrder = GetActiveOrderForDisplay(position, isEnter);
+            UpdateDataGridView(_gridCloseStepsStatisticFutures, GetRowsToStatisticGrid(secondaryLeg, isEnter: false));
 
-            bool activeStepFound = false;
+        }
 
-            for (int i = 0; i < steps.Count; i++)
+        private void UpdateOpenStepsStatisticFutures(ArbitrationLeg secondaryLeg)
+        {
+            if (_gridOpenStepsStatisticFutures == null) return;
+            if (_gridOpenStepsStatisticFutures.InvokeRequired)
             {
-                ArbitrationStep step = steps[i];
-                decimal stepFilledVolume = step.OpenVolume;
+                _gridOpenStepsStatisticFutures.Invoke(new Action<ArbitrationLeg>(UpdateOpenStepsStatisticFutures), secondaryLeg);
+                return;
+            }
 
-                bool isCurrentActiveStep = !activeStepFound && step.Status != OrderStateType.Done;
+            UpdateDataGridView(_gridOpenStepsStatisticFutures, GetRowsToStatisticGrid(secondaryLeg, isEnter: true));
+        }
 
-                StepDisplayRow row = new StepDisplayRow();
-                row.StepNumber = step.NumberStep.ToString();
-                row.ExpectedVolume = step.VolumeStep.ToStringWithNoEndZero();
 
-                if (step.Status == OrderStateType.Done)
+        private void UpdateCloseStepsStatisticBase(ArbitrationLeg mainLeg)
+        {
+            if (_gridCloseStepsStatisticBase == null) return;
+            if (_gridCloseStepsStatisticBase.InvokeRequired)
+            {
+                _gridCloseStepsStatisticBase.Invoke(new Action<ArbitrationLeg>(UpdateCloseStepsStatisticBase), mainLeg);
+                return;
+            }
+
+            UpdateDataGridView(_gridCloseStepsStatisticBase, GetRowsToStatisticGrid(mainLeg, isEnter: false));
+        }
+
+        private void UpdateOpenStepsStatisticBase(ArbitrationLeg mainLeg)
+        {
+            if (_gridOpenStepsStatisticBase == null) return;
+            if (_gridOpenStepsStatisticBase.InvokeRequired)
+            {
+                _gridOpenStepsStatisticBase.Invoke(new Action<ArbitrationLeg>(UpdateOpenStepsStatisticBase), mainLeg);
+                return;
+            }
+
+            UpdateDataGridView(_gridOpenStepsStatisticBase, GetRowsToStatisticGrid(mainLeg, isEnter: true));
+        }
+
+        private List<DataGridViewRow> GetRowsToStatisticGrid(ArbitrationLeg mainLeg, bool isEnter)
+        {
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+            rows.Add(GetFirsStatisticGridRow());
+
+            ArbitrationLegStatistic legStatistic = mainLeg.ArbitrationLegStatistic;
+
+            if (legStatistic == null)
+            {
+                return rows;
+            }
+
+            DataGridViewRow nRow = new DataGridViewRow();
+            DataGridViewButtonCell cell0 = new DataGridViewButtonCell(); // 0 Кнопка позиции
+
+            if (legStatistic.CurrentPosition == null)
+                cell0.Value = "Позиций нет";
+            else
+                cell0.Value = "Позиция " + legStatistic.CurrentPosition.Number;
+
+            cell0.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell0);
+
+            DataGridViewTextBoxCell cell1 = new DataGridViewTextBoxCell(); // 1 Направление
+            cell1.Value = legStatistic.Side.ToString();
+            cell1.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell1);
+
+            DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell(); // 2 Открытый объем
+            cell2.Value = legStatistic.OpenVolume.ToString();
+            cell2.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell2);
+
+            DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell(); // 3 Нужный объем
+            cell3.Value = legStatistic.TotalVolumeLot.ToString();
+            cell3.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell3);
+
+            rows.Add(nRow);
+
+            return rows;
+        }
+
+        private void UpdateCloseStepsFutures(ArbitrationLeg secondaryLeg)
+        {
+            if (_gridCloseStepsFutures == null) return;
+            if (_gridCloseStepsFutures.InvokeRequired)
+            {
+                _gridCloseStepsFutures.Invoke(new Action<ArbitrationLeg>(UpdateCloseStepsFutures), secondaryLeg);
+                return;
+            }
+
+            UpdateDataGridView(_gridCloseStepsFutures, GetRowsToStepsGrid(secondaryLeg, isEnter: false));
+        }
+
+        private void UpdateOpenStepsFutures(ArbitrationLeg secondaryLeg)
+        {
+            if (_gridOpenStepsFutures == null) return;
+            if (_gridOpenStepsFutures.InvokeRequired)
+            {
+                _gridOpenStepsFutures.Invoke(new Action<ArbitrationLeg>(UpdateOpenStepsFutures), secondaryLeg);
+                return;
+            }
+
+            UpdateDataGridView(_gridOpenStepsFutures, GetRowsToStepsGrid(secondaryLeg, isEnter: true));
+        }
+
+        private void UpdateCloseStepsBase(ArbitrationLeg mainLeg)
+        {
+            if (_gridCloseStepsBase == null) return;
+            if (_gridCloseStepsBase.InvokeRequired)
+            {
+                _gridCloseStepsBase.Invoke(new Action<ArbitrationLeg>(UpdateCloseStepsBase), mainLeg);
+                return;
+            }
+
+            UpdateDataGridView(_gridCloseStepsBase, GetRowsToStepsGrid(mainLeg, isEnter: false));
+        }
+
+        private void UpdateOpenStepsBase(ArbitrationLeg mainLeg)
+        {
+            if (_gridOpenStepsBase == null) return;
+            if (_gridOpenStepsBase.InvokeRequired)
+            {
+                _gridOpenStepsBase.Invoke(new Action<ArbitrationLeg>(UpdateOpenStepsBase), mainLeg);
+                return;
+            }
+
+            UpdateDataGridView(_gridOpenStepsBase, GetRowsToStepsGrid(mainLeg, isEnter: true));
+        }
+
+        private void UpdateDataGridView(DataGridView grid, List<DataGridViewRow> newRows)
+        {
+            if (newRows == null) return;
+
+            int existingCount = grid.Rows.Count;
+            int newCount = newRows.Count;
+
+            if (existingCount != newCount)
+            {
+                int showRow = grid.FirstDisplayedScrollingRowIndex;
+                grid.Rows.Clear();
+
+                for (int i = 0; i < newCount; i++)
+                    grid.Rows.Add(newRows[i]);
+
+                if (showRow > 0 && showRow < grid.Rows.Count)
+                    grid.FirstDisplayedScrollingRowIndex = showRow;
+            }
+            else
+            {
+                for (int i = 0; i < newCount; i++)
                 {
-                    row.PositionNumber = position != null ? position.Number.ToString() : "-";
-                    row.PositionTag = position;
-                    row.FilledVolume = stepFilledVolume.ToStringWithNoEndZero();
-                    row.StatusText = "Done";
-                    row.StatusBrush = Brushes.Green;
-                }
-                else if (isCurrentActiveStep && activeOrder != null)
-                {
-                    activeStepFound = true;
-                    row.PositionNumber = position != null ? position.Number.ToString() : "-";
-                    row.PositionTag = position;
-                    row.FilledVolume = stepFilledVolume.ToStringWithNoEndZero();
-                    ApplyOrderStatus(row, activeOrder.State);
-                }
-                else if (stepFilledVolume > 0)
-                {
-                    if (isCurrentActiveStep)
+                    for (int j = 0; j < grid.ColumnCount; j++)
                     {
-                        activeStepFound = true;
+                        DataGridViewCell existingCell = grid.Rows[i].Cells[j];
+                        DataGridViewCell newCell = newRows[i].Cells[j];
+
+                        if (!Equals(existingCell.Value, newCell.Value))
+                            existingCell.Value = newCell.Value;
+
+                        if (existingCell.Style.ForeColor != newCell.Style.ForeColor)
+                            existingCell.Style.ForeColor = newCell.Style.ForeColor;
+
+                        if (existingCell.Style.BackColor != newCell.Style.BackColor)
+                            existingCell.Style.BackColor = newCell.Style.BackColor;
                     }
-
-                    row.PositionNumber = position != null ? position.Number.ToString() : "-";
-                    row.PositionTag = position;
-                    row.FilledVolume = stepFilledVolume.ToStringWithNoEndZero();
-                    row.StatusText = OsLocalization.Trader.Label742;
-                    row.StatusBrush = Brushes.Orange;
                 }
-                else
-                {
-                    if (isCurrentActiveStep)
-                    {
-                        activeStepFound = true;
-                    }
-
-                    row.PositionNumber = "-";
-                    row.PositionTag = null;
-                    row.FilledVolume = "0";
-                    row.StatusText = OsLocalization.Trader.Label742;
-                    row.StatusBrush = Brushes.Gray;
-                }
-
-                rows.Add(row);
             }
         }
 
-        private Order GetActiveOrderForDisplay(Position position, bool isEnter)
+        private List<DataGridViewRow> GetRowsToStepsGrid(ArbitrationLeg leg, bool isEnter)
         {
-            if (position == null)
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+            rows.Add(GetFirsStepsGridRow());
+
+            List<ArbitrationStep> steps = null;
+
+            if (isEnter)
             {
-                return null;
+                steps = leg.EnterArbitrationSteps;
+            }
+            else
+            {
+                steps = leg.ExitArbitrationSteps;
             }
 
-            List<Order> orders = isEnter ? position.OpenOrders : position.CloseOrders;
-
-            if (orders == null)
+            for (int i = 0; steps != null && i < steps.Count; i++)
             {
-                return null;
-            }
+                DataGridViewRow nRow = new DataGridViewRow();
+                ArbitrationStep step = steps[i];
 
-            for (int i = orders.Count - 1; i >= 0; i--)
-            {
-                Order order = orders[i];
-
-                if (order == null)
+                if (step == null)
                 {
                     continue;
                 }
 
-                if (order.State == OrderStateType.Active
-                    || order.State == OrderStateType.Pending
-                    || order.State == OrderStateType.Partial
-                    || order.State == OrderStateType.None)
-                {
-                    return order;
-                }
+                DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell(); // 0 Шаг
+                cell0.Value = step.NumberStep.ToString();
+                cell0.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                nRow.Cells.Add(cell0);
+
+                DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell(); // 1 Время
+                cell2.Value = step.TimeActivateStep.ToString();
+                cell2.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                nRow.Cells.Add(cell2);
+
+                DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell(); // 2 Статус
+                cell3.Value = step.Status.ToString();
+                cell3.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                nRow.Cells.Add(cell3);
+
+                DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell(); // 3 Открытый объем
+                cell4.Value = step.OpenVolume.ToString();
+                cell4.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                nRow.Cells.Add(cell4);
+
+                DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell(); // 4 Нужный объем
+                cell5.Value = step.VolumeStep.ToString();
+                cell5.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                nRow.Cells.Add(cell5);
+
+                rows.Add(nRow);
             }
 
-            return null;
+            return rows;
         }
 
-        private void ApplyOrderStatus(StepDisplayRow row, OrderStateType state)
+        private DataGridViewRow GetFirsStatisticGridRow()
         {
-            if (state == OrderStateType.Done)
-            {
-                row.StatusText = "Done";
-                row.StatusBrush = Brushes.Green;
-            }
-            else if (state == OrderStateType.Active
-                || state == OrderStateType.Pending
-                || state == OrderStateType.Partial)
-            {
-                row.StatusText = state.ToString();
-                row.StatusBrush = Brushes.Orange;
-            }
-            else if (state == OrderStateType.Fail)
-            {
-                row.StatusText = "Fail";
-                row.StatusBrush = Brushes.Red;
-            }
-            else if (state == OrderStateType.Cancel)
-            {
-                row.StatusText = "Cancel";
-                row.StatusBrush = Brushes.Orange;
-            }
-            else
-            {
-                row.StatusText = state.ToString();
-                row.StatusBrush = Brushes.Gray;
-            }
+            DataGridViewRow nRow = new DataGridViewRow();
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell(); // 0 Кнопка позиции
+            cell0.Value = "Позиция";
+            cell0.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell0);
+
+            DataGridViewTextBoxCell cell1 = new DataGridViewTextBoxCell(); // 1 Направление
+            cell1.Value = "Направление";
+            cell1.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell1);
+
+            DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell(); // 2 Открытый объем
+            cell2.Value = "Открытый объем";
+            cell2.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell2);
+
+            DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell(); // 3 Нужный объем
+            cell3.Value = "Нужный объем";
+            cell3.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell3);
+
+            return nRow;
         }
 
-        private void AddSummaryRow(List<StepDisplayRow> rows, ArbitrationParameters param, bool isEnter)
+        private DataGridViewRow GetFirsStepsGridRow()
         {
-            List<ArbitrationStep> steps = isEnter
-                ? param.EnterArbitrationSteps
-                : param.ExitArbitrationSteps;
+            DataGridViewRow nRow = new DataGridViewRow();
 
-            decimal openVolume = 0;
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell(); // 0 Номер шага
+            cell0.Value = "Шаг";
+            cell0.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell0);
 
-            if (steps != null)
-            {
-                for (int i = 0; i < steps.Count; i++)
-                {
-                    openVolume += steps[i].OpenVolume;
-                }
-            }
+            DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell(); // 1 Время
+            cell2.Value = "Время шага";
+            cell2.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell2);
 
-            StepDisplayRow summaryRow = new StepDisplayRow();
-            summaryRow.PositionNumber = OsLocalization.Trader.Label743;
-            summaryRow.PositionTag = null;
-            summaryRow.StepNumber = "";
-            summaryRow.FilledVolume = openVolume.ToStringWithNoEndZero();
-            decimal expectedTotal = 0;
+            DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell(); // 2 Статус
+            cell3.Value = "Статус";
+            cell3.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell3);
 
-            if (steps != null)
-            {
-                for (int i = 0; i < steps.Count; i++)
-                {
-                    expectedTotal += steps[i].VolumeStep;
-                }
-            }
+            DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell(); // 3 Открытый объем
+            cell4.Value = "Открытый объем";
+            cell4.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell4);
 
-            summaryRow.ExpectedVolume = expectedTotal.ToStringWithNoEndZero();
-            summaryRow.StatusText = "";
-            summaryRow.StatusBrush = Brushes.Transparent;
-            summaryRow.IsSummaryRow = true;
+            DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell(); // 4 Нужный объем
+            cell5.Value = "Нужный объем";
+            cell5.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(cell5);
 
-            rows.Add(summaryRow);
-        }
-
-        private void RefreshStepGrid(DataGrid grid, List<StepDisplayRow> rows)
-        {
-            grid.Items.Clear();
-
-            for (int i = 0; i < rows.Count; i++)
-            {
-                grid.Items.Add(rows[i]);
-            }
-        }
-
-        private void StepPositionButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Button button = (Button)sender;
-                Position position = button.Tag as Position;
-
-                if (position == null)
-                {
-                    return;
-                }
-
-                StartProgram startProgram = StartProgram.IsOsTrader;
-
-                if (_selectedScenario != null
-                    && _selectedScenario.ArbitrationIceberg != null
-                    && _selectedScenario.ArbitrationIceberg.MainParameters.BotTab != null)
-                {
-                    startProgram = _selectedScenario.ArbitrationIceberg.MainParameters.BotTab.StartProgram;
-                }
-
-                PositionUi positionUi = new PositionUi(position, startProgram);
-                positionUi.ShowDialog();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
+            return nRow;
         }
 
         #endregion
@@ -3052,9 +3204,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
         private void SubscribeToScenarioEvents()
         {
-            for (int i = 0; i < _syntheticBond.Scenarios.Count; i++)
+            for (int i = 0; i < _syntheticBond.ActiveScenarios.Count; i++)
             {
-                SubscribeToScenario(_syntheticBond.Scenarios[i]);
+                SubscribeToScenario(_syntheticBond.ActiveScenarios[i]);
             }
         }
 
@@ -3135,24 +3287,5 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         public DateTime Time { get; set; }
         public string Type { get; set; }
         public string Message { get; set; }
-    }
-
-    public class StepDisplayRow
-    {
-        public string PositionNumber { get; set; }
-
-        public Position PositionTag { get; set; }
-
-        public string StepNumber { get; set; }
-
-        public string FilledVolume { get; set; }
-
-        public string ExpectedVolume { get; set; }
-
-        public string StatusText { get; set; }
-
-        public Brush StatusBrush { get; set; }
-
-        public bool IsSummaryRow { get; set; }
     }
 }

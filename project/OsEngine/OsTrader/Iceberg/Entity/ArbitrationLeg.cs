@@ -6,23 +6,8 @@ using System.Collections.Generic;
 
 namespace OsEngine.OsTrader.Iceberg
 {
-    public class ArbitrationParameters
+    public class ArbitrationLeg
     {
-        /// <summary>
-        /// The position that the iceberg module is currently managing | Позиция, которую ведёт айсберг-модуль
-        /// </summary>
-        public Position CurrentPosition;
-
-        /// <summary>
-        /// Current arbitration mode | Текущий режим арбитража
-        /// </summary>
-        public ArbitrationMode CurrentArbitrationMode;
-
-        /// <summary>
-        /// Current status of arbitration | Текущий статус арбитража
-        /// </summary>
-        public ArbitrationStatus CurrentArbitrationStatus;
-
         /// <summary>
         /// Iceberg object | Объект айсберга
         /// </summary>
@@ -34,19 +19,9 @@ namespace OsEngine.OsTrader.Iceberg
         public string AssetPortfolio = "Prime";
 
         /// <summary>
-        /// The direction of positions | Направление позиций
-        /// </summary>
-        public Side Side;
-
-        /// <summary>
         /// Volume type for orders | Тип объема для ордеров
         /// </summary>
         public VolumeType VolumeType;
-
-        /// <summary>
-        /// The total volume. The volume that needs to be typed for security | Объём общий. Объём который нужно набрать для бумаги 
-        /// </summary>
-        public decimal TotalVolume;
 
         /// <summary>
         /// Volume for 1 entry order | Объем для 1 ордера на вход
@@ -54,9 +29,24 @@ namespace OsEngine.OsTrader.Iceberg
         public decimal EnterOneOrderVolume;
 
         /// <summary>
+        /// Volume for 1 entry order | Объем для 1 ордера на вход
+        /// </summary>
+        public decimal EnterOneOrderVolumeLot;
+
+        /// <summary>
         /// Volume for 1 exit order | Объем для 1 ордера на выход
         /// </summary>
         public decimal ExitOneOrderVolume;
+
+        /// <summary>
+        /// Volume for 1 exit order | Объем для 1 ордера на выход
+        /// </summary>
+        public decimal ExitOneOrderVolumeLot;
+
+        /// <summary>
+        /// The total volume. The volume that needs to be typed for security. Lots | Объём общий. Объём который нужно набрать для бумаги. В лотах.
+        /// </summary>
+        public decimal TotalVolume;
 
         /// <summary>
         /// Entry order type: Limit, Market | Тип открывающего ордера: Лимит, Маркет
@@ -123,18 +113,58 @@ namespace OsEngine.OsTrader.Iceberg
         public DateTime LastExitOrderTime;
 
         /// <summary>
+        /// Current step | Текущий шаг ноги
+        /// </summary>
+        public ArbitrationStep CurrentStep;
+
+        /// <summary>
         /// The steps when setting positions by iceberg for entry | Шаги, при наборе позиций айсбергом для входа
         /// </summary>
-        public List<ArbitrationStep> EnterArbitrationSteps;
+        public List<ArbitrationStep> EnterArbitrationSteps = new List<ArbitrationStep>();
 
         /// <summary>
         /// The steps when the iceberg sets positions for the exit | Шаги, при наборе позиций айсбергом для выхода
         /// </summary>
-        public List<ArbitrationStep> ExitArbitrationSteps;
+        public List<ArbitrationStep> ExitArbitrationSteps = new List<ArbitrationStep>();
+
+        /// <summary>
+        /// Arbitration leg statistics | Статистика арбитражной ноги
+        /// </summary>
+        public ArbitrationLegStatistic ArbitrationLegStatistic = new ArbitrationLegStatistic();
+    }
+
+    public class ArbitrationLegStatistic
+    {
+        /// <summary>
+        /// The position that the iceberg module is currently managing | Позиция, которую ведёт айсберг-модуль
+        /// </summary>
+        public Position CurrentPosition;
+
+        /// <summary>
+        /// The direction of positions | Направление позиций
+        /// </summary>
+        public Side Side;
+
+        /// <summary>
+        /// Open volume leg. Lots | Открытый объем ноги. В лотах
+        /// </summary>
+        public decimal OpenVolume;
+
+        /// <summary>
+        /// The total volume. The volume that needs to be typed for security. Lots | Объём общий. Объём который нужно набрать для бумаги. В лотах.
+        /// </summary>
+        public decimal TotalVolumeLot;
+
+        /// <summary>
+        /// Leg status | Статус ноги
+        /// </summary>
+        public OrderStateType Status;
     }
 
     public class ArbitrationStep
     {
+        public string UniqStepName;
+
         public int NumberStep;
 
         public OrderStateType Status;
@@ -143,27 +173,11 @@ namespace OsEngine.OsTrader.Iceberg
 
         public decimal OpenVolume;
 
-        public Order LastOrder;
+        public decimal StartOpenVolume;
 
-        public DateTime LastTime;
-    }
+        public DateTime TimeActivateStep;
 
-    public enum ArbitrationMode
-    {
-        OpenBuyFirstSellSecond,
-
-        OpenSellFirstBuySecond,
-
-        CloseScript,
-
-        CloseAllScripts
-    }
-
-    public enum ArbitrationStatus
-    {
-        On,
-
-        Pause
+        public DateTime LastUpdateTime;
     }
 
     public enum VolumeType
