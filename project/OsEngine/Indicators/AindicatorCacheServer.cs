@@ -113,6 +113,19 @@ namespace OsEngine.Indicators
                 {
                     return;
                 }
+
+                // индикаторы с перестраивающимися сериями не сохраняем в КЭШ. Их надо строить на лету...
+
+                for (int i = 0; i < aIndicator.DataSeries.Count; i++)
+                {
+                    IndicatorDataSeries currentSeries = aIndicator.DataSeries[i];
+
+                    if (currentSeries.CanReBuildHistoricalValues == true)
+                    {
+                        return;
+                    }
+                }
+
                 // сохраняем новый кэш в массив
 
                 List<IndicatorDataSeries> newDataSeries = new List<IndicatorDataSeries>();

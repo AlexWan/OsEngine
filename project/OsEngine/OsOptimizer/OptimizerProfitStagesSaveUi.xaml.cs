@@ -103,47 +103,49 @@ namespace OsEngine.OsOptimizer
 
         private OptimizerFazeReport _fazeReport;
 
-        public decimal ProfitDepositPercent = 10; 
+        public decimal ProfitDepositPercent = 1;
 
         public decimal ProfitPositionsPercent = 10;
 
-        public decimal AverageProfitPercent = 10;
+        public decimal AverageProfitPercent = 1;
 
-        public decimal DrawDownPercent = 10;
+        public decimal DrawDownPercent = -10;
 
         private void PaintResultTextBox()
         {
             string result = "_";
+            int totalPositionsCount = 0;
 
-            for(int i = 0;i < _fazeReport.Reports.Count;i++)
+            for (int i = 0; i < _fazeReport.Reports.Count; i++)
             {
                 OptimizerReport report = _fazeReport.Reports[i];
 
-                if(report.TotalProfitPercent < ProfitDepositPercent)
+                if (report.TotalProfitPercent < ProfitDepositPercent)
                 {
                     continue;
                 }
 
-                if(report.ProfitPositionPercent < ProfitPositionsPercent)
+                if (report.ProfitPositionPercent < ProfitPositionsPercent)
                 {
                     continue;
                 }
 
-                if(report.AverageProfitPercentOneContract < AverageProfitPercent)
+                if (report.AverageProfitPercentOneContract < AverageProfitPercent)
                 {
                     continue;
                 }
 
-                if(report.MaxDrawDawn > DrawDownPercent)
+                if (report.MaxDrawDawn < DrawDownPercent)
                 {
                     continue;
                 }
 
                 result += report.BotNum.ToString() + "_";
-
+                totalPositionsCount += report.PositionsCount;
             }
 
             TextBoxResultRobots.Text = result;
+            TextBoxTotalPositionsResult.Text = totalPositionsCount.ToString();
         }
 
         #endregion

@@ -5,25 +5,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsOptimizer"
         mc:Ignorable="d"
-        Title="Numbers of best robots" Height="224" Width="233" MinWidth="300" MinHeight="250" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Numbers of best robots" Height="286" Width="304" MinWidth="300" MinHeight="250" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid >
         <Grid.RowDefinitions>
             <RowDefinition/>
         </Grid.RowDefinitions>
 
         <Label Name="LabelProfitDepositPercent" Content="Profit % >" HorizontalAlignment="Left" Margin="44,17,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxProfitDepositPercent" Margin="158,17,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxProfitDepositPercent" Margin="158,17,60,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top"/>
 
         <Label Name="LabelProfitPositionsPercent" Content="Profit pos % &gt;" HorizontalAlignment="Left" Margin="44,45,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxProfitPositionsPercent" Margin="158,45,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
 
         <Label Name="LabelAverageProfitPercent" Content="Average profit % &gt;" HorizontalAlignment="Left" Margin="44,73,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxAverageProfitPercent" Margin="158,73,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxAverageProfitPercent" Margin="158,73,60,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top"/>
 
-        <Label Name="LabelDrawDownPercent" Content="Draw down % &lt;" HorizontalAlignment="Left" Margin="44,101,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxDrawDownPercent" Margin="158,101,60,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top"/>
+        <Label Name="LabelDrawDownPercent" Content="Draw down % &gt;" HorizontalAlignment="Left" Margin="44,101,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxDrawDownPercent" Margin="158,101,60,0" TextWrapping="Wrap" Text="-10" VerticalAlignment="Top"/>
 
-        <TextBox Name="TextBoxResultRobots" Margin="20,129,20,10" TextWrapping="Wrap" Height="NaN"/>
+        <TextBox Name="TextBoxResultRobots" Margin="20,129,20,41" TextWrapping="Wrap" Height="NaN"/>
+        <Label Name="LabelTotalPositionsResult" Content="Total positions" HorizontalAlignment="Left" Margin="44,0,0,10" VerticalAlignment="Bottom"/>
+        <TextBox Name="TextBoxTotalPositionsResult" Margin="158,0,60,10" TextWrapping="Wrap" VerticalAlignment="Bottom"/>
 
     </Grid>
 </Window>
