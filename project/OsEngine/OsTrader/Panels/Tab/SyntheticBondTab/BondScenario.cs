@@ -4,6 +4,8 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Logging;
+using OsEngine.Market;
 using OsEngine.OsTrader.Iceberg;
 using System;
 using System.IO;
@@ -14,36 +16,121 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
     {
         #region Constructor
 
-        public BondScenario(string futuresTabName, string scenarioName)
+        public string UniqueName;
+
+        public string ScriptName;
+
+        public int ScenarioNumber;
+
+        public bool IsActiveScenario = false;
+
+        private StartProgram StartProgram;
+
+        public BondScenario(string nameScript, string uniqueName, int scenarioNumber, StartProgram startProgram)
         {
-            Name = scenarioName;
+            UniqueName = uniqueName;
+            ScriptName = nameScript;
+            ScenarioNumber = scenarioNumber;
+            StartProgram = startProgram;
 
-            string icebergName = futuresTabName + "_" + scenarioName;
+            LoadBondScenario();
 
-            bool fileExists = File.Exists(@"Engine\ArbitrationIceberg\" + icebergName + "ArbitrationIcebergParameters.txt");
-
-            ArbitrationIceberg = new ArbitrationIceberg(icebergName);
-            ArbitrationIceberg.AllPositionsFilledEvent += OnAllPositionsFilled;
-            ArbitrationIceberg.AllPositionsClosedEvent += OnAllPositionsClosed;
-
-            if (!fileExists)
+            if (NonTradePeriods == null)
             {
-                ArbitrationIceberg.Pause();
+                NonTradePeriods = new NonTradePeriods(UniqueName);
             }
 
-            NonTradePeriods = new NonTradePeriods(icebergName);
+            if (ArbitrationIceberg == null)
+            {
+                ArbitrationIceberg = new ArbitrationIceberg(UniqueName + "ArbitrationIceberg", StartProgram);
+                ArbitrationIceberg.NonTradePeriods = NonTradePeriods;
+            }
 
-            ArbitrationIceberg.NonTradePeriods = NonTradePeriods;
+            ArbitrationIceberg.AllPositionsFilledEvent += OnAllPositionsFilled;
+            ArbitrationIceberg.AllPositionsClosedEvent += OnAllPositionsClosed;
+        }
+
+        private void LoadBondScenario()
+        {
+            if (!File.Exists(@"Engine\" + UniqueName + @"ToLoad.txt"))
+            {
+                return;
+            }
+
+            using (StreamReader reader = new StreamReader(@"Engine\" + UniqueName + @"ToLoad.txt"))
+            {
+                MaxSpread = reader.ReadLine().ToDecimal();
+                MinSpread = reader.ReadLine().ToDecimal();
+                IsActiveScenario = Convert.ToBoolean(reader.ReadLine());
+                ScriptName = reader.ReadLine();
+
+                ArbitrationIceberg = new ArbitrationIceberg(reader.ReadLine(), StartProgram);
+                NonTradePeriods = new NonTradePeriods(reader.ReadLine());
+            }
+        }
+
+        public void Save()
+        {
+            using (StreamWriter writer = new StreamWriter(@"Engine\" + UniqueName + @"ToLoad.txt", false))
+            {
+                writer.WriteLine(MaxSpread.ToString());
+                writer.WriteLine(MinSpread.ToString());
+                writer.WriteLine(IsActiveScenario.ToString());
+                writer.WriteLine(ScriptName.ToString());
+                writer.WriteLine(ArbitrationIceberg.UniqueName.ToString());
+                writer.WriteLine(NonTradePeriods.NameUnique.ToString());
+
+                ArbitrationIceberg.Save();
+                NonTradePeriods.Save();
+            }
+        }
+
+        /// <summary>
+        /// Deletes this script
+        /// | Удаляет данный сценарий
+        /// </summary>
+        public void Delete()
+        {
+            ArbitrationIceberg?.Delete();
+            NonTradePeriods?.Delete();
+
+            if (File.Exists(@"Engine\" + UniqueName + @"ToLoad.txt"))
+            {
+                File.Delete(@"Engine\" + UniqueName + @"ToLoad.txt");
+            }
+        }
+
+        public void Clear()
+        {
+            try
+            {
+                ArbitrationIceberg.Clear();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        public bool IsReadyToTrade()
+        {
+            try
+            {
+                if (ArbitrationIceberg == null)
+                    return false;
+
+                return ArbitrationIceberg.CheckTradingReady();
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                return false;
+            }
         }
 
         #endregion
 
         #region Public fields
-
-        /// <summary>
-        /// Scenario name. | Имя сценария.
-        /// </summary>
-        public string Name;
 
         /// <summary>
         /// The trading module for this scenario. | Торговый модуль данного сценария.
@@ -83,35 +170,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         private void OnAllPositionsFilled()
         {
-            ScenarioFilledEvent?.Invoke(Name);
+            ScenarioFilledEvent?.Invoke(UniqueName);
         }
 
         private void OnAllPositionsClosed()
         {
-            ScenarioClosedEvent?.Invoke(Name);
-        }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Assigns BotTabs to this scenario's ArbitrationIceberg.
-        /// | Назначает BotTab-ы ArbitrationIceberg данного сценария.
-        /// </summary>
-        public void SetBotTabs(BotTabSimple baseBotTab, BotTabSimple futuresBotTab)
-        {
-            ArbitrationIceberg.SetBotTabs(baseBotTab, futuresBotTab);
-        }
-
-        /// <summary>
-        /// Deletes all persistent files for this scenario.
-        /// | Удаляет все файлы данного сценария.
-        /// </summary>
-        public void Delete()
-        {
-            ArbitrationIceberg?.Delete();
-            NonTradePeriods?.Delete();
+            ScenarioClosedEvent?.Invoke(UniqueName);
         }
 
         #endregion
