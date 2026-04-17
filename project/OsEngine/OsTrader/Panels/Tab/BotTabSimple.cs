@@ -6593,6 +6593,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             PositionOpenerToStopLimit opener = PositionOpenerToStop[i];
 
+                            if (opener.OrderPriceType == OrderPriceType.Iceberg
+                             && this.StartProgram != StartProgram.IsOsTrader)
+                            {
+                                opener.OrderPriceType = OrderPriceType.Market;
+                            }
+
                             Position pos = null;
 
                             if (opener.PositionNumber == 0)
@@ -6657,6 +6663,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                         else if (PositionOpenerToStop[i].Side == Side.Sell)
                         {
                             PositionOpenerToStopLimit opener = PositionOpenerToStop[i];
+
+                            if (opener.OrderPriceType == OrderPriceType.Iceberg
+                             && this.StartProgram != StartProgram.IsOsTrader)
+                            {
+                                opener.OrderPriceType = OrderPriceType.Market;
+                            }
 
                             Position pos = null;
 
