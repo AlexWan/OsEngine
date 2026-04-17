@@ -85,11 +85,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _chartMaster = new ChartCandleMaster(TabName, StartProgram);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
 
-                if(_connector.SecurityName != null && _connector.PortfolioName != null && _connector.ServerFullName != null)
+                if (_connector.SecurityName != null && _connector.PortfolioName != null && _connector.ServerFullName != null)
                 {
                     _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerFullName);
                 }
-                
+
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _chartMaster.IndicatorUpdateEvent += _chartMaster_IndicatorUpdateEvent;
                 _chartMaster.IndicatorManuallyCreateEvent += _chartMaster_IndicatorManuallyCreateEvent;
@@ -392,6 +392,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.DialogClosed -= _connector_DialogClosed;
                     _connector.FundingChangedEvent -= _connector_FundingChangedEvent;
                     _connector.NewVolume24hChangedEvent -= _connector_NewVolume24hChangedEvent;
+
+                    if (_connector.TimeFrameBuilder != null)
+                        _connector.TimeFrameBuilder.Delete();
 
                     _connector.Delete();
                     _connector.LogMessageEvent -= SetNewLogMessage;
@@ -6792,7 +6795,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     price = PriceBestAsk + Security.PriceStep * 40;
                 }
-                else if(order.Side == Side.Sell
+                else if (order.Side == Side.Sell
                     && PriceBestBid != 0)
                 {
                     price = PriceBestBid - Security.PriceStep * 40;
@@ -7122,7 +7125,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if(StartProgram == StartProgram.IsOsOptimizer
+                if (StartProgram == StartProgram.IsOsOptimizer
                     && LastTimeCandleUpdate == DateTime.MinValue)
                 {
                     _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.PortfolioName);
