@@ -444,6 +444,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         private void UpdateContangoChart()
         {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(UpdateContangoChart);
+                return;
+            }
+
             if (_chartContango == null)
             {
                 return;
@@ -771,6 +777,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                         _chartSec1.Indicators.Clear();
                     }
 
+                    _chartSec1.StopPaint();
                     _chartSec1.Delete();
                     _chartSec1 = null;
                 }
@@ -782,6 +789,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                         _chartSec2.Indicators.Clear();
                     }
 
+                    _chartSec2.StopPaint();
                     _chartSec2.Delete();
                     _chartSec2 = null;
                 }

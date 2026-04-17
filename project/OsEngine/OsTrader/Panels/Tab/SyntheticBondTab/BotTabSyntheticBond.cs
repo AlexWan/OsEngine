@@ -66,7 +66,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
-        private void Save()
+        public void Save()
         {
             if (StartProgram == StartProgram.IsOsOptimizer)
             {
@@ -182,42 +182,6 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             {
                 _isDeleted = true;
 
-                try
-                {
-                    if (File.Exists(@"Engine\" + TabName + @"StandartPairsSettings.txt"))
-                    {
-                        File.Delete(@"Engine\" + TabName + @"StandartPairsSettings.txt");
-                    }
-                }
-                catch
-                {
-                    // ignore
-                }
-
-                try
-                {
-                    if (File.Exists(@"Engine\" + TabName + @"StrategSettings.txt"))
-                    {
-                        File.Delete(@"Engine\" + TabName + @"StrategSettings.txt");
-                    }
-                }
-                catch
-                {
-                    // ignore
-                }
-
-                try
-                {
-                    if (File.Exists(@"Engine\" + TabName + @"PairsNamesToLoad.txt"))
-                    {
-                        File.Delete(@"Engine\" + TabName + @"PairsNamesToLoad.txt");
-                    }
-                }
-                catch
-                {
-                    // ignore
-                }
-
                 for (int i = 0; i < SyntheticBondSeries.Count; i++)
                 {
                     SyntheticBondSeries[i].Delete();
@@ -248,6 +212,18 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                     _positionViewer.UserSelectActionEvent -= _globalController_UserSelectActionEvent;
                     _positionViewer.UserClickOnPositionShowBotInTableEvent -= _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
                     _positionViewer.Delete();
+                }
+
+                try
+                {
+                    if (File.Exists(@"Engine\" + TabName + @"SyntheticBondSeriesNamesToLoad.txt"))
+                    {
+                        File.Delete(@"Engine\" + TabName + @"SyntheticBondSeriesNamesToLoad.txt");
+                    }
+                }
+                catch
+                {
+                    // ignore
                 }
 
                 if (TabDeletedEvent != null)
