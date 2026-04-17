@@ -97,6 +97,16 @@ namespace OsEngine.Entity
         /// </summary>
         public int PositionNumber;
 
+        /// <summary>
+        /// Number of orders in the iceberg order
+        /// </summary>
+        public int IcebergOrdersCount;
+
+        /// <summary>
+        /// Minimum time interval between iceberg orders in milliseconds
+        /// </summary>
+        public int IcebergMillisecondsDistance;
+
         public string GetSaveString()
         {
             string saveStr = "";
@@ -116,7 +126,9 @@ namespace OsEngine.Entity
             saveStr += SignalType + "&";
             saveStr += TimeCreate.ToString(CultureInfo) + "&";
             saveStr += OrderPriceType +"&";
-            saveStr += PositionNumber ;
+            saveStr += PositionNumber + "&";
+            saveStr += IcebergOrdersCount + "&";
+            saveStr += IcebergMillisecondsDistance;
 
             return saveStr;
         }
@@ -140,14 +152,30 @@ namespace OsEngine.Entity
             SignalType = savStr[12];
             TimeCreate = Convert.ToDateTime(savStr[13], CultureInfo);
 
-            if(savStr.Length > 14)
+            try
             {
-                Enum.TryParse(savStr[14], out OrderPriceType);
-            }
+                if (savStr.Length > 14)
+                {
+                    Enum.TryParse(savStr[14], out OrderPriceType);
+                }
 
-            if (savStr.Length > 15)
+                if (savStr.Length > 15)
+                {
+                    PositionNumber = Convert.ToInt32(savStr[15]);
+                }
+
+                if (savStr.Length > 16)
+                {
+                    IcebergOrdersCount = Convert.ToInt32(savStr[16]);
+                }
+                if (savStr.Length > 17)
+                {
+                    IcebergMillisecondsDistance = Convert.ToInt32(savStr[17]);
+                }
+            }
+            catch
             {
-                PositionNumber = Convert.ToInt32(savStr[15]);
+                // ignore
             }
         }
 

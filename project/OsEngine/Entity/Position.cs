@@ -243,6 +243,21 @@ namespace OsEngine.Entity
         public bool StopIsMarket;
 
         /// <summary>
+        /// An iceberg will be thrown out during the activation of a stop order
+        /// </summary>
+        public bool StopIsIceberg;
+
+        /// <summary>
+        /// Number of orders in the iceberg order
+        /// </summary>
+        public int StopIcebergOrdersCount;
+
+        /// <summary>
+        /// Minimum time interval between iceberg orders in milliseconds
+        /// </summary>
+        public int StopIcebergMillisecondsDistance;
+
+        /// <summary>
         /// Is a profit active order
         /// </summary>
         public bool ProfitOrderIsActive;
@@ -261,6 +276,21 @@ namespace OsEngine.Entity
         /// Whether the position will be closed by a profit using a market order
         /// </summary>
         public bool ProfitIsMarket;
+
+        /// <summary>
+        /// An iceberg will be thrown out during the activation of a profit order
+        /// </summary>
+        public bool ProfitIsIceberg;
+
+        /// <summary>
+        /// Number of orders in the iceberg order
+        /// </summary>
+        public int ProfitIcebergOrdersCount;
+
+        /// <summary>
+        /// Minimum time interval between iceberg orders in milliseconds
+        /// </summary>
+        public int ProfitIcebergMillisecondsDistance;
 
         /// <summary>
         /// Buy / sell direction
@@ -1169,11 +1199,23 @@ namespace OsEngine.Entity
 
             result.Append(commentString + "#");
 
-            result.Append(StopOrderIsActive + "#");
+            result.Append(
+                StopOrderIsActive + "^"
+                + StopIsIceberg + "^"
+                + StopIcebergOrdersCount + "^"
+                + StopIcebergMillisecondsDistance
+                + "#");
+
             result.Append(StopOrderPrice + "#");
             result.Append(StopOrderRedLine + "#");
 
-            result.Append(ProfitOrderIsActive + "#");
+            result.Append(
+                ProfitOrderIsActive + "^"
+                + ProfitIsIceberg + "^"
+                + ProfitIcebergOrdersCount + "^"
+                + ProfitIcebergMillisecondsDistance 
+                + "#");
+
             result.Append(ProfitOrderPrice + "#");
 
             result.Append(Lots + "^" + MarginBuy + "^" + MarginSell + "#");
@@ -1275,12 +1317,45 @@ namespace OsEngine.Entity
                     SignalTypeProfit = comments[2];
                 }
             }
+            /*
+                        result.Append(
+                            StopOrderIsActive + "^"
+                          + StopIsIceberg + "^"
+                          + StopIcebergOrdersCount + "^"
+                          + StopIcebergMillisecondsDistance
+                          + "#");
 
-            StopOrderIsActive = Convert.ToBoolean(arraySave[8]);
+                        result.Append(
+                            ProfitOrderIsActive + "^"
+                            + ProfitIsIceberg + "^"
+                            + ProfitIcebergOrdersCount + "^"
+                            + ProfitIcebergMillisecondsDistance
+                            + "#");*/
+
+            string[] stopValue = arraySave[8].Split('^');
+
+            StopOrderIsActive = Convert.ToBoolean(stopValue[0]);
+            if(stopValue.Length > 1)
+            {
+                StopIsIceberg = Convert.ToBoolean(stopValue[1]);
+                StopIcebergOrdersCount = Convert.ToInt32(stopValue[2]);
+                StopIcebergMillisecondsDistance = Convert.ToInt32(stopValue[3]);
+            }
+
             StopOrderPrice = arraySave[9].ToDecimal();
             StopOrderRedLine = arraySave[10].ToDecimal();
 
-            ProfitOrderIsActive = Convert.ToBoolean(arraySave[11]);
+            string[] profitValue = arraySave[11].Split('^');
+
+            ProfitOrderIsActive = Convert.ToBoolean(profitValue[0]);
+
+            if(profitValue.Length > 1)
+            {
+                ProfitIsIceberg = Convert.ToBoolean(profitValue[1]);
+                ProfitIcebergOrdersCount = Convert.ToInt32(profitValue[2]);
+                ProfitIcebergMillisecondsDistance = Convert.ToInt32(profitValue[3]);
+            }
+
             ProfitOrderPrice = arraySave[12].ToDecimal();
 
             string[] lotsAndMarginArray = arraySave[13].Split('^');
