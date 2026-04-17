@@ -1124,7 +1124,6 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             {
                 SyntheticBond syntheticBond = new SyntheticBond(uniqueName + "SyntheticBond" + syntheticBondNumber, syntheticBondNumber, StartProgram);
 
-                syntheticBond.CointegrationBuilder = new CointegrationBuilder();
                 syntheticBond.MainRationingMode = RationingMode.Difference;
 
                 return syntheticBond;

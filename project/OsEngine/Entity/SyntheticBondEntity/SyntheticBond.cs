@@ -50,6 +50,11 @@ namespace OsEngine.Entity.SyntheticBondEntity
                 SelectedScenario = defaultScenario;
             }
 
+            if (CointegrationBuilder == null)
+            {
+                CointegrationBuilder = new CointegrationBuilder();
+            }
+
             if (SelectedScenario == null)
             {
                 SelectedScenario = ActiveScenarios[0];
@@ -237,17 +242,27 @@ namespace OsEngine.Entity.SyntheticBondEntity
         {
             try
             {
-                for (int i = 0; i < ActiveScenarios.Count; i++)
-                {
-                    BondScenario scenario = ActiveScenarios[i];
-                    scenario.Clear();
-                }
+                if (_patternBaseTab != null)
+                    _patternBaseTab.Clear();
+
+                if (_patternFuturesTab != null)
+                    _patternFuturesTab.Clear();
 
                 if (BaseRationingSecurity != null)
                     BaseRationingSecurity.Clear();
 
                 if (FuturesRationingSecurity != null)
                     FuturesRationingSecurity.Clear();
+
+                AbsoluteSeparationCandles.Clear();
+                PercentSeparationCandles.Clear();
+                ProfitPerDay = 0;
+
+                for (int i = 0; i < ActiveScenarios.Count; i++)
+                {
+                    BondScenario scenario = ActiveScenarios[i];
+                    scenario.Clear();
+                }
             }
             catch
             {
@@ -278,6 +293,7 @@ namespace OsEngine.Entity.SyntheticBondEntity
                 }
 
                 ActiveScenarios.Clear();
+                SelectedScenario = null;
 
                 if (File.Exists(@"Engine\" + UniqueName + @"SyntheticBondToLoad.txt"))
                 {
@@ -349,7 +365,7 @@ namespace OsEngine.Entity.SyntheticBondEntity
             PropagateSecurity(ref _patternFuturesTab, isBase: false);
         }
 
-        private void PropagateSecurity(ref BotTabSimple patternTab, bool isBase, BondScenario scenario = null)
+        public void PropagateSecurity(ref BotTabSimple patternTab, bool isBase, BondScenario scenario = null)
         {
             if (patternTab == null ||
                (patternTab != null && patternTab.Connector == null))
@@ -586,7 +602,14 @@ namespace OsEngine.Entity.SyntheticBondEntity
 
                 if (_patternFuturesTab.Security.Expiration != DateTime.MinValue && _patternFuturesTab.Security.Expiration != DateTime.UnixEpoch)
                 {
-                    return (_patternFuturesTab.Security.Expiration - _patternFuturesTab.TimeServerCurrent).Days;
+                    int days = (_patternFuturesTab.Security.Expiration - _patternFuturesTab.TimeServerCurrent).Days;
+
+                    if (days < 0 && IsExpiration == false)
+                        IsExpiration = true;
+                    else if (IsExpiration)
+                        IsExpiration = false;
+
+                    return days;
                 }
                 else
                 {
@@ -594,6 +617,8 @@ namespace OsEngine.Entity.SyntheticBondEntity
                 }
             }
         }
+
+        public bool IsExpiration = true;
 
         /// <summary>
         /// Profit per day | Профит в день
