@@ -133,6 +133,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         public void Clear()
         {
+            if (_patternBaseTab != null)
+                _patternBaseTab.Clear();
+
             for (int i = 0; i < SyntheticBonds.Count; i++)
             {
                 SyntheticBond syntheticBond = SyntheticBonds[i];
@@ -415,17 +418,17 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             }
         }
 
-        private void UpdateProfitPerDay(SyntheticBond bond)
+        private void UpdateProfitPerDay(SyntheticBond syntheticBond)
         {
             try
             {
-                if (bond.DaysBeforeExpiration != -1 && bond.DaysBeforeExpiration != 0 && bond.PercentSeparationCandles != null && bond.PercentSeparationCandles.Count != 0)
+                if (syntheticBond.DaysBeforeExpiration != -1 && syntheticBond.DaysBeforeExpiration != 0 && syntheticBond.PercentSeparationCandles != null && syntheticBond.PercentSeparationCandles.Count != 0)
                 {
-                    bond.ProfitPerDay = bond.PercentSeparationCandles[^1].Value / bond.DaysBeforeExpiration;
+                    syntheticBond.ProfitPerDay = syntheticBond.PercentSeparationCandles[^1].Value / syntheticBond.DaysBeforeExpiration;
                 }
-                else if (bond.PercentSeparationCandles != null && bond.PercentSeparationCandles.Count != 0)
+                else if (syntheticBond.PercentSeparationCandles != null && syntheticBond.PercentSeparationCandles.Count != 0)
                 {
-                    bond.ProfitPerDay = 0;
+                    syntheticBond.ProfitPerDay = 0;
                 }
             }
             catch (Exception error)

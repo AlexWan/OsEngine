@@ -483,6 +483,11 @@ namespace OsEngine.OsTrader.Iceberg
         {
             try
             {
+                if (StartProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
                 if (CheckTradingReady() == false)
                 {
                     string message = "Арбитражный модуль не готов к торговле";
@@ -1452,7 +1457,7 @@ namespace OsEngine.OsTrader.Iceberg
                 else return true;
 
                 string message = "Неторговый период завершён. Восстановлен режим: " + CurrentMode.ToString()
-                    + ", статус: " + CurrentStatus.ToString(); 
+                    + ", статус: " + CurrentStatus.ToString();
                 InfoLogEvent?.Invoke(message);
                 return true;
             }
@@ -1558,7 +1563,7 @@ namespace OsEngine.OsTrader.Iceberg
 
         #region Events
 
-        public Action<string> InfoLogEvent; 
+        public Action<string> InfoLogEvent;
 
         public Action AllPositionsFilledEvent;
 
