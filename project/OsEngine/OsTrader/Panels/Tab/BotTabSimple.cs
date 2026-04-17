@@ -2374,7 +2374,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen</param>
         /// <param name="lifeTimeType">order life type</param>
         /// <param name="icebergOrdersCount">number of orders in the iceberg order</param>
-        /// <param name="icebergMillisecondsDistance">number of orders in the iceberg order</param>
+        /// <param name="icebergMillisecondsDistance">minimum time interval between iceberg orders in milliseconds</param>
         public void BuyAtStopMarketIceberg(decimal volume, decimal priceLimit, decimal priceRedLine,
             StopActivateType activateType, int expiresBars, string signalType, PositionOpenerToStopLifeTimeType lifeTimeType, 
             int icebergOrdersCount, int icebergMillisecondsDistance)
@@ -3578,7 +3578,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen</param>
         /// <param name="lifeTimeType">order life type</param>
         /// <param name="icebergOrdersCount">number of orders in the iceberg order</param>
-        /// <param name="icebergMillisecondsDistance">number of orders in the iceberg order</param>
+        /// <param name="icebergMillisecondsDistance">minimum time interval between iceberg orders in milliseconds</param>
         public void SellAtStopMarketIceberg(decimal volume, decimal priceLimit, decimal priceRedLine,
             StopActivateType activateType, int expiresBars, string signalType, PositionOpenerToStopLifeTimeType lifeTimeType, 
             int icebergOrdersCount, int icebergMillisecondsDistance)
@@ -4654,7 +4654,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
         /// <param name="icebergOrdersCount">number of orders in the iceberg order</param>
-        /// <param name="icebergMillisecondsDistance">number of orders in the iceberg order</param>
+        /// <param name="icebergMillisecondsDistance">minimum time interval between iceberg orders in milliseconds</param>
         public void CloseAtStopMarketIceberg(Position position, decimal priceActivation, int icebergOrdersCount,int icebergMillisecondsDistance)
         {
             try
@@ -4687,7 +4687,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
         /// <param name="icebergOrdersCount">number of orders in the iceberg order</param>
-        /// <param name="icebergMillisecondsDistance">number of orders in the iceberg order</param>
+        /// <param name="icebergMillisecondsDistance">minimum time interval between iceberg orders in milliseconds</param>
         /// <param name="signalType">close position signal name</param>
         public void CloseAtStopMarketIceberg(Position position, decimal priceActivation, int icebergOrdersCount, int icebergMillisecondsDistance, string signalType)
         {
@@ -4905,7 +4905,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="priceActivation">the price of the profit order, after reaching which the order is placed</param>
         /// <param name="icebergOrdersCount">number of orders in the iceberg order</param>
-        /// <param name="icebergMillisecondsDistance">number of orders in the iceberg order</param>
+        /// <param name="icebergMillisecondsDistance">minimum time interval between iceberg orders in milliseconds</param>
         public void CloseAtProfitMarketIceberg(Position position, decimal priceActivation, int icebergOrdersCount, int icebergMillisecondsDistance)
         {
             try
@@ -4938,7 +4938,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="priceActivation">the price of the profit order, after reaching which the order is placed</param>
         /// <param name="icebergOrdersCount">number of orders in the iceberg order</param>
-        /// <param name="icebergMillisecondsDistance">number of orders in the iceberg order</param>
+        /// <param name="icebergMillisecondsDistance">minimum time interval between iceberg orders in milliseconds</param>
         /// <param name="signalType">close position signal name</param>
         public void CloseAtProfitMarketIceberg(Position position, decimal priceActivation, int icebergOrdersCount, int icebergMillisecondsDistance, string signalType)
         {
