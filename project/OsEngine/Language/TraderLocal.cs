@@ -1570,7 +1570,7 @@ namespace OsEngine.Language
         public string Label417 => OsLocalization.ConvertToLocString(
         "Eng:Move Down_" +
         "Ru:Сдвинуть вниз_");
-		
+
         public string Label418 => OsLocalization.ConvertToLocString(
           "Eng:Contains_" +
           "Ru:Содержит_");
@@ -1903,7 +1903,7 @@ namespace OsEngine.Language
          "Eng:Stop-loss regime_" +
          "Ru:Stop-loss режим_");
 
-        public string Label501=> OsLocalization.ConvertToLocString(
+        public string Label501 => OsLocalization.ConvertToLocString(
          "Eng:Trailing Up_" +
          "Ru:Подтягивание вверх_");
 
@@ -1971,7 +1971,7 @@ namespace OsEngine.Language
           "Eng:Error on creating a new grid. Not specified starting volume for levels_" +
           "Ru:Запрет на создание новой сетки. Не указан стартовый объём для уровней");
 
-        public string Label518=> OsLocalization.ConvertToLocString(
+        public string Label518 => OsLocalization.ConvertToLocString(
           "Eng:Error on creating a new grid. The step multiplier cannot be zero_" +
           "Ru:Запрет на создание новой сетки. Мультипликатор шага не может быть ноль");
 
@@ -2786,5 +2786,13 @@ namespace OsEngine.Language
         public string Label743 => OsLocalization.ConvertToLocString(
           "Eng:Total_" +
           "Ru:Итого_");
+
+        public string Label744 => OsLocalization.ConvertToLocString(
+          "Eng:Calculate_" +
+          "Ru:Рассчитывать_");
+
+        public string Label745 => OsLocalization.ConvertToLocString(
+          "Eng:Separation_" +
+          "Ru:Раздвижка_");
     }
 }

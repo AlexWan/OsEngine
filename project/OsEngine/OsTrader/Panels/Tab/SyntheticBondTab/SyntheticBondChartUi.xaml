@@ -9,8 +9,8 @@
     <Grid>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="80*"/>
-            <ColumnDefinition Width="20*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="200"/>
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
@@ -33,11 +33,12 @@
         <Label Grid.Row="1" Grid.Column="1"  Content="Last: " Name="LastSec2Label" HorizontalAlignment="Left" Width="100"/>
         <TextBox Grid.Row="1" Grid.Column="1" Name="LastSec2TextBox" HorizontalAlignment="Left" Width="60" Margin="110,5,5,5" />
 
-        <Label Content="Contango" Name="ContangoLabel" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center"  VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="150"/>
-        <Label Grid.Row="2" Grid.Column="1"  Content="Last: " Name="LastContangoLabel" HorizontalAlignment="Left" Width="100"/>
-        <TextBox Grid.Row="2" Grid.Column="1" Name="LastContangoTextBox" HorizontalAlignment="Left" Width="60" Margin="110,5,5,5" />
+        <Label Content="Contango" Name="SeparationLabel" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center"  VerticalAlignment="Top" HorizontalContentAlignment="Center" Margin="5,5,5,5" Width="100"/>
+        <Label Grid.Row="2" Grid.Column="1"  Content="Last: " Name="LastSeparationLabel" HorizontalAlignment="Left" Width="100"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Name="LastContangoTextBox" HorizontalAlignment="Left" Margin="110,5,5,5" TextWrapping="Wrap" Width="60"/>
 
-        <Label Content="Cointegration" Name="CointegrationLabel" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Center"  VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="150"/>
+        <Label Content="Cointegration" Name="CointegrationLabel" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Center"  VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="100"/>
+        <CheckBox Grid.Row="3" Grid.Column="1" Name="CheckBoxCointegrationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="5,25,0,0" VerticalAlignment="Top"/>
         <Label Grid.Row="3" Grid.Column="1"  Content="Last: " Name="LastCointegrationLabel" HorizontalAlignment="Left" Width="100"/>
         <TextBox Grid.Row="3" Grid.Column="1" Name="LastCointegrationTextBox" HorizontalAlignment="Left" Width="60" Margin="110,5,5,5" />
 

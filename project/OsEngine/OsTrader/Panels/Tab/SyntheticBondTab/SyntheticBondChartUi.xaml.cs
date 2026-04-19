@@ -33,19 +33,22 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         private ChartCandleMaster _chartSec2;
 
-        public SyntheticBondChartUi(SyntheticBondSeries synteticBondSeries, ref SyntheticBond modificationFuturesSyntheticBond)
+        public SyntheticBondChartUi(SyntheticBondSeries synteticBondSeries, ref SyntheticBond syntheticBond)
         {
             InitializeComponent();
 
             _syntheticBondSeries = synteticBondSeries;
-            _syntheticBond = modificationFuturesSyntheticBond;
+            _syntheticBond = syntheticBond;
 
             Title = OsLocalization.Trader.Label699;
 
             LastSec1Label.Content = OsLocalization.Trader.Label717 + ":";
             LastSec2Label.Content = OsLocalization.Trader.Label717 + ":";
-            LastContangoLabel.Content = OsLocalization.Trader.Label717 + ":";
+            LastSeparationLabel.Content = OsLocalization.Trader.Label717 + ":";
             LastCointegrationLabel.Content = OsLocalization.Trader.Label717 + ":";
+            CheckBoxCointegrationAutoIsOn.Content = OsLocalization.Trader.Label744;
+            CointegrationLabel.Content = OsLocalization.Trader.Label238;
+            SeparationLabel.Content = OsLocalization.Trader.Label745;
 
             if (_syntheticBond.PatternBaseTab != null
                 && _syntheticBond.PatternBaseTab.Connector != null
@@ -69,6 +72,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             {
                 Security2Label.Content = "None";
             }
+
+            CheckBoxCointegrationAutoIsOn.IsChecked = _syntheticBond.CalculateCointegration;
+            CheckBoxCointegrationAutoIsOn.Click += CheckBoxCointegrationAutoIsOn_Click;
 
             CreateContangoChart();
             CreateCointegrationChart();
@@ -166,6 +172,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             //        _chartSec2.CreateIndicator(futuresTabForChart.Indicators[i], futuresTabForChart.Indicators[i].NameArea);
             //    }
             //}
+        }
+
+        private void CheckBoxCointegrationAutoIsOn_Click(object sender, RoutedEventArgs e)
+        {
+            _syntheticBond.CalculateCointegration = CheckBoxCointegrationAutoIsOn.IsChecked.Value;
+            _syntheticBond.Save();
         }
 
         public string Key
@@ -728,6 +740,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             try
             {
                 Closed -= SyntheticBondOffsetUi_Closed;
+
+                CheckBoxCointegrationAutoIsOn.Click -= CheckBoxCointegrationAutoIsOn_Click;
 
                 BotTabSimple baseTab = _syntheticBond.SelectedScenario.ArbitrationIceberg.MainLegs[0].BotTab;
                 BotTabSimple futuresTab = _syntheticBond.SelectedScenario.ArbitrationIceberg.SecondaryLegs[0].BotTab;

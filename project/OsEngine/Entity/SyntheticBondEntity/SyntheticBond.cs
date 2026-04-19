@@ -133,6 +133,8 @@ namespace OsEngine.Entity.SyntheticBondEntity
                 if (patternFuturesTabName != "None")
                     _patternFuturesTab = new BotTabSimple(patternFuturesTabName, StartProgram);
 
+                CalculateCointegration = Convert.ToBoolean(reader.ReadLine());
+
                 int activeScenariosCount = Convert.ToInt32(reader.ReadLine());
 
                 for (int i = 0; i < activeScenariosCount; i++)
@@ -206,6 +208,8 @@ namespace OsEngine.Entity.SyntheticBondEntity
                       !string.IsNullOrEmpty(_patternFuturesTab.TabName))
                         writer.WriteLine(_patternFuturesTab.TabName);
                     else writer.WriteLine("None");
+
+                    writer.WriteLine(CalculateCointegration.ToString());
 
                     writer.WriteLine(ActiveScenarios.Count.ToString());
 
@@ -588,6 +592,8 @@ namespace OsEngine.Entity.SyntheticBondEntity
         /// History separation changes. Amount of data | История изменения раздвижки. Количество данных
         /// </summary>
         public decimal SeparationLength = 50;
+
+        public bool CalculateCointegration = false;
 
         /// <summary>
         /// Days before the expiration of the futures contract. If the value is negative, then the validity period is infinite | Дней до истечения срока действия фьючерса. Если отрицательное значение, то срок действия бесконечный
