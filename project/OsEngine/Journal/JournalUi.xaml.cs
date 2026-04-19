@@ -1244,9 +1244,9 @@ namespace OsEngine.Journal
                         profitMonthlyBar.Points.AddXY(i, monthProfit);
 
                         string monthLabel = keyDate.ToString("MMM yyyy", _currentCulture);
-
-                        // Сохраняем дополнительные данные в ToolTip (для hover)
+                       
                         profitMonthlyBar.Points[^1].ToolTip = string.Format("{0}: {1:F2}", monthLabel, monthProfit);
+                        profitMonthlyBar.Points[^1].AxisLabel = string.Format("{0}", monthLabel);
 
                         if (monthlyProfit[keyDate] > 0)
                             profitMonthlyBar.Points[i].Color = Color.Gainsboro;
@@ -1272,6 +1272,7 @@ namespace OsEngine.Journal
                         profitYearlyBar.Points.AddXY(i, yearProfit);
 
                         profitYearlyBar.Points[^1].ToolTip = string.Format("{0}: {1}", year, yearProfit);
+                        profitYearlyBar.Points[^1].AxisLabel = string.Format("{0}", year);
 
                         if (yearlyProfit[year] > 0)
                             profitYearlyBar.Points[i].Color = Color.Gainsboro;
@@ -1372,8 +1373,9 @@ namespace OsEngine.Journal
 
                     if (maxYVal != minYval)
                     {
-                        _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
-                        _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
+                        _chartEquity.ChartAreas[0].AxisY2.Maximum = Math.Round((double)maxYVal, 3);
+                        _chartEquity.ChartAreas[0].AxisY2.Minimum = Math.Round((double)minYval, 3);
+                        _chartEquity.ChartAreas[0].AxisY2.LabelStyle.Format = "F3";
                     }
 
                 }
@@ -1388,8 +1390,9 @@ namespace OsEngine.Journal
 
                     if (maxYValBars != minYValBars)
                     {
-                        _chartEquity.ChartAreas[1].AxisY2.Maximum = (double)maxYValBars;
-                        _chartEquity.ChartAreas[1].AxisY2.Minimum = (double)minYValBars;
+                        _chartEquity.ChartAreas[1].AxisY2.Maximum = Math.Round((double)maxYValBars, 3);
+                        _chartEquity.ChartAreas[1].AxisY2.Minimum = Math.Round((double)minYValBars, 3);
+                        _chartEquity.ChartAreas[1].AxisY2.LabelStyle.Format = "F3";
                     }
                 }
 
@@ -1403,8 +1406,9 @@ namespace OsEngine.Journal
 
                     if (maxYValMonBars != minYValMonBars)
                     {
-                        _chartEquity.ChartAreas[2].AxisY2.Maximum = (double)maxYValMonBars;
-                        _chartEquity.ChartAreas[2].AxisY2.Minimum = (double)minYValMonBars;
+                        _chartEquity.ChartAreas[2].AxisY2.Maximum = Math.Round((double)maxYValMonBars, 3);
+                        _chartEquity.ChartAreas[2].AxisY2.Minimum = Math.Round((double)minYValMonBars, 3);
+                        _chartEquity.ChartAreas[2].AxisY2.LabelStyle.Format = "F3";
                     }
                 }
 
@@ -1418,8 +1422,9 @@ namespace OsEngine.Journal
 
                     if (maxYValYearBars != minYValYearBars)
                     {
-                        _chartEquity.ChartAreas[3].AxisY2.Maximum = (double)maxYValYearBars;
-                        _chartEquity.ChartAreas[3].AxisY2.Minimum = (double)minYValYearBars;
+                        _chartEquity.ChartAreas[3].AxisY2.Maximum = Math.Round((double)maxYValYearBars, 3);
+                        _chartEquity.ChartAreas[3].AxisY2.Minimum = Math.Round((double)minYValYearBars, 3);
+                        _chartEquity.ChartAreas[3].AxisY2.LabelStyle.Format = "F3";
                     }
                 }
             }
