@@ -373,7 +373,10 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
                     UpdateSeparation(syntheticBond);
 
-                    UpdateCointegration(syntheticBond);
+                    if (syntheticBond.CalculateCointegration)
+                    {
+                        UpdateCointegration(syntheticBond);
+                    }
 
                     UpdateProfitPerDay(syntheticBond);
                 }
@@ -405,7 +408,10 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
                         UpdateSeparation(syntheticBond);
 
-                        UpdateCointegration(syntheticBond);
+                        if (syntheticBond.CalculateCointegration)
+                        {
+                            UpdateCointegration(syntheticBond);
+                        }
 
                         UpdateProfitPerDay(syntheticBond);
                     }
