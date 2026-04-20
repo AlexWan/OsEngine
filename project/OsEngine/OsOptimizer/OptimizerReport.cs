@@ -454,7 +454,14 @@ namespace OsEngine.OsOptimizer
                     totalDays++;
                 }
 
-                _averageTimeInPosition = new TimeSpan(totalDays,totalHours, Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
+                if (time.Length > 1)
+                {
+                    _averageTimeInPosition = new TimeSpan(totalDays, totalHours, Convert.ToInt32(time[1]), Convert.ToInt32(time[2]));
+                }
+                else
+                {
+                    _averageTimeInPosition = new TimeSpan(0, 0, 0, 1);
+                }
 
                 return _averageTimeInPosition;
 
