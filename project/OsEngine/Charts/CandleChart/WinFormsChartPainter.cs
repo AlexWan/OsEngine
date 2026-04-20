@@ -4305,14 +4305,22 @@ ContextMenuStrip menu)
                 series.YValuesPerPoint = 1;
                 series.Color = color;
 
+                bool isStarted = false;
+
                 for (int i = 0; i < array.Count; i++)
                 {
-                    if (array[i] != 0)
-                    {
-                        series.Points.AddXY(i, array[i]);
+                    var point = new DataPoint(i, (double)array[i]);
 
-                        //series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
+                    if (array[i] == 0 && isStarted == false)
+                    {
+                        point.IsEmpty = true;
                     }
+                    else
+                    {
+                        isStarted = true;
+                    }
+
+                    series.Points.Add(point);
                 }
 
                 PaintSeriesSafe(series);
@@ -4594,17 +4602,22 @@ ContextMenuStrip menu)
                 series.YValuesPerPoint = 1;
                 series.Color = colorUp;
 
+                bool isStarted = false;
+
                 for (int i = 0; i < array.Count; i++)
                 {
-                    if (array[i] != 0)
+                    var point = new DataPoint(i, (double)array[i]);
+
+                    if (array[i] == 0 && isStarted == false)
                     {
-                        series.Points.AddXY(i, array[i]);
-                        //series.Points[series.Points.Count - 1].ToolTip = array[i].ToString();
+                        point.IsEmpty = true;
                     }
                     else
                     {
-                        series.Points.AddXY(i, 0);
+                        isStarted = true;
                     }
+
+                    series.Points.Add(point);
 
                     if (i > 1)
                     {
