@@ -1436,7 +1436,7 @@ namespace OsEngine.Journal
                     profitMonthlyBar.ChartType = SeriesChartType.Column;
                     profitMonthlyBar.YAxisType = AxisType.Secondary;
                     profitMonthlyBar.LabelForeColor = Color.DarkOrange;
-                    profitMonthlyBar.LabelBackColor = Color.Black;
+                    profitMonthlyBar.LabelBackColor = Color.FromArgb(17, 18, 23);
                     profitMonthlyBar.ChartArea = "ChartAreaMonthlyBar";
                     profitMonthlyBar.ShadowOffset = 2;
                     profitMonthlyBar.SetCustomProperty("PointWidth", "1.0");
@@ -1448,7 +1448,7 @@ namespace OsEngine.Journal
                     profitYearlyBar.ChartType = SeriesChartType.Column;
                     profitYearlyBar.YAxisType = AxisType.Secondary;
                     profitYearlyBar.LabelForeColor = Color.DarkOrange;
-                    profitYearlyBar.LabelBackColor = Color.Black;
+                    profitYearlyBar.LabelBackColor = Color.FromArgb(17, 18, 23);
                     profitYearlyBar.ChartArea = "ChartAreaYearlyBar";
                     profitYearlyBar.ShadowOffset = 2;
                     profitYearlyBar.SetCustomProperty("PointWidth", "1.0");

@@ -897,9 +897,9 @@ namespace OsEngine.Journal.Internal
                 allTime = new TimeSpan(seconds);
 
                 result =
-                    "H: " + Convert.ToInt32(allTime.TotalHours)
-                    + " M: " + Convert.ToInt32(allTime.Minutes)
-                    + " S: " + Convert.ToInt32(allTime.Seconds);
+                    "H " + Convert.ToInt32(allTime.TotalHours)
+                    + " M " + Convert.ToInt32(allTime.Minutes)
+                    + " S " + Convert.ToInt32(allTime.Seconds);
             }
 
             return result;
