@@ -1227,6 +1227,10 @@ namespace OsEngine.Journal
                     {
                         curProfit = positionsAll[i].ProfitOperationPercent;
                     }
+                    else if (chartType == "Deposit percent")
+                    {
+                        curProfit = positionsAll[i].ProfitPortfolioPercent;
+                    }
 
                     profitSum += curProfit;
                     profit.Points.AddXY(i, Math.Round(profitSum, 3));

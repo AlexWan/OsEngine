@@ -55,7 +55,9 @@ namespace OsEngine.Journal
             }
 
             ComboBoxChartType.Items.Add("Absolute");
+            ComboBoxChartType.Items.Add("Deposit percent");
             ComboBoxChartType.Items.Add("Percent 1 contract");
+
             ComboBoxChartType.SelectedItem = "Absolute";
 
             ComboBoxBenchmark.Items.Add(BenchmarkSecurity.Off.ToString());
@@ -1238,13 +1240,26 @@ namespace OsEngine.Journal
 
                         foreach (Position position in group)
                         {
-                            decimal curProfit;
-                            if (chartType == "Absolute")
-                                curProfit = position.ProfitPortfolioAbs;
-                            else
-                                curProfit = position.ProfitOperationPercent;
+                            decimal curProfit = 0;
 
-                            monthlySum += curProfit;
+                           /* ComboBoxChartType.Items.Add("Absolute");
+                            ComboBoxChartType.Items.Add("Deposit percent");
+                            ComboBoxChartType.Items.Add("Percent 1 contract");*/
+
+                            if (chartType == "Absolute")
+                            {
+                                curProfit = position.ProfitPortfolioAbs;
+                            }
+                            else if(chartType == "Deposit percent")
+                            {
+                                curProfit = position.ProfitPortfolioPercent;
+                            }
+                            else if(chartType == "Percent 1 contract")
+                            {
+                                curProfit = position.ProfitOperationPercent;
+                            }
+
+                           monthlySum += curProfit;
                         }
                         monthlyProfit[group.Key] = monthlySum;
                     }
@@ -1277,12 +1292,20 @@ namespace OsEngine.Journal
 
                         foreach (Position position in group)
                         {
-                            decimal curProfit;
+                            decimal curProfit = 0;
 
                             if (chartType == "Absolute")
+                            {
                                 curProfit = position.ProfitPortfolioAbs;
-                            else
+                            }
+                            else if(chartType == "Percent 1 contract")
+                            {
                                 curProfit = position.ProfitOperationPercent;
+                            }
+                            else if (chartType == "Deposit percent")
+                            {
+                                curProfit = position.ProfitPortfolioPercent;
+                            }
 
                             monthlySum += curProfit;
                         }
@@ -1301,12 +1324,20 @@ namespace OsEngine.Journal
 
                         foreach (Position position in group)
                         {
-                            decimal curProfit;
+                            decimal curProfit = 0;
 
                             if (chartType == "Absolute")
+                            {
                                 curProfit = position.ProfitPortfolioAbs;
-                            else
+                            }
+                            else if (chartType == "Percent 1 contract")
+                            {
                                 curProfit = position.ProfitOperationPercent;
+                            }
+                            else if (chartType == "Deposit percent")
+                            {
+                                curProfit = position.ProfitPortfolioPercent;
+                            }
 
                             yearlySum += curProfit;
                         }
@@ -1456,6 +1487,10 @@ namespace OsEngine.Journal
                             continue;
                         }
                         curProfit = positionsAll[i].ProfitOperationPercent * (curMult / 100);
+                    }
+                    else if (chartType == "Deposit percent")
+                    {
+                        curProfit = positionsAll[i].ProfitPortfolioPercent * (curMult / 100);
                     }
 
                     curProfit = Math.Round(curProfit, 8);

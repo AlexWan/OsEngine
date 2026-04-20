@@ -700,19 +700,26 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Tabs[i].Delete();
             }
 
-            if (File.Exists(@"Engine\" + TabName + @"ScreenerSet.txt"))
+            try
             {
-                File.Delete(@"Engine\" + TabName + @"ScreenerSet.txt");
-            }
+                if (File.Exists(@"Engine\" + TabName + @"ScreenerSet.txt"))
+                {
+                    File.Delete(@"Engine\" + TabName + @"ScreenerSet.txt");
+                }
 
-            if (File.Exists(@"Engine\" + TabName + @"ScreenerTabSet.txt"))
-            {
-                File.Delete(@"Engine\" + TabName + @"ScreenerTabSet.txt");
-            }
+                if (File.Exists(@"Engine\" + TabName + @"ScreenerTabSet.txt"))
+                {
+                    File.Delete(@"Engine\" + TabName + @"ScreenerTabSet.txt");
+                }
 
-            if (File.Exists(@"Engine\" + TabName + @"ScreenerIndicators.txt"))
+                if (File.Exists(@"Engine\" + TabName + @"ScreenerIndicators.txt"))
+                {
+                    File.Delete(@"Engine\" + TabName + @"ScreenerIndicators.txt");
+                }
+            }
+            catch
             {
-                File.Delete(@"Engine\" + TabName + @"ScreenerIndicators.txt");
+                // ignore
             }
 
             if (_positionViewer != null)
