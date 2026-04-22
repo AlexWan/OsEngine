@@ -1242,24 +1242,24 @@ namespace OsEngine.Journal
                         {
                             decimal curProfit = 0;
 
-                           /* ComboBoxChartType.Items.Add("Absolute");
-                            ComboBoxChartType.Items.Add("Deposit percent");
-                            ComboBoxChartType.Items.Add("Percent 1 contract");*/
+                            /* ComboBoxChartType.Items.Add("Absolute");
+                             ComboBoxChartType.Items.Add("Deposit percent");
+                             ComboBoxChartType.Items.Add("Percent 1 contract");*/
 
                             if (chartType == "Absolute")
                             {
                                 curProfit = position.ProfitPortfolioAbs;
                             }
-                            else if(chartType == "Deposit percent")
+                            else if (chartType == "Deposit percent")
                             {
                                 curProfit = position.ProfitPortfolioPercent;
                             }
-                            else if(chartType == "Percent 1 contract")
+                            else if (chartType == "Percent 1 contract")
                             {
                                 curProfit = position.ProfitOperationPercent;
                             }
 
-                           monthlySum += curProfit;
+                            monthlySum += curProfit;
                         }
                         monthlyProfit[group.Key] = monthlySum;
                     }
@@ -1298,7 +1298,7 @@ namespace OsEngine.Journal
                             {
                                 curProfit = position.ProfitPortfolioAbs;
                             }
-                            else if(chartType == "Percent 1 contract")
+                            else if (chartType == "Percent 1 contract")
                             {
                                 curProfit = position.ProfitOperationPercent;
                             }
@@ -1534,10 +1534,13 @@ namespace OsEngine.Journal
 
                         profitMonthlyBar.Points[^1].AxisLabel = string.Format("{0}\n{1:F2}", monthLabel, monthProfit);
 
-                        if (monthlyProfit[keyDate] > 0)
-                            profitMonthlyBar.Points[i].Color = Color.Gainsboro;
-                        else if (monthlyProfit[keyDate] < 0)
-                            profitMonthlyBar.Points[i].Color = Color.DarkRed;
+                        if (i <= profitMonthlyBar.Points.Count - 1)
+                        {
+                            if (monthlyProfit[keyDate] > 0)
+                                profitMonthlyBar.Points[i].Color = Color.Gainsboro;
+                            else if (monthlyProfit[keyDate] < 0)
+                                profitMonthlyBar.Points[i].Color = Color.DarkRed;
+                        }
 
                         if (monthProfit > maxYValMonBars)
                         {
@@ -1559,10 +1562,13 @@ namespace OsEngine.Journal
 
                         profitYearlyBar.Points[^1].AxisLabel = string.Format("{0}\n{1}", year, yearProfit);
 
-                        if (yearlyProfit[year] > 0)
-                            profitYearlyBar.Points[i].Color = Color.Gainsboro;
-                        else if (yearlyProfit[year] < 0)
-                            profitYearlyBar.Points[i].Color = Color.DarkRed;
+                        if (i <= profitYearlyBar.Points.Count - 1)
+                        {
+                            if (yearlyProfit[year] > 0)
+                                profitYearlyBar.Points[i].Color = Color.Gainsboro;
+                            else if (yearlyProfit[year] < 0)
+                                profitYearlyBar.Points[i].Color = Color.DarkRed;
+                        }
 
                         if (yearProfit > maxYValYearBars)
                         {
