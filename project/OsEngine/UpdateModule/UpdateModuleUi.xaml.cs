@@ -6,6 +6,7 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.OsTrader.Grids;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,6 +22,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Linq;
 
 namespace OsEngine.UpdateModule
 {
@@ -45,6 +47,8 @@ namespace OsEngine.UpdateModule
 
             _serverResp = response;
 
+            LoadSettings();
+
             Title = OsLocalization.Updater.TitleUpdater;
             ButtonUpdRequest.Content = OsLocalization.Updater.ButtonRequest;
             TabFiles.Header = OsLocalization.Updater.TabItemFiles;
@@ -63,10 +67,16 @@ namespace OsEngine.UpdateModule
 
             TabVersions.Header = OsLocalization.Updater.TabItemVers;
             LabelVers.Content = OsLocalization.Updater.Label3;
+            LabelSaveVersionType.Content = OsLocalization.Updater.Label15;
             VersionsDataGrid.Columns[0].Header = OsLocalization.Updater.GridColumn7;
             VersionsDataGrid.Columns[1].Header = OsLocalization.Updater.GridColumn8;
             VersionsDataGrid.Columns[2].Header = OsLocalization.Updater.GridColumn9;
             VersionsDataGrid.Columns[3].Header = OsLocalization.Updater.GridColumn10;
+
+            ComboBoxSaveVersionType.Items.Add(SaveVersionsType.All.ToString());
+            ComboBoxSaveVersionType.Items.Add(SaveVersionsType.Five.ToString());
+            ComboBoxSaveVersionType.SelectedItem = VersionsSaveType.ToString();
+            ComboBoxSaveVersionType.SelectionChanged += ComboBoxSaveVersionType_SelectionChanged;
 
             LabelLog.Content = OsLocalization.Updater.Label4;
             LogsDataGrid.Columns[0].Header = OsLocalization.Updater.GridColumn7;
@@ -191,6 +201,19 @@ namespace OsEngine.UpdateModule
             }
         }
 
+        private void ComboBoxSaveVersionType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxSaveVersionType.SelectedValue.ToString(), out VersionsSaveType);
+                SaveSettings();
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
         private void GetFilesTimeOnPC()
         {
             _filesTimeOnPC = new Dictionary<string, GithubFileInfo>();
@@ -218,8 +241,63 @@ namespace OsEngine.UpdateModule
             }
         }
 
+        #region Save / Load settings 
+
+        public SaveVersionsType VersionsSaveType = SaveVersionsType.All;
+
+        private void LoadSettings()
+        {
+            try
+            {
+                if (!File.Exists(@"Engine\Updater\UpdaterSettings.txt"))
+                {
+                    return;
+                }
+
+                using (StreamReader reader = new StreamReader(@"Engine\Updater\UpdaterSettings.txt"))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        Enum.TryParse(reader.ReadLine(), out VersionsSaveType);
+
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        public void SaveSettings()
+        {
+            try
+            {
+                if(Directory.Exists(@"Engine\Updater\") == false)
+                {
+                    Directory.CreateDirectory(@"Engine\Updater\");
+                }
+
+                using (StreamWriter writer = new StreamWriter(@"Engine\Updater\UpdaterSettings.txt", false))
+                {
+                    writer.WriteLine(VersionsSaveType.ToString());
+
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        #endregion
 
         #region Last versions
+
         private List<BuildVersion> GetLastVersions()
         {
             List<BuildVersion> builds = [];
@@ -887,8 +965,10 @@ namespace OsEngine.UpdateModule
                         }
                     }
 
-                    SaveLogMessage(OsLocalization.Updater.Message42);
+                    TryRemoveOutdatedBuildsInCash();
 
+                    SaveLogMessage(OsLocalization.Updater.Message42);
+                    
                     StartUpdateApp(tempDir);
 
                 }
@@ -1057,6 +1137,56 @@ namespace OsEngine.UpdateModule
             }
         }
 
+        private void TryRemoveOutdatedBuildsInCash()
+        {
+            try
+            {
+                if (VersionsSaveType == SaveVersionsType.All)
+                {
+                    return;
+                }
+
+                // удаляем устаревшие папки с кэшем программы
+
+                string buildPath = $"Engine\\Updater\\Builds\\";
+
+                string[] directories = Directory.GetDirectories(buildPath);
+
+                List<DirectoryInfo> directoriesInfo = new List<DirectoryInfo>();
+
+                for (int i = 0; i < directories.Length; i++)
+                {
+                    DirectoryInfo info = new DirectoryInfo(directories[i]);
+                    directoriesInfo.Add(info);
+                }
+
+                if (directoriesInfo.Count <= 5)
+                {
+                    return;
+                }
+
+                directoriesInfo = directoriesInfo.OrderBy(x => x.CreationTimeUtc).ToList();
+
+                directoriesInfo.Reverse();
+
+                for (int i = 5; i < directoriesInfo.Count;i++)
+                {
+                    try
+                    {
+                        Directory.Delete(directoriesInfo[i].FullName, true);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         private void WriteFilesVersionsTime(string tempDir)
         {
             try
@@ -1078,7 +1208,6 @@ namespace OsEngine.UpdateModule
                 SaveLogMessage($"{OsLocalization.Updater.Message48}: {ex.Message}");
             }
         }
-
 
         private void StartUpdateApp(string tempDirWithNewFiles)
         {
@@ -1178,6 +1307,7 @@ namespace OsEngine.UpdateModule
         #endregion
 
         #region Log
+
         private void SaveLogMessage(string message)
         {
             try
@@ -1239,5 +1369,11 @@ namespace OsEngine.UpdateModule
         Available,
         Disconnected,
         NoNeed
+    }
+
+    public enum SaveVersionsType
+    {
+        All,
+        Five
     }
 }

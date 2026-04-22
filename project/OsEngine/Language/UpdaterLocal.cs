@@ -39,6 +39,10 @@ namespace OsEngine.Language
           "Eng:Module log_" +
           "Ru:Лог модуля_");
 
+        public string Label15 => OsLocalization.ConvertToLocString(
+          "Eng:Save_" +
+          "Ru:Хранить_");
+
         public string ButtonRequest => OsLocalization.ConvertToLocString(
            "Eng:Request updates status_" +
            "Ru:Запросить статус обновлений_");
@@ -322,5 +326,7 @@ namespace OsEngine.Language
         public string Message58 => OsLocalization.ConvertToLocString(
          "Eng:The module only worked with the Updater.exe file.\nNow you need to close the window yourself and restart OsEngine_" +
          "Ru:Модуль работал только с файлом Updater.exe\nТеперь необходимо самостоятельно закрыть окно и перезапустить OsEngine_");
+
+
     }
 }

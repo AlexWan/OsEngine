@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.UpdateModule"
         mc:Ignorable="d"
-        Title="Update module" Height="800" Width="700" 
+        Title="Update module" Height="800" Width="650" 
         Style="{StaticResource WindowStyleCanResize}" 
         WindowStartupLocation="CenterScreen" 
         MinWidth="500" MinHeight="700" 
@@ -229,16 +229,16 @@
                 <TabItem Name="TabVersions" Header="Версии" Width="140">
                     <Grid Margin="0,0,-5,-5">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto" MinHeight="43"/>
+                            <RowDefinition/>
                         </Grid.RowDefinitions>
 
                         <Label Name="LabelVers" 
                                Content="Хранилище предыдущих сборок" 
                                HorizontalAlignment="Left" 
-                               VerticalAlignment="Top" 
-                               Margin="10,6,0,0" 
-                               FontSize="12"/>
+                               VerticalAlignment="Center" 
+                               Margin="10,0,0,0" 
+                               FontSize="12" Height="22" Width="188"/>
 
                         <DataGrid Name="VersionsDataGrid" 
                                   Grid.Row="1"
@@ -285,6 +285,8 @@
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <Label Name="LabelSaveVersionType" Content="Хранить" Margin="0,0,176,0" VerticalAlignment="Center" HorizontalAlignment="Right" Width="57" />
+                        <ComboBox Name="ComboBoxSaveVersionType" Margin="0,0,40,0" VerticalAlignment="Center" HorizontalAlignment="Right" Width="120"/>
                     </Grid>
                 </TabItem>
             </TabControl>
