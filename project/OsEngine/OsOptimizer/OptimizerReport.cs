@@ -530,7 +530,7 @@ namespace OsEngine.OsOptimizer
             PayOffRatio = str[7].ToDecimal();
             Recovery = str[8].ToDecimal();
             TotalProfitPercent = str[9].ToDecimal();
-            SharpRatio = Convert.ToInt32(str[10].Split('_')[0]);
+            SharpRatio = str[10].Split('_')[0].ToDecimal();
 
             if (str[10].Split('_').Length > 1)
             {
