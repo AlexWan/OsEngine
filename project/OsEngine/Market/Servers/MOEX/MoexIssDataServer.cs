@@ -158,13 +158,208 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < 8; i++)
             {
-                newSecurities.AddRange(GetFuturesForOneYear(futName, idEnding, DateTime.Now.Year - i - 2000));
-            }
+                if(futName == "BR"
+                    || futName == "NG"
+                    || futName == "BT"
+                    || futName == "CC"
+                    || futName == "KC")
+                {
+                    newSecurities.AddRange(GetFuturesForOneYearOncePerMonth(futName, idEnding, DateTime.Now.Year - i - 2000));
+                }
+                else
+                {
+                    newSecurities.AddRange(GetFuturesForOneYearOncePerQuarter(futName, idEnding, DateTime.Now.Year - i - 2000));
+                }
+             }
 
             return newSecurities;
         }
 
-        private List<Security> GetFuturesForOneYear(string futName, string idEnding, int year)
+        private List<Security> GetFuturesForOneYearOncePerMonth(string futName, string idEnding, int year)
+        {
+            int futEnd = Convert.ToInt32(year.ToString().Substring(1, 1));
+
+            List<Security> sec = new List<Security>();
+
+            // 1 BRF6
+            // 2 BRG6
+            // 3 BRH6
+            // 4 BRJ6
+            // 5 BRK6
+            // 6 BRM6
+            // 7 BRN6
+            // 8 BRQ6
+            // 9 BRU6
+            // 10 BRV6
+            // 11 BRX6
+            // 12 BRZ6
+
+            // 1 BRF6
+            Security month1 = new Security();
+            month1.Name = futName + "F" + futEnd;
+            month1.NameId = month1.Name + "#" + idEnding;
+            month1.NameClass = "Фьючерсы истёкшие#RFUD";
+            month1.NameFull = futName + "-1." + year;
+            sec.Add(month1);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 2)
+            {
+                return sec;
+            }
+
+            // 2 BRG6
+            Security month2 = new Security();
+            month2.Name = futName + "G" + futEnd;
+            month2.NameId = month2.Name + "#" + idEnding;
+            month2.NameClass = "Фьючерсы истёкшие#RFUD";
+            month2.NameFull = futName + "-2." + year;
+            sec.Add(month2);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 3)
+            {
+                return sec;
+            }
+
+            // 3 BRH6
+            Security month3 = new Security();
+            month3.Name = futName + "H" + futEnd;
+            month3.NameId = month3.Name + "#" + idEnding;
+            month3.NameClass = "Фьючерсы истёкшие#RFUD";
+            month3.NameFull = futName + "-3." + year;
+            sec.Add(month3);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 4)
+            {
+                return sec;
+            }
+
+            // 4 BRJ6
+            Security month4 = new Security();
+            month4.Name = futName + "J" + futEnd;
+            month4.NameId = month4.Name + "#" + idEnding;
+            month4.NameClass = "Фьючерсы истёкшие#RFUD";
+            month4.NameFull = futName + "-4." + year;
+            sec.Add(month4);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 5)
+            {
+                return sec;
+            }
+
+            // 5 BRK6
+            Security month5 = new Security();
+            month5.Name = futName + "K" + futEnd;
+            month5.NameId = month5.Name + "#" + idEnding;
+            month5.NameClass = "Фьючерсы истёкшие#RFUD";
+            month5.NameFull = futName + "-5." + year;
+            sec.Add(month5);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 6)
+            {
+                return sec;
+            }
+
+            // 6 BRM6
+            Security month6 = new Security();
+            month6.Name = futName + "M" + futEnd;
+            month6.NameId = month6.Name + "#" + idEnding;
+            month6.NameClass = "Фьючерсы истёкшие#RFUD";
+            month6.NameFull = futName + "-6." + year;
+            sec.Add(month6);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 7)
+            {
+                return sec;
+            }
+
+            // 7 BRN6
+            Security month7 = new Security();
+            month7.Name = futName + "N" + futEnd;
+            month7.NameId = month7.Name + "#" + idEnding;
+            month7.NameClass = "Фьючерсы истёкшие#RFUD";
+            month7.NameFull = futName + "-7." + year;
+            sec.Add(month7);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 8)
+            {
+                return sec;
+            }
+
+            // 8 BRQ6
+            Security month8 = new Security();
+            month8.Name = futName + "Q" + futEnd;
+            month8.NameId = month8.Name + "#" + idEnding;
+            month8.NameClass = "Фьючерсы истёкшие#RFUD";
+            month8.NameFull = futName + "-8." + year;
+            sec.Add(month8);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 9)
+            {
+                return sec;
+            }
+
+            // 9 BRU6
+            Security month9 = new Security();
+            month9.Name = futName + "U" + futEnd;
+            month9.NameId = month9.Name + "#" + idEnding;
+            month9.NameClass = "Фьючерсы истёкшие#RFUD";
+            month9.NameFull = futName + "-9." + year;
+            sec.Add(month9);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 10)
+            {
+                return sec;
+            }
+
+            // 10 BRV6
+            Security month10 = new Security();
+            month10.Name = futName + "V" + futEnd;
+            month10.NameId = month10.Name + "#" + idEnding;
+            month10.NameClass = "Фьючерсы истёкшие#RFUD";
+            month10.NameFull = futName + "-10." + year;
+            sec.Add(month10);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 11)
+            {
+                return sec;
+            }
+
+            // 11 BRX6
+            Security month11 = new Security();
+            month11.Name = futName + "X" + futEnd;
+            month11.NameId = month11.Name + "#" + idEnding;
+            month11.NameClass = "Фьючерсы истёкшие#RFUD";
+            month11.NameFull = futName + "-11." + year;
+            sec.Add(month11);
+
+            if (DateTime.Now.Year == 2000 + year &&
+                DateTime.Now.Month < 11)
+            {
+                return sec;
+            }
+
+            // 12 BRZ6
+            Security month12 = new Security();
+            month12.Name = futName + "Z" + futEnd;
+            month12.NameId = month12.Name + "#" + idEnding;
+            month12.NameClass = "Фьючерсы истёкшие#RFUD";
+            month12.NameFull = futName + "-12." + year;
+            sec.Add(month12);
+
+            return sec;
+        }
+
+        private List<Security> GetFuturesForOneYearOncePerQuarter(string futName, string idEnding, int year)
         {
             int futEnd = Convert.ToInt32(year.ToString().Substring(1, 1));
 
