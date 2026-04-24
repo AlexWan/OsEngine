@@ -1994,7 +1994,8 @@ ContextMenuStrip menu)
 
                     if ((position.State == PositionStateType.Closing
                         || position.State == PositionStateType.Opening
-                        || position.State == PositionStateType.Open)
+                        || position.State == PositionStateType.Open
+                        || position.State == PositionStateType.ClosingFail)
                         &&
                         position.OpenOrders != null 
                         && position.OpenOrders.Count > 0)
@@ -2063,7 +2064,8 @@ ContextMenuStrip menu)
 
                     if ((position.State == PositionStateType.Closing
                         || position.State == PositionStateType.Opening
-                        || position.State == PositionStateType.Open)
+                        || position.State == PositionStateType.Open
+                        || position.State == PositionStateType.ClosingFail)
                         &&
                         position.CloseOrders != null &&
                         position.CloseOrders.Count > 0)
@@ -2135,7 +2137,8 @@ ContextMenuStrip menu)
                     if (
                         (position.State == PositionStateType.Closing
                         || position.State == PositionStateType.Opening
-                        || position.State == PositionStateType.Open) 
+                        || position.State == PositionStateType.Open
+                        || position.State == PositionStateType.ClosingFail) 
                         &&
                         position.StopOrderIsActive)
                     {
@@ -2192,7 +2195,8 @@ ContextMenuStrip menu)
                     if (
                        (position.State == PositionStateType.Closing
                         || position.State == PositionStateType.Opening
-                        || position.State == PositionStateType.Open) 
+                        || position.State == PositionStateType.Open
+                        || position.State == PositionStateType.ClosingFail) 
                         &&
                         position.ProfitOrderIsActive)
                     {
