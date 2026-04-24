@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BybitData.Entity;
@@ -131,12 +136,12 @@ namespace OsEngine.Market.Servers.BybitData
                 parametrs.Add("limit", "1000");
                 parametrs.Add("category", category);
 
-                string security = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
-                ByBitDataResponse<ListSymbols> responseSymbols;
+                HttpResponseMessage responseMessage = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
+                string response_msg = responseMessage.Content.ReadAsStringAsync().Result;
 
-                if (security != null)
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    responseSymbols = JsonConvert.DeserializeObject<ByBitDataResponse<ListSymbols>>(security);
+                    ByBitDataResponse<ListSymbols> responseSymbols = JsonConvert.DeserializeObject<ByBitDataResponse<ListSymbols>>(response_msg);
 
                     if (responseSymbols != null
                         && responseSymbols.retCode == "0"
@@ -150,7 +155,10 @@ namespace OsEngine.Market.Servers.BybitData
                             + $"Message: {responseSymbols.retMsg}", LogMessageType.Error);
                     }
                 }
-
+                else
+                {
+                    SendLogMessage($"Securities error. Code: {responseMessage.StatusCode} || msg: {response_msg}", LogMessageType.Error);
+                }
             }
             catch (Exception ex)
             {
@@ -255,8 +263,6 @@ namespace OsEngine.Market.Servers.BybitData
 
         #region 5 Data
 
-        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(500));
-
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             try
@@ -289,16 +295,21 @@ namespace OsEngine.Market.Servers.BybitData
 
                 do
                 {
-                    _rateGateGetCandleHistory.WaitToProceed();
+                    HttpResponseMessage responseMessage = RequestCandleHistoryWithRetries(parametrs, "/v5/market/kline");
 
-                    string candlesQuery = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/kline");
+                    string response_msg = responseMessage.Content.ReadAsStringAsync().Result;
 
-                    if (candlesQuery == null)
+                    if (responseMessage.StatusCode != HttpStatusCode.OK)
                     {
+                        if (responseMessage.StatusCode != 0)
+                        {
+                            SendLogMessage($"Candle History error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                        }
+
                         break;
                     }
 
-                    List<Candle> newCandles = GetListCandles(candlesQuery);
+                    List<Candle> newCandles = GetListCandles(response_msg);
 
                     if (newCandles != null && newCandles.Count > 0)
                     {
@@ -331,6 +342,28 @@ namespace OsEngine.Market.Servers.BybitData
             }
 
             return null;
+        }
+
+        private HttpResponseMessage RequestCandleHistoryWithRetries(Dictionary<string, object> parameters, string uri)
+        {
+            HttpResponseMessage responseMessage = null;
+
+            for (int i = 0; i < 3; i++)
+            {
+                responseMessage = CreatePublicQuery(parameters, HttpMethod.Get, "/v5/market/kline");
+                string response_msg = responseMessage.Content.ReadAsStringAsync().Result;
+
+                if (responseMessage.Content != null
+                    && !response_msg.Contains("\"retCode\":10006"))
+                {
+                    break;
+                }
+
+                //SendLogMessage($"Rate limit exceeded (10006) for {uri}", LogMessageType.Error);
+                Thread.Sleep(1000);
+            }
+
+            return responseMessage;
         }
 
         private List<Candle> GetListCandles(string candlesQuery)
@@ -692,13 +725,13 @@ namespace OsEngine.Market.Servers.BybitData
 
         #region Queries
 
-        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         private string _restUrl = "https://api.bybit.com";
 
         private string _httpClientLocker = "httpClientLocker";
 
-        private string CreatePublicQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
+        private HttpResponseMessage CreatePublicQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
         {
             lock (_httpClientLocker)
             {
@@ -717,27 +750,7 @@ namespace OsEngine.Market.Servers.BybitData
                     return null;
                 }
 
-                string response_msg = response.Content.ReadAsStringAsync().Result;
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    return response_msg;
-                }
-                else
-                {
-                    if (response_msg.Contains("\"retCode\": 10006"))
-                    {
-                        //SendLogMessage($"Limit 1000.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
-                        Thread.Sleep(1000);
-                        return CreatePublicQuery(parameters, httpMethod, uri);
-                    }
-                    else
-                    {
-                        SendLogMessage($"CreatePublicQuery> BybitUnified Client.Code:{response.StatusCode}, Message:{response_msg}", LogMessageType.Error);
-                    }
-
-                    return null;
-                }
+                return response;
             }
             catch (Exception ex)
             {
