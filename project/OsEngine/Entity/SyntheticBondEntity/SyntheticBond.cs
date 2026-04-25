@@ -70,8 +70,8 @@ namespace OsEngine.Entity.SyntheticBondEntity
 
             using (StreamReader reader = new StreamReader(@"Engine\" + UniqueName + @"SyntheticBondToLoad.txt"))
             {
-                BaseMultiplicator = Convert.ToInt32(reader.ReadLine());
-                FuturesMultiplicator = Convert.ToInt32(reader.ReadLine());
+                BaseMultiplicator = reader.ReadLine().ToDecimal();
+                FuturesMultiplicator = reader.ReadLine().ToDecimal();
                 BaseUseRationing = Convert.ToBoolean(reader.ReadLine());
                 FuturesUseRationing = Convert.ToBoolean(reader.ReadLine());
 
