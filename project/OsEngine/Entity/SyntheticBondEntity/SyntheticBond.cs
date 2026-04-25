@@ -143,7 +143,7 @@ namespace OsEngine.Entity.SyntheticBondEntity
                     string uniqueName = reader.ReadLine();
                     int scenarioNumber = Convert.ToInt32(reader.ReadLine());
 
-                    BondScenario bondScenario = new BondScenario(reader.ReadLine(), uniqueName, scenarioNumber, StartProgram);
+                    BondScenario bondScenario = new BondScenario(scriptName, uniqueName, scenarioNumber, StartProgram);
 
                     if (bondScenario.IsActiveScenario)
                     {
@@ -161,7 +161,7 @@ namespace OsEngine.Entity.SyntheticBondEntity
                     string uniqueName = reader.ReadLine();
                     int scenarioNumber = Convert.ToInt32(reader.ReadLine());
 
-                    BondScenario bondScenario = new BondScenario(reader.ReadLine(), uniqueName, scenarioNumber, StartProgram);
+                    BondScenario bondScenario = new BondScenario(scriptName, uniqueName, scenarioNumber, StartProgram);
 
                     DeletedScenarios.Add(bondScenario);
                 }
@@ -347,8 +347,7 @@ namespace OsEngine.Entity.SyntheticBondEntity
                 }
 
                 _patternFuturesTab = new BotTabSimple(UniqueName + "PatternFuturesTab", StartProgram);
-                _patternFuturesTab.DialogClosed += OnFuturesSecurityDialogClosed;
-                _patternFuturesTab.SecuritySubscribeEvent += SecuritySubscribe;
+                _patternFuturesTab.SecuritySubscribeEvent += FuturesSecuritySubscribe;
                 _patternFuturesTab.ShowConnectorDialog();
             }
             catch (Exception error)
@@ -357,16 +356,19 @@ namespace OsEngine.Entity.SyntheticBondEntity
             }
         }
 
-        private void SecuritySubscribe(Security security)
+        private void FuturesSecuritySubscribe(Security security)
         {
+            _patternFuturesTab.SecuritySubscribeEvent -= FuturesSecuritySubscribe;
+            PropagateSecurity(ref _patternFuturesTab, isBase: false);
+            PropagateSecurity(ref _patternBaseTab, isBase: true);
             Save();
             SecuritySubscribeEvent?.Invoke(security);
         }
 
-        private void OnFuturesSecurityDialogClosed()
+        private void SecuritySubscribe(Security security)
         {
-            _patternFuturesTab.DialogClosed -= OnFuturesSecurityDialogClosed;
-            PropagateSecurity(ref _patternFuturesTab, isBase: false);
+            Save();
+            SecuritySubscribeEvent?.Invoke(security);
         }
 
         public void PropagateSecurity(ref BotTabSimple patternTab, bool isBase, BondScenario scenario = null)
@@ -407,13 +409,29 @@ namespace OsEngine.Entity.SyntheticBondEntity
 
                 if (targetTab == null ||
                        (targetTab != null && targetTab.Connector == null))
+                {
                     needUpdate = false;
-                else if (targetTab.Connector.SecurityName != _patternBaseTab.Connector.SecurityName)
+                }
+                else if (_patternBaseTab != null && isBase &&
+                    targetTab.Connector.SecurityName != _patternBaseTab.Connector.SecurityName)
+                {
                     needUpdate = true;
+                }
+                else if (_patternFuturesTab != null && !isBase &&
+                    targetTab.Connector.SecurityName != _patternFuturesTab.Connector.SecurityName)
+                {
+                    needUpdate = true;
+                }
 
                 if (needUpdate)
                 {
                     UpdateConnectorCandles(targetTab.Connector, sourceConnector);
+                }
+
+                if (SelectedScenario == null ||
+                    (SelectedScenario != null && SelectedScenario.UniqueName == currentScenario.UniqueName))
+                {
+                    SelectedScenario = currentScenario;
                 }
             }
         }

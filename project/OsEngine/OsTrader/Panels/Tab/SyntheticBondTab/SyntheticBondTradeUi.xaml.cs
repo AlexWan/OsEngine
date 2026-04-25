@@ -46,6 +46,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             CurrentModeLabel.Content = OsLocalization.Trader.Label698;
             NonTradePeriodButton.Content = OsLocalization.Trader.Label473;
             ServerTimeLabel.Content = OsLocalization.Trader.Label722;
+            TimeShiftLabel.Content = OsLocalization.Trader.Label746;
             CurrentSpreadLabel.Content = OsLocalization.Trader.Label700 + " (%)";
             MinSpreadLabel.Content = OsLocalization.Trader.Label718 + " (%)";
             MaxSpreadLabel.Content = OsLocalization.Trader.Label719 + " (%)";
@@ -193,6 +194,9 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             //TextBoxContangoLookBack.Text = _syntheticBond.SeparationLength.ToString();
             //TextBoxContangoLookBack.TextChanged += TextBoxContangoLookBack_TextChanged;
 
+            TimeShiftTextBox.Text = _syntheticBond.SelectedScenario.ArbitrationIceberg.TimeShift.ToString();
+            TimeShiftTextBox.TextChanged += TimeShiftTextBox_TextChanged;
+
             TextBoxCointegrationDeviation.Text = _syntheticBond.CointegrationBuilder.CointegrationDeviation.ToString();
             TextBoxCointegrationDeviation.TextChanged += TextBoxCointegrationDeviation_TextChanged;
 
@@ -316,14 +320,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
 
                 if (_syntheticBond == null ||
                     (_syntheticBond != null &&
-                   (_syntheticBond.PatternFuturesTab == null)))
+                   (_syntheticBond.SelectedScenario.ArbitrationIceberg.CurrentTimeServer == DateTime.MinValue ||
+                   _syntheticBond.SelectedScenario.ArbitrationIceberg.CurrentTimeServer == DateTime.UnixEpoch)))
                 {
                     ServerTimeTextBox.Text = "None";
                     ServerTimeTextBox.Foreground = Brushes.Red;
                 }
                 else
                 {
-                    ServerTimeTextBox.Text = _syntheticBond.PatternFuturesTab.TimeServerCurrent.ToString("HH:mm:ss");
+                    ServerTimeTextBox.Text = _syntheticBond.SelectedScenario.ArbitrationIceberg.CurrentTimeServer.ToString();
                     ServerTimeTextBox.ClearValue(TextBox.ForegroundProperty);
                 }
 
@@ -1077,6 +1082,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 _updateTimer.Stop();
                 _updateTimer.Tick -= UpdateTimer_Tick;
                 //ScenarioComboBox.SelectionChanged -= ScenarioComboBox_SelectionChanged;
+                TimeShiftTextBox.TextChanged -= TimeShiftTextBox_TextChanged;
                 MinSpreadTextBox.TextChanged -= MinSpreadTextBox_TextChanged;
                 MaxSpreadTextBox.TextChanged -= MaxSpreadTextBox_TextChanged;
                 //TextBoxContangoLookBack.TextChanged -= TextBoxContangoLookBack_TextChanged;
@@ -1302,6 +1308,31 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         #endregion
 
         #region Events
+
+        private void TimeShiftTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (_isUpdatingUi) return;
+
+                if (string.IsNullOrEmpty(TimeShiftTextBox.Text))
+                {
+                    return;
+                }
+
+                int result;
+                if (!int.TryParse(TimeShiftTextBox.Text, out result))
+                {
+                    return;
+                }
+
+                _selectedScenario.ArbitrationIceberg.TimeShift = result;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         private void MinSpreadTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
