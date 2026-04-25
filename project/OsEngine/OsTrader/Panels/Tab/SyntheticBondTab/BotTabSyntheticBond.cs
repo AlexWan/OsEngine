@@ -1242,20 +1242,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                                 SyntheticBond syntheticBond = syntheticBondSeries.SyntheticBonds[i];
                                 if (row == foundKey + i)
                                 {
-                                    for (int i2 = 0; i2 < syntheticBond.ActiveScenarios.Count; i2++)
-                                    {
-                                        syntheticBond.ActiveScenarios[i2].ArbitrationIceberg.SecondaryLegs[0].BotTab.SecuritySubscribeEvent -= SecuritySubscribeEvent;
-                                        syntheticBond.ActiveScenarios[i2].ArbitrationIceberg.SecondaryLegs[0].BotTab.Clear();
-                                    }
-
                                     syntheticBondSeries.CloseTradeWindow(syntheticBond);
 
-                                    for (int s = syntheticBond.ActiveScenarios.Count - 1; s >= 0; s--)
-                                    {
-                                        syntheticBond.ActiveScenarios[s].Delete();
-                                    }
-
-                                    syntheticBond.ActiveScenarios.Clear();
                                     BondScenario scenario = new BondScenario("Script 1", syntheticBond.UniqueName, scenarioNumber: 1, StartProgram);
                                     syntheticBond.ActiveScenarios.Add(scenario);
 

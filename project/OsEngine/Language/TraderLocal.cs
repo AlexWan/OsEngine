@@ -2794,5 +2794,9 @@ namespace OsEngine.Language
         public string Label745 => OsLocalization.ConvertToLocString(
           "Eng:Separation_" +
           "Ru:Раздвижка_");
+
+        public string Label746 => OsLocalization.ConvertToLocString(
+          "Eng:Time shift (hour)_" +
+          "Ru:Временной сдвиг (час)_");
     }
 }

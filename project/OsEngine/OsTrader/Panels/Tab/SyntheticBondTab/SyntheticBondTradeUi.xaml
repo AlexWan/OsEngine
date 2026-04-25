@@ -113,6 +113,9 @@
                     <Button Grid.Row="0" Name="NonTradePeriodButton" Content="Non trade period"
                         Height="25" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,2,0,2"/>
 
+                    <Label Content="Time shift" Name="TimeShiftLabel" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,10" Grid.Row="1" Width="173" />
+                    <TextBox Grid.Row="1" Name="TimeShiftTextBox" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="188,0,0,10" Width="50"/>
+
                     <Label Grid.Row="2" Name="ServerTimeLabel" Content="Current server time"
                        VerticalAlignment="Center" HorizontalAlignment="Center" Padding="2,0,0,0"/>
 
