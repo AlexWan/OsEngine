@@ -2056,7 +2056,6 @@ namespace OsEngine.Market.Servers.TInvest
         //private readonly string _gRPCHost = "sandbox-invest-public-api.tbank.ru:443"; // sandbox 
         private readonly string _gRPCHost = "https://invest-public-api.tinkoff.ru:443"; // prod  as of v1.40 should be tbank.ru but doesn't work due to SSL certificate issue
         private Metadata _gRpcMetadata;
-        private Metadata _gRpcMetadataTwo;
 
         private GrpcChannel _channel;
         private CancellationTokenSource _cancellationTokenSource;
@@ -2110,11 +2109,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                 _gRpcMetadata.Add("Authorization", $"Bearer {_accessToken}");
                 _gRpcMetadata.Add("x-app-name", "OsEngine");
-
-                _gRpcMetadataTwo = new Metadata();
-
-                _gRpcMetadataTwo.Add("Authorization", $"Bearer {_accessToken}");
-                _gRpcMetadataTwo.Add("x-app-name", "HappyUsersSoft");
                 
                 _cancellationTokenSource = new CancellationTokenSource();
 
@@ -3978,59 +3972,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         private Metadata GetMetaData(string securityName)
         {
-            // создаём базовый список
-            if (_tSecurities.Count == 0)
-            {
-                _tSecurities.Add("TPAY", new TinSecuritiesData());  // TPAY - пассисный доход
-                _tSecurities.Add("TDIV@", new TinSecuritiesData()); // TDIV@ - дивидендные акции
-                _tSecurities.Add("TRND@", new TinSecuritiesData()); // TRND@ - трендовые акции
-                _tSecurities.Add("TKVM", new TinSecuritiesData());  // TKVM - квадратные метры
-                _tSecurities.Add("TLCB@", new TinSecuritiesData()); // TLCB@ - валютные облигации
-                _tSecurities.Add("TOFZ@", new TinSecuritiesData()); // TOFZ@ - офзшки
-
-                _tSecurities.Add("TGLD@", new TinSecuritiesData()); // TGLD@ - золото
-                _tSecurities.Add("TITR@", new TinSecuritiesData()); // TITR@ - российские технологии
-                _tSecurities.Add("T", new TinSecuritiesData());     // Т - акции Т Технологии
-                _tSecurities.Add("TMON@", new TinSecuritiesData()); // TMON@ - фонд денежного рынка
-                _tSecurities.Add("TMOS@", new TinSecuritiesData()); // TMOS@ - Крупнейшие компании РФ
-
-                _tSecurities.Add("TKVC", new TinSecuritiesData());  // TKVC - стартапы России
-                _tSecurities.Add("TRRE", new TinSecuritiesData());  // TRRE - репаблик РЕДС Москва
-                _tSecurities.Add("TRUR@", new TinSecuritiesData()); // TRUR@ - фонд "вечный портфель"
-                _tSecurities.Add("TVEN", new TinSecuritiesData());  // TVEN - фонд "венчурные инвестиции"
-            }
-
-            TinSecuritiesData mySecurity;
-
-            if (_tSecurities.TryGetValue(securityName, out mySecurity) == true)
-            {
-                DateTime now = DateTime.Now;
-
-                if (now.Year == 2026
-                    && now.Month == 4
-                    && now.Day <= 20)
-                {
-                    return _gRpcMetadataTwo;
-                }
-
-                if (mySecurity.TimeOfTrade.DayOfYear == now.DayOfYear)
-                {
-                    mySecurity.OrdersCount++;
-
-                    if(mySecurity.OrdersCount < 15)
-                    {
-                        return _gRpcMetadataTwo;
-                    }
-                }
-                else
-                {
-                    mySecurity.TimeOfTrade = now;
-                    mySecurity.OrdersCount = 0;
-                }
-            }
-
             return _gRpcMetadata;
-            
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)

@@ -943,6 +943,12 @@ namespace OsEngine.Market.Servers
         {
             try
             {
+                if(_gridServerParameters.SelectedCells == null
+                    || _gridServerParameters.SelectedCells.Count == 0)
+                {
+                    return;
+                }
+
                 var s = e.GetType();
 
                 var mouse = (MouseEventArgs)e;
