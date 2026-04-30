@@ -1879,7 +1879,7 @@ namespace OsEngine.Market.Servers.TInvest
                 if (_getCandlesErrorsCount >=8
                      && ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage(OsLocalization.Market.Label322, LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Label322 + "\n Security: " + security.Name, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
