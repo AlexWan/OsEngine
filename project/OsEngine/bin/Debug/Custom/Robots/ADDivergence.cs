@@ -47,8 +47,7 @@ namespace OsEngine.Robots
         // Basic Settings
         private StrategyParameterString _regime;
         private StrategyParameterDecimal _slippage;
-        private StrategyParameterTimeOfDay _startTradeTime;
-        private StrategyParameterTimeOfDay _endTradeTime;
+        private StrategyParameterString _orderType;
 
         // GetVolume settings
         private StrategyParameterString _volumeType;
@@ -66,16 +65,40 @@ namespace OsEngine.Robots
         // Exit setting
         private StrategyParameterInt _exitCandlesCount;
 
+        // Non trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public ADDivergence(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
             // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
+
             // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _orderType = CreateParameter("Order type", "Market", new[] { "Market", "Limit" }, "Base");
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
@@ -85,6 +108,10 @@ namespace OsEngine.Robots
             // Indicator settings
             _lenghtZig = CreateParameter("Period Zig", 30, 10, 300, 10, "Indicator");
             _lenghtZigAD = CreateParameter("Period Zig AD", 30, 10, 300, 10, "Indicator");
+
+            // non trade period button
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
             // Create indicator ZigZagAD
             _ZigZagAD = IndicatorsFactory.CreateIndicatorByName("ZigZagAD", name + "ZigZagAD", false);
@@ -108,6 +135,12 @@ namespace OsEngine.Robots
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = OsLocalization.Description.DescriptionLabel127;
+        }
+
+        // non trade period button click
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         // Indicator Update event
@@ -143,8 +176,7 @@ namespace OsEngine.Robots
             }
 
             // If the time does not match, we leave
-            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
-                _endTradeTime.Value < _tab.TimeServerCurrent)
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }
@@ -192,7 +224,15 @@ namespace OsEngine.Robots
                     if (DevirgenceBuy(zzLow, zzADLow, zzADHigh) == true)
                     {
                         var time = candles.Last().TimeStart;
-                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage, time.ToString());
+
+                        if (_orderType == "Limit")
+                        {
+                            _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage, time.ToString());
+                        }
+                        else
+                        {
+                            _tab.BuyAtMarket(GetVolume(_tab), time.ToString());
+                        }
                     }
                 }
 
@@ -202,7 +242,14 @@ namespace OsEngine.Robots
                     if (DevirgenceSell(zzHigh, zzADHigh, zzADLow) == true)
                     {
                         var time = candles.Last().TimeStart;
-                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage, time.ToString());
+                        if (_orderType == "Limit")
+                        {
+                            _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage, time.ToString());
+                        }
+                        else
+                        {
+                            _tab.SellAtMarket(GetVolume(_tab), time.ToString());
+                        }
                     }
                 }
                 return;
@@ -236,11 +283,25 @@ namespace OsEngine.Robots
 
                 if (pos.Direction == Side.Buy) // If the direction of the position is long
                 {
-                    _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
+                    }
+                    else
+                    {
+                        _tab.CloseAtMarket(pos, pos.OpenVolume);
+                    }
                 }
                 else // If the direction of the position is short
                 {
-                    _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
+                    }
+                    else
+                    {
+                        _tab.CloseAtMarket(pos, pos.OpenVolume);
+                    }
                 }
             }
         }
