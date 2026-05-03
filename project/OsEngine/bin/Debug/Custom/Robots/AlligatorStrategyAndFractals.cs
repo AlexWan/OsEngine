@@ -313,7 +313,16 @@ namespace OsEngine.Robots
                     {
                         return;
                     }
-                    _tab.CloseAtTrailingStop(pos, price, price - _slippage);
+
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtTrailingStop(pos, price, price - _slippage);
+                    }
+                    else
+                    {
+                        _tab.CloseAtTrailingStopMarket(pos, price);
+
+                    }
                 }
                 else // If the direction of the position is short
                 {
@@ -322,7 +331,14 @@ namespace OsEngine.Robots
                     {
                         return;
                     }
-                    _tab.CloseAtTrailingStop(pos, price, price + _slippage);
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtTrailingStop(pos, price, price + _slippage);
+                    }
+                    else
+                    {
+                        _tab.CloseAtTrailingStopMarket(pos, price);
+                    }
                 }
             }
         }
