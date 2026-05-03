@@ -303,14 +303,28 @@ namespace OsEngine.Robots
                 {
                     if (lastPrice < _lastParabolic)
                     {
-                        _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
+                        }
+                        else
+                        {
+                            _tab.CloseAtMarket(pos, pos.OpenVolume);
+                        }
                     }
                 }
                 else // If the direction of the position is short
                 {
                     if (lastPrice > _lastParabolic)
                     {
-                        _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
+                        }
+                        else
+                        {
+                            _tab.CloseAtMarket(pos, pos.OpenVolume);
+                        }
                     }
                 }
             }
