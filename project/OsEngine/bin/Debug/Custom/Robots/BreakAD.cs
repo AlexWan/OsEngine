@@ -258,7 +258,7 @@ namespace OsEngine.Robots
                     }
                     else
                     {
-                        _tab.CloseAtMarket(position, position.OpenVolume);
+                        _tab.CloseAtTrailingStopMarket(position, position.OpenVolume);
                     }
                 }
                 else // If the direction of the position is short
@@ -276,7 +276,7 @@ namespace OsEngine.Robots
                     }
                     else
                     {
-                        _tab.CloseAtMarket(position, position.OpenVolume);
+                        _tab.CloseAtTrailingStopMarket(position, position.OpenVolume);
                     }
                 }
             }
