@@ -25,7 +25,7 @@ namespace OsEngine.Robots.Monitors
 {
     /*
 
-    MonitorPumpDump
+    MonitorImpulse
     Монитор для анализа движений вниз и вверх по отдельным активам за N свечек
     Содержит в себе богатую визуальную часть, в которой видно таблицу движений по выбранным активам
 
@@ -35,8 +35,8 @@ namespace OsEngine.Robots.Monitors
 
     */
 
-    [Bot("MonitorPumpDump")]
-    public class MonitorPumpDump : BotPanel
+    [Bot("MonitorImpulse")]
+    public class MonitorImpulse : BotPanel
     {
         private BotTabScreener _tabScreener;
 
@@ -78,7 +78,7 @@ namespace OsEngine.Robots.Monitors
         private StrategyParameterString _downSignalsMusic;
         private StrategyParameterBool _downSignalsErrorLogIsOn;
 
-        public MonitorPumpDump(string name, StartProgram startProgram) : base(name, startProgram)
+        public MonitorImpulse(string name, StartProgram startProgram) : base(name, startProgram)
         {
             // non trade periods
             _tradePeriodsSettings = new NonTradePeriods(name);
@@ -244,6 +244,11 @@ namespace OsEngine.Robots.Monitors
 
             if (tab.IsConnected == false
                 || tab.IsReadyToTrade == false)
+            {
+                return;
+            }
+
+            if(candles == null || candles.Count < 5)
             {
                 return;
             }
@@ -579,10 +584,17 @@ namespace OsEngine.Robots.Monitors
 
                     if(_checkMoveTimes.Values.Count > 0)
                     {
-                        foreach (MoveData data in _checkMoveTimes.Values)
+                        try
                         {
-                            DataGridViewRow newRow = GetRow(data);
-                            _tableDataGrid.Rows.Add(newRow);
+                            foreach (MoveData data in _checkMoveTimes.Values)
+                            {
+                                DataGridViewRow newRow = GetRow(data);
+                                _tableDataGrid.Rows.Add(newRow);
+                            }
+                        }
+                        catch
+                        {
+                            return;
                         }
                     }
 

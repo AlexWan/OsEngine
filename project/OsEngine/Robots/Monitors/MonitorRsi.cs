@@ -265,6 +265,11 @@ namespace OsEngine.Robots.Monitors
                 return;
             }
 
+            if (candles == null || candles.Count < 5)
+            {
+                return;
+            }
+
             UpdateMoveData(candles, tab);
             TryUpdateTable();
 
@@ -603,10 +608,17 @@ namespace OsEngine.Robots.Monitors
 
                     if (_checkMoveTimes.Values.Count > 0)
                     {
-                        foreach (MoveData data in _checkMoveTimes.Values)
+                        try
                         {
-                            DataGridViewRow newRow = GetRow(data);
-                            _tableDataGrid.Rows.Add(newRow);
+                            foreach (MoveData data in _checkMoveTimes.Values)
+                            {
+                                DataGridViewRow newRow = GetRow(data);
+                                _tableDataGrid.Rows.Add(newRow);
+                            }
+                        }
+                        catch
+                        {
+                            return;
                         }
                     }
 
