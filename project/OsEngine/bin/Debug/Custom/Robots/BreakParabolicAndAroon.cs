@@ -41,8 +41,7 @@ namespace OsEngine.Robots
         // Basic Settings
         private StrategyParameterString _regime;
         private StrategyParameterDecimal _slippage;
-        private StrategyParameterTimeOfDay _startTradeTime;
-        private StrategyParameterTimeOfDay _endTradeTime;
+        private StrategyParameterString _orderType;
 
         // GetVolume settings
         private StrategyParameterString _volumeType;
@@ -58,8 +57,32 @@ namespace OsEngine.Robots
         private Aindicator _pS;
         private Aindicator _aroon;
 
+        // Non trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public BreakParabolicAndAroon(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
             // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -67,8 +90,7 @@ namespace OsEngine.Robots
             // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _orderType = CreateParameter("Order type", "Market", new[] { "Market", "Limit" }, "Base");
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
@@ -79,6 +101,10 @@ namespace OsEngine.Robots
             _step = CreateParameter("Step", 0.02m, 0.001m, 3, 0.001m, "Indicator");
             _maxStep = CreateParameter("MaxStep", 0.2m, 0.01m, 1, 0.01m, "Indicator");
             _aroonLength = CreateParameter("Aroon Length", 14, 1, 200, 1, "Indicator");
+
+            // non trade period button
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
             // Create indicator Parabolic Sar
             _pS = IndicatorsFactory.CreateIndicatorByName("ParabolicSAR", name + "Parabolic", false);
@@ -103,6 +129,12 @@ namespace OsEngine.Robots
             _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
 
             Description = OsLocalization.Description.DescriptionLabel160;
+        }
+
+        // non trade period button click
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         private void _tab_PositionOpeningSuccesEvent(Position position)
@@ -150,8 +182,7 @@ namespace OsEngine.Robots
             }
 
             // If the time does not match, we leave
-            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
-                _endTradeTime.Value < _tab.TimeServerCurrent)
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }
@@ -203,7 +234,15 @@ namespace OsEngine.Robots
                         decimal _slippage = this._slippage.ValueDecimal * lastSar / 100;
 
                         _tab.BuyAtStopCancel();
-                        _tab.BuyAtStop(GetVolume(_tab), lastSar + _slippage, lastSar, StopActivateType.HigherOrEqual, 1);
+                        
+                        if (_orderType == "Limit")
+                        {
+                            _tab.BuyAtStop(GetVolume(_tab), lastSar + _slippage, lastSar, StopActivateType.HigherOrEqual, 1);
+                        }
+                        else
+                        {
+                            _tab.BuyAtStopMarket(GetVolume(_tab), lastSar + _slippage, lastSar, StopActivateType.HigherOrEqual, 1, "", PositionOpenerToStopLifeTimeType.NoLifeTime);
+                        }
                     }
                 }
 
@@ -220,7 +259,15 @@ namespace OsEngine.Robots
                         decimal _slippage = this._slippage.ValueDecimal * lastSar / 100;
 
                         _tab.SellAtStopCancel();
-                        _tab.SellAtStop(GetVolume(_tab), lastSar - _slippage, lastSar, StopActivateType.LowerOrEqyal, 1);
+
+                        if (_orderType == "Limit")
+                        {
+                            _tab.SellAtStop(GetVolume(_tab), lastSar - _slippage, lastSar, StopActivateType.LowerOrEqual, 1);
+                        }
+                        else
+                        {
+                            _tab.SellAtStopMarket(GetVolume(_tab), lastSar - _slippage, lastSar, StopActivateType.LowerOrEqual, 1, "", PositionOpenerToStopLifeTimeType.NoLifeTime);
+                        }
                     }
                 }
             }
@@ -240,7 +287,7 @@ namespace OsEngine.Robots
 
                 Position pos = openPositions[i];
 
-                if (pos.CloseActiv == true && pos.CloseOrders != null && pos.CloseOrders.Count > 0)
+                if (pos.CloseActive == true && pos.CloseOrders != null && pos.CloseOrders.Count > 0)
                 {
                     return;
                 }
@@ -251,11 +298,25 @@ namespace OsEngine.Robots
 
                 if (pos.Direction == Side.Buy)
                 {
-                    _tab.CloseAtStop(pos, priceLine, priceOrder - _slippage);
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtStop(pos, priceLine, priceOrder - _slippage);
+                    }
+                    else
+                    {
+                        _tab.CloseAtStopMarket(pos, priceLine);
+                    }
                 }
                 else if (pos.Direction == Side.Sell)
                 {
-                    _tab.CloseAtStop(pos, priceLine, priceOrder + _slippage);
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtStop(pos, priceLine, priceOrder + _slippage);
+                    }
+                    else
+                    {
+                        _tab.CloseAtStopMarket(pos, priceLine);
+                    }
                 }
             }
         }
