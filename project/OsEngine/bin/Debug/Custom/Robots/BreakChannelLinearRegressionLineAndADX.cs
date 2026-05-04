@@ -35,7 +35,7 @@ After a certain number of candles.
 
 namespace OsEngine.Robots
 {
-    [Bot( "BreakChannelLinearRegressionLineAndADX")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    [Bot("BreakChannelLinearRegressionLineAndADX")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakChannelLinearRegressionLineAndADX : BotPanel
     {
         // Reference to the main trading tab
@@ -44,8 +44,7 @@ namespace OsEngine.Robots
         // Basic Settings
         private StrategyParameterString _regime;
         private StrategyParameterDecimal _slippage;
-        private StrategyParameterTimeOfDay _startTradeTime;
-        private StrategyParameterTimeOfDay _endTradeTime;
+        private StrategyParameterString _orderType;
 
         // GetVolume Settings
         private StrategyParameterString _volumeType;
@@ -70,8 +69,32 @@ namespace OsEngine.Robots
         // Exit setting
         private StrategyParameterInt _exitCandles;
 
+        // Non trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public BreakChannelLinearRegressionLineAndADX(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
             // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -79,24 +102,27 @@ namespace OsEngine.Robots
             // Basic Settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _orderType = CreateParameter("Order type", "Market", new[] { "Market", "Limit" }, "Base");
 
             // GetVolume Settings
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             // Indicator Settings
             _periodADX = CreateParameter("Period ADX", 15, 50, 300, 10, "Indicator");
             _periodLRMAChannel = CreateParameter("Period LRMA Channel", 21, 7, 48, 7, "Indicator");
-          
+
+            // non trade period button
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
+
             // Creating an indicator ADX
             _ADX = IndicatorsFactory.CreateIndicatorByName("ADX", name + "ADX", false);
             _ADX = (Aindicator)_tab.CreateCandleIndicator(_ADX, "NewArea");
             ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = _periodADX.ValueInt;
             _ADX.Save();
-           
+
             // Creating an indicator LRMA1
             _LRMAUp = IndicatorsFactory.CreateIndicatorByName("LinearRegressionLine", name + "_LRMAUp", false);
             _LRMAUp = (Aindicator)_tab.CreateCandleIndicator(_LRMAUp, "Prime");
@@ -123,6 +149,12 @@ namespace OsEngine.Robots
             Description = OsLocalization.Description.DescriptionLabel142;
         }
 
+        // non trade period button click
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
+        }
+
         // Indicators Update event
         private void BreakChannelLinearRegressionLineAndADX_ParametrsChangeByUser()
         {
@@ -144,7 +176,7 @@ namespace OsEngine.Robots
         {
             return "BreakChannelLinearRegressionLineAndADX";
         }
-        
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -160,14 +192,13 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _periodADX.ValueInt || candles.Count < _periodLRMAChannel.ValueInt)               
+            if (candles.Count < _periodADX.ValueInt || candles.Count < _periodLRMAChannel.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we exit
-            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
-                _endTradeTime.Value < _tab.TimeServerCurrent)
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }
@@ -201,7 +232,7 @@ namespace OsEngine.Robots
             if (openPositions == null || openPositions.Count == 0)
             {
                 decimal lastPrice = candles[candles.Count - 1].Close;
-                
+
                 // Slippage
                 decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
@@ -212,15 +243,23 @@ namespace OsEngine.Robots
                 _lastADX = _ADX.DataSeries[0].Last;
                 _lastUpLine = _LRMAUp.DataSeries[0].Last;
                 _lastDownLine = _LRMADown.DataSeries[0].Last;
-            
+
                 // Long
                 if (_regime.ValueString != "OnlyShort") // if the mode is not only short, then we enter long
                 {
-                    if (lastPrice > _lastUpLine  
+                    if (lastPrice > _lastUpLine
                         && _prevADX < _lastADX && _lastADX > 20)
                     {
                         var time = candles.Last().TimeStart;
-                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage, time.ToString());
+
+                        if (_orderType == "Limit")
+                        {
+                            _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage, time.ToString());
+                        }
+                        else
+                        {
+                            _tab.BuyAtMarket(GetVolume(_tab), time.ToString());
+                        }
                     }
                 }
 
@@ -231,7 +270,15 @@ namespace OsEngine.Robots
                         && _prevADX < _lastADX && _lastADX > 20)
                     {
                         var time = candles.Last().TimeStart;
-                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage, time.ToString());
+
+                        if (_orderType == "Limit")
+                        {
+                            _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage, time.ToString());
+                        }
+                        else
+                        {
+                            _tab.SellAtMarket(GetVolume(_tab), time.ToString());
+                        }
                     }
                 }
             }
@@ -262,11 +309,25 @@ namespace OsEngine.Robots
 
                 if (position.Direction == Side.Buy) // If the direction of the position is long
                 {
-                    _tab.CloseAtLimit(position, lastPrice - _slippage, position.OpenVolume);
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtLimit(position, lastPrice - _slippage, position.OpenVolume);
+                    }
+                    else
+                    {
+                        _tab.CloseAtMarket(position, position.OpenVolume);
+                    }
                 }
                 else // If the direction of the position is short
                 {
-                    _tab.CloseAtLimit(position, lastPrice + _slippage, position.OpenVolume);
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtLimit(position, lastPrice + _slippage, position.OpenVolume);
+                    }
+                    else
+                    {
+                        _tab.CloseAtMarket(position, position.OpenVolume);
+                    }
                 }
 
             }
