@@ -26,14 +26,8 @@ namespace OsEngine.Robots.Monitors
     /*
 
     MonitorPumpDump
-    Монитор для анализа резких движений вниз и вверх по отдельным активам за N секунд
+    Монитор для анализа движений вниз и вверх по отдельным активам за N свечек
     Содержит в себе богатую визуальную часть, в которой видно таблицу движений по выбранным активам
-
-    Фильтр выбора бумаг в монитор по объёмам, с выбором отображаемого класса: 
-    1) ТОП 25 % по объёмам. Класс 1 - голубые фишки
-    2) От 25 до 50% по объёмам. Класс 2 - второй эшелон
-    3) От 50 до 75 по объёмам. Класс 3 - третий эшелон
-    4) ЛОУ 25 % по объёмам. Класс 4 - Арсагера
 
     При фиксации определённого движения вверх или вниз, поддерживает:
     1) Сигналы визуальные и звуковые.
@@ -131,7 +125,7 @@ namespace OsEngine.Robots.Monitors
 
             // Short
             _shortIsOn = CreateParameter("Short Is On", false, "Short");
-            _shortPercentMove = CreateParameter("Short move to entry", 1.4m, 0.1m, 1, 0.1m, "Short");
+            _shortPercentMove = CreateParameter("Short move to entry", -1.4m, 0.1m, 1, 0.1m, "Short");
             _shortMaxPositions = CreateParameter("Short max positions count", 3, 0, 20, 1, "Short");
             _shortStopPercent = CreateParameter("Short stop percent", 0.8m, 0.1m, 1, 0.1m, "Short");
             _shortProfitPercent = CreateParameter("Short profit percent", 0.8m, 0.1m, 1, 0.1m, "Short");
@@ -703,7 +697,7 @@ namespace OsEngine.Robots.Monitors
         {
             List<Position> positions = _tabScreener.PositionsOpenAll.FindAll(p => p.Direction == Side.Buy);
 
-            if(positions.Count >= _longMaxPositions.ValueInt)
+            if (positions.Count >= _longMaxPositions.ValueInt)
             {
                 return;
             }
@@ -715,12 +709,25 @@ namespace OsEngine.Robots.Monitors
                 return;
             }
 
-            decimal movePercent = myData.MoveUp;
-
-            if (movePercent > _longPercentMove.ValueDecimal 
-                && candles[^1].IsUp)
+            if (_longPercentMove.ValueDecimal > 0)
             {
-                tab.BuyAtMarket(GetVolume(tab,_longVolumeType,_longVolume,_longTradeAssetInPortfolio));
+                decimal movePercent = myData.MoveUp;
+
+                if (movePercent > _longPercentMove.ValueDecimal
+                    && candles[^1].IsUp)
+                {
+                    tab.BuyAtMarket(GetVolume(tab, _longVolumeType, _longVolume, _longTradeAssetInPortfolio));
+                }
+            }
+            if (_longPercentMove.ValueDecimal < 0)
+            {
+                decimal movePercent = myData.MoveDown;
+
+                if (movePercent < _longPercentMove.ValueDecimal
+                    && candles[^1].IsDown)
+                {
+                    tab.BuyAtMarket(GetVolume(tab, _longVolumeType, _longVolume, _longTradeAssetInPortfolio));
+                }
             }
         }
 
@@ -800,12 +807,25 @@ namespace OsEngine.Robots.Monitors
                 return;
             }
 
-            decimal movePercent = myData.MoveDown;
-
-            if (movePercent < _shortPercentMove.ValueDecimal
-                && candles[^1].IsDown)
+            if (_shortPercentMove.ValueDecimal < 0)
             {
-                tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
+                decimal movePercent = myData.MoveDown;
+
+                if (movePercent < _shortPercentMove.ValueDecimal
+                    && candles[^1].IsDown)
+                {
+                    tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
+                }
+            }
+            if (_shortPercentMove.ValueDecimal > 0)
+            {
+                decimal movePercent = myData.MoveUp;
+
+                if (movePercent > _shortPercentMove.ValueDecimal
+                    && candles[^1].IsUp)
+                {
+                    tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
+                }
             }
         }
 
@@ -989,6 +1009,8 @@ namespace OsEngine.Robots.Monitors
         public string SecurityName;
 
         public DateTime Time;
+
+        public List<decimal> Values;
 
         public decimal MoveDown;
 
