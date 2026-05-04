@@ -115,7 +115,6 @@ namespace OsEngine.Robots.Monitors
 
             _tabScreener.CreateCandleIndicator(1, "RSI", new List<string>() { _rsiLength.ValueInt.ToString() }, "Second");
 
-
             // Long
             _longIsOn = CreateParameter("Long Is On", false, "Long");
             _longPercentMove = CreateParameter("Long move to entry", 15m, 0.1m, 1, 0.1m, "Long");
@@ -140,12 +139,12 @@ namespace OsEngine.Robots.Monitors
 
             // Signals
             _upSignalsIsOn = CreateParameter("Up signals is on", false, "Signals");
-            _upSignalsPercentMove = CreateParameter("Up signals move", 0.7m, 0.1m, 1, 0.1m, "Signals");
+            _upSignalsPercentMove = CreateParameter("Up signals move", 7m, 0.1m, 1, 0.1m, "Signals");
             _upSignalsMusic = CreateParameter("Up signals music", "Duck", new[] { "Duck", "Wolf" }, "Signals");
             _upSignalsErrorLogIsOn = CreateParameter("Up signals error log is on", true, "Signals");
 
             _downSignalsIsOn = CreateParameter("Down signals is on", false, "Signals");
-            _downSignalsPercentMove = CreateParameter("Down signals move", -0.7m, 0.1m, 1, 0.1m, "Signals");
+            _downSignalsPercentMove = CreateParameter("Down signals move", -7m, 0.1m, 1, 0.1m, "Signals");
             _downSignalsMusic = CreateParameter("Down signals music", "Wolf", new[] { "Duck", "Wolf" }, "Signals");
             _downSignalsErrorLogIsOn = CreateParameter("Down signals error log is on", true, "Signals");
 
@@ -159,8 +158,8 @@ namespace OsEngine.Robots.Monitors
             customTabOrderGrid.AddChildren(_hostTable);
 
             Description = OsLocalization.ConvertToLocString(
-            "Eng:Monitor for tracking the movement of assets on the market over a certain number of candles. With the ability to send alerts and trade_" +
-            "Ru:Монитор для слежения за движением активов на рынке за определённое кол-во свечей. С возможность выбрасывать алерты и торговать_");
+            "Eng:Monitor for tracking the movement of assets on the market over a certain number of candles by indicator RSI. With the ability to send alerts and trade_" +
+            "Ru:Монитор для слежения за движением активов на рынке за определённое кол-во свечей по индикатору RSI. С возможность выбрасывать алерты и торговать_");
 
             if (startProgram == StartProgram.IsTester)
             {
