@@ -21,30 +21,36 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Properties;
 using OsEngine.Language;
 using OsEngine.Indicators;
+using System.Linq;
+using System.Drawing;
 
 namespace OsEngine.Robots.Monitors
 {
     /*
-    MonitorRsi
-    Монитор для анализа движений вниз и вверх по отдельным активам за N свечек
-    Содержит в себе богатую визуальную часть, в которой видно таблицу движений по выбранным активам
 
-    При фиксации определённого движения вверх или вниз, поддерживает:
-    1) Сигналы визуальные и звуковые.
-    2) Автоматическое открытие позиций. С закрытием по профиту и стопу. Или закрытие по времени
-    */
+MonitorVolume
+Монитор для анализа перемещения бумаг по ренкингу объёмов за N свечек
+Содержит в себе богатую визуальную часть, в которой видно таблицу движений по выбранным активам
 
-    [Bot("MonitorRsi")]
-    public class MonitorRsi : BotPanel
+При фиксации определённого движения вверх или вниз, поддерживает:
+1) Сигналы визуальные и звуковые.
+2) Автоматическое открытие позиций. С закрытием по профиту и стопу. Или закрытие по времени
+
+*/
+    [Bot("MonitorVolume")]
+    public class MonitorVolume : BotPanel
     {
         private BotTabScreener _tabScreener;
 
         // Prime settings
         private StrategyParameterString _regime;
-        private StrategyParameterInt _candlesToAnalyze;
-        private StrategyParameterInt _rsiLength;
+        private StrategyParameterInt _candlesLookBackMoveInRanking;
+        private StrategyParameterInt _candlesLookBackVolume;
         private NonTradePeriods _tradePeriodsSettings;
         private StrategyParameterButton _tradePeriodsShowDialogButton;
+        private StrategyParameterInt _keltnerAtrLength;
+        private StrategyParameterInt _keltnerEmaLength;
+        private StrategyParameterDecimal _keltnerDeviation;
 
         // Long
         private StrategyParameterBool _longIsOn;
@@ -52,7 +58,7 @@ namespace OsEngine.Robots.Monitors
         private StrategyParameterInt _longMaxPositions;
         private StrategyParameterDecimal _longStopPercent;
         private StrategyParameterDecimal _longProfitPercent;
-        private StrategyParameterInt _longMaxSecondsInPositions;
+        private StrategyParameterInt _longMaxCandlesInPositions;
         private StrategyParameterString _longVolumeType;
         private StrategyParameterDecimal _longVolume;
         private StrategyParameterString _longTradeAssetInPortfolio;
@@ -63,7 +69,7 @@ namespace OsEngine.Robots.Monitors
         private StrategyParameterInt _shortMaxPositions;
         private StrategyParameterDecimal _shortStopPercent;
         private StrategyParameterDecimal _shortProfitPercent;
-        private StrategyParameterInt _shortMaxSecondsInPositions;
+        private StrategyParameterInt _shortMaxCandlesInPositions;
         private StrategyParameterString _shortVolumeType;
         private StrategyParameterDecimal _shortVolume;
         private StrategyParameterString _shortTradeAssetInPortfolio;
@@ -78,7 +84,7 @@ namespace OsEngine.Robots.Monitors
         private StrategyParameterString _downSignalsMusic;
         private StrategyParameterBool _downSignalsErrorLogIsOn;
 
-        public MonitorRsi(string name, StartProgram startProgram) : base(name, startProgram)
+        public MonitorVolume(string name, StartProgram startProgram) : base(name, startProgram)
         {
             // non trade periods
             _tradePeriodsSettings = new NonTradePeriods(name);
@@ -102,49 +108,61 @@ namespace OsEngine.Robots.Monitors
 
             TabCreate(BotTabType.Screener);
             _tabScreener = TabsScreener[0];
-            _tabScreener.CandleUpdateEvent += _tabScreener_CandleUpdateEvent;
-            _tabScreener.CandleFinishedEvent += _tabScreener_CandleFinishedEvent;
+            _tabScreener.CandlesSyncFinishedEvent += _tabScreener_CandlesSyncFinishedEvent;
             _tabScreener.PositionOpeningSuccesEvent += _tabScreener_PositionOpeningSuccesEvent;
 
             // Prime settings
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "OnCandleUpdate", "OnCandleFinish" }, "Prime settings");
-            _candlesToAnalyze = CreateParameter("Candles to analyze", 3, 0, 20, 1, "Prime settings");
-            _rsiLength = CreateParameter("Rsi length", 25, 0, 20, 1, "Prime settings");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Prime settings");
+            _candlesLookBackVolume = CreateParameter("Lookback volume. Hours", 24, 0, 20, 1, "Prime settings");
+            _candlesLookBackMoveInRanking = CreateParameter("Lookback move in ranking. Candles", 10, 0, 20, 1, "Prime settings");
+
+            _keltnerEmaLength = CreateParameter("Keltner ema Length", 150, 20, 300, 10, "Prime settings");
+            _keltnerAtrLength = CreateParameter("Keltner atr Length", 24, 20, 300, 10, "Prime settings");
+            _keltnerDeviation = CreateParameter("Keltner deviation", 3.5m, 1, 4, 0.1m, "Prime settings");
+
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Prime settings");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _tabScreener.CreateCandleIndicator(1, "RSI", new List<string>() { _rsiLength.ValueInt.ToString() }, "Second");
+            _tabScreener.CreateCandleIndicator(1, "Volume", new List<string>() { }, "Second");
+
+            _tabScreener.CreateCandleIndicator(2, "KeltnerChannel", new List<string>() {
+                _keltnerEmaLength.ValueInt.ToString(),
+                _keltnerAtrLength.ValueInt.ToString(),
+                _keltnerAtrLength.ValueInt.ToString(),
+                _keltnerDeviation.ValueDecimal.ToString(),
+                "Typical"
+            }, "Prime");
 
             // Long
             _longIsOn = CreateParameter("Long Is On", false, "Long");
-            _longPercentMove = CreateParameter("Long move to entry", 15m, 0.1m, 1, 0.1m, "Long");
+            _longPercentMove = CreateParameter("Long move to entry", 3m, 0.1m, 1, 0.1m, "Long");
             _longMaxPositions = CreateParameter("Long max positions count", 3, 0, 20, 1, "Long");
-            _longStopPercent = CreateParameter("Long stop percent", 0.8m, 0.1m, 1, 0.1m, "Long");
-            _longProfitPercent = CreateParameter("Long profit percent", 0.8m, 0.1m, 1, 0.1m, "Long");
-            _longMaxSecondsInPositions = CreateParameter("Long seconds in position", 0, 0, 20, 1, "Long");
+            _longStopPercent = CreateParameter("Long stop percent", 0m, 0.1m, 1, 0.1m, "Long");
+            _longProfitPercent = CreateParameter("Long profit percent", 0m, 0.1m, 1, 0.1m, "Long");
+            _longMaxCandlesInPositions = CreateParameter("Long candles in position", 150, 0, 300, 1, "Long");
             _longVolumeType = CreateParameter("Long volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Long");
-            _longVolume = CreateParameter("Long volume", 20, 1.0m, 50, 4, "Long");
+            _longVolume = CreateParameter("Long volume", 30, 1.0m, 50, 4, "Long");
             _longTradeAssetInPortfolio = CreateParameter("Long asset in portfolio", "Prime", "Long");
 
             // Short
             _shortIsOn = CreateParameter("Short Is On", false, "Short");
-            _shortPercentMove = CreateParameter("Short move to entry", -15m, 0.1m, 1, 0.1m, "Short");
+            _shortPercentMove = CreateParameter("Short move to entry", 3m, 0.1m, 1, 0.1m, "Short");
             _shortMaxPositions = CreateParameter("Short max positions count", 3, 0, 20, 1, "Short");
-            _shortStopPercent = CreateParameter("Short stop percent", 0.8m, 0.1m, 1, 0.1m, "Short");
-            _shortProfitPercent = CreateParameter("Short profit percent", 0.8m, 0.1m, 1, 0.1m, "Short");
-            _shortMaxSecondsInPositions = CreateParameter("Short seconds in position", 0, 0, 20, 1, "Short");
+            _shortStopPercent = CreateParameter("Short stop percent", 0m, 0.1m, 1, 0.1m, "Short");
+            _shortProfitPercent = CreateParameter("Short profit percent", 0m, 0.1m, 1, 0.1m, "Short");
+            _shortMaxCandlesInPositions = CreateParameter("Short candles in position", 50, 0, 20, 1, "Short");
             _shortVolumeType = CreateParameter("Short volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Short");
             _shortVolume = CreateParameter("Short volume", 20, 1.0m, 50, 4, "Short");
             _shortTradeAssetInPortfolio = CreateParameter("Short asset in portfolio", "Prime", "Short");
 
             // Signals
             _upSignalsIsOn = CreateParameter("Up signals is on", false, "Signals");
-            _upSignalsPercentMove = CreateParameter("Up signals move", 7m, 0.1m, 1, 0.1m, "Signals");
+            _upSignalsPercentMove = CreateParameter("Up signals move", 4m, 0.1m, 1, 0.1m, "Signals");
             _upSignalsMusic = CreateParameter("Up signals music", "Duck", new[] { "Duck", "Wolf" }, "Signals");
             _upSignalsErrorLogIsOn = CreateParameter("Up signals error log is on", true, "Signals");
 
             _downSignalsIsOn = CreateParameter("Down signals is on", false, "Signals");
-            _downSignalsPercentMove = CreateParameter("Down signals move", -7m, 0.1m, 1, 0.1m, "Signals");
+            _downSignalsPercentMove = CreateParameter("Down signals move", -4m, 0.1m, 1, 0.1m, "Signals");
             _downSignalsMusic = CreateParameter("Down signals music", "Wolf", new[] { "Duck", "Wolf" }, "Signals");
             _downSignalsErrorLogIsOn = CreateParameter("Down signals error log is on", true, "Signals");
 
@@ -158,8 +176,8 @@ namespace OsEngine.Robots.Monitors
             customTabOrderGrid.AddChildren(_hostTable);
 
             Description = OsLocalization.ConvertToLocString(
-            "Eng:Monitor for tracking the movement of assets on the market over a certain number of candles by indicator RSI. With the ability to send alerts and trade_" +
-            "Ru:Монитор для слежения за движением активов на рынке за определённое кол-во свечей по индикатору RSI. С возможность выбрасывать алерты и торговать_");
+            "Eng:Monitor for tracking the movement of assets on the market over a certain number of candles by volume ranking. With the ability to send alerts and trade_" +
+            "Ru:Монитор для слежения за движением активов на рынке за определённое кол-во свечей по ренкинку объёма. С возможность выбрасывать алерты и торговать_");
 
             if (startProgram == StartProgram.IsTester)
             {
@@ -173,11 +191,30 @@ namespace OsEngine.Robots.Monitors
                     server.TestingStartEvent += Server_TestingStartEvent;
                 }
             }
+
+            this.ParametrsChangeByUser += MonitorVolume_ParametrsChangeByUser;
+        }
+
+        private void MonitorVolume_ParametrsChangeByUser()
+        {
+            _tabScreener._indicators[0].Parameters
+                 = new List<string>()
+                {
+                _keltnerEmaLength.ValueInt.ToString(),
+                _keltnerAtrLength.ValueInt.ToString(),
+                _keltnerAtrLength.ValueInt.ToString(),
+                _keltnerDeviation.ValueDecimal.ToString(),
+                "Typical"
+                };
+
+            _tabScreener.UpdateIndicatorsParameters();
+
+
         }
 
         private void Server_TestingStartEvent()
         {
-            _checkMoveTimes.Clear();
+            _volumesRanking.Clear();
         }
 
         private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
@@ -185,94 +222,43 @@ namespace OsEngine.Robots.Monitors
             _tradePeriodsSettings.ShowDialog();
         }
 
-        #region Move array
+        #region Ranking
 
-        private Dictionary<string, MoveData> _checkMoveTimes = new Dictionary<string, MoveData>();
+        private VolumesRanking _volumesRanking = new VolumesRanking();
 
-        private void UpdateMoveData(List<Candle> candles, BotTabSimple tab)
+        private void ProcessRanking()
         {
-            MoveData myData = new MoveData();
-
-            if (_checkMoveTimes.TryGetValue(tab.Connector.SecurityName, out myData) == false)
-            {
-                myData = new MoveData();
-                myData.SecurityName = tab.Connector.SecurityName;
-                myData.Tab = tab;
-                _checkMoveTimes.Add(tab.Connector.SecurityName, myData);
-            }
-
-            myData.Time = candles[^1].TimeStart;
-
-            decimal maxPrice = decimal.MinValue;
-            decimal minPrice = decimal.MaxValue;
-
-            Aindicator rsi = (Aindicator)tab.Indicators[0];
-
-            List<decimal> rsiValues = rsi.DataSeries[0].Values;
-
-            decimal currentPrice = rsiValues[^1];
-
-            for (int i = candles.Count - 1; i >= 0 && i > rsiValues.Count - 1 - _candlesToAnalyze.ValueInt; i--)
-            {
-                decimal currentValue = rsiValues[i];
-
-                if(currentValue == 0)
-                {
-                    continue;
-                }
-
-                if (currentValue > maxPrice)
-                {
-                    maxPrice = currentValue;
-                }
-                if (currentValue < minPrice)
-                {
-                    minPrice = currentValue;
-                }
-            }
-
-            if (maxPrice == decimal.MinValue
-                || minPrice == decimal.MaxValue
-                || currentPrice == 0
-                || minPrice == 0
-                || maxPrice == 0)
-            {
-                return;
-            }
-
-            decimal moveUp = (currentPrice - minPrice);
-            decimal moveDown = (maxPrice - currentPrice);
-
-            myData.MoveUp = Math.Round(moveUp, 3);
-            myData.MoveDown = Math.Round(-moveDown, 3);
-            myData.Values = new List<decimal> { currentPrice };
+            _volumesRanking.Process(_tabScreener.Tabs,
+                _candlesLookBackMoveInRanking,
+                _candlesLookBackVolume);
         }
 
         #endregion
 
         #region Trade logic entry
 
-        private void _tabScreener_CandleUpdateEvent(List<Candle> candles, BotTabSimple tab)
+        private void _tabScreener_CandlesSyncFinishedEvent(List<BotTabSimple> tabs)
         {
-            // "Off", "OnCandleUpdate", "OnCandleFinish"
-            if (_regime.ValueString != "OnCandleUpdate")
-            {
-                return;
-            }
-
-            MainLogic(candles, tab);
-
-        }
-
-        private void _tabScreener_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
-        {
-            // "Off", "OnCandleUpdate", "OnCandleFinish"
             if (_regime.ValueString == "Off")
             {
                 return;
             }
 
-            MainLogic(candles, tab);
+            ProcessRanking();
+            TryUpdateTable();
+
+            for (int i = 0;i < tabs.Count;i++)
+            {
+                BotTabSimple tab = tabs[i];
+                List<Candle> candles = tab.CandlesFinishedOnly;
+
+                if(candles == null || candles.Count == 0)
+                {
+                    continue;
+                }
+
+                MainLogic(candles, tab);
+            }
         }
 
         private void MainLogic(List<Candle> candles, BotTabSimple tab)
@@ -288,9 +274,6 @@ namespace OsEngine.Robots.Monitors
             {
                 return;
             }
-
-            UpdateMoveData(candles, tab);
-            TryUpdateTable();
 
             if (_tradePeriodsSettings.CanTradeThisTime(tab.TimeServerCurrent) == false)
             {
@@ -470,19 +453,19 @@ namespace OsEngine.Robots.Monitors
 
                 DataGridViewColumn newColumn01 = new DataGridViewColumn();
                 newColumn01.CellTemplate = cellParam0;
-                newColumn01.HeaderText = "RSI";
+                newColumn01.HeaderText = "Volume index";
                 _tableDataGrid.Columns.Add(newColumn01);
                 newColumn01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn1 = new DataGridViewColumn();
                 newColumn1.CellTemplate = cellParam0;
-                newColumn1.HeaderText = "Move up";
+                newColumn1.HeaderText = "Volume value";
                 _tableDataGrid.Columns.Add(newColumn1);
                 newColumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn2 = new DataGridViewColumn();
                 newColumn2.CellTemplate = cellParam0;
-                newColumn2.HeaderText = "Move down";
+                newColumn2.HeaderText = "Move";
                 _tableDataGrid.Columns.Add(newColumn2);
                 newColumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -597,9 +580,9 @@ namespace OsEngine.Robots.Monitors
         private void TryUpdateTable()
         {
             // 0 Security
-            // 1 Rsi
-            // 2 Move up
-            // 3 Move down
+            // 1 Volume index
+            // 2 Volume value
+            // 3 Move
             // 4 Chart
             // 5 Open
             // 6 Pos
@@ -621,62 +604,28 @@ namespace OsEngine.Robots.Monitors
 
                 _lastTimeUpdateTable = DateTime.Now;
 
-                if (_tableDataGrid.Rows.Count != _checkMoveTimes.Count)
-                {
-                    _tableDataGrid.Rows.Clear();
+                _tableDataGrid.Rows.Clear();
 
-                    if (_checkMoveTimes.Values.Count > 0)
+                if (_volumesRanking.Stages.Count > 0)
+                {
+                    try
                     {
-                        try
+                        for (int i = 0; i < _volumesRanking.Stages.Count; i++)
                         {
-                            foreach (MoveData data in _checkMoveTimes.Values)
-                            {
-                                DataGridViewRow newRow = GetRow(data);
-                                _tableDataGrid.Rows.Add(newRow);
-                            }
-                        }
-                        catch
-                        {
-                            return;
+                            VolumeRankingValue data = _volumesRanking.Stages[i];
+
+                            DataGridViewRow newRow = GetRow(data);
+                            _tableDataGrid.Rows.Add(newRow);
                         }
                     }
-
-                    return;
-                }
-                else
-                {
-                    for (int i = 0; i < _tableDataGrid.Rows.Count; i++)
+                    catch
                     {
-                        DataGridViewRow currentRow = _tableDataGrid.Rows[i];
-
-                        string securityName = currentRow.Cells[0].Value.ToString();
-
-                        MoveData myData = new MoveData();
-
-                        if (_checkMoveTimes.TryGetValue(securityName, out myData) == false)
-                        {
-                            continue;
-                        }
-
-                        DataGridViewRow row = GetRow(myData);
-
-                        if (currentRow.Cells[1].Value == null
-                            || currentRow.Cells[1].Value.ToString() != row.Cells[1].Value.ToString())
-                        {
-                            currentRow.Cells[1].Value = row.Cells[1].Value;
-                        }
-                        if (currentRow.Cells[2].Value == null
-                         || currentRow.Cells[2].Value.ToString() != row.Cells[2].Value.ToString())
-                        {
-                            currentRow.Cells[2].Value = row.Cells[2].Value;
-                        }
-                        if (currentRow.Cells[5].Value == null
-                         || currentRow.Cells[5].Value.ToString() != row.Cells[5].Value.ToString())
-                        {
-                            currentRow.Cells[5].Value = row.Cells[5].Value;
-                        }
+                        return;
                     }
                 }
+
+                return;
+
             }
             catch (Exception ex)
             {
@@ -684,12 +633,12 @@ namespace OsEngine.Robots.Monitors
             }
         }
 
-        private DataGridViewRow GetRow(MoveData data)
+        private DataGridViewRow GetRow(VolumeRankingValue data)
         {
             // 0 Security
-            // 1 Rsi
-            // 2 Move up
-            // 3 Move down
+            // 1 Volume index
+            // 2 Volume value
+            // 3 Move
             // 4 Chart
             // 5 Open
             // 6 Pos
@@ -703,20 +652,24 @@ namespace OsEngine.Robots.Monitors
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[^1].ReadOnly = true;
+            row.Cells[^1].Value = data.SecurityRankingNum;
 
-            if(data.Values != null 
-                && data.Values.Count > 0)
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[^1].ReadOnly = true;
+            row.Cells[^1].Value = data.SummVolume;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[^1].ReadOnly = true;
+            row.Cells[^1].Value = data.SecurityRankingMove;
+
+            if(data.SecurityRankingMove < 0)
             {
-                row.Cells[^1].Value = data.Values[0];
+                row.Cells[^1].Style.ForeColor = Color.DarkRed;
             }
-
-            row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[^1].ReadOnly = true;
-            row.Cells[^1].Value = data.MoveUp;
-
-            row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[^1].ReadOnly = true;
-            row.Cells[^1].Value = data.MoveDown;
+            else if(data.SecurityRankingMove> 0)
+            {
+                row.Cells[^1].Style.ForeColor = Color.Green;
+            }
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
@@ -767,29 +720,47 @@ namespace OsEngine.Robots.Monitors
                 return;
             }
 
-            MoveData myData = new MoveData();
+            VolumeRankingValue myData = _volumesRanking.GetRankingValueBySecurityName(tab.Connector.SecurityName);
 
-            if (_checkMoveTimes.TryGetValue(tab.Connector.SecurityName, out myData) == false)
+            if (myData == null)
             {
                 return;
             }
 
-            if(_longPercentMove.ValueDecimal > 0)
-            {
-                decimal movePercent = myData.MoveUp;
+            bool haveEntryMove = false;
 
-                if (movePercent > _longPercentMove.ValueDecimal
-                    && candles[^1].IsUp)
+            if (_longPercentMove.ValueDecimal > 0)
+            {
+                decimal move = myData.SecurityRankingMove;
+
+                if (move > _longPercentMove.ValueDecimal)
                 {
-                    tab.BuyAtMarket(GetVolume(tab, _longVolumeType, _longVolume, _longTradeAssetInPortfolio));
+                    haveEntryMove = true;
                 }
             }
             if (_longPercentMove.ValueDecimal < 0)
             {
-                decimal movePercent = myData.MoveDown;
+                decimal movePercent = myData.SecurityRankingMove;
 
-                if (movePercent < _longPercentMove.ValueDecimal
-                    && candles[^1].IsDown)
+                if (movePercent < _longPercentMove.ValueDecimal)
+                {
+                    haveEntryMove = true;
+                }
+            }
+
+            if(haveEntryMove == true)
+            {
+                Aindicator keltner = (Aindicator)tab.Indicators[1];
+
+                if (keltner.DataSeries[1].Values.Count == 0
+                    || keltner.DataSeries[1].Last == 0)
+                {
+                    return;
+                }
+                decimal futuresLastPrice = candles[^1].Close;
+
+                // 2 проверяем условия 
+                if (futuresLastPrice > keltner.DataSeries[1].Last)
                 {
                     tab.BuyAtMarket(GetVolume(tab, _longVolumeType, _longVolume, _longTradeAssetInPortfolio));
                 }
@@ -798,14 +769,14 @@ namespace OsEngine.Robots.Monitors
 
         private void TryCloseLongPosition(List<Candle> candles, BotTabSimple tab, Position position)
         {
-            if (_longMaxSecondsInPositions.ValueInt == 0)
+            if (_longMaxCandlesInPositions.ValueInt == 0)
             {
                 return;
             }
 
-            int secondsInPosition = Convert.ToInt32((tab.TimeServerCurrent - position.TimeOpen).TotalSeconds);
+            int candlesInPosition = Convert.ToInt32((tab.TimeServerCurrent - position.TimeOpen).TotalMinutes / tab.Connector.TimeFrameTimeSpan.TotalMinutes);
 
-            if (secondsInPosition > _longMaxSecondsInPositions.ValueInt)
+            if (candlesInPosition > _longMaxCandlesInPositions.ValueInt)
             {
                 bool needToSendOrder = false;
 
@@ -836,13 +807,13 @@ namespace OsEngine.Robots.Monitors
         {
             if (position.Direction == Side.Buy)
             {
-                if (_longStopPercent.ValueDecimal != 0)
+                if(_longStopPercent.ValueDecimal != 0)
                 {
                     decimal stopPrice = position.EntryPrice - position.EntryPrice * (_longStopPercent.ValueDecimal / 100);
                     tab.CloseAtStopMarket(position, stopPrice);
                 }
 
-                if (_longProfitPercent.ValueDecimal != 0)
+                if(_longProfitPercent.ValueDecimal != 0)
                 {
                     decimal profitOrderPrice = position.EntryPrice + position.EntryPrice * (_longProfitPercent.ValueDecimal / 100);
                     tab.CloseAtProfitMarket(position, profitOrderPrice);
@@ -850,13 +821,13 @@ namespace OsEngine.Robots.Monitors
             }
             else if (position.Direction == Side.Sell)
             {
-                if (_shortProfitPercent.ValueDecimal != 0)
+                if(_shortProfitPercent.ValueDecimal != 0)
                 {
                     decimal profitOrderPrice = position.EntryPrice - position.EntryPrice * (_shortProfitPercent.ValueDecimal / 100);
                     tab.CloseAtProfitMarket(position, profitOrderPrice);
                 }
 
-                if (_shortStopPercent.ValueDecimal != 0)
+                if(_shortStopPercent.ValueDecimal != 0)
                 {
                     decimal stopPrice = position.EntryPrice + position.EntryPrice * (_shortStopPercent.ValueDecimal / 100);
                     tab.CloseAtStopMarket(position, stopPrice);
@@ -877,29 +848,47 @@ namespace OsEngine.Robots.Monitors
                 return;
             }
 
-            MoveData myData = new MoveData();
+            VolumeRankingValue myData = _volumesRanking.GetRankingValueBySecurityName(tab.Connector.SecurityName);
 
-            if (_checkMoveTimes.TryGetValue(tab.Connector.SecurityName, out myData) == false)
+            if (myData == null)
             {
                 return;
             }
 
-            if(_shortPercentMove.ValueDecimal < 0)
-            {
-                decimal movePercent = myData.MoveDown;
+            bool haveEntryMove = false;
 
-                if (movePercent < _shortPercentMove.ValueDecimal
-                    && candles[^1].IsDown)
+            if (_shortPercentMove.ValueDecimal < 0)
+            {
+                decimal movePercent = myData.SecurityRankingMove;
+
+                if (movePercent < _shortPercentMove.ValueDecimal)
                 {
-                    tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
+                    haveEntryMove = true;
                 }
             }
             if (_shortPercentMove.ValueDecimal > 0)
             {
-                decimal movePercent = myData.MoveUp;
+                decimal movePercent = myData.SecurityRankingMove;
 
-                if (movePercent > _shortPercentMove.ValueDecimal
-                    && candles[^1].IsUp)
+                if (movePercent > _shortPercentMove.ValueDecimal)
+                {
+                    haveEntryMove = true;
+                }
+            }
+
+            if(haveEntryMove == true)
+            {
+                Aindicator keltner = (Aindicator)tab.Indicators[1];
+
+                if (keltner.DataSeries[2].Values.Count == 0
+                    || keltner.DataSeries[2].Last == 0)
+                {
+                    return;
+                }
+                decimal futuresLastPrice = candles[^1].Close;
+
+                // 2 проверяем условия 
+                if (futuresLastPrice < keltner.DataSeries[2].Last)
                 {
                     tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
                 }
@@ -908,14 +897,14 @@ namespace OsEngine.Robots.Monitors
 
         private void TryCloseShortPosition(List<Candle> candles, BotTabSimple tab, Position position)
         {
-            if (_shortMaxSecondsInPositions.ValueInt == 0)
+            if (_shortMaxCandlesInPositions.ValueInt == 0)
             {
                 return;
             }
 
-            int secondsInPosition = Convert.ToInt32((tab.TimeServerCurrent - position.TimeOpen).TotalSeconds);
+            int candlesInPosition = Convert.ToInt32((tab.TimeServerCurrent - position.TimeOpen).TotalMinutes / tab.Connector.TimeFrameTimeSpan.TotalMinutes);
 
-            if (secondsInPosition > _shortMaxSecondsInPositions.ValueInt)
+            if (candlesInPosition > _shortMaxCandlesInPositions.ValueInt)
             {
                 bool needToSendOrder = false;
 
@@ -942,10 +931,6 @@ namespace OsEngine.Robots.Monitors
 
         #region Signals
 
-        private Dictionary<string, SignalData> _upSignals = new Dictionary<string, SignalData>();
-
-        private Dictionary<string, SignalData> _downSignals = new Dictionary<string, SignalData>();
-
         private void TrySendSignal(BotTabSimple tab, List<Candle> candles)
         {
             if (_downSignalsIsOn.ValueBool == false
@@ -956,87 +941,55 @@ namespace OsEngine.Robots.Monitors
 
             if (_upSignalsIsOn.ValueBool == true)
             {
-                MoveData myData = new MoveData();
+                VolumeRankingValue myData = _volumesRanking.GetRankingValueBySecurityName(tab.Connector.SecurityName);
 
-                if (_checkMoveTimes.TryGetValue(tab.Connector.SecurityName, out myData) == false)
+                if(myData == null)
                 {
                     return;
                 }
 
-                if (myData.MoveUp > _upSignalsPercentMove.ValueDecimal)
+                if (myData.SecurityRankingMove >= _upSignalsPercentMove.ValueDecimal)
                 {
                     // нужно отправлять сигнал что вырасло вверх
 
-                    SignalData mySignalData = new SignalData();
-
-                    if (_upSignals.TryGetValue(tab.Connector.SecurityName, out mySignalData) == false)
-                    {
-                        mySignalData = new SignalData();
-                        mySignalData.SecurityName = tab.Connector.SecurityName;
-                        _upSignals.Add(tab.Connector.SecurityName, mySignalData);
-                    }
-
-                    if (mySignalData.Time == candles[^1].TimeStart)
-                    {
-                        return;
-                    }
-
-                    mySignalData.Time = candles[^1].TimeStart;
-
-                    DropSignal(myData, "Up signal", _upSignalsMusic.ValueString, _upSignalsErrorLogIsOn.ValueBool);
+                    DropSignal(myData, "Up signal", _upSignalsMusic.ValueString, _upSignalsErrorLogIsOn.ValueBool, candles[^1].TimeStart);
                 }
             }
 
             if (_downSignalsIsOn.ValueBool == true)
             {
-                MoveData myData = new MoveData();
+                VolumeRankingValue myData = _volumesRanking.GetRankingValueBySecurityName(tab.Connector.SecurityName);
 
-                if (_checkMoveTimes.TryGetValue(tab.Connector.SecurityName, out myData) == false)
+                if (myData == null)
                 {
                     return;
                 }
 
-                if (myData.MoveDown < _downSignalsPercentMove.ValueDecimal)
+                if (myData.SecurityRankingMove < _downSignalsPercentMove.ValueDecimal)
                 {
                     // нужно отправлять сигнал что вырасло вверх
 
-                    SignalData mySignalData = new SignalData();
-
-                    if (_downSignals.TryGetValue(tab.Connector.SecurityName, out mySignalData) == false)
-                    {
-                        mySignalData = new SignalData();
-                        mySignalData.SecurityName = tab.Connector.SecurityName;
-                        _downSignals.Add(tab.Connector.SecurityName, mySignalData);
-                    }
-
-                    if (mySignalData.Time == candles[^1].TimeStart)
-                    {
-                        return;
-                    }
-
-                    mySignalData.Time = candles[^1].TimeStart;
-
-                    DropSignal(myData, "Down signal", _downSignalsMusic.ValueString, _downSignalsErrorLogIsOn.ValueBool);
+                    DropSignal(myData, "Down signal", _downSignalsMusic.ValueString, _downSignalsErrorLogIsOn.ValueBool, candles[^1].TimeStart);
                 }
             }
         }
 
-        private void DropSignal(MoveData myData, string signalName, string soundType, bool errorLogTo)
+        private void DropSignal(VolumeRankingValue myData, string signalName, string soundType, bool errorLogTo, DateTime time)
         {
             // "Duck", "Wolf"
 
             PlaySound(soundType);
 
             string messageValue = signalName + " " + myData.Tab.Connector.SecurityName + "\n";
-            messageValue += "Time: " + myData.Time.ToString() + "\n";
+            messageValue += "Candle time: " + time.ToString() + "\n";
 
             if (signalName == "Up signal")
             {
-                messageValue += "Move percent now: " + myData.MoveUp + "\n";
+                messageValue += "Move Up positions: " + myData.SecurityRankingMove + "\n";
             }
             if (signalName == "Down signal")
             {
-                messageValue += "Move percent now: " + myData.MoveDown + "\n";
+                messageValue += "Move Down positions: " + myData.SecurityRankingMove + "\n";
             }
 
             LogMessageType messageType = LogMessageType.User;
@@ -1078,4 +1031,186 @@ namespace OsEngine.Robots.Monitors
 
         #endregion
     }
+
+    public class VolumesRanking
+    {
+        public void Process(List<BotTabSimple> tabs, 
+        StrategyParameterInt candlesLookBackMoveInRanking,
+        StrategyParameterInt candlesLookBackVolume)
+        {
+            // 1 считаем текущее положение бумаг и ренкинг
+
+            List<VolumeRankingValue> resultArrayNow = new List<VolumeRankingValue>();
+
+            for (int i = 0; i < tabs.Count; i++)
+            {
+                VolumeRankingValue newValue = new VolumeRankingValue();
+                BotTabSimple tab = tabs[i];
+
+                if (tab.CandlesAll == null
+                    || tab.CandlesAll.Count < 10)
+                {
+                    continue;
+                }
+
+                newValue.Tab = tab;
+                newValue.SecurityName = tab.Connector.SecurityName;
+
+                newValue.SummVolume = GetSummVolume(tab, candlesLookBackVolume.ValueInt, 0);
+
+                resultArrayNow.Add(newValue);
+            }
+
+            resultArrayNow = resultArrayNow.OrderBy(x => x.SummVolume).ToList();
+
+            if (resultArrayNow.Count > 1)
+            {
+                resultArrayNow.Reverse();
+            }
+
+            for(int i = 0;i < resultArrayNow.Count;i++)
+            {
+                resultArrayNow[i].SecurityRankingNum = i + 1;
+            }
+
+            // 2 считаем прошлое положение бумаг и ренкинг
+
+            List<VolumeRankingValue> resultArrayHistory = new List<VolumeRankingValue>();
+
+            for (int i = 0; i < tabs.Count; i++)
+            {
+                VolumeRankingValue newValue = new VolumeRankingValue();
+                BotTabSimple tab = tabs[i];
+
+                if (tab.CandlesAll == null
+                    || tab.CandlesAll.Count < 10)
+                {
+                    continue;
+                }
+
+                newValue.Tab = tab;
+                newValue.SecurityName = tab.Connector.SecurityName;
+
+                newValue.SummVolume = GetSummVolume(tab, candlesLookBackVolume.ValueInt, candlesLookBackMoveInRanking.ValueInt);
+
+                resultArrayHistory.Add(newValue);
+            }
+
+            resultArrayHistory = resultArrayHistory.OrderBy(x => x.SummVolume).ToList();
+
+            if (resultArrayHistory.Count > 1)
+            {
+                resultArrayHistory.Reverse();
+            }
+
+            for (int i = 0; i < resultArrayHistory.Count; i++)
+            {
+                resultArrayHistory[i].SecurityRankingNum = i + 1;
+            }
+
+            // 3 считаем как сдвинулись ренкинги от прошлого к будущему
+
+            for(int i = 0;i < resultArrayHistory.Count;i++)
+            {
+                VolumeRankingValue valueHistory = resultArrayHistory[i];
+
+                VolumeRankingValue valueNow = resultArrayNow.Find(val => val.SecurityName == valueHistory.SecurityName);
+
+                if(valueNow == null)
+                {
+                    continue;
+                }
+
+                int move = valueHistory.SecurityRankingNum - valueNow.SecurityRankingNum;
+
+                valueNow.SecurityRankingMove = move;
+            }
+
+            // 4 сохраняем в общий массив 
+
+            Stages = resultArrayNow;
+
+        }
+
+        private decimal GetSummVolume(BotTabSimple tab, int hoursCountMax, int index)
+        {
+            // 1 берём свечки за последнюю неделю
+
+            List<Candle> allCandles = tab.CandlesAll;
+
+            Security security = tab.Security;
+
+            if (allCandles == null || allCandles.Count == 0)
+            {
+                return 0;
+            }
+
+            List<Candle> candlesToVol = new List<Candle>();
+
+            DateTime startTime = allCandles[allCandles.Count - 1].TimeStart;
+
+            int hourCount = 0;
+
+            for (int i = allCandles.Count - 1 - index; i > 0; i--)
+            {
+                candlesToVol.Add(allCandles[i]);
+
+                if (startTime.Hour != allCandles[i].TimeStart.Hour)
+                {
+                    hourCount++;
+                    startTime = allCandles[i].TimeStart;
+                }
+
+                if (hourCount >= hoursCountMax)
+                {
+                    break;
+                }
+            }
+
+            // 2 считаем в них объём и складываем в переменную
+
+            decimal allVolume = 0;
+
+            for (int i = 0; i < candlesToVol.Count; i++)
+            {
+                allVolume += candlesToVol[i].Center * candlesToVol[i].Volume;
+            }
+
+            if (security.Lot > 1)
+            {
+                allVolume = allVolume * security.Lot;
+            }
+
+            decimal summVolume = allVolume;
+
+            return Math.Round(summVolume,1);
+        }
+
+        public void Clear()
+        {
+            Stages?.Clear();
+        }
+
+        public List<VolumeRankingValue> Stages = new List<VolumeRankingValue>();
+
+        public VolumeRankingValue GetRankingValueBySecurityName(string securityName)
+        {
+            return Stages.Find(value => value.SecurityName == securityName);
+        }
+    }
+
+    public class VolumeRankingValue
+    {
+        public BotTabSimple Tab;
+
+        public string SecurityName;
+
+        public decimal SummVolume;
+
+        public int SecurityRankingNum;
+
+        public int SecurityRankingMove;
+
+    }
+
 }

@@ -103,11 +103,11 @@ namespace OsEngine.Robots.Monitors
             TabCreate(BotTabType.Screener);
             _tabScreener = TabsScreener[0];
             _tabScreener.CandleUpdateEvent += _tabScreener_CandleUpdateEvent;
-            _tabScreener.CandleFinishedEvent += _tabScreener_CandleUpdateEvent;
+            _tabScreener.CandleFinishedEvent += _tabScreener_CandleFinishedEvent;
             _tabScreener.PositionOpeningSuccesEvent += _tabScreener_PositionOpeningSuccesEvent;
 
             // Prime settings
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Prime settings");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "OnCandleUpdate", "OnCandleFinish" }, "Prime settings");
             _candlesToAnalyze = CreateParameter("Candles to analyze", 10, 0, 20, 1, "Prime settings");
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Prime settings");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
@@ -235,12 +235,30 @@ namespace OsEngine.Robots.Monitors
 
         #region Trade logic entry
 
-        private void _tabScreener_CandleUpdateEvent(List<Candle> candles, BotTabSimple tab)
+        private void _tabScreener_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
+            // "Off", "OnCandleUpdate", "OnCandleFinish"
             if (_regime.ValueString == "Off")
             {
                 return;
             }
+
+            MainLogic(candles, tab);
+        }
+
+        private void _tabScreener_CandleUpdateEvent(List<Candle> candles, BotTabSimple tab)
+        {
+            // "Off", "OnCandleUpdate", "OnCandleFinish"
+            if (_regime.ValueString != "OnCandleUpdate")
+            {
+                return;
+            }
+
+            MainLogic(candles, tab);
+        }
+
+        private void MainLogic(List<Candle> candles, BotTabSimple tab)
+        {
 
             if (tab.IsConnected == false
                 || tab.IsReadyToTrade == false)
@@ -248,7 +266,7 @@ namespace OsEngine.Robots.Monitors
                 return;
             }
 
-            if(candles == null || candles.Count < 5)
+            if (candles == null || candles.Count < 5)
             {
                 return;
             }
@@ -267,12 +285,12 @@ namespace OsEngine.Robots.Monitors
 
             if (positions.Count == 0)
             {
-                if(_longIsOn.ValueBool== true)
+                if (_longIsOn.ValueBool == true)
                 {
                     TryOpenLongPosition(candles, tab);
                 }
 
-                if(positions.Count == 0
+                if (positions.Count == 0
                     && _shortIsOn.ValueBool == true)
                 {
                     TryOpenShortPosition(candles, tab);
@@ -282,7 +300,7 @@ namespace OsEngine.Robots.Monitors
             {
                 Position pos = positions[0];
 
-                if(pos.Direction == Side.Buy)
+                if (pos.Direction == Side.Buy)
                 {
                     TryCloseLongPosition(candles, tab, pos);
                 }
@@ -781,21 +799,33 @@ namespace OsEngine.Robots.Monitors
 
         private void _tabScreener_PositionOpeningSuccesEvent(Position position, BotTabSimple tab)
         {
-            if(position.Direction == Side.Buy)
+            if (position.Direction == Side.Buy)
             {
-                decimal stopPrice = position.EntryPrice - position.EntryPrice * (_longStopPercent.ValueDecimal / 100);
-                decimal profitOrderPrice = position.EntryPrice + position.EntryPrice * (_longProfitPercent.ValueDecimal / 100);
+                if (_longStopPercent.ValueDecimal != 0)
+                {
+                    decimal stopPrice = position.EntryPrice - position.EntryPrice * (_longStopPercent.ValueDecimal / 100);
+                    tab.CloseAtStopMarket(position, stopPrice);
+                }
 
-                tab.CloseAtStopMarket(position, stopPrice);
-                tab.CloseAtProfitMarket(position, profitOrderPrice);
+                if (_longProfitPercent.ValueDecimal != 0)
+                {
+                    decimal profitOrderPrice = position.EntryPrice + position.EntryPrice * (_longProfitPercent.ValueDecimal / 100);
+                    tab.CloseAtProfitMarket(position, profitOrderPrice);
+                }
             }
-            else if(position.Direction == Side.Sell)
+            else if (position.Direction == Side.Sell)
             {
-                decimal stopPrice = position.EntryPrice + position.EntryPrice * (_shortStopPercent.ValueDecimal / 100);
-                decimal profitOrderPrice = position.EntryPrice - position.EntryPrice * (_shortProfitPercent.ValueDecimal / 100);
+                if (_shortProfitPercent.ValueDecimal != 0)
+                {
+                    decimal profitOrderPrice = position.EntryPrice - position.EntryPrice * (_shortProfitPercent.ValueDecimal / 100);
+                    tab.CloseAtProfitMarket(position, profitOrderPrice);
+                }
 
-                tab.CloseAtStopMarket(position, stopPrice);
-                tab.CloseAtProfitMarket(position, profitOrderPrice);
+                if (_shortStopPercent.ValueDecimal != 0)
+                {
+                    decimal stopPrice = position.EntryPrice + position.EntryPrice * (_shortStopPercent.ValueDecimal / 100);
+                    tab.CloseAtStopMarket(position, stopPrice);
+                }
             }
         }
 
