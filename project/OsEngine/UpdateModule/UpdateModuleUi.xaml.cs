@@ -1086,8 +1086,9 @@ namespace OsEngine.UpdateModule
             {
                 throw;
             }
-            catch
+            catch (Exception error)
             {
+                SaveLogMessage(error.ToString());
                 throw;
             }
         }
