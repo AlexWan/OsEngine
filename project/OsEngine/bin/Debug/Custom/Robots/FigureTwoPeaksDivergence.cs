@@ -47,8 +47,7 @@ namespace OsEngine.Robots
         // Basic Settings
         private StrategyParameterString _regime;
         private StrategyParameterDecimal _slippage;
-        private StrategyParameterTimeOfDay _startTradeTime;
-        private StrategyParameterTimeOfDay _endTradeTime;
+        private StrategyParameterString _orderType;
 
         // GetVolume Settings
         private StrategyParameterString _volumeType;
@@ -65,27 +64,54 @@ namespace OsEngine.Robots
         private Aindicator _zigZag;
         private Aindicator _zigZagAO;
 
+        // Non trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public FigureTwoPeaksDivergence(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
             // Basic Settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _orderType = CreateParameter("Order type", "Market", new[] { "Market", "Limit" }, "Base");
 
             // GetVolume Settings
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             // Indicator Settings
             _fastLineLengthAO = CreateParameter("Fast Line Length AO", 12, 10, 300, 10, "Indicator");
             _slowLineLengthAO = CreateParameter("Slow Line Length AO", 24, 10, 300, 10, "Indicator");
             _lenghtZig = CreateParameter("Period Zig", 24, 10, 300, 10, "Indicator");
             _lenghtZigAO = CreateParameter("Period Zig AO", 30, 10, 300, 10, "Indicator");
+
+            // non trade period button
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
             // Create indicator ZigZagAO
             _zigZagAO = IndicatorsFactory.CreateIndicatorByName("ZigZagAO", name + "ZigZagAO", false);
@@ -108,6 +134,12 @@ namespace OsEngine.Robots
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = OsLocalization.Description.DescriptionLabel316;
+        }
+
+        // non trade period button click
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         // Indicator Update event
@@ -150,8 +182,7 @@ namespace OsEngine.Robots
             }
 
             // If the time does not match, we leave
-            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
-                _endTradeTime.Value < _tab.TimeServerCurrent)
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }
@@ -195,9 +226,16 @@ namespace OsEngine.Robots
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (DevirgenceBuy(zzLow,zzAOLow, zzAOHigh) == true)
+                    if (DevirgenceBuy(zzLow, zzAOLow, zzAOHigh) == true)
                     {
-                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
+                        }
+                        else
+                        {
+                            _tab.BuyAtMarket(GetVolume(_tab));
+                        }
                     }
                 }
 
@@ -206,7 +244,14 @@ namespace OsEngine.Robots
                 {
                     if (DevirgenceSell(zzHigh, zzAOHigh, zzAOLow) == true)
                     {
-                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
+                        }
+                        else
+                        {
+                            _tab.SellAtMarket(GetVolume(_tab));
+                        }
                     }
                 }
             }
@@ -238,27 +283,41 @@ namespace OsEngine.Robots
                 {
                     if (DevirgenceSell(zzHigh, zzAOHigh, zzAOLow) == true)
                     {
-                        _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
+                        }
+                        else
+                        {
+                            _tab.CloseAtMarket(openPositions[i], openPositions[i].OpenVolume);
+                        }
                     }
                 }
                 else // If the direction of the position is sale
                 {
-                    if (DevirgenceBuy(zzLow, zzAOLow,zzAOHigh) == true)
+                    if (DevirgenceBuy(zzLow, zzAOLow, zzAOHigh) == true)
                     {
-                        _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
+                        }
+                        else
+                        {
+                            _tab.CloseAtMarket(openPositions[i], openPositions[i].OpenVolume);
+                        }
                     }
                 }
             }
         }
 
         // Method for finding divergence
-        private bool DevirgenceBuy(List<decimal> zzLow,List<decimal> zzAOLow,List<decimal> zzAOHigh)
+        private bool DevirgenceBuy(List<decimal> zzLow, List<decimal> zzAOLow, List<decimal> zzAOHigh)
         {
             decimal zzLowOne = 0;
             decimal zzLowTwo = 0;
             decimal zzAOLowOne = 0;
             decimal zzAOLowTwo = 0;
-            
+
             int indexOne = 0;
             int indexTwo = 0;
             int indexHigh = 0;
@@ -279,11 +338,11 @@ namespace OsEngine.Robots
                 }
             }
 
-            for (int i = zzLow.Count - 1;i >= 0;i--)
+            for (int i = zzLow.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
-                
-                if (zzLow[i] != 0 &&  zzLowOne == 0)
+
+                if (zzLow[i] != 0 && zzLowOne == 0)
                 {
                     zzLowOne = zzLow[i];
                     cnt++;
@@ -296,7 +355,7 @@ namespace OsEngine.Robots
                     cnt++;
                 }
 
-                if(cnt == 2)
+                if (cnt == 2)
                 {
                     break;
                 }
@@ -332,12 +391,12 @@ namespace OsEngine.Robots
                 cntLow++;
             }
 
-            if (zzAOLowOne > zzAOLowTwo && zzAOLowOne !=0)
+            if (zzAOLowOne > zzAOLowTwo && zzAOLowOne != 0)
             {
                 cntLow++;
             }
 
-            if(cntLow == 2) 
+            if (cntLow == 2)
             {
                 return true;
             }
