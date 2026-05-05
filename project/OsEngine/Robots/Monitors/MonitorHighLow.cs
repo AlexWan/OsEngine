@@ -25,24 +25,25 @@ using OsEngine.Indicators;
 namespace OsEngine.Robots.Monitors
 {
     /*
-    MonitorRsi
-    Монитор для анализа движений вниз и вверх по отдельным активам за N свечек
-    Содержит в себе богатую визуальную часть, в которой видно таблицу движений по выбранным активам
 
-    При фиксации определённого движения вверх или вниз, поддерживает:
-    1) Сигналы визуальные и звуковые.
-    2) Автоматическое открытие позиций. С закрытием по профиту и стопу. Или закрытие по времени
-    */
+MonitorHighLow
+Монитор Low и High по бумагам за N свечек
+Содержит в себе богатую визуальную часть, в которой видно таблицу близости к хаям по выбранным активам
 
-    [Bot("MonitorRsi")]
-    public class MonitorRsi : BotPanel
+При фиксации определённого движения вверх или вниз, поддерживает:
+1) Сигналы визуальные и звуковые.
+2) Автоматическое открытие позиций. С закрытием по профиту и стопу. Или закрытие по времени
+
+*/
+
+    [Bot("MonitorHighLow")]
+    public class MonitorHighLow : BotPanel
     {
         private BotTabScreener _tabScreener;
 
         // Prime settings
         private StrategyParameterString _regime;
         private StrategyParameterInt _candlesToAnalyze;
-        private StrategyParameterInt _rsiLength;
         private NonTradePeriods _tradePeriodsSettings;
         private StrategyParameterButton _tradePeriodsShowDialogButton;
 
@@ -52,7 +53,7 @@ namespace OsEngine.Robots.Monitors
         private StrategyParameterInt _longMaxPositions;
         private StrategyParameterDecimal _longStopPercent;
         private StrategyParameterDecimal _longProfitPercent;
-        private StrategyParameterInt _longMaxSecondsInPositions;
+        private StrategyParameterInt _longMaxCandlesInPositions;
         private StrategyParameterString _longVolumeType;
         private StrategyParameterDecimal _longVolume;
         private StrategyParameterString _longTradeAssetInPortfolio;
@@ -63,7 +64,7 @@ namespace OsEngine.Robots.Monitors
         private StrategyParameterInt _shortMaxPositions;
         private StrategyParameterDecimal _shortStopPercent;
         private StrategyParameterDecimal _shortProfitPercent;
-        private StrategyParameterInt _shortMaxSecondsInPositions;
+        private StrategyParameterInt _shortMaxCandlesInPositions;
         private StrategyParameterString _shortVolumeType;
         private StrategyParameterDecimal _shortVolume;
         private StrategyParameterString _shortTradeAssetInPortfolio;
@@ -78,7 +79,7 @@ namespace OsEngine.Robots.Monitors
         private StrategyParameterString _downSignalsMusic;
         private StrategyParameterBool _downSignalsErrorLogIsOn;
 
-        public MonitorRsi(string name, StartProgram startProgram) : base(name, startProgram)
+        public MonitorHighLow(string name, StartProgram startProgram) : base(name, startProgram)
         {
             // non trade periods
             _tradePeriodsSettings = new NonTradePeriods(name);
@@ -108,31 +109,30 @@ namespace OsEngine.Robots.Monitors
 
             // Prime settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "OnCandleUpdate", "OnCandleFinish" }, "Prime settings");
-            _candlesToAnalyze = CreateParameter("Candles to analyze", 3, 0, 20, 1, "Prime settings");
-            _rsiLength = CreateParameter("Rsi length", 25, 0, 20, 1, "Prime settings");
+            _candlesToAnalyze = CreateParameter("Candles to analyze", 1500, 0, 20, 1, "Prime settings");
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Prime settings");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _tabScreener.CreateCandleIndicator(1, "RSI", new List<string>() { _rsiLength.ValueInt.ToString() }, "Second");
+            _tabScreener.CreateCandleIndicator(1, "PriceChannel", new List<string>() { _candlesToAnalyze.ValueInt.ToString() }, "Prime");
 
             // Long
             _longIsOn = CreateParameter("Long Is On", false, "Long");
-            _longPercentMove = CreateParameter("Long move to entry", 15m, 0.1m, 1, 0.1m, "Long");
-            _longMaxPositions = CreateParameter("Long max positions count", 3, 0, 20, 1, "Long");
-            _longStopPercent = CreateParameter("Long stop percent", 0.8m, 0.1m, 1, 0.1m, "Long");
-            _longProfitPercent = CreateParameter("Long profit percent", 0.8m, 0.1m, 1, 0.1m, "Long");
-            _longMaxSecondsInPositions = CreateParameter("Long seconds in position", 0, 0, 20, 1, "Long");
+            _longPercentMove = CreateParameter("Long move to entry", 0.5m, 0.1m, 1, 0.1m, "Long");
+            _longMaxPositions = CreateParameter("Long max positions count", 5, 0, 20, 1, "Long");
+            _longStopPercent = CreateParameter("Long stop percent", 0m, 0.1m, 1, 0.1m, "Long");
+            _longProfitPercent = CreateParameter("Long profit percent", 0m, 0.1m, 1, 0.1m, "Long");
+            _longMaxCandlesInPositions = CreateParameter("Long candles in position", 200, 0, 20, 1, "Long");
             _longVolumeType = CreateParameter("Long volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Long");
             _longVolume = CreateParameter("Long volume", 20, 1.0m, 50, 4, "Long");
             _longTradeAssetInPortfolio = CreateParameter("Long asset in portfolio", "Prime", "Long");
 
             // Short
             _shortIsOn = CreateParameter("Short Is On", false, "Short");
-            _shortPercentMove = CreateParameter("Short move to entry", -15m, 0.1m, 1, 0.1m, "Short");
+            _shortPercentMove = CreateParameter("Short move to entry", 1.5m, 0.1m, 1, 0.1m, "Short");
             _shortMaxPositions = CreateParameter("Short max positions count", 3, 0, 20, 1, "Short");
-            _shortStopPercent = CreateParameter("Short stop percent", 0.8m, 0.1m, 1, 0.1m, "Short");
-            _shortProfitPercent = CreateParameter("Short profit percent", 0.8m, 0.1m, 1, 0.1m, "Short");
-            _shortMaxSecondsInPositions = CreateParameter("Short seconds in position", 0, 0, 20, 1, "Short");
+            _shortStopPercent = CreateParameter("Short stop percent", 0m, 0.1m, 1, 0.1m, "Short");
+            _shortProfitPercent = CreateParameter("Short profit percent", 0m, 0.1m, 1, 0.1m, "Short");
+            _shortMaxCandlesInPositions = CreateParameter("Short candles in position", 200, 0, 550, 1, "Short");
             _shortVolumeType = CreateParameter("Short volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Short");
             _shortVolume = CreateParameter("Short volume", 20, 1.0m, 50, 4, "Short");
             _shortTradeAssetInPortfolio = CreateParameter("Short asset in portfolio", "Prime", "Short");
@@ -158,8 +158,8 @@ namespace OsEngine.Robots.Monitors
             customTabOrderGrid.AddChildren(_hostTable);
 
             Description = OsLocalization.ConvertToLocString(
-            "Eng:Monitor for tracking the movement of assets on the market over a certain number of candles by indicator RSI. With the ability to send alerts and trade_" +
-            "Ru:Монитор для слежения за движением активов на рынке за определённое кол-во свечей по индикатору RSI. С возможность выбрасывать алерты и торговать_");
+            "Eng:Monitor for tracking the proximity of instruments to maximum and minimum values over a period. With the ability to throw alerts and trade_" +
+            "Ru:Монитор для слежения за близостью инструментов к максимальным и минимальным значениям за период. С возможность выбрасывать алерты и торговать_");
 
             if (startProgram == StartProgram.IsTester)
             {
@@ -174,14 +174,19 @@ namespace OsEngine.Robots.Monitors
                 }
             }
 
-            this.ParametrsChangeByUser += MonitorRsi_ParametrsChangeByUser;
+            this.ParametrsChangeByUser += MonitorHighLow_ParametrsChangeByUser;
         }
 
-        private void MonitorRsi_ParametrsChangeByUser()
+        private void MonitorHighLow_ParametrsChangeByUser()
         {
-            _tabScreener._indicators[0].Parameters = new List<string>() { _rsiLength.ValueInt.ToString() };
+            _tabScreener._indicators[0].Parameters = new List<string>() 
+            { 
+                _candlesToAnalyze.ValueInt.ToString(), 
+                _candlesToAnalyze.ValueInt.ToString() 
+            };
+
             _tabScreener.UpdateIndicatorsParameters();
-        } 
+        }
 
         private void Server_TestingStartEvent()
         {
@@ -211,49 +216,28 @@ namespace OsEngine.Robots.Monitors
 
             myData.Time = candles[^1].TimeStart;
 
-            decimal maxPrice = decimal.MinValue;
-            decimal minPrice = decimal.MaxValue;
+            Aindicator pChannel = (Aindicator)tab.Indicators[0];
 
-            Aindicator rsi = (Aindicator)tab.Indicators[0];
+            decimal maxPrice = pChannel.DataSeries[0].Last;
+            decimal minPrice = pChannel.DataSeries[1].Last;
 
-            List<decimal> rsiValues = rsi.DataSeries[0].Values;
-
-            decimal currentPrice = rsiValues[^1];
-
-            for (int i = candles.Count - 1; i >= 0 && i > rsiValues.Count - 1 - _candlesToAnalyze.ValueInt; i--)
+            if(maxPrice == 0
+                || minPrice == 0)
             {
-                decimal currentValue = rsiValues[i];
-
-                if(currentValue == 0)
-                {
-                    continue;
-                }
-
-                if (currentValue > maxPrice)
-                {
-                    maxPrice = currentValue;
-                }
-                if (currentValue < minPrice)
-                {
-                    minPrice = currentValue;
-                }
-            }
-
-            if (maxPrice == decimal.MinValue
-                || minPrice == decimal.MaxValue
-                || currentPrice == 0
-                || minPrice == 0
-                || maxPrice == 0)
-            {
+                myData.MoveUp = 0;
+                myData.MoveDown = 0;
                 return;
             }
 
-            decimal moveUp = (currentPrice - minPrice);
-            decimal moveDown = (maxPrice - currentPrice);
+            decimal lastPrice = candles[^1].Close;
+
+            decimal moveUp = (maxPrice - lastPrice) / (maxPrice / 100);
+            decimal moveDown = (lastPrice - minPrice) / (minPrice / 100);
 
             myData.MoveUp = Math.Round(moveUp, 3);
-            myData.MoveDown = Math.Round(-moveDown, 3);
-            myData.Values = new List<decimal> { currentPrice };
+            myData.MoveDown = Math.Round(moveDown, 3);
+
+            myData.Values = new List<decimal> { lastPrice };
         }
 
         #endregion
@@ -478,19 +462,19 @@ namespace OsEngine.Robots.Monitors
 
                 DataGridViewColumn newColumn01 = new DataGridViewColumn();
                 newColumn01.CellTemplate = cellParam0;
-                newColumn01.HeaderText = "RSI";
+                newColumn01.HeaderText = "Last price";
                 _tableDataGrid.Columns.Add(newColumn01);
                 newColumn01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn1 = new DataGridViewColumn();
                 newColumn1.CellTemplate = cellParam0;
-                newColumn1.HeaderText = "Move up";
+                newColumn1.HeaderText = "High %";
                 _tableDataGrid.Columns.Add(newColumn1);
                 newColumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn2 = new DataGridViewColumn();
                 newColumn2.CellTemplate = cellParam0;
-                newColumn2.HeaderText = "Move down";
+                newColumn2.HeaderText = "Low %";
                 _tableDataGrid.Columns.Add(newColumn2);
                 newColumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -605,9 +589,9 @@ namespace OsEngine.Robots.Monitors
         private void TryUpdateTable()
         {
             // 0 Security
-            // 1 Rsi
-            // 2 Move up
-            // 3 Move down
+            // 1 Last price
+            // 2 High %
+            // 3 Low %
             // 4 Chart
             // 5 Open
             // 6 Pos
@@ -700,9 +684,9 @@ namespace OsEngine.Robots.Monitors
         private DataGridViewRow GetRow(MoveData data)
         {
             // 0 Security
-            // 1 Rsi
-            // 2 Move up
-            // 3 Move down
+            // 1 Last price
+            // 2 High %
+            // 3 Low %
             // 4 Chart
             // 5 Open
             // 6 Pos
@@ -717,7 +701,7 @@ namespace OsEngine.Robots.Monitors
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[^1].ReadOnly = true;
 
-            if(data.Values != null 
+            if (data.Values != null
                 && data.Values.Count > 0)
             {
                 row.Cells[^1].Value = data.Values[0];
@@ -787,38 +771,25 @@ namespace OsEngine.Robots.Monitors
                 return;
             }
 
-            if(_longPercentMove.ValueDecimal > 0)
-            {
-                decimal movePercent = myData.MoveUp;
+            decimal movePercent = myData.MoveUp;
 
-                if (movePercent > _longPercentMove.ValueDecimal
-                    && candles[^1].IsUp)
-                {
-                    tab.BuyAtMarket(GetVolume(tab, _longVolumeType, _longVolume, _longTradeAssetInPortfolio));
-                }
-            }
-            if (_longPercentMove.ValueDecimal < 0)
+            if (_longPercentMove.ValueDecimal > movePercent 
+                && candles[^1].IsUp)
             {
-                decimal movePercent = myData.MoveDown;
-
-                if (movePercent < _longPercentMove.ValueDecimal
-                    && candles[^1].IsDown)
-                {
-                    tab.BuyAtMarket(GetVolume(tab, _longVolumeType, _longVolume, _longTradeAssetInPortfolio));
-                }
+                tab.BuyAtMarket(GetVolume(tab, _longVolumeType, _longVolume, _longTradeAssetInPortfolio));
             }
         }
 
         private void TryCloseLongPosition(List<Candle> candles, BotTabSimple tab, Position position)
         {
-            if (_longMaxSecondsInPositions.ValueInt == 0)
+            if (_longMaxCandlesInPositions.ValueInt == 0)
             {
                 return;
             }
 
-            int secondsInPosition = Convert.ToInt32((tab.TimeServerCurrent - position.TimeOpen).TotalSeconds);
+            int candlesInPosition = Convert.ToInt32((tab.TimeServerCurrent - position.TimeOpen).TotalMinutes / tab.Connector.TimeFrameTimeSpan.TotalMinutes);
 
-            if (secondsInPosition > _longMaxSecondsInPositions.ValueInt)
+            if (candlesInPosition > _longMaxCandlesInPositions.ValueInt)
             {
                 bool needToSendOrder = false;
 
@@ -897,38 +868,25 @@ namespace OsEngine.Robots.Monitors
                 return;
             }
 
-            if(_shortPercentMove.ValueDecimal < 0)
-            {
-                decimal movePercent = myData.MoveDown;
+            decimal movePercent = myData.MoveDown;
 
-                if (movePercent < _shortPercentMove.ValueDecimal
-                    && candles[^1].IsDown)
-                {
-                    tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
-                }
-            }
-            if (_shortPercentMove.ValueDecimal > 0)
+            if (_shortPercentMove.ValueDecimal > movePercent 
+                && candles[^1].IsDown)
             {
-                decimal movePercent = myData.MoveUp;
-
-                if (movePercent > _shortPercentMove.ValueDecimal
-                    && candles[^1].IsUp)
-                {
-                    tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
-                }
+                tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
             }
         }
 
         private void TryCloseShortPosition(List<Candle> candles, BotTabSimple tab, Position position)
         {
-            if (_shortMaxSecondsInPositions.ValueInt == 0)
+            if (_shortMaxCandlesInPositions.ValueInt == 0)
             {
                 return;
             }
 
-            int secondsInPosition = Convert.ToInt32((tab.TimeServerCurrent - position.TimeOpen).TotalSeconds);
+            int candlesInPosition = Convert.ToInt32((tab.TimeServerCurrent - position.TimeOpen).TotalMinutes / tab.Connector.TimeFrameTimeSpan.TotalMinutes);
 
-            if (secondsInPosition > _shortMaxSecondsInPositions.ValueInt)
+            if (candlesInPosition > _shortMaxCandlesInPositions.ValueInt)
             {
                 bool needToSendOrder = false;
 
@@ -976,7 +934,7 @@ namespace OsEngine.Robots.Monitors
                     return;
                 }
 
-                if (myData.MoveUp > _upSignalsPercentMove.ValueDecimal)
+                if (_upSignalsPercentMove.ValueDecimal > myData.MoveUp)
                 {
                     // нужно отправлять сигнал что вырасло вверх
 
@@ -1009,7 +967,7 @@ namespace OsEngine.Robots.Monitors
                     return;
                 }
 
-                if (myData.MoveDown < _downSignalsPercentMove.ValueDecimal)
+                if (_downSignalsPercentMove.ValueDecimal > myData.MoveDown)
                 {
                     // нужно отправлять сигнал что вырасло вверх
 
