@@ -31,9 +31,11 @@ namespace OsEngine.Market.Servers.Pionex
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
+            CreateParameterBoolean("Use Shared RateGate", false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label324;
         }
     }
 
@@ -303,7 +305,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         public void GetPortfolios()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -373,7 +375,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
             endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
@@ -1488,7 +1490,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         public void SendOrder(Order order)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1553,7 +1555,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         public void CancelAllOrdersToSecurity(Security security)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1593,7 +1595,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         public bool CancelOrder(Order order)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1684,7 +1686,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         private List<Order> GetAllOpenOrders()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1778,7 +1780,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         private Order GetOrderFromExchange(string nameSecurity, string userOrderId)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1858,7 +1860,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         private List<MyTrade> GetTradesForOrder(string orderId)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1950,7 +1952,14 @@ namespace OsEngine.Market.Servers.Pionex
 
         #region 11 Queries
 
+        private static readonly RateGate _sharedRateGate = new RateGate(8, TimeSpan.FromMilliseconds(1000));
+
         private RateGate _rateGate = new RateGate(8, TimeSpan.FromMilliseconds(1000));
+
+        private RateGate GetRateGate()
+        {
+            return ((ServerParameterBool)ServerParameters[2]).Value ? _sharedRateGate : _rateGate;
+        }
 
         private string GenerateSignature(string method, string path, string timestamp, string body, SortedDictionary<string, string> param)
         {

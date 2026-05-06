@@ -39,6 +39,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
             CreateParameterString("Leverage", "1");
             CreateParameterBoolean("Extended Data", false);
+            CreateParameterBoolean("Use Shared RateGate", false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
@@ -47,6 +48,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             ServerParameters[4].Comment = OsLocalization.Market.Label249;
             ServerParameters[5].Comment = OsLocalization.Market.Label256;
             ServerParameters[6].Comment = OsLocalization.Market.Label270;
+            ServerParameters[7].Comment = OsLocalization.Market.Label324;
         }
 
         private void KuCoinFuturesServer_ValueChange()
@@ -2743,11 +2745,18 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         #region 12 Queries
 
+        private static readonly RateGate _sharedRateGate = new RateGate(20, TimeSpan.FromMilliseconds(300));
+
         private RateGate _rateGate = new RateGate(20, TimeSpan.FromMilliseconds(300));
+
+        private RateGate GetRateGate()
+        {
+            return ((ServerParameterBool)ServerParameters[7]).Value ? _sharedRateGate : _rateGate;
+        }
 
         private IRestResponse CreatePrivateQueryOrders(string path, Method method, string body)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -2792,7 +2801,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private IRestResponse CreatePrivateQuery(string path, Method method, string body)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {

@@ -34,10 +34,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterBoolean("Extended Data", false);
+            CreateParameterBoolean("Use Shared RateGate", false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
             ServerParameters[2].Comment = OsLocalization.Market.Label269;
+            ServerParameters[3].Comment = OsLocalization.Market.Label324;
         }
     }
 
@@ -190,7 +192,14 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public List<IServerParameter> ServerParameters { get; set; }
 
+        private static readonly RateGate _sharedRateGate = new RateGate(3, TimeSpan.FromMilliseconds(700));
+
         private RateGate _rateGate = new RateGate(3, TimeSpan.FromMilliseconds(700));
+
+        private RateGate GetRateGate()
+        {
+            return ((ServerParameterBool)ServerParameters[3]).Value ? _sharedRateGate : _rateGate;
+        }
 
         private string _publicKey;
 
@@ -206,7 +215,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public void GetSecurities()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -330,7 +339,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void CreateQueryPortfolio()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -440,7 +449,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private List<Candle> RequestCandleHistory(string nameSec, string tameFrame, long limit = 500, long fromTimeStamp = 0, long toTimeStamp = 0)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1622,7 +1631,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
-                _rateGate.WaitToProceed();
+                GetRateGate().WaitToProceed();
 
                 RestClient client = new RestClient(_baseUrl);
 
@@ -1708,7 +1717,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
-                _rateGate.WaitToProceed();
+                GetRateGate().WaitToProceed();
 
                 RestClient client = new RestClient(_baseUrl);
 
@@ -1759,7 +1768,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
-                _rateGate.WaitToProceed();
+                GetRateGate().WaitToProceed();
 
                 RestClient client = new RestClient(_baseUrl);
 
@@ -1871,7 +1880,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private List<Order> GetAllOpenOrders()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -2003,7 +2012,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void GetOrderFromExchange(string securityNameCode, string numberUser)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -2100,7 +2109,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
-                _rateGate.WaitToProceed();
+                GetRateGate().WaitToProceed();
 
                 RestClient client = new RestClient(_baseUrl);
 
@@ -2203,7 +2212,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private string CreateListenKey()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -2259,7 +2268,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         continue;
                     }
 
-                    _rateGate.WaitToProceed();
+                    GetRateGate().WaitToProceed();
 
                     string endpoint = "/openApi/user/auth/userDataStream";
 

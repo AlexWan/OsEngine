@@ -32,9 +32,11 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
+            CreateParameterBoolean("Use Shared RateGate", false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
+            ServerParameters[2].Comment = OsLocalization.Market.Label324;
         }
     }
 
@@ -152,7 +154,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public void GetSecurities()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -228,7 +230,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public void GetPortfolios()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -457,7 +459,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
             endPoint += "&from=" + TimeManager.GetTimeStampSecondsToDateTime(startTime);
             endPoint += "&to=" + TimeManager.GetTimeStampSecondsToDateTime(endTime);
 
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1515,7 +1517,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public void SendOrder(Order order)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1613,7 +1615,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         public bool CancelOrder(Order order)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1714,7 +1716,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         private List<Order> GetAllOpenOrders()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1874,7 +1876,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         private List<Order> GetAllCancelledOrders()
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -1971,7 +1973,7 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         private Order GetOrderFromExchange(string nameSecurity, string userOrderId)
         {
-            _rateGate.WaitToProceed();
+            GetRateGate().WaitToProceed();
 
             try
             {
@@ -2122,7 +2124,14 @@ namespace OsEngine.Market.Servers.ExMo.ExmoSpot
 
         #region 12 Query
 
+        private static readonly RateGate _sharedRateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
         private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        private RateGate GetRateGate()
+        {
+            return ((ServerParameterBool)ServerParameters[2]).Value ? _sharedRateGate : _rateGate;
+        }
 
         public string GenerateSignature(string nonce)
         {

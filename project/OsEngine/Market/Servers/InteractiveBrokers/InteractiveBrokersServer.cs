@@ -30,6 +30,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 {
                     realization.ShowSecuritySubscribeUi();
                 };
+            CreateParameterBoolean("Use Shared RateGate", false);
+            ServerParameters[3].Comment = OsLocalization.Market.Label324;
         }
 
         public List<Candle> GetCandleHistory(string nameSec, TimeFrame tf)
@@ -887,7 +889,14 @@ contract =>
 
         private List<string> _connectedContracts = new List<string>();
 
+        private static readonly RateGate _sharedRateGate = new RateGate(1, TimeSpan.FromMilliseconds(2000));
+
         private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(2000));
+
+        private RateGate GetRateGate()
+        {
+            return ((ServerParameterBool)ServerParameters[3]).Value ? _sharedRateGate : _rateGate;
+        }
 
         private string _subLocker = "subLocker";
 
@@ -918,7 +927,7 @@ contract =>
                     return;
                 }
 
-                _rateGate.WaitToProceed();
+                GetRateGate().WaitToProceed();
 
                 SecurityIb contractIb =
            _secIB.Find(
