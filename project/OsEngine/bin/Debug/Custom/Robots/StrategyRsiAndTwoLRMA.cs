@@ -39,8 +39,7 @@ namespace OsEngine.Robots
         // Basic Settings
         private StrategyParameterString _regime;
         private StrategyParameterDecimal _slippage;
-        private StrategyParameterTimeOfDay _timeStart;
-        private StrategyParameterTimeOfDay _timeEnd;
+        private StrategyParameterString _orderType;
 
         // GetVolume Settings
         private StrategyParameterString _volumeType;
@@ -71,26 +70,54 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _stopValue;
         private StrategyParameterDecimal _profitValue;
 
+        // Non trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public StrategyRsiAndTwoLRMA(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic Settings
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            _timeStart = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _timeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _orderType = CreateParameter("Order type", "Market", new[] { "Market", "Limit" }, "Base");
 
             // GetVolume Settings
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             // Indicator Settings
             _periodFastLRMA = CreateParameter("period Fast LRMA", 14, 5, 50, 5, "Indicator");
             _periodSlowLRMA = CreateParameter("period Slow LRMA", 24, 10, 100, 10, "Indicator");
             _periodRSI = CreateParameter("Period RSI", 14, 10, 300, 1, "Indicator");
+
+            // non trade period button
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
             // Creating indicator Fast LRMA
             _fastLRMA = IndicatorsFactory.CreateIndicatorByName("LinearRegressionLine", name + "LinearRegressionLine1", false);
@@ -123,6 +150,12 @@ namespace OsEngine.Robots
             _profitValue = CreateParameter("Profit", 0.5m, 1, 10, 1, "Exit settings");
 
             Description = OsLocalization.Description.DescriptionLabel272;
+        }
+
+        // non trade period button click
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         // Indicator Update event
@@ -165,8 +198,7 @@ namespace OsEngine.Robots
             }
 
             // If the time does not match, we leave
-            if (_timeStart.Value > _tab.TimeServerCurrent ||
-                _timeEnd.Value < _tab.TimeServerCurrent)
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }
@@ -198,7 +230,7 @@ namespace OsEngine.Robots
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
-            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Security.PriceStep;
 
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -217,7 +249,14 @@ namespace OsEngine.Robots
                 {
                     if (_prevFastLRMA < _prevSlowLRMA && _lastFastLRMA > _lastSlowLRMA && _lastRSI > 50 && _lastRSI > _prevRSI)
                     {
-                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
+                        }
+                        else
+                        {
+                            _tab.BuyAtMarket(GetVolume(_tab));
+                        }
                     }
                 }
 
@@ -226,7 +265,14 @@ namespace OsEngine.Robots
                 {
                     if (_prevFastLRMA > _prevSlowLRMA && _lastFastLRMA < _lastSlowLRMA && _lastRSI > 50 && _lastRSI > _prevRSI)
                     {
-                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
+                        }
+                        else
+                        {
+                            _tab.SellAtMarket(GetVolume(_tab));
+                        }
                     }
                 }
             }
@@ -236,8 +282,8 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
-            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
+
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Security.PriceStep;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
@@ -253,16 +299,32 @@ namespace OsEngine.Robots
                     decimal profitActivation = pos.EntryPrice + pos.EntryPrice * _profitValue.ValueDecimal / 100;
                     decimal stopActivation = pos.EntryPrice - pos.EntryPrice * _stopValue.ValueDecimal / 100;
 
-                    _tab.CloseAtProfit(pos, profitActivation, profitActivation + _slippage);
-                    _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtProfit(pos, profitActivation, profitActivation + _slippage);
+                        _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);
+                    }
+                    else
+                    {
+                        _tab.CloseAtProfitMarket(pos, profitActivation);
+                        _tab.CloseAtStopMarket(pos, stopActivation);
+                    }
                 }
                 else // If the direction of the position is short
                 {
                     decimal profitActivation = pos.EntryPrice - pos.EntryPrice * _profitValue.ValueDecimal / 100;
                     decimal stopActivation = pos.EntryPrice + pos.EntryPrice * _stopValue.ValueDecimal / 100;
 
-                    _tab.CloseAtProfit(pos, profitActivation, profitActivation - _slippage);
-                    _tab.CloseAtStop(pos, stopActivation, stopActivation + _slippage);
+                    if (_orderType == "Limit")
+                    {
+                        _tab.CloseAtProfit(pos, profitActivation, profitActivation - _slippage);
+                        _tab.CloseAtStop(pos, stopActivation, stopActivation + _slippage);
+                    }
+                    else
+                    {
+                        _tab.CloseAtProfitMarket(pos, profitActivation);
+                        _tab.CloseAtStopMarket(pos, stopActivation);
+                    }
                 }
             }
         }
