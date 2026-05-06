@@ -1071,6 +1071,11 @@ namespace OsEngine
         {
             try
             {
+                if (Debugger.IsAttached && Process.GetProcessesByName("devenv").Length > 0)
+                {
+                    return;
+                }
+
                 DateTime insideVersionDate = File.GetLastWriteTimeUtc(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "OsEngine.exe"));
 
                 if (!File.Exists(@"Engine\Updater\LastUpdatesInfo.txt")) // модуль запустили первый раз, значит сборка актуальная
