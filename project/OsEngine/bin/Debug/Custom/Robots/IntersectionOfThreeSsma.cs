@@ -29,331 +29,390 @@ Exit: on the opposite signal.
 
 namespace OsEngine.Robots
 {
-[Bot("IntersectionOfThreeSsma")] // We create an attribute so that we don't write anything in the Boot factory
- public class IntersectionOfThreeSsma : BotPanel
- {
-    private BotTabSimple _tab;
-
-    // Basic Settings
-    private StrategyParameterString _regime;
-    private StrategyParameterDecimal _slippage;
-    private StrategyParameterTimeOfDay _timeStart;
-    private StrategyParameterTimeOfDay _timeEnd;
-
-    // GetVolume Settings
-    private StrategyParameterString _volumeType;
-    private StrategyParameterDecimal _volume;
-    private StrategyParameterString _tradeAssetInPortfolio;
-
-    // Indicator Settings  
-    private StrategyParameterInt _periodSsmaFast;
-    private StrategyParameterInt _periodSsmaMiddle;
-    private StrategyParameterInt _periodSsmaSlow;
-
-    // Indicator
-    private Aindicator _ssma1;
-    private Aindicator _ssma2;
-    private Aindicator _ssma3;
-
-    // The last value of the indicators
-    private decimal _lastSsmaFast;
-    private decimal _lastSsmaMiddle;
-    private decimal _lastSsmaSlow;
-
-    public IntersectionOfThreeSsma(string name, StartProgram startProgram) : base(name, startProgram)
+    [Bot("IntersectionOfThreeSsma")] // We create an attribute so that we don't write anything in the Boot factory
+    public class IntersectionOfThreeSsma : BotPanel
     {
-        TabCreate(BotTabType.Simple);
-        _tab = TabsSimple[0];
+        private BotTabSimple _tab;
 
         // Basic Settings
-        _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-        _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-        _timeStart = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-        _timeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterString _orderType;
 
         // GetVolume Settings
-        _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-        _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-        _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator Settings
-        _periodSsmaFast = CreateParameter("fast Ssma1 period", 100, 10, 300, 1, "Indicator");
-        _periodSsmaMiddle = CreateParameter("middle Ssma2 period", 200, 10, 300, 1, "Indicator");
-        _periodSsmaSlow = CreateParameter("slow Ssma3 period", 300, 10, 300, 1, "Indicator");
+        // Indicator Settings  
+        private StrategyParameterInt _periodSsmaFast;
+        private StrategyParameterInt _periodSsmaMiddle;
+        private StrategyParameterInt _periodSsmaSlow;
 
-        // Creating an indicator SsmaFast
-        _ssma1 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma1", false);
-        _ssma1 = (Aindicator)_tab.CreateCandleIndicator(_ssma1, "Prime");
-        ((IndicatorParameterInt)_ssma1.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
-        _ssma1.ParametersDigit[0].Value = _periodSsmaFast.ValueInt;
-        _ssma1.DataSeries[0].Color = Color.Red;
-        _ssma1.Save();
+        // Indicator
+        private Aindicator _ssma1;
+        private Aindicator _ssma2;
+        private Aindicator _ssma3;
 
-        // Creating an indicator  SsmaMiddle
-        _ssma2 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma2", false);
-        _ssma2 = (Aindicator)_tab.CreateCandleIndicator(_ssma2, "Prime");
-        ((IndicatorParameterInt)_ssma2.Parameters[0]).ValueInt = _periodSsmaMiddle.ValueInt;
-        _ssma2.ParametersDigit[0].Value = _periodSsmaMiddle.ValueInt;
-        _ssma2.DataSeries[0].Color = Color.Blue;
-        _ssma2.Save();
+        // The last value of the indicators
+        private decimal _lastSsmaFast;
+        private decimal _lastSsmaMiddle;
+        private decimal _lastSsmaSlow;
 
-        // Creating an indicator SsmaSlow
-        _ssma3 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma3", false);
-        _ssma3 = (Aindicator)_tab.CreateCandleIndicator(_ssma3, "Prime");
-        ((IndicatorParameterInt)_ssma3.Parameters[0]).ValueInt = _periodSsmaSlow.ValueInt;
-        _ssma3.ParametersDigit[0].Value = _periodSsmaSlow.ValueInt;
-        _ssma3.DataSeries[0].Color = Color.Green;
-        _ssma3.Save();
+        // Non trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
 
-        // Subscribe to the indicator update event
-        ParametrsChangeByUser += IntersectionOfThreeSsma_ParametrsChangeByUser;
-
-        // Subscribe to the candle completion event
-        _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
-
-        Description = OsLocalization.Description.DescriptionLabel208;
-    }
-
-    // Indicator Update event
-    private void IntersectionOfThreeSsma_ParametrsChangeByUser()
-    {
-        ((IndicatorParameterInt)_ssma1.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
-        _ssma1.Save();
-        _ssma1.Reload();
-
-        ((IndicatorParameterInt)_ssma2.Parameters[0]).ValueInt = _periodSsmaMiddle.ValueInt;
-        _ssma2.Save();
-        _ssma2.Reload();
-
-        ((IndicatorParameterInt)_ssma3.Parameters[0]).ValueInt = _periodSsmaSlow.ValueInt;
-        _ssma3.Save();
-        _ssma3.Reload();
-    }
-
-    // The name of the robot in OsEngin
-    public override string GetNameStrategyType()
-    {
-        return "IntersectionOfThreeSsma";
-    }
-
-    public override void ShowIndividualSettingsDialog()
-    {
-
-    }
-
-    // Candle Completion Event
-    private void _tab_CandleFinishedEvent(List<Candle> candles)
-    {
-        if (_regime.ValueString == "Off")
+        public IntersectionOfThreeSsma(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            return;
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
+            TabCreate(BotTabType.Simple);
+            _tab = TabsSimple[0];
+
+            // Basic Settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _orderType = CreateParameter("Order type", "Market", new[] { "Market", "Limit" }, "Base");
+
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
+
+            // Indicator Settings
+            _periodSsmaFast = CreateParameter("fast Ssma1 period", 100, 10, 300, 1, "Indicator");
+            _periodSsmaMiddle = CreateParameter("middle Ssma2 period", 200, 10, 300, 1, "Indicator");
+            _periodSsmaSlow = CreateParameter("slow Ssma3 period", 300, 10, 300, 1, "Indicator");
+
+            // non trade period button
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
+
+            // Creating an indicator SsmaFast
+            _ssma1 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma1", false);
+            _ssma1 = (Aindicator)_tab.CreateCandleIndicator(_ssma1, "Prime");
+            ((IndicatorParameterInt)_ssma1.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
+            _ssma1.ParametersDigit[0].Value = _periodSsmaFast.ValueInt;
+            _ssma1.DataSeries[0].Color = Color.Red;
+            _ssma1.Save();
+
+            // Creating an indicator  SsmaMiddle
+            _ssma2 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma2", false);
+            _ssma2 = (Aindicator)_tab.CreateCandleIndicator(_ssma2, "Prime");
+            ((IndicatorParameterInt)_ssma2.Parameters[0]).ValueInt = _periodSsmaMiddle.ValueInt;
+            _ssma2.ParametersDigit[0].Value = _periodSsmaMiddle.ValueInt;
+            _ssma2.DataSeries[0].Color = Color.Blue;
+            _ssma2.Save();
+
+            // Creating an indicator SsmaSlow
+            _ssma3 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma3", false);
+            _ssma3 = (Aindicator)_tab.CreateCandleIndicator(_ssma3, "Prime");
+            ((IndicatorParameterInt)_ssma3.Parameters[0]).ValueInt = _periodSsmaSlow.ValueInt;
+            _ssma3.ParametersDigit[0].Value = _periodSsmaSlow.ValueInt;
+            _ssma3.DataSeries[0].Color = Color.Green;
+            _ssma3.Save();
+
+            // Subscribe to the indicator update event
+            ParametrsChangeByUser += IntersectionOfThreeSsma_ParametrsChangeByUser;
+
+            // Subscribe to the candle completion event
+            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = OsLocalization.Description.DescriptionLabel208;
         }
 
-        // If there are not enough candles to build an indicator, we exit
-        if (candles.Count < _periodSsmaFast.ValueInt || candles.Count < _periodSsmaMiddle.ValueInt || candles.Count < _periodSsmaSlow.ValueInt)
+        // non trade period button click
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
         {
-            return;
+            _tradePeriodsSettings.ShowDialog();
         }
 
-        // If the time does not match, we leave
-        if (_timeStart.Value > _tab.TimeServerCurrent ||
-            _timeEnd.Value < _tab.TimeServerCurrent)
+        // Indicator Update event
+        private void IntersectionOfThreeSsma_ParametrsChangeByUser()
         {
-            return;
+            ((IndicatorParameterInt)_ssma1.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
+            _ssma1.Save();
+            _ssma1.Reload();
+
+            ((IndicatorParameterInt)_ssma2.Parameters[0]).ValueInt = _periodSsmaMiddle.ValueInt;
+            _ssma2.Save();
+            _ssma2.Reload();
+
+            ((IndicatorParameterInt)_ssma3.Parameters[0]).ValueInt = _periodSsmaSlow.ValueInt;
+            _ssma3.Save();
+            _ssma3.Reload();
         }
 
-        List<Position> openPositions = _tab.PositionsOpenAll;
-
-        // If there are positions, then go to the position closing method
-        if (openPositions != null && openPositions.Count != 0)
+        // The name of the robot in OsEngin
+        public override string GetNameStrategyType()
         {
-            LogicClosePosition(candles);
+            return "IntersectionOfThreeSsma";
         }
 
-        // If the position closing mode, then exit the method
-        if (_regime.ValueString == "OnlyClosePosition")
+        public override void ShowIndividualSettingsDialog()
         {
-            return;
+
         }
 
-        // If there are no positions, then go to the position opening method
-        if (openPositions == null || openPositions.Count == 0)
+        // Candle Completion Event
+        private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            LogicOpenPosition(candles);
-        }
-    }
-
-    // Opening logic
-    private void LogicOpenPosition(List<Candle> candles)
-    {
-        List<Position> openPositions = _tab.PositionsOpenAll;
-
-        // He last value of the indicators
-        _lastSsmaFast = _ssma1.DataSeries[0].Last;
-        _lastSsmaMiddle = _ssma2.DataSeries[0].Last;
-        _lastSsmaSlow = _ssma3.DataSeries[0].Last;
-
-        if (openPositions == null || openPositions.Count == 0)
-        {
-            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
-
-            // Long
-            if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+            if (_regime.ValueString == "Off")
             {
-                if (_lastSsmaFast > _lastSsmaMiddle && _lastSsmaMiddle > _lastSsmaSlow)
-                {
-                    // We put a stop on the buy                       
-                    _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
-                }
+                return;
             }
 
-            // Short
-            if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+            // If there are not enough candles to build an indicator, we exit
+            if (candles.Count < _periodSsmaFast.ValueInt || candles.Count < _periodSsmaMiddle.ValueInt || candles.Count < _periodSsmaSlow.ValueInt)
             {
-                if (_lastSsmaFast < _lastSsmaMiddle && _lastSsmaMiddle < _lastSsmaSlow)
-                {
-                    // Putting a stop on sale
-                    _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
-                }
+                return;
+            }
+
+            // If the time does not match, we leave
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
+            {
+                return;
+            }
+
+            List<Position> openPositions = _tab.PositionsOpenAll;
+
+            // If there are positions, then go to the position closing method
+            if (openPositions != null && openPositions.Count != 0)
+            {
+                LogicClosePosition(candles);
+            }
+
+            // If the position closing mode, then exit the method
+            if (_regime.ValueString == "OnlyClosePosition")
+            {
+                return;
+            }
+
+            // If there are no positions, then go to the position opening method
+            if (openPositions == null || openPositions.Count == 0)
+            {
+                LogicOpenPosition(candles);
             }
         }
-    }
 
-    // Logic close position
-    private void LogicClosePosition(List<Candle> candles)
-    {
-        List<Position> openPositions = _tab.PositionsOpenAll;
-
-        decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
-        decimal lastPrice = candles[candles.Count - 1].Close;
-
-        // He last value of the indicators
-        _lastSsmaFast = _ssma1.DataSeries[0].Last;
-        _lastSsmaMiddle = _ssma2.DataSeries[0].Last;
-        _lastSsmaSlow = _ssma3.DataSeries[0].Last;
-
-        for (int i = 0; openPositions != null && i < openPositions.Count; i++)
+        // Opening logic
+        private void LogicOpenPosition(List<Candle> candles)
         {
-            if (openPositions[i].State != PositionStateType.Open)
-            {
-                continue;
-            }
+            List<Position> openPositions = _tab.PositionsOpenAll;
 
-            if (openPositions[i].Direction == Side.Buy) // If the direction of the position is long
+            // He last value of the indicators
+            _lastSsmaFast = _ssma1.DataSeries[0].Last;
+            _lastSsmaMiddle = _ssma2.DataSeries[0].Last;
+            _lastSsmaSlow = _ssma3.DataSeries[0].Last;
+
+            if (openPositions == null || openPositions.Count == 0)
             {
-                if (_lastSsmaFast < _lastSsmaMiddle && _lastSsmaMiddle < _lastSsmaSlow)
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Security.PriceStep;
+
+                // Long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
-                }
-            }
-            else // If the direction of the position is short
-            {
-                if (_lastSsmaFast > _lastSsmaMiddle && _lastSsmaMiddle > _lastSsmaSlow)
-                {
-                    _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
-                }
-            }
-        }
-    }
-
-    // Method for calculating the volume of entry into a position
-    private decimal GetVolume(BotTabSimple tab)
-    {
-        decimal volume = 0;
-
-        if (_volumeType.ValueString == "Contracts")
-        {
-            volume = _volume.ValueDecimal;
-        }
-        else if (_volumeType.ValueString == "Contract currency")
-        {
-            decimal contractPrice = tab.PriceBestAsk;
-            volume = _volume.ValueDecimal / contractPrice;
-
-            if (StartProgram == StartProgram.IsOsTrader)
-            {
-                IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
-
-                if (serverPermission != null &&
-                    serverPermission.IsUseLotToCalculateProfit &&
-                tab.Security.Lot != 0 &&
-                    tab.Security.Lot > 1)
-                {
-                    volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    if (_lastSsmaFast > _lastSsmaMiddle && _lastSsmaMiddle > _lastSsmaSlow)
+                    {
+                        // We put a stop on the buy
+                        if (_orderType == "Limit")
+                        {
+                            _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
+                        }
+                        else
+                        {
+                            _tab.BuyAtMarket(GetVolume(_tab));
+                        }
+                    }
                 }
 
-                volume = Math.Round(volume, tab.Security.DecimalsVolume);
-            }
-            else // Tester or Optimizer
-            {
-                volume = Math.Round(volume, 6);
+                // Short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                {
+                    if (_lastSsmaFast < _lastSsmaMiddle && _lastSsmaMiddle < _lastSsmaSlow)
+                    {
+                        // Putting a stop on sale
+                        if (_orderType == "Limit")
+                        {
+                            _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
+                        }
+                        else
+                        {
+                            _tab.SellAtMarket(GetVolume(_tab));
+                        }
+                    }
+                }
             }
         }
-        else if (_volumeType.ValueString == "Deposit percent")
+
+        // Logic close position
+        private void LogicClosePosition(List<Candle> candles)
         {
-            Portfolio myPortfolio = tab.Portfolio;
+            List<Position> openPositions = _tab.PositionsOpenAll;
 
-            if (myPortfolio == null)
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Security.PriceStep;
+            decimal lastPrice = candles[candles.Count - 1].Close;
+
+            // He last value of the indicators
+            _lastSsmaFast = _ssma1.DataSeries[0].Last;
+            _lastSsmaMiddle = _ssma2.DataSeries[0].Last;
+            _lastSsmaSlow = _ssma3.DataSeries[0].Last;
+
+            for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                return 0;
+                if (openPositions[i].State != PositionStateType.Open)
+                {
+                    continue;
+                }
+
+                if (openPositions[i].Direction == Side.Buy) // If the direction of the position is long
+                {
+                    if (_lastSsmaFast < _lastSsmaMiddle && _lastSsmaMiddle < _lastSsmaSlow)
+                    {
+                        if (_orderType == "Limit")
+                        {
+                            _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
+                        }
+                        else
+                        {
+                            _tab.CloseAtMarket(openPositions[i], openPositions[i].OpenVolume);
+                        }
+                    }
+                }
+                else // If the direction of the position is short
+                {
+                    if (_lastSsmaFast > _lastSsmaMiddle && _lastSsmaMiddle > _lastSsmaSlow)
+                    {
+                        if (_orderType == "Limit")
+                        {
+                            _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
+                        }
+                        else
+                        {
+                            _tab.CloseAtMarket(openPositions[i], openPositions[i].OpenVolume);
+                        }
+                    }
+                }
             }
+        }
 
-            decimal portfolioPrimeAsset = 0;
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
 
-            if (_tradeAssetInPortfolio.ValueString == "Prime")
+            if (_volumeType.ValueString == "Contracts")
             {
-                portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                volume = _volume.ValueDecimal;
             }
-            else
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
 
-                if (positionOnBoard == null)
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
                 {
                     return 0;
                 }
 
-                for (int i = 0; i < positionOnBoard.Count; i++)
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
-                    if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
                     {
-                        portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
-                        break;
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (portfolioPrimeAsset == 0)
-            {
-                SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
-                return 0;
-            }
-
-            decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
-
-            decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
-
-            if (tab.StartProgram == StartProgram.IsOsTrader)
-            {
-                if (tab.Security.UsePriceStepCostToCalculateVolume == true
-                   && tab.Security.PriceStep != tab.Security.PriceStepCost
-                   && tab.PriceBestAsk != 0
-                   && tab.Security.PriceStep != 0
-                   && tab.Security.PriceStepCost != 0)
-                {// расчёт количества контрактов для фьючерсов и опционов на Мосбирже
-                    qty = moneyOnPosition / (tab.PriceBestAsk / tab.Security.PriceStep * tab.Security.PriceStepCost);
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
                 }
-                qty = Math.Round(qty, tab.Security.DecimalsVolume);
-            }
-            else
-            {
-                qty = Math.Round(qty, 7);
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    if (tab.Security.UsePriceStepCostToCalculateVolume == true
+                       && tab.Security.PriceStep != tab.Security.PriceStepCost
+                       && tab.PriceBestAsk != 0
+                       && tab.Security.PriceStep != 0
+                       && tab.Security.PriceStepCost != 0)
+                    {// расчёт количества контрактов для фьючерсов и опционов на Мосбирже
+                        qty = moneyOnPosition / (tab.PriceBestAsk / tab.Security.PriceStep * tab.Security.PriceStepCost);
+                    }
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            return qty;
+            return volume;
         }
-
-        return volume;
     }
- }
 }

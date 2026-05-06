@@ -55,8 +55,7 @@ public class StrategyLevermor : BotPanel
     private StrategyParameterInt _maximumPosition;
     private StrategyParameterDecimal _percentDopBuy;
     private StrategyParameterDecimal _percentDopSell;
-    private StrategyParameterTimeOfDay _startTradeTime;
-    private StrategyParameterTimeOfDay _endTradeTime;
+    private StrategyParameterString _orderType;
 
     // GetVolume Settings
     private StrategyParameterString _volumeType;
@@ -75,8 +74,32 @@ public class StrategyLevermor : BotPanel
     private StrategyParameterDecimal TralingStopLength;
     private StrategyParameterString ExitType;
 
+    // Non trade periods
+    private NonTradePeriods _tradePeriodsSettings;
+    private StrategyParameterButton _tradePeriodsShowDialogButton;
+
     public StrategyLevermor(string name, StartProgram startProgram) : base(name, startProgram)
     {
+        // non trade periods
+        _tradePeriodsSettings = new NonTradePeriods(name);
+
+        _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+        _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+        _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+        _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+        _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+        _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+        _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+        _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+        _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+        _tradePeriodsSettings.TradeInSunday = false;
+        _tradePeriodsSettings.TradeInSaturday = false;
+
+        _tradePeriodsSettings.Load();
+
         // Create and assign the main trading tab
         TabCreate(BotTabType.Simple);
         _tab = TabsSimple[0];
@@ -87,17 +110,20 @@ public class StrategyLevermor : BotPanel
         _slippage = CreateParameter("Slippage", 0, 0, 20, 1, "Base");
         _percentDopBuy = CreateParameter("PersentDopBuy", 0.5m, 0.1m, 2, 0.1m, "Base");
         _percentDopSell = CreateParameter("PersentDopSell", 0.5m, 0.1m, 2, 0.1m, "Base");
-        _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-        _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+        _orderType = CreateParameter("Order type", "Market", new[] { "Market", "Limit" }, "Base");
 
         // GetVolume Settings
-        _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-        _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-        _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+        _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+        _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+        _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
         // Indicators settings
         _channelLength = CreateParameter("ChannelLength", 10, 10, 400, 10, "Indicators");
         _smaLength = CreateParameter("SmaLength", 10, 5, 150, 2, "Indicators");
+
+        // non trade period button
+        _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
+        _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
         // Exit settings
         TralingStopLength = CreateParameter("TralingStopLength", 3, 3, 8, 0.5m, "Exit");
@@ -123,6 +149,12 @@ public class StrategyLevermor : BotPanel
         ParametrsChangeByUser += StrategyLevermor_ParametrsChangeByUser;
 
         Description = OsLocalization.Description.DescriptionLabel255;
+    }
+
+    // non trade period button click
+    private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+    {
+        _tradePeriodsSettings.ShowDialog();
     }
 
     // Indicator Update event
@@ -180,8 +212,7 @@ public class StrategyLevermor : BotPanel
             return;
         }
 
-        if (_startTradeTime.Value > _tab.TimeServerCurrent ||
-            _endTradeTime.Value < _tab.TimeServerCurrent)
+        if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
         {
             return;
         }
@@ -238,14 +269,29 @@ public class StrategyLevermor : BotPanel
 
                 if (lastIntro + lastIntro * (_percentDopBuy.ValueDecimal / 100) < lastPrice)
                 {
-                    _tab.BuyAtLimit(GetVolume(_tab), lastPrice + (_slippage.ValueInt * _tab.Securiti.PriceStep));
+                    if (_orderType == "Limit")
+                    {
+                        _tab.BuyAtLimit(GetVolume(_tab), lastPrice + (_slippage.ValueInt * _tab.Security.PriceStep));
+                    }
+                    else
+                    {
+                        _tab.BuyAtMarket(GetVolume(_tab));
+                    }
                 }
             }
             else if (positions == null || positions.Count == 0)
             {
                 _tab.SellAtStopCancel();
                 _tab.BuyAtStopCancel();
-                _tab.BuyAtStop(GetVolume(_tab), maxToCandleSeries + (_slippage.ValueInt * _tab.Securiti.PriceStep), maxToCandleSeries, StopActivateType.HigherOrEqual);
+
+                if (_orderType == "Limit")
+                {
+                    _tab.BuyAtStop(GetVolume(_tab), maxToCandleSeries + (_slippage.ValueInt * _tab.Security.PriceStep), maxToCandleSeries, StopActivateType.HigherOrEqual);
+                }
+                else
+                {
+                    _tab.BuyAtStopMarket(GetVolume(_tab), maxToCandleSeries + (_slippage.ValueInt * _tab.Security.PriceStep), maxToCandleSeries, StopActivateType.HigherOrEqual, 1, "", PositionOpenerToStopLifeTimeType.NoLifeTime);
+                }
             }
         }
 
@@ -263,7 +309,14 @@ public class StrategyLevermor : BotPanel
 
                 if (lastIntro - lastIntro * (_percentDopSell.ValueDecimal / 100) > lastPrice)
                 {
-                    _tab.SellAtLimit(GetVolume(_tab), lastPrice - (_slippage.ValueInt * _tab.Securiti.PriceStep));
+                    if (_orderType == "Limit")
+                    {
+                        _tab.SellAtLimit(GetVolume(_tab), lastPrice - (_slippage.ValueInt * _tab.Security.PriceStep));
+                    }
+                    else
+                    {
+                        _tab.SellAtMarket(GetVolume(_tab));
+                    }
                 }
             }
             else if (positions == null || positions.Count == 0)
@@ -275,7 +328,15 @@ public class StrategyLevermor : BotPanel
 
                 _tab.SellAtStopCancel();
                 _tab.BuyAtStopCancel();
-                _tab.SellAtStop(GetVolume(_tab), minToCandleSeries - (_slippage.ValueInt * _tab.Securiti.PriceStep), minToCandleSeries, StopActivateType.LowerOrEqual);
+
+                if (_orderType == "Limit")
+                {
+                    _tab.SellAtStop(GetVolume(_tab), minToCandleSeries - (_slippage.ValueInt * _tab.Security.PriceStep), minToCandleSeries, StopActivateType.LowerOrEqual);
+                }
+                else
+                {
+                    _tab.SellAtStopMarket(GetVolume(_tab), minToCandleSeries - (_slippage.ValueInt * _tab.Security.PriceStep), minToCandleSeries, StopActivateType.LowerOrEqual, 1, "", PositionOpenerToStopLifeTimeType.NoLifeTime);
+                }
             }
         }
     }

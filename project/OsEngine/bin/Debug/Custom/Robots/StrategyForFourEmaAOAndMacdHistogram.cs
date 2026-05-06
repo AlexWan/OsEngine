@@ -50,8 +50,7 @@ namespace OsEngine.Robots
         // Basic Settings
         private StrategyParameterString _regime;
         private StrategyParameterDecimal _slippage;
-        private StrategyParameterTimeOfDay _startTradeTime;
-        private StrategyParameterTimeOfDay _endTradeTime;
+        private StrategyParameterString _orderType;
 
         // GetVolume Settings
         private StrategyParameterString _volumeType;
@@ -91,8 +90,32 @@ namespace OsEngine.Robots
         // Exit setting
         private StrategyParameterDecimal _trailingValue;
 
+        // Non trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public StrategyForFourEmaAOAndMacdHistogram(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
             // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -100,13 +123,12 @@ namespace OsEngine.Robots
             // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _orderType = CreateParameter("Order type", "Market", new[] { "Market", "Limit" }, "Base");
 
             // GetVolume Settings
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             // Indicators settings
             _periodEmaFastLoc = CreateParameter("Period Ema Fast Loc", 36, 10, 300, 10, "Indicator");
@@ -118,6 +140,10 @@ namespace OsEngine.Robots
             _signalLineLengthMacd = CreateParameter("Signal Line Length Macd", 8, 10, 300, 10, "Indicator");
             _fastLineLengthAO = CreateParameter("Fast Line Length AO", 13, 10, 300, 10, "Indicator");
             _slowLineLengthAO = CreateParameter("Slow Line Length AO", 26, 10, 300, 10, "Indicator");
+
+            // non trade period button
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
             // Create indicator EmaFastLoc
             _emaFastLoc = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema One Loc", false);
@@ -172,6 +198,12 @@ namespace OsEngine.Robots
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = OsLocalization.Description.DescriptionLabel253;
+        }
+
+        // non trade period button click
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         // Indicator Update event
@@ -232,8 +264,7 @@ namespace OsEngine.Robots
             }
 
             // If the time does not match, we leave
-            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
-                _endTradeTime.Value < _tab.TimeServerCurrent)
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }
@@ -277,7 +308,7 @@ namespace OsEngine.Robots
                 // The prevlast value of the indicator
                 _prevAO = _AO.DataSeries[0].Values[_AO.DataSeries[0].Values.Count - 2];
 
-                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Security.PriceStep;
 
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
@@ -287,7 +318,14 @@ namespace OsEngine.Robots
                         _lastAO > _prevAO &&
                         _lastMacd > 0)
                     {
-                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
+                        }
+                        else
+                        {
+                            _tab.BuyAtMarket(GetVolume(_tab));
+                        }
                     }
                 }
 
@@ -299,7 +337,14 @@ namespace OsEngine.Robots
                     _lastAO < _prevAO &&
                     _lastMacd < 0)
                     {
-                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
+                        if (_orderType == "Limit")
+                        {
+                            _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
+                        }
+                        else
+                        {
+                            _tab.SellAtMarket(GetVolume(_tab));
+                        }
                     }
                 }
             }
@@ -310,7 +355,7 @@ namespace OsEngine.Robots
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Security.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -336,7 +381,15 @@ namespace OsEngine.Robots
                     decimal high = candles[candles.Count - 1].High;
                     stopPrice = high + high * _trailingValue.ValueDecimal / 100;
                 }
-                _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
+
+                if (_orderType == "Limit")
+                {
+                    _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
+                }
+                else
+                {
+                    _tab.CloseAtTrailingStopMarket(pos, stopPrice);
+                }
             }
         }
 

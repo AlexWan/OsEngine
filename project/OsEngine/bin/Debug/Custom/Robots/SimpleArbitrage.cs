@@ -56,8 +56,32 @@ namespace OsEngine.Robots
         // Indicator
         private Aindicator _dayMiddle;
 
+        // Non trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public SimpleArbitrage(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
             CreateParameters();
 
             // Creating Tabs
@@ -97,6 +121,16 @@ namespace OsEngine.Robots
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
             _volumeFirstLeg = CreateParameter("First volume", 1m, 1, 50, 1);
             _volumeSecondLeg = CreateParameter("Second volume", 1m, 1, 50, 1);
+
+            // non trade period button
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
+        }
+
+        // non trade period button click
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         private void SimpleArbitrageParametrsChangeByUser()
@@ -111,6 +145,12 @@ namespace OsEngine.Robots
         {
             // If the robot is turned off, we exit the event.
             if (_regime.ValueString == "Off")
+            {
+                return;
+            }
+
+            // If the time does not match, we leave
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }
