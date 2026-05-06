@@ -1324,6 +1324,9 @@ namespace OsEngine.Language
           "Eng:Error while loading securities. The T-Investments server is not available. The connector has been restarted. Cheburnet is offline_" +
           "Ru:Ошибка при загрузке инструментов. Сервер Т-Инвестиции не доступен. Коннектор отправлен на перезапуск. Чебурнет перегружен... _");
 
+        public string Label324 => OsLocalization.ConvertToLocString(
+        "Eng:If set to True, similar servers will share a common request counter to avoid exceeding API limits_" +
+        "Ru:Если True - то аналогичные сервера будут иметь общий счетчик запросов (чтобы не выходить за пределы API лимитов)_");
 
 
 

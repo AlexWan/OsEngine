@@ -35,10 +35,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterBoolean("Extended Data", false);
+            CreateParameterBoolean("Use Shared RateGate", false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label246;
             ServerParameters[1].Comment = OsLocalization.Market.Label247;
             ServerParameters[2].Comment = OsLocalization.Market.Label269;
+            ServerParameters[3].Comment = OsLocalization.Market.Label324;
         }
     }
 
@@ -1706,7 +1708,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 string urlStr = null;
 
-                if (((ServerParameterBool)ServerParameters[10]).Value == false)
+                if (((ServerParameterBool)ServerParameters[11]).Value == false)
                 {
                     urlStr = "wss://stream.binance.com:9443/stream?streams="
                                                 + security.Name.ToLower()
@@ -3156,13 +3158,20 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
+        private static readonly RateGate _sharedRateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        private RateGate GetRateGate()
+        {
+            return ((ServerParameterBool)ServerParameters[3]).Value ? _sharedRateGate : _rateGate;
+        }
+
         public string CreateQuery(BinanceExchangeType startUri, Method method, string endpoint, Dictionary<string, string> param = null, bool auth = false)
         {
             try
             {
                 lock (_queryHttpLocker)
                 {
-                    _rateGate.WaitToProceed();
+                    GetRateGate().WaitToProceed();
                     string fullUrl = "";
 
                     if (param != null)
