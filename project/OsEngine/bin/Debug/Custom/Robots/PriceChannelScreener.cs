@@ -43,14 +43,39 @@ namespace OsEngine.Robots
         public StrategyParameterInt _downLine;
         public StrategyParameterDecimal _stopForShort;
         public StrategyParameterDecimal _slippage;
+        private StrategyParameterString _orderType;
 
         // GetVolume Settings
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
+        // Non trade periods
+        private NonTradePeriods _tradePeriodsSettings;
+        private StrategyParameterButton _tradePeriodsShowDialogButton;
+
         public PriceChannelScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // non trade periods
+            _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
             CreateParameters();
 
             // Creating Tab
@@ -77,7 +102,17 @@ namespace OsEngine.Robots
             // Subscribe to the indicator update event
             ParametrsChangeByUser += PanelParametrsChangeByUser;
 
+            // non trade period button
+            _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
+            _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
+
             Description = OsLocalization.Description.DescriptionLabel232;
+        }
+
+        // non trade period button click
+        private void _tradePeriodsShowDialogButton_UserClickOnButtonEvent()
+        {
+            _tradePeriodsSettings.ShowDialog();
         }
 
         private void CreateParameters()
@@ -88,6 +123,7 @@ namespace OsEngine.Robots
             _regime = CreateParameter("Regime", "Off", new[] { "On", "Off" });
             _stopForShort = CreateParameter("Stop for short", 0.5m, 0.1m, 1, 0.1m);
             _slippage = CreateParameter("Slippage", 0.1m, 0.1m, 1, 0.1m);
+            _orderType = CreateParameter("Order type", "Market", new[] { "Market", "Limit" });
 
             // GetVolume Settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
@@ -110,6 +146,12 @@ namespace OsEngine.Robots
         {
             // If the robot is turned off, we exit the event.
             if (_regime.ValueString == "Off")
+            {
+                return;
+            }
+
+            // If the time does not match, we leave
+            if (_tradePeriodsSettings.CanTradeThisTime(candles[^1].TimeStart) == false)
             {
                 return;
             }
@@ -147,14 +189,28 @@ namespace OsEngine.Robots
             decimal orderPrice = CalcPriceSlippageUp(activatePrice);
 
             // Conditional order to buy.
-            simpleTab.BuyAtStop(GetVolume(simpleTab), activatePrice, orderPrice, StopActivateType.HigherOrEqual);
+            if (_orderType == "Limit")
+            {
+                simpleTab.BuyAtStop(GetVolume(simpleTab), activatePrice, orderPrice, StopActivateType.HigherOrEqual);
+            }
+            else
+            {
+                simpleTab.BuyAtStopMarket(GetVolume(simpleTab), activatePrice, orderPrice, StopActivateType.HigherOrEqual, 1, "", PositionOpenerToStopLifeTimeType.NoLifeTime);
+            }
 
             // Conditional sell order activation price.
             activatePrice = indicator.DataSeries[1].Values.Last();
             // Order price including slippage.
             orderPrice = CalcPriceSlippageDown(activatePrice);
             // Conditional order to sell.
-            simpleTab.SellAtStop(GetVolume(simpleTab), activatePrice, orderPrice, StopActivateType.LowerOrEqyal);
+            if (_orderType == "Limit")
+            {
+                simpleTab.SellAtStop(GetVolume(simpleTab), activatePrice, orderPrice, StopActivateType.LowerOrEqual);
+            }
+            else
+            {
+                simpleTab.SellAtStopMarket(GetVolume(simpleTab), activatePrice, orderPrice, StopActivateType.LowerOrEqual, 1, "", PositionOpenerToStopLifeTimeType.NoLifeTime);
+            }
         }
 
         private void ExitLogic(BotTabSimple simpleTab, Aindicator indicator)
@@ -166,7 +222,14 @@ namespace OsEngine.Robots
             {
                 decimal lastDownValue = indicator.DataSeries[1].Values.Last();
                 // Exit by stop order
-                simpleTab.CloseAtStop(lastPosition, lastDownValue, CalcPriceSlippageUp(lastDownValue));
+                if (_orderType == "Limit")
+                {
+                    simpleTab.CloseAtStop(lastPosition, lastDownValue, CalcPriceSlippageUp(lastDownValue));
+                }
+                else
+                {
+                    simpleTab.CloseAtStopMarket(lastPosition, lastDownValue);
+                }
             }
             else // If we are in a short position
             {
@@ -174,7 +237,14 @@ namespace OsEngine.Robots
 
                 decimal activatePrice = CalcStopForShort(lastCandle.Close);
                 // Exit by trailing
-                simpleTab.CloseAtTrailingStop(lastPosition, activatePrice, CalcPriceSlippageUp(activatePrice));
+                if (_orderType == "Limit")
+                {
+                    simpleTab.CloseAtTrailingStop(lastPosition, activatePrice, CalcPriceSlippageUp(activatePrice));
+                }
+                else
+                {
+                    simpleTab.CloseAtTrailingStopMarket(lastPosition, activatePrice);
+                }
             }
         }
 
@@ -187,13 +257,27 @@ namespace OsEngine.Robots
             {
                 decimal activatePrice = indicator.DataSeries[1].Values.Last();
                 // Exit by stop order
-                simpleTab.CloseAtStop(position, activatePrice, CalcPriceSlippageDown(activatePrice));
+                if (_orderType == "Limit")
+                {
+                    simpleTab.CloseAtStop(position, activatePrice, CalcPriceSlippageDown(activatePrice));
+                }
+                else
+                {
+                    simpleTab.CloseAtStopMarket(position, activatePrice);
+                }
             }
             else // If we are in a short position
             {
                 decimal activatePrice = CalcStopForShort(position.EntryPrice);
                 // Exit by trailing
-                simpleTab.CloseAtTrailingStop(position, activatePrice, CalcPriceSlippageUp(activatePrice));
+                if (_orderType == "Limit")
+                {
+                    simpleTab.CloseAtTrailingStop(position, activatePrice, CalcPriceSlippageUp(activatePrice));
+                }
+                else
+                {
+                    simpleTab.CloseAtTrailingStopMarket(position, activatePrice);
+                }
             }
         }
 
