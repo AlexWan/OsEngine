@@ -34,14 +34,8 @@ using OsEngine.UpdateModule;
 
 namespace OsEngine
 {
-
-    /// <summary>
-    /// Application start screen
-    /// Стартовое окно приложения
-    /// </summary>
     public partial class MainWindow
     {
-
         private static MainWindow _window;
 
         private UpdateResponse _updServerResp;
@@ -55,11 +49,9 @@ namespace OsEngine
 
         public static bool DebuggerIsWork;
 
-        /// <summary>
-        ///  is application running
-        /// работает ли приложение или закрывается
-        /// </summary>
         public static bool ProccesIsWorked;
+
+        private StartProgram _startProgram;
 
         public MainWindow()
         {
@@ -134,6 +126,15 @@ namespace OsEngine
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
 
+            if (BlockMaster.IsBlocked == true)
+            {
+                BlockInterface();
+            }
+            else
+            {
+                UnblockInterface();
+            }
+
             CommandLineInterfaceProcess();
 
             Task.Run(ClearOptimizerWorkResults);
@@ -144,15 +145,6 @@ namespace OsEngine
             GlobalGUILayout.Listen(this, "mainWindow");
 
             VideoGrid.MouseDown += VideoGrid_MouseDown;
-
-            if (BlockMaster.IsBlocked == true)
-            {
-                BlockInterface();
-            }
-            else
-            {
-                UnblockInterface();
-            }
 
             if (InteractiveInstructions.MainMenu.AllInstructionsInClass == null
               || InteractiveInstructions.MainMenu.AllInstructionsInClass.Count == 0)
@@ -173,49 +165,31 @@ namespace OsEngine
             StartButtonBlinkAnimation();
         }
 
-        private void StartButtonBlinkAnimation()
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
+                GlobalGUILayout.IsClosed = true;
 
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
+                if (ProccesIsWorked == true)
                 {
-                    try
+                    ProccesIsWorked = false;
+
+                    if (this.IsVisible == false)
                     {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            GreenCollectionMenu.Opacity = 1;
-                            WhiteCollectionMenu.Opacity = 0;
-                            return;
-                        }
+                        _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label391, 100, 0, true);
+                        AwaitUi ui = new AwaitUi(_awaitUiBotsInfoLoading);
 
-                        if (isGreenVisible)
-                        {
-                            GreenCollectionMenu.Opacity = 0;
-                            WhiteCollectionMenu.Opacity = 1;
-                        }
-                        else
-                        {
-                            GreenCollectionMenu.Opacity = 1;
-                            WhiteCollectionMenu.Opacity = 0;
-                        }
+                        Thread worker = new Thread(Await7Seconds);
+                        worker.Start();
 
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
+                        ui.ShowDialog();
                     }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
+                }
 
-                timer.Start();
+                Thread.Sleep(500);
+
+                Process.GetCurrentProcess().Kill();
             }
             catch (Exception ex)
             {
@@ -223,9 +197,142 @@ namespace OsEngine
             }
         }
 
-        private void GifT_MediaEnded(object sender, RoutedEventArgs e)
+        private AwaitObject _awaitUiBotsInfoLoading;
+
+        private void Await7Seconds()
         {
-            GifT.Pause(); // останавливаем на последнем кадре
+            // Это нужно чтобы потоки сохраняющие данные в файловую систему штатно завершили свою работу
+            // This is necessary for threads saving data to the file system to complete their work properly
+            Thread.Sleep(7000);
+            _awaitUiBotsInfoLoading.Dispose();
+        }
+
+        private void MainWindow_ContentRendered(object sender, EventArgs e)
+        {
+            Task.Run(() =>
+            {
+                Thread.Sleep(1000);
+                try
+                {
+                    ChangeText();
+                }
+                catch
+                {
+                    // ignore
+                }
+            });
+        }
+
+        private void ChangeText()
+        {
+
+            if (ImageGear.Dispatcher.CheckAccess() == false)
+            {
+                ImageGear.Dispatcher.Invoke(new Action(ChangeText));
+                return;
+            }
+
+            Title = OsLocalization.MainWindow.Title;
+            BlockDataLabel.Content = OsLocalization.MainWindow.BlockDataLabel;
+            BlockTestingLabel.Content = OsLocalization.MainWindow.BlockTestingLabel;
+            BlockTradingLabel.Content = OsLocalization.MainWindow.BlockTradingLabel;
+            ButtonData.Content = OsLocalization.MainWindow.OsDataName;
+            ButtonConverter.Content = OsLocalization.MainWindow.OsConverter;
+            ButtonTester.Content = OsLocalization.MainWindow.OsTesterName;
+            ButtonOptimizer.Content = OsLocalization.MainWindow.OsOptimizerName;
+
+            ButtonRobot.Content = OsLocalization.MainWindow.OsBotStationName;
+            ButtonCandleConverter.Content = OsLocalization.MainWindow.OsCandleConverter;
+
+            ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLiteName;
+            ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLiteName;
+
+            ChangeButtonCommits();
+
+            if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            {
+                VideoGrid.Visibility = Visibility.Visible;
+                this.Height = 430;
+                GifT.Play();
+            }
+            else
+            {
+                this.Height = 315;
+                VideoGrid.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            string message = OsLocalization.MainWindow.Message5 + " THREAD " + e.ExceptionObject;
+
+            message = _startProgram + "  " + message;
+
+            message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
+
+            _messageToCrashServer = "Crash% " + message;
+            Thread worker = new Thread(SendMessageInCrashServer);
+            worker.Start();
+
+            if (PrimeSettingsMaster.RebootTradeUiLight == true &&
+                RobotUiLite.IsRobotUiLightStart)
+            {
+                Reboot(message);
+            }
+            else
+            {
+                MessageBox.Show(message);
+            }
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            if (e.Exception != null
+                && e.Exception.ToString().Contains("(995):") == true)
+            { // игнорируем прерывания потока за делом по кансел токену
+                return;
+            }
+
+            string message = OsLocalization.MainWindow.Message5 + " TASK " + e.Exception.ToString();
+
+            message = _startProgram + "  " + message;
+
+            message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
+
+            _messageToCrashServer = "Crash% " + message;
+            Thread worker = new Thread(SendMessageInCrashServer);
+            worker.Start();
+
+            if (PrimeSettingsMaster.RebootTradeUiLight == true &&
+                RobotUiLite.IsRobotUiLightStart)
+            {
+                Reboot(message);
+            }
+            else
+            {
+                MessageBox.Show(message);
+            }
+        }
+
+        private void Reboot(string message)
+        {
+
+            if (!CheckAccess())
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    Reboot(message);
+                });
+                return;
+            }
+
+            App.app.Shutdown();
+            Process process = new Process();
+            process.StartInfo.FileName = Directory.GetCurrentDirectory() + "\\OsEngine.exe";
+            process.StartInfo.Arguments = " -error " + message;
+            process.Start();
+
+            Process.GetCurrentProcess().Kill();
         }
 
         #region Block and Unblock interface
@@ -310,119 +417,8 @@ namespace OsEngine
 
         #endregion
 
-        private void VideoGrid_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo("https://www.tbank.ru/invest") { UseShellExecute = true });
-            }
-            catch
-            {
-                // ignore
-            }
-        }
+        #region Check system on start program
 
-        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            try
-            {
-                GlobalGUILayout.IsClosed = true;
-
-                if (ProccesIsWorked == true)
-                {
-                    ProccesIsWorked = false;
-
-                    if (this.IsVisible == false)
-                    {
-                        _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label391, 100, 0, true);
-                        AwaitUi ui = new AwaitUi(_awaitUiBotsInfoLoading);
-
-                        Thread worker = new Thread(Await7Seconds);
-                        worker.Start();
-
-                        ui.ShowDialog();
-                    }
-                }
-
-                Thread.Sleep(500);
-
-                Process.GetCurrentProcess().Kill();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        AwaitObject _awaitUiBotsInfoLoading;
-
-        private void Await7Seconds()
-        {
-            // Это нужно чтобы потоки сохраняющие данные в файловую систему штатно завершили свою работу
-            // This is necessary for threads saving data to the file system to complete their work properly
-            Thread.Sleep(7000);
-            _awaitUiBotsInfoLoading.Dispose();
-        }
-
-        private void MainWindow_ContentRendered(object sender, EventArgs e)
-        {
-            Task.Run(() =>
-            {
-                Thread.Sleep(1000);
-                try
-                {
-                    ChangeText();
-                }
-                catch
-                {
-                    // ignore
-                }
-            });
-        }
-
-        private void ChangeText()
-        {
-
-            if (ImageGear.Dispatcher.CheckAccess() == false)
-            {
-                ImageGear.Dispatcher.Invoke(new Action(ChangeText));
-                return;
-            }
-
-            Title = OsLocalization.MainWindow.Title;
-            BlockDataLabel.Content = OsLocalization.MainWindow.BlockDataLabel;
-            BlockTestingLabel.Content = OsLocalization.MainWindow.BlockTestingLabel;
-            BlockTradingLabel.Content = OsLocalization.MainWindow.BlockTradingLabel;
-            ButtonData.Content = OsLocalization.MainWindow.OsDataName;
-            ButtonConverter.Content = OsLocalization.MainWindow.OsConverter;
-            ButtonTester.Content = OsLocalization.MainWindow.OsTesterName;
-            ButtonOptimizer.Content = OsLocalization.MainWindow.OsOptimizerName;
-
-            ButtonRobot.Content = OsLocalization.MainWindow.OsBotStationName;
-            ButtonCandleConverter.Content = OsLocalization.MainWindow.OsCandleConverter;
-
-            ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLiteName;
-            ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLiteName;
-
-            ChangeButtonCommits();
-
-            if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
-            {
-                VideoGrid.Visibility = Visibility.Visible;
-                this.Height = 430;
-                GifT.Play();
-            }
-            else
-            {
-                this.Height = 315;
-                VideoGrid.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        /// <summary>
-        /// check the version of dotnet
-        /// проверить версию дотНет
-        /// </summary>
         private bool CheckDotNetVersion()
         {
             using (RegistryKey ndpKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
@@ -472,10 +468,6 @@ namespace OsEngine
             return true;
         }
 
-        /// <summary>
-        /// check the permission of the program to create files in the directory
-        /// проверяем разрешение программы создавать файлы в директории
-        /// </summary>
         private bool CheckWorkWithDirectory()
         {
             try
@@ -576,80 +568,9 @@ namespace OsEngine
             }
         }
 
-        void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            string message = OsLocalization.MainWindow.Message5 + " THREAD " + e.ExceptionObject;
+        #endregion
 
-            message = _startProgram + "  " + message;
-
-            message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
-
-            _messageToCrashServer = "Crash% " + message;
-            Thread worker = new Thread(SendMessageInCrashServer);
-            worker.Start();
-
-            if (PrimeSettingsMaster.RebootTradeUiLight == true &&
-                RobotUiLite.IsRobotUiLightStart)
-            {
-                Reboot(message);
-            }
-            else
-            {
-                MessageBox.Show(message);
-            }
-        }
-
-        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
-        {
-            if (e.Exception != null
-                && e.Exception.ToString().Contains("(995):") == true)
-            { // игнорируем прерывания потока за делом по кансел токену
-                return;
-            }
-
-            string message = OsLocalization.MainWindow.Message5 + " TASK " + e.Exception.ToString();
-
-            message = _startProgram + "  " + message;
-
-            message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
-
-            _messageToCrashServer = "Crash% " + message;
-            Thread worker = new Thread(SendMessageInCrashServer);
-            worker.Start();
-
-            if (PrimeSettingsMaster.RebootTradeUiLight == true &&
-                RobotUiLite.IsRobotUiLightStart)
-            {
-                Reboot(message);
-            }
-            else
-            {
-                MessageBox.Show(message);
-            }
-        }
-
-        private StartProgram _startProgram;
-
-        private void Reboot(string message)
-        {
-
-            if (!CheckAccess())
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    Reboot(message);
-                });
-                return;
-            }
-
-            App.app.Shutdown();
-            Process process = new Process();
-            process.StartInfo.FileName = Directory.GetCurrentDirectory() + "\\OsEngine.exe";
-            process.StartInfo.Arguments = " -error " + message;
-            process.Start();
-
-            Process.GetCurrentProcess().Kill();
-        }
+        #region Open program buttons
 
         private void ButtonTesterCandleOne_Click(object sender, RoutedEventArgs e)
         {
@@ -789,47 +710,6 @@ namespace OsEngine
             Process.GetCurrentProcess().Kill();
         }
 
-        private async void ThreadAreaGreeting()
-        {
-            try
-            {
-                await Task.Delay(1000);
-                double angle = 5;
-
-                for (int i = 0; i < 7; i++)
-                {
-                    RotatePic(angle);
-                    await Task.Delay(50);
-                    angle += 10;
-                }
-
-                for (int i = 0; i < 7; i++)
-                {
-                    RotatePic(angle);
-                    await Task.Delay(100);
-                    angle += 10;
-                }
-
-                await Task.Delay(100);
-                RotatePic(angle);
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private void RotatePic(double angle)
-        {
-            if (ImageGear.Dispatcher.CheckAccess() == false)
-            {
-                ImageGear.Dispatcher.Invoke(new Action<double>(RotatePic), angle);
-                return;
-            }
-
-            ImageGear.RenderTransform = new RotateTransform(angle, 12, 12);
-        }
-
         private void ButtonSettings_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -950,6 +830,10 @@ namespace OsEngine
             }
         }
 
+        #endregion
+
+        #region Crash server
+
         string _messageToCrashServer;
 
         private void SendMessageInCrashServer()
@@ -967,6 +851,118 @@ namespace OsEngine
                 byte[] sendBytes = Encoding.UTF8.GetBytes(_messageToCrashServer);
                 tcpStream.Write(sendBytes, 0, sendBytes.Length);
                 newClient.Close();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
+
+        #region Pictures and visual 
+
+        private async void ThreadAreaGreeting()
+        {
+            try
+            {
+                await Task.Delay(1000);
+                double angle = 5;
+
+                for (int i = 0; i < 7; i++)
+                {
+                    RotatePic(angle);
+                    await Task.Delay(50);
+                    angle += 10;
+                }
+
+                for (int i = 0; i < 7; i++)
+                {
+                    RotatePic(angle);
+                    await Task.Delay(100);
+                    angle += 10;
+                }
+
+                await Task.Delay(100);
+                RotatePic(angle);
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void RotatePic(double angle)
+        {
+            if (ImageGear.Dispatcher.CheckAccess() == false)
+            {
+                ImageGear.Dispatcher.Invoke(new Action<double>(RotatePic), angle);
+                return;
+            }
+
+            ImageGear.RenderTransform = new RotateTransform(angle, 12, 12);
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                DispatcherTimer timer = new DispatcherTimer();
+                int blinkCount = 0;
+                bool isGreenVisible = true;
+
+                timer.Interval = TimeSpan.FromMilliseconds(300);
+                timer.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        if (blinkCount >= 20)
+                        {
+                            timer.Stop();
+                            GreenCollectionMenu.Opacity = 1;
+                            WhiteCollectionMenu.Opacity = 0;
+                            return;
+                        }
+
+                        if (isGreenVisible)
+                        {
+                            GreenCollectionMenu.Opacity = 0;
+                            WhiteCollectionMenu.Opacity = 1;
+                        }
+                        else
+                        {
+                            GreenCollectionMenu.Opacity = 1;
+                            WhiteCollectionMenu.Opacity = 0;
+                        }
+
+                        isGreenVisible = !isGreenVisible;
+                        blinkCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                        timer.Stop();
+                    }
+                };
+
+                timer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void GifT_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            GifT.Pause(); // останавливаем на последнем кадре
+        }
+
+        private void VideoGrid_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("https://www.tbank.ru/invest") { UseShellExecute = true });
             }
             catch
             {
@@ -1021,6 +1017,8 @@ namespace OsEngine
             }
         }
 
+        #endregion
+
         #region Posts collection
 
         private InstructionsUi _instructionsUi;
@@ -1067,6 +1065,7 @@ namespace OsEngine
         #endregion
 
         #region Updater
+
         private async void GetUpdateInfo()
         {
             try
