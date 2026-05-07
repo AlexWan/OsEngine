@@ -6,6 +6,7 @@
 using OsEngine.Alerts;
 using OsEngine.Attributes;
 using OsEngine.Entity;
+using OsEngine.Journal;
 using OsEngine.Journal.Internal;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -160,6 +161,15 @@ namespace OsEngine.OsTrader.Panels
                 try
                 {
                     _chartUi?.Close();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                try
+                {
+                    _journalUi?.Close();
                 }
                 catch
                 {
@@ -810,6 +820,85 @@ namespace OsEngine.OsTrader.Panels
         }
 
         public event Action<string> ChartClosedEvent;
+
+        #endregion
+
+        #region Journal by this bot
+
+        private JournalUi2 _journalUi;
+
+        public void ShowJournalDialog()
+        {
+            try
+            {
+                if (_journalUi != null)
+                {
+                    if (_journalUi.WindowState == System.Windows.WindowState.Minimized)
+                    {
+                        _journalUi.WindowState = System.Windows.WindowState.Normal;
+                    }
+
+                    _journalUi.Activate();
+                    return;
+                }
+
+                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
+
+                List<Journal.Journal> journals = this.GetJournals();
+
+                BotPanelJournal botPanel = new BotPanelJournal();
+                botPanel.BotName = this.NameStrategyUniq;
+                botPanel.BotClass = this.GetNameStrategyType();
+
+                botPanel._Tabs = new List<BotTabJournal>();
+
+                for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
+                {
+                    BotTabJournal botTabJournal = new BotTabJournal();
+                    botTabJournal.TabNum = i2;
+                    botTabJournal.Journal = journals[i2];
+                    botPanel._Tabs.Add(botTabJournal);
+                }
+
+                panelsJournal.Add(botPanel);
+
+                _journalUi = new JournalUi2(panelsJournal, this.StartProgram);
+                _journalUi.Closed += _journalUi_Closed;
+                _journalUi.LogMessageEvent += _journalUi_LogMessageEvent;
+                _journalUi.Show();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _journalUi_LogMessageEvent(string message, LogMessageType type)
+        {
+            try
+            {
+                SendNewLogMessage(message, type);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _journalUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _journalUi.Closed -= _journalUi_Closed;
+                _journalUi.LogMessageEvent -= _journalUi_LogMessageEvent;
+                _journalUi.IsErase = true;
+                _journalUi = null;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
 
         #endregion
 

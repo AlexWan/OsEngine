@@ -2798,5 +2798,9 @@ namespace OsEngine.Language
         public string Label746 => OsLocalization.ConvertToLocString(
           "Eng:Time shift (hour)_" +
           "Ru:Временной сдвиг (час)_");
+
+        public string Label747 => OsLocalization.ConvertToLocString(
+          "Eng:Journal common_" +
+          "Ru:Журнал общий_");
     }
 }

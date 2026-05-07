@@ -141,6 +141,13 @@ namespace OsEngine.OsTrader.Gui
             colum11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum11);
 
+            DataGridViewButtonColumn colum12 = new DataGridViewButtonColumn();
+            // colum09.CellTemplate = cell0;
+            //colum09.HeaderText = "Action";
+            colum12.ReadOnly = true;
+            colum12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colum12);
+
             _grid = newGrid;
             _host.Child = _grid;
 
@@ -299,6 +306,12 @@ namespace OsEngine.OsTrader.Gui
                     }
 
                     _master.DeleteRobotByNum(rowIndex);
+                }
+                else if (coluIndex == 10 &&
+                    rowIndex < botsCount)
+                { // вызываем журнал конкретного робота
+                    bot.ShowJournalDialog();
+                    return;
                 }
 
                 if (rowIndex == botsCount + 1)
@@ -485,43 +498,7 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                string journalName =
-                    "Journal2Ui_" + _lastSelectedBot.NameStrategyUniq + _master._startProgram.ToString();
-
-                for (int i = 0; i < _journalUi.Count; i++)
-                {
-                    if (_journalUi[i].JournalName == journalName)
-                    {
-                        _journalUi[i].Activate();
-                        return;
-                    }
-                }
-
-                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
-
-                List<Journal.Journal> journals = _lastSelectedBot.GetJournals();
-
-
-                BotPanelJournal botPanel = new BotPanelJournal();
-                botPanel.BotName = _lastSelectedBot.NameStrategyUniq;
-                botPanel.BotClass = _lastSelectedBot.GetNameStrategyType();
-
-                botPanel._Tabs = new List<BotTabJournal>();
-
-                for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
-                {
-                    BotTabJournal botTabJournal = new BotTabJournal();
-                    botTabJournal.TabNum = i2;
-                    botTabJournal.Journal = journals[i2];
-                    botPanel._Tabs.Add(botTabJournal);
-                }
-
-                panelsJournal.Add(botPanel);
-
-                _journalUi.Add(new JournalUi2(panelsJournal, _lastSelectedBot.StartProgram));
-                _journalUi[_journalUi.Count - 1].Closed += _journalUi_Closed;
-                _journalUi[_journalUi.Count - 1].LogMessageEvent += _journalUi_LogMessageEvent;
-                _journalUi[_journalUi.Count - 1].Show();
+                _lastSelectedBot.ShowJournalDialog();
             }
             catch (Exception error)
             {
@@ -863,7 +840,7 @@ colum06.HeaderText = "Emulator on/off";
 
 colum07.HeaderText = "Chart";
 colum08.HeaderText = "Parameters";
-colum9.HeaderText = "Journal";
+colum9.HeaderText = "Journal common";
 colum10.HeaderText = "Action";
 */
             DataGridViewRow row = new DataGridViewRow();
@@ -911,6 +888,9 @@ colum10.HeaderText = "Action";
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[9].Value = OsLocalization.Trader.Label39;//"Delete";
 
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[10].Value = OsLocalization.Trader.Label40; //"Journal";
+
             if (num % 2 == 0)
             {
                 for (int i = 0; i < row.Cells.Count; i++)
@@ -953,7 +933,7 @@ colum9.HeaderText = "Journal";
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells.Add(new DataGridViewButtonCell());
-
+            row.Cells.Add(new DataGridViewButtonCell());
             return row;
         }
 
@@ -1007,9 +987,10 @@ colum9.HeaderText = "Journal";
             }
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[8].Value = OsLocalization.Trader.Label40; //"Journal";
+            row.Cells[8].Value = OsLocalization.Trader.Label747; //"Journal common";
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[9].Value = OsLocalization.Trader.Label38; //"Add New...";
+            row.Cells.Add(new DataGridViewTextBoxCell());
 
             return row;
         }

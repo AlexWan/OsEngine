@@ -363,83 +363,15 @@ namespace OsEngine.OsTrader.Panels
 
         #region Journal
 
-        private JournalUi2 _journalUi;
-
         private void ButtonJournalCommunity_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (_journalUi != null)
-                {
-                    if (_journalUi.WindowState == System.Windows.WindowState.Minimized)
-                    {
-                        _journalUi.WindowState = System.Windows.WindowState.Normal;
-                    }
-
-                    _journalUi.Activate();
-                    return;
-                }
-
-                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
-
-                List<Journal.Journal> journals = _panel.GetJournals();
-
-
-                BotPanelJournal botPanel = new BotPanelJournal();
-                botPanel.BotName = _panel.NameStrategyUniq;
-                botPanel.BotClass = _panel.GetNameStrategyType();
-
-                botPanel._Tabs = new List<BotTabJournal>();
-
-                for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
-                {
-                    BotTabJournal botTabJournal = new BotTabJournal();
-                    botTabJournal.TabNum = i2;
-                    botTabJournal.Journal = journals[i2];
-                    botPanel._Tabs.Add(botTabJournal);
-                }
-
-                panelsJournal.Add(botPanel);
-
-                _journalUi = new JournalUi2(panelsJournal, _panel.StartProgram);
-                _journalUi.Closed += _journalUi_Closed;
-                _journalUi.LogMessageEvent += _journalUi_LogMessageEvent;
-                _journalUi.Show();
+                _panel.ShowJournalDialog();
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void _journalUi_LogMessageEvent(string message, LogMessageType type)
-        {
-            try
-            {
-                if (_panel == null)
-                {
-                    return;
-                }
-                _panel.SendNewLogMessage(message, type);
-            }
-            catch (Exception ex)
-            {
-                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void _journalUi_Closed(object sender, EventArgs e)
-        {
-            try
-            {
-                _journalUi.Closed -= _journalUi_Closed;
-                _journalUi.LogMessageEvent -= _journalUi_LogMessageEvent;
-                _journalUi.IsErase = true;
-                _journalUi = null;
-            }
-            catch (Exception ex)
-            {
-                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
