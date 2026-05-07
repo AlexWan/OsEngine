@@ -41,6 +41,7 @@ namespace OsEngine.Market.Servers.Bybit
             ServerParameters[4].ValueChange += BybitServer_ValueChange;
             CreateParameterBoolean("Extended Data", false);
             CreateParameterBoolean("Use Options", false);
+            CreateParameterBoolean("Use Shared RateGate", false);
 
             realization.UseFullMarketDepth = this._needToUseFullMarketDepth;
 
@@ -51,7 +52,7 @@ namespace OsEngine.Market.Servers.Bybit
             ServerParameters[4].Comment = OsLocalization.Market.Label250;
             ServerParameters[5].Comment = OsLocalization.Market.Label251;
             ServerParameters[6].Comment = OsLocalization.Market.Label252;
-            ServerParameters[7].Comment = OsLocalization.Market.Label253;
+            ServerParameters[7].Comment = OsLocalization.Market.Label324;
         }
 
         private void BybitServer_ValueChange()
@@ -447,7 +448,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             get
             {
-                if (((ServerParameterBool)ServerParameters[14]).Value)
+                if (((ServerParameterBool)ServerParameters[15]).Value)
                 {
                     return 50;
                 }
@@ -4513,7 +4514,14 @@ namespace OsEngine.Market.Servers.Bybit
 
         private const string RecvWindow = "50000";
 
+        private static readonly RateGate _sharedRateGate = new RateGate(1, TimeSpan.FromMilliseconds(15));
+
         private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(15));
+
+        private RateGate GetRateGate()
+        {
+            return ((ServerParameterBool)ServerParameters[7]).Value ? _sharedRateGate : _rateGate;
+        }
 
         private RateGate _rateGateOrders = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
@@ -4571,7 +4579,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             lock (_httpClientLocker)
             {
-                _rateGate.WaitToProceed();
+                GetRateGate().WaitToProceed();
             }
 
             try
@@ -4651,7 +4659,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             lock (_httpClientLocker)
             {
-                _rateGate.WaitToProceed();
+                GetRateGate().WaitToProceed();
             }
 
             try
