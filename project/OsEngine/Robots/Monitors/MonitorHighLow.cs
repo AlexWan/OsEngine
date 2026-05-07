@@ -774,6 +774,7 @@ MonitorHighLow
             decimal movePercent = myData.MoveUp;
 
             if (_longPercentMove.ValueDecimal > movePercent 
+                && myData.MoveDown > 5
                 && candles[^1].IsUp)
             {
                 tab.BuyAtMarket(GetVolume(tab, _longVolumeType, _longVolume, _longTradeAssetInPortfolio));
@@ -870,7 +871,8 @@ MonitorHighLow
 
             decimal movePercent = myData.MoveDown;
 
-            if (_shortPercentMove.ValueDecimal > movePercent 
+            if (_shortPercentMove.ValueDecimal > movePercent
+                && myData.MoveUp > 5
                 && candles[^1].IsDown)
             {
                 tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
