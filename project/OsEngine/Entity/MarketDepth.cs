@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Market.Servers.Entity;
 using OsEngine.OsData.BinaryEntity;
 using System;
 using System.Collections.Generic;
@@ -208,6 +207,11 @@ namespace OsEngine.Entity
                 return spreadPercent;
             }
         }
+
+        /// <summary>
+        /// Open interest by futures and options
+        /// </summary>
+        public decimal OpenInterest;
 
         /// <summary>
         /// Slippage from center of market depth to purchase for a certain amount of money
@@ -487,6 +491,11 @@ namespace OsEngine.Entity
                 newAsk.Price = val[1].ToDouble();
                 Bids.Add(newAsk);
             }
+
+            if(save.Length > 5)
+            {
+                OpenInterest = save[5].ToDecimal();
+            }
         }
 
         /// <summary>
@@ -495,7 +504,7 @@ namespace OsEngine.Entity
         /// <param name="depth">depth of market depth to keep</param>
         public string GetSaveStringToAllDepfh(int depth)
         {
-            // NameSecurity_Time_Bids_Asks
+            // NameSecurity_Time_Bids_Asks_OpenInterest
             // Bids: level*level*level
             // level: Bid&Ask&Price
 
@@ -507,7 +516,6 @@ namespace OsEngine.Entity
             string result = "";
 
             result += Time.ToString("yyyyMMdd_HHmmss") + "_";
-
 
             result += Time.Millisecond + "_";
 
@@ -522,6 +530,10 @@ namespace OsEngine.Entity
                 result += Bids[i].Bid + "&" + Bids[i].Price + "*";
             }
 
+            result += "_";
+
+            result += OpenInterest;
+
             return result;
         }
 
@@ -533,6 +545,7 @@ namespace OsEngine.Entity
             MarketDepth newDepth = new MarketDepth();
             newDepth.Time = Time;
             newDepth.SecurityNameCode = SecurityNameCode;
+            newDepth.OpenInterest = OpenInterest;
 
             if(levelsCount == 100)
             {

@@ -26,6 +26,7 @@ using System.Net.Http;
 using Grpc.Net.Client;
 using Grpc.Core;
 using System.Threading.Tasks;
+using OsEngine.Market.Servers.Bybit.Entities;
 
 namespace OsEngine.Market.Servers.TInvest
 {
@@ -2815,6 +2816,11 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             depth.Asks.Add(new MarketDepthLevel { Price = (double)GetValue(ask.Price), Ask = (double)ask.Quantity });
                         }   
+                    }
+
+                    if (_openInterestData.TryGetValue(security.Name, out var oi))
+                    {
+                        depth.OpenInterest = oi.OpenInterest_;
                     }
 
                     if (depth.Asks.Count > 0 || depth.Bids.Count > 0)

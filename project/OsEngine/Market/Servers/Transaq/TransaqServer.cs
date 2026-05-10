@@ -6,6 +6,7 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Alor;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
 using RestSharp;
@@ -3165,6 +3166,8 @@ namespace OsEngine.Market.Servers.Transaq
 
         private List<MdSaveObj> _depthsByBidAsk = new List<MdSaveObj>();
 
+        private Dictionary<string, OpenInterestValue> _openInterestData = new Dictionary<string, OpenInterestValue>(); // save open interest data to use later in trade updates
+
         private void UpdateBidAsk(BidAsk quotes)
         {
             if (quotes.Offer == null
@@ -3302,6 +3305,11 @@ namespace OsEngine.Market.Servers.Transaq
 
             _lastMdTime = needDepth.Time;
 
+            if (_openInterestData.TryGetValue(needDepth.SecurityNameCode, out OpenInterestValue saveOiValue) == true)
+            {
+                needDepth.OpenInterest = saveOiValue.ValueOi;
+            }
+
             if (MarketDepthEvent != null)
             {
                 MarketDepthEvent(needDepth.GetCopy());
@@ -3331,6 +3339,20 @@ namespace OsEngine.Market.Servers.Transaq
                 if (string.IsNullOrEmpty(t.Openinterest) == false)
                 {
                     trade.OpenInterest = t.Openinterest.ToDecimal();
+
+                    OpenInterestValue saveOiValue = null;
+
+                    if (_openInterestData.TryGetValue(t.Seccode, out saveOiValue) == true)
+                    {
+                        saveOiValue.ValueOi = trade.OpenInterest;
+                    }
+                    else
+                    {
+                        saveOiValue = new OpenInterestValue();
+                        saveOiValue.SecurityName = t.Seccode;
+                        saveOiValue.ValueOi = trade.OpenInterest;
+                        _openInterestData.Add(t.Seccode, saveOiValue);
+                    }
                 }
 
                 NewTradesEvent?.Invoke(trade);

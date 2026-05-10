@@ -2191,7 +2191,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     box.Items.Add(TimeFrame.Sec2.ToString());
                     box.Items.Add(TimeFrame.Sec1.ToString());
 
-                    ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick;
+                    ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick.ToString();
                     ComboBoxCandleMarketDataType.IsEnabled = true;
                 }
                 else
@@ -2246,10 +2246,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                         box.Items.Add(timeFramesArray[i]);
                     }
 
-                    ComboBoxCandleCreateMethodType.SelectedItem = CandleCreateMethodType.Simple;
+                    ComboBoxCandleCreateMethodType.SelectedItem = CandleCreateMethodType.Simple.ToString();
                     ComboBoxCandleCreateMethodType.IsEnabled = false;
 
-                    ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick;
+                    ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick.ToString();
                     ComboBoxCandleMarketDataType.IsEnabled = false;
                 }
             }

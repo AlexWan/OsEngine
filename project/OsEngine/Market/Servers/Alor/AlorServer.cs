@@ -17,6 +17,7 @@ using System.Net;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using System.Linq;
+using OsEngine.Market.Servers.Bybit.Entities;
 
 namespace OsEngine.Market.Servers.Alor
 {
@@ -583,7 +584,8 @@ namespace OsEngine.Market.Servers.Alor
             {
                 return SecurityType.Fund;
             }
-            else if(security.description.Contains("Индекс"))
+            else if(security.description != null 
+                && security.description.Contains("Индекс"))
             {
                 return SecurityType.Index;
             }
@@ -1706,6 +1708,8 @@ namespace OsEngine.Market.Servers.Alor
 
         private ConcurrentQueue<string> WebSocketPortfolioMessage = new ConcurrentQueue<string>();
 
+        private Dictionary<string, OpenInterestValue> _openInterestData = new Dictionary<string, OpenInterestValue>(); // save open interest data to use later in trade updates
+
         private void DataMessageReader()
         {
             Thread.Sleep(1000);
@@ -1786,6 +1790,20 @@ namespace OsEngine.Market.Servers.Alor
             if(string.IsNullOrEmpty(baseMessage.oi) == false)
             {
                 trade.OpenInterest = baseMessage.oi.ToDecimal();
+
+                OpenInterestValue saveOiValue = null;
+
+                if (_openInterestData.TryGetValue(baseMessage.symbol, out saveOiValue) == true)
+                {
+                    saveOiValue.ValueOi = baseMessage.oi.ToDecimal();
+                }
+                else
+                {
+                    saveOiValue = new OpenInterestValue();
+                    saveOiValue.SecurityName = baseMessage.symbol;
+                    saveOiValue.ValueOi = trade.OpenInterest;
+                    _openInterestData.Add(baseMessage.symbol, saveOiValue);
+                }
             }
 
             if (baseMessage.side == "sell")
@@ -1883,6 +1901,11 @@ namespace OsEngine.Market.Servers.Alor
             }
 
             _lastMdTime = depth.Time;
+
+            if (_openInterestData.TryGetValue(secName, out OpenInterestValue saveOiValue) == true)
+            {
+                depth.OpenInterest = saveOiValue.ValueOi;
+            }
 
             if (MarketDepthEvent != null)
             {
@@ -3289,6 +3312,13 @@ namespace OsEngine.Market.Servers.Alor
        public string Security;
 
        public string Portfolio;
+    }
+
+    public class OpenInterestValue
+    {
+        public string SecurityName;
+
+        public decimal ValueOi;
     }
 
     public enum AlorSubType
