@@ -162,7 +162,8 @@ namespace OsEngine.Market.Servers.MOEX
                     || futName == "NG"
                     || futName == "BT"
                     || futName == "CC"
-                    || futName == "KC")
+                    || futName == "KC"
+                    || futName == "W4")
                 {
                     newSecurities.AddRange(GetFuturesForOneYearOncePerMonth(futName, idEnding, DateTime.Now.Year - i - 2000));
                 }
