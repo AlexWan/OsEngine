@@ -769,9 +769,42 @@ namespace OsEngine.OsTrader.Panels
         {
             if (_chartUi == null)
             {
+                // 1 отключаем тестирование на время, если это тестер
+
+                bool testerIsStoped = false;
+
+                if (StartProgram == StartProgram.IsTester)
+                {
+                    List<IServer> servers = ServerMaster.GetServers();
+
+                    if (servers != null
+                        && servers.Count > 0
+                        && servers[0].ServerType == ServerType.Tester)
+                    {
+                        TesterServer tester = (TesterServer)servers[0];
+
+                        if(tester.TesterRegime == TesterRegime.Play)
+                        {
+                            tester.TesterRegime = TesterRegime.Pause;
+                            testerIsStoped = true;
+                        }
+                    }
+                }
+
+                // 2 создаём и открываем чарт
+
                 _chartUi = new BotPanelChartUi(this);
                 _chartUi.Show();
                 _chartUi.Closed += _chartUi_Closed;
+
+                // 3 запускаем тестер дальше
+
+                if (StartProgram == StartProgram.IsTester
+                    && testerIsStoped == true)
+                {
+                    Thread starter = new Thread(PlayTesterAfterPause);
+                    starter.Start();
+                }
             }
             else
             {
@@ -784,6 +817,29 @@ namespace OsEngine.OsTrader.Panels
             }
 
             return _chartUi;
+        }
+
+        private void PlayTesterAfterPause()
+        {
+            try
+            {
+                Thread.Sleep(1000);
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers != null
+                    && servers.Count > 0
+                    && servers[0].ServerType == ServerType.Tester)
+                {
+                    TesterServer tester = (TesterServer)servers[0];
+                    tester.TesterRegime = TesterRegime.Play;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         public BotPanelChartUi _chartUi;
