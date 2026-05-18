@@ -46,7 +46,6 @@ namespace OsEngine.Robots.FuturesScreeners
         private StrategyParameterDecimal _lrDeviation;
         private StrategyParameterInt _pcAdxLength;
         private StrategyParameterInt _pcRatio;
-        private StrategyParameterInt _extCandlesCount;
 
         private StrategyParameterBool _tradeRegimeSecurity1;
         private StrategyParameterBool _tradeRegimeSecurity2;
@@ -150,7 +149,6 @@ namespace OsEngine.Robots.FuturesScreeners
             _lrDeviation = CreateParameter("Linear regression deviation", 2.4m, 1, 4, 0.1m, "Base");
             _pcAdxLength = CreateParameter("Pc adx length", 50, 5, 300, 1, "Base");
             _pcRatio = CreateParameter("Pc ratio", 500, 5, 2000, 1, "Base");
-            _extCandlesCount = CreateParameter("Ext candles count", 145, 1, 5, 1, "Base");
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");

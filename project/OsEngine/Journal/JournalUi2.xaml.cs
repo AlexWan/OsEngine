@@ -1432,26 +1432,52 @@ namespace OsEngine.Journal
 
                 if (monthlyProfit != null && monthlyProfit.Count > 0)
                 {
-                    profitMonthlyBar = new Series("SeriesMonthlyProfitBar");
-                    profitMonthlyBar.ChartType = SeriesChartType.Column;
-                    profitMonthlyBar.YAxisType = AxisType.Secondary;
-                    profitMonthlyBar.LabelForeColor = Color.DarkOrange;
-                    profitMonthlyBar.LabelBackColor = Color.FromArgb(17, 18, 23);
-                    profitMonthlyBar.ChartArea = "ChartAreaMonthlyBar";
-                    profitMonthlyBar.ShadowOffset = 2;
-                    profitMonthlyBar.SetCustomProperty("PointWidth", "1.0");
+                    bool haveChart = false;
+                    for(int i = 0;i < _chartEquity.ChartAreas.Count;i++)
+                    {
+                        if (_chartEquity.ChartAreas[i].Name == "ChartAreaMonthlyBar")
+                        {
+                            haveChart = true;
+                            break;
+                        }
+                    }
+
+                    if (haveChart == true)
+                    {
+                        profitMonthlyBar = new Series("SeriesMonthlyProfitBar");
+                        profitMonthlyBar.ChartType = SeriesChartType.Column;
+                        profitMonthlyBar.YAxisType = AxisType.Secondary;
+                        profitMonthlyBar.LabelForeColor = Color.DarkOrange;
+                        profitMonthlyBar.LabelBackColor = Color.FromArgb(17, 18, 23);
+                        profitMonthlyBar.ChartArea = "ChartAreaMonthlyBar";
+                        profitMonthlyBar.ShadowOffset = 2;
+                        profitMonthlyBar.SetCustomProperty("PointWidth", "1.0");
+                    }
                 }
 
                 if (yearlyProfit != null && yearlyProfit.Count > 0)
                 {
-                    profitYearlyBar = new Series("SeriesYearlyProfitBar");
-                    profitYearlyBar.ChartType = SeriesChartType.Column;
-                    profitYearlyBar.YAxisType = AxisType.Secondary;
-                    profitYearlyBar.LabelForeColor = Color.DarkOrange;
-                    profitYearlyBar.LabelBackColor = Color.FromArgb(17, 18, 23);
-                    profitYearlyBar.ChartArea = "ChartAreaYearlyBar";
-                    profitYearlyBar.ShadowOffset = 2;
-                    profitYearlyBar.SetCustomProperty("PointWidth", "1.0");
+                    bool haveChart = false;
+                    for (int i = 0; i < _chartEquity.ChartAreas.Count; i++)
+                    {
+                        if (_chartEquity.ChartAreas[i].Name == "ChartAreaYearlyBar")
+                        {
+                            haveChart = true;
+                            break;
+                        }
+                    }
+
+                    if (haveChart == true)
+                    {
+                        profitYearlyBar = new Series("SeriesYearlyProfitBar");
+                        profitYearlyBar.ChartType = SeriesChartType.Column;
+                        profitYearlyBar.YAxisType = AxisType.Secondary;
+                        profitYearlyBar.LabelForeColor = Color.DarkOrange;
+                        profitYearlyBar.LabelBackColor = Color.FromArgb(17, 18, 23);
+                        profitYearlyBar.ChartArea = "ChartAreaYearlyBar";
+                        profitYearlyBar.ShadowOffset = 2;
+                        profitYearlyBar.SetCustomProperty("PointWidth", "1.0");
+                    }
                 }
 
                 decimal profitSum = 0;
