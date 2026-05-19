@@ -726,7 +726,6 @@ namespace OsEngine.Robots.FuturesStart
                 return;
             }
 
-            decimal baseLastPrice = baseCandles[^1].Close;
             decimal futuresLastPrice = futuresCandles[^1].Close;
 
             bool needToExit = false;
