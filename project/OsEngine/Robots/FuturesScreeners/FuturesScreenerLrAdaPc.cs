@@ -372,11 +372,11 @@ namespace OsEngine.Robots.FuturesScreeners
         private BotTabSimple GetFuturesToTrade(BotTabScreener futures, DateTime currentTime)
         {
             /*
-            Берём фьюч в пару:
+            Берём фьюч:
             1) Если уже есть позиция
-            2) Берём ближайшую пару фьюч / спот. 
-            2.2) Если до ближайшего фьючерса меньше 5 дней до экспирации, не учитываем его как точку входа.
-            2.3) Но не дальше чем 4 месяца, на случай если пропущена серия в тестере.
+            2) Берём ближайший фьюч 
+            2.2) Если до ближайшего фьючерса меньше 3 дней до экспирации, не учитываем его как точку входа.
+            2.3) Но не дальше чем 100 дней, на случай если пропущена серия в тестере.
             */
 
             // 1 берём фьючерс, если по нему уже есть открытая позиция
@@ -541,20 +541,6 @@ namespace OsEngine.Robots.FuturesScreeners
 
                 futuresSource.CloseAtStopMarketIceberg(pos, lineUp, _icebergCount.ValueInt, 1000);
             }
-
-            /*
-            DateTime entryTime = pos.TimeOpen;
-
-            DateTime nowTime = futuresCandles[^1].TimeStart;
-
-            TimeSpan timeInPosition = nowTime - entryTime;
-
-            int candlesInPosition = Convert.ToInt32(timeInPosition.TotalMinutes / futuresSource.Connector.TimeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
-
-            if (candlesInPosition > _extCandlesCount)
-            {
-                needToExit = true;
-            }*/
 
             double daysByExpiration = (futuresSource.Security.Expiration - futuresCandles[^1].TimeStart).TotalDays;
 

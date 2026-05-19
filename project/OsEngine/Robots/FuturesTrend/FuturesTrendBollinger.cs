@@ -93,7 +93,7 @@ namespace OsEngine.Robots.FuturesTrend
 
             Description = OsLocalization.ConvertToLocString(
               "Eng:Trend robot on Bollinger breakout, for futures trading. An example of moving futures from one series to another._" +
-              "Ru:Трендовый робот на пробое боллинджера, для торговли фьючерсов. Пример перекладывания фьючерсов из одной серии в другую_");
+              "Ru:Трендовый робот на пробое боллинджера, для торговли эксперируемых фьючерсов. Пример перекладывания фьючерсов из одной серии в другую_");
         }
 
         private void FuturesStartContangoScreener_ParametrsChangeByUser()
@@ -167,11 +167,11 @@ namespace OsEngine.Robots.FuturesTrend
         private BotTabSimple GetFuturesToTrade(BotTabScreener futures, DateTime currentTime)
         {
             /*
-            Берём фьюч в пару:
+            Берём фьюч:
             1) Если уже есть позиция
-            2) Берём ближайшую пару фьюч / спот. 
-            2.2) Если до ближайшего фьючерса меньше 5 дней до экспирации, не учитываем его как точку входа.
-            2.3) Но не дальше чем 4 месяца, на случай если пропущена серия в тестере.
+            2) Берём ближайшую фьючерс
+            2.2) Если до ближайшего фьючерса меньше 3 дней до экспирации, не учитываем его как точку входа.
+            2.3) Но не дальше чем 100 дней месяца, на случай если пропущена серия в тестере.
             */
 
             // 1 берём фьючерс, если по нему уже есть открытая позиция
@@ -228,7 +228,7 @@ namespace OsEngine.Robots.FuturesTrend
             BotTabSimple futuresSource,
             List<Candle> futuresCandles)
         {
-            // 1 берём по обоим вкладкам боллинджеры
+            // 1 берём боллинджер
 
             Aindicator futuresBollinger = (Aindicator)futuresSource.Indicators[0];
 
