@@ -1106,6 +1106,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 haveNewSettings = true;
             }
 
+            if(tab.EventsIsOn != this.EventsIsOn)
+            {
+                tab.EventsIsOn = this.EventsIsOn;
+            }
+
             if (tab.Connector.ServerType != ServerType)
             {
                 tab.Connector.ServerType = ServerType;
