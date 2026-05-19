@@ -54,7 +54,9 @@ namespace OsEngine.Charts.CandleChart
                 _chart.Text = name;
 
                 Task task = new Task(PainterThreadArea);
-                task.Start();               
+                task.Start();
+
+                
             }
             catch (Exception error)
             {
@@ -65,19 +67,26 @@ namespace OsEngine.Charts.CandleChart
 
         private void _chart_Click1(object sender, EventArgs e)
         {
-            if (((MouseEventArgs)e).Button == MouseButtons.Right)
+            try
             {
-                if (ChartClickEvent != null)
+                if (((MouseEventArgs)e).Button == MouseButtons.Right)
                 {
-                    ChartClickEvent(ChartClickType.RightButton);
+                    if (ChartClickEvent != null)
+                    {
+                        ChartClickEvent(ChartClickType.RightButton);
+                    }
+                }
+                if (((MouseEventArgs)e).Button == MouseButtons.Left)
+                {
+                    if (ChartClickEvent != null)
+                    {
+                        ChartClickEvent(ChartClickType.LeftButton);
+                    }
                 }
             }
-            if (((MouseEventArgs)e).Button == MouseButtons.Left)
+            catch(Exception error)
             {
-                if (ChartClickEvent != null)
-                {
-                    ChartClickEvent(ChartClickType.LeftButton);
-                }
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -642,8 +651,8 @@ ContextMenuStrip menu)
                 candleSeries.YValuesPerPoint = 4;
 
                 _chart.Series.Add(candleSeries);
+
                 _chart.AxisScrollBarClicked += _chart_AxisScrollBarClicked; // cursor event/событие передвижения курсора
-                
                 _chart.AxisViewChanged += _chart_AxisViewChanged; // scale event/событие изменения масштаба
                 _chart.MouseWheel += _chart_MouseWheel; // scroll and zoom chart using mouse wheel/прокрутка и зум чарта колесиком мышки
                 _chart.Click += _chart_Click;
@@ -660,6 +669,7 @@ ContextMenuStrip menu)
                 _chart.MouseUp += _chart_MouseUp;
                 _chart.ClientSizeChanged += _chart_ClientSizeChanged;
                 _chart.AxisViewChanging += _chart_AxisViewChanging;
+               
 
             }
             catch (Exception error)
@@ -3391,22 +3401,23 @@ ContextMenuStrip menu)
         /// </summary>
         void _chartForCandle_MouseMove2ChartElement(object sender, MouseEventArgs e)
         {
-            if (IsPatternChart)
-            {
-                return;
-            }
-
-            if (_chart.Cursor != Cursors.SizeAll)
-            {
-                // if user hasn't pinched the item
-                // если пользователь не зажал элемент
-                return;
-
-            }
-// Y
-// игрик
             try
             {
+                if (IsPatternChart)
+                {
+                    return;
+                }
+
+                if (_chart.Cursor != Cursors.SizeAll)
+                {
+                    // if user hasn't pinched the item
+                    // если пользователь не зажал элемент
+                    return;
+
+                }
+                // Y
+                // игрик
+
                 decimal lastY = e.Y;
 
                 _isMoving = true;
@@ -3497,22 +3508,23 @@ ContextMenuStrip menu)
         /// as been put on chart LCM.
         /// опустилась ЛКМ на чарт
         /// </summary>
-        private void _chartForCandle_MouseDown2ChartElement(object sender, MouseEventArgs e) 
+        private void _chartForCandle_MouseDown2ChartElement(object sender, MouseEventArgs e)
         {
-            if (IsPatternChart)
-            {
-                return;
-            }
-
-            if (_chartElements == null)
-            {
-                return;
-            }
-            // need to find X and Y we clicked on.
-            // надо найти икс и игрик по которому кликнули
-
             try
             {
+                if (IsPatternChart)
+                {
+                    return;
+                }
+
+                if (_chartElements == null)
+                {
+                    return;
+                }
+                // need to find X and Y we clicked on.
+                // надо найти икс и игрик по которому кликнули
+
+
                 MouseEventArgs mouse = (MouseEventArgs)e;
                 if (mouse.Button != MouseButtons.Left)
                 {
@@ -3557,7 +3569,7 @@ ContextMenuStrip menu)
 
                     decimal intsToPicselY = widthInIntsY / widthInPicselY;
 
-                    decimal yUp = centerY +  intsToPicselY * 8;
+                    decimal yUp = centerY + intsToPicselY * 8;
                     decimal yDown = centerY - intsToPicselY * 8;
 
 
@@ -3583,7 +3595,7 @@ ContextMenuStrip menu)
 
                         break;
                     }
-                }         
+                }
             }
             catch (Exception error)
             {
@@ -3597,13 +3609,13 @@ ContextMenuStrip menu)
         /// </summary>
         void _chartForCandle_MouseUp2ChartElement(object sender, MouseEventArgs e)
         {
-            if (IsPatternChart)
-            {
-                return;
-            }
-
             try
             {
+                if (IsPatternChart)
+                {
+                    return;
+                }
+
                 if (_clickElement == null)
                 {
                     return;
@@ -3611,7 +3623,7 @@ ContextMenuStrip menu)
 
                 if (_clickElement.TypeName() == "LineElement")
                 {
-                    LineHorisontal line = (LineHorisontal) _clickElement;
+                    LineHorisontal line = (LineHorisontal)_clickElement;
                     if (_isMoving == false)
                     {
                         line.ShowDialog(e.X + WindowCoordinate.X + 280, e.Y + WindowCoordinate.Y + 70);
@@ -3623,8 +3635,7 @@ ContextMenuStrip menu)
                     PointElement line = (PointElement)_clickElement;
                     if (_isMoving == false)
                     {
-                            line.ShowDialog();
-                        
+                        line.ShowDialog();
                     }
                 }
 
@@ -5163,10 +5174,17 @@ ContextMenuStrip menu)
 
         private void _chart_MouseLeave(object sender, EventArgs e)
         {
-            for (int i = 0; i < _chart.ChartAreas.Count; i++)
+            try
             {
-                _chart.ChartAreas[i].CursorX.Position = double.NaN;
-                _chart.ChartAreas[i].CursorY.Position = 0;
+                for (int i = 0; i < _chart.ChartAreas.Count; i++)
+                {
+                    _chart.ChartAreas[i].CursorX.Position = double.NaN;
+                    _chart.ChartAreas[i].CursorY.Position = 0;
+                }
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -5852,185 +5870,200 @@ ContextMenuStrip menu)
         /// </summary>
         private void RePaintRightLebels()
         {
-            if (_chart.ChartAreas.Count == 0 ||
-                _chart.Series.Count == 0)
+            try
             {
-                return;
-            }
 
-            int index = 0;
-
-            if (_chart.ChartAreas[0].AxisX.ScrollBar.IsVisible == false)
-            {
-                for (int i = 0; i < _chart.Series.Count;i++)
+                if (_chart.ChartAreas.Count == 0 ||
+                    _chart.Series.Count == 0)
                 {
-                    if (_chart.Series[i].Points.Count > index)
+                    return;
+                }
+
+                int index = 0;
+
+                if (_chart.ChartAreas[0].AxisX.ScrollBar.IsVisible == false)
+                {
+                    for (int i = 0; i < _chart.Series.Count; i++)
                     {
-                        index = _chart.Series[i].Points.Count-1;
+                        if (_chart.Series[i].Points.Count > index)
+                        {
+                            index = _chart.Series[i].Points.Count - 1;
+                        }
                     }
                 }
-            }
-            else
-            {
-                index = (int)(_chart.ChartAreas[0].AxisX.ScaleView.Position +_chart.ChartAreas[0].AxisX.ScaleView.Size);
-            }
-
-            if(index < 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _chart.ChartAreas.Count;i++)
-            {
-                ChartArea area = _chart.ChartAreas[i];
-
-                List<Series> mySeries = new List<Series>();
-
-                for (int i2 = 0; i2 < _chart.Series.Count; i2++)
+                else
                 {
-                    if (_chart.Series[i2].ChartArea == area.Name)
+                    index = (int)(_chart.ChartAreas[0].AxisX.ScaleView.Position + _chart.ChartAreas[0].AxisX.ScaleView.Size);
+                }
+
+                if (index < 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _chart.ChartAreas.Count; i++)
+                {
+                    ChartArea area = _chart.ChartAreas[i];
+
+                    List<Series> mySeries = new List<Series>();
+
+                    for (int i2 = 0; i2 < _chart.Series.Count; i2++)
                     {
-                        mySeries.Add(_chart.Series[i2]);
+                        if (_chart.Series[i2].ChartArea == area.Name)
+                        {
+                            mySeries.Add(_chart.Series[i2]);
+                        }
                     }
-                }
 
-                if (mySeries.Count == 0)
-                {
-                    continue;
-                }
-
-                for (int i2 = 0; i2 < mySeries.Count; i2++)
-                {
-                    Series series = mySeries[i2];
-
-                    if (series.Points.Count == 0 ||
-                        series.ChartType == SeriesChartType.Point)
+                    if (mySeries.Count == 0)
                     {
                         continue;
                     }
 
-                    int realIndex = index;
-
-                    if (index == series.Points.Count)
+                    for (int i2 = 0; i2 < mySeries.Count; i2++)
                     {
-                        realIndex = series.Points.Count - 1;
-                    }
-                    else
-                    {
-                        //realIndex = series.Points.Count - (series.Points.Count - 1 - index);
-                    }
+                        Series series = mySeries[i2];
 
-                    if(realIndex >= series.Points.Count)
-                    {
-                        realIndex = series.Points.Count - 1;
-                    }
-
-                    int rounder = 0;
-
-                    if (_areaSizes != null)
-                    {
-                        ChartAreaSizes size = _areaSizes.Find(sizes => sizes.Name == _chart.ChartAreas[i].Name);
-                        if (size != null)
+                        if (series.Points.Count == 0 ||
+                            series.ChartType == SeriesChartType.Point)
                         {
-                            rounder = size.Decimals;
+                            continue;
                         }
-                    }
 
-                    if (series.Name == "SeriesCandle")
-                    {
-                        PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                            (Math.Round(series.Points[realIndex].YValues[3], rounder)).ToString(_culture),
-                            (decimal)series.Points[realIndex].YValues[3], series.Points[realIndex].Color, true);
-                    }
-                    // RightLabel  Метки для Candle - High, Low, Close [справа] рисуем в цвете
-                    else if (series.ChartTypeName == "Candlestick")
-                    {
-                        double[] yVals = series.Points[realIndex].YValues;
-                        double selectedValue = yVals.FirstOrDefault(val => val != 0);
+                        int realIndex = index;
 
-                        decimal closeVal = Convert.ToDecimal(selectedValue);
-
-                        string closeText = closeVal.ToString(_culture);
-
-                        PaintLabelOnY2(series.Name + "Label", series.ChartArea, closeText, closeVal, series.Points[realIndex].BorderColor, true);
-                    }
-                    else
-                    {
-                        decimal value = Convert.ToDecimal(series.Points[realIndex].YValues[0]);
-
-                        value = (Math.Round(value, rounder));
-
-                        int valueDecimalsCount = value.ToString().DecimalsCount();
-                        string valueToPaint = value.ToString(CultureInfo.InvariantCulture);
-
-                        if (rounder > 0 &&
-                            valueDecimalsCount != 0)
+                        if (index == series.Points.Count)
                         {
-                            while (valueToPaint.Length != 0
-                                   && valueToPaint[valueToPaint.Length - 1] == '0')
+                            realIndex = series.Points.Count - 1;
+                        }
+                        else
+                        {
+                            //realIndex = series.Points.Count - (series.Points.Count - 1 - index);
+                        }
+
+                        if (realIndex >= series.Points.Count)
+                        {
+                            realIndex = series.Points.Count - 1;
+                        }
+
+                        int rounder = 0;
+
+                        if (_areaSizes != null)
+                        {
+                            ChartAreaSizes size = _areaSizes.Find(sizes => sizes.Name == _chart.ChartAreas[i].Name);
+                            if (size != null)
                             {
-                                valueToPaint = valueToPaint.Substring(0,valueToPaint.Length - 1);
+                                rounder = size.Decimals;
                             }
                         }
 
-                        decimal valueToPaintDecimal = value;
-
-                        while (rounder > 0 &&
-                            valueDecimalsCount < rounder)
+                        if (series.Name == "SeriesCandle")
                         {
-                            decimal newValue = 0;
-
-                            string stringToParse = value.ToString(CultureInfo.InvariantCulture);
-
-                            if (valueDecimalsCount == 0
-                                && stringToParse.Contains(".") == false)
-                            {
-                                stringToParse += ".1";
-                            }
-                            else
-                            {
-                                stringToParse += "1";
-                            }
-
-                            try
-                            {
-                                newValue = stringToParse.ToDecimal();
-                            }
-                            catch
-                            {
-
-                            }
-
-                            value = newValue;
-
-                            if (valueDecimalsCount == 0
-                                && stringToParse.Contains(".") == false)
-                            {
-                                valueToPaint += ",0";
-                            }
-                            else
-                            {
-                                valueToPaint += "0";
-                            }
-
-                            valueDecimalsCount = value.ToString().DecimalsCount();
-
-                            if(valueToPaint.Length > 30)
-                            {
-                                break;
-                            }
+                            PaintLabelOnY2(series.Name + "Label", series.ChartArea,
+                                (Math.Round(series.Points[realIndex].YValues[3], rounder)).ToString(_culture),
+                                (decimal)series.Points[realIndex].YValues[3], series.Points[realIndex].Color, true);
                         }
+                        // RightLabel  Метки для Candle - High, Low, Close [справа] рисуем в цвете
+                        else if (series.ChartTypeName == "Candlestick")
+                        {
+                            double[] yVals = series.Points[realIndex].YValues;
+                            double selectedValue = yVals.FirstOrDefault(val => val != 0);
 
-                        PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                            valueToPaint, valueToPaintDecimal, series.Points[realIndex].Color, true);
+                            decimal closeVal = Convert.ToDecimal(selectedValue);
+
+                            string closeText = closeVal.ToString(_culture);
+
+                            PaintLabelOnY2(series.Name + "Label", series.ChartArea, closeText, closeVal, series.Points[realIndex].BorderColor, true);
+                        }
+                        else
+                        {
+                            decimal value = Convert.ToDecimal(series.Points[realIndex].YValues[0]);
+
+                            value = (Math.Round(value, rounder));
+
+                            int valueDecimalsCount = value.ToString().DecimalsCount();
+                            string valueToPaint = value.ToString(CultureInfo.InvariantCulture);
+
+                            if (rounder > 0 &&
+                                valueDecimalsCount != 0)
+                            {
+                                while (valueToPaint.Length != 0
+                                       && valueToPaint[valueToPaint.Length - 1] == '0')
+                                {
+                                    valueToPaint = valueToPaint.Substring(0, valueToPaint.Length - 1);
+                                }
+                            }
+
+                            decimal valueToPaintDecimal = value;
+
+                            while (rounder > 0 &&
+                                valueDecimalsCount < rounder)
+                            {
+                                decimal newValue = 0;
+
+                                string stringToParse = value.ToString(CultureInfo.InvariantCulture);
+
+                                if (valueDecimalsCount == 0
+                                    && stringToParse.Contains(".") == false)
+                                {
+                                    stringToParse += ".1";
+                                }
+                                else
+                                {
+                                    stringToParse += "1";
+                                }
+
+                                try
+                                {
+                                    newValue = stringToParse.ToDecimal();
+                                }
+                                catch
+                                {
+
+                                }
+
+                                value = newValue;
+
+                                if (valueDecimalsCount == 0
+                                    && stringToParse.Contains(".") == false)
+                                {
+                                    valueToPaint += ",0";
+                                }
+                                else
+                                {
+                                    valueToPaint += "0";
+                                }
+
+                                valueDecimalsCount = value.ToString().DecimalsCount();
+
+                                if (valueToPaint.Length > 30)
+                                {
+                                    break;
+                                }
+                            }
+
+                            PaintLabelOnY2(series.Name + "Label", series.ChartArea,
+                                valueToPaint, valueToPaintDecimal, series.Points[realIndex].Color, true);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
         
         void _chart_AxisViewChanging(object sender, ViewEventArgs e)
         {
-            RePaintRightLebels();
+            try
+            {
+                RePaintRightLebels();
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
         }
 
         // management of collapsing areas управление схлопывание областей
@@ -6136,64 +6169,224 @@ ContextMenuStrip menu)
 
         private void _chart_MouseMove(object sender, MouseEventArgs e)
         {
-            if (IsPatternChart)
+            try
             {
-                return;
-            }
+                if (IsPatternChart)
+                {
+                    return;
+                }
 
-            if (_chart.Cursor == Cursors.SizeAll)
-            {
-                return;
-            }
+                if (_chart.Cursor == Cursors.SizeAll)
+                {
+                    return;
+                }
 
-            if (_chart.ChartAreas.Count < 2)
-            {
-                return;
-            }
+                if (_chart.ChartAreas.Count < 2)
+                {
+                    return;
+                }
 
-            if (e.Button == MouseButtons.Left &&
-                _chart.Cursor == Cursors.Arrow)
-            {
-                return;
-            }
+                if (e.Button == MouseButtons.Left &&
+                    _chart.Cursor == Cursors.Arrow)
+                {
+                    return;
+                }
 
-            if (_areaPositions.Count != _chart.ChartAreas.Count ||
-                _areaPositions.Find(pos => pos.RightPoint == 0) != null)
-            {
-                _areaPositions = new List<ChartAreaPosition>();
+                if (_areaPositions.Count != _chart.ChartAreas.Count ||
+                    _areaPositions.Find(pos => pos.RightPoint == 0) != null)
+                {
+                    _areaPositions = new List<ChartAreaPosition>();
+                    ReloadChartAreasSize();
+                }
+
+                if (_chart.Cursor == Cursors.Hand || _chart.Cursor == Cursors.SizeWE ||
+                    _areaPositions == null ||
+                    _areaPositions.Count < 2)
+                {
+                    return;
+                }
+
+                ChartAreaPosition myPosition = null;
+                ChartAreaPosition positionBeforeUs = null;
+
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                for (int i = 1; i < _areaPositions.Count; i++)
+                {
+                    ChartAreaPosition pos = _areaPositions[i];
+
+                    if ((mouse.Button == MouseButtons.Left && _chart.Cursor == Cursors.SizeNS &&
+                         pos.LeftPoint < e.X &&
+                         pos.RightPoint > e.X &&
+                         pos.UpPoint + pos.UpPoint * 0.09 > e.Y &&
+                         pos.UpPoint - pos.UpPoint * 0.09 < e.Y) ||
+
+                        (pos.LeftPoint < e.X &&
+                         pos.RightPoint > e.X &&
+                         pos.UpPoint + pos.UpPoint * 0.02 > e.Y &&
+                         pos.UpPoint - pos.UpPoint * 0.02 < e.Y))
+                    {
+                        positionBeforeUs = _areaPositions[i - 1];
+                        myPosition = pos;
+                        _chart.Cursor = Cursors.SizeNS;
+                    }
+                    else
+                    {
+                        pos.ValueYMouseOnClickStart = 0;
+                        pos.HeightAreaOnClick = 0;
+                        pos.ValueYChartOnClick = 0;
+                    }
+                }
+
+                if (myPosition == null)
+                {
+                    if (_chart.Cursor != Cursors.Arrow)
+                    {
+                        _chart.Cursor = Cursors.Arrow;
+                    }
+
+                    return;
+                }
+
+                if (mouse.Button != MouseButtons.Left)
+                {
+                    myPosition.ValueYMouseOnClickStart = 0;
+                }
+                // dragging and dropping areas
+                // Here we have a left-hand button pressed
+                // перетаскивание областей
+                // Здесь у нас есть нажатая левая кнопка
+
+                if (myPosition.ValueYMouseOnClickStart == 0)
+                {
+                    myPosition.ValueYMouseOnClickStart = e.Y;
+                    myPosition.HeightAreaOnClick = myPosition.Area.Position.Height;
+                    myPosition.ValueYChartOnClick = myPosition.Area.Position.Y;
+                    myPosition.HeightAreaOnClickBeforeUs = positionBeforeUs.Area.Position.Height;
+
+                    return;
+                }
+
+                double percentMove = Math.Abs(myPosition.ValueYMouseOnClickStart - e.Y) / _host.Child.Height;
+
+                if (double.IsInfinity(percentMove) ||
+                    percentMove == 0)
+                {
+                    return;
+                }
+
+                double concateValue = 100 * percentMove;
+
+                if (myPosition.ValueYMouseOnClickStart < e.Y)
+                {
+                    if (myPosition.Area.Position.Height < 10)
+                    {
+                        return;
+                    }
+                    myPosition.Area.Position.Height = (float)(myPosition.HeightAreaOnClick - concateValue);
+                    myPosition.Area.Position.Y = (float)(myPosition.ValueYChartOnClick + concateValue);
+
+                    positionBeforeUs.Area.Position.Height = (float)(myPosition.HeightAreaOnClickBeforeUs + concateValue);
+                }
+                else if (myPosition.ValueYMouseOnClickStart > e.Y)
+                {
+                    if (positionBeforeUs.Area.Position.Height < 10)
+                    {
+                        return;
+                    }
+                    myPosition.Area.Position.Height = (float)(myPosition.HeightAreaOnClick + concateValue);
+                    myPosition.Area.Position.Y = (float)(myPosition.ValueYChartOnClick - concateValue);
+
+                    positionBeforeUs.Area.Position.Height = (float)(myPosition.HeightAreaOnClickBeforeUs - concateValue);
+                }
                 ReloadChartAreasSize();
             }
-
-            if (_chart.Cursor == Cursors.Hand || _chart.Cursor == Cursors.SizeWE ||
-                _areaPositions == null ||
-                _areaPositions.Count < 2)
+            catch (Exception ex)
             {
-                return;
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
 
-            ChartAreaPosition myPosition = null;
-            ChartAreaPosition positionBeforeUs = null;
-
-            MouseEventArgs mouse = (MouseEventArgs) e;
-
-            for (int i = 1; i < _areaPositions.Count; i++)
+        private void _chart_MouseUp(object sender, MouseEventArgs e)
+        {
+            try
             {
-                ChartAreaPosition pos = _areaPositions[i];
-
-                if ((mouse.Button == MouseButtons.Left && _chart.Cursor == Cursors.SizeNS &&
-                     pos.LeftPoint < e.X &&
-                     pos.RightPoint > e.X &&
-                     pos.UpPoint + pos.UpPoint*0.09 > e.Y &&
-                     pos.UpPoint - pos.UpPoint*0.09 < e.Y) ||
-
-                    (pos.LeftPoint < e.X &&
-                     pos.RightPoint > e.X &&
-                     pos.UpPoint + pos.UpPoint*0.02 > e.Y &&
-                     pos.UpPoint - pos.UpPoint*0.02 < e.Y))
+                for (int i = 0; i < _chart.ChartAreas.Count; i++)
                 {
-                    positionBeforeUs = _areaPositions[i - 1];
+                    ResizeYAxisOnArea(_chart.ChartAreas[i].Name);
+                }
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error); 
+            }
+        }
+
+        private void _chart_MouseMove2(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (IsPatternChart)
+                {
+                    return;
+                }
+
+                if (_chart.Cursor == Cursors.SizeAll)
+                {
+                    return;
+                }
+
+                if (_chart.ChartAreas.Count < 1)
+                {
+                    return;
+                }
+
+                if (e.Button == MouseButtons.Left &&
+                    _chart.Cursor == Cursors.Arrow)
+                {
+                    return;
+                }
+
+                if (_areaPositions == null)
+                {
+                    return;
+                }
+
+                if (_areaPositions.Count != _chart.ChartAreas.Count ||
+                    _areaPositions.Find(posi => posi.RightPoint == 0) != null)
+                {
+                    _areaPositions = new List<ChartAreaPosition>();
+                    ReloadChartAreasSize();
+                }
+
+                if (_chart.Cursor == Cursors.Hand ||
+                    _chart.Cursor == Cursors.SizeNS ||
+                    _areaPositions == null)
+                {
+                    return;
+                }
+
+                ChartAreaPosition myPosition = null;
+
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                ChartAreaPosition pos = _areaPositions[0];
+
+                double mult = pos.DownPoint / 250000;
+
+                if ((pos.LeftPoint < e.X &&
+                     pos.RightPoint > e.X &&
+                     e.Y > pos.DownPoint - pos.DownPoint * 0.05 &&
+                     e.Y < pos.DownPoint - pos.DownPoint * (0.002 + mult))
+                     && e.X > 20    //AVP ChartRoulette 
+                    ||
+                    (mouse.Button == MouseButtons.Left && _chart.Cursor == Cursors.SizeWE && pos.LeftPoint < e.X &&
+                     pos.RightPoint > e.X &&
+                     pos.DownPoint - 50 < e.Y &&
+                     pos.DownPoint + 50 > e.Y))
+                {
                     myPosition = pos;
-                    _chart.Cursor = Cursors.SizeNS;
+                    _chart.Cursor = Cursors.SizeWE;
                 }
                 else
                 {
@@ -6201,202 +6394,57 @@ ContextMenuStrip menu)
                     pos.HeightAreaOnClick = 0;
                     pos.ValueYChartOnClick = 0;
                 }
-            }
 
-            if (myPosition == null)
-            {
-                if(_chart.Cursor != Cursors.Arrow)
+
+                if (myPosition == null)
                 {
-                    _chart.Cursor = Cursors.Arrow;
-                }
-               
-                return;
-            }
-
-            if (mouse.Button != MouseButtons.Left)
-            {
-                myPosition.ValueYMouseOnClickStart = 0;
-            }
-            // dragging and dropping areas
-            // Here we have a left-hand button pressed
-            // перетаскивание областей
-            // Здесь у нас есть нажатая левая кнопка
-
-            if (myPosition.ValueYMouseOnClickStart == 0)
-            {
-                myPosition.ValueYMouseOnClickStart = e.Y;
-                myPosition.HeightAreaOnClick = myPosition.Area.Position.Height;
-                myPosition.ValueYChartOnClick = myPosition.Area.Position.Y;
-                myPosition.HeightAreaOnClickBeforeUs = positionBeforeUs.Area.Position.Height;
-
-                return;
-            }
-
-            double percentMove = Math.Abs(myPosition.ValueYMouseOnClickStart - e.Y)/_host.Child.Height;
-
-            if (double.IsInfinity(percentMove) ||
-                percentMove == 0)
-            {
-                return;
-            }
-
-            double concateValue = 100*percentMove;
-
-            if (myPosition.ValueYMouseOnClickStart < e.Y)
-            {
-                if (myPosition.Area.Position.Height < 10)
-                {
-                    return;
-                }
-                myPosition.Area.Position.Height = (float) (myPosition.HeightAreaOnClick - concateValue);
-                myPosition.Area.Position.Y = (float) (myPosition.ValueYChartOnClick + concateValue);
-
-                positionBeforeUs.Area.Position.Height = (float) (myPosition.HeightAreaOnClickBeforeUs + concateValue);
-            }
-            else if (myPosition.ValueYMouseOnClickStart > e.Y)
-            {
-                if (positionBeforeUs.Area.Position.Height < 10)
-                {
-                    return;
-                }
-                myPosition.Area.Position.Height = (float) (myPosition.HeightAreaOnClick + concateValue);
-                myPosition.Area.Position.Y = (float) (myPosition.ValueYChartOnClick - concateValue);
-
-                positionBeforeUs.Area.Position.Height = (float) (myPosition.HeightAreaOnClickBeforeUs - concateValue);
-            }
-            ReloadChartAreasSize();
-
-        }
-
-        private void _chart_MouseUp(object sender, MouseEventArgs e)
-        {
-            for (int i = 0; i < _chart.ChartAreas.Count; i++)
-            {
-                ResizeYAxisOnArea(_chart.ChartAreas[i].Name);
-            }
-        }
-
-        private void _chart_MouseMove2(object sender, MouseEventArgs e)
-        {
-            if (IsPatternChart)
-            {
-                return;
-            }
-
-            if (_chart.Cursor == Cursors.SizeAll)
-            {
-                return;
-            }
-
-            if (_chart.ChartAreas.Count < 1)
-            {
-                return;
-            }
-
-            if (e.Button == MouseButtons.Left &&
-                _chart.Cursor == Cursors.Arrow)
-            {
-                return;
-            }
-
-            if (_areaPositions == null)
-            {
-                return;
-            }
-
-            if (_areaPositions.Count != _chart.ChartAreas.Count ||
-                _areaPositions.Find(posi => posi.RightPoint == 0) != null)
-            {
-                _areaPositions = new List<ChartAreaPosition>();
-                ReloadChartAreasSize();
-            }
-
-            if (_chart.Cursor == Cursors.Hand ||
-                _chart.Cursor == Cursors.SizeNS ||
-                _areaPositions == null)
-            {
-                return;
-            }
-
-            ChartAreaPosition myPosition = null;
-
-            MouseEventArgs mouse = (MouseEventArgs) e;
-
-            ChartAreaPosition pos = _areaPositions[0];
-
-            double mult = pos.DownPoint / 250000;
-
-            if ((pos.LeftPoint < e.X &&
-                 pos.RightPoint > e.X &&
-                 e.Y > pos.DownPoint - pos.DownPoint * 0.05 &&
-                 e.Y < pos.DownPoint - pos.DownPoint * (0.002 + mult))
-                 && e.X > 20    //AVP ChartRoulette 
-                ||
-                (mouse.Button == MouseButtons.Left && _chart.Cursor == Cursors.SizeWE && pos.LeftPoint < e.X &&
-                 pos.RightPoint > e.X &&
-                 pos.DownPoint - 50 < e.Y &&
-                 pos.DownPoint + 50 > e.Y))
-            {
-                myPosition = pos;
-                _chart.Cursor = Cursors.SizeWE;
-            }
-            else
-            {
-                pos.ValueYMouseOnClickStart = 0;
-                pos.HeightAreaOnClick = 0;
-                pos.ValueYChartOnClick = 0;
-            }
-
-
-            if (myPosition == null)
-            {
-                if (_chart.Cursor != Cursors.Arrow)
-                {
-                    _chart.Cursor = Cursors.Arrow;
-                }
-                return;
-            }
-
-            if (mouse.Button != MouseButtons.Left)
-            {
-                myPosition.ValueXMouseOnClickStart = 0;
-                myPosition.CountXValuesChartOnClickStart = 0;
-                return;
-            }
-
-            if (myPosition.ValueXMouseOnClickStart == 0)
-            {
-                myPosition.ValueXMouseOnClickStart = e.X;
-
-                if (double.IsNaN(_chart.ChartAreas[0].AxisX.ScaleView.Size))
-                {
-                    int max = 0;
-                    for (int i = 0; i < _chart.Series.Count; i++)
+                    if (_chart.Cursor != Cursors.Arrow)
                     {
-                        if (_chart.Series[0].Points.Count > max)
-                        {
-                            max = _chart.Series[0].Points.Count;
-                        }
+                        _chart.Cursor = Cursors.Arrow;
                     }
-                    myPosition.CountXValuesChartOnClickStart = max;
+                    return;
                 }
-                else
+
+                if (mouse.Button != MouseButtons.Left)
                 {
-                    myPosition.CountXValuesChartOnClickStart = (int) _chart.ChartAreas[0].AxisX.ScaleView.Size;
+                    myPosition.ValueXMouseOnClickStart = 0;
+                    myPosition.CountXValuesChartOnClickStart = 0;
+                    return;
                 }
-                return;
-            }
+
+                if (myPosition.ValueXMouseOnClickStart == 0)
+                {
+                    myPosition.ValueXMouseOnClickStart = e.X;
+
+                    if (double.IsNaN(_chart.ChartAreas[0].AxisX.ScaleView.Size))
+                    {
+                        int max = 0;
+                        for (int i = 0; i < _chart.Series.Count; i++)
+                        {
+                            if (_chart.Series[0].Points.Count > max)
+                            {
+                                max = _chart.Series[0].Points.Count;
+                            }
+                        }
+                        myPosition.CountXValuesChartOnClickStart = max;
+                    }
+                    else
+                    {
+                        myPosition.CountXValuesChartOnClickStart = (int)_chart.ChartAreas[0].AxisX.ScaleView.Size;
+                    }
+                    return;
+                }
 
 
-            double percentMove = Math.Abs(myPosition.ValueXMouseOnClickStart - e.X) / _host.Child.Width;
+                double percentMove = Math.Abs(myPosition.ValueXMouseOnClickStart - e.X) / _host.Child.Width;
 
-            if (double.IsInfinity(percentMove) ||
-                percentMove == 0)
-            {
-                return;
-            }
+                if (double.IsInfinity(percentMove) ||
+                    percentMove == 0)
+                {
+                    return;
+                }
 
-            //double concateValue = 100*percentMove*5;
+                //double concateValue = 100*percentMove*5;
 
 
                 int maxSize = 0;
@@ -6409,72 +6457,84 @@ ContextMenuStrip menu)
                 }
 
 
-            if (myPosition.ValueXMouseOnClickStart < e.X)
-            {
-                if (myPosition.Area.Position.Height < 10)
+                if (myPosition.ValueXMouseOnClickStart < e.X)
                 {
-                    return;
-                }
-
-                double newVal = myPosition.CountXValuesChartOnClickStart +
-                             myPosition.CountXValuesChartOnClickStart*percentMove*3;
-
-
-                if (newVal > maxSize)
-                {
-                    _chart.ChartAreas[0].AxisX.ScaleView.Size = Double.NaN;
-                }
-                else
-                {
-                   
-                    if (newVal + _chart.ChartAreas[0].AxisX.ScaleView.Position > maxSize)
+                    if (myPosition.Area.Position.Height < 10)
                     {
-                        _chart.ChartAreas[0].AxisX.ScaleView.Position = maxSize - newVal;
+                        return;
                     }
 
-                    _chart.ChartAreas[0].AxisX.ScaleView.Size = newVal;
-                    RePaintRightLebels();
+                    double newVal = myPosition.CountXValuesChartOnClickStart +
+                                 myPosition.CountXValuesChartOnClickStart * percentMove * 3;
 
-                    if (_chart.ChartAreas[0].AxisX.ScaleView.Position + newVal > maxSize)
+
+                    if (newVal > maxSize)
                     {
-                        _chart.ChartAreas[0].AxisX.ScaleView.Position = maxSize - newVal;
+                        _chart.ChartAreas[0].AxisX.ScaleView.Size = Double.NaN;
+                    }
+                    else
+                    {
+
+                        if (newVal + _chart.ChartAreas[0].AxisX.ScaleView.Position > maxSize)
+                        {
+                            _chart.ChartAreas[0].AxisX.ScaleView.Position = maxSize - newVal;
+                        }
+
+                        _chart.ChartAreas[0].AxisX.ScaleView.Size = newVal;
+                        RePaintRightLebels();
+
+                        if (_chart.ChartAreas[0].AxisX.ScaleView.Position + newVal > maxSize)
+                        {
+                            _chart.ChartAreas[0].AxisX.ScaleView.Position = maxSize - newVal;
+                        }
                     }
                 }
+                else if (myPosition.ValueXMouseOnClickStart > e.X)
+                {
+                    double newVal = myPosition.CountXValuesChartOnClickStart -
+                   myPosition.CountXValuesChartOnClickStart * percentMove * 3;
+
+
+                    if (newVal < 5)
+                    {
+                        _chart.ChartAreas[0].AxisX.ScaleView.Size = 5;
+                    }
+                    else
+                    {
+                        if (!double.IsNaN(_chart.ChartAreas[0].AxisX.ScaleView.Size))
+                        {
+                            _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position + _chart.ChartAreas[0].AxisX.ScaleView.Size - newVal;
+                        }
+
+                        _chart.ChartAreas[0].AxisX.ScaleView.Size = newVal;
+                        if (_chart.ChartAreas[0].AxisX.ScaleView.Position + newVal > maxSize)
+                        {
+                            _chart.ChartAreas[0].AxisX.ScaleView.Position = maxSize - newVal;
+                        }
+
+                    }
+                }
+
+                ResizeYAxisOnArea("Prime");
+                ResizeXAxis();
+                ResizeSeriesLabels();
             }
-            else if (myPosition.ValueXMouseOnClickStart > e.X)
+            catch (Exception ex)
             {
-                double newVal = myPosition.CountXValuesChartOnClickStart -
-               myPosition.CountXValuesChartOnClickStart * percentMove * 3;
-
-
-                if (newVal < 5)
-                {
-                    _chart.ChartAreas[0].AxisX.ScaleView.Size = 5;
-                }
-                else
-                {
-                    if (!double.IsNaN(_chart.ChartAreas[0].AxisX.ScaleView.Size))
-                    {
-                        _chart.ChartAreas[0].AxisX.ScaleView.Position = _chart.ChartAreas[0].AxisX.ScaleView.Position + _chart.ChartAreas[0].AxisX.ScaleView.Size - newVal;
-                    }
-                    
-                    _chart.ChartAreas[0].AxisX.ScaleView.Size = newVal;
-                    if (_chart.ChartAreas[0].AxisX.ScaleView.Position + newVal > maxSize)
-                    {
-                        _chart.ChartAreas[0].AxisX.ScaleView.Position = maxSize - newVal;
-                    }
-                   
-                }
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            ResizeYAxisOnArea("Prime");
-            ResizeXAxis();
-            ResizeSeriesLabels();
         }
 
-        void _chart_ClientSizeChanged(object sender, EventArgs e)
+        private void _chart_ClientSizeChanged(object sender, EventArgs e)
         {
-            ReloadChartAreasSize();
+            try
+            {
+                ReloadChartAreasSize();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -6483,15 +6543,22 @@ ContextMenuStrip menu)
         /// </summary>
         private void ReloadChartAreasSize()
         {
-            if (_areaPositions == null)
+            try
             {
-                _areaPositions = new List<ChartAreaPosition>();
-            }
+                if (_areaPositions == null)
+                {
+                    _areaPositions = new List<ChartAreaPosition>();
+                }
 
-            for (int i = 0; _chart != null &&
-                i < _chart.ChartAreas.Count; i++)
+                for (int i = 0; _chart != null &&
+                    i < _chart.ChartAreas.Count; i++)
+                {
+                    GetAreaPosition(_chart.ChartAreas[i]);
+                }
+            }
+            catch(Exception ex)
             {
-                GetAreaPosition(_chart.ChartAreas[i]);
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -7034,15 +7101,22 @@ ContextMenuStrip menu)
         /// LCM up
         /// поднялась ЛКМ
         /// </summary>
-        void _chartForCandle_MouseUp(object sender, MouseEventArgs e) 
+        void _chartForCandle_MouseUp(object sender, MouseEventArgs e)
         {
-            if (IsPatternChart)
+            try
             {
-                return;
-            }
+                if (IsPatternChart)
+                {
+                    return;
+                }
 
-            _mouseDown = false;
-            _chart.Cursor = Cursors.Default;
+                _mouseDown = false;
+                _chart.Cursor = Cursors.Default;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -7051,61 +7125,68 @@ ContextMenuStrip menu)
         /// </summary>
         private void _chartForCandle_MouseDown(object sender, MouseEventArgs e)
         {
-            if (IsPatternChart)
+            try
             {
-                return;
-            }
-
-            if (e.Button != MouseButtons.Left)
-            {
-                return;
-            }
-
-            _mouseDown = true;
-            // accept event on the right side of host
-            // принимаем событие в правой части хоста
-            if (_areaPositions == null)
-            {
-                return;
-            }
-
-            _resizeArea = null;
-
-            ChartAreaPosition myPosition = null;
-
-            if (_areaPositions == null || 
-                _areaPositions.Count == 0 || 
-                _areaPositions[0].RightPoint == _chart.Width)
-            {
-                ReloadChartAreasSize();
-            }
-
-            if (_areaPositions == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _areaPositions.Count; i++)
-            {
-                ChartAreaPosition pos = _areaPositions[i];
-
-                if (pos.RightPoint < e.X && pos.UpPoint < e.Y && pos.DownPoint > e.Y)
+                if (IsPatternChart)
                 {
-                    myPosition = pos;
-                    break;
+                    return;
                 }
-            }
 
-            if (myPosition == null)
+                if (e.Button != MouseButtons.Left)
+                {
+                    return;
+                }
+
+                _mouseDown = true;
+                // accept event on the right side of host
+                // принимаем событие в правой части хоста
+                if (_areaPositions == null)
+                {
+                    return;
+                }
+
+                _resizeArea = null;
+
+                ChartAreaPosition myPosition = null;
+
+                if (_areaPositions == null ||
+                    _areaPositions.Count == 0 ||
+                    _areaPositions[0].RightPoint == _chart.Width)
+                {
+                    ReloadChartAreasSize();
+                }
+
+                if (_areaPositions == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _areaPositions.Count; i++)
+                {
+                    ChartAreaPosition pos = _areaPositions[i];
+
+                    if (pos.RightPoint < e.X && pos.UpPoint < e.Y && pos.DownPoint > e.Y)
+                    {
+                        myPosition = pos;
+                        break;
+                    }
+                }
+
+                if (myPosition == null)
+                {
+                    return;
+                }
+
+                _resizeArea = myPosition.Area.Name;
+
+                _firstY = e.Y;
+                _chart.Cursor = Cursors.Hand;
+
+            }
+            catch (Exception error)
             {
-                return;
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            _resizeArea = myPosition.Area.Name;
-
-            _firstY = e.Y;
-            _chart.Cursor = Cursors.Hand;
-
         }
 
         private bool _mouseDown;
