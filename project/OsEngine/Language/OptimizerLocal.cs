@@ -187,6 +187,10 @@ namespace OsEngine.Language
             "Eng:Unable to start optimization. Wait for parameters to load._" +
             "Ru:Не возможно запустить оптимизацию. Подождите загрузки параметров_");
 
+        public string Message45 => OsLocalization.ConvertToLocString(
+            "Eng:Increment type_" +
+            "Ru:Тип приращения_");
+
         public string Label1 => OsLocalization.ConvertToLocString(
             "Eng:Index securities_" +
             "Ru:Бумаги для индекса_");

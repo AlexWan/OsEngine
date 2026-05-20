@@ -15,7 +15,6 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.OsOptimizer.OptimizerEntity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
-using OsEngine.OsTrader.Panels.Tab.SynteticBondTab;
 using OsEngine.OsTrader.Panels.Tab.SyntheticBondTab;
 using System;
 using System.Collections.Generic;
@@ -260,7 +259,27 @@ namespace OsEngine.OsOptimizer
                         {
                             // the current index can increment the value
                             // по текущему индексу можно приращивать значение
-                            parameter.ValueInt = parameter.ValueInt + parameter.ValueIntStep;
+                            if(parameter.StepType == StrategyParameterStepType.Absolute)
+                            {
+                                parameter.ValueInt = parameter.ValueInt + parameter.ValueIntStep;
+                            }
+                            else if(parameter.StepType == StrategyParameterStepType.Percent)
+                            {
+                                int newValue = parameter.ValueInt + Math.Abs(Convert.ToInt32(parameter.ValueInt * Convert.ToDecimal(parameter.ValueIntStep) / 100));
+
+                                if (newValue == parameter.ValueInt)
+                                {
+                                    newValue = parameter.ValueInt + 1;
+                                }
+
+                                if(newValue > parameter.ValueIntStop)
+                                {
+                                    newValue = parameter.ValueIntStop;
+                                }
+
+                                parameter.ValueInt = newValue;
+                            }
+
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
@@ -283,7 +302,24 @@ namespace OsEngine.OsOptimizer
                         {
                             // at the current index you can increment the value
                             // по текущему индексу можно приращивать значение
-                            parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
+                            if (parameter.StepType == StrategyParameterStepType.Absolute)
+                            {
+                                parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
+                            }
+                            else if(parameter.StepType == StrategyParameterStepType.Percent)
+                            {
+                                decimal newValue = parameter.ValueDecimal + Math.Abs(parameter.ValueDecimal * (parameter.ValueDecimalStep / 100));
+
+                                newValue = Math.Round(newValue, 6);
+
+                                if (newValue > parameter.ValueDecimalStop)
+                                {
+                                    newValue = parameter.ValueDecimalStop;
+                                }
+
+                                parameter.ValueDecimal = newValue;
+                            }
+
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
@@ -293,6 +329,7 @@ namespace OsEngine.OsOptimizer
                                     ReloadParam(optimizedParamToCheckCount[i3]);
                                 }
                             }
+
                             countBots++;
                             break;
                         }
@@ -306,7 +343,25 @@ namespace OsEngine.OsOptimizer
                         {
                             // at the current index you can increment the value
                             // по текущему индексу можно приращивать значение
-                            parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
+
+                            if (parameter.StepType == StrategyParameterStepType.Absolute)
+                            {
+                                parameter.ValueDecimal = Math.Abs(parameter.ValueDecimal + parameter.ValueDecimalStep);
+                            }
+                            else if (parameter.StepType == StrategyParameterStepType.Percent)
+                            {
+                                decimal newValue = parameter.ValueDecimal + Math.Abs(parameter.ValueDecimal * (parameter.ValueDecimalStep / 100));
+
+                                newValue = Math.Round(newValue, 6);
+
+                                if (newValue > parameter.ValueDecimalStop)
+                                {
+                                    newValue = parameter.ValueDecimalStop;
+                                }
+
+                                parameter.ValueDecimal = newValue;
+                            }
+
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
@@ -382,7 +437,27 @@ namespace OsEngine.OsOptimizer
                         {
                             // at the current index you can increment the value
                             // по текущему индексу можно приращивать значение
-                            parameter.ValueInt = parameter.ValueInt + parameter.ValueIntStep;
+                            if (parameter.StepType == StrategyParameterStepType.Absolute)
+                            {
+                                parameter.ValueInt = parameter.ValueInt + parameter.ValueIntStep;
+                            }
+                            else if (parameter.StepType == StrategyParameterStepType.Percent)
+                            {
+                                int newValue = parameter.ValueInt + Math.Abs(Convert.ToInt32(parameter.ValueInt * Convert.ToDecimal(parameter.ValueIntStep) / 100));
+
+                                if (newValue == parameter.ValueInt)
+                                {
+                                    newValue = parameter.ValueInt + 1;
+                                }
+
+                                if (newValue > parameter.ValueIntStop)
+                                {
+                                    newValue = parameter.ValueIntStop;
+                                }
+
+                                parameter.ValueInt = newValue;
+                            }
+
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
@@ -405,7 +480,24 @@ namespace OsEngine.OsOptimizer
                         {
                             // at the current index you can increment the value
                             // по текущему индексу можно приращивать значение
-                            parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
+                            if (parameter.StepType == StrategyParameterStepType.Absolute)
+                            {
+                                parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
+                            }
+                            else if (parameter.StepType == StrategyParameterStepType.Percent)
+                            {
+                                decimal newValue = parameter.ValueDecimal + Math.Abs(parameter.ValueDecimal * (parameter.ValueDecimalStep / 100));
+
+                                newValue = Math.Round(newValue, 6);
+
+                                if (newValue > parameter.ValueDecimalStop)
+                                {
+                                    newValue = parameter.ValueDecimalStop;
+                                }
+
+                                parameter.ValueDecimal = newValue;
+                            }
+
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
@@ -427,7 +519,25 @@ namespace OsEngine.OsOptimizer
                         {
                             // at the current index you can increment the value
                             // по текущему индексу можно приращивать значение
-                            parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
+
+                            if (parameter.StepType == StrategyParameterStepType.Absolute)
+                            {
+                                parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
+                            }
+                            else if (parameter.StepType == StrategyParameterStepType.Percent)
+                            {
+                                decimal newValue = parameter.ValueDecimal + Math.Abs(parameter.ValueDecimal * (parameter.ValueDecimalStep / 100));
+
+                                newValue = Math.Round(newValue, 6);
+
+                                if (newValue > parameter.ValueDecimalStop)
+                                {
+                                    newValue = parameter.ValueDecimalStop;
+                                }
+
+                                parameter.ValueDecimal = newValue;
+                            }
+
                             if (i2 > 0)
                             {
                                 for (int i3 = 0; i3 < i2; i3++)
@@ -595,6 +705,7 @@ namespace OsEngine.OsOptimizer
                         ((StrategyParameterInt)parametersToCopy[i]).ValueIntStop,
                         ((StrategyParameterInt)parametersToCopy[i]).ValueIntStep);
                     ((StrategyParameterInt)newParam).ValueInt = ((StrategyParameterInt)parametersToCopy[i]).ValueIntStart;
+                    ((StrategyParameterInt)newParam).StepType = ((StrategyParameterInt)parametersToCopy[i]).StepType;
                 }
                 else if (parametersToCopy[i].Type == StrategyParameterType.Decimal)
                 {
@@ -604,6 +715,7 @@ namespace OsEngine.OsOptimizer
                         ((StrategyParameterDecimal)parametersToCopy[i]).ValueDecimalStop,
                         ((StrategyParameterDecimal)parametersToCopy[i]).ValueDecimalStep);
                     ((StrategyParameterDecimal)newParam).ValueDecimal = ((StrategyParameterDecimal)parametersToCopy[i]).ValueDecimalStart;
+                    ((StrategyParameterDecimal)newParam).StepType = ((StrategyParameterDecimal)parametersToCopy[i]).StepType;
                 }
                 else if (parametersToCopy[i].Type == StrategyParameterType.DecimalCheckBox)
                 {
@@ -614,6 +726,7 @@ namespace OsEngine.OsOptimizer
                         ((StrategyParameterDecimalCheckBox)parametersToCopy[i]).ValueDecimalStep,
                         Convert.ToBoolean(((StrategyParameterDecimalCheckBox)parametersToCopy[i]).CheckState));
                     ((StrategyParameterDecimalCheckBox)newParam).ValueDecimal = ((StrategyParameterDecimalCheckBox)parametersToCopy[i]).ValueDecimalStart;
+                    ((StrategyParameterDecimalCheckBox)newParam).StepType = ((StrategyParameterDecimalCheckBox)parametersToCopy[i]).StepType;
                 }
 
                 newParameters.Add(newParam);

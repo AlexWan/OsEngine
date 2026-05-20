@@ -67,7 +67,7 @@ namespace OsEngine.Entity
         {
             if (name.HaveExcessInString())
             {
-                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away. Parameter name: " + name);
             }
 
             _name = name;
@@ -182,12 +182,11 @@ namespace OsEngine.Entity
         {
             if (name.HaveExcessInString())
             {
-                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away. Parameter name: " + name);
             }
-
             if (start > stop)
             {
-                throw new Exception("The initial value of the parameter cannot be greater than the last");
+                throw new Exception("The initial value of the parameter cannot be greater than the last. Parameter name: " + name);
             }
 
             _name = name;
@@ -237,6 +236,7 @@ namespace OsEngine.Entity
             save += _valueIntStart + "#";
             save += _valueIntStop + "#";
             save += _valueIntStep + "#";
+            save += _stepType.ToString() + "#";
 
             return save;
         }
@@ -255,6 +255,11 @@ namespace OsEngine.Entity
                 _valueIntStart = Convert.ToInt32(save[3]);
                 _valueIntStop = Convert.ToInt32(save[4]);
                 _valueIntStep = Convert.ToInt32(save[5]);
+
+                if (string.IsNullOrEmpty(save[6]) == false)
+                {
+                    Enum.TryParse(save[6], out _stepType);
+                }
             }
             catch
             {
@@ -349,6 +354,22 @@ namespace OsEngine.Entity
         private int _valueIntStep;
 
         /// <summary>
+        /// Type of increment. Absolute or Percent
+        /// </summary>
+        public StrategyParameterStepType StepType
+        {
+            get
+            {
+                return _stepType;
+            }
+            set
+            {
+                _stepType = value;
+            }
+        }
+        private StrategyParameterStepType _stepType;
+
+        /// <summary>
         /// Event: parameter state changed
         /// </summary>
         public event Action ValueChange;
@@ -373,11 +394,11 @@ namespace OsEngine.Entity
         {
             if (name.HaveExcessInString())
             {
-                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away. Parameter name: " + name);
             }
             if (start > stop)
             {
-                throw new Exception("The initial value of the parameter cannot be greater than the last");
+                throw new Exception("The initial value of the parameter cannot be greater than the last. Parameter name: " + name);
             }
 
             _name = name;
@@ -409,7 +430,7 @@ namespace OsEngine.Entity
             save += _valueDecimalStart + "#";
             save += _valueDecimalStop + "#";
             save += _valueDecimalStep + "#";
-
+            save += _stepType + "#";
             return save;
         }
 
@@ -426,6 +447,11 @@ namespace OsEngine.Entity
                 _valueDecimalStart = save[3].ToDecimal();
                 _valueDecimalStop = save[4].ToDecimal();
                 _valueDecimalStep = save[5].ToDecimal();
+
+                if(string.IsNullOrEmpty(save[6]) == false)
+                {
+                    Enum.TryParse(save[6], out _stepType);
+                }
             }
             catch
             {
@@ -539,6 +565,22 @@ namespace OsEngine.Entity
         private decimal _valueDecimalStep;
 
         /// <summary>
+        /// Type of increment. Absolute or Percent
+        /// </summary>
+        public StrategyParameterStepType StepType
+        {
+            get
+            {
+                return _stepType;
+            }
+            set
+            {
+                _stepType = value;
+            }
+        }
+        private StrategyParameterStepType _stepType;
+
+        /// <summary>
         /// Event: parameter state changed
         /// </summary>
         public event Action ValueChange;
@@ -562,7 +604,7 @@ namespace OsEngine.Entity
         {
             if (name.HaveExcessInString())
             {
-                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away. Parameter name: " + name);
             }
             _name = name;
             _valueBoolDefolt = value;
@@ -699,8 +741,9 @@ namespace OsEngine.Entity
         {
             if (name.HaveExcessInString())
             {
-                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away. Parameter name: " + name);
             }
+
             bool isInArray = false;
 
             if (collection == null)
@@ -738,8 +781,9 @@ namespace OsEngine.Entity
         {
             if (name.HaveExcessInString())
             {
-                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away. Parameter name: " + name);
             }
+
             if (value == null)
             {
                 value = "";
@@ -898,8 +942,9 @@ namespace OsEngine.Entity
         {
             if (name.HaveExcessInString())
             {
-                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away. Parameter name: " + name);
             }
+
             _name = name;
             Value = new TimeOfDay();
             Value.Hour = hour;
@@ -1397,11 +1442,11 @@ namespace OsEngine.Entity
         /// <exception cref="Exception">The parameter name of the robot contains a special character. This will cause errors. Take it away</exception>
         public StrategyParameterCheckBox(string checkBoxLabel, bool isChecked, string tabName = null)
         {
-
             if (checkBoxLabel.HaveExcessInString())
             {
-                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away. Parameter name: " + checkBoxLabel);
             }
+
             _name = checkBoxLabel;
             _type = StrategyParameterType.CheckBox;
 
@@ -1551,11 +1596,11 @@ namespace OsEngine.Entity
         {
             if (name.HaveExcessInString())
             {
-                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away. Parameter name: " + name);
             }
             if (start > stop)
             {
-                throw new Exception("The initial value of the parameter cannot be greater than the last");
+                throw new Exception("The initial value of the parameter cannot be greater than the last. Parameter name: " + name);
             }
 
             _name = name;
@@ -1607,6 +1652,8 @@ namespace OsEngine.Entity
                 save += "false" + "#";
             }
 
+            save += _stepType + "#";
+
             return save;
         }
 
@@ -1632,6 +1679,11 @@ namespace OsEngine.Entity
                 else
                 {
                     _checkState = CheckState.Unchecked;
+                }
+
+                if(string.IsNullOrEmpty(save[7]) == false)
+                {
+                    Enum.TryParse(save[7], out _stepType);
                 }
             }
             catch
@@ -1746,6 +1798,22 @@ namespace OsEngine.Entity
         private decimal _valueDecimalStep;
 
         /// <summary>
+        /// Type of increment. Absolute or Percent
+        /// </summary>
+        public StrategyParameterStepType StepType
+        {
+            get
+            {
+                return _stepType;
+            }
+            set
+            {
+                _stepType = value;
+            }
+        }
+        private StrategyParameterStepType _stepType;
+
+        /// <summary>
         /// CheckBox is it active
         /// </summary>
         public CheckState CheckState
@@ -1835,5 +1903,11 @@ namespace OsEngine.Entity
         /// </summary>
         DecimalCheckBox
 		
+    }
+
+    public enum StrategyParameterStepType
+    {
+        Absolute,
+        Percent
     }
 }
