@@ -197,7 +197,7 @@ MonitorVolume
 
         private void MonitorVolume_ParametrsChangeByUser()
         {
-            _tabScreener._indicators[0].Parameters
+            _tabScreener._indicators[1].Parameters
                  = new List<string>()
                 {
                 _keltnerEmaLength.ValueInt.ToString(),
@@ -733,7 +733,7 @@ MonitorVolume
             {
                 decimal move = myData.SecurityRankingMove;
 
-                if (move > _longPercentMove.ValueDecimal)
+                if (move >= _longPercentMove.ValueDecimal)
                 {
                     haveEntryMove = true;
                 }
@@ -742,7 +742,7 @@ MonitorVolume
             {
                 decimal movePercent = myData.SecurityRankingMove;
 
-                if (movePercent < _longPercentMove.ValueDecimal)
+                if (movePercent <= _longPercentMove.ValueDecimal)
                 {
                     haveEntryMove = true;
                 }
@@ -861,7 +861,7 @@ MonitorVolume
             {
                 decimal movePercent = myData.SecurityRankingMove;
 
-                if (movePercent < _shortPercentMove.ValueDecimal)
+                if (movePercent <= _shortPercentMove.ValueDecimal)
                 {
                     haveEntryMove = true;
                 }
@@ -870,7 +870,7 @@ MonitorVolume
             {
                 decimal movePercent = myData.SecurityRankingMove;
 
-                if (movePercent > _shortPercentMove.ValueDecimal)
+                if (movePercent >= _shortPercentMove.ValueDecimal)
                 {
                     haveEntryMove = true;
                 }
