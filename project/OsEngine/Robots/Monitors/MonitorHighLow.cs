@@ -106,14 +106,17 @@ MonitorHighLow
             _tabScreener.CandleUpdateEvent += _tabScreener_CandleUpdateEvent;
             _tabScreener.CandleFinishedEvent += _tabScreener_CandleFinishedEvent;
             _tabScreener.PositionOpeningSuccesEvent += _tabScreener_PositionOpeningSuccesEvent;
+            _tabScreener.PositionClosingSuccesEvent += _tabScreener_PositionClosingSuccesEvent;
 
             // Prime settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "OnCandleUpdate", "OnCandleFinish" }, "Prime settings");
-            _candlesToAnalyze = CreateParameter("Candles to analyze", 1500, 0, 20, 1, "Prime settings");
+            _candlesToAnalyze = CreateParameter("Candles to analyze", 500, 0, 20, 1, "Prime settings");
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Prime settings");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
-            _tabScreener.CreateCandleIndicator(1, "PriceChannel", new List<string>() { _candlesToAnalyze.ValueInt.ToString() }, "Prime");
+            _tabScreener.CreateCandleIndicator(1, "PriceChannel", new List<string>() 
+            { _candlesToAnalyze.ValueInt.ToString(), 
+                _candlesToAnalyze.ValueInt.ToString() }, "Prime");
 
             // Long
             _longIsOn = CreateParameter("Long Is On", false, "Long");
@@ -774,7 +777,6 @@ MonitorHighLow
             decimal movePercent = myData.MoveUp;
 
             if (_longPercentMove.ValueDecimal > movePercent 
-                && myData.MoveDown > 5
                 && candles[^1].IsUp)
             {
                 tab.BuyAtMarket(GetVolume(tab, _longVolumeType, _longVolume, _longTradeAssetInPortfolio));
@@ -847,6 +849,13 @@ MonitorHighLow
                     tab.CloseAtStopMarket(position, stopPrice);
                 }
             }
+
+            TryUpdateTable();
+        }
+
+        private void _tabScreener_PositionClosingSuccesEvent(Position arg1, BotTabSimple arg2)
+        {
+            TryUpdateTable();
         }
 
         #endregion
@@ -872,7 +881,6 @@ MonitorHighLow
             decimal movePercent = myData.MoveDown;
 
             if (_shortPercentMove.ValueDecimal > movePercent
-                && myData.MoveUp > 5
                 && candles[^1].IsDown)
             {
                 tab.SellAtMarket(GetVolume(tab, _shortVolumeType, _shortVolume, _shortTradeAssetInPortfolio));
