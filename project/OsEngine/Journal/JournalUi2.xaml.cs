@@ -4784,6 +4784,28 @@ namespace OsEngine.Journal
                         Position pos = allPositions[i];
                         string botName = pos.NameBot;
 
+                        if(botName.Contains("tab"))
+                        {
+                            botName = botName.Replace("tab", "&");
+                            botName = botName.Split('&')[0];
+                        }
+
+                        if(botName.Split(' ').Length > 1)
+                        {
+                            int firstEmptyIndex = 0;
+
+                            for(int i2 = 0;i2 < botName.Length;i2++)
+                            {
+                                if (botName[i2] == ' ')
+                                {
+                                    firstEmptyIndex = i2;
+                                    break;
+                                }
+                            }
+
+                            botName = botName.Substring(firstEmptyIndex + 1, botName.Length - firstEmptyIndex - 1);
+                        }
+
                         if (string.IsNullOrEmpty(botName))
                             continue;
 
