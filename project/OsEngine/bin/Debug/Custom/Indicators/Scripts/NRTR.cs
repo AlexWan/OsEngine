@@ -19,6 +19,8 @@ namespace OsEngine.Indicators
 
         private int _direction;
 
+        private List<int> _directions;
+
         public override void OnStateChange(IndicatorState state)
         {
             _period = CreateParameterInt("Length", 15);
@@ -27,6 +29,8 @@ namespace OsEngine.Indicators
             _seriesUp = CreateSeries("Up line", Color.Aqua, IndicatorChartPaintType.Line, false);
             _seriesDown = CreateSeries("Down line", Color.BlueViolet, IndicatorChartPaintType.Line, false);
             _seriesCenter = CreateSeries("Center Line ", Color.Red, IndicatorChartPaintType.Line, true);
+
+            _directions = new List<int>();
         }
 
         public override void OnProcess(List<Candle> candles, int index)
@@ -36,44 +40,89 @@ namespace OsEngine.Indicators
                 return;
             }
 
+            CheckDirectionsLength(index);
+
             decimal closePrice = candles[index].Close;
             decimal closePricePrew = candles[index - 1].Close;
 
-            decimal maxHigh = 0;
+            decimal maxHigh = candles[index].High;
 
-            if (index - _period.ValueInt > 0)
+            for (int i = index; i > -1 && i > index - _period.ValueInt; i--)
             {
-                for (int i = index; i > -1 && i > index - _period.ValueInt; i--)
+                if (maxHigh < candles[i].High)
                 {
-                    if (maxHigh < candles[i].High)
-                    {
-                        maxHigh = candles[i].High;
-                    }
+                    maxHigh = candles[i].High;
                 }
             }
 
-            decimal minLow = 0;
+            decimal minLow = candles[index].Low;
 
-            if (index - _period.ValueInt > 0)
+            for (int i = index; i > -1 && i > index - _period.ValueInt; i--)
             {
-                minLow = decimal.MaxValue;
-
-                for (int i = index; i > -1 && i > index - _period.ValueInt; i--)
+                if (minLow > candles[i].Low)
                 {
-                    if (minLow > candles[i].Low)
-                    {
-                        minLow = candles[i].Low;
-                    }
+                    minLow = candles[i].Low;
                 }
             }
 
-            _seriesUp.Values[index] = maxHigh * (1 - _deviation.ValueDecimal / 100);
-            _seriesDown.Values[index] = minLow * (1 + _deviation.ValueDecimal / 100);
+            decimal upLine = maxHigh * (1 - _deviation.ValueDecimal / 100);
+            decimal downLine = minLow * (1 + _deviation.ValueDecimal / 100);
 
-            _direction = (closePrice > _seriesUp.Values[index - 1]) ? 1 :
-                    (closePricePrew < _seriesDown.Values[index - 1]) ? -1 : _direction;
+            _seriesUp.Values[index] = upLine;
+            _seriesDown.Values[index] = downLine;
 
-            _seriesCenter.Values[index] = _direction == 1 ? _seriesDown.Values[index] : _seriesUp.Values[index];
+            if (index == _period.ValueInt || _seriesCenter.Values[index - 1] == 0)
+            {
+                _direction = closePrice >= closePricePrew ? 1 : -1;
+                _seriesCenter.Values[index] = _direction == 1 ? upLine : downLine;
+                _directions[index] = _direction;
+                return;
+            }
+
+            int direction = _directions[index - 1];
+
+            if (direction == 0)
+            {
+                direction = closePricePrew >= _seriesCenter.Values[index - 1] ? 1 : -1;
+            }
+
+            decimal prevCenter = _seriesCenter.Values[index - 1];
+
+            if (direction == 1)
+            {
+                if (closePrice < prevCenter)
+                {
+                    direction = -1;
+                    _seriesCenter.Values[index] = downLine;
+                }
+                else
+                {
+                    _seriesCenter.Values[index] = upLine > prevCenter ? upLine : prevCenter;
+                }
+            }
+            else
+            {
+                if (closePrice > prevCenter)
+                {
+                    direction = 1;
+                    _seriesCenter.Values[index] = upLine;
+                }
+                else
+                {
+                    _seriesCenter.Values[index] = downLine < prevCenter ? downLine : prevCenter;
+                }
+            }
+
+            _direction = direction;
+            _directions[index] = direction;
+        }
+
+        private void CheckDirectionsLength(int index)
+        {
+            while (_directions.Count <= index)
+            {
+                _directions.Add(0);
+            }
         }
     }
 }
