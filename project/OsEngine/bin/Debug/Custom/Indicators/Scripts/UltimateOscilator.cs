@@ -70,7 +70,7 @@ namespace OsEngine.Indicators
             decimal average14 = bpPer2 / trPer2;
             decimal average28 = bpPer3 / trPer3;
 
-            return 100 * ((4 * average7) + (2 * average14) + average28) / (4 + 3 + 2);
+            return 100 * ((4 * average7) + (2 * average14) + average28) / (4 + 2 + 1);
         }
 
         private decimal SummList(int indxStart, int indxEnd, List<decimal> array)
