@@ -149,6 +149,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 _baseUrl = "https://fapi.binance.com";
                 wss_point = "wss://fstream.binance.com/public";
+                wss_point_market = "wss://fstream.binance.com/market";
+                wss_point_private = "wss://fstream.binance.com/private";
                 type_str_selector = "fapi";
             }
             else if (((ServerParameterEnum)ServerParameters[2]).Value == "COIN-M")
@@ -237,7 +239,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public string wss_point_market = "wss://fstream.binance.com/market";
 
-        public string wss_point_privet = "wss://fstream.binance.com/private";
+        public string wss_point_private = "wss://fstream.binance.com/private";
 
         public string type_str_selector = "fapi";
 
@@ -1422,7 +1424,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             try
             {
                 _listenKey = CreateListenKey();
-                string urlStr = $"{wss_point_privet}/ws?listenKey={_listenKey}&events=ORDER_TRADE_UPDATE/ACCOUNT_UPDATE";
+                string urlStr = $"{wss_point_private}/ws?listenKey={_listenKey}&events=ORDER_TRADE_UPDATE/ACCOUNT_UPDATE";
 
                 _socketPrivateData = new WebSocket(urlStr);
 
