@@ -182,9 +182,9 @@ namespace OsEngine.Robots
         {
             try
             {
-                if (TextBoxName.Text.Length > 20)
+                if (TextBoxName.Text.Length > 50)
                 {
-                    TextBoxName.Text = TextBoxName.Text.Substring(0, 20);
+                    TextBoxName.Text = TextBoxName.Text.Substring(0, 50);
                 }
             }
             catch
