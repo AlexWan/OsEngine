@@ -148,7 +148,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
             {
                 _baseUrl = "https://fapi.binance.com";
-                wss_point = "wss://fstream.binance.com";
+                wss_point = "wss://fstream.binance.com/public";
                 type_str_selector = "fapi";
             }
             else if (((ServerParameterEnum)ServerParameters[2]).Value == "COIN-M")
@@ -233,7 +233,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public string _baseUrl = "https://fapi.binance.com";
 
-        public string wss_point = "wss://fstream.binance.com";
+        public string wss_point = "wss://fstream.binance.com/public";
+
+        public string wss_point_market = "wss://fstream.binance.com/market";
+
+        public string wss_point_privet = "wss://fstream.binance.com/private";
 
         public string type_str_selector = "fapi";
 
@@ -1418,7 +1422,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             try
             {
                 _listenKey = CreateListenKey();
-                string urlStr = wss_point + "/ws/" + _listenKey;
+                string urlStr = $"{wss_point_privet}/ws?listenKey={_listenKey}&events=ORDER_TRADE_UPDATE/ACCOUNT_UPDATE";
 
                 _socketPrivateData = new WebSocket(urlStr);
 
@@ -1702,7 +1706,22 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 if (_extendedMarketData)
                 {
-                    urlStrDepth += "/" + security.Name.ToLower() + "@markPrice" + "/" + security.Name.ToLower() + "@miniTicker";
+                    string urlStrMarKet = wss_point_market + "/stream?streams=" + security.Name.ToLower() + "@markPrice" + "/" + security.Name.ToLower() + "@miniTicker";
+
+                    WebSocket wsClientMarket = new WebSocket(urlStrMarKet);
+
+                    if (_myProxy != null)
+                    {
+                        wsClientMarket.SetProxy(_myProxy);
+                    }
+
+                    wsClientMarket.EmitOnPing = true;
+                    wsClientMarket.OnMessage += _socket_PublicMessage;
+                    wsClientMarket.OnError += _socketClient_Error;
+                    wsClientMarket.OnClose += _socketClient_Closed;
+                    wsClientMarket.ConnectAsync();
+
+                    _socketsArray.Add(security.Name + "_market", wsClientMarket);
 
                     GetFundingRate(security.Name);
                     GetFundingHistory(security.Name.ToLower());
