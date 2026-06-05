@@ -105,6 +105,7 @@ namespace OsEngine.Robots.Monitors
             _tabScreener.CandleUpdateEvent += _tabScreener_CandleUpdateEvent;
             _tabScreener.CandleFinishedEvent += _tabScreener_CandleFinishedEvent;
             _tabScreener.PositionOpeningSuccesEvent += _tabScreener_PositionOpeningSuccesEvent;
+            _tabScreener.PositionClosingSuccesEvent += _tabScreener_PositionClosingSuccesEvent;
 
             // Prime settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "OnCandleUpdate", "OnCandleFinish" }, "Prime settings");
@@ -827,6 +828,13 @@ namespace OsEngine.Robots.Monitors
                     tab.CloseAtStopMarket(position, stopPrice);
                 }
             }
+
+            TryUpdateTable();
+        }
+
+        private void _tabScreener_PositionClosingSuccesEvent(Position arg1, BotTabSimple arg2)
+        {
+            TryUpdateTable();
         }
 
         #endregion

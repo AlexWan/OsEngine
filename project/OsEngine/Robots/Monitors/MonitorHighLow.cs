@@ -670,10 +670,10 @@ MonitorHighLow
                         {
                             currentRow.Cells[3].Value = row.Cells[3].Value;
                         }
-                        if (currentRow.Cells[5].Value == null
-                         || currentRow.Cells[5].Value.ToString() != row.Cells[5].Value.ToString())
+                        if (currentRow.Cells[6].Value == null
+                         || currentRow.Cells[6].Value.ToString() != row.Cells[6].Value.ToString())
                         {
-                            currentRow.Cells[5].Value = row.Cells[5].Value;
+                            currentRow.Cells[6].Value = row.Cells[6].Value;
                         }
                     }
                 }

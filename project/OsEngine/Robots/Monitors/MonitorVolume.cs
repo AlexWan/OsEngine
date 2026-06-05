@@ -23,6 +23,7 @@ using OsEngine.Language;
 using OsEngine.Indicators;
 using System.Linq;
 using System.Drawing;
+using OsEngine.Robots.Screeners;
 
 namespace OsEngine.Robots.Monitors
 {
@@ -110,6 +111,7 @@ MonitorVolume
             _tabScreener = TabsScreener[0];
             _tabScreener.CandlesSyncFinishedEvent += _tabScreener_CandlesSyncFinishedEvent;
             _tabScreener.PositionOpeningSuccesEvent += _tabScreener_PositionOpeningSuccesEvent;
+            _tabScreener.PositionClosingSuccesEvent += _tabScreener_PositionClosingSuccesEvent;
 
             // Prime settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Prime settings");
@@ -604,27 +606,62 @@ MonitorVolume
 
                 _lastTimeUpdateTable = DateTime.Now;
 
-                _tableDataGrid.Rows.Clear();
-
-                if (_volumesRanking.Stages.Count > 0)
+                if (_tableDataGrid.Rows.Count != _volumesRanking.Stages.Count)
                 {
-                    try
-                    {
-                        for (int i = 0; i < _volumesRanking.Stages.Count; i++)
-                        {
-                            VolumeRankingValue data = _volumesRanking.Stages[i];
+                    _tableDataGrid.Rows.Clear();
 
-                            DataGridViewRow newRow = GetRow(data);
-                            _tableDataGrid.Rows.Add(newRow);
+                    if (_volumesRanking.Stages.Count > 0)
+                    {
+                        try
+                        {
+                            for (int i = 0; i < _volumesRanking.Stages.Count; i++)
+                            {
+                                VolumeRankingValue data = _volumesRanking.Stages[i];
+
+                                DataGridViewRow newRow = GetRow(data);
+                                _tableDataGrid.Rows.Add(newRow);
+                            }
+                        }
+                        catch
+                        {
+                            return;
                         }
                     }
-                    catch
+                }
+                else
+                {
+                    for (int i = 0; i < _tableDataGrid.Rows.Count; i++)
                     {
-                        return;
+                        DataGridViewRow currentRow = _tableDataGrid.Rows[i];
+
+                        string securityName = currentRow.Cells[0].Value.ToString();
+
+                        VolumeRankingValue data = _volumesRanking.Stages[i];
+
+                        DataGridViewRow row = GetRow(data);
+
+                        if (currentRow.Cells[1].Value == null
+                            || currentRow.Cells[1].Value.ToString() != row.Cells[1].Value.ToString())
+                        {
+                            currentRow.Cells[1].Value = row.Cells[1].Value;
+                        }
+                        if (currentRow.Cells[2].Value == null
+                         || currentRow.Cells[2].Value.ToString() != row.Cells[2].Value.ToString())
+                        {
+                            currentRow.Cells[2].Value = row.Cells[2].Value;
+                        }
+                        if (currentRow.Cells[3].Value == null
+                         || currentRow.Cells[3].Value.ToString() != row.Cells[3].Value.ToString())
+                        {
+                            currentRow.Cells[3].Value = row.Cells[3].Value;
+                        }
+                        if (currentRow.Cells[6].Value == null
+                         || currentRow.Cells[6].Value.ToString() != row.Cells[6].Value.ToString())
+                        {
+                            currentRow.Cells[6].Value = row.Cells[6].Value;
+                        }
                     }
                 }
-
-                return;
 
             }
             catch (Exception ex)
@@ -833,6 +870,13 @@ MonitorVolume
                     tab.CloseAtStopMarket(position, stopPrice);
                 }
             }
+
+            TryUpdateTable();
+        }
+
+        private void _tabScreener_PositionClosingSuccesEvent(Position arg1, BotTabSimple arg2)
+        {
+            TryUpdateTable();
         }
 
         #endregion
