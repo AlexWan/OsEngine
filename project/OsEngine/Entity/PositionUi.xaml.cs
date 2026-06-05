@@ -352,6 +352,7 @@ namespace OsEngine.Entity
         private void CloseOrdersGrid_Click(object sender, EventArgs e)
         {
             MouseEventArgs mouse = (MouseEventArgs)e;
+
             if (mouse.Button != MouseButtons.Right)
             {
                 CheckOrdersTimeButtonClick(_position.CloseOrders, _closeOrdersGrid);
@@ -409,6 +410,7 @@ namespace OsEngine.Entity
 
                 SyncPositionWithOrdersAndMyTrades();
                 PaintOrderTable();
+                PositionChanged = true;
             }
             catch (Exception ex)
             {
@@ -451,6 +453,7 @@ namespace OsEngine.Entity
 
                 _position.CloseOrders.RemoveAt(number);
                 RePaint();
+                PositionChanged = true;
             }
             catch (Exception ex)
             {
@@ -532,6 +535,7 @@ namespace OsEngine.Entity
                         myOrder.TimeCallBack = dialog.Time;
                         myOrder.TimeCreate = dialog.Time;
                         grid.Rows[tabRow].Cells[tabColumn].Value = myOrder.TimeCallBack.ToString(_currentCulture);
+                        PositionChanged = true;
                     }
                 }
             }
@@ -562,6 +566,7 @@ namespace OsEngine.Entity
 
                 SyncPositionWithOrdersAndMyTrades();
                 PaintOrderTable();
+                PositionChanged = true;
             }
             catch (Exception ex)
             {
@@ -599,6 +604,7 @@ namespace OsEngine.Entity
 
                 _position.OpenOrders.RemoveAt(number);
                 RePaint();
+                PositionChanged = true;
             }
             catch (Exception ex)
             {
@@ -725,6 +731,7 @@ namespace OsEngine.Entity
                     {
                         myOrder.Time = dialog.Time;
                         grid.Rows[tabRow].Cells[tabColumn].Value = myOrder.Time.ToString(_currentCulture);
+                        PositionChanged = true;
                     }
                 }
             }
@@ -869,6 +876,7 @@ namespace OsEngine.Entity
 
                 SyncPositionWithOrdersAndMyTrades();
                 RePaint();
+                PositionChanged = true;
             }
             catch (Exception ex)
             {
@@ -906,6 +914,7 @@ namespace OsEngine.Entity
 
                 SyncPositionWithOrdersAndMyTrades();
                 RePaint();
+                PositionChanged = true;
             }
             catch (Exception ex)
             {
@@ -999,6 +1008,7 @@ namespace OsEngine.Entity
                     curOrd.ReCalculateVolume();
                 }
 
+                PositionChanged = true;
                 RePaint();
             }
             catch (Exception ex)
@@ -1101,6 +1111,8 @@ namespace OsEngine.Entity
         {
             try
             {
+                PositionChanged = true;
+
                 if (ActionSaveIsAccepted() == false)
                 {
                     return;
@@ -1122,7 +1134,6 @@ namespace OsEngine.Entity
                 SaveOrders(_position.OpenOrders, _openOrdersGrid.Rows);
                 SaveOrders(_position.CloseOrders, _closeOrdersGrid.Rows);
               
-
                 PositionChanged = true;
 
                 Close();
