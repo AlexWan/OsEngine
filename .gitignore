@@ -38,6 +38,7 @@ obj/
 
 # VS config folders
 .vs/
+.vscode/
 *.db
 *.db-wal
 *.db-shm
