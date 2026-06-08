@@ -5090,7 +5090,7 @@ ContextMenuStrip menu)
                 return;
             }
             _myCandles = candles;
-            Volume indicator = new Volume(false);
+            OsEngine.Charts.CandleChart.Indicators.Volume indicator = new OsEngine.Charts.CandleChart.Indicators.Volume(false);
             indicator.NameArea = "Prime";
             indicator.NameSeries = "VolumePattern";
             indicator.Values = new List<decimal>();

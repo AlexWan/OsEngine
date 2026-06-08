@@ -142,159 +142,159 @@ namespace OsEngine.Charts.CandleChart
 
                         if (indicator[0] == "DonchianChannel")
                         {
-                            CreateIndicator(new DonchianChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.DonchianChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "TickVolume")
                         {
-                            CreateIndicator(new TickVolume(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.TickVolume(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "StochRsi")
                         {
-                            CreateIndicator(new StochRsi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.StochRsi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "UltimateOscillator")
                         {
-                            CreateIndicator(new UltimateOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.UltimateOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Vwap")
                         {
-                            CreateIndicator(new Vwap(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Vwap(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "KalmanFilter")
                         {
-                            CreateIndicator(new KalmanFilter(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.KalmanFilter(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "PivotPoints")
                         {
-                            CreateIndicator(new PivotPoints(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.PivotPoints(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Pivot")
                         {
-                            CreateIndicator(new Pivot(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Pivot(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "VolumeOscillator")
                         {
-                            CreateIndicator(new VolumeOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.VolumeOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "ParabolicSaR")
                         {
-                            CreateIndicator(new ParabolicSaR(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.ParabolicSaR(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "BfMfi")
                         {
-                            CreateIndicator(new BfMfi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.BfMfi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "BullsPower")
                         {
-                            CreateIndicator(new BullsPower(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.BullsPower(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "BearsPower")
                         {
-                            CreateIndicator(new BearsPower(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.BearsPower(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Cmo")
                         {
-                            CreateIndicator(new Cmo(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Cmo(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Cci")
                         {
-                            CreateIndicator(new Cci(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Cci(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "StandardDeviation")
                         {
-                            CreateIndicator(new StandardDeviation(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.StandardDeviation(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "MovingAverage")
                         {
-                            CreateIndicator(new MovingAverage(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.MovingAverage(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Bollinger")
                         {
-                            CreateIndicator(new Bollinger(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Bollinger(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Fractal")
                         {
-                            CreateIndicator(new Fractal(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Fractal(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "ForceIndex")
                         {
-                            CreateIndicator(new ForceIndex(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.ForceIndex(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "OnBalanceVolume")
                         {
-                            CreateIndicator(new OnBalanceVolume(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.OnBalanceVolume(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "StochasticOscillator")
                         {
-                            CreateIndicator(new StochasticOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.StochasticOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Rsi")
                         {
-                            CreateIndicator(new Rsi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Rsi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Roc")
                         {
-                            CreateIndicator(new Roc(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Roc(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Rvi")
                         {
-                            CreateIndicator(new Rvi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Rvi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Volume")
                         {
-                            CreateIndicator(new Volume(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Volume(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "AwesomeOscillator")
                         {
-                            CreateIndicator(new AwesomeOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.AwesomeOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "AccumulationDistribution")
                         {
-                            CreateIndicator(new AccumulationDistribution(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.AccumulationDistribution(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Adx")
                         {
-                            CreateIndicator(new Adx(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Adx(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Atr")
                         {
-                            CreateIndicator(new Atr(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Atr(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Alligator")
                         {
-                            CreateIndicator(new Alligator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Alligator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "PriceChannel")
                         {
-                            CreateIndicator(new PriceChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.PriceChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "PriceOscillator")
                         {
-                            CreateIndicator(new PriceOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.PriceOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "MacdHistogram")
                         {
-                            CreateIndicator(new MacdHistogram(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.MacdHistogram(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "MacdLine")
                         {
-                            CreateIndicator(new MacdLine(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.MacdLine(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Momentum")
                         {
-                            CreateIndicator(new Momentum(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Momentum(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "MoneyFlowIndex")
                         {
-                            CreateIndicator(new MoneyFlowIndex(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.MoneyFlowIndex(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Envelops")
                         {
-                            CreateIndicator(new Envelops(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Envelops(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "EfficiencyRatio")
                         {
-                            CreateIndicator(new EfficiencyRatio(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.EfficiencyRatio(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Line")
                         {
@@ -302,51 +302,51 @@ namespace OsEngine.Charts.CandleChart
                         }
                         else if (indicator[0] == "AdaptiveLookBack")
                         {
-                            CreateIndicator(new AdaptiveLookBack(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.AdaptiveLookBack(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "IvashovRange")
                         {
-                            CreateIndicator(new IvashovRange(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.IvashovRange(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Ac")
                         {
-                            CreateIndicator(new Ac(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Ac(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "VerticalHorizontalFilter")
                         {
-                            CreateIndicator(new VerticalHorizontalFilter(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.VerticalHorizontalFilter(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "WilliamsRange")
                         {
-                            CreateIndicator(new WilliamsRange(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.WilliamsRange(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Trix")
                         {
-                            CreateIndicator(new Trix(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Trix(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "Ichimoku")
                         {
-                            CreateIndicator(new Ichimoku(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.Ichimoku(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "TradeThread")
                         {
-                            CreateIndicator(new TradeThread(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.TradeThread(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "LinearRegressionCurve")
                         {
-                            CreateIndicator(new LinearRegressionCurve(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.LinearRegressionCurve(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "SimpleVWAP")
                         {
-                            CreateIndicator(new SimpleVWAP(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.SimpleVWAP(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "DTD")
                         {
-                            CreateIndicator(new DynamicTrendDetector(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.DynamicTrendDetector(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else if (indicator[0] == "AtrChannel")
                         {
-                            CreateIndicator(new AtrChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                            CreateIndicator(new OsEngine.Charts.CandleChart.Indicators.AtrChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
                         else
                         {
