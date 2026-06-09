@@ -122,13 +122,13 @@ namespace OsEngine.Market.Servers.BitGetUnified.Entity
         public string orderStatus { get; set; }
         public string cancelReason { get; set; }
         public string leverage { get; set; }
-        public Feedetail[] feeDetail { get; set; }
+        public FeeDetail[] feeDetail { get; set; }
         public string createdTime { get; set; }
         public string updatedTime { get; set; }
         public string stpMode { get; set; }
     }
 
-    public class Feedetail
+    public class FeeDetail
     {
         public string feeCoin { get; set; }
         public string fee { get; set; }
@@ -142,7 +142,7 @@ namespace OsEngine.Market.Servers.BitGetUnified.Entity
         public string side { get; set; }
         public string orderId { get; set; }
         public string execPnl { get; set; }
-        public Feedetail[] feeDetail { get; set; }
+        public FeeDetail[] feeDetail { get; set; }
         public string execTime { get; set; }
         public string tradeScope { get; set; }
         public string tradeSide { get; set; }
@@ -178,5 +178,27 @@ namespace OsEngine.Market.Servers.BitGetUnified.Entity
         public string deliveryTime { get; set; }
         public string deliveryStartTime { get; set; }
         public string deliveryStatus { get; set; }
+    }
+
+    public class BGUnifiedMyTrade
+    {
+        public string symbol { get; set; }
+        public string orderType { get; set; }
+        public string updatedTime { get; set; }
+        public string side { get; set; }
+        public string orderId { get; set; }
+        public string execPnl { get; set; }
+        public List<FeeDetail> feeDetail { get; set; }
+        public string execTime { get; set; }
+        public string tradeScope { get; set; }
+        public string tradeSide { get; set; }
+        public string execId { get; set; }
+        public string execLinkId { get; set; }
+        public string execPrice { get; set; }
+        public string holdSide { get; set; }
+        public string execValue { get; set; }
+        public string category { get; set; }
+        public string execQty { get; set; }
+        public string clientOid { get; set; }
     }
 }

@@ -110,7 +110,7 @@ namespace OsEngine.Market.Servers.BitGetUnified.Entity
         public string coin { get; set; }
         public string leverage { get; set; }
     }
- 
+
     public class AccountData
     {
         public string accountEquity { get; set; }
@@ -208,7 +208,7 @@ namespace OsEngine.Market.Servers.BitGetUnified.Entity
         public string slOrderType { get; set; }
         public string tpLimitPrice { get; set; }
         public string slLimitPrice { get; set; }
-        public Feedetail[] feeDetail { get; set; }
+        public FeeDetail[] feeDetail { get; set; }
         public string createdTime { get; set; }
         public string updatedTime { get; set; }
         public string cancelReason { get; set; }
@@ -243,7 +243,7 @@ namespace OsEngine.Market.Servers.BitGetUnified.Entity
         public string execValue { get; set; }
         public string tradeScope { get; set; }
         public string tradeSide { get; set; }
-        public Feedetail[] feeDetail { get; set; }
+        public FeeDetail[] feeDetail { get; set; }
         public string createdTime { get; set; }
         public string updatedTime { get; set; }
         public string execPnl { get; set; }
@@ -260,5 +260,23 @@ namespace OsEngine.Market.Servers.BitGetUnified.Entity
     {
         public string symbol { get; set; }
         public string openInterest { get; set; }
+    }
+
+    public class TickersItem
+    {
+        public string category { get; set; }
+        public string symbol { get; set; }
+        public string ts { get; set; }
+        public string lastPrice { get; set; }
+        public string openPrice24h { get; set; }
+        public string highPrice24h { get; set; }
+        public string lowPrice24h { get; set; }
+        public string ask1Price { get; set; }
+        public string bid1Price { get; set; }
+        public string bid1Size { get; set; }
+        public string ask1Size { get; set; }
+        public string price24hPcnt { get; set; }
+        public string volume24h { get; set; }
+        public string turnover24h { get; set; }
     }
 }

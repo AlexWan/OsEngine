@@ -2423,7 +2423,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                             {
                                 if (myTrade.SecurityNameCode.StartsWith(item.feeDetail.feeCoin))
                                 {
-                                    myTrade.Volume = Math.Round(item.size.ToDecimal() + item.feeDetail.totalFee.ToDecimal(), 6, MidpointRounding.AwayFromZero);
+                                    myTrade.Volume = item.size.ToDecimal() + item.feeDetail.totalFee.ToDecimal();
+                                    int decimalVolume = GetVolumeDecimals(myTrade.SecurityNameCode);
+
+                                    if (decimalVolume > 0)
+                                    {
+                                        myTrade.Volume = Math.Floor(myTrade.Volume * (decimal)Math.Pow(10, decimalVolume)) / (decimal)Math.Pow(10, decimalVolume);
+                                    }
                                 }
                                 else
                                 {

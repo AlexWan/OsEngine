@@ -516,7 +516,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MetaTrader5);
                 serverTypes.Add(ServerType.QscalpMarketDepth);
                 serverTypes.Add(ServerType.TDataHistory);
-                serverTypes.Add(ServerType.BitGetUnified);
 
                 return serverTypes;
             }
