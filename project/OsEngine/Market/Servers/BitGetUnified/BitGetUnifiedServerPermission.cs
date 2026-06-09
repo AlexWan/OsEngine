@@ -71,17 +71,17 @@ namespace OsEngine.Market.Servers.BitGetUnified
 
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf1HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf2HourCanLoad
@@ -91,7 +91,7 @@ namespace OsEngine.Market.Servers.BitGetUnified
 
         public bool DataFeedTf4HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTfDayCanLoad
@@ -150,7 +150,7 @@ namespace OsEngine.Market.Servers.BitGetUnified
 
         public bool IsCanChangeOrderPrice
         {
-            get { return true; }
+            get { return false; }
         }
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
@@ -170,7 +170,7 @@ namespace OsEngine.Market.Servers.BitGetUnified
 
         public bool ManuallyClosePositionOnBoard_IsOn
         {
-            get { return true; }
+            get { return false; }
         }
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
@@ -193,29 +193,7 @@ namespace OsEngine.Market.Servers.BitGetUnified
             {
                 string[] values = new string[]
                 {
-                    "BGB",
-                    "USDT",
-                    "USD",
-                    "BTC",
-                    "ETH",
-                    "SUSDT",
-                    "SBTC",
-                    "SEOS",
-                    "SETH",
-                    "SUSDC",
-                    "USDC",
-                    "BCH",
-                    "EOS",
-                    "DOT",
-                    "DOGE",
-                    "SOL",
-                    "AVAX",
-                    "XRP",
-                    "USDE",
-                    "LTC",
-                    "LINK",
-                    "TRX",
-                    "ADA"
+                    "USDT"
                 };
 
                 return values;
