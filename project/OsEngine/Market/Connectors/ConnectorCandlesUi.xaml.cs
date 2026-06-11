@@ -1,6 +1,6 @@
 ﻿/*
- *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+*Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using OsEngine.Candles;
@@ -132,9 +132,9 @@ namespace OsEngine.Market.Connectors
                     LoadPortfolioOnBox(true);
                 }
 
-                LoadClassOnBox();
+                //LoadClassOnBox();
 
-                LoadSecurityOnBox(loadExpirationStrikeComboBox: true);
+                //LoadSecurityOnBox(loadExpirationStrikeComboBox: true);
 
                 ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
                 ComboBoxExpiration.SelectionChanged += ComboBoxExpirationAndStrike_SelectionChanged;
@@ -855,6 +855,9 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
+                ComboBoxExpiration.SelectionChanged -= ComboBoxExpirationAndStrike_SelectionChanged;
+                ComboBoxStrike.SelectionChanged -= ComboBoxExpirationAndStrike_SelectionChanged;
+
                 SortedSet<DateTime> sortedExpirations = new SortedSet<DateTime>();
                 SortedSet<decimal> sortedStrikes = new SortedSet<decimal>();
 
@@ -905,6 +908,9 @@ namespace OsEngine.Market.Connectors
                 {
                     ComboBoxStrike.Items.Add(strike.ToString());
                 }
+
+                ComboBoxExpiration.SelectionChanged += ComboBoxExpirationAndStrike_SelectionChanged;
+                ComboBoxStrike.SelectionChanged += ComboBoxExpirationAndStrike_SelectionChanged;
             }
             catch (Exception error)
             {

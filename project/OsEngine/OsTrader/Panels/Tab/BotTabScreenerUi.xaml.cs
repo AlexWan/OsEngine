@@ -115,9 +115,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 CreateGrid();
 
-                LoadClassOnBox();
+                //LoadClassOnBox();
 
-                LoadSecurityOnBox(loadExpirationStrikeComboBox: true);
+                //LoadSecurityOnBox(loadExpirationStrikeComboBox: true);
 
                 LoadPortfolioOnBox(true);
 
@@ -875,6 +875,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                ComboBoxExpiration.SelectionChanged -= ComboBoxExpirationAndStrike_SelectionChanged;
+                ComboBoxStrike.SelectionChanged -= ComboBoxExpirationAndStrike_SelectionChanged;
+
                 SortedSet<DateTime> sortedExpirations = new SortedSet<DateTime>();
                 SortedSet<decimal> sortedStrikes = new SortedSet<decimal>();
 
@@ -925,6 +928,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ComboBoxStrike.Items.Add(strike.ToString());
                 }
+
+                ComboBoxExpiration.SelectionChanged += ComboBoxExpirationAndStrike_SelectionChanged;
+                ComboBoxStrike.SelectionChanged += ComboBoxExpirationAndStrike_SelectionChanged;
             }
             catch (Exception error)
             {
