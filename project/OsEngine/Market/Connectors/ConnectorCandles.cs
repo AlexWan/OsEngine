@@ -933,6 +933,16 @@ namespace OsEngine.Market.Connectors
                     }
                     else if (ServerType == ServerType.Tester)
                     {
+                        if(StartProgram == StartProgram.IsTester
+                            && this.EventsIsOn == false)
+                        {
+                            // Робот отключен пользователем. Не подписываемся в этот раз.
+                            // Ускоряет тесты кратно, если тестируется портфель роботов и часть отключена
+                            _taskIsDead = true;
+                            return;
+                        }
+
+
                         await Task.Delay(10);
                     }
                     else
