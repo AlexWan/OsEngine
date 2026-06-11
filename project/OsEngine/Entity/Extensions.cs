@@ -269,6 +269,11 @@ namespace OsEngine.Entity
                 }
             }
 
+            if(oldCandles == null)
+            {
+                return new List<Candle>();
+            }
+
             if(candlesToMerge.Count == 0)
             {
                 return oldCandles;
