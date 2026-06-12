@@ -78,7 +78,7 @@ public class MyRobot : BotPanel
    public RobotName(string name, StartProgram startProgram) : base(name, startProgram)
    ```
    - `name` — экземплярное имя робота
-   - `startProgram` — тип запуска (`IsOsTrader`, `IsTester`, `IsOptimizer`)
+   - `startProgram` — тип запуска (`IsOsTrader`, `IsOsTrader`, `IsOsOptimizer`)
 
 4. **Создание табов только в конструкторе.** Все табы должны создаваться в конструкторе:
    - `TabCreate(BotTabType.Simple)`
@@ -88,7 +88,7 @@ public class MyRobot : BotPanel
 5. **Проверка типа запуска через `StartProgram`.**
    - `StartProgram.IsOsTrader` — реальная торговля (требует проверки на ошибки)
    - `StartProgram.IsTester` — тестирование на истории
-   - `StartProgram.IsOptimizer` — оптимизация (избегайте тяжёлых вычислений, логирования)
+   - `StartProgram.IsOsOptimizer` — оптимизация (избегайте тяжёлых вычислений, логирования)
 
 6. **Жизненный цикл робота:**
    ```
@@ -155,7 +155,7 @@ public class MyUniqueRobot : BotPanel
         try
         {
             if (_regime.ValueString == "Off") return;
-            if (this.StartProgram == StartProgram.IsOptimizer) return;
+            if (this.StartProgram == StartProgram.IsOsOptimizer) return;
             
             // Торговая логика
         }
