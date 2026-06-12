@@ -15,6 +15,7 @@
 | «Стопы / тейки / трейлинг / риск-менеджмент» | `CONTEXT.md` + `CONTEXT_POSITIONS_AND_RISK.md` |
 | «Монитор / таблица / алерты по скринеру» | `CONTEXT.md` + `CONTEXT_MONITORS.md` |
 | «Как составить промпт на робота» | `CONTEXT_PROMPTS_ROBOTS.md` |
+| «Как составить промпт на индикатор» | `CONTEXT_PROMPTS_INDICATORS.md` |
 | «Какой таб выбрать / базовая архитектура» | Только `CONTEXT.md` |
 
 **Базовая архитектура** (BotPanel, табы, параметры, события) — всегда в `CONTEXT.md`.
@@ -26,6 +27,7 @@
 **Высокочастотная торговля** (стакан, тики, перестановка ордеров) — в `CONTEXT_HIGH_FREQUENCY.md`.
 **Управление позициями и риск** (стопы, тейки, трейлинг, объём, cooldown) — в `CONTEXT_POSITIONS_AND_RISK.md`.
 **Шаблоны промптов на роботов** — в `CONTEXT_PROMPTS_ROBOTS.md`.
+**Шаблоны промптов на индикаторы** — в `CONTEXT_PROMPTS_INDICATORS.md`.
 **Monitor-роботы** (таблица по скринеру, алерты, объёмный рейтинг) — в `CONTEXT_MONITORS.md`.
 
 ---
