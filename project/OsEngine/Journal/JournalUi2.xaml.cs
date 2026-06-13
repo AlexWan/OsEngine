@@ -1825,7 +1825,7 @@ namespace OsEngine.Journal
                     _checkBenchmarkData = true;
                     _countLoadBenchmark++;
 
-                    _benchmark.GetData(series);
+                    _ = _benchmark.GetData(series);
                 }
                 else
                 {

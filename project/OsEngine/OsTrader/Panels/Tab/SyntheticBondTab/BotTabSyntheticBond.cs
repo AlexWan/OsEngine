@@ -268,10 +268,6 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         public event Action<BotTabSimple> NewTabCreateEvent;
 
-        public event Action<SyntheticBond, SyntheticBond> MaxSeparationBondChangedEvent;
-
-        public event Action<SyntheticBond, SyntheticBond> MinSeparationBondChangedEvent;
-
         public event Action AllSecuritiesReadyEvent;
 
         public event Action AllSecuritiesNotReadyEvent;
@@ -1048,6 +1044,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
                 string patternBaseTabName = newSeries.UniqueName + "PatternBase";
                 newSeries.PatternBaseTab = new BotTabSimple(patternBaseTabName, StartProgram);
+
+                NewTabCreateEvent?.Invoke(newSeries.PatternBaseTab);
 
                 newSeries.SyntheticBonds = new List<SyntheticBond>();
 

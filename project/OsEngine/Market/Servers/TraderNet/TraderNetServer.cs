@@ -1280,8 +1280,6 @@ namespace OsEngine.Market.Servers.TraderNet
             return strFromList;
         }
 
-        private bool _portfolioReceived = false;
-
         public bool SubscribeNews()
         {
             return false;

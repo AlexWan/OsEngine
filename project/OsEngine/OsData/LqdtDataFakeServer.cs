@@ -525,23 +525,23 @@ namespace OsEngine.OsData
         void IServer.CancelOrder(Order order) { }
 
         public event Action<string, LogMessageType> NewLogMessageEvent;
-        public event Action<string> ConnectStatusChangeEvent;
-        public event Action NeedToReconnectEvent;
-        public event Action<DateTime> TimeServerChangeEvent;
-        public event Action<List<Portfolio>> PortfoliosChangeEvent;
-        public event Action<List<Security>> SecuritiesChangeEvent;
-        public event Action<News> NewsEvent;
-        public event Action<CandleSeries> NewCandleIncomeEvent;
-        public event Action<decimal, decimal, Security> NewBidAskIncomeEvent;
-        public event Action<MarketDepth> NewMarketDepthEvent;
-        public event Action<Trade> NewTradeEvent;
-        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
-        public event Action<Funding> NewFundingEvent;
-        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
-        public event Action<Order> NewOrderIncomeEvent;
-        public event Action<MyTrade> NewMyTradeEvent;
-        public event Action<Order> CancelOrderFailEvent;
-        public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<string> ConnectStatusChangeEvent { add { } remove { } }
+        public event Action NeedToReconnectEvent { add { } remove { } }
+        public event Action<DateTime> TimeServerChangeEvent { add { } remove { } }
+        public event Action<List<Portfolio>> PortfoliosChangeEvent { add { } remove { } }
+        public event Action<List<Security>> SecuritiesChangeEvent { add { } remove { } }
+        public event Action<News> NewsEvent { add { } remove { } }
+        public event Action<CandleSeries> NewCandleIncomeEvent { add { } remove { } }
+        public event Action<decimal, decimal, Security> NewBidAskIncomeEvent { add { } remove { } }
+        public event Action<MarketDepth> NewMarketDepthEvent { add { } remove { } }
+        public event Action<Trade> NewTradeEvent { add { } remove { } }
+        public event Action<OptionMarketData> NewAdditionalMarketDataEvent { add { } remove { } }
+        public event Action<Funding> NewFundingEvent { add { } remove { } }
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent { add { } remove { } }
+        public event Action<Order> NewOrderIncomeEvent { add { } remove { } }
+        public event Action<MyTrade> NewMyTradeEvent { add { } remove { } }
+        public event Action<Order> CancelOrderFailEvent { add { } remove { } }
+        public event Action<string, LogMessageType> LogMessageEvent { add { } remove { } }
 
         public decimal GetLeverage(Security security)
         {

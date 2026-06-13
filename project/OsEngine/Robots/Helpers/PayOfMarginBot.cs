@@ -169,7 +169,7 @@ namespace OsEngine.Robots.Helpers
             }
             catch (Exception ex)
             {
-                //SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 

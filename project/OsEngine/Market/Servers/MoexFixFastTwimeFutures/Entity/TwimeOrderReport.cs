@@ -25,7 +25,6 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures.Entity
         private uint DisplayQty;
         private uint DisplayVarianceQty;
         private long PrevOrderID;
-        private int TotalAffectedOrders;
         private long TrdMatchID;
         private long LastPx;
         private uint LastQty;

@@ -2639,7 +2639,7 @@ namespace OsEngine.Market.Servers.TInvest
                     return;
                 }
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 if (_securityStreamMap.ContainsKey(security.NameId))
                 {

@@ -230,7 +230,6 @@ namespace OsEngine.OsTrader
         private TabControl _tabBotTab;
         private ConnectorWorkType _typeWorkKeeper;
         private TextBox _textBoxLimitPrice;
-        private TextBox _textBoxVolume;
         private Grid _gridChartControlPanel;
         private TabControl _tabControlControl;
         private WindowsFormsHost _hostGrids;
@@ -457,7 +456,7 @@ namespace OsEngine.OsTrader
                 _activePanel.StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, 
                     _hostCloseDeals, _hostBoxLog, _rectangleAroundChart, _hostAlerts, 
                     _tabBotTab, _textBoxLimitPrice, _gridChartControlPanel, 
-                    _textBoxVolume,_tabControlControl,_hostGrids);
+                    null,_tabControlControl,_hostGrids);
 
                 _tabBotNames.SelectionChanged -= _tabBotControl_SelectionChanged;
 
@@ -1315,7 +1314,7 @@ namespace OsEngine.OsTrader
                 {
                     _activePanel.StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, 
                         _hostCloseDeals, _hostBoxLog, _rectangleAroundChart, _hostAlerts, 
-                        _tabBotTab, _textBoxLimitPrice, _gridChartControlPanel, _textBoxVolume, 
+                        _tabBotTab, _textBoxLimitPrice, _gridChartControlPanel, null, 
                         _tabControlControl, _hostGrids);
                 }
 
@@ -1420,7 +1419,7 @@ namespace OsEngine.OsTrader
                         {
                             _activePanel.StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, 
                                 _hostCloseDeals, _hostBoxLog, _rectangleAroundChart, _hostAlerts, 
-                                _tabBotTab, _textBoxLimitPrice, _gridChartControlPanel, _textBoxVolume, 
+                                _tabBotTab, _textBoxLimitPrice, _gridChartControlPanel, null, 
                                 _tabControlControl, _hostGrids);
                         }
                     }

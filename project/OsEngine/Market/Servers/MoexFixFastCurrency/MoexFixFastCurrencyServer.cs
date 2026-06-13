@@ -495,7 +495,6 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         private bool _afterStartTrading = true;
         private string _configDir;
-        private Context _contextFAST;
         private MessageTemplate[] _templates;
 
         private Socket _socketSecurityStreamA;

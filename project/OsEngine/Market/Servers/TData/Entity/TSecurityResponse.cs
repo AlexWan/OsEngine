@@ -29,7 +29,7 @@ namespace OsEngine.Market.Servers.TData.Entity
         public string Name { get; set; }
 
         [JsonPropertyName("archives")]
-        public List<Archive>? Archives { get; set; }
+        public List<Archive> Archives { get; set; }
     }
 
     public class Archive

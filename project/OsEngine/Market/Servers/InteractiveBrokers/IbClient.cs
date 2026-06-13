@@ -128,19 +128,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 ConnectionFail();
             }
 
-            if (_listenThread != null)
-            {
-                try
-                {
-                    _listenThread.Abort();
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-
-
         }
 
         #endregion

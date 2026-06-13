@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
@@ -97,6 +98,8 @@ namespace OsEngine.Market.Proxy
         }
 
         private ProxyMasterUi _ui;
+
+        private readonly HttpClient _defaultHttpClient = new HttpClient();
 
         public bool AutoPingIsOn = true;
 
@@ -385,17 +388,17 @@ namespace OsEngine.Market.Proxy
             {
                 // 1 сначала просто проверяем интернет
 
-                WebRequest request = null;
-                request = (WebRequest)WebRequest.Create("https://www.moex.com");
-
                 bool haveError = false;
 
                 try
                 {
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                    if (response == null || response.StatusCode != HttpStatusCode.OK)
+                    using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://www.moex.com"))
+                    using (HttpResponseMessage response = _defaultHttpClient.Send(request))
                     {
-                        haveError = true;
+                        if (response == null || !response.IsSuccessStatusCode)
+                        {
+                            haveError = true;
+                        }
                     }
                 }
                 catch
@@ -464,24 +467,27 @@ namespace OsEngine.Market.Proxy
 
             string address = proxy.PingWebAddress;
 
-            WebRequest request = null;
-            request = (WebRequest)WebRequest.Create(address);
-
             WebProxy myProxy = proxy.GetWebProxy();
 
+            HttpClientHandler handler = new HttpClientHandler();
             if (myProxy != null)
             {
-                request.Proxy = myProxy;
+                handler.Proxy = myProxy;
+                handler.UseProxy = true;
             }
 
             bool haveError = false;
 
             try
             {
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                if (response == null || response.StatusCode != HttpStatusCode.OK)
+                using (HttpClient client = new HttpClient(handler))
+                using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, address))
+                using (HttpResponseMessage response = client.Send(request))
                 {
-                    haveError = true;
+                    if (response == null || !response.IsSuccessStatusCode)
+                    {
+                        haveError = true;
+                    }
                 }
             }
             catch
@@ -525,17 +531,17 @@ namespace OsEngine.Market.Proxy
             {
                 // 1 сначала просто проверяем интернет
 
-                WebRequest request = null;
-                request = (WebRequest)WebRequest.Create("https://www.moex.com");
-
                 bool haveError = false;
 
                 try
                 {
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                    if (response == null || response.StatusCode != HttpStatusCode.OK)
+                    using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://www.moex.com"))
+                    using (HttpResponseMessage response = _defaultHttpClient.Send(request))
                     {
-                        haveError = true;
+                        if (response == null || !response.IsSuccessStatusCode)
+                        {
+                            haveError = true;
+                        }
                     }
                 }
                 catch
@@ -585,10 +591,20 @@ namespace OsEngine.Market.Proxy
             IpInfo ipInfo = new IpInfo();
             try
             {
-                string info = new WebClient().DownloadString("http://ipinfo.io/" + proxy.Ip);
-                ipInfo = JsonConvert.DeserializeObject<IpInfo>(info);
-                RegionInfo myRI1 = new RegionInfo(ipInfo.Country);
-                ipInfo.Country = myRI1.EnglishName;
+                using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "http://ipinfo.io/" + proxy.Ip))
+                using (HttpResponseMessage response = _defaultHttpClient.Send(request))
+                {
+                    response.EnsureSuccessStatusCode();
+                    string info;
+                    using (Stream stream = response.Content.ReadAsStream())
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        info = reader.ReadToEnd();
+                    }
+                    ipInfo = JsonConvert.DeserializeObject<IpInfo>(info);
+                    RegionInfo myRI1 = new RegionInfo(ipInfo.Country);
+                    ipInfo.Country = myRI1.EnglishName;
+                }
             }
             catch
             {

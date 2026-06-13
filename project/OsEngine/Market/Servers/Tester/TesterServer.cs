@@ -5172,8 +5172,6 @@ namespace OsEngine.Market.Servers.Tester
 
         #region MarketDepth
 
-        public event Action<Trade> NewMarketDepthTradeEvent;
-
         public event Action<MarketDepth> NewMarketDepthEvent;
 
         public MarketDepth LastMarketDepth;

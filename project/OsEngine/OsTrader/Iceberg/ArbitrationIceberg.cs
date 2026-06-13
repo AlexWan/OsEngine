@@ -1557,8 +1557,6 @@ namespace OsEngine.OsTrader.Iceberg
 
         private bool _stopTradeOnFailOrders;
 
-        private bool _allPositionsFilled;
-
         private readonly object _fileLock = new object();
 
         #endregion

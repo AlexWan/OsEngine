@@ -505,15 +505,12 @@ namespace OsEngine.Market.Servers.Optimizer
                 TimeNow = TimeNow.AddSeconds(1);
             }
 
-            bool haveLoadingSec = false;
-
             for (int i = 0; _candleSeriesTesterActivate != null && i < _candleSeriesTesterActivate.Count; i++)
             {
                 if (TimeNow > _candleSeriesTesterActivate[i].RealEndTime)
                 {
                     continue;
                 }
-                haveLoadingSec = true;
                 _candleSeriesTesterActivate[i].Load(TimeNow);
             }
 

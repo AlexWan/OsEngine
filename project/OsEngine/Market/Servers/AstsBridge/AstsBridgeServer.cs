@@ -66,15 +66,6 @@ namespace OsEngine.Market.Servers.AstsBridge
             _levelOneToSend = new ConcurrentQueue<SecurityLevelOneAsts>();
             _tradesTableToSend = new ConcurrentQueue<List<Trade>>();
 
-            if (needToLoadTicks)
-            {
-                /*  _tickStorage = new ServerTickStorage(this);
-                  _tickStorage.NeedToSave = NeedToSaveTicks;
-                  _tickStorage.DaysToLoad = CountDaysTickNeedToSave;
-                  _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
-                  _tickStorage.LogMessageEvent += SendLogMessage;
-                  _tickStorage.LoadTick();*/
-            }
         }
 
         private object trades_locker = new object();
@@ -186,12 +177,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             get { return _countDaysTickNeedToSave; }
             set
             {
-                if (_tickStorage == null)
-                {
-                    return;
-                }
                 _countDaysTickNeedToSave = value;
-                _tickStorage.DaysToLoad = value;
                 Save();
             }
         }
@@ -207,12 +193,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             get { return _needToSaveTicks; }
             set
             {
-                if (_tickStorage == null)
-                {
-                    return;
-                }
                 _needToSaveTicks = value;
-                _tickStorage.NeedToSave = value;
                 Save();
             }
         }
@@ -277,8 +258,6 @@ namespace OsEngine.Market.Servers.AstsBridge
                 // ignored
             }
         }
-
-        private ServerTickStorage _tickStorage;
 
         // server status
         // статус сервера
@@ -1315,11 +1294,6 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// блокиратор многопоточного доступа в SmartServer_AddTick
         /// </summary>
         private object _newTradesLoker = new object();
-
-        void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
-        {
-            _allTrades = trades;
-        }
 
         /// <summary>
         /// all trade table updated

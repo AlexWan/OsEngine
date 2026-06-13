@@ -6,7 +6,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
     {
 
         public string ClOrdID;
-        public string SecondaryClOrdID;
+        public string SecondaryClOrdID = null;
         public string MassCancelRequestType = "7"; // 1 - cancel for security, 7 - cancel for all matching orders
         public string TradingSessionID;
         public string Symbol;
