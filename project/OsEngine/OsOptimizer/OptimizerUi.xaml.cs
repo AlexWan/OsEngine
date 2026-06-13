@@ -3561,6 +3561,8 @@ namespace OsEngine.OsOptimizer
 
         private void PaintBotInTable(string botName)
         {
+            System.Drawing.Color selectBotColor = System.Drawing.Color.FromArgb(255, 83, 0);
+
             for (int i2 = 0; i2 < _gridResults.Rows.Count; i2++)
             {
                 DataGridViewRow row = _gridResults.Rows[i2];
@@ -3569,14 +3571,17 @@ namespace OsEngine.OsOptimizer
                 {
                     for (int i = 0; i < row.Cells.Count; i++)
                     {
-                        row.Cells[i].Style.ForeColor = System.Drawing.Color.FromArgb(255, 83, 0);
+                        row.Cells[i].Style.ForeColor = selectBotColor;
                     }
                 }
                 else
                 {
                     for (int i = 0; i < row.Cells.Count; i++)
                     {
-                        row.Cells[i].Style = _gridResults.DefaultCellStyle;
+                        if (row.Cells[i].Style.ForeColor == selectBotColor)
+                        {
+                            row.Cells[i].Style = _gridResults.DefaultCellStyle;
+                        }
                     }
                 }
             }
