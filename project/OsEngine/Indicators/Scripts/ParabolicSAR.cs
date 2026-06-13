@@ -61,7 +61,7 @@ namespace OsEngine.Indicators
                 Psar.Clear();
             }
 
-            Process(candles);
+            RebuildInternalValues(candles);
 
             _series.Values[index] = _values[index];
         }
@@ -82,7 +82,7 @@ namespace OsEngine.Indicators
 
         public List<decimal> Psar { get; set; }
 
-        public void Process(List<Candle> candles)
+        private void RebuildInternalValues(List<Candle> candles)
         {
             if (candles == null)
             {
@@ -208,7 +208,6 @@ namespace OsEngine.Indicators
                 MasHp.Add(dop[2]);
                 MasLp.Add(dop[3]);
                 MasAf.Add(dop[4]);
-                //Values.Add(GetValueParabolicSAR(candles, i));
             }
         }
 
@@ -324,7 +323,7 @@ namespace OsEngine.Indicators
                 }
             }
 
-            // это нужно расчитать после вычисления afp.
+            // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ afp.
             if (reverseP == 0)
             {
                 if (trendP == 1.0m)

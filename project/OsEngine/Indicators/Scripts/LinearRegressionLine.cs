@@ -39,10 +39,7 @@ namespace OsEngine.Indicators
                 sumy = 0.0m,
                 sumx = 0.0m,
                 sumxy = 0.0m,
-                sumx2 = 0.0m,
-                h = 0.0m,
-                l = 0.0m;
-            int x;
+                sumx2 = 0.0m;
 
             for (int i = index - _period.ValueInt + 1, g = 0; i < index + 1; i++, g++)
             {

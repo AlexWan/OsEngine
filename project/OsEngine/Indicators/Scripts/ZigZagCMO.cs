@@ -196,7 +196,7 @@ namespace OsEngine.Indicators
                     return values1.Min();
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
             }

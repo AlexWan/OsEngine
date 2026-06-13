@@ -80,7 +80,7 @@ namespace OsEngine.Indicators
                 _valuesLineSecond_Senkou_span_B.Clear();
             }
 
-            Process(candles);
+            RebuildInternalValues(candles);
 
             _seriesEtalon.Values[index] = _valuesEtalonLine_Kejun_sen[index];
             _seriesRoundet.Values[index] = _valuesLineRounded_Teken_sen[index];
@@ -100,7 +100,7 @@ namespace OsEngine.Indicators
         private List<decimal> _valuesLineFirst_Senkkou_span_A = new List<decimal>();
         private List<decimal> _valuesLineSecond_Senkou_span_B = new List<decimal>();
 
-        public void Process(List<Candle> candles)
+        private void RebuildInternalValues(List<Candle> candles)
         {
             if (_valuesEtalonLine_Kejun_sen != null &&
                 _valuesEtalonLine_Kejun_sen.Count + 1 == candles.Count)
@@ -224,7 +224,6 @@ namespace OsEngine.Indicators
                 }
             }
 
-            decimal val = (low + high) / 2;
             return (low + high) / 2;
         }
 

@@ -107,7 +107,7 @@ namespace OsEngine.Indicators
                 _pivot = 0;
             }
 
-            Process(candles);
+            RebuildInternalValues(candles);
 
             _seriesP.Values[index] = _valuesP[index];
             _seriesR1.Values[index] = _valuesR1[index];
@@ -126,7 +126,7 @@ namespace OsEngine.Indicators
         private List<decimal> _valuesS2 = new List<decimal>();
         private List<decimal> _valuesS3 = new List<decimal>();
 
-        public void Process(List<Candle> candles)
+        private void RebuildInternalValues(List<Candle> candles)
         {
             if (_valuesP != null &&
                 _valuesP.Count + 1 == candles.Count && index.Count >= 2)
@@ -207,7 +207,6 @@ namespace OsEngine.Indicators
             _pivot = 0;
 
             // candle indexes that starting a trading day
-            // индексы свечей, начинающих торговый день
             index = new List<int>();
 
             List<Candle> newCandles = new List<Candle>();
@@ -290,7 +289,6 @@ namespace OsEngine.Indicators
                 return;
             }
             // calculation of indicator levels
-            // расчет уровней индикатора
             _pivot = (H + L + C) / 3;
 
             // Pivot-Floor

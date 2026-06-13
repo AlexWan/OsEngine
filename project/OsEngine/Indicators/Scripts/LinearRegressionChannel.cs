@@ -53,11 +53,6 @@ namespace OsEngine.Indicators
                 return;
             }
 
-            if (index - _period.ValueInt <= 0)
-            {
-                return;
-            }
-
             DataClear(index);
 
             // variables
@@ -65,12 +60,9 @@ namespace OsEngine.Indicators
                 sumy = 0.0m,
                 sumx = 0.0m,
                 sumxy = 0.0m,
-                sumx2 = 0.0m,
-                h = 0.0m, l = 0.0m;
-            int x;
+                sumx2 = 0.0m;
 
             // calculate linear regression
-            ;
 
             for (int i = index - _period.ValueInt + 1, g = 0; i < index + 1; i++, g++)
             {
@@ -91,7 +83,6 @@ namespace OsEngine.Indicators
             b = (sumxy * _period.ValueInt - sumx * sumy) / c;
             a = (sumy - sumx * b) / _period.ValueInt;
 
-            // Linear regression line in buffer
             // Linear regression line in buffer
             for (int i = index - _period.ValueInt + 1; i < index + 1; i++)
             {

@@ -106,12 +106,12 @@ namespace OsEngine.Indicators
             {
                 if (updateHigh && _lastSwingIndex >= 0)
                 {
-                    _seriesZigZag.Values[_lastSwingIndex] = 0; // тут в оригинале double.NaN
+                    _seriesZigZag.Values[_lastSwingIndex] = 0; // С‚СѓС‚ РІ РѕСЂРёРіРёРЅР°Р»Рµ double.NaN
                     _seriesZigZagHighs.Values[_lastSwingIndex] = 0;
                 }
                 else if (updateLow && _lastSwingIndex >= 0)
                 {
-                    _seriesZigZag.Values[_lastSwingIndex] = 0; // тут в оригинале double.NaN
+                    _seriesZigZag.Values[_lastSwingIndex] = 0; // С‚СѓС‚ РІ РѕСЂРёРіРёРЅР°Р»Рµ double.NaN
                     _seriesZigZagLows.Values[_lastSwingIndex] = 0;
                 }
 
@@ -154,7 +154,7 @@ namespace OsEngine.Indicators
                     return values.Min();
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
             }
