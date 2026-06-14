@@ -1127,6 +1127,15 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 _gridOpenStepsStatisticFutures.CellClick -= _gridOpenStepsStatisticFutures_CellClick;
                 _gridCloseStepsStatisticBase.CellClick -= _gridCloseStepsStatisticBase_CellClick;
                 _gridCloseStepsStatisticFutures.CellClick -= _gridCloseStepsStatisticFutures_CellClick;
+
+                if (_gridOpenStepsBase != null) _gridOpenStepsBase.DataError -= Grid_DataError;
+                if (_gridOpenStepsStatisticBase != null) _gridOpenStepsStatisticBase.DataError -= Grid_DataError;
+                if (_gridOpenStepsFutures != null) _gridOpenStepsFutures.DataError -= Grid_DataError;
+                if (_gridOpenStepsStatisticFutures != null) _gridOpenStepsStatisticFutures.DataError -= Grid_DataError;
+                if (_gridCloseStepsBase != null) _gridCloseStepsBase.DataError -= Grid_DataError;
+                if (_gridCloseStepsStatisticBase != null) _gridCloseStepsStatisticBase.DataError -= Grid_DataError;
+                if (_gridCloseStepsFutures != null) _gridCloseStepsFutures.DataError -= Grid_DataError;
+                if (_gridCloseStepsStatisticFutures != null) _gridCloseStepsStatisticFutures.DataError -= Grid_DataError;
             }
             catch
             {
@@ -2786,6 +2795,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 false);
             grid.ScrollBars = ScrollBars.Vertical;
 
+            grid.DataError += Grid_DataError;
+
             DataGridViewTextBoxCell cellTemplate = new DataGridViewTextBoxCell();
             cellTemplate.Style = grid.DefaultCellStyle;
 
@@ -2803,6 +2814,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             }
 
             return grid;
+        }
+
+        private void Grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            e.ThrowException = false;
+            ServerMaster.SendNewLogMessage(e.Exception.ToString(), LogMessageType.Error);
         }
 
         private void CreatePositionStepsDataGrids()

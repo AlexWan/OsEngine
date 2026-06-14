@@ -149,6 +149,16 @@ namespace OsEngine.Robots.Funding
 
             _host.Child = newGrid;
             _grid = newGrid;
+
+            newGrid.DataError += Grid_DataError;
+        }
+
+        private void Grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                SendNewLogMessage(e.Exception.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void _tab_NewTabCreateEvent(BotTabSimple tab)

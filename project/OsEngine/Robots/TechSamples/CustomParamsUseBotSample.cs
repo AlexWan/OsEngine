@@ -187,6 +187,16 @@ namespace OsEngine.Robots.TechSamples
 
             _host.Child = newGrid;
             _grid = newGrid;
+
+            newGrid.DataError += Grid_DataError;
+        }
+
+        private void Grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                SendNewLogMessage(e.Exception.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private DataGridView _grid;

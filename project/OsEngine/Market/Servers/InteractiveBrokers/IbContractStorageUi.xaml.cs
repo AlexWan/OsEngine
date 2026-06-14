@@ -9,6 +9,8 @@ using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Logging;
+using OsEngine.Market;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
 namespace OsEngine.Market.Servers.InteractiveBrokers
@@ -99,6 +101,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             Closing += IbContractStorageUi_Closing;
             _grid.Click += _grid_Click;
             _grid.CellValueChanged += _grid_CellValueChanged;
+            _grid.DataError += _grid_DataError;
 
             this.Activate();
             this.Focus();
@@ -106,12 +109,25 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         private void IbContractStorageUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (_grid != null)
+            {
+                _grid.DataError -= _grid_DataError;
+                _grid.Click -= _grid_Click;
+                _grid.CellValueChanged -= _grid_CellValueChanged;
+            }
+
             SaveInServer();
         }
 
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             SaveSecFromTable();
+        }
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            e.ThrowException = false;
+            ServerMaster.SendNewLogMessage(e.Exception.ToString(), LogMessageType.Error);
         }
 
         public List<SecurityIb> SecToSubscribe;

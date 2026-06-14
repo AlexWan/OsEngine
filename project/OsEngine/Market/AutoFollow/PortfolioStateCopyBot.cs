@@ -115,6 +115,11 @@ namespace OsEngine.Market.AutoFollow
                 File.Delete(@"Engine\" + NameStrategyUniq + "-IgnoredPos.txt");
             }
 
+            if (_grid != null)
+            {
+                _grid.DataError -= Grid_DataError;
+            }
+
             _botIsDelete = true;
         }
 
@@ -137,6 +142,8 @@ namespace OsEngine.Market.AutoFollow
             DataGridView newGrid =
                 DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
+
+            newGrid.DataError += Grid_DataError;
 
             newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -182,6 +189,12 @@ namespace OsEngine.Market.AutoFollow
 
             _host.Child = newGrid;
             _grid = newGrid;
+        }
+
+        private void Grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            e.ThrowException = false;
+            SendNewLogMessage(e.Exception.ToString(), Logging.LogMessageType.Error);
         }
 
         private void _grid_Click(object sender, EventArgs e)

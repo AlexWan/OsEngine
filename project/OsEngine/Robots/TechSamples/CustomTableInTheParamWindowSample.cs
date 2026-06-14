@@ -129,6 +129,15 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
+        // Event of grid data error
+        private void TableDataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                SendNewLogMessage(e.Exception.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
         // Delete Bot Event
         private void DeleteBotEvent()
         {
@@ -261,6 +270,8 @@ namespace OsEngine.Robots.TechSamples
                 newColumn4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 _hostTable.Child = _tableDataGrid;
+
+                _tableDataGrid.DataError += TableDataGrid_DataError;
             }
             catch (Exception ex)
             {
