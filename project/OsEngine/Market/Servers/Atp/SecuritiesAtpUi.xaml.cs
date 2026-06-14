@@ -50,17 +50,26 @@ namespace OsEngine.Market.Servers.Atp
 
         private void SecuritiesUi_Closed(object sender, EventArgs e)
         {
-            _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
-            _server = null;
-            Closed -= SecuritiesUi_Closed;
+            try
+            {
+                if (_server != null)
+                {
+                    _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
+                    _server = null;
+                }
 
-            _grid.CellClick -= _grid_CellClick;
-            _grid.DataError -= _grid_DataError;
-            DataGridFactory.ClearLinks(_grid);
-            _grid = null;
-            HostSecurities.Child = null;
+                SaveButton.Click -= SaveButton_Click;
 
-            SaveButton.Click -= SaveButton_Click;
+                DeleteTable();
+
+                _allSecurities = null;
+
+                Closed -= SecuritiesUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private DataGridView _grid;
@@ -79,6 +88,24 @@ namespace OsEngine.Market.Servers.Atp
         private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
+        }
+
+        private void DeleteTable()
+        {
+            if (_grid == null)
+            {
+                return;
+            }
+
+            HostSecurities.Child = null;
+            DataGridFactory.ClearLinks(_grid);
+            _grid.CellClick -= _grid_CellClick;
+            _grid.DataError -= _grid_DataError;
+            _grid.Rows.Clear();
+            _grid.Columns.Clear();
+            _grid.DataSource = null;
+            _grid.Dispose();
+            _grid = null;
         }
 
         public static DataGridView GetDataGridSecurities()

@@ -7,6 +7,7 @@ using System;
 using System.Windows;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market;
 
 namespace OsEngine.Market.Servers.AstsBridge
 {
@@ -18,12 +19,15 @@ namespace OsEngine.Market.Servers.AstsBridge
     {
         private AstsBridgeServer _server;
 
+        private Log _log;
+
         public AstsServerUi(AstsBridgeServer server, Log log)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
+            _log = log;
 
             TextBoxServerAddress.Text = _server.ServerAdress;
             TextBoxUserName.Text = _server.UserLogin;
@@ -34,7 +38,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             LabelStatus.Content = _server.ServerStatus;
             _server.ConnectStatusChangeEvent += _server_ConnectStatusChangeEvent;
-            log.StartPaint(Host);
+            _log.StartPaint(Host);
 
             ComboBoxDislocation.Items.Add(AstsDislocation.Colo);
             ComboBoxDislocation.Items.Add(AstsDislocation.Internet);
@@ -55,9 +59,41 @@ namespace OsEngine.Market.Servers.AstsBridge
             CheckBoxNeedToSaveTrade.Content = OsLocalization.Market.ServerParam1;
             LabelDaysToLoad.Content = OsLocalization.Market.ServerParam2;
 
+            Closed += AstsServerUi_Closed;
+
             this.Activate();
             this.Focus();
 
+        }
+
+        private void AstsServerUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_server != null)
+                {
+                    _server.ConnectStatusChangeEvent -= _server_ConnectStatusChangeEvent;
+                }
+
+                ButtonConnect.Click -= ButtonConnect_Click;
+                ButtonAbort.Click -= ButtonAbort_Click;
+
+                if (_log != null)
+                {
+                    _log.StopPaint();
+                }
+
+                Host.Child = null;
+
+                _server = null;
+                _log = null;
+
+                Closed -= AstsServerUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         void _server_ConnectStatusChangeEvent(string state)

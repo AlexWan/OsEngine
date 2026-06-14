@@ -256,53 +256,58 @@ namespace OsEngine.Market.Servers.Tester
             _timerTextBoxTo.Tick += _timer_TextBoxTo;
         }
 
+        private DispatcherTimer _blinkTimer;
+        private int _blinkCount;
+        private bool _isGreenVisible = true;
+
         private void StartButtonBlinkAnimation()
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenTesterServer.Opacity = 1;
-                            PostWhiteTesterServer.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenTesterServer.Opacity = 0;
-                            PostWhiteTesterServer.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenTesterServer.Opacity = 1;
-                            PostWhiteTesterServer.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    PostGreenTesterServer.Opacity = 1;
+                    PostWhiteTesterServer.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenTesterServer.Opacity = 0;
+                    PostWhiteTesterServer.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenTesterServer.Opacity = 1;
+                    PostWhiteTesterServer.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 
@@ -314,71 +319,98 @@ namespace OsEngine.Market.Servers.Tester
 
         private void TesterServerUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            _uiIsClosed = true;
-
-            Closing -= TesterServerUi_Closing;
-
-            TextBoxStartDepozit.TextChanged -= TextBoxStartDeposit_TextChanged;
-            TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
-            TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
-            TextBoxSlippageSimpleOrder.TextChanged -= TextBoxSlippageSimpleOrderTextChanged;
-            TextBoxSlippageStop.TextChanged -= TextBoxSlippageStop_TextChanged;
-            ComboBoxSets.SelectionChanged -= ComboBoxSets_SelectionChanged;
-            ComboBoxDataType.SelectionChanged -= ComboBoxDataType_SelectionChanged;
-            ComboBoxDataSourceType.SelectionChanged -= ComboBoxDataSourceType_SelectionChanged;
-            SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
-            SliderTo.ValueChanged -= SliderTo_ValueChanged;
-
-            _server.ConnectStatusChangeEvent -= _server_ConnectStatusChangeEvent;
-            _server.NewCurrentValue -= _server_NewCurrentValue;
-            _server.TestingStartEvent -= _server_TestingStartEvent;
-            _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
-            _server.TestRegimeChangeEvent -= _server_TestRegimeChangeEvent;
-            _server.TestingFastEvent -= _server_TestingFastEvent;
-            _server.LoadSecurityEvent -= _server_LoadSecurityEvent;
-
-            _server = null;
-
-            if (_securitiesGrid != null)
+            try
             {
-                DataGridFactory.ClearLinks(_securitiesGrid);
-                _securitiesGrid.DoubleClick -= _myGridView_DoubleClick;
-                _securitiesGrid.CellValueChanged -= _myGridView_CellValueChanged;
-                _securitiesGrid.DataError -= _gridClearing_DataError;
-                HostSecurities.Child = null;
-                _securitiesGrid = null;
-            }
+                _uiIsClosed = true;
 
-            if (_gridClearing != null)
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                TextBoxStartDepozit.TextChanged -= TextBoxStartDeposit_TextChanged;
+                TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
+                TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
+                TextBoxSlippageSimpleOrder.TextChanged -= TextBoxSlippageSimpleOrderTextChanged;
+                TextBoxSlippageStop.TextChanged -= TextBoxSlippageStop_TextChanged;
+                ComboBoxSets.SelectionChanged -= ComboBoxSets_SelectionChanged;
+                ComboBoxDataType.SelectionChanged -= ComboBoxDataType_SelectionChanged;
+                ComboBoxDataSourceType.SelectionChanged -= ComboBoxDataSourceType_SelectionChanged;
+                ComboBoxOrderActivationType.SelectionChanged -= ComboBoxOrderActivationType_SelectionChanged;
+                SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
+                SliderTo.ValueChanged -= SliderTo_ValueChanged;
+
+                ButtonStartTest.Click -= buttonStartTest_Click;
+                ButtonFast.Click -= buttonFast_Click;
+                ButtonNextCandle.Click -= buttonNextCandle_Click;
+                ButtonPausePlay.Click -= buttonPausePlay_Click;
+                ButtonSynchronizer.Click -= ButtonSynchronizer_Click;
+                ButtonGoTo.Click -= ButtonGoTo_Click;
+                ButtonNextPos.Click -= ButtonNextPos_Click;
+                ButtonTesterServer.Click -= ButtonTesterServer_Click;
+                ButtonSetDataFromPath.Click -= ButtonSetDataFromPath_Click;
+
+                CheckBoxOnOffMarketPortfolio.Click -= CheckBoxOnOffMarketPortfolio_Checked;
+                CheckBoxRemoveTrades.Click -= CheckBoxRemoveTrades_Click;
+                CheckBoxSlippageLimitOff.Checked -= CheckBoxSlippageLimitOff_Checked;
+                CheckBoxSlippageLimitOn.Checked -= CheckBoxSlippageLimitOn_Checked;
+                CheckBoxSlippageStopOff.Checked -= CheckBoxSlippageStopOff_Checked;
+                CheckBoxSlippageStopOn.Checked -= CheckBoxSlippageStopOn_Checked;
+
+                if (_server != null)
+                {
+                    _server.ConnectStatusChangeEvent -= _server_ConnectStatusChangeEvent;
+                    _server.NewCurrentValue -= _server_NewCurrentValue;
+                    _server.TestingStartEvent -= _server_TestingStartEvent;
+                    _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
+                    _server.TestRegimeChangeEvent -= _server_TestRegimeChangeEvent;
+                    _server.TestingFastEvent -= _server_TestingFastEvent;
+                    _server.LoadSecurityEvent -= _server_LoadSecurityEvent;
+                }
+
+                DeleteSecuritiesGrid();
+                DeleteClearingGrid();
+                DeleteNonTradePeriodsGrid();
+
+                if (_chartReport != null)
+                {
+                    HostPortfolio.Child = null;
+                    _chartReport.Dispose();
+                    _chartReport = null;
+                }
+
+                if (_log != null)
+                {
+                    _log.StopPaint();
+                }
+                Host.Child = null;
+
+                _timerTextBoxFrom?.Stop();
+                _timerTextBoxFrom.Tick -= _timer_TextBoxFrom;
+                _timerTextBoxFrom = null;
+
+                _timerTextBoxTo?.Stop();
+                _timerTextBoxTo.Tick -= _timer_TextBoxTo;
+                _timerTextBoxTo = null;
+
+                _server = null;
+                _log = null;
+
+                Closing -= TesterServerUi_Closing;
+            }
+            catch (Exception ex)
             {
-                DataGridFactory.ClearLinks(_gridClearing);
-                _gridClearing.CellClick -= _gridClearing_CellClick;
-                _gridClearing.CellValueChanged -= _gridClearing_CellValueChanged;
-                _gridClearing.DataError -= _gridClearing_DataError;
-                HostClearing.Child = null;
-                _gridClearing = null;
+                try
+                {
+                    _server?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+                catch
+                {
+                    // ignore
+                }
             }
-
-            if (_gridNonTradePeriods != null)
-            {
-                DataGridFactory.ClearLinks(_gridNonTradePeriods);
-                _gridNonTradePeriods.CellValueChanged -= _gridNonTradePeriods_CellValueChanged;
-                _gridNonTradePeriods.CellClick -= _gridNonTradePeriods_CellClick;
-                _gridNonTradePeriods.DataError -= _gridClearing_DataError;
-                HostNonTradePeriods.Child = null;
-                _gridNonTradePeriods = null;
-            }
-
-            _log.StopPaint();
-            _log = null;
-
-            _timerTextBoxFrom.Stop();
-            _timerTextBoxFrom.Tick -= _timer_TextBoxFrom;
-            _timerTextBoxFrom = null;
-
-            _timerTextBoxTo.Stop();
-            _timerTextBoxTo.Tick -= _timer_TextBoxTo;
-            _timerTextBoxTo = null;
         }
 
         private void CheckBoxRemoveTrades_Click(object sender, RoutedEventArgs e)
@@ -1390,6 +1422,63 @@ namespace OsEngine.Market.Servers.Tester
             _gridNonTradePeriods.CellValueChanged += _gridNonTradePeriods_CellValueChanged;
             _gridNonTradePeriods.CellClick += _gridNonTradePeriods_CellClick;
             _gridNonTradePeriods.DataError += _gridClearing_DataError;
+        }
+
+        private void DeleteSecuritiesGrid()
+        {
+            if (_securitiesGrid == null)
+            {
+                return;
+            }
+
+            HostSecurities.Child = null;
+            DataGridFactory.ClearLinks(_securitiesGrid);
+            _securitiesGrid.DoubleClick -= _myGridView_DoubleClick;
+            _securitiesGrid.CellValueChanged -= _myGridView_CellValueChanged;
+            _securitiesGrid.DataError -= _gridClearing_DataError;
+            _securitiesGrid.Rows.Clear();
+            _securitiesGrid.Columns.Clear();
+            _securitiesGrid.DataSource = null;
+            _securitiesGrid.Dispose();
+            _securitiesGrid = null;
+        }
+
+        private void DeleteClearingGrid()
+        {
+            if (_gridClearing == null)
+            {
+                return;
+            }
+
+            HostClearing.Child = null;
+            DataGridFactory.ClearLinks(_gridClearing);
+            _gridClearing.CellClick -= _gridClearing_CellClick;
+            _gridClearing.CellValueChanged -= _gridClearing_CellValueChanged;
+            _gridClearing.DataError -= _gridClearing_DataError;
+            _gridClearing.Rows.Clear();
+            _gridClearing.Columns.Clear();
+            _gridClearing.DataSource = null;
+            _gridClearing.Dispose();
+            _gridClearing = null;
+        }
+
+        private void DeleteNonTradePeriodsGrid()
+        {
+            if (_gridNonTradePeriods == null)
+            {
+                return;
+            }
+
+            HostNonTradePeriods.Child = null;
+            DataGridFactory.ClearLinks(_gridNonTradePeriods);
+            _gridNonTradePeriods.CellValueChanged -= _gridNonTradePeriods_CellValueChanged;
+            _gridNonTradePeriods.CellClick -= _gridNonTradePeriods_CellClick;
+            _gridNonTradePeriods.DataError -= _gridClearing_DataError;
+            _gridNonTradePeriods.Rows.Clear();
+            _gridNonTradePeriods.Columns.Clear();
+            _gridNonTradePeriods.DataSource = null;
+            _gridNonTradePeriods.Dispose();
+            _gridNonTradePeriods = null;
         }
 
         public void PaintNonTradePeriodsGrid()

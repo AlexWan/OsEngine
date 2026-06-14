@@ -91,56 +91,6 @@ namespace OsEngine.Market.Servers
             worker.Start();
         }
 
-        private void StartButtonBlinkAnimation()
-        {
-            try
-            {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            GreenCollectionPositionComparison.Opacity = 1;
-                            WhiteCollectionPositionComparison.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            GreenCollectionPositionComparison.Opacity = 0;
-                            WhiteCollectionPositionComparison.Opacity = 1;
-                        }
-                        else
-                        {
-                            GreenCollectionPositionComparison.Opacity = 1;
-                            WhiteCollectionPositionComparison.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
         private void ComparePositionsModuleUi_Closed(object sender, EventArgs e)
         {
             try
@@ -152,20 +102,95 @@ namespace OsEngine.Market.Servers
                     GuiClosed(PortfolioName);
                 }
 
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                TextBoxTimeDelaySeconds.TextChanged -= TextBoxTimeDelaySeconds_TextChanged;
+                CheckBoxAutoLogMessageOnError.Click -= CheckBoxAutoLogMessageOnError_Click;
+                ComboBoxVerificationPeriod.SelectionChanged -= ComboBoxVerificationPeriod_SelectionChanged;
+                ButtonPositionComparison.Click -= ButtonPositionComparison_Click;
+
+                if (_instructionsUi != null)
+                {
+                    _instructionsUi.Closed -= _instructionsUi_Closed;
+                    _instructionsUi = null;
+                }
+
+                DeleteGrid();
+
                 _comparePositionsModule = null;
+                PortfolioName = null;
 
-                DataGridFactory.ClearLinks(_grid);
-                _grid.CellClick -= _grid_CellClick;
-                _grid.DataError -= _grid_DataError;
-                _grid = null;
-                Host.Child = null;
-
+                Closed -= ComparePositionsModuleUi_Closed;
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    GreenCollectionPositionComparison.Opacity = 1;
+                    WhiteCollectionPositionComparison.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    GreenCollectionPositionComparison.Opacity = 0;
+                    WhiteCollectionPositionComparison.Opacity = 1;
+                }
+                else
+                {
+                    GreenCollectionPositionComparison.Opacity = 1;
+                    WhiteCollectionPositionComparison.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
+            }
+        }
+
+       
 
         private void TextBoxTimeDelaySeconds_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -251,7 +276,7 @@ namespace OsEngine.Market.Servers
 
         #region Grid
 
-        DataGridView _grid;
+        private DataGridView _grid;
 
         public void CreateTable()
         {
@@ -352,6 +377,24 @@ namespace OsEngine.Market.Servers
         private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             _comparePositionsModule.Server.Log.ProcessMessage(e.ToString(), Logging.LogMessageType.Error);
+        }
+
+        private void DeleteGrid()
+        {
+            if (_grid == null)
+            {
+                return;
+            }
+
+            Host.Child = null;
+            DataGridFactory.ClearLinks(_grid);
+            _grid.CellClick -= _grid_CellClick;
+            _grid.DataError -= _grid_DataError;
+            _grid.Rows.Clear();
+            _grid.Columns.Clear();
+            _grid.DataSource = null;
+            _grid.Dispose();
+            _grid = null;
         }
 
         private void RePainterThread()

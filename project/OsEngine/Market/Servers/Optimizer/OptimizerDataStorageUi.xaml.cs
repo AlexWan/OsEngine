@@ -138,47 +138,48 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private void OptimizerDataStorageUi_Closed(object sender, EventArgs e)
         {
-            _master = null;
-
-            if (_server != null)
+            try
             {
-                _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
+                ComboBoxSets.SelectionChanged -= ComboBoxSets_SelectionChanged;
+                ComboBoxDataType.SelectionChanged -= ComboBoxDataType_SelectionChanged;
+                ComboBoxOrderActivationType.SelectionChanged -= ComboBoxOrderActivationType_SelectionChanged;
+                ComboBoxDataSourceType.SelectionChanged -= ComboBoxDataSourceType_SelectionChanged;
+
+                TextBoxSlippageSimpleOrder.TextChanged -= TextBoxSlippageSimpleOrderTextChanged;
+                TextBoxSlippageStop.TextChanged -= TextBoxSlippageStop_TextChanged;
+
+                CheckBoxSlippageLimitOff.Checked -= CheckBoxSlippageLimitOff_Checked;
+                CheckBoxSlippageLimitOn.Checked -= CheckBoxSlippageLimitOn_Checked;
+                CheckBoxSlippageStopOff.Checked -= CheckBoxSlippageStopOff_Checked;
+                CheckBoxSlippageStopOn.Checked -= CheckBoxSlippageStopOn_Checked;
+
+                ButtonSetDataFromPath.Click -= ButtonSetDataFromPath_Click;
+
+                if (_server != null)
+                {
+                    _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
+                }
+
+                DeleteSecuritiesGrid();
+                DeleteClearingGrid();
+                DeleteNonTradePeriodsGrid();
+
+                if (_log != null)
+                {
+                    _log.StopPaint();
+                }
+                Host.Child = null;
+
                 _server = null;
-            }
+                _master = null;
+                _log = null;
 
-            if (_myGridView != null)
+                Closed -= OptimizerDataStorageUi_Closed;
+            }
+            catch (Exception ex)
             {
-                DataGridFactory.ClearLinks(_myGridView);
-                _myGridView.DoubleClick -= _myGridView_DoubleClick;
-                _myGridView.CellValueChanged -= _myGridView_CellValueChanged;
-                _myGridView.DataError -= _myGridView_DataError;
-                HostSecurities.Child = null;
-                _myGridView = null;
+                _log?.ProcessMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            if (_gridNonTradePeriods != null)
-            {
-                HostNonTradePeriods.Child = null;
-                DataGridFactory.ClearLinks(_gridNonTradePeriods);
-                _gridNonTradePeriods.CellValueChanged -= _gridNonTradePeriods_CellValueChanged;
-                _gridNonTradePeriods.CellClick -= _gridNonTradePeriods_CellClick;
-                _gridNonTradePeriods.DataError -= _myGridView_DataError;
-                _gridNonTradePeriods = null;
-            }
-
-            if (_gridClearing != null)
-            {
-                HostClearing.Child = null;
-                DataGridFactory.ClearLinks(_gridClearing);
-                _gridClearing.CellClick -= _gridClearing_CellClick;
-                _gridClearing.CellValueChanged -= _gridClearing_CellValueChanged;
-                _gridClearing.DataError -= _myGridView_DataError;
-                _gridClearing = null;
-            }
-
-            _log.StopPaint();
-            Host.Child = null;
-            _log = null;
         }
 
         private CultureInfo _currentCulture;
@@ -1026,6 +1027,63 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void DeleteSecuritiesGrid()
+        {
+            if (_myGridView == null)
+            {
+                return;
+            }
+
+            HostSecurities.Child = null;
+            DataGridFactory.ClearLinks(_myGridView);
+            _myGridView.DoubleClick -= _myGridView_DoubleClick;
+            _myGridView.CellValueChanged -= _myGridView_CellValueChanged;
+            _myGridView.DataError -= _myGridView_DataError;
+            _myGridView.Rows.Clear();
+            _myGridView.Columns.Clear();
+            _myGridView.DataSource = null;
+            _myGridView.Dispose();
+            _myGridView = null;
+        }
+
+        private void DeleteClearingGrid()
+        {
+            if (_gridClearing == null)
+            {
+                return;
+            }
+
+            HostClearing.Child = null;
+            DataGridFactory.ClearLinks(_gridClearing);
+            _gridClearing.CellClick -= _gridClearing_CellClick;
+            _gridClearing.CellValueChanged -= _gridClearing_CellValueChanged;
+            _gridClearing.DataError -= _myGridView_DataError;
+            _gridClearing.Rows.Clear();
+            _gridClearing.Columns.Clear();
+            _gridClearing.DataSource = null;
+            _gridClearing.Dispose();
+            _gridClearing = null;
+        }
+
+        private void DeleteNonTradePeriodsGrid()
+        {
+            if (_gridNonTradePeriods == null)
+            {
+                return;
+            }
+
+            HostNonTradePeriods.Child = null;
+            DataGridFactory.ClearLinks(_gridNonTradePeriods);
+            _gridNonTradePeriods.CellValueChanged -= _gridNonTradePeriods_CellValueChanged;
+            _gridNonTradePeriods.CellClick -= _gridNonTradePeriods_CellClick;
+            _gridNonTradePeriods.DataError -= _myGridView_DataError;
+            _gridNonTradePeriods.Rows.Clear();
+            _gridNonTradePeriods.Columns.Clear();
+            _gridNonTradePeriods.DataSource = null;
+            _gridNonTradePeriods.Dispose();
+            _gridNonTradePeriods = null;
         }
 
         #endregion

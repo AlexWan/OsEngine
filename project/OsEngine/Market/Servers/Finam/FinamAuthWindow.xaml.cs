@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.Finam
 {
@@ -82,29 +83,39 @@ namespace OsEngine.Market.Servers.Finam
 
                 core.Navigate("https://www.finam.ru/quote/moex/gazp/export/");
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void OnClosed(object sender, EventArgs e)
         {
-            if (WebView?.CoreWebView2 != null)
+            try
             {
-                CoreWebView2 core = WebView.CoreWebView2;
-                core.WebResourceRequested -= OnWebResourceRequested;
-                core.WebResourceResponseReceived -= OnResponseReceived;
-                core.NewWindowRequested -= OnNewWindowRequested;
-                core.NavigationCompleted -= OnNavigationCompleted;
-                try
+                if (WebView?.CoreWebView2 != null)
                 {
-                    core.RemoveWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
+                    CoreWebView2 core = WebView.CoreWebView2;
+                    core.WebResourceRequested -= OnWebResourceRequested;
+                    core.WebResourceResponseReceived -= OnResponseReceived;
+                    core.NewWindowRequested -= OnNewWindowRequested;
+                    core.NavigationCompleted -= OnNavigationCompleted;
+                    try
+                    {
+                        core.RemoveWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
                 }
-                catch
-                {
-                    // ignore
-                }
+
+                Loaded -= OnLoaded;
+                Closed -= OnClosed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
