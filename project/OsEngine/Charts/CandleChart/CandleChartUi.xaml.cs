@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Windows;
 using OsEngine.Entity;
 using System.Drawing;
+using OsEngine.Logging;
+using OsEngine.Market;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -22,7 +24,16 @@ namespace OsEngine.Charts.CandleChart
 
         private void CandleChartUi_Closed(object sender, EventArgs e)
         {
-            _chart.StopPaint();
+            try
+            {
+                _chart.StopPaint();
+                _chart = null;
+                Closed -= CandleChartUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         ChartCandleMaster _chart;

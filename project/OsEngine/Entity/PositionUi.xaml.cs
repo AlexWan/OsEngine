@@ -47,57 +47,66 @@ namespace OsEngine.Entity
 
         private void PositionUi_Closed(object sender, EventArgs e)
         {
-            _position = null;
-
-            //main grid
-            if (_mainPosGrid != null)
+            try
             {
-                FormsHostMainGrid.Child = null;
-                DataGridFactory.ClearLinks(_mainPosGrid);
-                _mainPosGrid.DataError -= _mainPosGrid_DataError;
-                _mainPosGrid.Rows.Clear();
-                _mainPosGrid.DataSource = null;
-                _mainPosGrid.Dispose();
-                _mainPosGrid = null;
+                _position = null;
+
+                //main grid
+                if (_mainPosGrid != null)
+                {
+                    FormsHostMainGrid.Child = null;
+                    DataGridFactory.ClearLinks(_mainPosGrid);
+                    _mainPosGrid.DataError -= _mainPosGrid_DataError;
+                    _mainPosGrid.Rows.Clear();
+                    _mainPosGrid.DataSource = null;
+                    _mainPosGrid.Dispose();
+                    _mainPosGrid = null;
+                }
+
+                // orders grid
+                if (_openOrdersGrid != null)
+                {
+                    FormsHostOpenDealGrid.Child = null;
+                    DataGridFactory.ClearLinks(_openOrdersGrid);
+                    _openOrdersGrid.Click -= OpenOrdersGrid_Click;
+                    _openOrdersGrid.DataError -= _mainPosGrid_DataError;
+                    _openOrdersGrid.Rows.Clear();
+                    _openOrdersGrid.DataSource = null;
+                    _openOrdersGrid.Dispose();
+                    _openOrdersGrid = null;
+                }
+
+                if (_closeOrdersGrid != null)
+                {
+                    FormsHostCloseDealGrid.Child = null;
+                    DataGridFactory.ClearLinks(_closeOrdersGrid);
+                    _closeOrdersGrid.Click -= CloseOrdersGrid_Click;
+                    _closeOrdersGrid.DataError -= _mainPosGrid_DataError;
+                    _closeOrdersGrid.Rows.Clear();
+                    _closeOrdersGrid.DataSource = null;
+                    _closeOrdersGrid.Dispose();
+                    _closeOrdersGrid = null;
+                }
+
+                // trade grid
+
+                if (_tradesGrid != null)
+                {
+                    FormsHostTreid.Child = null;
+                    DataGridFactory.ClearLinks(_tradesGrid);
+                    _tradesGrid.Click -= _tradesGrid_Click;
+                    _tradesGrid.DataError -= _mainPosGrid_DataError;
+                    _tradesGrid.Rows.Clear();
+                    _tradesGrid.DataSource = null;
+                    _tradesGrid.Dispose();
+                    _tradesGrid = null;
+                }
+
+                Closed -= PositionUi_Closed;
             }
-
-            // orders grid
-            if (_openOrdersGrid != null)
+            catch (Exception ex)
             {
-                FormsHostOpenDealGrid.Child = null;
-                DataGridFactory.ClearLinks(_openOrdersGrid);
-                _openOrdersGrid.Click -= OpenOrdersGrid_Click;
-                _openOrdersGrid.DataError -= _mainPosGrid_DataError;
-                _openOrdersGrid.Rows.Clear();
-                _openOrdersGrid.DataSource = null;
-                _openOrdersGrid.Dispose();
-                _openOrdersGrid = null;
-            }
-
-            if (_closeOrdersGrid != null)
-            {
-                FormsHostCloseDealGrid.Child = null;
-                DataGridFactory.ClearLinks(_closeOrdersGrid);
-                _closeOrdersGrid.Click -= CloseOrdersGrid_Click;
-                _closeOrdersGrid.DataError -= _mainPosGrid_DataError;
-                _closeOrdersGrid.Rows.Clear();
-                _closeOrdersGrid.DataSource = null;
-                _closeOrdersGrid.Dispose();
-                _closeOrdersGrid = null;
-            }
-
-            // trade grid
-
-            if (_tradesGrid != null)
-            {
-                FormsHostTreid.Child = null;
-                DataGridFactory.ClearLinks(_tradesGrid);
-                _tradesGrid.Click -= _tradesGrid_Click;
-                _tradesGrid.DataError -= _mainPosGrid_DataError;
-                _tradesGrid.Rows.Clear();
-                _tradesGrid.DataSource = null;
-                _tradesGrid.Dispose();
-                _tradesGrid = null;
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 

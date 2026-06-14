@@ -124,6 +124,7 @@ namespace OsEngine.Alerts
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
+            Closed += AlertToChartCreateUi_Closed;
 
             LabelOsa.MouseDown += LabelOsa_MouseDown;
 
@@ -139,55 +140,87 @@ namespace OsEngine.Alerts
             StartButtonBlinkAnimation();
         }
 
-        private void StartButtonBlinkAnimation()
+        private void AlertToChartCreateUi_Closed(object sender, EventArgs e)
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
+                OsLocalization.LocalizationTypeChangeEvent -= ChangeText;
 
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
+                if (_blinkTimer != null)
                 {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenAlertToChart.Opacity = 1;
-                            PostWhiteAlertToChart.Opacity = 0;
-                            return;
-                        }
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= BlinkTimer_Tick;
+                    _blinkTimer = null;
+                }
 
-                        if (isGreenVisible)
-                        {
-                            PostGreenAlertToChart.Opacity = 0;
-                            PostWhiteAlertToChart.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenAlertToChart.Opacity = 1;
-                            PostWhiteAlertToChart.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                Closed -= AlertToChartCreateUi_Closed;
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
+
+        #region Blinck atimation
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkCount = 0;
+                _isGreenVisible = true;
+
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += BlinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void BlinkTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    PostGreenAlertToChart.Opacity = 1;
+                    PostWhiteAlertToChart.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenAlertToChart.Opacity = 0;
+                    PostWhiteAlertToChart.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenAlertToChart.Opacity = 1;
+                    PostWhiteAlertToChart.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _blinkTimer.Stop();
+            }
+        }
+
+        #endregion
 
         private void ChangeText()
         {
@@ -293,6 +326,7 @@ namespace OsEngine.Alerts
         /// хранилище Алертов
         /// </summary>
         private readonly AlertMaster _keeper;
+
 
         /// <summary>
         /// current alert

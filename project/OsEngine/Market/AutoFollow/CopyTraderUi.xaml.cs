@@ -74,25 +74,52 @@ namespace OsEngine.Market.AutoFollow
 
         private void CopyTraderUi_Closed(object sender, EventArgs e)
         {
-            _windowIsClosed = true;
+            try
+            {
+                _windowIsClosed = true;
 
-            CopyTraderInstance.DeleteEvent -= CopyTraderClass_DeleteEvent;
-            CopyTraderInstance = null;
+                ComboBoxIsOn.SelectionChanged -= ComboBoxIsOn_SelectionChanged;
+                TextBoxName.TextChanged -= TextBoxName_TextChanged;
 
-            _gridRobots.CellValueChanged -= _gridRobots_CellValueChanged;
-            _gridRobots.DataError -= _gridRobots_DataError;
-            HostRobots.Child = null;
-            _gridRobots.Rows.Clear();
-            DataGridFactory.ClearLinks(_gridRobots);
+                if (CopyTraderInstance != null)
+                {
+                    CopyTraderInstance.DeleteEvent -= CopyTraderClass_DeleteEvent;
+                }
+                CopyTraderInstance = null;
 
-            _gridSlave.CellValueChanged -= _gridSlave_CellValueChanged;
-            _gridSlave.DataError -= _gridSlave_DataError;
-            _gridSlave.CellClick -= _gridSlave_CellClick;
-            HostSlaves.Child = null;
-            _gridSlave.Rows.Clear();
-            DataGridFactory.ClearLinks(_gridSlave);
+                if (_gridRobots != null)
+                {
+                    _gridRobots.CellValueChanged -= _gridRobots_CellValueChanged;
+                    _gridRobots.DataError -= _gridRobots_DataError;
+                    HostRobots.Child = null;
+                    DataGridFactory.ClearLinks(_gridRobots);
+                    _gridRobots.Rows.Clear();
+                    _gridRobots.Columns.Clear();
+                    _gridRobots.DataSource = null;
+                    _gridRobots.Dispose();
+                    _gridRobots = null;
+                }
 
+                if (_gridSlave != null)
+                {
+                    _gridSlave.CellValueChanged -= _gridSlave_CellValueChanged;
+                    _gridSlave.DataError -= _gridSlave_DataError;
+                    _gridSlave.CellClick -= _gridSlave_CellClick;
+                    HostSlaves.Child = null;
+                    DataGridFactory.ClearLinks(_gridSlave);
+                    _gridSlave.Rows.Clear();
+                    _gridSlave.Columns.Clear();
+                    _gridSlave.DataSource = null;
+                    _gridSlave.Dispose();
+                    _gridSlave = null;
+                }
 
+                Closed -= CopyTraderUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void CopyTraderClass_DeleteEvent()

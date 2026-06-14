@@ -53,18 +53,30 @@ namespace OsEngine.Indicators
                 _gridParam.DataError -= _gridParam_DataError;
                 HostParameters.Child = null;
                 DataGridFactory.ClearLinks(_gridParam);
+                _gridParam.Rows.Clear();
+                _gridParam.Columns.Clear();
+                _gridParam.DataSource = null;
+                _gridParam.Dispose();
                 _gridParam = null;
 
                 _gridVisual.Click -= _gridVisual_Click;
                 _gridVisual.DataError -= _gridParam_DataError;
                 HostVisual.Child = null;
                 DataGridFactory.ClearLinks(_gridVisual);
+                _gridVisual.Rows.Clear();
+                _gridVisual.Columns.Clear();
+                _gridVisual.DataSource = null;
+                _gridVisual.Dispose();
                 _gridVisual = null;
 
                 _gridIndicators.Click -= _gridIndicators_Click;
                 _gridIndicators.DataError -= _gridParam_DataError;
                 HostIndicators.Child = null;
                 DataGridFactory.ClearLinks(_gridIndicators);
+                _gridIndicators.Rows.Clear();
+                _gridIndicators.Columns.Clear();
+                _gridIndicators.DataSource = null;
+                _gridIndicators.Dispose();
                 _gridIndicators = null;
 
                 _indicator = null;

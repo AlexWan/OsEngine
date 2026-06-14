@@ -7,6 +7,8 @@ using System;
 using System.Globalization;
 using System.Windows;
 using OsEngine.Language;
+using OsEngine.Logging;
+using OsEngine.Market;
 
 namespace OsEngine.Entity
 {
@@ -58,7 +60,15 @@ namespace OsEngine.Entity
 
         private void SecurityUi_Closed(object sender, EventArgs e)
         {
-            _security = null;
+            try
+            {
+                _security = null;
+                Closed -= SecurityUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

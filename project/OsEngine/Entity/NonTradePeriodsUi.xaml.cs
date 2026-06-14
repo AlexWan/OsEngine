@@ -309,100 +309,11 @@ namespace OsEngine.Entity
             StartButtonBlinkAnimation();
         }
 
-        private bool IsOpenedFromServerContext()
-        {
-            List<IServer> servers = ServerMaster.GetServers();
-
-            if (servers == null)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < servers.Count; i++)
-            {
-                AServer aServer = servers[i] as AServer;
-
-                if (aServer == null)
-                {
-                    continue;
-                }
-
-                if (aServer.ServerNameUnique + "nonTradePeriod" == _periods.NameUnique)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private void StartButtonBlinkAnimation()
+        private void NonTradePeriodsUi_Closed(object sender, EventArgs e)
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenNonTradePeriods.Opacity = 1;
-                            PostWhiteNonTradePeriods.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenNonTradePeriods.Opacity = 0;
-                            PostWhiteNonTradePeriods.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenNonTradePeriods.Opacity = 1;
-                            PostWhiteNonTradePeriods.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private void LocalToPeriods(
-            CheckBox checkBoxNonTradePeriod1OnOff,
-            CheckBox checkBoxNonTradePeriod2OnOff,
-            CheckBox checkBoxNonTradePeriod3OnOff,
-             CheckBox checkBoxNonTradePeriod4OnOff,
-              CheckBox checkBoxNonTradePeriod5OnOff)
-        {
-            checkBoxNonTradePeriod1OnOff.Content = OsLocalization.Trader.Label473 + " 1";
-            checkBoxNonTradePeriod2OnOff.Content = OsLocalization.Trader.Label473 + " 2";
-            checkBoxNonTradePeriod3OnOff.Content = OsLocalization.Trader.Label473 + " 3";
-            checkBoxNonTradePeriod4OnOff.Content = OsLocalization.Trader.Label473 + " 4";
-            checkBoxNonTradePeriod5OnOff.Content = OsLocalization.Trader.Label473 + " 5";
-        }
-
-        private void NonTradePeriodsUi_Closed(object sender, EventArgs e)
-        {
-            if (_periods.NonTradePeriodGeneral.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodGeneral.NonTradePeriod1End.TimeSpan)
+                if (_periods.NonTradePeriodGeneral.NonTradePeriod1Start.TimeSpan >= _periods.NonTradePeriodGeneral.NonTradePeriod1End.TimeSpan)
             {
                 OffPeriod(ref _periods.NonTradePeriodGeneral.NonTradePeriod1OnOff, OsLocalization.Trader.Label462, numberPeriod: 1, $"{_periods.NonTradePeriodGeneral.NonTradePeriod1Start.TimeSpan.ToString()} >= {_periods.NonTradePeriodGeneral.NonTradePeriod1End.TimeSpan.ToString()}");
             }
@@ -570,8 +481,121 @@ namespace OsEngine.Entity
                 OffPeriod(ref _periods.NonTradePeriodSunday.NonTradePeriod5OnOff, OsLocalization.Trader.Label624 + ". " + OsLocalization.Trader.Label631, numberPeriod: 5, $"{_periods.NonTradePeriodSunday.NonTradePeriod5Start.TimeSpan.ToString()} > {_periods.NonTradePeriodSunday.NonTradePeriod5End.TimeSpan.ToString()}");
             }
 
+            if (_blinkTimer != null)
+            {
+                _blinkTimer.Stop();
+                _blinkTimer.Tick -= _blinkTimer_Tick;
+                _blinkTimer = null;
+            }
+
             _periods = null;
+            Closed -= NonTradePeriodsUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
+
+        private bool IsOpenedFromServerContext()
+        {
+            List<IServer> servers = ServerMaster.GetServers();
+
+            if (servers == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                AServer aServer = servers[i] as AServer;
+
+                if (aServer == null)
+                {
+                    continue;
+                }
+
+                if (aServer.ServerNameUnique + "nonTradePeriod" == _periods.NameUnique)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkCount = 0;
+                _isGreenVisible = true;
+
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    PostGreenNonTradePeriods.Opacity = 1;
+                    PostWhiteNonTradePeriods.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenNonTradePeriods.Opacity = 0;
+                    PostWhiteNonTradePeriods.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenNonTradePeriods.Opacity = 1;
+                    PostWhiteNonTradePeriods.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _blinkTimer.Stop();
+            }
+        }
+
+        private void LocalToPeriods(
+            CheckBox checkBoxNonTradePeriod1OnOff,
+            CheckBox checkBoxNonTradePeriod2OnOff,
+            CheckBox checkBoxNonTradePeriod3OnOff,
+             CheckBox checkBoxNonTradePeriod4OnOff,
+              CheckBox checkBoxNonTradePeriod5OnOff)
+        {
+            checkBoxNonTradePeriod1OnOff.Content = OsLocalization.Trader.Label473 + " 1";
+            checkBoxNonTradePeriod2OnOff.Content = OsLocalization.Trader.Label473 + " 2";
+            checkBoxNonTradePeriod3OnOff.Content = OsLocalization.Trader.Label473 + " 3";
+            checkBoxNonTradePeriod4OnOff.Content = OsLocalization.Trader.Label473 + " 4";
+            checkBoxNonTradePeriod5OnOff.Content = OsLocalization.Trader.Label473 + " 5";
+        }
+
+      
 
         #region Trade days 
 
@@ -1466,8 +1490,6 @@ namespace OsEngine.Entity
             public TextBox NonTradePeriodStartTextBox;
             public TextBox NonTradePeriodEndTextBox;
         }
-
-
 
         #endregion
 

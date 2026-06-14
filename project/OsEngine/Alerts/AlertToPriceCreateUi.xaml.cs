@@ -68,6 +68,7 @@ namespace OsEngine.Alerts
             LabelOsa.MouseDown += LabelOsa_MouseDown;
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
+            Closed += AlertToPriceCreateUi_Closed;
 
             this.Activate();
             this.Focus();
@@ -81,53 +82,75 @@ namespace OsEngine.Alerts
             StartButtonBlinkAnimation();
         }
 
-        private void StartButtonBlinkAnimation()
+        private void AlertToPriceCreateUi_Closed(object sender, EventArgs e)
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
+                OsLocalization.LocalizationTypeChangeEvent -= ChangeText;
 
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
+                if (_blinkTimer != null)
                 {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenAlertToPriceCreate.Opacity = 1;
-                            PostWhiteAlertToPriceCreate.Opacity = 0;
-                            return;
-                        }
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= BlinkTimer_Tick;
+                    _blinkTimer = null;
+                }
 
-                        if (isGreenVisible)
-                        {
-                            PostGreenAlertToPriceCreate.Opacity = 0;
-                            PostWhiteAlertToPriceCreate.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenAlertToPriceCreate.Opacity = 1;
-                            PostWhiteAlertToPriceCreate.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                Closed -= AlertToPriceCreateUi_Closed;
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkCount = 0;
+                _isGreenVisible = true;
+
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += BlinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void BlinkTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    PostGreenAlertToPriceCreate.Opacity = 1;
+                    PostWhiteAlertToPriceCreate.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenAlertToPriceCreate.Opacity = 0;
+                    PostWhiteAlertToPriceCreate.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenAlertToPriceCreate.Opacity = 1;
+                    PostWhiteAlertToPriceCreate.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _blinkTimer.Stop();
             }
         }
 
@@ -164,6 +187,12 @@ namespace OsEngine.Alerts
         }
 
         public AlertToPrice MyAlert;
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {

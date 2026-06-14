@@ -83,10 +83,13 @@ namespace OsEngine.Entity
                 TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
                 ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
                 ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+
+                ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
+                Closed -= SecuritiesUi_Closed;
             }
             catch
             {
-
+                // ignore
             }
         }
 

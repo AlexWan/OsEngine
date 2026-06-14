@@ -52,18 +52,28 @@ namespace OsEngine.Market.AutoFollow
                 {
                     _uis[i].LogMessageEvent -= _master.SendLogMessage;
                     _uis[i].NeedToUpdateCopyTradersGridEvent -= Ui_NeedToUpdateCopyTradersGridEvent;
+                    _uis[i].Closed -= Ui_Closed;
                 }
                 _uis.Clear();
 
                 _master.LogCopyMaster.StopPaint();
                 _master = null;
 
-                _grid.CellClick -= _grid_CellClick;
-                _grid.CellValueChanged -= _grid_CellValueChanged;
-                _grid.DataError -= _grid_DataError;
-                _grid.Rows.Clear();
-                DataGridFactory.ClearLinks(_grid);
-                HostCopyTraders.Child = null;
+                if (_grid != null)
+                {
+                    _grid.CellClick -= _grid_CellClick;
+                    _grid.CellValueChanged -= _grid_CellValueChanged;
+                    _grid.DataError -= _grid_DataError;
+                    HostCopyTraders.Child = null;
+                    DataGridFactory.ClearLinks(_grid);
+                    _grid.Rows.Clear();
+                    _grid.Columns.Clear();
+                    _grid.DataSource = null;
+                    _grid.Dispose();
+                    _grid = null;
+                }
+
+                Closed -= CopyMasterUi_Closed;
             }
             catch (Exception ex)
             {

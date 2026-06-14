@@ -91,26 +91,40 @@ namespace OsEngine.Entity
 
         private void SetLeverageUi_Closed(object sender, EventArgs e)
         {
-            this.Closed -= SetLeverageUi_Closed;
+            try
+            {
+                this.Closed -= SetLeverageUi_Closed;
 
-            TextBoxSearchLeverage.MouseEnter -= TextBoxSearchLeverage_MouseEnter;
-            TextBoxSearchLeverage.TextChanged -= TextBoxSearchLeverage_TextChanged;
-            TextBoxSearchLeverage.MouseLeave -= TextBoxSearchLeverage_MouseLeave;
-            TextBoxSearchLeverage.LostKeyboardFocus -= TextBoxSearchLeverage_LostKeyboardFocus;
-            TextBoxSearchLeverage.KeyDown -= TextBoxSearchLeverage_KeyDown;
-            ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
-            ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
-            TextBoxLeverage.TextChanged -= TextBoxLeverage_TextChanged;
-            ButtonLoad.Click -= ButtonLoad_Click;
+                TextBoxSearchLeverage.MouseEnter -= TextBoxSearchLeverage_MouseEnter;
+                TextBoxSearchLeverage.TextChanged -= TextBoxSearchLeverage_TextChanged;
+                TextBoxSearchLeverage.MouseLeave -= TextBoxSearchLeverage_MouseLeave;
+                TextBoxSearchLeverage.LostKeyboardFocus -= TextBoxSearchLeverage_LostKeyboardFocus;
+                TextBoxSearchLeverage.KeyDown -= TextBoxSearchLeverage_KeyDown;
+                ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+                TextBoxLeverage.TextChanged -= TextBoxLeverage_TextChanged;
+                ButtonLoad.Click -= ButtonLoad_Click;
 
-            _dgv.Rows.Clear();
-            _dgv.CellValueChanged -= _dgv_CellValueChanged;
-            _dgv.DataError -= _dgv_DataError;
-            _dgv.CellClick -= _dgv_CellClick;
-            _dgv = null;
-            HostLeverage.Child = null;
-            _server = null;
-            _serverRealization = null;
+                if (_dgv != null)
+                {
+                    HostLeverage.Child = null;
+                    DataGridFactory.ClearLinks(_dgv);
+                    _dgv.CellValueChanged -= _dgv_CellValueChanged;
+                    _dgv.DataError -= _dgv_DataError;
+                    _dgv.CellClick -= _dgv_CellClick;
+                    _dgv.Rows.Clear();
+                    _dgv.Columns.Clear();
+                    _dgv.DataSource = null;
+                    _dgv.Dispose();
+                    _dgv = null;
+                }
+                _server = null;
+                _serverRealization = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void TextBoxLeverage_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)

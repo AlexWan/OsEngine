@@ -30,6 +30,8 @@ namespace OsEngine.Market.Connectors
     {
         #region Constructor
 
+        private ConnectorCandles _connectorBot;
+
         public ConnectorCandlesUi(ConnectorCandles connectorBot)
         {
             try
@@ -209,58 +211,6 @@ namespace OsEngine.Market.Connectors
             this.Focus();
         }
 
-        private void StartButtonBlinkAnimation()
-        {
-            try
-            {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenConnectorCandles.Opacity = 1;
-                            PostWhiteConnectorCandles.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenConnectorCandles.Opacity = 0;
-                            PostWhiteConnectorCandles.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenConnectorCandles.Opacity = 1;
-                            PostWhiteConnectorCandles.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private ConnectorCandles _connectorBot;
-
         private void ConnectorCandlesUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
@@ -288,6 +238,7 @@ namespace OsEngine.Market.Connectors
                 ComboBoxExpiration.SelectionChanged -= ComboBoxExpirationAndStrike_SelectionChanged;
                 ComboBoxStrike.SelectionChanged -= ComboBoxExpirationAndStrike_SelectionChanged;
                 ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
+                ComboBoxCandleMarketDataType.SelectionChanged -= ComboBoxCandleMarketDataType_SelectionChanged;
                 ComboBoxCandleCreateMethodType.SelectionChanged -= ComboBoxCandleCreateMethodType_SelectionChanged;
                 CheckBoxSaveTradeArrayInCandle.Click -= CheckBoxSaveTradeArrayInCandle_Click;
                 TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
@@ -301,6 +252,15 @@ namespace OsEngine.Market.Connectors
 
                 DeleteGridSecurities();
                 DeleteCandleRealizationGrid();
+
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                Closing -= ConnectorCandlesUi_Closing;
             }
             catch
             {
@@ -311,14 +271,69 @@ namespace OsEngine.Market.Connectors
             {
                 _connectorBot = null;
                 _selectedSeries = null;
-                _series.Clear();
                 _series = null;
-                _searchResults.Clear();
                 _searchResults = null;
             }
             catch
             {
                 // ignore
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    PostGreenConnectorCandles.Opacity = 1;
+                    PostWhiteConnectorCandles.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenConnectorCandles.Opacity = 0;
+                    PostWhiteConnectorCandles.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenConnectorCandles.Opacity = 1;
+                    PostWhiteConnectorCandles.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 
@@ -1126,9 +1141,17 @@ namespace OsEngine.Market.Connectors
 
         private void DeleteGridSecurities()
         {
+            if (_gridSecurities == null)
+            {
+                return;
+            }
             DataGridFactory.ClearLinks(_gridSecurities);
             _gridSecurities.CellClick -= _gridSecurities_CellClick;
             _gridSecurities.DataError -= _gridSecurities_DataError;
+            _gridSecurities.Rows.Clear();
+            _gridSecurities.Columns.Clear();
+            _gridSecurities.DataSource = null;
+            _gridSecurities.Dispose();
             _gridSecurities = null;
             SecurityTable.Child = null;
         }
@@ -1770,9 +1793,17 @@ namespace OsEngine.Market.Connectors
 
         private void DeleteCandleRealizationGrid()
         {
+            if (_candlesRealizationGrid == null)
+            {
+                return;
+            }
             DataGridFactory.ClearLinks(_candlesRealizationGrid);
             _candlesRealizationGrid.CellEndEdit -= _candlesRealizationGrid_CellEndEdit;
             _candlesRealizationGrid.DataError -= _candlesRealizationGrid_DataError;
+            _candlesRealizationGrid.Rows.Clear();
+            _candlesRealizationGrid.Columns.Clear();
+            _candlesRealizationGrid.DataSource = null;
+            _candlesRealizationGrid.Dispose();
             _candlesRealizationGrid = null;
             HostCandleSeriesParameters.Child = null;
         }

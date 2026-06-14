@@ -98,19 +98,25 @@ namespace OsEngine.Market.Connectors
 
         private void ConnectorCandlesUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
             try
             {
                 ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
-
             }
             catch
             {
                 // ignore
             }
 
-            _connectorBot = null;
+            try
+            {
+                _connectorBot = null;
+            }
+            catch
+            {
+                // ignore
+            }
 
+            Closing -= ConnectorCandlesUi_Closing;
         }
 
         #endregion

@@ -3,9 +3,11 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using OsEngine.Language;
+using OsEngine.Market;
 
 namespace OsEngine.Journal
 {
@@ -23,8 +25,23 @@ namespace OsEngine.Journal
             Title = OsLocalization.Journal.Label13;
             ButtonAccept.Content = OsLocalization.Journal.Label14;
 
+            Closed += NewGroupAddInJournalUi_Closed;
+
             this.Activate();
             this.Focus();
+        }
+
+        private void NewGroupAddInJournalUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                Closed -= NewGroupAddInJournalUi_Closed;
+                _oldGroupNames = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         public bool IsAccepted;

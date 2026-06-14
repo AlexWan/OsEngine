@@ -134,36 +134,58 @@ namespace OsEngine.Market.AutoFollow
 
         private void CopyPortfolioUi_Closed(object sender, EventArgs e)
         {
-            _formIsClosed = true;
-
-            ComboBoxIsOn.SelectionChanged -= ComboBoxIsOn_SelectionChanged;
-            ComboBoxOrderType.SelectionChanged -= ComboBoxOrderType_SelectionChanged;
-            ComboBoxIcebergCount.SelectionChanged -= ComboBoxIcebergCount_SelectionChanged;
-            ComboBoxVolumeType.SelectionChanged -= ComboBoxVolumeType_SelectionChanged;
-            TextBoxVolumeMult.TextChanged -= TextBoxVolumeMult_TextChanged;
-            TextBoxMasterAsset.TextChanged -= TextBoxMasterAsset_TextChanged;
-            TextBoxSlaveAsset.TextChanged -= TextBoxSlaveAsset_TextChanged;
-            CheckBoxFailOpenOrdersReactionIsOn.Checked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
-            CheckBoxFailOpenOrdersReactionIsOn.Unchecked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
-            TextBoxFailOpenOrdersCountToReaction.TextChanged -= TextBoxFailOpenOrdersCountToReaction_TextChanged;
-            TextBoxIcebergMillisecondsDelay.TextChanged -= TextBoxIcebergMillisecondsDelay_TextChanged;
-
-            _gridSecurities.CellValueChanged -= _gridSecurities_CellValueChanged;
-            _gridSecurities.CellClick -= _gridSecurities_CellClick;
-            _gridSecurities.DataError -= _gridSecurities_DataError;
-            HostSecurities.Child = null;
-            _gridSecurities.Rows.Clear();
-            DataGridFactory.ClearLinks(_gridSecurities);
-
-            _portfolioToCopy.LogCopyTrader.StopPaint();
-            if(_portfolioToCopy.MyJournal != null)
+            try
             {
-                _portfolioToCopy.MyJournal.StopPaint();
-            }
-           
-            _portfolioToCopy = null;
+                _formIsClosed = true;
 
-            _copyTrader = null;
+                ComboBoxIsOn.SelectionChanged -= ComboBoxIsOn_SelectionChanged;
+                ComboBoxOrderType.SelectionChanged -= ComboBoxOrderType_SelectionChanged;
+                ComboBoxIcebergCount.SelectionChanged -= ComboBoxIcebergCount_SelectionChanged;
+                ComboBoxVolumeType.SelectionChanged -= ComboBoxVolumeType_SelectionChanged;
+                TextBoxVolumeMult.TextChanged -= TextBoxVolumeMult_TextChanged;
+                TextBoxMasterAsset.TextChanged -= TextBoxMasterAsset_TextChanged;
+                TextBoxSlaveAsset.TextChanged -= TextBoxSlaveAsset_TextChanged;
+                TextBoxMinCurrencyQty.TextChanged -= TextBoxMinCurrencyQty_TextChanged;
+                TextBoxIcebergMillisecondsDelay.TextChanged -= TextBoxIcebergMillisecondsDelay_TextChanged;
+                CheckBoxFailOpenOrdersReactionIsOn.Checked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
+                CheckBoxFailOpenOrdersReactionIsOn.Unchecked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
+                TextBoxFailOpenOrdersCountToReaction.TextChanged -= TextBoxFailOpenOrdersCountToReaction_TextChanged;
+
+                if (_journalUi != null)
+                {
+                    _journalUi.Closed -= _journalUi_Closed;
+                    _journalUi = null;
+                }
+
+                if (_gridSecurities != null)
+                {
+                    _gridSecurities.CellValueChanged -= _gridSecurities_CellValueChanged;
+                    _gridSecurities.CellClick -= _gridSecurities_CellClick;
+                    _gridSecurities.DataError -= _gridSecurities_DataError;
+                    HostSecurities.Child = null;
+                    DataGridFactory.ClearLinks(_gridSecurities);
+                    _gridSecurities.Rows.Clear();
+                    _gridSecurities.Columns.Clear();
+                    _gridSecurities.DataSource = null;
+                    _gridSecurities.Dispose();
+                    _gridSecurities = null;
+                }
+
+                _portfolioToCopy.LogCopyTrader.StopPaint();
+                if (_portfolioToCopy.MyJournal != null)
+                {
+                    _portfolioToCopy.MyJournal.StopPaint();
+                }
+
+                _portfolioToCopy = null;
+                _copyTrader = null;
+
+                Closed -= CopyPortfolioUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private bool _formIsClosed = false;

@@ -35,15 +35,47 @@ namespace OsEngine.Entity
             _master.ValueMaximumChangedEvent += _master_ValueMaximumChangedEvent;
             _master.DisposedEvent += _master_DisposedEvent;
 
+            Closed += AwaitUi_Closed;
+
             Title = OsLocalization.Entity.AwaitUiLabel1;
         }
 
         public void Dispose()
         {
-            _master.Dispose();
+            try
+            {
+                if (_master != null)
+                {
+                    _master.Dispose();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         AwaitObject _master;
+
+        private void AwaitUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_master != null)
+                {
+                    _master.LabelChangedEvent -= _master_LabelChangedEvent;
+                    _master.ValueCurrentChangedEvent -= _master_ValueCurrentChangedEvent;
+                    _master.ValueMaximumChangedEvent -= _master_ValueMaximumChangedEvent;
+                    _master.DisposedEvent -= _master_DisposedEvent;
+                }
+
+                Closed -= AwaitUi_Closed;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
 
         private void _master_DisposedEvent()
         {

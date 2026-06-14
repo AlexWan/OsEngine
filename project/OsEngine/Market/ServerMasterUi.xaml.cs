@@ -3,9 +3,11 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using OsEngine.Language;
+using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market.SupportTable;
 
@@ -53,7 +55,7 @@ namespace OsEngine.Market
             CheckBoxServerAutoOpen.Content = OsLocalization.Market.Label20;
             ButtonSupportTable.Content = OsLocalization.Market.Label81;
 
-            ServerMasterSourcesPainter painter = new ServerMasterSourcesPainter(
+            _painter = new ServerMasterSourcesPainter(
                 HostSource,
                 HostLog,
                 CheckBoxServerAutoOpen,
@@ -64,14 +66,31 @@ namespace OsEngine.Market
                 LabelCommasResultShow,
                 LabelCountResultsShow);
 
-            Closing += delegate (object sender, CancelEventArgs args)
-            {
-                painter.Dispose();
-                painter = null;
-            };
+            Closing += ServerMasterUi_Closing;
 
             this.Activate();
             this.Focus();
+        }
+
+        private ServerMasterSourcesPainter _painter;
+
+        private void ServerMasterUi_Closing(object sender, CancelEventArgs e)
+        {
+            try
+            {
+                if (_painter != null)
+                {
+                    _painter.Dispose();
+                    _painter = null;
+                }
+
+                ButtonSupportTable.Click -= ButtonSupportTable_Click;
+                Closing -= ServerMasterUi_Closing;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonSupportTable_Click(object sender, System.Windows.RoutedEventArgs e)

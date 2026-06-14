@@ -67,13 +67,34 @@ namespace OsEngine.Market.Proxy
 
         private void ProxyMasterUi_Closed(object sender, EventArgs e)
         {
-            _master.ProxyPingEndEvent -= _master_ProxyPingEndEvent;
-            _master.ProxyCheckLocationEndEvent -= _master_ProxyCheckLocationEndEvent;
-            _master = null;
+            try
+            {
+                if (_master != null)
+                {
+                    _master.ProxyPingEndEvent -= _master_ProxyPingEndEvent;
+                    _master.ProxyCheckLocationEndEvent -= _master_ProxyCheckLocationEndEvent;
+                }
 
-            _grid.Rows.Clear();
-            DataGridFactory.ClearLinks(_grid);
-            HostProxy.Child = null;
+                ComboBoxAutoPingInterval.SelectionChanged -= ComboBoxAutoPingInterval_SelectionChanged;
+                CheckBoxAutoPingIsOn.Click -= CheckBoxAutoPingIsOn_Click;
+                ButtonCheckPing.Click -= ButtonCheckPing_Click;
+                ButtonCheckLocation.Click -= ButtonCheckLocation_Click;
+                ButtonSave.Click -= ButtonSave_Click;
+                ButtonLoad.Click -= ButtonLoad_Click;
+
+                Closed -= ProxyMasterUi_Closed;
+
+                DeleteGrid();
+
+                _master = null;
+            }
+            catch (Exception ex)
+            {
+                if (_master != null)
+                {
+                    _master.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                }
+            }
         }
 
         private ProxyMaster _master;
@@ -459,6 +480,25 @@ namespace OsEngine.Market.Proxy
         private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             _master.SendLogMessage(e.Exception.ToString(), Logging.LogMessageType.Error);
+        }
+
+        private void DeleteGrid()
+        {
+            if (_grid == null)
+            {
+                return;
+            }
+
+            HostProxy.Child = null;
+            DataGridFactory.ClearLinks(_grid);
+            _grid.CellClick -= _grid_CellClick;
+            _grid.CellValueChanged -= _grid_CellValueChanged;
+            _grid.DataError -= _grid_DataError;
+            _grid.Rows.Clear();
+            _grid.Columns.Clear();
+            _grid.DataSource = null;
+            _grid.Dispose();
+            _grid = null;
         }
 
         #endregion

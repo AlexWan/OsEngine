@@ -104,6 +104,8 @@ namespace OsEngine.Market.Connectors
                 _timeFrameBuilder = null;
                 _creator = null;
                 _screener = null;
+
+                Closed -= MarketDepthCreateTypeMaxSpreadUi_Closed;
             }
             catch
             {

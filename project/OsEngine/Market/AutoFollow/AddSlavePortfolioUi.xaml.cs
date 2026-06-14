@@ -42,15 +42,30 @@ namespace OsEngine.Market.AutoFollow
 
         private void AddSlavePortfolioUi_Closed(object sender, EventArgs e)
         {
-            _windowIsClosed = true;
+            try
+            {
+                _windowIsClosed = true;
 
-            _gridSlave.DataError -= _gridSlave_DataError;
-            _gridSlave.CellClick -= _gridSlave_CellClick;
-            HostSlaves.Child = null;
-            _gridSlave.Rows.Clear();
-            DataGridFactory.ClearLinks(_gridSlave);
+                if (_gridSlave != null)
+                {
+                    _gridSlave.DataError -= _gridSlave_DataError;
+                    _gridSlave.CellClick -= _gridSlave_CellClick;
+                    HostSlaves.Child = null;
+                    DataGridFactory.ClearLinks(_gridSlave);
+                    _gridSlave.Rows.Clear();
+                    _gridSlave.Columns.Clear();
+                    _gridSlave.DataSource = null;
+                    _gridSlave.Dispose();
+                    _gridSlave = null;
+                }
 
-            CopyTraderInstance = null;
+                CopyTraderInstance = null;
+                Closed -= AddSlavePortfolioUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #region Painter thread

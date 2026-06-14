@@ -100,61 +100,19 @@ namespace OsEngine.Entity
 
         }
 
-        private void StartButtonBlinkAnimation()
-        {
-            try
-            {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            GreenCollectionStrategyParameter.Opacity = 1;
-                            WhiteCollectionStrategyParameter.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            GreenCollectionStrategyParameter.Opacity = 0;
-                            WhiteCollectionStrategyParameter.Opacity = 1;
-                        }
-                        else
-                        {
-                            GreenCollectionStrategyParameter.Opacity = 1;
-                            WhiteCollectionStrategyParameter.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        _panel?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                _panel?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
         private void StrategyParametersUi_Closed(object sender, EventArgs e)
         {
             try
             {
                 this.Closed -= StrategyParametersUi_Closed;
+
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
                 _parameters = null;
 
                 _isParametersUiClosed = true;
@@ -163,8 +121,8 @@ namespace OsEngine.Entity
                 {
                     for (int i = 0; i < _tabs.Count; i++)
                     {
-                        _tabs[i].Dispose();
                         _tabs[i].ErrorEvent -= Painter_ErrorEvent;
+                        _tabs[i].Dispose();
                     }
 
                     _tabs.Clear();
@@ -180,6 +138,63 @@ namespace OsEngine.Entity
                     _panel.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                     _panel = null;
                 }
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkCount = 0;
+                _isGreenVisible = true;
+
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                _panel?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    GreenCollectionStrategyParameter.Opacity = 1;
+                    WhiteCollectionStrategyParameter.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    GreenCollectionStrategyParameter.Opacity = 0;
+                    WhiteCollectionStrategyParameter.Opacity = 1;
+                }
+                else
+                {
+                    GreenCollectionStrategyParameter.Opacity = 1;
+                    WhiteCollectionStrategyParameter.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                _panel?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                _blinkTimer.Stop();
             }
         }
 
@@ -584,7 +599,10 @@ namespace OsEngine.Entity
                     _grid.CellPainting -= _grid_CellPainting;
 
                     _grid.Rows.Clear();
+                    _grid.Columns.Clear();
+                    _grid.DataSource = null;
                     DataGridFactory.ClearLinks(_grid);
+                    _grid.Dispose();
                     _grid = null;
                 }
             }

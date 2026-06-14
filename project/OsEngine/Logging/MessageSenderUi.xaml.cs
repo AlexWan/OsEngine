@@ -24,6 +24,10 @@ namespace OsEngine.Logging
         /// </summary>
         private readonly MessageSender _sender;
 
+        private DispatcherTimer _blinkTimer;
+        private int _blinkCount;
+        private bool _isGreenVisible = true;
+
         public MessageSenderUi(MessageSender sender) // constructor / конструктор
         {
             _sender = sender;
@@ -31,6 +35,8 @@ namespace OsEngine.Logging
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             LoadDateOnForm();
+
+            Closed += MessageSenderUi_Closed;
 
             Title = OsLocalization.Logging.TitleMessageSenderUi;
 
@@ -94,45 +100,76 @@ namespace OsEngine.Logging
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkCount >= 20)
                 {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            GreenCollectionMessageSender.Opacity = 1;
-                            WhiteCollectionMessageSender.Opacity = 0;
-                            return;
-                        }
+                    _blinkTimer.Stop();
+                    GreenCollectionMessageSender.Opacity = 1;
+                    WhiteCollectionMessageSender.Opacity = 0;
+                    return;
+                }
 
-                        if (isGreenVisible)
-                        {
-                            GreenCollectionMessageSender.Opacity = 0;
-                            WhiteCollectionMessageSender.Opacity = 1;
-                        }
-                        else
-                        {
-                            GreenCollectionMessageSender.Opacity = 1;
-                            WhiteCollectionMessageSender.Opacity = 0;
-                        }
+                if (_isGreenVisible)
+                {
+                    GreenCollectionMessageSender.Opacity = 0;
+                    WhiteCollectionMessageSender.Opacity = 1;
+                }
+                else
+                {
+                    GreenCollectionMessageSender.Opacity = 1;
+                    WhiteCollectionMessageSender.Opacity = 0;
+                }
 
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
+            }
+        }
 
-                timer.Start();
+        private void MessageSenderUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                Closed -= MessageSenderUi_Closed;
+                if (ButtonPostsMessageSender.Visibility == Visibility.Visible)
+                {
+                    ButtonPostsMessageSender.Click -= ButtonPostsMessageSender_Click;
+                }
+                if (_instructionsUi != null)
+                {
+                    _instructionsUi.Closed -= _instructionsUi_Closed;
+                    _instructionsUi.Close();
+                    _instructionsUi = null;
+                }
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+                // _sender is readonly and shared; just drop our reference
+                // _sender = null; // impossible due to readonly
             }
             catch (Exception ex)
             {
