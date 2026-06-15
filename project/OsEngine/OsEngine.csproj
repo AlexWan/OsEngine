@@ -257,6 +257,8 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\OsEngine_logo_transpared.png" />
+    <EmbeddedResource Include="Market\Servers\TInvest\Certificates\russian_trusted_root_ca.cer" />
+    <EmbeddedResource Include="Market\Servers\TInvest\Certificates\russian_trusted_sub_ca.cer" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\RestartBenchmark.png" />

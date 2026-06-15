@@ -21,8 +21,11 @@ using Order = OsEngine.Entity.Order;
 using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using Grpc.Net.Client;
 using Grpc.Core;
 using System.Threading.Tasks;
@@ -2054,8 +2057,8 @@ namespace OsEngine.Market.Servers.TInvest
 
         #region 6 gRPC streams creation
 
-        //private readonly string _gRPCHost = "sandbox-invest-public-api.tbank.ru:443"; // sandbox 
-        private readonly string _gRPCHost = "https://invest-public-api.tinkoff.ru:443"; // prod  as of v1.40 should be tbank.ru but doesn't work due to SSL certificate issue
+        private readonly string _gRPCHost = "https://invest-public-api.tbank.ru:443"; // prod
+        private static readonly Lazy<X509Certificate2[]> _tInvestCertificates = new Lazy<X509Certificate2[]>(LoadTInvestCertificates);
         private Metadata _gRpcMetadata;
 
         private GrpcChannel _channel;
@@ -2102,6 +2105,36 @@ namespace OsEngine.Market.Servers.TInvest
             SendLogMessage($"User stream limits: {limits}", LogMessageType.User);
         }
 
+        private static X509Certificate2[] LoadTInvestCertificates()
+        {
+            var assembly = typeof(TInvestServer).Assembly;
+
+            string[] resourceNames = new[]
+            {
+                "OsEngine.Market.Servers.TInvest.Certificates.russian_trusted_root_ca.cer",
+                "OsEngine.Market.Servers.TInvest.Certificates.russian_trusted_sub_ca.cer"
+            };
+
+            var certificates = new List<X509Certificate2>(resourceNames.Length);
+
+            foreach (string resourceName in resourceNames)
+            {
+                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                {
+                    if (stream == null)
+                    {
+                        throw new InvalidOperationException($"T-Invest certificate resource not found: {resourceName}");
+                    }
+
+                    byte[] data = new byte[stream.Length];
+                    stream.ReadExactly(data, 0, data.Length);
+                    certificates.Add(X509CertificateLoader.LoadCertificate(data));
+                }
+            }
+
+            return certificates.ToArray();
+        }
+
         private void CreateStreamsConnection()
         {
             try
@@ -2113,25 +2146,46 @@ namespace OsEngine.Market.Servers.TInvest
                 
                 _cancellationTokenSource = new CancellationTokenSource();
 
+                X509Certificate2[] tInvestCertificates = _tInvestCertificates.Value;
+
+                var socketsHandler = new SocketsHttpHandler()
+                {
+                    // KeepAlive настройки
+                    KeepAlivePingDelay = TimeSpan.FromSeconds(10),
+                    KeepAlivePingTimeout = TimeSpan.FromSeconds(5),
+                    KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,
+
+                    // Прокси настройки
+                    Proxy = _proxy,
+                    UseProxy = _proxy != null,
+
+                    // Оптимизации
+                    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),
+                    PooledConnectionLifetime = TimeSpan.FromHours(1),
+                    EnableMultipleHttp2Connections = true,
+
+                    // SSL настройки с доверенными корнями НУЦ Минцифры РФ
+                    SslOptions = new SslClientAuthenticationOptions
+                    {
+                        EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12
+                                            | System.Security.Authentication.SslProtocols.Tls13,
+                        CertificateChainPolicy = new X509ChainPolicy
+                        {
+                            RevocationMode = X509RevocationMode.NoCheck,
+                            TrustMode = X509ChainTrustMode.CustomRootTrust,
+                        }
+                    }
+                };
+
+                foreach (X509Certificate2 cert in tInvestCertificates)
+                {
+                    socketsHandler.SslOptions.CertificateChainPolicy.CustomTrustStore.Add(cert);
+                }
+
                 _channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
                 {
                     Credentials = ChannelCredentials.SecureSsl,
-                    HttpHandler = new SocketsHttpHandler()
-                    {
-                        // KeepAlive настройки
-                        KeepAlivePingDelay = TimeSpan.FromSeconds(10),
-                        KeepAlivePingTimeout = TimeSpan.FromSeconds(5),
-                        KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always,
-
-                        // Прокси настройки
-                        Proxy = _proxy,
-                        UseProxy = _proxy != null,
-
-                        // Оптимизации
-                        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),
-                        PooledConnectionLifetime = TimeSpan.FromHours(1),
-                        EnableMultipleHttp2Connections = true
-                    }
+                    HttpHandler = socketsHandler
                 });
 
                 _usersClient = new UsersService.UsersServiceClient(_channel);
