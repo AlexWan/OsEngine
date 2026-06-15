@@ -45,49 +45,45 @@ namespace OsEngine.OsData
             StartButtonBlinkAnimation();
         }
 
+        private void LqdtDataUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                CreateButton.Click -= CreateButton_Click;
+                ButtonDataLqdt.Click -= ButtonDataLqdt_Click;
+
+                _set = null;
+                _setPainter = null;
+
+                Closed -= LqdtDataUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
         private void StartButtonBlinkAnimation()
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenDataLqdt.Opacity = 1;
-                            PostWhiteDataLqdt.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenDataLqdt.Opacity = 0;
-                            PostWhiteDataLqdt.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenDataLqdt.Opacity = 1;
-                            PostWhiteDataLqdt.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
@@ -95,16 +91,39 @@ namespace OsEngine.OsData
             }
         }
 
-        private void LqdtDataUi_Closed(object sender, EventArgs e)
+        private void _blinkTimer_Tick(object sender, EventArgs e)
         {
             try
             {
-                _set = null;
-                _setPainter = null;
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    PostGreenDataLqdt.Opacity = 1;
+                    PostWhiteDataLqdt.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenDataLqdt.Opacity = 0;
+                    PostWhiteDataLqdt.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenDataLqdt.Opacity = 1;
+                    PostWhiteDataLqdt.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
             }
             catch (Exception ex)
             {
-                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 

@@ -38,52 +38,53 @@ namespace OsEngine.OsConverter
                 ButtonConverter.Visibility = Visibility.Hidden;
             }
 
+            Closed += OsConverterUi_Closed;
+
             StartButtonBlinkAnimation();
         }
+
+        private void OsConverterUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                ButtonStart.Click -= ButtonStart_Click;
+                ButtonSetSource.Click -= ButtonSetSource_Click;
+                ButtonSetExitFile.Click -= ButtonSetExitFile_Click;
+                ButtonConverter.Click -= ButtonConverter_Click;
+
+                _master = null;
+
+                Closed -= OsConverterUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private OsConverterMaster _master;
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
 
         private void StartButtonBlinkAnimation()
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenConverter.Opacity = 1;
-                            PostWhiteConverter.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenConverter.Opacity = 0;
-                            PostWhiteConverter.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenConverter.Opacity = 1;
-                            PostWhiteConverter.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
@@ -91,7 +92,41 @@ namespace OsEngine.OsConverter
             }
         }
 
-        private OsConverterMaster _master;
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    PostGreenConverter.Opacity = 1;
+                    PostWhiteConverter.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenConverter.Opacity = 0;
+                    PostWhiteConverter.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenConverter.Opacity = 1;
+                    PostWhiteConverter.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
+            }
+        }
 
         private void ButtonSetSource_Click(object sender, RoutedEventArgs e)
         {

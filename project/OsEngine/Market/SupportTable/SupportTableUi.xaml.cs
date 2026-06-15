@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -42,54 +43,55 @@ namespace OsEngine.Market.SupportTable
         {
             try
             {
-                if (HostMoexConnections != null)
-                {
-                    HostMoexConnections.Child = null;
-                    HostMoexConnections = null;
-                }
-
-                if (HostInternationalConnections != null)
-                {
-                    HostInternationalConnections.Child = null;
-                    HostInternationalConnections = null;
-                }
-
-                if (HostCryptoConnections != null)
-                {
-                    HostCryptoConnections.Child = null;
-                    HostCryptoConnections = null;
-                }
-
                 if (_gridMoex != null)
                 {
-                    _gridMoex.DataError -= _gridMoex_DataError;
+                    HostMoexConnections.Child = null;
                     DataGridFactory.ClearLinks(_gridMoex);
+                    _gridMoex.DataError -= _gridMoex_DataError;
+                    _gridMoex.Rows.Clear();
+                    _gridMoex.Columns.Clear();
+                    _gridMoex.DataSource = null;
+                    _gridMoex.Dispose();
                     _gridMoex = null;
                 }
 
                 if (_gridInternational != null)
                 {
-                    _gridInternational.DataError -= _gridMoex_DataError;
+                    HostInternationalConnections.Child = null;
                     DataGridFactory.ClearLinks(_gridInternational);
+                    _gridInternational.DataError -= _gridMoex_DataError;
+                    _gridInternational.Rows.Clear();
+                    _gridInternational.Columns.Clear();
+                    _gridInternational.DataSource = null;
+                    _gridInternational.Dispose();
                     _gridInternational = null;
                 }
 
                 if (_gridCrypto != null)
                 {
+                    HostCryptoConnections.Child = null;
+                    DataGridFactory.ClearLinks(_gridCrypto);
                     _gridCrypto.CellClick -= _gridCrypto_CellClick1;
                     _gridCrypto.DataError -= _gridMoex_DataError;
-                    DataGridFactory.ClearLinks(_gridCrypto);
+                    _gridCrypto.Rows.Clear();
+                    _gridCrypto.Columns.Clear();
+                    _gridCrypto.DataSource = null;
+                    _gridCrypto.Dispose();
                     _gridCrypto = null;
                 }
+
+                Closed -= SupportTableUi_Closed;
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         DataGridView _gridMoex;
+
         DataGridView _gridInternational;
+
         DataGridView _gridCrypto;
 
         private void CreateTables()

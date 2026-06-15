@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using OsEngine.Language;
+using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.Transaq
 {
@@ -50,8 +52,19 @@ namespace OsEngine.Market.Servers.Transaq
 
         private void ChangeTransaqPassword_Closed(object sender, System.EventArgs e)
         {
-            _server = null;
-            TextInfo = null;
+            try
+            {
+                ButtonAccept.Click -= ButtonAccept_Click;
+
+                _server = null;
+                TextInfo = null;
+
+                Closed -= ChangeTransaqPassword_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

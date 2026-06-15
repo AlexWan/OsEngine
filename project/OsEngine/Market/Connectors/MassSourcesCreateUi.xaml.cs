@@ -257,7 +257,6 @@ namespace OsEngine.Market.Connectors
 
             try
             {
-                SourcesCreator = null;
                 _selectedSeries = null;
                 _series = null;
                 _searchResults = null;
