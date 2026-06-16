@@ -67,49 +67,47 @@ namespace OsEngine.OsData
             StartButtonBlinkAnimation();
         }
 
+        private void SetDuplicationUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                NewPathButton.Click -= NewPathButton_Click;
+                NowButton.Click -= NowButton_Click;
+                ButtonDataDuplication.Click -= ButtonDataDuplication_Click;
+                ComboBoxRegime.SelectionChanged -= RegimeChanged;
+
+                _set = null;
+                _newPathForCopy = null;
+
+                Closed -= SetDuplicationUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
         private void StartButtonBlinkAnimation()
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenDataDuplication.Opacity = 1;
-                            PostWhiteDataDuplication.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenDataDuplication.Opacity = 0;
-                            PostWhiteDataDuplication.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenDataDuplication.Opacity = 1;
-                            PostWhiteDataDuplication.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
@@ -117,16 +115,46 @@ namespace OsEngine.OsData
             }
         }
 
-        private void SetDuplicationUi_Closed(object sender, EventArgs e)
+        private void _blinkTimer_Tick(object sender, EventArgs e)
         {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
             try
             {
-                _set = null;
-                _newPathForCopy = null;
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenDataDuplication.Opacity = 1;
+                    PostWhiteDataDuplication.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenDataDuplication.Opacity = 0;
+                    PostWhiteDataDuplication.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenDataDuplication.Opacity = 1;
+                    PostWhiteDataDuplication.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
             }
             catch (Exception ex)
             {
-                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 

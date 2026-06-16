@@ -128,25 +128,7 @@ namespace OsEngine.OsOptimizer
             TextBoxPercentFiltration.TextChanged += TextBoxPercentFiltration_TextChanged;
 
             TextBoxIterationCount.Text = _master.IterationCount.ToString();
-            TextBoxIterationCount.TextChanged += delegate (object sender, TextChangedEventArgs args)
-            {
-                try
-                {
-                    if (Convert.ToInt32(TextBoxIterationCount.Text) == 0)
-                    {
-                        TextBoxIterationCount.Text = _master.IterationCount.ToString();
-                        return;
-                    }
-                    _master.IterationCount = Convert.ToInt32(TextBoxIterationCount.Text);
-
-                    Task.Run(PaintCountBotsInOptimization);
-                }
-                catch
-                {
-                    TextBoxIterationCount.Text = _master.IterationCount.ToString();
-                }
-
-            };
+            TextBoxIterationCount.TextChanged += TextBoxIterationCount_TextChanged;
 
             _master.NeedToMoveUiToEvent += _master_NeedToMoveUiToEvent;
             TextBoxStrategyName.Text = _master.StrategyName;
@@ -226,56 +208,6 @@ namespace OsEngine.OsOptimizer
             Task.Run(new Action(StrategyLoader));
         }
 
-        private void StartButtonBlinkAnimation()
-        {
-            try
-            {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            GreenCollectionOptimizer.Opacity = 1;
-                            WhiteCollectionOptimizer.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            GreenCollectionOptimizer.Opacity = 0;
-                            WhiteCollectionOptimizer.Opacity = 1;
-                        }
-                        else
-                        {
-                            GreenCollectionOptimizer.Opacity = 1;
-                            WhiteCollectionOptimizer.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-        }
-
         private void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
@@ -317,10 +249,24 @@ namespace OsEngine.OsOptimizer
                 DatePickerEnd.SelectedDateChanged -= DatePickerEnd_SelectedDateChanged;
                 TextBoxPercentFiltration.TextChanged -= TextBoxPercentFiltration_TextChanged;
 
+                CheckBoxCacheIndicatorsIsOn.Checked -= CheckBoxCacheIndicatorsIsOn_Checked;
+                CheckBoxCacheIndicatorsIsOn.Unchecked -= CheckBoxCacheIndicatorsIsOn_Checked;
+
+                TextBoxIterationCount.TextChanged -= TextBoxIterationCount_TextChanged;
+
+                ButtonPostsOptimizer.Click -= ButtonPostsOptimizer_Click;
+
                 _master.NewSecurityEvent -= _master_NewSecurityEvent;
                 _master.DateTimeStartEndChange -= _master_DateTimeStartEndChange;
                 _master.TestReadyEvent -= _master_TestReadyEvent;
                 _master.TimeToEndChangeEvent -= _master_TimeToEndChangeEvent;
+                _master.NeedToMoveUiToEvent -= _master_NeedToMoveUiToEvent;
+
+                if (_resultsCharting != null)
+                {
+                    _resultsCharting.LogMessageEvent -= _master.SendLogMessage;
+                    _resultsCharting = null;
+                }
 
                 _master = null;
 
@@ -328,25 +274,45 @@ namespace OsEngine.OsOptimizer
                 {
                     HostTabsSimple.Child = null;
                 }
-
                 if (HostStepsOptimize != null)
                 {
                     HostStepsOptimize.Child = null;
                 }
-
                 if (HostParam != null)
                 {
                     HostParam.Child = null;
                 }
-
+                if (HostLog != null)
+                {
+                    HostLog.Child = null;
+                }
+                if (HostWalkForwardPeriods != null)
+                {
+                    HostWalkForwardPeriods.Child = null;
+                }
                 if (WindowsFormsHostFazeNumOnTubResult != null)
                 {
                     WindowsFormsHostFazeNumOnTubResult.Child = null;
                 }
-
                 if (WindowsFormsHostResults != null)
                 {
                     WindowsFormsHostResults.Child = null;
+                }
+                if (WindowsFormsHostResultsChart != null)
+                {
+                    WindowsFormsHostResultsChart.Child = null;
+                }
+                if (HostStepsOfOptimizationTable != null)
+                {
+                    HostStepsOfOptimizationTable.Child = null;
+                }
+                if (HostRobustness != null)
+                {
+                    HostRobustness.Child = null;
+                }
+                if (WindowsFormsHostTotalProfit != null)
+                {
+                    WindowsFormsHostTotalProfit.Child = null;
                 }
 
                 if (_gridSources != null)
@@ -355,6 +321,10 @@ namespace OsEngine.OsOptimizer
                     _gridSources.CellClick -= _gridSources_CellClick;
                     _gridSources.DataError -= _gridSources_DataError;
                     DataGridFactory.ClearLinks(_gridSources);
+                    _gridSources.Rows.Clear();
+                    _gridSources.Columns.Clear();
+                    _gridSources.DataSource = null;
+                    _gridSources.Dispose();
                     _gridSources = null;
                 }
 
@@ -363,6 +333,10 @@ namespace OsEngine.OsOptimizer
                     _gridFazes.CellValueChanged -= _gridFazes_CellValueChanged;
                     _gridFazes.DataError -= _gridSources_DataError;
                     DataGridFactory.ClearLinks(_gridFazes);
+                    _gridFazes.Rows.Clear();
+                    _gridFazes.Columns.Clear();
+                    _gridFazes.DataSource = null;
+                    _gridFazes.Dispose();
                     _gridFazes = null;
                 }
 
@@ -370,6 +344,10 @@ namespace OsEngine.OsOptimizer
                 {
                     _gridParameters.DataError -= _gridSources_DataError;
                     DataGridFactory.ClearLinks(_gridParameters);
+                    _gridParameters.Rows.Clear();
+                    _gridParameters.Columns.Clear();
+                    _gridParameters.DataSource = null;
+                    _gridParameters.Dispose();
                     _gridParameters = null;
                 }
 
@@ -378,6 +356,10 @@ namespace OsEngine.OsOptimizer
                     _gridFazesEnd.CellClick -= _gridFazesEnd_CellClick;
                     _gridFazesEnd.DataError -= _gridSources_DataError;
                     DataGridFactory.ClearLinks(_gridFazesEnd);
+                    _gridFazesEnd.Rows.Clear();
+                    _gridFazesEnd.Columns.Clear();
+                    _gridFazesEnd.DataSource = null;
+                    _gridFazesEnd.Dispose();
                     _gridFazesEnd = null;
                 }
 
@@ -385,12 +367,82 @@ namespace OsEngine.OsOptimizer
                 {
                     _gridResults.DataError -= _gridSources_DataError;
                     DataGridFactory.ClearLinks(_gridResults);
+                    _gridResults.Rows.Clear();
+                    _gridResults.Columns.Clear();
+                    _gridResults.DataSource = null;
+                    _gridResults.Dispose();
                     _gridResults = null;
                 }
-            }
-            catch
-            {
 
+                Closing -= Ui_Closing;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    GreenCollectionOptimizer.Opacity = 1;
+                    WhiteCollectionOptimizer.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    GreenCollectionOptimizer.Opacity = 0;
+                    WhiteCollectionOptimizer.Opacity = 1;
+                }
+                else
+                {
+                    GreenCollectionOptimizer.Opacity = 1;
+                    WhiteCollectionOptimizer.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 
@@ -871,6 +923,25 @@ namespace OsEngine.OsOptimizer
             catch
             {
                 TextBoxPercentFiltration.Text = _master.PercentOnFiltration.ToString();
+            }
+        }
+
+        private void TextBoxIterationCount_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (Convert.ToInt32(TextBoxIterationCount.Text) == 0)
+                {
+                    TextBoxIterationCount.Text = _master.IterationCount.ToString();
+                    return;
+                }
+                _master.IterationCount = Convert.ToInt32(TextBoxIterationCount.Text);
+
+                Task.Run(PaintCountBotsInOptimization);
+            }
+            catch
+            {
+                TextBoxIterationCount.Text = _master.IterationCount.ToString();
             }
         }
 

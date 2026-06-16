@@ -119,53 +119,122 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             StartButtonBlinkAnimation();
         }
 
+        private void PositionAdding_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                if (Tab != null)
+                {
+                    Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
+                    Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
+                    Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+                    Tab = null;
+                }
+
+                ButtonPostPositionAdding.Click -= ButtonPostPositionAdding_Click;
+                ButtonAddAtLimit.Click -= ButtonAddAtLimit_Click;
+                ButtonAddAtMarket.Click -= ButtonAddAtMarket_Click;
+                ButtonAddAtStop.Click -= ButtonAddAtStop_Click;
+                ButtonAddAtFake.Click -= ButtonAddAtFake_Click;
+                ButtonFakeTimeOpenNow.Click -= ButtonFakeTimeOpenNow_Click;
+
+                if (_marketDepthPainter != null)
+                {
+                    _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= MarketDepthPainter_UserClickOnMDAndSelectPriceEvent;
+                    _marketDepthPainter.StopPaint();
+                    _marketDepthPainter.Delete();
+                    _marketDepthPainter = null;
+                }
+
+                if (WinFormsHostMarketDepth != null)
+                {
+                    WinFormsHostMarketDepth.Child = null;
+                }
+
+                Position = null;
+
+                Closed -= PositionAdding_Closed;
+            }
+            catch (Exception ex)
+            {
+                Tab?.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+            }
+
+            _isDeleted = true;
+        }
+
+        private bool _isDeleted;
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
         private void StartButtonBlinkAnimation()
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenPositionAdding.Opacity = 1;
-                            PostWhitePositionAdding.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenPositionAdding.Opacity = 0;
-                            PostWhitePositionAdding.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenPositionAdding.Opacity = 1;
-                            PostWhitePositionAdding.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
                 Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenPositionAdding.Opacity = 1;
+                    PostWhitePositionAdding.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenPositionAdding.Opacity = 0;
+                    PostWhitePositionAdding.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenPositionAdding.Opacity = 1;
+                    PostWhitePositionAdding.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
             }
         }
 
@@ -174,8 +243,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public Position Position;
 
         private MarketDepthPainter _marketDepthPainter;
-
-        private bool _isDeleted;
 
         public void SelectTabIndx(AddPositionType addPositionType)
         {
@@ -231,38 +298,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ButtonAddAtStop.Content = OsLocalization.Trader.Label682;
                 ButtonAddAtFake.Content = OsLocalization.Trader.Label683;
             }
-        }
-
-        private void PositionAdding_Closed(object sender, EventArgs e)
-        {
-            try
-            {
-                if (Tab != null)
-                {
-                    Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
-                    Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
-                    Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
-                    Tab = null;
-                }
-
-                Closed -= PositionAdding_Closed;
-
-                if (_marketDepthPainter != null)
-                {
-                    _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= MarketDepthPainter_UserClickOnMDAndSelectPriceEvent;
-                    _marketDepthPainter.StopPaint();
-                    _marketDepthPainter.Delete();
-                    _marketDepthPainter = null;
-                }
-
-                Position = null;
-            }
-            catch
-            {
-                // ignore
-            }
-
-            _isDeleted = true;
         }
 
         private void SetNowTimeInControlsFakeOpenPos()

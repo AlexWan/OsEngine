@@ -63,20 +63,48 @@ namespace OsEngine.OsOptimizer.OptEntity
 
         private void OptimizerBotParametersSimpleUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (_gridParams1 != null)
+            try
             {
-                _gridParams1.DataError -= Grid_DataError;
-                _gridParams1 = null;
-            }
+                if (HostParams1 != null)
+                {
+                    HostParams1.Child = null;
+                }
+                if (HostParams2 != null)
+                {
+                    HostParams2.Child = null;
+                }
 
-            if (_gridParams2 != null)
+                if (_gridParams1 != null)
+                {
+                    _gridParams1.DataError -= Grid_DataError;
+                    DataGridFactory.ClearLinks(_gridParams1);
+                    _gridParams1.Rows.Clear();
+                    _gridParams1.Columns.Clear();
+                    _gridParams1.DataSource = null;
+                    _gridParams1.Dispose();
+                    _gridParams1 = null;
+                }
+
+                if (_gridParams2 != null)
+                {
+                    _gridParams2.DataError -= Grid_DataError;
+                    DataGridFactory.ClearLinks(_gridParams2);
+                    _gridParams2.Rows.Clear();
+                    _gridParams2.Columns.Clear();
+                    _gridParams2.DataSource = null;
+                    _gridParams2.Dispose();
+                    _gridParams2 = null;
+                }
+
+                _report = null;
+                _faze = null;
+
+                Closing -= OptimizerBotParametersSimpleUi_Closing;
+            }
+            catch (Exception ex)
             {
-                _gridParams2.DataError -= Grid_DataError;
-                _gridParams2 = null;
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            _report = null;
-            _faze = null;
         }
 
         private OptimizerReport _report;

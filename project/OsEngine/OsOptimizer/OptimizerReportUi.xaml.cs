@@ -6,6 +6,7 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market;
 using OsEngine.OsOptimizer.OptEntity;
 using OsEngine.OsTrader.Panels;
 using System;
@@ -17,7 +18,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
-using static Grpc.Tradeapi.V1.Marketdata.OrderBook.Types;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.OsOptimizer
@@ -79,10 +79,33 @@ namespace OsEngine.OsOptimizer
                 {
                     WindowsFormsHostFazeNumOnTubResult.Child = null;
                 }
-
                 if (WindowsFormsHostResults != null)
                 {
                     WindowsFormsHostResults.Child = null;
+                }
+                if (WindowsFormsHostResultsChart != null)
+                {
+                    WindowsFormsHostResultsChart.Child = null;
+                }
+                if (HostStepsOfOptimizationTable != null)
+                {
+                    HostStepsOfOptimizationTable.Child = null;
+                }
+                if (HostRobustness != null)
+                {
+                    HostRobustness.Child = null;
+                }
+                if (HostTotalProfit != null)
+                {
+                    HostTotalProfit.Child = null;
+                }
+                if (HostAverageProfit != null)
+                {
+                    HostAverageProfit.Child = null;
+                }
+                if (HostProfitFactor != null)
+                {
+                    HostProfitFactor.Child = null;
                 }
 
                 if (_gridFazesEnd != null)
@@ -90,19 +113,47 @@ namespace OsEngine.OsOptimizer
                     _gridFazesEnd.CellClick -= _gridFazesEnd_CellClick;
                     _gridFazesEnd.DataError -= _gridFazesEnd_DataError;
                     DataGridFactory.ClearLinks(_gridFazesEnd);
+                    _gridFazesEnd.Rows.Clear();
+                    _gridFazesEnd.Columns.Clear();
+                    _gridFazesEnd.DataSource = null;
+                    _gridFazesEnd.Dispose();
                     _gridFazesEnd = null;
                 }
 
                 if (_gridResults != null)
                 {
                     _gridResults.DataError -= _gridFazesEnd_DataError;
+                    _gridResults.SelectionChanged -= _gridResults_SelectionChanged;
+                    _gridResults.CellMouseClick -= _gridResults_CellMouseClick;
                     DataGridFactory.ClearLinks(_gridResults);
+                    _gridResults.Rows.Clear();
+                    _gridResults.Columns.Clear();
+                    _gridResults.DataSource = null;
+                    _gridResults.Dispose();
                     _gridResults = null;
                 }
+
+                if (_chartSeriesResult != null)
+                {
+                    _chartSeriesResult.Click -= _chartSeriesResult_Click;
+                    _chartSeriesResult.Dispose();
+                    _chartSeriesResult = null;
+                }
+
+                if (_resultsCharting != null)
+                {
+                    _resultsCharting.LogMessageEvent -= _master.SendLogMessage;
+                    _resultsCharting = null;
+                }
+
+                _master = null;
+                _reports = null;
+
+                Closed -= OptimizerReportUi_Closed;
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

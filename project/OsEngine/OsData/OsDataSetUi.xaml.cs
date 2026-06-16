@@ -148,49 +148,46 @@ namespace OsEngine.OsData
             StartButtonBlinkAnimation();
         }
 
-        private void StartButtonBlinkAnimation()
+        private void OsDataSetUi_Closed(object sender, EventArgs e)
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
+                if (_blinkTimer != null)
                 {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenDataSet.Opacity = 1;
-                            PostWhiteDataSet.Opacity = 0;
-                            return;
-                        }
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
 
-                        if (isGreenVisible)
-                        {
-                            PostGreenDataSet.Opacity = 0;
-                            PostWhiteDataSet.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenDataSet.Opacity = 1;
-                            PostWhiteDataSet.Opacity = 0;
-                        }
+                TextBoxFolderName.TextChanged -= TextBoxFolderName_TextChanged;
+                TextBoxFolderName.MouseEnter -= TextBoxFolderName_MouseEnter;
+                ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
+                ComboBoxSource.SelectionChanged -= ComboBoxSource_SelectionChanged;
 
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
+                ButtonAddSecurity.Click -= ButtonAddSecurity_Click;
+                ButtonDelSecurity.Click -= ButtonDelSecurity_Click;
+                ButtonAccept.Click -= ButtonAccept_Click;
+                SaveButton.Click -= SaveButton_Click;
+                LoadButton.Click -= LoadButton_Click;
+                ButtonDataSet.Click -= ButtonDataSet_Click;
 
-                timer.Start();
+                if (_grid != null)
+                {
+                    HostSecurities.Child = null;
+                    DataGridFactory.ClearLinks(_grid);
+                    _grid.DataError -= _grid_DataError;
+                    _grid.Rows.Clear();
+                    _grid.Columns.Clear();
+                    _grid.DataSource = null;
+                    _grid.Dispose();
+                    _grid = null;
+                }
+
+                HostSecurities = null;
+
+                _set = null;
+
+                Closed -= OsDataSetUi_Closed;
             }
             catch (Exception ex)
             {
@@ -198,27 +195,65 @@ namespace OsEngine.OsData
             }
         }
 
-        private void OsDataSetUi_Closed(object sender, EventArgs e)
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
         {
             try
             {
-                _set = null;
-
-                if (HostSecurities != null)
-                {
-                    HostSecurities.Child = null;
-                }
-
-                if (_grid != null)
-                {
-                    DataGridFactory.ClearLinks(_grid);
-                    _grid.DataError -= _grid_DataError;
-                    _grid = null;
-                }
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    PostGreenDataSet.Opacity = 1;
+                    PostWhiteDataSet.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenDataSet.Opacity = 0;
+                    PostWhiteDataSet.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenDataSet.Opacity = 1;
+                    PostWhiteDataSet.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 

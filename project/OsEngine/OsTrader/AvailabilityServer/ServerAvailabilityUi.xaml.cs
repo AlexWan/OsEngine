@@ -47,6 +47,59 @@ namespace OsEngine.OsTrader.ServerAvailability
 
             TextBoxRefreshRate.SelectionChanged += TextBoxRefreshRate_SelectionChanged;
             TextBoxRefreshRate.SelectedItem = TextBoxRefreshRate.Items[1];
+
+            Closed += ServerAvailabilityUi_Closed;
+        }
+
+        private void ServerAvailabilityUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                ServerAvailabilityMaster.PingChangeEvent -= PingConnectorsMaster_PingChangeEvent;
+
+                CheckBoxTrackPing.Checked -= CheckBoxTrackPing_Checked;
+                CheckBoxTrackPing.Unchecked -= CheckBoxTrackPing_Checked;
+
+                TextBoxRefreshRate.SelectionChanged -= TextBoxRefreshRate_SelectionChanged;
+
+                if (HostActiveConnections != null)
+                {
+                    HostActiveConnections.Child = null;
+                }
+                if (HostPingValues != null)
+                {
+                    HostPingValues.Child = null;
+                }
+
+                if (_dataGridConnector != null)
+                {
+                    _dataGridConnector.CellValueChanged -= _dataGridConnector_CellValueChanged;
+                    _dataGridConnector.DataError -= DataGrid_DataError;
+                    DataGridFactory.ClearLinks(_dataGridConnector);
+                    _dataGridConnector.Rows.Clear();
+                    _dataGridConnector.Columns.Clear();
+                    _dataGridConnector.DataSource = null;
+                    _dataGridConnector.Dispose();
+                    _dataGridConnector = null;
+                }
+
+                if (_dataGridPingValue != null)
+                {
+                    _dataGridPingValue.DataError -= DataGrid_DataError;
+                    DataGridFactory.ClearLinks(_dataGridPingValue);
+                    _dataGridPingValue.Rows.Clear();
+                    _dataGridPingValue.Columns.Clear();
+                    _dataGridPingValue.DataSource = null;
+                    _dataGridPingValue.Dispose();
+                    _dataGridPingValue = null;
+                }
+
+                Closed -= ServerAvailabilityUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #region Events

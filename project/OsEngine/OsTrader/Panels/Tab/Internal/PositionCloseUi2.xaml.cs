@@ -148,53 +148,134 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             StartButtonBlinkAnimation();
         }
 
+        private void PositionOpenUi2_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                if (Tab != null)
+                {
+                    Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
+                    Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
+                    Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+                    Tab = null;
+                }
+
+                ButtonPostPositionClose.Click -= ButtonPostPositionClose_Click;
+                ButtonCloseAtLimit.Click -= ButtonCloseAtLimit_Click;
+                ButtonCloseAtMarket.Click -= ButtonCloseAtMarket_Click;
+                ButtonCloseAtStop.Click -= ButtonCloseAtStop_Click;
+                ButtonCloseAtProfit.Click -= ButtonCloseAtProfit_Click;
+                ButtonCloseAtFake.Click -= ButtonCloseAtFake_Click;
+                ButtonFakeTimeOpenNow.Click -= ButtonFakeTimeOpenNow_Click;
+                ButtonRevokeLimit.Click -= ButtonRevokeLimit_Click;
+                ButtonRevokeProfit.Click -= ButtonRevokeProfit_Click;
+                ButtonRevokeStop.Click -= ButtonRevokeStop_Click;
+
+                LabelLimitAllOpenVolumeSend.MouseLeftButtonDown -= LabelLimitAllOpenVolumeSend_MouseLeftButtonDown;
+                LabelLimitAllOpenVolumeSend.MouseEnter -= LabelLimitAllOpenVolumeSend_MouseEnter;
+                LabelLimitAllOpenVolumeSend.MouseLeave -= LabelLimitAllOpenVolumeSend_MouseLeave;
+                LabelMarketAllOpenVolumeSend.MouseLeftButtonDown -= LabelMarketAllOpenVolumeSend_MouseLeftButtonDown;
+                LabelMarketAllOpenVolumeSend.MouseEnter -= LabelMarketAllOpenVolumeSend_MouseEnter;
+                LabelMarketAllOpenVolumeSend.MouseLeave -= LabelMarketAllOpenVolumeSend_MouseLeave;
+                LabelFakeAllOpenVolume.MouseLeftButtonDown -= LabelFakeAllOpenVolume_MouseLeftButtonDown;
+                LabelFakeAllOpenVolume.MouseEnter -= LabelFakeAllOpenVolume_MouseEnter;
+                LabelFakeAllOpenVolume.MouseLeave -= LabelFakeAllOpenVolume_MouseLeave;
+
+                if (_marketDepthPainter != null)
+                {
+                    _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
+                    _marketDepthPainter.StopPaint();
+                    _marketDepthPainter.Delete();
+                    _marketDepthPainter = null;
+                }
+
+                if (WinFormsHostMarketDepth != null)
+                {
+                    WinFormsHostMarketDepth.Child = null;
+                }
+
+                Position = null;
+
+                Closed -= PositionOpenUi2_Closed;
+            }
+            catch (Exception ex)
+            {
+                Tab?.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+            }
+
+            _isDeleted = true;
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
         private void StartButtonBlinkAnimation()
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenPositionClose.Opacity = 1;
-                            PostWhitePositionClose.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenPositionClose.Opacity = 0;
-                            PostWhitePositionClose.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenPositionClose.Opacity = 1;
-                            PostWhitePositionClose.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
                 Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenPositionClose.Opacity = 1;
+                    PostWhitePositionClose.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenPositionClose.Opacity = 0;
+                    PostWhitePositionClose.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenPositionClose.Opacity = 1;
+                    PostWhitePositionClose.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
             }
         }
 
@@ -228,37 +309,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
         }
 
-        private void PositionOpenUi2_Closed(object sender, EventArgs e)
-        {
-            try
-            {
-                if (Tab != null)
-                {
-                    Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
-                    Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
-                    Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
-                    Tab = null;
-                }
-
-                Closed -= PositionOpenUi2_Closed;
-
-                if (_marketDepthPainter != null)
-                {
-                    _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
-                    _marketDepthPainter.StopPaint();
-                    _marketDepthPainter.Delete();
-                    _marketDepthPainter = null;
-                }
-
-                Position = null;
-            }
-            catch
-            {
-                // ignore
-            }
-
-            _isDeleted = true;
-        }
 
         private bool _isDeleted;
 
@@ -300,7 +350,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             LabelTabNameValue.Content = Tab.TabName;
         }
 
-        MarketDepthPainter _marketDepthPainter;
+        private MarketDepthPainter _marketDepthPainter;
 
         public BotTabSimple Tab;
 

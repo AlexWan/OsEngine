@@ -1,10 +1,11 @@
 /*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ *пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using OsEngine.Alerts;
 using OsEngine.Entity;
+using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using System;
@@ -46,13 +47,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             LoadSecurityOnBox();
 
             // Add event handlers
-            ComboBoxTypeServer.SelectionChanged += (sender, args) =>
-            {
-                LoadPortfolioOnBox();
-                LoadClassOnBox();
-                LoadSecurityOnBox();
-            };
-            ComboBoxClass.SelectionChanged += (sender, args) => LoadSecurityOnBox();
+            ComboBoxTypeServer.SelectionChanged += ComboBoxTypeServer_SelectionChanged;
+            ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
 
             ButtonAccept.Click += ButtonAccept_Click;
             this.Loaded += BotTabOptionsUi_Loaded;
@@ -63,7 +59,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                this.Closed -= BotTabOptionsUi_Closed;
+                ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
+                ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
                 ButtonAccept.Click -= ButtonAccept_Click;
                 this.Loaded -= BotTabOptionsUi_Loaded;
 
@@ -76,13 +73,34 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     _gridSecurities.DataError -= _gridSecurities_DataError;
                     DataGridFactory.ClearLinks(_gridSecurities);
+                    _gridSecurities.Rows.Clear();
+                    _gridSecurities.Columns.Clear();
+                    _gridSecurities.DataSource = null;
+                    _gridSecurities.Dispose();
                     _gridSecurities = null;
                 }
-            }
-            catch
-            {
 
+                _tab = null;
+                _servers = null;
+
+                this.Closed -= BotTabOptionsUi_Closed;
             }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            LoadPortfolioOnBox();
+            LoadClassOnBox();
+            LoadSecurityOnBox();
+        }
+
+        private void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            LoadSecurityOnBox();
         }
 
         private void BotTabOptionsUi_Loaded(object sender, RoutedEventArgs e)

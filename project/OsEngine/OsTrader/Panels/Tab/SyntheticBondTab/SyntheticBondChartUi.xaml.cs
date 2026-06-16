@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Forms.DataVisualization.Charting;
+using OsEngine.Logging;
 
 namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 {
@@ -122,6 +123,120 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             UpdatePositionsOnChart();
 
             Closed += SyntheticBondOffsetUi_Closed;
+        }
+
+        private void SyntheticBondOffsetUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                Closed -= SyntheticBondOffsetUi_Closed;
+
+                CheckBoxCointegrationAutoIsOn.Click -= CheckBoxCointegrationAutoIsOn_Click;
+
+                BotTabSimple baseTab = _syntheticBond.SelectedScenario.ArbitrationIceberg.MainLegs[0].BotTab;
+                BotTabSimple futuresTab = _syntheticBond.SelectedScenario.ArbitrationIceberg.SecondaryLegs[0].BotTab;
+
+                if (baseTab != null)
+                {
+                    baseTab.CandleUpdateEvent -= Tab_CandleUpdateEvent;
+                    baseTab.CandleFinishedEvent -= Tab_CandleUpdateEvent;
+
+                    baseTab.PositionOpeningSuccesEvent -= Tab_PositionChangeEvent;
+                    baseTab.PositionOpeningFailEvent -= Tab_PositionChangeEvent;
+                    baseTab.PositionClosingSuccesEvent -= Tab_PositionChangeEvent;
+                    baseTab.PositionClosingFailEvent -= Tab_PositionChangeEvent;
+                }
+
+                if (futuresTab != null)
+                {
+                    futuresTab.CandleUpdateEvent -= Tab_CandleUpdateEvent;
+                    futuresTab.CandleFinishedEvent -= Tab_CandleUpdateEvent;
+
+                    futuresTab.PositionOpeningSuccesEvent -= Tab_PositionChangeEvent;
+                    futuresTab.PositionOpeningFailEvent -= Tab_PositionChangeEvent;
+                    futuresTab.PositionClosingSuccesEvent -= Tab_PositionChangeEvent;
+                    futuresTab.PositionClosingFailEvent -= Tab_PositionChangeEvent;
+                }
+
+                _syntheticBondSeries.ContangoChangeEvent -= SynteticBond_ContangoChangeEvent;
+                _syntheticBondSeries.CointegrationChangeEvent -= SynteticBond_CointegrationChangeEvent;
+
+                // Отписка от тестера
+
+                if (baseTab != null && baseTab.StartProgram == StartProgram.IsTester)
+                {
+                    TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
+                    server.TestingEndEvent -= Server_TestingEndEvent;
+                    server.TestingFastEvent -= Server_TestingFastEvent;
+                    server.TestingStartEvent -= Server_TestingStartEvent;
+                    server.TestRegimeChangeEvent -= Server_TestRegimeChangeEvent;
+                }
+
+                // Очистка графиков
+
+                if (_chartSec1 != null)
+                {
+                    if (_chartSec1.Indicators != null)
+                    {
+                        _chartSec1.Indicators.Clear();
+                    }
+
+                    _chartSec1.StopPaint();
+                    _chartSec1.Delete();
+                    _chartSec1 = null;
+                }
+
+                if (HostSec1 != null)
+                {
+                    HostSec1.Child = null;
+                }
+
+                if (_chartSec2 != null)
+                {
+                    if (_chartSec2.Indicators != null)
+                    {
+                        _chartSec2.Indicators.Clear();
+                    }
+
+                    _chartSec2.StopPaint();
+                    _chartSec2.Delete();
+                    _chartSec2 = null;
+                }
+
+                if (HostSec2 != null)
+                {
+                    HostSec2.Child = null;
+                }
+
+                if (_chartContango != null)
+                {
+                    _chartContango.Series.Clear();
+                    _chartContango = null;
+                }
+
+                if (HostContango != null)
+                {
+                    HostContango.Child = null;
+                }
+
+                if (_chartCointegration != null)
+                {
+                    _chartCointegration.Series.Clear();
+                    _chartCointegration = null;
+                }
+
+                if (HostCointegration != null)
+                {
+                    HostCointegration.Child = null;
+                }
+
+                _syntheticBond = null;
+                _syntheticBondSeries = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void PaintCandles()
@@ -733,99 +848,5 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         #endregion
 
-        #region Window closed
-
-        private void SyntheticBondOffsetUi_Closed(object sender, EventArgs e)
-        {
-            try
-            {
-                Closed -= SyntheticBondOffsetUi_Closed;
-
-                CheckBoxCointegrationAutoIsOn.Click -= CheckBoxCointegrationAutoIsOn_Click;
-
-                BotTabSimple baseTab = _syntheticBond.SelectedScenario.ArbitrationIceberg.MainLegs[0].BotTab;
-                BotTabSimple futuresTab = _syntheticBond.SelectedScenario.ArbitrationIceberg.SecondaryLegs[0].BotTab;
-
-                if (baseTab != null)
-                {
-                    baseTab.CandleUpdateEvent -= Tab_CandleUpdateEvent;
-                    baseTab.CandleFinishedEvent -= Tab_CandleUpdateEvent;
-
-                    baseTab.PositionOpeningSuccesEvent -= Tab_PositionChangeEvent;
-                    baseTab.PositionOpeningFailEvent -= Tab_PositionChangeEvent;
-                    baseTab.PositionClosingSuccesEvent -= Tab_PositionChangeEvent;
-                    baseTab.PositionClosingFailEvent -= Tab_PositionChangeEvent;
-                }
-
-                if (futuresTab != null)
-                {
-                    futuresTab.CandleUpdateEvent -= Tab_CandleUpdateEvent;
-                    futuresTab.CandleFinishedEvent -= Tab_CandleUpdateEvent;
-
-                    futuresTab.PositionOpeningSuccesEvent -= Tab_PositionChangeEvent;
-                    futuresTab.PositionOpeningFailEvent -= Tab_PositionChangeEvent;
-                    futuresTab.PositionClosingSuccesEvent -= Tab_PositionChangeEvent;
-                    futuresTab.PositionClosingFailEvent -= Tab_PositionChangeEvent;
-                }
-
-                _syntheticBondSeries.ContangoChangeEvent -= SynteticBond_ContangoChangeEvent;
-                _syntheticBondSeries.CointegrationChangeEvent -= SynteticBond_CointegrationChangeEvent;
-
-                // Отписка от тестера
-
-                if (baseTab != null && baseTab.StartProgram == StartProgram.IsTester)
-                {
-                    TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
-                    server.TestingEndEvent -= Server_TestingEndEvent;
-                    server.TestingFastEvent -= Server_TestingFastEvent;
-                    server.TestingStartEvent -= Server_TestingStartEvent;
-                    server.TestRegimeChangeEvent -= Server_TestRegimeChangeEvent;
-                }
-
-                // Очистка графиков
-
-                if (_chartSec1 != null)
-                {
-                    if (_chartSec1.Indicators != null)
-                    {
-                        _chartSec1.Indicators.Clear();
-                    }
-
-                    _chartSec1.StopPaint();
-                    _chartSec1.Delete();
-                    _chartSec1 = null;
-                }
-
-                if (_chartSec2 != null)
-                {
-                    if (_chartSec2.Indicators != null)
-                    {
-                        _chartSec2.Indicators.Clear();
-                    }
-
-                    _chartSec2.StopPaint();
-                    _chartSec2.Delete();
-                    _chartSec2 = null;
-                }
-
-                if (_chartContango != null)
-                {
-                    _chartContango.Series.Clear();
-                    _chartContango = null;
-                }
-
-                if (_chartCointegration != null)
-                {
-                    _chartCointegration.Series.Clear();
-                    _chartCointegration = null;
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-
-        #endregion
     }
 }

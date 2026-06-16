@@ -550,6 +550,11 @@ namespace OsEngine.Entity
 
         private void _blinkTimer_Tick(object sender, EventArgs e)
         {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
             try
             {
                 if (_blinkCount >= 20)
@@ -577,7 +582,10 @@ namespace OsEngine.Entity
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                _blinkTimer.Stop();
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 

@@ -297,8 +297,124 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             ValidateLifetimeAndFrequency(ExitOrderTypeSec2ComboBox, ExitLifetimeOrderSec2TextBox, ExitOrderFrequencySec2TextBox);
         }
 
+        private void SyntheticBondOffsetUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                Closed -= SyntheticBondOffsetUi_Closed;
+
+                _updateTimer.Stop();
+                _updateTimer.Tick -= UpdateTimer_Tick;
+                _updateTimer = null;
+
+                //ScenarioComboBox.SelectionChanged -= ScenarioComboBox_SelectionChanged;
+                TimeShiftTextBox.TextChanged -= TimeShiftTextBox_TextChanged;
+                MinSpreadTextBox.TextChanged -= MinSpreadTextBox_TextChanged;
+                MaxSpreadTextBox.TextChanged -= MaxSpreadTextBox_TextChanged;
+                //TextBoxContangoLookBack.TextChanged -= TextBoxContangoLookBack_TextChanged;
+                TextBoxCointegrationLookBack.TextChanged -= TextBoxCointegrationLookBack_TextChanged;
+                TextBoxCointegrationDeviation.TextChanged -= TextBoxCointegrationDeviation_TextChanged;
+                EnterTextBoxAssetPortfolioSec1.TextChanged -= EnterTextBoxAssetPortfolioSec1_TextChanged;
+                EnterTextBoxAssetPortfolioSec2.TextChanged -= EnterTextBoxAssetPortfolioSec2_TextChanged;
+                NonTradePeriodButton.Click -= NonTradePeriodButton_Click;
+                TradeModeComboBox.SelectionChanged -= TradeModeComboBox_SelectionChanged;
+                EnterVolumeTypeSec1ComboBox.SelectionChanged -= EnterVolumeTypeSec1ComboBox_SelectionChanged;
+                EnterVolumeTypeSec2ComboBox.SelectionChanged -= EnterVolumeTypeSec2ComboBox_SelectionChanged;
+                ExitVolumeTypeSec1ComboBox.SelectionChanged -= ExitVolumeTypeSec1ComboBox_SelectionChanged;
+                ExitVolumeTypeSec2ComboBox.SelectionChanged -= ExitVolumeTypeSec2ComboBox_SelectionChanged;
+                EnterTotalVolumeSec1TextBox.TextChanged -= EnterTotalVolumeSec1TextBox_TextChanged;
+                EnterTotalVolumeSec2TextBox.TextChanged -= EnterTotalVolumeSec2TextBox_TextChanged;
+                EnterOneOrderSec1TextBox.TextChanged -= EnterOneOrderSec1TextBox_TextChanged;
+                EnterOneOrderSec2TextBox.TextChanged -= EnterOneOrderSec2TextBox_TextChanged;
+                EnterOrderTypeSec1ComboBox.SelectionChanged -= EnterOrderTypeSec1ComboBox_SelectionChanged;
+                ExitOneOrderSec1TextBox.TextChanged -= ExitOneOrderSec1TextBox_TextChanged;
+                ExitOneOrderSec2TextBox.TextChanged -= ExitOneOrderSec2TextBox_TextChanged;
+                EnterOrderTypeSec2ComboBox.SelectionChanged -= EnterOrderTypeSec2ComboBox_SelectionChanged;
+                ExitOrderTypeSec1ComboBox.SelectionChanged -= ExitOrderTypeSec1ComboBox_SelectionChanged;
+                ExitOrderTypeSec2ComboBox.SelectionChanged -= ExitOrderTypeSec2ComboBox_SelectionChanged;
+                EnterOrderPositionSec1ComboBox.SelectionChanged -= EnterOrderPositionSec1ComboBox_SelectionChanged;
+                EnterOrderPositionSec2ComboBox.SelectionChanged -= EnterOrderPositionSec2ComboBox_SelectionChanged;
+                ExitOrderPositionSec1ComboBox.SelectionChanged -= ExitOrderPositionSec1ComboBox_SelectionChanged;
+                ExitOrderPositionSec2ComboBox.SelectionChanged -= ExitOrderPositionSec2ComboBox_SelectionChanged;
+                EnterSlippageSec1TextBox.TextChanged -= EnterSlippageSec1TextBox_TextChanged;
+                EnterSlippageSec2TextBox.TextChanged -= EnterSlippageSec2TextBox_TextChanged;
+                ExitSlippageSec1TextBox.TextChanged -= ExitSlippageSec1TextBox_TextChanged;
+                ExitSlippageSec2TextBox.TextChanged -= ExitSlippageSec2TextBox_TextChanged;
+                EnterLifetimeOrderSec1TextBox.TextChanged -= EnterLifetimeOrderSec1TextBox_TextChanged;
+                EnterLifetimeOrderSec2TextBox.TextChanged -= EnterLifetimeOrderSec2TextBox_TextChanged;
+                ExitLifetimeOrderSec1TextBox.TextChanged -= ExitLifetimeOrderSec1TextBox_TextChanged;
+                ExitLifetimeOrderSec2TextBox.TextChanged -= ExitLifetimeOrderSec2TextBox_TextChanged;
+                EnterOrderFrequencySec1TextBox.TextChanged -= EnterOrderFrequencySec1TextBox_TextChanged;
+                EnterOrderFrequencySec2TextBox.TextChanged -= EnterOrderFrequencySec2TextBox_TextChanged;
+                ExitOrderFrequencySec1TextBox.TextChanged -= ExitOrderFrequencySec1TextBox_TextChanged;
+                ExitOrderFrequencySec2TextBox.TextChanged -= ExitOrderFrequencySec2TextBox_TextChanged;
+
+                _gridOpenStepsStatisticBase.CellClick -= _gridOpenStepsStatisticBase_CellClick;
+                _gridOpenStepsStatisticFutures.CellClick -= _gridOpenStepsStatisticFutures_CellClick;
+                _gridCloseStepsStatisticBase.CellClick -= _gridCloseStepsStatisticBase_CellClick;
+                _gridCloseStepsStatisticFutures.CellClick -= _gridCloseStepsStatisticFutures_CellClick;
+
+                if (_gridOpenStepsBase != null) _gridOpenStepsBase.DataError -= Grid_DataError;
+                if (_gridOpenStepsStatisticBase != null) _gridOpenStepsStatisticBase.DataError -= Grid_DataError;
+                if (_gridOpenStepsFutures != null) _gridOpenStepsFutures.DataError -= Grid_DataError;
+                if (_gridOpenStepsStatisticFutures != null) _gridOpenStepsStatisticFutures.DataError -= Grid_DataError;
+                if (_gridCloseStepsBase != null) _gridCloseStepsBase.DataError -= Grid_DataError;
+                if (_gridCloseStepsStatisticBase != null) _gridCloseStepsStatisticBase.DataError -= Grid_DataError;
+                if (_gridCloseStepsFutures != null) _gridCloseStepsFutures.DataError -= Grid_DataError;
+                if (_gridCloseStepsStatisticFutures != null) _gridCloseStepsStatisticFutures.DataError -= Grid_DataError;
+
+                UnsubscribeFromScenarioEvents();
+
+                if (OpenStepsBaseHost != null) OpenStepsBaseHost.Child = null;
+                if (OpenStepsBaseStatisticHost != null) OpenStepsBaseStatisticHost.Child = null;
+                if (OpenStepsFuturesHost != null) OpenStepsFuturesHost.Child = null;
+                if (OpenStepsFuturesStatisticHost != null) OpenStepsFuturesStatisticHost.Child = null;
+                if (CloseStepsBaseHost != null) CloseStepsBaseHost.Child = null;
+                if (CloseStepsBaseStatisticHost != null) CloseStepsBaseStatisticHost.Child = null;
+                if (CloseStepsFuturesHost != null) CloseStepsFuturesHost.Child = null;
+                if (CloseStepsFuturesStatisticHost != null) CloseStepsFuturesStatisticHost.Child = null;
+
+                ClearDataGridView(ref _gridOpenStepsBase);
+                ClearDataGridView(ref _gridOpenStepsStatisticBase);
+                ClearDataGridView(ref _gridOpenStepsFutures);
+                ClearDataGridView(ref _gridOpenStepsStatisticFutures);
+                ClearDataGridView(ref _gridCloseStepsBase);
+                ClearDataGridView(ref _gridCloseStepsStatisticBase);
+                ClearDataGridView(ref _gridCloseStepsFutures);
+                ClearDataGridView(ref _gridCloseStepsStatisticFutures);
+
+                _syntheticBond = null;
+                _syntheticBondSeries = null;
+                _selectedScenario = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ClearDataGridView(ref DataGridView grid)
+        {
+            if (grid == null)
+            {
+                return;
+            }
+
+            DataGridFactory.ClearLinks(grid);
+            grid.Rows.Clear();
+            grid.Columns.Clear();
+            grid.DataSource = null;
+            grid.Dispose();
+            grid = null;
+        }
+
         private void UpdateTimer_Tick(object sender, EventArgs e)
         {
+            if (_updateTimer == null)
+            {
+                return;
+            }
+
             try
             {
                 decimal sec1Volume = _selectedScenario?.ArbitrationIceberg?.MainLegs[0]?.ArbitrationLegStatistic.CurrentPosition?.OpenVolume ?? 0;
@@ -1070,76 +1186,6 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private void SyntheticBondOffsetUi_Closed(object sender, EventArgs e)
-        {
-            try
-            {
-                Closed -= SyntheticBondOffsetUi_Closed;
-
-                _updateTimer.Stop();
-                _updateTimer.Tick -= UpdateTimer_Tick;
-                //ScenarioComboBox.SelectionChanged -= ScenarioComboBox_SelectionChanged;
-                TimeShiftTextBox.TextChanged -= TimeShiftTextBox_TextChanged;
-                MinSpreadTextBox.TextChanged -= MinSpreadTextBox_TextChanged;
-                MaxSpreadTextBox.TextChanged -= MaxSpreadTextBox_TextChanged;
-                //TextBoxContangoLookBack.TextChanged -= TextBoxContangoLookBack_TextChanged;
-                TextBoxCointegrationLookBack.TextChanged -= TextBoxCointegrationLookBack_TextChanged;
-                TextBoxCointegrationDeviation.TextChanged -= TextBoxCointegrationDeviation_TextChanged;
-                EnterTextBoxAssetPortfolioSec1.TextChanged -= EnterTextBoxAssetPortfolioSec1_TextChanged;
-                EnterTextBoxAssetPortfolioSec2.TextChanged -= EnterTextBoxAssetPortfolioSec2_TextChanged;
-                NonTradePeriodButton.Click -= NonTradePeriodButton_Click;
-                TradeModeComboBox.SelectionChanged -= TradeModeComboBox_SelectionChanged;
-                EnterVolumeTypeSec1ComboBox.SelectionChanged -= EnterVolumeTypeSec1ComboBox_SelectionChanged;
-                EnterVolumeTypeSec2ComboBox.SelectionChanged -= EnterVolumeTypeSec2ComboBox_SelectionChanged;
-                ExitVolumeTypeSec1ComboBox.SelectionChanged -= ExitVolumeTypeSec1ComboBox_SelectionChanged;
-                ExitVolumeTypeSec2ComboBox.SelectionChanged -= ExitVolumeTypeSec2ComboBox_SelectionChanged;
-                EnterTotalVolumeSec1TextBox.TextChanged -= EnterTotalVolumeSec1TextBox_TextChanged;
-                EnterTotalVolumeSec2TextBox.TextChanged -= EnterTotalVolumeSec2TextBox_TextChanged;
-                EnterOneOrderSec1TextBox.TextChanged -= EnterOneOrderSec1TextBox_TextChanged;
-                EnterOneOrderSec2TextBox.TextChanged -= EnterOneOrderSec2TextBox_TextChanged;
-                EnterOrderTypeSec1ComboBox.SelectionChanged -= EnterOrderTypeSec1ComboBox_SelectionChanged;
-                ExitOneOrderSec1TextBox.TextChanged -= ExitOneOrderSec1TextBox_TextChanged;
-                ExitOneOrderSec2TextBox.TextChanged -= ExitOneOrderSec2TextBox_TextChanged;
-                EnterOrderTypeSec2ComboBox.SelectionChanged -= EnterOrderTypeSec2ComboBox_SelectionChanged;
-                ExitOrderTypeSec1ComboBox.SelectionChanged -= ExitOrderTypeSec1ComboBox_SelectionChanged;
-                ExitOrderTypeSec2ComboBox.SelectionChanged -= ExitOrderTypeSec2ComboBox_SelectionChanged;
-                EnterOrderPositionSec1ComboBox.SelectionChanged -= EnterOrderPositionSec1ComboBox_SelectionChanged;
-                EnterOrderPositionSec2ComboBox.SelectionChanged -= EnterOrderPositionSec2ComboBox_SelectionChanged;
-                ExitOrderPositionSec1ComboBox.SelectionChanged -= ExitOrderPositionSec1ComboBox_SelectionChanged;
-                ExitOrderPositionSec2ComboBox.SelectionChanged -= ExitOrderPositionSec2ComboBox_SelectionChanged;
-                EnterSlippageSec1TextBox.TextChanged -= EnterSlippageSec1TextBox_TextChanged;
-                EnterSlippageSec2TextBox.TextChanged -= EnterSlippageSec2TextBox_TextChanged;
-                ExitSlippageSec1TextBox.TextChanged -= ExitSlippageSec1TextBox_TextChanged;
-                ExitSlippageSec2TextBox.TextChanged -= ExitSlippageSec2TextBox_TextChanged;
-                EnterLifetimeOrderSec1TextBox.TextChanged -= EnterLifetimeOrderSec1TextBox_TextChanged;
-                EnterLifetimeOrderSec2TextBox.TextChanged -= EnterLifetimeOrderSec2TextBox_TextChanged;
-                ExitLifetimeOrderSec1TextBox.TextChanged -= ExitLifetimeOrderSec1TextBox_TextChanged;
-                ExitLifetimeOrderSec2TextBox.TextChanged -= ExitLifetimeOrderSec2TextBox_TextChanged;
-                EnterOrderFrequencySec1TextBox.TextChanged -= EnterOrderFrequencySec1TextBox_TextChanged;
-                EnterOrderFrequencySec2TextBox.TextChanged -= EnterOrderFrequencySec2TextBox_TextChanged;
-                ExitOrderFrequencySec1TextBox.TextChanged -= ExitOrderFrequencySec1TextBox_TextChanged;
-                ExitOrderFrequencySec2TextBox.TextChanged -= ExitOrderFrequencySec2TextBox_TextChanged;
-
-                _gridOpenStepsStatisticBase.CellClick -= _gridOpenStepsStatisticBase_CellClick;
-                _gridOpenStepsStatisticFutures.CellClick -= _gridOpenStepsStatisticFutures_CellClick;
-                _gridCloseStepsStatisticBase.CellClick -= _gridCloseStepsStatisticBase_CellClick;
-                _gridCloseStepsStatisticFutures.CellClick -= _gridCloseStepsStatisticFutures_CellClick;
-
-                if (_gridOpenStepsBase != null) _gridOpenStepsBase.DataError -= Grid_DataError;
-                if (_gridOpenStepsStatisticBase != null) _gridOpenStepsStatisticBase.DataError -= Grid_DataError;
-                if (_gridOpenStepsFutures != null) _gridOpenStepsFutures.DataError -= Grid_DataError;
-                if (_gridOpenStepsStatisticFutures != null) _gridOpenStepsStatisticFutures.DataError -= Grid_DataError;
-                if (_gridCloseStepsBase != null) _gridCloseStepsBase.DataError -= Grid_DataError;
-                if (_gridCloseStepsStatisticBase != null) _gridCloseStepsStatisticBase.DataError -= Grid_DataError;
-                if (_gridCloseStepsFutures != null) _gridCloseStepsFutures.DataError -= Grid_DataError;
-                if (_gridCloseStepsStatisticFutures != null) _gridCloseStepsStatisticFutures.DataError -= Grid_DataError;
-            }
-            catch
-            {
-                // ignore
             }
         }
 
@@ -3263,6 +3309,36 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             scenario.ArbitrationIceberg.InfoLogEvent += OnIcebergInfoLog;
             scenario.ScenarioFilledEvent += OnScenarioFilled;
             scenario.ScenarioClosedEvent += OnScenarioClosed;
+        }
+
+        private void UnsubscribeFromScenarioEvents()
+        {
+            if (_syntheticBond == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _syntheticBond.ActiveScenarios.Count; i++)
+            {
+                UnsubscribeFromScenario(_syntheticBond.ActiveScenarios[i]);
+            }
+
+            for (int i = 0; i < _syntheticBond.DeletedScenarios.Count; i++)
+            {
+                UnsubscribeFromScenario(_syntheticBond.DeletedScenarios[i]);
+            }
+        }
+
+        private void UnsubscribeFromScenario(BondScenario scenario)
+        {
+            if (scenario == null)
+            {
+                return;
+            }
+
+            scenario.ArbitrationIceberg.InfoLogEvent -= OnIcebergInfoLog;
+            scenario.ScenarioFilledEvent -= OnScenarioFilled;
+            scenario.ScenarioClosedEvent -= OnScenarioClosed;
         }
 
         private void OnIcebergInfoLog(string message)

@@ -2,6 +2,7 @@
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
+using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -43,6 +44,27 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
             ButtonCancel.Content = OsLocalization.Trader.Label425;
             ButtonAccept.Content = OsLocalization.Trader.Label426;
             Title =  OsLocalization.Trader.Label427;
+
+            Closed += RobotUiLightBlock_Closed;
+        }
+
+        private void RobotUiLightBlock_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                ImageEye.MouseDown -= ImageEye_MouseDown;
+                ImageEye.MouseEnter -= ImageEye_MouseEnter;
+                ImageEye.MouseLeave -= ImageEye_MouseLeave;
+
+                ButtonAccept.Click -= ButtonAccept_Click;
+                ButtonCancel.Click -= ButtonCancel_Click;
+
+                Closed -= RobotUiLightBlock_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         public bool InterfaceIsBlock;

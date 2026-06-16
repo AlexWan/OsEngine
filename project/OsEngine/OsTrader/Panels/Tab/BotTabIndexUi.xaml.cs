@@ -150,72 +150,30 @@ namespace OsEngine.OsTrader.Panels.Tab
             worker.Start();
         }
 
-        private void StartButtonBlinkAnimation()
-        {
-            try
-            {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            GreenCollectionIndex.Opacity = 1;
-                            WhiteCollectionIndex.Opacity = 0;
-                            PostGreenIndex.Opacity = 1;
-                            PostWhiteIndex.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            GreenCollectionIndex.Opacity = 0;
-                            WhiteCollectionIndex.Opacity = 1;
-                            PostGreenIndex.Opacity = 0;
-                            PostWhiteIndex.Opacity = 1;
-                        }
-                        else
-                        {
-                            GreenCollectionIndex.Opacity = 1;
-                            WhiteCollectionIndex.Opacity = 0;
-                            PostGreenIndex.Opacity = 1;
-                            PostWhiteIndex.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
         private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
         {
             try
             {
                 _windowIsClosed = true;
 
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
                 if (_uiNewSecurities != null)
                 {
+                    _uiNewSecurities.Closed -= UiSecuritiesSelection_Closed;
                     _uiNewSecurities.Close();
+                    _uiNewSecurities = null;
                 }
+
+                TextboxUserFormula.TextChanged -= TextboxUserFormula_TextChanged;
+                TextBoxDepth.TextChanged -= TextBoxDepth_TextChanged;
+                CheckBoxPercentNormalization.Click -= CheckBoxPercentNormalization_Click;
+                ButtonPostsIndex.Click -= ButtonPostsIndex_Click;
 
                 ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
                 ComboBoxDayOfWeekToRebuildIndex.SelectionChanged -= ComboBoxDayOfWeekToRebuildIndex_SelectionChanged;
@@ -227,7 +185,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ComboBoxDaysLookBackInBuilding.SelectionChanged -= ComboBoxDaysLookBackInBuilding_SelectionChanged;
                 ButtonRebuildFormulaNow.Click -= ButtonRebuildFormulaNow_Click;
 
-                this.Closed -= BotTabIndexUi_Closed;
+                if (HostSecurity1 != null)
+                {
+                    HostSecurity1.Child = null;
+                }
 
                 if (_sourcesGrid != null)
                 {
@@ -236,15 +197,90 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _sourcesGrid.DataError -= _sourcesGrid_DataError;
                     DataGridFactory.ClearLinks(_sourcesGrid);
                     _sourcesGrid.Rows.Clear();
+                    _sourcesGrid.Columns.Clear();
+                    _sourcesGrid.DataSource = null;
+                    _sourcesGrid.Dispose();
                     _sourcesGrid = null;
                 }
-                
+
                 _spread = null;
+
+                this.Closed -= BotTabIndexUi_Closed;
             }
             catch (Exception ex)
             {
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.Message);
                 ui.ShowDialog();
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    GreenCollectionIndex.Opacity = 1;
+                    WhiteCollectionIndex.Opacity = 0;
+                    PostGreenIndex.Opacity = 1;
+                    PostWhiteIndex.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    GreenCollectionIndex.Opacity = 0;
+                    WhiteCollectionIndex.Opacity = 1;
+                    PostGreenIndex.Opacity = 0;
+                    PostWhiteIndex.Opacity = 1;
+                }
+                else
+                {
+                    GreenCollectionIndex.Opacity = 1;
+                    WhiteCollectionIndex.Opacity = 0;
+                    PostGreenIndex.Opacity = 1;
+                    PostWhiteIndex.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 

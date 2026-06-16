@@ -17,7 +17,7 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public partial class BotTabPolygonCommonSettingsUi : Window
     {
-        BotTabPolygon _polygon;
+        private BotTabPolygon _polygon;
 
         public BotTabPolygonCommonSettingsUi(BotTabPolygon polygon)
         {
@@ -98,49 +98,24 @@ namespace OsEngine.OsTrader.Panels.Tab
             StartButtonBlinkAnimation();
         }
 
-        private void StartButtonBlinkAnimation()
+        private void BotTabPolygonCommonSettingsUi_Closed(object sender, EventArgs e)
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
+                if (_blinkTimer != null)
                 {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenPolygonCommonSettings.Opacity = 1;
-                            PostWhitePolygonCommonSettings.Opacity = 0;
-                            return;
-                        }
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
 
-                        if (isGreenVisible)
-                        {
-                            PostGreenPolygonCommonSettings.Opacity = 0;
-                            PostWhitePolygonCommonSettings.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenPolygonCommonSettings.Opacity = 1;
-                            PostWhitePolygonCommonSettings.Opacity = 0;
-                        }
+                ButtonSave.Click -= ButtonSave_Click;
+                ButtonApply.Click -= ButtonApply_Click;
+                ButtonPostPolygonCommonSettings.Click -= ButtonPostPolygonCommonSettings_Click;
 
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
+                _polygon = null;
 
-                timer.Start();
+                Closed -= BotTabPolygonCommonSettingsUi_Closed;
             }
             catch (Exception ex)
             {
@@ -148,12 +123,70 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void BotTabPolygonCommonSettingsUi_Closed(object sender, EventArgs e)
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
         {
-            ButtonSave.Click -= ButtonSave_Click;
-            ButtonApply.Click -= ButtonApply_Click;
-            this.Closed -= BotTabPolygonCommonSettingsUi_Closed;
-            _polygon = null;
+            try
+            {
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenPolygonCommonSettings.Opacity = 1;
+                    PostWhitePolygonCommonSettings.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenPolygonCommonSettings.Opacity = 0;
+                    PostWhitePolygonCommonSettings.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenPolygonCommonSettings.Opacity = 1;
+                    PostWhitePolygonCommonSettings.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+            }
         }
 
         private void ButtonApply_Click(object sender, RoutedEventArgs e)

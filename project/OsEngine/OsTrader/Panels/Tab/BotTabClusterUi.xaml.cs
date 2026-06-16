@@ -55,55 +55,102 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             StartButtonBlinkAnimation();
+
+            Closed += BotTabClusterUi_Closed;
         }
+
+        private void BotTabClusterUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                TextBoxStep.TextChanged -= TextBoxStep_TextChanged;
+                ButtonPostsCluster.Click -= ButtonPostsCluster_Click;
+
+                if (_instructionsUi != null)
+                {
+                    _instructionsUi.Closed -= _instructionsUi_Closed;
+                    _instructionsUi = null;
+                }
+
+                _tab = null;
+                _lineStep = 0;
+
+                Closed -= BotTabClusterUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
 
         private void StartButtonBlinkAnimation()
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            GreenCollectionCluster.Opacity = 1;
-                            WhiteCollectionCluster.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            GreenCollectionCluster.Opacity = 0;
-                            WhiteCollectionCluster.Opacity = 1;
-                        }
-                        else
-                        {
-                            GreenCollectionCluster.Opacity = 1;
-                            WhiteCollectionCluster.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    GreenCollectionCluster.Opacity = 1;
+                    WhiteCollectionCluster.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    GreenCollectionCluster.Opacity = 0;
+                    WhiteCollectionCluster.Opacity = 1;
+                }
+                else
+                {
+                    GreenCollectionCluster.Opacity = 1;
+                    WhiteCollectionCluster.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 

@@ -129,6 +129,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 ComboBoxOrdersTypeTime.SelectionChanged += ComboBoxOrdersTypeTime_SelectionChanged;
                 ComboBoxOrdersTypeTime_SelectionChanged(null, null);
+
+                Closed += BotManualControlUi_Closed;
             }
             catch (Exception error)
             {
@@ -145,6 +147,33 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
 
             StartButtonBlinkAnimation();
+        }
+
+        private void BotManualControlUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                ComboBoxOrdersTypeTime.SelectionChanged -= ComboBoxOrdersTypeTime_SelectionChanged;
+                ButtonAccept.Click -= ButtonAccept_Click;
+                ButtonBotManualControl.Click -= ButtonBotManualControl_Click;
+                CheckBoxDoubleExitIsOnIsOn.Checked -= CheckBox_Checked;
+
+                _strategySettings = null;
+                _serverPermission = null;
+
+                Closed -= BotManualControlUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -268,53 +297,69 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
         }
 
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
         private void StartButtonBlinkAnimation()
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenBotManualControl.Opacity = 1;
-                            PostWhiteBotManualControl.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenBotManualControl.Opacity = 0;
-                            PostWhiteBotManualControl.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenBotManualControl.Opacity = 1;
-                            PostWhiteBotManualControl.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenBotManualControl.Opacity = 1;
+                    PostWhiteBotManualControl.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenBotManualControl.Opacity = 0;
+                    PostWhiteBotManualControl.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenBotManualControl.Opacity = 1;
+                    PostWhiteBotManualControl.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
             }
         }
 

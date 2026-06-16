@@ -21,6 +21,10 @@ namespace OsEngine.OsTrader.SystemAnalyze
     {
         #region Service
 
+        private DispatcherTimer _blinkTimer;
+        private int _blinkCount;
+        private bool _isGreenVisible = true;
+
         public SystemAnalyzeUi()
         {
             InitializeComponent();
@@ -138,45 +142,10 @@ namespace OsEngine.OsTrader.SystemAnalyze
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenSystemAnalyze.Opacity = 1;
-                            PostWhiteSystemAnalyze.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenSystemAnalyze.Opacity = 0;
-                            PostWhiteSystemAnalyze.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenSystemAnalyze.Opacity = 1;
-                            PostWhiteSystemAnalyze.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
@@ -184,46 +153,105 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenSystemAnalyze.Opacity = 1;
+                    PostWhiteSystemAnalyze.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenSystemAnalyze.Opacity = 0;
+                    PostWhiteSystemAnalyze.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenSystemAnalyze.Opacity = 1;
+                    PostWhiteSystemAnalyze.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+            }
+        }
+
         private void SystemAnalyzeUi_Closed(object sender, EventArgs e)
         {
-            SystemUsageAnalyzeMaster.RamUsageCollectionChange -= SystemUsageAnalyzeMaster_RamUsageCollectionChange;
-            SystemUsageAnalyzeMaster.CpuUsageCollectionChange -= SystemUsageAnalyzeMaster_CpuUsageCollectionChange;
-            SystemUsageAnalyzeMaster.EcqUsageCollectionChange -= SystemUsageAnalyzeMaster_EcqUsageCollectionChange;
-            SystemUsageAnalyzeMaster.MoqUsageCollectionChange -= SystemUsageAnalyzeMaster_MoqUsageCollectionChange;
+            try
+            {
+                SystemUsageAnalyzeMaster.RamUsageCollectionChange -= SystemUsageAnalyzeMaster_RamUsageCollectionChange;
+                SystemUsageAnalyzeMaster.CpuUsageCollectionChange -= SystemUsageAnalyzeMaster_CpuUsageCollectionChange;
+                SystemUsageAnalyzeMaster.EcqUsageCollectionChange -= SystemUsageAnalyzeMaster_EcqUsageCollectionChange;
+                SystemUsageAnalyzeMaster.MoqUsageCollectionChange -= SystemUsageAnalyzeMaster_MoqUsageCollectionChange;
 
-            CheckBoxRamCollectDataIsOn.Checked -= CheckBoxRamCollectDataIsOn_Checked;
-            CheckBoxRamCollectDataIsOn.Unchecked -= CheckBoxRamCollectDataIsOn_Checked;
+                CheckBoxRamCollectDataIsOn.Checked -= CheckBoxRamCollectDataIsOn_Checked;
+                CheckBoxRamCollectDataIsOn.Unchecked -= CheckBoxRamCollectDataIsOn_Checked;
 
-            CheckBoxCpuCollectDataIsOn.Checked -= CheckBoxCpuCollectDataIsOn_Checked;
-            CheckBoxCpuCollectDataIsOn.Unchecked -= CheckBoxCpuCollectDataIsOn_Checked;
+                CheckBoxCpuCollectDataIsOn.Checked -= CheckBoxCpuCollectDataIsOn_Checked;
+                CheckBoxCpuCollectDataIsOn.Unchecked -= CheckBoxCpuCollectDataIsOn_Checked;
 
-            CheckBoxEcqCollectDataIsOn.Checked -= CheckBoxEcqCollectDataIsOn_Checked;
-            CheckBoxEcqCollectDataIsOn.Unchecked -= CheckBoxEcqCollectDataIsOn_Checked;
+                CheckBoxEcqCollectDataIsOn.Checked -= CheckBoxEcqCollectDataIsOn_Checked;
+                CheckBoxEcqCollectDataIsOn.Unchecked -= CheckBoxEcqCollectDataIsOn_Checked;
 
-            CheckBoxMoqCollectDataIsOn.Checked -= CheckBoxMoqCollectDataIsOn_Checked;
-            CheckBoxMoqCollectDataIsOn.Unchecked -= CheckBoxMoqCollectDataIsOn_Checked;
+                CheckBoxMoqCollectDataIsOn.Checked -= CheckBoxMoqCollectDataIsOn_Checked;
+                CheckBoxMoqCollectDataIsOn.Unchecked -= CheckBoxMoqCollectDataIsOn_Checked;
 
-            ComboBoxRamPeriodSavePoint.SelectionChanged -= ComboBoxRamPeriodSavePoint_SelectionChanged;
-            ComboBoxCpuPeriodSavePoint.SelectionChanged -= ComboBoxCpuPeriodSavePoint_SelectionChanged;
-            ComboBoxEcqPeriodSavePoint.SelectionChanged -= ComboBoxEcqPeriodSavePoint_SelectionChanged;
-            ComboBoxMoqPeriodSavePoint.SelectionChanged -= ComboBoxMoqPeriodSavePoint_SelectionChanged;
+                ComboBoxRamPeriodSavePoint.SelectionChanged -= ComboBoxRamPeriodSavePoint_SelectionChanged;
+                ComboBoxCpuPeriodSavePoint.SelectionChanged -= ComboBoxCpuPeriodSavePoint_SelectionChanged;
+                ComboBoxEcqPeriodSavePoint.SelectionChanged -= ComboBoxEcqPeriodSavePoint_SelectionChanged;
+                ComboBoxMoqPeriodSavePoint.SelectionChanged -= ComboBoxMoqPeriodSavePoint_SelectionChanged;
 
-            TextBoxRamPointsMax.TextChanged -= TextBoxRamPointsMax_TextChanged;
-            TextBoxCpuPointsMax.TextChanged -= TextBoxCpuPointsMax_TextChanged;
-            TextBoxEcqPointsMax.TextChanged -= TextBoxEcqPointsMax_TextChanged;
-            TextBoxMoqPointsMax.TextChanged -= TextBoxMoqPointsMax_TextChanged;
+                TextBoxRamPointsMax.TextChanged -= TextBoxRamPointsMax_TextChanged;
+                TextBoxCpuPointsMax.TextChanged -= TextBoxCpuPointsMax_TextChanged;
+                TextBoxEcqPointsMax.TextChanged -= TextBoxEcqPointsMax_TextChanged;
+                TextBoxMoqPointsMax.TextChanged -= TextBoxMoqPointsMax_TextChanged;
 
-            HostCpu.Child = null;
-            HostEcq.Child = null;
-            HostMoq.Child = null;
-            HostRam.Child = null;
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
 
-            _chartCpu = null;
-            _chartRam = null;
-            _chartMoq = null;
-            _chartEcq = null;
+                HostCpu.Child = null;
+                HostEcq.Child = null;
+                HostMoq.Child = null;
+                HostRam.Child = null;
 
-            this.Closed -= SystemAnalyzeUi_Closed;
+                _chartCpu = null;
+                _chartRam = null;
+                _chartMoq = null;
+                _chartEcq = null;
+
+                this.Closed -= SystemAnalyzeUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void CheckBoxCpuCollectDataIsOn_Checked(object sender, RoutedEventArgs e)

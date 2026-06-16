@@ -134,10 +134,43 @@ namespace OsEngine.OsTrader.Panels
                     _stopLimitsViewer.ClearDelete();
                     _stopLimitsViewer = null;
                 }
+
+                if (HostGlass != null)
+                {
+                    HostGlass.Child = null;
+                }
+                if (HostAlert != null)
+                {
+                    HostAlert.Child = null;
+                }
+                if (HostGrids != null)
+                {
+                    HostGrids.Child = null;
+                }
+                if (HostOpenPosition != null)
+                {
+                    HostOpenPosition.Child = null;
+                }
+                if (HostStopLimits != null)
+                {
+                    HostStopLimits.Child = null;
+                }
+                if (HostClosePosition != null)
+                {
+                    HostClosePosition.Child = null;
+                }
+                if (HostBotLog != null)
+                {
+                    HostBotLog.Child = null;
+                }
+                if (ChartHostPanel != null)
+                {
+                    ChartHostPanel.Child = null;
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

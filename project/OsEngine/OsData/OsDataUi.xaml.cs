@@ -61,56 +61,6 @@ namespace OsEngine.OsData
             StartButtonBlinkAnimation();
         }
 
-        private void StartButtonBlinkAnimation()
-        {
-            try
-            {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            GreenCollectionData.Opacity = 1;
-                            WhiteCollectionData.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            GreenCollectionData.Opacity = 0;
-                            WhiteCollectionData.Opacity = 1;
-                        }
-                        else
-                        {
-                            GreenCollectionData.Opacity = 1;
-                            WhiteCollectionData.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
         private void OsDataUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
@@ -121,18 +71,101 @@ namespace OsEngine.OsData
                 if (ui.UserAcceptAction == false)
                 {
                     e.Cancel = true;
+                    return;
                 }
 
                 if (_osDataMaster != null)
                 {
+                    _osDataMaster.StopPaintActiveSet();
                     _osDataMaster.Dispose();
                     _osDataMaster = null;
+                }
+
+                if (ChartHostPanel != null)
+                {
+                    ChartHostPanel.Child = null;
+                }
+                if (HostSource != null)
+                {
+                    HostSource.Child = null;
+                }
+                if (HostSet != null)
+                {
+                    HostSet.Child = null;
+                }
+                if (HostLog != null)
+                {
+                    HostLog.Child = null;
                 }
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                 e.Cancel = false;
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    GreenCollectionData.Opacity = 1;
+                    WhiteCollectionData.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    GreenCollectionData.Opacity = 0;
+                    WhiteCollectionData.Opacity = 1;
+                }
+                else
+                {
+                    GreenCollectionData.Opacity = 1;
+                    WhiteCollectionData.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 

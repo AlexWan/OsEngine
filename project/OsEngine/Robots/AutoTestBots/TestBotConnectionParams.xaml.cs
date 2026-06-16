@@ -39,20 +39,38 @@ namespace OsEngine.Robots.AutoTestBots
             Closed += TestBotConnectionParams_Closed;
         }
 
+        private void TestBotConnectionParams_Closed(object sender, System.EventArgs e)
+        {
+            try
+            {
+                Closed -= TestBotConnectionParams_Closed;
 
+                ComboBoxConnectorEnum.SelectionChanged -= ComboBoxConnectorEnum_SelectionChanged;
+                ButtonServerSettingsShow.Click -= ButtonServerSettingsShow_Click;
+                ButtonStartTest.Click -= ButtonStartTest_Click;
+                ButtonStopTest.Click -= ButtonStopTest_Click;
+
+                if (testBotConnection != null)
+                {
+                    testBotConnection.testBotConnectionParams = null;
+                }
+
+                testBotConnection = null;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         #region Events
+
         private void ButtonStopTest_Click(object sender, RoutedEventArgs e)
         {
             if (testBotConnection.TestingIsStart == true)
             {
                 testBotConnection.TestingIsNeedStop = true;
             }
-        }
-
-        private void TestBotConnectionParams_Closed(object sender, System.EventArgs e)
-        {
-            testBotConnection.testBotConnectionParams = null;
         }
 
         private void ButtonStartTest_Click(object sender, RoutedEventArgs e)

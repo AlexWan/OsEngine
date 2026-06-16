@@ -23,12 +23,18 @@ namespace OsEngine.OsTrader.RiskManager
         /// риск менеджер
         /// </summary>
         private RiskManager _riskManager;
+
+        private DispatcherTimer _blinkTimer;
+        private int _blinkCount;
+        private bool _isGreenVisible = true;
+
         public RiskManagerUi(RiskManager riskManager)
         {
             try
             {
                 _riskManager = riskManager;
                 InitializeComponent();
+                Closed += RiskManagerUi_Closed;
                 OsEngine.Layout.StickyBorders.Listen(this);
                 OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
                 LoadDateOnForm();
@@ -60,45 +66,76 @@ namespace OsEngine.OsTrader.RiskManager
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
                 {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenRiskManager.Opacity = 1;
-                            PostWhiteRiskManager.Opacity = 0;
-                            return;
-                        }
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenRiskManager.Opacity = 1;
+                    PostWhiteRiskManager.Opacity = 0;
+                    return;
+                }
 
-                        if (isGreenVisible)
-                        {
-                            PostGreenRiskManager.Opacity = 0;
-                            PostWhiteRiskManager.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenRiskManager.Opacity = 1;
-                            PostWhiteRiskManager.Opacity = 0;
-                        }
+                if (_isGreenVisible)
+                {
+                    PostGreenRiskManager.Opacity = 0;
+                    PostWhiteRiskManager.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenRiskManager.Opacity = 1;
+                    PostWhiteRiskManager.Opacity = 0;
+                }
 
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+            }
+        }
 
-                timer.Start();
+        private void RiskManagerUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                Closed -= RiskManagerUi_Closed;
+
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                _riskManager = null;
             }
             catch (Exception ex)
             {

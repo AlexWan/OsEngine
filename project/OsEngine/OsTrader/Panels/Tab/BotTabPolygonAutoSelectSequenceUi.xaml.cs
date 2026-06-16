@@ -125,71 +125,28 @@ namespace OsEngine.OsTrader.Panels.Tab
             StartButtonBlinkAnimation();
         }
 
-        private void StartButtonBlinkAnimation()
-        {
-            try
-            {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenPolygonAutoSelectSequence.Opacity = 1;
-                            PostWhitePolygonAutoSelectSequence.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenPolygonAutoSelectSequence.Opacity = 0;
-                            PostWhitePolygonAutoSelectSequence.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenPolygonAutoSelectSequence.Opacity = 1;
-                            PostWhitePolygonAutoSelectSequence.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        public bool IsClosed;
-
         private void BotTabPolygonAutoSelectSequenceUi_Closed(object sender, EventArgs e)
         {
             try
             {
                 IsClosed = true;
 
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
                 ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
                 TextBoxBaseCurrency.TextChanged -= TextBoxBaseCurrency_TextChanged;
+                TextBoxSeparatorToSecurities.TextChanged -= TextBoxSeparatorToSecurities_TextChanged;
                 CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
                 CheckBoxSelectAllInSecondStep.Click -= CheckBoxSelectAllInSecondStep_Click;
                 CheckBoxSelectAllInFinalStep.Click -= CheckBoxSelectAllInFinalStep_Click;
                 ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
                 ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+                ButtonPostPolygonAutoSelectSequence.Click -= ButtonPostPolygonAutoSelectSequence_Click;
                 TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
                 TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
                 TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
@@ -198,7 +155,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ButtonCreateTableFinal.Click -= ButtonCreateTableFinal_Click;
                 ButtonCreateSelectedSequence.Click -= ButtonCreateSelectedSequence_Click;
                 TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
-                Closed -= BotTabPolygonAutoSelectSequenceUi_Closed;
 
                 List<IServer> serversAll = ServerMaster.GetServers();
 
@@ -211,8 +167,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     serversAll[i].SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
                     serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
                 }
-
-                _tabPolygon = null;
 
                 if (HostFirdStep != null)
                 {
@@ -235,6 +189,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _gridSecuritiesFirstStep.DataError -= _gridSecuritiesFirstStep_DataError;
                     _gridSecuritiesFirstStep.Rows.Clear();
                     _gridSecuritiesFirstStep.Columns.Clear();
+                    _gridSecuritiesFirstStep.DataSource = null;
+                    _gridSecuritiesFirstStep.Dispose();
                     _gridSecuritiesFirstStep = null;
                 }
 
@@ -244,6 +200,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _gridSecondStep.DataError -= _gridSecuritiesFirstStep_DataError;
                     _gridSecondStep.Rows.Clear();
                     _gridSecondStep.Columns.Clear();
+                    _gridSecondStep.DataSource = null;
+                    _gridSecondStep.Dispose();
                     _gridSecondStep = null;
                 }
 
@@ -253,14 +211,95 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _gridThirdStep.DataError -= _gridSecuritiesFirstStep_DataError;
                     _gridThirdStep.Rows.Clear();
                     _gridThirdStep.Columns.Clear();
+                    _gridThirdStep.DataSource = null;
+                    _gridThirdStep.Dispose();
                     _gridThirdStep = null;
                 }
+
+                if (_searchResults != null)
+                {
+                    _searchResults.Clear();
+                    _searchResults = null;
+                }
+
+                _selectedServerName = null;
+                _tabPolygon = null;
+
+                Closed -= BotTabPolygonAutoSelectSequenceUi_Closed;
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenPolygonAutoSelectSequence.Opacity = 1;
+                    PostWhitePolygonAutoSelectSequence.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenPolygonAutoSelectSequence.Opacity = 0;
+                    PostWhitePolygonAutoSelectSequence.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenPolygonAutoSelectSequence.Opacity = 1;
+                    PostWhitePolygonAutoSelectSequence.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+            }
+        }
+
+        public bool IsClosed;
 
         private void TextBoxSeparatorToSecurities_TextChanged(object sender, TextChangedEventArgs e)
         {

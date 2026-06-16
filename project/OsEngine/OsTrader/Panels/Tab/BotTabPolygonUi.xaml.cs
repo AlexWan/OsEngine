@@ -158,67 +158,25 @@ namespace OsEngine.OsTrader.Panels.Tab
             StartButtonBlinkAnimation();
         }
 
-        private void StartButtonBlinkAnimation()
-        {
-            try
-            {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenTabPolygon.Opacity = 1;
-                            PostWhiteTabPolygon.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenTabPolygon.Opacity = 0;
-                            PostWhiteTabPolygon.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenTabPolygon.Opacity = 1;
-                            PostWhiteTabPolygon.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-        }
-
         private void BotTabPolygonUi_Closed(object sender, EventArgs e)
         {
             try
             {
                 _uiClosed = true;
 
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
                 ButtonHideShowRightPanel.Click -= ButtonHideShowRightPanel_Click;
                 ButtonBuyLimit.Click -= ButtonBuyLimit_Click;
                 ButtonSec1.Click -= ButtonSec1_Click;
                 ButtonSec2.Click -= ButtonSec2_Click;
                 ButtonSec3.Click -= ButtonSec3_Click;
+                ButtonPostTabPolygon.Click -= ButtonPostTabPolygon_Click;
 
                 TextBoxBaseCurrency.TextChanged -= TextBoxBaseCurrency_TextChanged;
                 TextBoxSeparatorToSecurities.TextChanged -= TextBoxSeparatorToSecurities_TextChanged;
@@ -268,6 +226,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 Polygon.StopPaintLog();
 
+                NameElement = null;
                 Polygon = null;
 
                 if (HostSequence != null)
@@ -278,9 +237,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (_grid != null)
                 {
                     DataGridFactory.ClearLinks(_grid);
+                    _grid.DataError -= _grid_DataError;
                     _grid.Rows.Clear();
                     _grid.Columns.Clear();
-                    _grid.DataError -= _grid_DataError;
+                    _grid.DataSource = null;
+                    _grid.Dispose();
                     _grid = null;
                 }
 
@@ -288,10 +249,78 @@ namespace OsEngine.OsTrader.Panels.Tab
                 HostSec1.Child = null;
                 HostSec2.Child = null;
                 HostSec3.Child = null;
+
+                Closed -= BotTabPolygonUi_Closed;
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
+        private void StartButtonBlinkAnimation()
+        {
+            try
+            {
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _blinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenTabPolygon.Opacity = 1;
+                    PostWhiteTabPolygon.Opacity = 0;
+                    return;
+                }
+
+                if (_isGreenVisible)
+                {
+                    PostGreenTabPolygon.Opacity = 0;
+                    PostWhiteTabPolygon.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenTabPolygon.Opacity = 1;
+                    PostWhiteTabPolygon.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
+            }
+            catch (Exception ex)
+            {
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
             }
         }
 

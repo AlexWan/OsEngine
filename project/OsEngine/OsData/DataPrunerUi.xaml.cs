@@ -90,7 +90,7 @@ namespace OsEngine.OsData
             }
             catch (Exception ex)
             {
-                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -117,6 +117,11 @@ namespace OsEngine.OsData
 
         private void _blinkTimer_Tick(object sender, EventArgs e)
         {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
             try
             {
                 if (_blinkCount >= 20)

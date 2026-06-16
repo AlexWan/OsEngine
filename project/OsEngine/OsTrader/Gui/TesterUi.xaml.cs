@@ -43,6 +43,7 @@ namespace OsEngine.OsTrader.Gui
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
 
             Closing += TesterUi_Closing;
+            Closed += TesterUi_Closed;
 
             Local();
             TabControlControl.SelectedIndex = 3;
@@ -103,12 +104,87 @@ namespace OsEngine.OsTrader.Gui
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
-            ui.ShowDialog();
-
-            if (ui.UserAcceptAction == false)
+            try
             {
-                e.Cancel = true;
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                _strategyKeeper.StopPaint();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TesterUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                LocationChanged -= TesterUi_LocationChanged;
+                TabControlBotsName.SizeChanged -= TabControlBotsName_SizeChanged;
+
+                if (HostPositionOnBoard != null)
+                {
+                    HostPositionOnBoard.Child = null;
+                }
+                if (HostOrdersOnBoard != null)
+                {
+                    HostOrdersOnBoard.Child = null;
+                }
+                if (HostAllPosition != null)
+                {
+                    HostAllPosition.Child = null;
+                }
+                if (HostOpenPosition != null)
+                {
+                    HostOpenPosition.Child = null;
+                }
+                if (HostClosePosition != null)
+                {
+                    HostClosePosition.Child = null;
+                }
+                if (HostBotLog != null)
+                {
+                    HostBotLog.Child = null;
+                }
+                if (HostBotLogPrime != null)
+                {
+                    HostBotLogPrime.Child = null;
+                }
+                if (HostGlass != null)
+                {
+                    HostGlass.Child = null;
+                }
+                if (HostAllert != null)
+                {
+                    HostAllert.Child = null;
+                }
+                if (HostGrids != null)
+                {
+                    HostGrids.Child = null;
+                }
+                if (ChartHostPanel != null)
+                {
+                    ChartHostPanel.Child = null;
+                }
+
+                Instance = null;
+                _ordersPainter = null;
+                _strategyKeeper = null;
+
+                Closing -= TesterUi_Closing;
+                Closed -= TesterUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 

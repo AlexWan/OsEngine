@@ -93,6 +93,11 @@ namespace OsEngine.OsData
 
         private void _blinkTimer_Tick(object sender, EventArgs e)
         {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
             try
             {
                 if (_blinkCount >= 20)

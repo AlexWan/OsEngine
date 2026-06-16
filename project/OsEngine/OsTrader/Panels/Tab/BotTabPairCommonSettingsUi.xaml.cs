@@ -10,7 +10,6 @@ using OsEngine.Entity;
 using OsEngine.Market;
 using System.Windows.Threading;
 
-
 namespace OsEngine.OsTrader.Panels.Tab
 {
     /// <summary>
@@ -122,49 +121,46 @@ namespace OsEngine.OsTrader.Panels.Tab
             StartButtonBlinkAnimation();
         }
 
+        private void BotTabPairCommonSettingsUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                }
+
+                ButtonSave.Click -= ButtonSave_Click;
+                ButtonApply.Click -= ButtonApply_Click;
+                ButtonPositionSupport.Click -= ButtonPositionSupport_Click;
+                ButtonPostPairCommonSettings.Click -= ButtonPostPairCommonSettings_Click;
+
+                _tabPair = null;
+
+                Closed -= BotTabPairCommonSettingsUi_Closed;
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
+        }
+
+        private DispatcherTimer _blinkTimer;
+
+        private int _blinkCount;
+
+        private bool _isGreenVisible = true;
+
         private void StartButtonBlinkAnimation()
         {
             try
             {
-                DispatcherTimer timer = new DispatcherTimer();
-                int blinkCount = 0;
-                bool isGreenVisible = true;
-
-                timer.Interval = TimeSpan.FromMilliseconds(300);
-                timer.Tick += (s, e) =>
-                {
-                    try
-                    {
-                        if (blinkCount >= 20)
-                        {
-                            timer.Stop();
-                            PostGreenPairCommonSettings.Opacity = 1;
-                            PostWhitePairCommonSettings.Opacity = 0;
-                            return;
-                        }
-
-                        if (isGreenVisible)
-                        {
-                            PostGreenPairCommonSettings.Opacity = 0;
-                            PostWhitePairCommonSettings.Opacity = 1;
-                        }
-                        else
-                        {
-                            PostGreenPairCommonSettings.Opacity = 1;
-                            PostWhitePairCommonSettings.Opacity = 0;
-                        }
-
-                        isGreenVisible = !isGreenVisible;
-                        blinkCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                        timer.Stop();
-                    }
-                };
-
-                timer.Start();
+                _blinkTimer = new DispatcherTimer();
+                _blinkTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _blinkTimer.Tick += _blinkTimer_Tick;
+                _blinkTimer.Start();
             }
             catch (Exception ex)
             {
@@ -172,20 +168,46 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void BotTabPairCommonSettingsUi_Closed(object sender, EventArgs e)
+        private void _blinkTimer_Tick(object sender, EventArgs e)
         {
+            if (_blinkTimer == null)
+            {
+                return;
+            }
+
             try
             {
-                ButtonSave.Click -= ButtonSave_Click;
-                ButtonApply.Click -= ButtonApply_Click;
-                Closed -= BotTabPairCommonSettingsUi_Closed;
-                ButtonPositionSupport.Click -= ButtonPositionSupport_Click;
+                if (_blinkCount >= 20)
+                {
+                    _blinkTimer.Stop();
+                    _blinkTimer.Tick -= _blinkTimer_Tick;
+                    _blinkTimer = null;
+                    PostGreenPairCommonSettings.Opacity = 1;
+                    PostWhitePairCommonSettings.Opacity = 0;
+                    return;
+                }
 
-                _tabPair = null;
+                if (_isGreenVisible)
+                {
+                    PostGreenPairCommonSettings.Opacity = 0;
+                    PostWhitePairCommonSettings.Opacity = 1;
+                }
+                else
+                {
+                    PostGreenPairCommonSettings.Opacity = 1;
+                    PostWhitePairCommonSettings.Opacity = 0;
+                }
+
+                _isGreenVisible = !_isGreenVisible;
+                _blinkCount++;
             }
-            catch (Exception error)
+            catch (Exception ex)
             {
-                MessageBox.Show(error.ToString());
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_blinkTimer != null)
+                {
+                    _blinkTimer.Stop();
+                }
             }
         }
 

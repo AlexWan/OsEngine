@@ -180,24 +180,35 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
+                ComboBoxOperationType.SelectionChanged -= ComboBoxOperationType_SelectionChanged;
                 ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
                 ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
                 TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
                 TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
                 TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
                 TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+                TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
                 ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
                 ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
-                TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
-                Closing -= ConnectorCandlesUi_Closing;
+                ButtonAccept.Click -= ButtonAccept_Click;
+
+                if (_searchResults != null)
+                {
+                    _searchResults.Clear();
+                    _searchResults = null;
+                }
 
                 DeleteGridSecurities();
+
+                Closing -= ConnectorCandlesUi_Closing;
             }
             catch
             {
                 // ignore
             }
 
+            _baseSecurity = null;
+            _selectedServerName = null;
             _connectorBot = null;
         }
 
@@ -601,10 +612,18 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void DeleteGridSecurities()
         {
-            DataGridFactory.ClearLinks(_gridSecurities);
-            _gridSecurities.CellClick -= _gridSecurities_CellClick;
-            _gridSecurities.DataError -= _gridSecurities_DataError;
-            SecurityTable.Child = null;
+            if (_gridSecurities != null)
+            {
+                DataGridFactory.ClearLinks(_gridSecurities);
+                _gridSecurities.CellClick -= _gridSecurities_CellClick;
+                _gridSecurities.DataError -= _gridSecurities_DataError;
+                _gridSecurities.Rows.Clear();
+                _gridSecurities.Columns.Clear();
+                _gridSecurities.DataSource = null;
+                _gridSecurities.Dispose();
+                SecurityTable.Child = null;
+                _gridSecurities = null;
+            }
         }
 
         private void CreateGridSecurities()

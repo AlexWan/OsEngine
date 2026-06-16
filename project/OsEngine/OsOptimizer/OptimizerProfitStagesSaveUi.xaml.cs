@@ -40,7 +40,21 @@ namespace OsEngine.OsOptimizer
 
         private void OptimizerProfitStagesSaveUi_Closed(object sender, System.EventArgs e)
         {
-            _fazeReport = null;
+            try
+            {
+                TextBoxProfitDepositPercent.TextChanged -= TextBoxProfitDepositPercent_TextChanged;
+                TextBoxProfitPositionsPercent.TextChanged -= TextBoxProfitPositionsPercent_TextChanged;
+                TextBoxAverageProfitPercent.TextChanged -= TextBoxAverageProfitPercent_TextChanged;
+                TextBoxDrawDownPercent.TextChanged -= TextBoxDrawDownPercent_TextChanged;
+
+                _fazeReport = null;
+
+                Closed -= OptimizerProfitStagesSaveUi_Closed;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #region Set settings

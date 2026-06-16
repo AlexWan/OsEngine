@@ -106,6 +106,46 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
             TimeOffsetFuturesRationingTextBox.TextChanged += TimeOffsetFuturesRationingTextBox_TextChanged;
         }
 
+        private void SyntheticBondOffsetUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                Closed -= SyntheticBondOffsetUi_Closed;
+                TimeOffsetFuturesRationingTextBox.TextChanged -= TimeOffsetFuturesRationingTextBox_TextChanged;
+                TimeOffsetBaseRationingTextBox.TextChanged -= TimeOffsetBaseRationingTextBox_TextChanged;
+                ComboBoxSimbolFurmula.SelectionChanged -= ComboBoxSimbolFurmula_SelectionChanged;
+                MultiplicatorBaseTextBox.TextChanged -= MultiplicatorBaseTextBox_TextChanged;
+                RationingUsingAnotherToolBaseComboBox.SelectionChanged -= RationingUsingAnotherToolBaseComboBox_SelectionChanged;
+                RationingToolBaseButton.Click -= RationingToolBaseButton_Click;
+                RationingModeBaseComboBox.SelectionChanged -= RationingModeBaseComboBox_SelectionChanged;
+                RationingUsingAnotherToolFuturesComboBox.SelectionChanged -= RationingUsingAnotherToolFuturesComboBox_SelectionChanged;
+                MultiplicatorFuturesTextBox.TextChanged -= MultiplicatorFuturesTextBox_TextChanged;
+                TimeOffsetBaseTextBox.TextChanged -= TimeOffsetBaseTextBox_TextChanged;
+                RationingToolFuturesButton.Click -= RationingToolFuturesButton_Click;
+                RationingModeFuturesComboBox.SelectionChanged -= RationingModeFuturesComboBox_SelectionChanged;
+                TimeOffsetFuturesTextBox.TextChanged -= TimeOffsetFuturesTextBox_TextChanged;
+
+                if (_syntheticBond != null)
+                {
+                    if (_syntheticBond.FuturesRationingSecurity != null)
+                    {
+                        _syntheticBond.FuturesRationingSecurity.SecuritySubscribeEvent -= RationingSecuritySubscribeEvent;
+                    }
+                    if (_syntheticBond.BaseRationingSecurity != null)
+                    {
+                        _syntheticBond.BaseRationingSecurity.SecuritySubscribeEvent -= SecurityBaseSubscribeEvent;
+                    }
+                }
+
+                _syntheticBond = null;
+                _syntheticBondSeries = null;
+            }
+            catch (Exception ex) 
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void CreateComboBoxSimbolFurmula()
         {
             ComboBoxSimbolFurmula.Items.Clear();
@@ -321,31 +361,6 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
         #endregion
 
         #region Events
-
-        private void SyntheticBondOffsetUi_Closed(object sender, EventArgs e)
-        {
-            try
-            {
-                Closed -= SyntheticBondOffsetUi_Closed;
-                TimeOffsetFuturesRationingTextBox.TextChanged -= TimeOffsetFuturesRationingTextBox_TextChanged;
-                TimeOffsetBaseRationingTextBox.TextChanged -= TimeOffsetBaseRationingTextBox_TextChanged;
-                ComboBoxSimbolFurmula.SelectionChanged -= ComboBoxSimbolFurmula_SelectionChanged;
-                MultiplicatorBaseTextBox.TextChanged -= MultiplicatorBaseTextBox_TextChanged;
-                RationingUsingAnotherToolBaseComboBox.SelectionChanged -= RationingUsingAnotherToolBaseComboBox_SelectionChanged;
-                RationingToolBaseButton.Click -= RationingToolBaseButton_Click;
-                RationingModeBaseComboBox.SelectionChanged -= RationingModeBaseComboBox_SelectionChanged;
-                RationingUsingAnotherToolFuturesComboBox.SelectionChanged -= RationingUsingAnotherToolFuturesComboBox_SelectionChanged;
-                MultiplicatorFuturesTextBox.TextChanged -= MultiplicatorFuturesTextBox_TextChanged;
-                TimeOffsetBaseTextBox.TextChanged -= TimeOffsetBaseTextBox_TextChanged;
-                RationingToolFuturesButton.Click -= RationingToolFuturesButton_Click;
-                RationingModeFuturesComboBox.SelectionChanged -= RationingModeFuturesComboBox_SelectionChanged;
-                TimeOffsetFuturesTextBox.TextChanged -= TimeOffsetFuturesTextBox_TextChanged;
-            }
-            catch
-            {
-                // ignore
-            }
-        }
 
         private void TimeOffsetFuturesTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {

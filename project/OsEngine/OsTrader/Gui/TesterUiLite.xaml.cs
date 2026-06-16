@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
 using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -37,6 +38,7 @@ namespace OsEngine.OsTrader.Gui
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
             Closing += TesterUi_Closing;
+            Closed += TesterUiLite_Closed;
             Local();
 
             BotTabsPainter painter = new BotTabsPainter(_strategyKeeper, BotsHost);
@@ -58,6 +60,85 @@ namespace OsEngine.OsTrader.Gui
 
             Instance = this;
             _ordersPainter = ServerMaster._ordersStorage;
+        }
+
+        private void TesterUiLite_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
+                TabControlPrime.MouseEnter -= TabControlPrime_MouseEnter;
+                TabControlPrime.MouseLeave -= TabControlPrime_MouseLeave;
+
+                rectToMove.MouseEnter -= GreedChartPanel_MouseEnter;
+                rectToMove.MouseLeave -= GreedChartPanel_MouseLeave;
+                rectToMove.MouseDown -= GreedChartPanel_MouseDown;
+
+                if (HostActivePoses != null)
+                {
+                    HostActivePoses.Child = null;
+                }
+                if (HostStopLimitPoses != null)
+                {
+                    HostStopLimitPoses.Child = null;
+                }
+                if (HostHistoricalPoses != null)
+                {
+                    HostHistoricalPoses.Child = null;
+                }
+                if (HostActiveOrders != null)
+                {
+                    HostActiveOrders.Child = null;
+                }
+                if (HostHistoricalOrders != null)
+                {
+                    HostHistoricalOrders.Child = null;
+                }
+                if (HostPositionOnBoard != null)
+                {
+                    HostPositionOnBoard.Child = null;
+                }
+                if (HostBotLogPrime != null)
+                {
+                    HostBotLogPrime.Child = null;
+                }
+                if (BotsHost != null)
+                {
+                    BotsHost.Child = null;
+                }
+
+                Instance = null;
+                _ordersPainter = null;
+                _strategyKeeper = null;
+
+                Closing -= TesterUi_Closing;
+                Closed -= TesterUiLite_Closed;
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                _strategyKeeper.StopPaint();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         public static TesterUiLite Instance;
@@ -84,17 +165,6 @@ namespace OsEngine.OsTrader.Gui
             LabelCountHistorical.Content = OsLocalization.Trader.Label578;
         }
 
-        void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
-            ui.ShowDialog();
-
-            if (ui.UserAcceptAction == false)
-            {
-                e.Cancel = true;
-            }
-        }
-
         private OsTraderMaster _strategyKeeper;
 
         private void TabControlPrime_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -118,7 +188,7 @@ namespace OsEngine.OsTrader.Gui
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
         }
 
-        bool _mouseOnTabControl = false;
+        private bool _mouseOnTabControl = false;
 
         private void TabControlPrime_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -172,5 +242,6 @@ namespace OsEngine.OsTrader.Gui
                 GreedChartPanel.Cursor = System.Windows.Input.Cursors.ScrollS;
             }
         }
+
     }
 }
