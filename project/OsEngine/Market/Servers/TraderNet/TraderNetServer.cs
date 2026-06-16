@@ -611,7 +611,6 @@ namespace OsEngine.Market.Servers.TraderNet
                 limit = 10000;
             }
 
-
             if (tfTotalMinutes == 30)
             {
                 limit = limit * 2;
@@ -878,7 +877,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 HttpResponseMessage responseMessage = CreateQuery($"/api/", "POST", null, reqData);
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
-                return ConvertCandles(JsonResponse, security.NameClass);
+                return ConvertCandles(JsonResponse, security);
             }
             catch (Exception exception)
             {
@@ -887,7 +886,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private List<Candle> ConvertCandles(string JsonResponse, string nameClass)
+        private List<Candle> ConvertCandles(string JsonResponse, Security security)
         {
             try
             {
@@ -920,7 +919,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     return null;
                 }
 
-                int timeShift = GetTimeShift(nameClass);
+                int timeShift = GetTimeShift(security.NameClass);
                 List<Candle> candles = new List<Candle>();
 
                 for (int i = 0; i < listHloc.Count; i++)
@@ -943,11 +942,11 @@ namespace OsEngine.Market.Servers.TraderNet
                     Candle candle = new Candle();
 
                     candle.State = CandleState.Finished;
-                    candle.High = coords[0].ToDecimal();
-                    candle.Low = coords[1].ToDecimal();
-                    candle.Open = coords[2].ToDecimal();
-                    candle.Close = coords[3].ToDecimal();
-                    candle.Volume = listVl[i].ToDecimal();
+                    candle.High = Math.Round(coords[0].ToDecimal(), security.Decimals);
+                    candle.Low = Math.Round(coords[1].ToDecimal(), security.Decimals);
+                    candle.Open = Math.Round(coords[2].ToDecimal(), security.Decimals);
+                    candle.Close = Math.Round(coords[3].ToDecimal(), security.Decimals);
+                    candle.Volume = Math.Round(listVl[i].ToDecimal(), security.DecimalsVolume);
                     candle.TimeStart = TimeManager.GetDateTimeFromTimeStampSeconds(long.Parse(listSeries[i])).AddHours(timeShift);
 
                     candles.Add(candle);
