@@ -46,6 +46,7 @@ namespace OsEngine.Robots.Helpers
         private StartProgram _startProgram;
         List<BotPanel> _bots;
         private StrategyParameterBool _fullLogIsOn;
+        private Dictionary<string, Security> _testerSecurities = new();
 
         public PayOfMarginBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -108,6 +109,53 @@ namespace OsEngine.Robots.Helpers
         private void Server_TestingStartEvent()
         {
             _bots = OsTraderMaster.Master.PanelsArray;
+            LoadTesterSecurities();
+        }
+
+        private void LoadTesterSecurities()
+        {
+            try
+            {
+                _testerSecurities.Clear();
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType != ServerType.Tester)
+                    {
+                        continue;
+                    }
+
+                    TesterServer testerServer = (TesterServer)servers[i];
+
+                    if (testerServer.Securities == null)
+                    {
+                        continue;
+                    }
+
+                    for (int j = 0; j < testerServer.Securities.Count; j++)
+                    {
+                        Security sec = testerServer.Securities[j];
+
+                        if (string.IsNullOrEmpty(sec.Name))
+                        {
+                            continue;
+                        }
+
+                        _testerSecurities[sec.Name] = sec;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #region Table Summ
@@ -632,19 +680,29 @@ namespace OsEngine.Robots.Helpers
                     {
                         Position position = curJournal.OpenPositions[i2];
 
+                        _testerSecurities.TryGetValue(position.SecurityName, out Security security);
+
+                        bool isFutures = security != null && security.SecurityType == SecurityType.Futures;
+                        decimal marginRate = isFutures ? 0.2m : 1m;
+
                         if (position.Direction == Side.Buy)
                         {
                             if (position.Lots != 0)
                             {
-                                volumeLongBot += position.EntryPrice * position.OpenVolume * position.Lots;
+                                volumeLongBot += position.EntryPrice * position.OpenVolume * position.Lots * marginRate;
                             }
                             else
                             {
-                                volumeLongBot += position.EntryPrice * position.OpenVolume;
+                                volumeLongBot += position.EntryPrice * position.OpenVolume * marginRate;
                             }
                         }
                         else if (position.Direction == Side.Sell)
                         {
+                            if (isFutures)
+                            {
+                                continue;
+                            }
+
                             if (position.Lots != 0)
                             {
                                 volumeShortBot += position.EntryPrice * position.OpenVolume * position.Lots;
