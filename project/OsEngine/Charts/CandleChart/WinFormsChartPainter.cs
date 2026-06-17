@@ -400,8 +400,25 @@ ContextMenuStrip menu)
 
                     _chart.Series.Clear();
                     _chart.ChartAreas.Clear();
-                    _chart.Dispose();
-                    _chart = null;
+
+                    if (_host != null)
+                    {
+                        _host.Child = null;
+                        _host = null;
+                    }
+
+                    try
+                    {
+                        _chart.Dispose();
+                    }
+                    catch (Exception error)
+                    {
+                        SendLogMessage(error.ToString(), LogMessageType.Error);
+                    }
+                    finally
+                    {
+                        _chart = null;
+                    }
                 }
 
                 if (_colorKeeper != null)

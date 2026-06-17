@@ -241,10 +241,54 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 HostMoq.Child = null;
                 HostRam.Child = null;
 
-                _chartCpu = null;
-                _chartRam = null;
-                _chartMoq = null;
-                _chartEcq = null;
+                if (_chartRam != null)
+                {
+                    try
+                    {
+                        _chartRam.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
+                    _chartRam = null;
+                }
+                if (_chartCpu != null)
+                {
+                    try
+                    {
+                        _chartCpu.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
+                    _chartCpu = null;
+                }
+                if (_chartEcq != null)
+                {
+                    try
+                    {
+                        _chartEcq.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
+                    _chartEcq = null;
+                }
+                if (_chartMoq != null)
+                {
+                    try
+                    {
+                        _chartMoq.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
+                    _chartMoq = null;
+                }
 
                 this.Closed -= SystemAnalyzeUi_Closed;
             }

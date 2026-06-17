@@ -135,13 +135,23 @@ namespace OsEngine.OsOptimizer
 
                 if (_chartSeriesResult != null)
                 {
-                    _chartSeriesResult.Click -= _chartSeriesResult_Click;
-                    _chartSeriesResult.Dispose();
+                    try
+                    {
+                        _chartSeriesResult.Click -= _chartSeriesResult_Click;
+                        _chartSeriesResult.Series.Clear();
+                        _chartSeriesResult.ChartAreas.Clear();
+                        _chartSeriesResult.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                     _chartSeriesResult = null;
                 }
 
                 if (_resultsCharting != null)
                 {
+                    _resultsCharting.Delete();
                     _resultsCharting.LogMessageEvent -= _master.SendLogMessage;
                     _resultsCharting = null;
                 }

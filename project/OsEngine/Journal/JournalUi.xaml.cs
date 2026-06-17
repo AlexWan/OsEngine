@@ -145,40 +145,76 @@ namespace OsEngine.Journal
 
                 if (_chartEquity != null)
                 {
-                    _chartEquity.Series.Clear();
-                    _chartEquity.ChartAreas.Clear();
-                    _chartEquity.Click -= _chartEquity_Click;
-                    _chartEquity.MouseMove -= _chartEquity_MouseMove;
-                    _chartEquity.Dispose();
-                    _chartEquity = null;
-                    HostEquity.Child.Hide();
-                    HostEquity.Child = null;
-                    HostEquity = null;
+                    try
+                    {
+                        _chartEquity.Click -= _chartEquity_Click;
+                        _chartEquity.MouseMove -= _chartEquity_MouseMove;
+
+                        _chartEquity.Series.Clear();
+                        _chartEquity.ChartAreas.Clear();
+
+                        if (HostEquity != null)
+                        {
+                            HostEquity.Child = null;
+                        }
+
+                        _chartEquity.Dispose();
+                        _chartEquity = null;
+                        HostEquity = null;
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
                 }
 
                 if (_chartVolume != null)
                 {
-                    _chartVolume.Series.Clear();
-                    _chartVolume.ChartAreas.Clear();
-                    _chartVolume.Click -= _chartVolume_Click;
-                    _chartVolume.MouseWheel -= _chartVolume_MouseWheel;
-                    _chartVolume.Dispose();
-                    _chartVolume = null;
-                    HostVolume.Child.Hide();
-                    HostVolume.Child = null;
-                    HostVolume = null;
+                    try
+                    {
+                        _chartVolume.Click -= _chartVolume_Click;
+                        _chartVolume.MouseWheel -= _chartVolume_MouseWheel;
+
+                        _chartVolume.Series.Clear();
+                        _chartVolume.ChartAreas.Clear();
+
+                        if (HostVolume != null)
+                        {
+                            HostVolume.Child = null;
+                        }
+
+                        _chartVolume.Dispose();
+                        _chartVolume = null;
+                        HostVolume = null;
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
                 }
 
                 if (_chartDd != null)
                 {
-                    _chartDd.Series.Clear();
-                    _chartDd.ChartAreas.Clear();
-                    _chartDd.Click -= _chartDd_Click;
-                    _chartDd.Dispose();
-                    _chartDd = null;
-                    HostDrawdown.Child.Hide();
-                    HostDrawdown.Child = null;
-                    HostDrawdown = null;
+                    try
+                    {
+                        _chartDd.Click -= _chartDd_Click;
+
+                        _chartDd.Series.Clear();
+                        _chartDd.ChartAreas.Clear();
+
+                        if (HostDrawdown != null)
+                        {
+                            HostDrawdown.Child = null;
+                        }
+
+                        _chartDd.Dispose();
+                        _chartDd = null;
+                        HostDrawdown = null;
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
                 }
 
                 if (_gridStatistics != null)

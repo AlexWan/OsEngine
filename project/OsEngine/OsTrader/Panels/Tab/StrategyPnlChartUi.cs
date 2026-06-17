@@ -5,6 +5,8 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using OsEngine.Entity;
+using OsEngine.Market;
+using OsEngine.Logging;
 using static OsEngine.OsTrader.Panels.Tab.BotTabOptions;
 
 namespace OsEngine.OsTrader.Panels.Tab
@@ -51,32 +53,39 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BuyButton_Click(object sender, EventArgs e)
         {
-            // Handle underlying asset
-            if (_uaData != null && _uaData.Quantity != 0 && _uaData.SimpleTab != null)
+            try
             {
-                if (_uaData.Quantity > 0)
+                // Handle underlying asset
+                if (_uaData != null && _uaData.Quantity != 0 && _uaData.SimpleTab != null)
                 {
-                    _uaData.SimpleTab.BuyAtMarket(_uaData.Quantity);
+                    if (_uaData.Quantity > 0)
+                    {
+                        _uaData.SimpleTab.BuyAtMarket(_uaData.Quantity);
+                    }
+                    else if (_uaData.Quantity < 0)
+                    {
+                        _uaData.SimpleTab.SellAtMarket(Math.Abs(_uaData.Quantity));
+                    }
                 }
-                else if (_uaData.Quantity < 0)
-                {
-                    _uaData.SimpleTab.SellAtMarket(Math.Abs(_uaData.Quantity));
-                }
-            }
 
-            // Handle option legs
-            foreach (var leg in _strategyLegs)
-            {
-                if (leg.Quantity > 0)
+                // Handle option legs
+                foreach (var leg in _strategyLegs)
                 {
-                    leg.SimpleTab.BuyAtMarket(leg.Quantity);
+                    if (leg.Quantity > 0)
+                    {
+                        leg.SimpleTab.BuyAtMarket(leg.Quantity);
+                    }
+                    else if (leg.Quantity < 0)
+                    {
+                        leg.SimpleTab.SellAtMarket(Math.Abs(leg.Quantity));
+                    }
                 }
-                else if (leg.Quantity < 0)
-                {
-                    leg.SimpleTab.SellAtMarket(Math.Abs(leg.Quantity));
-                }
+                MessageBox.Show("Market orders sent for strategy.");
             }
-            MessageBox.Show("Market orders sent for strategy.");
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void CalculateAndDrawPnlProfile()

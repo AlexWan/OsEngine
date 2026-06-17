@@ -269,8 +269,67 @@ namespace OsEngine.Charts.ClusterChart
         /// </summary>
         public void Delete()
         {
-            _colorKeeper.Delete();
+            if (_colorKeeper != null)
+            {
+                _colorKeeper.LogMessageEvent -= SendLogMessage;
+                _colorKeeper.Delete();
+                _colorKeeper = null;
+            }
             _needToDelete = true;
+        }
+
+        private void ClearDelete()
+        {
+            try
+            {
+                if (_chart == null)
+                {
+                    return;
+                }
+
+                if (_chart.InvokeRequired)
+                {
+                    _chart.Invoke(new Action(ClearDelete));
+                    return;
+                }
+
+                _chart.AxisViewChanged -= _chart_AxisViewChanged;
+                _chart.MouseLeave -= _chart_MouseLeave;
+                _chart.MouseMove -= _chart_MouseMove2;
+                _chart.ClientSizeChanged -= _chart_ClientSizeChanged;
+
+                _chart.Series.Clear();
+                _chart.ChartAreas.Clear();
+
+                if (_host != null)
+                {
+                    _host.Child = null;
+                    _host = null;
+                }
+
+                try
+                {
+                    _chart.Dispose();
+                }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                finally
+                {
+                    _chart = null;
+                }
+
+                if (_areaPositions != null)
+                {
+                    _areaPositions.Clear();
+                    _areaPositions = null;
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -499,51 +558,59 @@ namespace OsEngine.Charts.ClusterChart
         {
             while (true)
             {
-                await Task.Delay(1000);
-
-                if (_needToDelete)
+                try
                 {
-                    return;
-                }
+                    await Task.Delay(1000);
 
-                if (MainWindow.ProccesIsWorked == false)
-                {
-                    return;
-                }
-
-                if (_host == null)
-                {
-                    continue;
-                }
-
-                if (_lastTimeClear.AddSeconds(5) > DateTime.Now
-                    && _startProgram != StartProgram.IsOsOptimizer)
-                {
-                    await Task.Delay(5000);
-                    _clustersToPaint = new ConcurrentQueue<List<HorizontalVolumeLine>>();
-                }
-
-                // проверяем, пришли ли свечи
-
-                if (!_clustersToPaint.IsEmpty)
-                {
-                    List<HorizontalVolumeLine> candles = new List<HorizontalVolumeLine>();
-
-                    while (!_clustersToPaint.IsEmpty)
+                    if (_needToDelete)
                     {
-                        _clustersToPaint.TryDequeue(out candles);
+                        ClearDelete();
+                        return;
                     }
 
-                    if (candles != null)
+                    if (MainWindow.ProccesIsWorked == false)
                     {
-                        PaintCluster(candles);
+                        return;
+                    }
+
+                    if (_host == null)
+                    {
+                        continue;
+                    }
+
+                    if (_lastTimeClear.AddSeconds(5) > DateTime.Now
+                        && _startProgram != StartProgram.IsOsOptimizer)
+                    {
+                        await Task.Delay(5000);
+                        _clustersToPaint = new ConcurrentQueue<List<HorizontalVolumeLine>>();
+                    }
+
+                    // проверяем, пришли ли свечи
+
+                    if (!_clustersToPaint.IsEmpty)
+                    {
+                        List<HorizontalVolumeLine> candles = new List<HorizontalVolumeLine>();
+
+                        while (!_clustersToPaint.IsEmpty)
+                        {
+                            _clustersToPaint.TryDequeue(out candles);
+                        }
+
+                        if (candles != null)
+                        {
+                            PaintCluster(candles);
+                        }
+                    }
+
+                    if (_startProgram == StartProgram.IsTester ||
+                        _startProgram == StartProgram.IsOsOptimizer)
+                    {
+                        await Task.Delay(2000);
                     }
                 }
-
-                if (_startProgram == StartProgram.IsTester ||
-                    _startProgram == StartProgram.IsOsOptimizer)
+                catch(Exception error)
                 {
-                    await Task.Delay(2000);
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -1011,10 +1078,17 @@ namespace OsEngine.Charts.ClusterChart
 
         private void _chart_MouseLeave(object sender, EventArgs e)
         {
-            for (int i = 0; i < _chart.ChartAreas.Count; i++)
+            try
             {
-                _chart.ChartAreas[i].CursorX.Position = double.NaN;
-                _chart.ChartAreas[i].CursorY.Position = 0;
+                for (int i = 0; i < _chart.ChartAreas.Count; i++)
+                {
+                    _chart.ChartAreas[i].CursorX.Position = double.NaN;
+                    _chart.ChartAreas[i].CursorY.Position = 0;
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1024,185 +1098,199 @@ namespace OsEngine.Charts.ClusterChart
 
         private void _chart_MouseMove2(object sender, MouseEventArgs e)
         {
-            if (_chart.Cursor == Cursors.SizeAll)
+            try
             {
-                return;
-            }
-            if (_chart.ChartAreas.Count < 1)
-            {
-                return;
-            }
-
-            if (e.Button == MouseButtons.Left &&
-                _chart.Cursor == Cursors.Arrow)
-            {
-                return;
-            }
-
-            if (_volume.VolumeClusters == null ||
-                _volume.VolumeClusters.Count < 3)
-            {
-                return;
-            }
-
-            if (_areaPositions.Count != _chart.ChartAreas.Count ||
-                _areaPositions.Find(posi => posi.RightPoint == 0) != null)
-            {
-                _areaPositions = new List<ChartAreaPosition>();
-                ReloadChartAreasSize();
-            }
-
-            if (_chart.Cursor == Cursors.Hand ||
-                _chart.Cursor == Cursors.SizeNS ||
-                _areaPositions == null)
-            {
-                return;
-            }
-
-            ChartAreaPosition myPosition = null;
-
-            MouseEventArgs mouse = (MouseEventArgs)e;
-
-            ChartAreaPosition pos = _areaPositions[0];
-
-            if ((pos.LeftPoint < e.X &&
-                 pos.RightPoint > e.X &&
-                 pos.DownPoint - 30 < e.Y &&
-                 pos.DownPoint - 10 > e.Y)
-                ||
-                (mouse.Button == MouseButtons.Left && _chart.Cursor == Cursors.SizeWE && pos.LeftPoint < e.X &&
-                 pos.RightPoint > e.X &&
-                 pos.DownPoint - 200 < e.Y &&
-                 pos.DownPoint + 100 > e.Y))
-            {
-                myPosition = pos;
-                _chart.Cursor = Cursors.SizeWE;
-            }
-            else
-            {
-                pos.ValueYMouseOnClickStart = 0;
-                pos.HeightAreaOnClick = 0;
-                pos.ValueYChartOnClick = 0;
-            }
-
-
-            if (myPosition == null)
-            {
-                _chart.Cursor = Cursors.Arrow;
-                return;
-            }
-
-            if (mouse.Button != MouseButtons.Left)
-            {
-                myPosition.ValueXMouseOnClickStart = 0;
-                myPosition.CountXValuesChartOnClickStart = 0;
-                return;
-            }
-
-            if (myPosition.ValueXMouseOnClickStart == 0)
-            {
-                myPosition.ValueXMouseOnClickStart = e.X;
-
-                if (double.IsNaN(_chart.ChartAreas[0].AxisY.ScaleView.Size))
+                if (_chart.Cursor == Cursors.SizeAll)
                 {
-                    int max = _volume.VolumeClusters.Count;
-
-                    myPosition.CountXValuesChartOnClickStart = max;
+                    return;
                 }
-                else
-                {
-                    myPosition.CountXValuesChartOnClickStart = (int)_chart.ChartAreas[0].AxisY.ScaleView.Size;
-                }
-                return;
-            }
-
-
-            double persentMove = Math.Abs(myPosition.ValueXMouseOnClickStart - e.X) / _host.Child.Width;
-
-            if (double.IsInfinity(persentMove) ||
-                persentMove == 0)
-            {
-                return;
-            }
-
-            //double concateValue = 100*persentMove*5;
-
-
-            int maxSize = _volume.VolumeClusters.Count;
-
-
-            if (myPosition.ValueXMouseOnClickStart < e.X)
-            {
-                if (myPosition.Area.Position.Height < 10)
+                if (_chart.ChartAreas.Count < 1)
                 {
                     return;
                 }
 
-                double newVal = myPosition.CountXValuesChartOnClickStart +
-                             myPosition.CountXValuesChartOnClickStart * persentMove * 3;
-
-
-                if (newVal > maxSize)
+                if (e.Button == MouseButtons.Left &&
+                    _chart.Cursor == Cursors.Arrow)
                 {
-                    _chart.ChartAreas[0].AxisY.ScaleView.Size = Double.NaN;
+                    return;
+                }
+
+                if (_volume.VolumeClusters == null ||
+                    _volume.VolumeClusters.Count < 3)
+                {
+                    return;
+                }
+
+                if (_areaPositions.Count != _chart.ChartAreas.Count ||
+                    _areaPositions.Find(posi => posi.RightPoint == 0) != null)
+                {
+                    _areaPositions = new List<ChartAreaPosition>();
+                    ReloadChartAreasSize();
+                }
+
+                if (_chart.Cursor == Cursors.Hand ||
+                    _chart.Cursor == Cursors.SizeNS ||
+                    _areaPositions == null)
+                {
+                    return;
+                }
+
+                ChartAreaPosition myPosition = null;
+
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                ChartAreaPosition pos = _areaPositions[0];
+
+                if ((pos.LeftPoint < e.X &&
+                     pos.RightPoint > e.X &&
+                     pos.DownPoint - 30 < e.Y &&
+                     pos.DownPoint - 10 > e.Y)
+                    ||
+                    (mouse.Button == MouseButtons.Left && _chart.Cursor == Cursors.SizeWE && pos.LeftPoint < e.X &&
+                     pos.RightPoint > e.X &&
+                     pos.DownPoint - 200 < e.Y &&
+                     pos.DownPoint + 100 > e.Y))
+                {
+                    myPosition = pos;
+                    _chart.Cursor = Cursors.SizeWE;
                 }
                 else
                 {
-
-                    if (newVal + _chart.ChartAreas[0].AxisY.ScaleView.Position > maxSize)
-                    {
-                        _chart.ChartAreas[0].AxisY.ScaleView.Position = maxSize - newVal;
-                    }
-
-                    _chart.ChartAreas[0].AxisY.ScaleView.Size = newVal;
-                    //RePaintRightLebels();
-
-                    if (_chart.ChartAreas[0].AxisY.ScaleView.Position + newVal > maxSize)
-                    {
-                        _chart.ChartAreas[0].AxisY.ScaleView.Position = maxSize - newVal;
-                    }
+                    pos.ValueYMouseOnClickStart = 0;
+                    pos.HeightAreaOnClick = 0;
+                    pos.ValueYChartOnClick = 0;
                 }
-            }
-            else if (myPosition.ValueXMouseOnClickStart > e.X)
-            {
-                double newVal = myPosition.CountXValuesChartOnClickStart -
-               myPosition.CountXValuesChartOnClickStart * persentMove * 3;
 
 
-                if (newVal < 5)
+                if (myPosition == null)
                 {
-                    _chart.ChartAreas[0].AxisY.ScaleView.Size = 5;
+                    _chart.Cursor = Cursors.Arrow;
+                    return;
                 }
-                else
+
+                if (mouse.Button != MouseButtons.Left)
                 {
-                    if (!double.IsNaN(_chart.ChartAreas[0].AxisY.ScaleView.Size))
+                    myPosition.ValueXMouseOnClickStart = 0;
+                    myPosition.CountXValuesChartOnClickStart = 0;
+                    return;
+                }
+
+                if (myPosition.ValueXMouseOnClickStart == 0)
+                {
+                    myPosition.ValueXMouseOnClickStart = e.X;
+
+                    if (double.IsNaN(_chart.ChartAreas[0].AxisY.ScaleView.Size))
                     {
+                        int max = _volume.VolumeClusters.Count;
+
+                        myPosition.CountXValuesChartOnClickStart = max;
+                    }
+                    else
+                    {
+                        myPosition.CountXValuesChartOnClickStart = (int)_chart.ChartAreas[0].AxisY.ScaleView.Size;
+                    }
+                    return;
+                }
 
 
-                        _chart.ChartAreas[0].AxisY.ScaleView.Position = _chart.ChartAreas[0].AxisY.ScaleView.Position + _chart.ChartAreas[0].AxisY.ScaleView.Size - newVal;
+                double persentMove = Math.Abs(myPosition.ValueXMouseOnClickStart - e.X) / _host.Child.Width;
+
+                if (double.IsInfinity(persentMove) ||
+                    persentMove == 0)
+                {
+                    return;
+                }
+
+                //double concateValue = 100*persentMove*5;
+
+
+                int maxSize = _volume.VolumeClusters.Count;
+
+
+                if (myPosition.ValueXMouseOnClickStart < e.X)
+                {
+                    if (myPosition.Area.Position.Height < 10)
+                    {
+                        return;
                     }
 
-                    _chart.ChartAreas[0].AxisY.ScaleView.Size = newVal;
-                    if (_chart.ChartAreas[0].AxisY.ScaleView.Position + newVal > maxSize)
+                    double newVal = myPosition.CountXValuesChartOnClickStart +
+                                 myPosition.CountXValuesChartOnClickStart * persentMove * 3;
+
+
+                    if (newVal > maxSize)
                     {
-                        double newStartPos = maxSize - newVal;
-                        if (newStartPos < 0)
+                        _chart.ChartAreas[0].AxisY.ScaleView.Size = Double.NaN;
+                    }
+                    else
+                    {
+
+                        if (newVal + _chart.ChartAreas[0].AxisY.ScaleView.Position > maxSize)
                         {
-                            newStartPos = 0;
+                            _chart.ChartAreas[0].AxisY.ScaleView.Position = maxSize - newVal;
                         }
-                        _chart.ChartAreas[0].AxisY.ScaleView.Position = newStartPos;
+
+                        _chart.ChartAreas[0].AxisY.ScaleView.Size = newVal;
+                        //RePaintRightLebels();
+
+                        if (_chart.ChartAreas[0].AxisY.ScaleView.Position + newVal > maxSize)
+                        {
+                            _chart.ChartAreas[0].AxisY.ScaleView.Position = maxSize - newVal;
+                        }
                     }
-
                 }
-            }
+                else if (myPosition.ValueXMouseOnClickStart > e.X)
+                {
+                    double newVal = myPosition.CountXValuesChartOnClickStart -
+                   myPosition.CountXValuesChartOnClickStart * persentMove * 3;
 
-            ResizeXAxis();
-            ResizeYAxis();
+
+                    if (newVal < 5)
+                    {
+                        _chart.ChartAreas[0].AxisY.ScaleView.Size = 5;
+                    }
+                    else
+                    {
+                        if (!double.IsNaN(_chart.ChartAreas[0].AxisY.ScaleView.Size))
+                        {
+
+
+                            _chart.ChartAreas[0].AxisY.ScaleView.Position = _chart.ChartAreas[0].AxisY.ScaleView.Position + _chart.ChartAreas[0].AxisY.ScaleView.Size - newVal;
+                        }
+
+                        _chart.ChartAreas[0].AxisY.ScaleView.Size = newVal;
+                        if (_chart.ChartAreas[0].AxisY.ScaleView.Position + newVal > maxSize)
+                        {
+                            double newStartPos = maxSize - newVal;
+                            if (newStartPos < 0)
+                            {
+                                newStartPos = 0;
+                            }
+                            _chart.ChartAreas[0].AxisY.ScaleView.Position = newStartPos;
+                        }
+
+                    }
+                }
+
+                ResizeXAxis();
+                ResizeYAxis();
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         void _chart_ClientSizeChanged(object sender, EventArgs e)
         {
-            ReloadChartAreasSize();
+            try
+            {
+                ReloadChartAreasSize();
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>

@@ -1362,6 +1362,80 @@ namespace OsEngine.OsOptimizer
 
         #endregion
 
+        #region Delete
+
+        public void Delete()
+        {
+            try
+            {
+                if (_boxTypeSort != null)
+                {
+                    _boxTypeSort.SelectionChanged -= _gridResults_SelectionChanged;
+                    _boxTypeSort = null;
+                }
+
+                if (_boxTypeSortBotNum != null)
+                {
+                    _boxTypeSortBotNum.SelectionChanged -= _boxTypeSortBotNum_SelectionChanged;
+                    _boxTypeSortBotNum = null;
+                }
+
+                if (_comboBoxTotalProfitEquityType != null)
+                {
+                    _comboBoxTotalProfitEquityType.SelectionChanged -= _comboBoxProfitType_SelectionChanged;
+                    _comboBoxTotalProfitEquityType = null;
+                }
+
+                DisposeChart(_chartRobustness, _hostRobustness);
+                _chartRobustness = null;
+                _hostRobustness = null;
+
+                DisposeChart(_chartTotalProfit, _hostTotalProfit);
+                _chartTotalProfit = null;
+                _hostTotalProfit = null;
+
+                DisposeChart(_chartAverageProfit, _hostAverageProfitChart);
+                _chartAverageProfit = null;
+                _hostAverageProfitChart = null;
+
+                DisposeChart(_chartProfitFactor, _hostProfitFactor);
+                _chartProfitFactor = null;
+                _hostProfitFactor = null;
+
+                _labelRobustnessMetricValue = null;
+                _reports = null;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void DisposeChart(Chart chart, WindowsFormsHost host)
+        {
+            if (chart == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (host != null)
+                {
+                    host.Child = null;
+                }
+                chart.Series.Clear();
+                chart.ChartAreas.Clear();
+                chart.Dispose();
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
         #region Log
 
         private void SendLogMessage(string message, LogMessageType type)

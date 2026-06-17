@@ -208,26 +208,44 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
                     HostSec2.Child = null;
                 }
 
-                if (_chartContango != null)
-                {
-                    _chartContango.Series.Clear();
-                    _chartContango = null;
-                }
-
                 if (HostContango != null)
                 {
                     HostContango.Child = null;
                 }
 
-                if (_chartCointegration != null)
+                if (_chartContango != null)
                 {
-                    _chartCointegration.Series.Clear();
-                    _chartCointegration = null;
+                    try
+                    {
+                        _chartContango.Series.Clear();
+                        _chartContango.ChartAreas.Clear();
+                        _chartContango.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
+                    _chartContango = null;
                 }
 
                 if (HostCointegration != null)
                 {
                     HostCointegration.Child = null;
+                }
+
+                if (_chartCointegration != null)
+                {
+                    try
+                    {
+                        _chartCointegration.Series.Clear();
+                        _chartCointegration.ChartAreas.Clear();
+                        _chartCointegration.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
+                    _chartCointegration = null;
                 }
 
                 _syntheticBond = null;

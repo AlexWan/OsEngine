@@ -79,6 +79,11 @@ namespace OsEngine.Charts.ClusterChart
         /// </summary>
         public void Delete()
         {
+            if (_chart != null)
+            {
+                _chart.Delete();
+            }
+
             if (File.Exists(@"Engine\" + _name + @"ClusterChartMasterSet.txt"))
             {
                 File.Delete(@"Engine\" + _name + @"ClusterChartMasterSet.txt");

@@ -259,42 +259,77 @@ namespace OsEngine.Journal
 
                 if (_chartEquity != null)
                 {
-                    _chartEquity.MouseMove -= _chartEquity_MouseMove;
-                    _chartEquity.MouseWheel -= _chartEquity_MouseWheel;
-                    RectangleEquity.MouseDown -= RectangleEquity_MouseDown;
-                    RectangleLong.MouseDown -= RectangleLong_MouseDown;
-                    RectangleShort.MouseDown -= RectangleShort_MouseDown;
+                    try
+                    {
+                        _chartEquity.MouseMove -= _chartEquity_MouseMove;
+                        _chartEquity.MouseWheel -= _chartEquity_MouseWheel;
+                        RectangleEquity.MouseDown -= RectangleEquity_MouseDown;
+                        RectangleLong.MouseDown -= RectangleLong_MouseDown;
+                        RectangleShort.MouseDown -= RectangleShort_MouseDown;
 
-                    _chartEquity.Series.Clear();
-                    _chartEquity.ChartAreas.Clear();
-                    _chartEquity.Dispose();
-                    _chartEquity = null;
-                    HostEquity.Child.Hide();
-                    HostEquity.Child = null;
-                    HostEquity = null;
+                        _chartEquity.Series.Clear();
+                        _chartEquity.ChartAreas.Clear();
+
+                        if (HostEquity != null)
+                        {
+                            HostEquity.Child = null;
+                        }
+
+                        _chartEquity.Dispose();
+                        _chartEquity = null;
+                        HostEquity = null;
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
                 }
 
                 if (_chartVolume != null)
                 {
-                    _chartVolume.MouseWheel -= _chartVolume_MouseWheel;
-                    _chartVolume.Click -= _chartVolume_Click;
-                    _chartVolume.Series.Clear();
-                    _chartVolume.ChartAreas.Clear();
-                    _chartVolume.Dispose();
-                    _chartVolume = null;
-                    HostVolume.Child.Hide();
-                    HostVolume.Child = null;
-                    HostVolume = null;
+                    try
+                    {
+                        _chartVolume.MouseWheel -= _chartVolume_MouseWheel;
+                        _chartVolume.Click -= _chartVolume_Click;
+                        _chartVolume.Series.Clear();
+                        _chartVolume.ChartAreas.Clear();
+
+                        if (HostVolume != null)
+                        {
+                            HostVolume.Child = null;
+                        }
+
+                        _chartVolume.Dispose();
+                        _chartVolume = null;
+                        HostVolume = null;
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
                 }
 
                 if (_chartPortfolio != null)
                 {
-                    _chartPortfolio.MouseMove -= _chartPortfolio_MouseMove;
-                    _chartPortfolio.MouseWheel -= _chartPortfolio_MouseWheel;
-                    _chartPortfolio.Series.Clear();
-                    _chartPortfolio.ChartAreas.Clear();
-                    _chartPortfolio.Dispose();
-                    _chartPortfolio = null;
+                    try
+                    {
+                        _chartPortfolio.MouseMove -= _chartPortfolio_MouseMove;
+                        _chartPortfolio.MouseWheel -= _chartPortfolio_MouseWheel;
+                        _chartPortfolio.Series.Clear();
+                        _chartPortfolio.ChartAreas.Clear();
+
+                        if (_layoutPanelPortfolio != null)
+                        {
+                            _layoutPanelPortfolio.Controls.Remove(_chartPortfolio);
+                        }
+
+                        _chartPortfolio.Dispose();
+                        _chartPortfolio = null;
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
                 }
 
                 if (_gridLeveragePortfolio != null)
@@ -320,14 +355,25 @@ namespace OsEngine.Journal
 
                 if (_chartDd != null)
                 {
-                    _chartDd.MouseMove -= _chartDd_MouseMove;
-                    _chartDd.Series.Clear();
-                    _chartDd.ChartAreas.Clear();
-                    _chartDd.Dispose();
-                    _chartDd = null;
-                    HostDrawdown.Child.Hide();
-                    HostDrawdown.Child = null;
-                    HostDrawdown = null;
+                    try
+                    {
+                        _chartDd.MouseMove -= _chartDd_MouseMove;
+                        _chartDd.Series.Clear();
+                        _chartDd.ChartAreas.Clear();
+
+                        if (HostDrawdown != null)
+                        {
+                            HostDrawdown.Child = null;
+                        }
+
+                        _chartDd.Dispose();
+                        _chartDd = null;
+                        HostDrawdown = null;
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
                 }
 
                 if (_gridStatistics != null)

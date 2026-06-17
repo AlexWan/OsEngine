@@ -302,23 +302,39 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_chartCorrelation != null)
                 {
-                    if (HostCorrelation != null)
+                    try
                     {
-                        HostCorrelation.Child = null;
+                        if (HostCorrelation != null)
+                        {
+                            HostCorrelation.Child = null;
+                        }
+                        _chartCorrelation.Series.Clear();
+                        _chartCorrelation.ChartAreas.Clear();
+                        _chartCorrelation.Dispose();
                     }
-                    _chartCorrelation.Series.Clear();
-                    _chartCorrelation.Dispose();
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                     _chartCorrelation = null;
                 }
 
                 if (_chartCointegration != null)
                 {
-                    if (HostCointegration != null)
+                    try
                     {
-                        HostCointegration.Child = null;
+                        if (HostCointegration != null)
+                        {
+                            HostCointegration.Child = null;
+                        }
+                        _chartCointegration.Series.Clear();
+                        _chartCointegration.ChartAreas.Clear();
+                        _chartCointegration.Dispose();
                     }
-                    _chartCointegration.Series.Clear();
-                    _chartCointegration.Dispose();
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                     _chartCointegration = null;
                 }
 

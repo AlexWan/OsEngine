@@ -17,10 +17,50 @@ namespace OsEngine.OsOptimizer.OptEntity
     {
         public static void PaintForwards(WindowsFormsHost host, List<OptimizerFaze> fazes)
         {
+            Chart oldChart = host.Child as Chart;
             Chart chart = CreateChart();
             host.Child = chart;
 
+            if (oldChart != null)
+            {
+                try
+                {
+                    oldChart.Series.Clear();
+                    oldChart.ChartAreas.Clear();
+                    oldChart.Dispose();
+                }
+                catch (Exception error)
+                {
+                    System.Windows.MessageBox.Show(error.ToString());
+                }
+            }
+
             PaintLines(fazes, chart);
+        }
+
+        public static void Clear(WindowsFormsHost host)
+        {
+            if (host == null)
+            {
+                return;
+            }
+
+            Chart oldChart = host.Child as Chart;
+            host.Child = null;
+
+            if (oldChart != null)
+            {
+                try
+                {
+                    oldChart.Series.Clear();
+                    oldChart.ChartAreas.Clear();
+                    oldChart.Dispose();
+                }
+                catch (Exception error)
+                {
+                    System.Windows.MessageBox.Show(error.ToString());
+                }
+            }
         }
 
         private static Chart CreateChart()

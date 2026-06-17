@@ -381,8 +381,17 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (_chartReport != null)
                 {
-                    HostPortfolio.Child = null;
-                    _chartReport.Dispose();
+                    try
+                    {
+                        HostPortfolio.Child = null;
+                        _chartReport.Series.Clear();
+                        _chartReport.ChartAreas.Clear();
+                        _chartReport.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                     _chartReport = null;
                 }
 

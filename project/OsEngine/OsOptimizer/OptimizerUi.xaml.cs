@@ -264,8 +264,25 @@ namespace OsEngine.OsOptimizer
 
                 if (_resultsCharting != null)
                 {
+                    _resultsCharting.Delete();
                     _resultsCharting.LogMessageEvent -= _master.SendLogMessage;
                     _resultsCharting = null;
+                }
+
+                if (_chartSeriesResult != null)
+                {
+                    try
+                    {
+                        _chartSeriesResult.Click -= _chartSeriesResult_Click;
+                        _chartSeriesResult.Series.Clear();
+                        _chartSeriesResult.ChartAreas.Clear();
+                        _chartSeriesResult.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
+                    _chartSeriesResult = null;
                 }
 
                 _master = null;
@@ -288,7 +305,7 @@ namespace OsEngine.OsOptimizer
                 }
                 if (HostWalkForwardPeriods != null)
                 {
-                    HostWalkForwardPeriods.Child = null;
+                    WalkForwardPeriodsPainter.Clear(HostWalkForwardPeriods);
                 }
                 if (WindowsFormsHostFazeNumOnTubResult != null)
                 {
