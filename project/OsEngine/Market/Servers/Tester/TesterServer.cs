@@ -2746,11 +2746,6 @@ namespace OsEngine.Market.Servers.Tester
             {
                 // send to the log / отправить в лог
             }
-
-            if (NeedToReconnectEvent != null)
-            {
-                NeedToReconnectEvent();
-            }
         }
 
         #endregion
