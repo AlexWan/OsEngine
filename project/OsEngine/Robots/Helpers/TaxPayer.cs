@@ -17,6 +17,9 @@ using System.Windows.Forms.Integration;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using OsEngine.Market.Connectors;
+using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Tester;
+using OsEngine.Market;
 using OsEngine.Language;
 
 /* Description
@@ -37,6 +40,7 @@ namespace OsEngine.Robots.Helpers
         private StrategyParameterBool _fullLogIsOn;
         private StrategyParameterBool _separateCommodityFutures;
         private StrategyParameterString _commodityFuturesPrefixes;
+        private Dictionary<string, Security> _testerSecurities = new();
 
         public TaxPayer(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -80,7 +84,72 @@ namespace OsEngine.Robots.Helpers
 
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
+            if (StartProgram == StartProgram.IsTester
+                && ServerMaster.GetServers() != null)
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers != null
+                    && servers.Count > 0
+                    && servers[0].ServerType == ServerType.Tester)
+                {
+                    TesterServer server = (TesterServer)servers[0];
+                    server.TestingStartEvent += Server_TestingStartEvent;
+                }
+            }
+
             Description = OsLocalization.Description.DescriptionLabel327;
+        }
+
+        private void Server_TestingStartEvent()
+        {
+            LoadTesterSecurities();
+        }
+
+        private void LoadTesterSecurities()
+        {
+            try
+            {
+                _testerSecurities.Clear();
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType != ServerType.Tester)
+                    {
+                        continue;
+                    }
+
+                    TesterServer testerServer = (TesterServer)servers[i];
+
+                    if (testerServer.Securities == null)
+                    {
+                        continue;
+                    }
+
+                    for (int j = 0; j < testerServer.Securities.Count; j++)
+                    {
+                        Security sec = testerServer.Securities[j];
+
+                        if (string.IsNullOrEmpty(sec.Name))
+                        {
+                            continue;
+                        }
+
+                        _testerSecurities[sec.Name] = sec;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #region Table Periods
@@ -570,17 +639,30 @@ namespace OsEngine.Robots.Helpers
                 return false;
             }
 
-            string[] prefixes = _commodityFuturesPrefixes.ValueString
-                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string securityName = position.SecurityName;
 
-            if (prefixes.Length == 0)
+            if (string.IsNullOrWhiteSpace(securityName))
             {
                 return false;
             }
 
-            string securityName = position.SecurityName;
+            if (_testerSecurities.Count == 0)
+            {
+                LoadTesterSecurities();
+            }
 
-            if (string.IsNullOrWhiteSpace(securityName))
+            _testerSecurities.TryGetValue(securityName, out Security security);
+
+            if (security != null &&
+                security.SecurityType != SecurityType.Futures)
+            {
+                return false;
+            }
+
+            string[] prefixes = _commodityFuturesPrefixes.ValueString
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (prefixes.Length == 0)
             {
                 return false;
             }
