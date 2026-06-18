@@ -1458,11 +1458,19 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         private void BondTradeUi_Closed(object sender, EventArgs e)
         {
-            SyntheticBondTradeUi closedWindow = (SyntheticBondTradeUi)sender;
-            closedWindow.Closed -= BondTradeUi_Closed;
-            _bondsTradeUi.TryRemove(closedWindow.Key, out _);
+            try
+            {
+                SyntheticBondTradeUi closedWindow = (SyntheticBondTradeUi)sender;
+                closedWindow.Closed -= BondTradeUi_Closed;
 
-            OnSettingsChanged();
+                _bondsTradeUi.TryRemove(closedWindow.Key, out _);
+
+                OnSettingsChanged();
+            }
+            catch(Exception error) 
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         public void CloseTradeWindow(SyntheticBond syntheticBond)

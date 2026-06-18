@@ -43,6 +43,8 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
                 _selectedScenario = _syntheticBond.ActiveScenarios[0];
             }
 
+            _key = Key;
+
             CurrentModeLabel.Content = OsLocalization.Trader.Label698;
             NonTradePeriodButton.Content = OsLocalization.Trader.Label473;
             ServerTimeLabel.Content = OsLocalization.Trader.Label722;
@@ -303,9 +305,12 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
             {
                 Closed -= SyntheticBondOffsetUi_Closed;
 
-                _updateTimer.Stop();
-                _updateTimer.Tick -= UpdateTimer_Tick;
-                _updateTimer = null;
+                if(_updateTimer != null)
+                {
+                    _updateTimer.Stop();
+                    _updateTimer.Tick -= UpdateTimer_Tick;
+                    _updateTimer = null;
+                }
 
                 //ScenarioComboBox.SelectionChanged -= ScenarioComboBox_SelectionChanged;
                 TimeShiftTextBox.TextChanged -= TimeShiftTextBox_TextChanged;
@@ -1193,9 +1198,25 @@ namespace OsEngine.OsTrader.Panels.Tab.SynteticBondTab
         {
             get
             {
+                if(_key != null)
+                {
+                    return _key;
+                }
+
+                if(_selectedScenario == null
+                    || _selectedScenario.ArbitrationIceberg == null
+                    || _selectedScenario.ArbitrationIceberg.MainLegs == null
+                    || _selectedScenario.ArbitrationIceberg.MainLegs.Count == 0
+                    || _selectedScenario.ArbitrationIceberg.MainLegs[0].BotTab == null)
+                {
+                    return null;
+                }
+
                 return _selectedScenario.ArbitrationIceberg.MainLegs[0].BotTab.TabName;
             }
         }
+
+        private string _key = null;
 
         #endregion
 
