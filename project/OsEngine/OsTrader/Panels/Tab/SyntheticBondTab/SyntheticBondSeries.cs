@@ -1423,7 +1423,7 @@ namespace OsEngine.OsTrader.Panels.Tab.SyntheticBondTab
 
         public void ShowTradeWindow(ref SyntheticBond syntheticBond)
         {
-            try
+            try 
             {
                 if (syntheticBond.PatternFuturesTab == null)
                 {

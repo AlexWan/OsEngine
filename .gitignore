@@ -318,3 +318,6 @@ __pycache__/
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
+
+# Private MCP API development context (work-in-progress, not for other developers)
+project/CONTEXT_MCP_API_DEVELOPMENT.md
