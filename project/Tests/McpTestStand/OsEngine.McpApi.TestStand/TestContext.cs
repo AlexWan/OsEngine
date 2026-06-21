@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace OsEngine.McpApi.TestStand
@@ -42,12 +43,20 @@ namespace OsEngine.McpApi.TestStand
         public void PrintRequest(string module, string method, object request)
         {
             Console.WriteLine($"[{module}] Method: {method}");
-            Console.WriteLine($"  Request:  {Serialize(request)}");
+            Console.WriteLine("  Request:");
+            PrintIndentedJson(Serialize(request), "    ");
         }
 
         public void PrintResponse(string response)
         {
-            Console.WriteLine($"  Response: {response}");
+            if (string.IsNullOrWhiteSpace(response))
+            {
+                Console.WriteLine("  Response: (empty)");
+                return;
+            }
+
+            Console.WriteLine("  Response:");
+            PrintMcpResponse(response, "    ");
         }
 
         public void RecordPass(string module, string method, string message)
@@ -110,11 +119,114 @@ namespace OsEngine.McpApi.TestStand
         {
             try
             {
-                return JsonSerializer.Serialize(value);
+                return JsonSerializer.Serialize(value, new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                });
             }
             catch
             {
                 return value?.ToString() ?? "null";
+            }
+        }
+
+        private static void PrintIndentedJson(string json, string indent)
+        {
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(json))
+                {
+                    string formatted = JsonSerializer.Serialize(document.RootElement, new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    });
+
+                    foreach (string line in formatted.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
+                    {
+                        Console.WriteLine(indent + line);
+                    }
+                }
+            }
+            catch
+            {
+                Console.WriteLine(indent + json);
+            }
+        }
+
+        private static void PrintMcpResponse(string response, string indent)
+        {
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(response))
+                {
+                    JsonElement root = document.RootElement;
+
+                    if (root.ValueKind == JsonValueKind.Object
+                        && root.TryGetProperty("Content", out JsonElement contentElement)
+                        && contentElement.ValueKind == JsonValueKind.Array)
+                    {
+                        bool isError = root.TryGetProperty("IsError", out JsonElement isErrorElement)
+                            && isErrorElement.ValueKind == JsonValueKind.True;
+
+                        Console.WriteLine(indent + "{");
+                        Console.WriteLine(indent + "  \"Content\": [");
+
+                        for (int i = 0; i < contentElement.GetArrayLength(); i++)
+                        {
+                            JsonElement item = contentElement[i];
+                            Console.WriteLine(indent + "    {");
+
+                            if (item.TryGetProperty("Type", out JsonElement typeElement)
+                                && typeElement.ValueKind == JsonValueKind.String)
+                            {
+                                Console.WriteLine(indent + $"      \"Type\": \"{typeElement.GetString()}\",");
+                            }
+
+                            if (item.TryGetProperty("Text", out JsonElement textElement)
+                                && textElement.ValueKind == JsonValueKind.String)
+                            {
+                                string? text = textElement.GetString();
+
+                                if (!string.IsNullOrEmpty(text) && IsValidJson(text))
+                                {
+                                    Console.WriteLine(indent + "      \"Text\":");
+                                    PrintIndentedJson(text, indent + "        ");
+                                }
+                                else
+                                {
+                                    Console.WriteLine(indent + $"      \"Text\": \"{text}\"");
+                                }
+                            }
+
+                            Console.WriteLine(indent + "    }" + (i < contentElement.GetArrayLength() - 1 ? "," : ""));
+                        }
+
+                        Console.WriteLine(indent + "  ],");
+                        Console.WriteLine(indent + $"  \"IsError\": {isError.ToString().ToLowerInvariant()}");
+                        Console.WriteLine(indent + "}");
+                        return;
+                    }
+
+                    PrintIndentedJson(response, indent);
+                }
+            }
+            catch
+            {
+                Console.WriteLine(indent + response);
+            }
+        }
+
+        private static bool IsValidJson(string text)
+        {
+            try
+            {
+                JsonDocument.Parse(text);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

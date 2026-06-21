@@ -48,7 +48,8 @@ namespace OsEngine.MCP
         private readonly LogsApi _logsApi;
         private readonly SettingsApi _settingsApi;
         private readonly McpConfigApi _configApi;
-        private readonly ServerApi _serverApi;
+        private readonly ServerManagementApi _serverManagementApi;
+        private readonly ServerInstanceApi _serverInstanceApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -102,8 +103,11 @@ namespace OsEngine.MCP
             _configApi = new McpConfigApi(restartHost);
             _configApi.NewLogMessageEvent += ConfigApi_NewLogMessageEvent;
 
-            _serverApi = new ServerApi(publishEvent);
-            _serverApi.NewLogMessageEvent += ServerApi_NewLogMessageEvent;
+            _serverManagementApi = new ServerManagementApi(publishEvent);
+            _serverManagementApi.NewLogMessageEvent += ServerManagementApi_NewLogMessageEvent;
+
+            _serverInstanceApi = new ServerInstanceApi(publishEvent);
+            _serverInstanceApi.NewLogMessageEvent += ServerInstanceApi_NewLogMessageEvent;
 
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
@@ -112,7 +116,8 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_logsApi);
             _protocolApi.RegisterToolProvider(_settingsApi);
             _protocolApi.RegisterToolProvider(_configApi);
-            _protocolApi.RegisterToolProvider(_serverApi);
+            _protocolApi.RegisterToolProvider(_serverManagementApi);
+            _protocolApi.RegisterToolProvider(_serverInstanceApi);
         }
 
         #endregion
@@ -244,7 +249,12 @@ namespace OsEngine.MCP
             Log.ProcessMessage(message, type);
         }
 
-        private void ServerApi_NewLogMessageEvent(string message, LogMessageType type)
+        private void ServerManagementApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void ServerInstanceApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
         }
@@ -498,7 +508,11 @@ namespace OsEngine.MCP
 
             if (McpSettings.IsFullLogEnabled)
             {
-                string responseJson = JsonSerializer.Serialize(rpcResponse, JsonOptions);
+                var logOptions = new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+                string responseJson = JsonSerializer.Serialize(rpcResponse, logOptions);
                 Log.ProcessMessage($"[FullLog] RPC response: {responseJson}", LogMessageType.System);
             }
 
@@ -582,10 +596,17 @@ namespace OsEngine.MCP
                         response = _configApi.Handle(request);
                         break;
 
-                    case "server_get_list":
-                    case "server_activate":
-                    case "server_get_params":
-                        response = _serverApi.Handle(request);
+                    case "server_management_get_list":
+                    case "server_management_activate":
+                    case "server_management_get_trade_connectors":
+                    case "server_management_get_data_connectors":
+                    case "server_management_get_connector_permissions":
+                        response = _serverManagementApi.Handle(request);
+                        break;
+
+                    case "server_instance_get_params":
+                    case "server_instance_set_params":
+                        response = _serverInstanceApi.Handle(request);
                         break;
 
                     default:
