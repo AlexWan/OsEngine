@@ -39,6 +39,7 @@ namespace OsEngine.McpApi.TestStand
                 RunModule("Logs", () => new LogsTests(context).RunAll());
                 RunModule("Settings", () => new SettingsTests(context).RunAll());
                 RunModule("Config", () => new ConfigTests(context).RunAll());
+                RunModule("Server", () => new ServerTests(context).RunAll());
                 RunModule("SSE", () => new SseTests(context).RunAll());
                 RunModule("Errors", () => new ErrorTests(context).RunAll());
 

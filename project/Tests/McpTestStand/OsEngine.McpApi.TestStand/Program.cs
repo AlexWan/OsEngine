@@ -18,6 +18,9 @@ namespace OsEngine.McpApi.TestStand
         {
             try
             {
+                Console.OutputEncoding = System.Text.Encoding.UTF8;
+                Console.InputEncoding = System.Text.Encoding.UTF8;
+
                 RunTestStand(args);
                 return 0;
             }

@@ -6,7 +6,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 using OsEngine.Logging;
 using OsEngine.MCP.Json;
 
@@ -202,7 +204,10 @@ namespace OsEngine.MCP.Modules
             }
 
             string resultJson = innerResponse.Result != null
-                ? JsonSerializer.Serialize(innerResponse.Result)
+                ? JsonSerializer.Serialize(innerResponse.Result, new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                })
                 : "null";
 
             return new

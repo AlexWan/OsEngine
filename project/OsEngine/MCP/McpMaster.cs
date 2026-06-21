@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using OsEngine.Entity;
@@ -29,6 +31,11 @@ namespace OsEngine.MCP
     {
         #region Fields
 
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        {
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+        };
+
         private HttpListener _listener;
         private CancellationTokenSource _cts;
         private Task _listenerTask;
@@ -41,6 +48,7 @@ namespace OsEngine.MCP
         private readonly LogsApi _logsApi;
         private readonly SettingsApi _settingsApi;
         private readonly McpConfigApi _configApi;
+        private readonly ServerApi _serverApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -94,6 +102,9 @@ namespace OsEngine.MCP
             _configApi = new McpConfigApi(restartHost);
             _configApi.NewLogMessageEvent += ConfigApi_NewLogMessageEvent;
 
+            _serverApi = new ServerApi(publishEvent);
+            _serverApi.NewLogMessageEvent += ServerApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -101,6 +112,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_logsApi);
             _protocolApi.RegisterToolProvider(_settingsApi);
             _protocolApi.RegisterToolProvider(_configApi);
+            _protocolApi.RegisterToolProvider(_serverApi);
         }
 
         #endregion
@@ -190,7 +202,7 @@ namespace OsEngine.MCP
                 Payload = payload
             };
 
-            string json = JsonSerializer.Serialize(message);
+            string json = JsonSerializer.Serialize(message, JsonOptions);
             string sseData = $"event: {eventName}\ndata: {json}\n\n";
             byte[] bytes = Encoding.UTF8.GetBytes(sseData);
 
@@ -232,6 +244,11 @@ namespace OsEngine.MCP
             Log.ProcessMessage(message, type);
         }
 
+        private void ServerApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
         private void ProtocolApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
@@ -246,7 +263,7 @@ namespace OsEngine.MCP
                 Payload = payload
             };
 
-            string json = JsonSerializer.Serialize(message);
+            string json = JsonSerializer.Serialize(message, JsonOptions);
             string sseData = $"event: {eventName}\ndata: {json}\n\n";
             byte[] bytes = Encoding.UTF8.GetBytes(sseData);
 
@@ -481,7 +498,7 @@ namespace OsEngine.MCP
 
             if (McpSettings.IsFullLogEnabled)
             {
-                string responseJson = JsonSerializer.Serialize(rpcResponse);
+                string responseJson = JsonSerializer.Serialize(rpcResponse, JsonOptions);
                 Log.ProcessMessage($"[FullLog] RPC response: {responseJson}", LogMessageType.System);
             }
 
@@ -565,6 +582,12 @@ namespace OsEngine.MCP
                         response = _configApi.Handle(request);
                         break;
 
+                    case "server_get_list":
+                    case "server_activate":
+                    case "server_get_params":
+                        response = _serverApi.Handle(request);
+                        break;
+
                     default:
                         response.Error = new McpJsonRpcError
                         {
@@ -641,7 +664,7 @@ namespace OsEngine.MCP
 
         private void SendJson<T>(HttpListenerResponse response, int statusCode, T data)
         {
-            string json = JsonSerializer.Serialize(data);
+            string json = JsonSerializer.Serialize(data, JsonOptions);
             byte[] buffer = Encoding.UTF8.GetBytes(json);
 
             response.StatusCode = statusCode;

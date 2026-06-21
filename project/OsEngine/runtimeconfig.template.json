@@ -1,10 +1,9 @@
 {
   "configProperties": {
-    "System.GC.Server": false,
+    "System.GC.Server": true,
     "System.GC.Concurrent": true,
     "System.GC.DynamicAdaptationMode": 1,
-    "System.GC.ConserveMemory": 9,
-    "System.GC.DATAS.TargetTCP": 0.05,
-    "System.GC.HeapHardLimitPercent": 40
+    "System.GC.ConserveMemory": 5,
+    "System.GC.DTargetTCP": 5
   }
 }
