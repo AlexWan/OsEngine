@@ -23,6 +23,7 @@
             <Button Name="ButtonSettings" HorizontalAlignment="Left" Margin="268,231,0,0" VerticalAlignment="Top" Width="100" Height="28" Click="ButtonSettings_Click">
                 <Image Name="ImageGear" HorizontalAlignment="Left" Source="Images/MainWIndow/gear.png" Width="24" Height="24"/>
             </Button>
+            <Button Name="ButtonApi" Content="API" HorizontalAlignment="Left" Margin="403,231,0,0" VerticalAlignment="Top" Width="86" Height="28" Click="ButtonApi_Click"/>
             <Button  Name="ButtonTesterLight" Content="Tester Light" Margin="249,138,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonTesterLight_Click"   />
             <Button  Name="ButtonRobotLight" Content="Bot Station Light" Margin="448,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonRobotLight_Click" />
             <Image Name="ImagePadlock" HorizontalAlignment="Left" Source="/Images/padlockClosed.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
@@ -38,7 +39,7 @@
                     <Image Name="WhiteCollectionMenu"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
                 </Grid>
             </Button>
-            <Button Name="ButtonNewCommits" Content="  0 commits  " HorizontalAlignment="Left" Margin="91,231,0,0" VerticalAlignment="Top" Width="123" Height="28"
+            <Button Name="ButtonNewCommits" Content="  0 commits  " HorizontalAlignment="Left" Margin="91,231,0,0" VerticalAlignment="Top" Width="141" Height="28"
                     Click="ButtonNewCommits_Click" MouseEnter="ButtCommits_MouseEnter" MouseLeave="ButtCommits_MouseLeave" />
         </Grid>
         <Grid Name="VideoGrid" VerticalAlignment="Top" Height="120" Margin="0,271,0,0">

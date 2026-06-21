@@ -10,6 +10,10 @@ namespace OsEngine.PrimeSettings
 {
     public class PrimeSettingsMaster
     {
+        /// <summary>
+        /// Raised after any prime setting is changed and saved.
+        /// </summary>
+        public static event Action SettingsChanged;
 
         public static bool ErrorLogMessageBoxIsActive
         {
@@ -155,6 +159,15 @@ namespace OsEngine.PrimeSettings
                 }
             }
             catch (Exception)
+            {
+                // ignore
+            }
+
+            try
+            {
+                SettingsChanged?.Invoke();
+            }
+            catch
             {
                 // ignore
             }

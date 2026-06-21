@@ -137,7 +137,8 @@ namespace OsEngine.Logging
                 AddToLogsToCheck(this);
             }
 
-            if (_startProgram == StartProgram.IsOsTrader)
+            if (_startProgram == StartProgram.IsOsTrader
+                || _startProgram == StartProgram.IsMainWindow)
             {
                 _messageSender = new MessageSender(uniqName, _startProgram);
                 TryLoadLog();
@@ -1184,6 +1185,108 @@ namespace OsEngine.Logging
             _logErrorUi.Closing -= _logErrorUi_Closing;
             _gridErrorLog.DataError -= _gridErrorLog_DataError;
             _logErrorUi = null;
+        }
+
+        /// <summary>
+        /// Get last error messages from the global emergency log.
+        /// Must be called from the UI thread.
+        /// </summary>
+        public static List<LogMessage> GetLastErrorMessages(int count)
+        {
+            var result = new List<LogMessage>();
+
+            if (_gridErrorLog == null || _gridErrorLog.Rows.Count == 0)
+            {
+                return result;
+            }
+
+            int take = Math.Min(count, _gridErrorLog.Rows.Count);
+
+            for (int i = 0; i < take; i++)
+            {
+                DataGridViewRow row = _gridErrorLog.Rows[i];
+                string message = row.Cells[2].Value?.ToString();
+
+                if (string.IsNullOrWhiteSpace(message))
+                {
+                    continue;
+                }
+
+                result.Add(new LogMessage
+                {
+                    Time = ParseLogTime(row.Cells[0].Value),
+                    Type = ParseLogType(row.Cells[1].Value),
+                    Message = message
+                });
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Get last messages from this log instance.
+        /// Must be called from the UI thread.
+        /// </summary>
+        public List<LogMessage> GetLastMessages(int count)
+        {
+            var result = new List<LogMessage>();
+
+            if (_grid == null || _grid.Rows.Count == 0)
+            {
+                return result;
+            }
+
+            int take = Math.Min(count, _grid.Rows.Count);
+
+            for (int i = 0; i < take; i++)
+            {
+                DataGridViewRow row = _grid.Rows[i];
+                string message = row.Cells[2].Value?.ToString();
+
+                if (string.IsNullOrWhiteSpace(message))
+                {
+                    continue;
+                }
+
+                result.Add(new LogMessage
+                {
+                    Time = ParseLogTime(row.Cells[0].Value),
+                    Type = ParseLogType(row.Cells[1].Value),
+                    Message = message
+                });
+            }
+
+            return result;
+        }
+
+        private static DateTime ParseLogTime(object value)
+        {
+            if (value == null)
+            {
+                return DateTime.MinValue;
+            }
+
+            if (DateTime.TryParse(value.ToString(), out DateTime time))
+            {
+                return time;
+            }
+
+            return DateTime.MinValue;
+        }
+
+        private static LogMessageType ParseLogType(object value)
+        {
+            if (value == null)
+            {
+                return LogMessageType.NoName;
+            }
+
+            if (Enum.TryParse(value.ToString(), out LogMessageType type))
+            {
+                return type;
+            }
+
+            return LogMessageType.NoName;
         }
     }
 

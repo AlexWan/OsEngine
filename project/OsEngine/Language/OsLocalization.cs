@@ -275,6 +275,8 @@ namespace OsEngine.Language
 
         public static MainWindowLocal MainWindow = new MainWindowLocal();
 
+        public static McpApiLocal McpApi = new McpApiLocal();
+
         public static PrimeSettingsMasterUiLocal PrimeSettings = new PrimeSettingsMasterUiLocal();
 
         public static AlertsLocal Alerts = new AlertsLocal();

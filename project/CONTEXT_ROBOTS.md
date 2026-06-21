@@ -18,6 +18,25 @@
 | `PriceChannelTrade` | Пробой PriceChannel | Реверс позиции: при закрытии Long по пробою нижней границы сразу открывается Short (`SellAtLimit` внутри `LogicClosePosition`); проверка `_lastPriceH > _lastPriceChUp && _lastPriceL < _lastPriceChDown` — исключение противоречивого сигнала; ручное Save/Load настроек через `StreamWriter`/`StreamReader` |
 | `BreakLinearRegressionChannel` | Пробой Linear Regression | `BuyAtMarket`/`SellAtMarket` при пробое; выход через `CloseAtStop` по противоположной границе канала; **SMA-фильтры** (`BuySignalIsFiltered`/`SellSignalIsFiltered`): фильтр по положению цены от SMA и по наклону SMA; отмена всех стопов при выходе за время торговли (`CancelStopsAndProfits`); группировка параметров через строку-третий аргумент `CreateParameter` |
 
+> **Важно: сдвиг на одну свечу при пробое канала.**
+>
+> При генерации точки входа на пробое канала (`PriceChannel`, канал Дончиана и др.) нужно брать значение индикатора **вторым с конца**, а не последним.
+>
+> Дело в том, что последнее значение таких каналов перестраивается по границам текущей свечи: верхняя граница равна максимуму текущей свечи, нижняя — минимуму. Поэтому цена `Close` практически никогда не окажется выше последнего значения верхней границы `PriceChannel`.
+>
+> ```csharp
+> // PriceChannel: границы на предыдущей закрытой свече
+> decimal pcUp = _pc.DataSeries[0].Values[_pc.DataSeries[0].Values.Count - 2];
+> decimal pcDown = _pc.DataSeries[1].Values[_pc.DataSeries[1].Values.Count - 2];
+> decimal lastClose = candles[candles.Count - 1].Close;
+>
+> if (lastClose > pcUp)
+> {
+>     // вход в лонг
+> }
+> ```
+> Используйте `Values[Values.Count - 2]` для проверки пробоя, иначе сигнал на вход не сформируется.
+
 #### 1.1.2 Parabolic-стратегии
 
 | Робот | Стратегия | Что почерпнуть |

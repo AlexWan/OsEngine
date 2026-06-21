@@ -92,5 +92,9 @@ namespace OsEngine.Language
          "Eng:Update (0)_" +
          "Ru:Обновить (0)_");
 
+        public string OsApiButtonName => OsLocalization.ConvertToLocString(
+         "Eng:API_" +
+         "Ru:API_");
+
     }
 }

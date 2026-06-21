@@ -1,0 +1,121 @@
+/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+
+namespace OsEngine.McpApi.TestStand
+{
+    /// <summary>
+    /// Shared context and reporting helpers for the test stand.
+    /// </summary>
+    public class TestContext
+    {
+        public McpApiClient Client { get; }
+
+        public List<TestResult> Results { get; } = new List<TestResult>();
+
+        public int Passed { get; private set; }
+
+        public int Failed { get; private set; }
+
+        public TestContext(McpApiClient client)
+        {
+            Client = client ?? throw new ArgumentNullException(nameof(client));
+        }
+
+        public void PrintHeader()
+        {
+            Console.WriteLine("=== MCP API Test Stand ===");
+            Console.WriteLine($"Base URL: {Client.BaseUrl}");
+            Console.WriteLine();
+        }
+
+        public void PrintModuleHeader(string module)
+        {
+            Console.WriteLine($"--- {module} ---");
+        }
+
+        public void PrintRequest(string module, string method, object request)
+        {
+            Console.WriteLine($"[{module}] Method: {method}");
+            Console.WriteLine($"  Request:  {Serialize(request)}");
+        }
+
+        public void PrintResponse(string response)
+        {
+            Console.WriteLine($"  Response: {response}");
+        }
+
+        public void RecordPass(string module, string method, string message)
+        {
+            string name = $"{module}.{method}";
+            Results.Add(TestResult.Passed(name, message));
+            Passed++;
+            Console.WriteLine($"  Status:   PASS");
+            Console.WriteLine();
+        }
+
+        public void RecordFail(string module, string method, string message)
+        {
+            string name = $"{module}.{method}";
+            Results.Add(TestResult.Failed(name, message));
+            Failed++;
+            Console.WriteLine($"  Status:   FAIL - {message}");
+            Console.WriteLine();
+        }
+
+        public void PrintSummary()
+        {
+            Console.WriteLine("--- Module Summary ---");
+
+            var moduleStats = new Dictionary<string, int[]>();
+
+            foreach (TestResult result in Results)
+            {
+                string module = result.Name.Contains(".") ? result.Name.Substring(0, result.Name.IndexOf('.')) : "Unknown";
+
+                if (!moduleStats.TryGetValue(module, out int[]? stats))
+                {
+                    stats = new int[2];
+                    moduleStats[module] = stats;
+                }
+
+                if (result.Success)
+                {
+                    stats[0]++;
+                }
+                else
+                {
+                    stats[1]++;
+                }
+            }
+
+            foreach (var pair in moduleStats)
+            {
+                int passed = pair.Value[0];
+                int failed = pair.Value[1];
+                int total = passed + failed;
+                Console.WriteLine($"{pair.Key}: {passed}/{total} passed" + (failed > 0 ? $" ({failed} failed)" : ""));
+            }
+
+            Console.WriteLine();
+            Console.WriteLine($"Total: {Passed}/{Passed + Failed} passed" + (Failed > 0 ? $" ({Failed} failed)" : ""));
+        }
+
+        private static string Serialize(object value)
+        {
+            try
+            {
+                return JsonSerializer.Serialize(value);
+            }
+            catch
+            {
+                return value?.ToString() ?? "null";
+            }
+        }
+    }
+}
