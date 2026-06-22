@@ -382,6 +382,269 @@ namespace OsEngine.OsTrader
         }
 
         /// <summary>
+        /// Save robots preset to file
+        /// </summary>
+        /// <param name="filePath">path to preset file</param>
+        public void SaveBotsPreset(string filePath)
+        {
+            try
+            {
+                if (PanelsArray == null || PanelsArray.Count == 0)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label750);
+                    return;
+                }
+
+                using (StreamWriter writer = new StreamWriter(filePath, false))
+                {
+                    writer.WriteLine("OsEngine Bots Preset v1");
+
+                    for (int i = 0; i < PanelsArray.Count; i++)
+                    {
+                        if (PanelsArray[i].IsScript == false)
+                        {
+                            writer.WriteLine("ROBOT:" + PanelsArray[i].NameStrategyUniq + "@" +
+                                             PanelsArray[i].GetNameStrategyType() +
+                                              "@" + false
+                                              + "@" + PanelsArray[i].PublicName);
+                        }
+                        else
+                        {
+                            writer.WriteLine("ROBOT:" + PanelsArray[i].NameStrategyUniq + "@" +
+                            PanelsArray[i].FileName +
+                            "@" + true
+                             + "@" + PanelsArray[i].PublicName);
+                        }
+                    }
+
+                    writer.WriteLine("---");
+
+                    string enginePath = @"Engine\";
+
+                    for (int i = 0; i < PanelsArray.Count; i++)
+                    {
+                        string botName = PanelsArray[i].NameStrategyUniq;
+                        string paramsPath = System.IO.Path.Combine(enginePath, botName + "Parametrs.txt");
+
+                        if (!File.Exists(paramsPath))
+                        {
+                            continue;
+                        }
+
+                        writer.WriteLine("PARAMS_START:" + botName);
+
+                        using (StreamReader reader = new StreamReader(paramsPath))
+                        {
+                            while (!reader.EndOfStream)
+                            {
+                                writer.WriteLine(reader.ReadLine());
+                            }
+                        }
+
+                        writer.WriteLine("PARAMS_END:" + botName);
+                    }
+                }
+
+                SendNewLogMessage(string.Format(OsLocalization.Trader.Label755, filePath), LogMessageType.System);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Load robots preset from file
+        /// </summary>
+        /// <param name="filePath">path to preset file</param>
+        public void LoadBotsPreset(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label751);
+                    return;
+                }
+
+                if (_startProgram != StartProgram.IsOsTrader)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label752);
+                    return;
+                }
+
+                List<string> allLines = new List<string>();
+                using (StreamReader reader = new StreamReader(filePath))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        allLines.Add(reader.ReadLine());
+                    }
+                }
+
+                int separatorIndex = allLines.FindIndex(l => l == "---");
+                if (separatorIndex == -1)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label753);
+                    return;
+                }
+
+                List<string> robotLines = allLines.GetRange(0, separatorIndex);
+                List<string> paramsLines = allLines.GetRange(separatorIndex + 1, allLines.Count - separatorIndex - 1);
+
+                Dictionary<string, List<string>> botParams = new Dictionary<string, List<string>>();
+                string currentBot = null;
+
+                for (int i = 0; i < paramsLines.Count; i++)
+                {
+                    string line = paramsLines[i];
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        continue;
+                    }
+
+                    if (line.StartsWith("PARAMS_START:"))
+                    {
+                        currentBot = line.Substring("PARAMS_START:".Length);
+                        botParams[currentBot] = new List<string>();
+                    }
+                    else if (line.StartsWith("PARAMS_END:"))
+                    {
+                        currentBot = null;
+                    }
+                    else if (currentBot != null)
+                    {
+                        botParams[currentBot].Add(line);
+                    }
+                }
+
+                string enginePath = @"Engine\";
+
+                HashSet<string> usedTargetNames = new HashSet<string>();
+
+                if (PanelsArray != null)
+                {
+                    for (int i = 0; i < PanelsArray.Count; i++)
+                    {
+                        usedTargetNames.Add(PanelsArray[i].NameStrategyUniq);
+                    }
+                }
+
+                if (PanelsArray == null)
+                {
+                    PanelsArray = new List<BotPanel>();
+                }
+
+                int botIterator = PanelsArray.Count;
+
+                for (int i = 1; i < robotLines.Count; i++)
+                {
+                    string robotLine = robotLines[i];
+                    if (!robotLine.StartsWith("ROBOT:"))
+                    {
+                        continue;
+                    }
+
+                    robotLine = robotLine.Substring("ROBOT:".Length);
+                    string[] names = robotLine.Split('@');
+                    if (names.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    string originalName = names[0];
+                    string targetName = originalName + "_R";
+
+                    if (usedTargetNames.Contains(targetName))
+                    {
+                        SendNewLogMessage(string.Format(OsLocalization.Trader.Label754, originalName, targetName), LogMessageType.Error);
+                        continue;
+                    }
+
+                    usedTargetNames.Add(targetName);
+
+                    string paramsPath = System.IO.Path.Combine(enginePath, targetName + "Parametrs.txt");
+
+                    if (botParams.ContainsKey(originalName) && botParams[originalName].Count > 0)
+                    {
+                        using (StreamWriter writer = new StreamWriter(paramsPath, false))
+                        {
+                            for (int j = 0; j < botParams[originalName].Count; j++)
+                            {
+                                writer.WriteLine(botParams[originalName][j]);
+                            }
+                        }
+                    }
+
+                    BotPanel bot = null;
+
+                    if (names.Length > 2)
+                    {
+                        try
+                        {
+                            bot = BotFactory.GetStrategyForName(names[1], targetName, _startProgram, Convert.ToBoolean(names[2]));
+                        }
+                        catch (Exception e)
+                        {
+                            MessageBox.Show(" Error on bot creation. Bot Name: " + names[1] + " \n" + e.ToString());
+                            continue;
+                        }
+                    }
+                    else if (names.Length > 1)
+                    {
+                        bot = BotFactory.GetStrategyForName(names[1], targetName, _startProgram, false);
+                    }
+
+                    if (names.Length >= 4 && string.IsNullOrEmpty(names[3]) == false)
+                    {
+                        bot.PublicName = names[3];
+                    }
+                    else
+                    {
+                        bot.PublicName = originalName;
+                    }
+
+                    if (bot != null)
+                    {
+                        PanelsArray.Add(bot);
+
+                        if (BotCreateEvent != null)
+                        {
+                            BotCreateEvent(bot);
+                        }
+
+                        if (_tabBotNames != null)
+                        {
+                            _tabBotNames.Items.Add(" " + PanelsArray[botIterator].NameStrategyUniq + " ");
+                            SendNewLogMessage(OsLocalization.Trader.Label2 + PanelsArray[botIterator].NameStrategyUniq,
+                                LogMessageType.System);
+                        }
+
+                        botIterator++;
+
+                        bot.NewTabCreateEvent += () =>
+                        {
+                            ReloadRiskJournals();
+                        };
+                    }
+                }
+
+                if (PanelsArray.Count != 0)
+                {
+                    ReloadActiveBot(PanelsArray[0]);
+                }
+
+                Save();
+
+                SendNewLogMessage(string.Format(OsLocalization.Trader.Label756, filePath), LogMessageType.System);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// Changed selected item
         /// </summary>
         void _tabBotControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
