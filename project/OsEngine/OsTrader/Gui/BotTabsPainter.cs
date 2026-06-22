@@ -361,6 +361,29 @@ namespace OsEngine.OsTrader.Gui
                     { // вызываем добавление нового бота
                         _master.CreateNewBot();
                     }
+                    else if (coluIndex == 10 &&
+                       rowIndex == botsCount + 1 &&
+                       _master._startProgram != StartProgram.IsOsTrader)
+                    { // Save preset
+                        SaveFileDialog dialog = new SaveFileDialog();
+                        dialog.Filter = "Txt files|*.txt";
+                        if (dialog.ShowDialog() == DialogResult.OK)
+                        {
+                            _master.SaveBotsPreset(dialog.FileName);
+                        }
+                    }
+                }
+
+                if (rowIndex == botsCount + 2 &&
+                    coluIndex == 10 &&
+                    _master._startProgram == StartProgram.IsOsTrader)
+                { // Load preset
+                    OpenFileDialog dialog = new OpenFileDialog();
+                    dialog.Filter = "Txt files|*.txt";
+                    if (dialog.ShowDialog() == DialogResult.OK)
+                    {
+                        _master.LoadBotsPreset(dialog.FileName);
+                    }
                 }
 
                 if (_grid.Rows.Count <= _prevActiveRow)
@@ -807,6 +830,11 @@ namespace OsEngine.OsTrader.Gui
 
                 _grid.Rows.Add(GetAddRow());
 
+                if (_master._startProgram == StartProgram.IsOsTrader)
+                {
+                    _grid.Rows.Add(GetLoadRow());
+                }
+
                 if (lastShowRowIndex > 0 &&
                     lastShowRowIndex < _grid.Rows.Count)
                 {
@@ -990,7 +1018,34 @@ colum9.HeaderText = "Journal";
             row.Cells[8].Value = OsLocalization.Trader.Label747; //"Journal common";
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[9].Value = OsLocalization.Trader.Label38; //"Add New...";
+            row.Cells.Add(new DataGridViewButtonCell());
+
+            if (_master._startProgram != StartProgram.IsOsTrader)
+            {
+                row.Cells[10].Value = OsLocalization.Trader.Label748;  // "Save bots";
+            }
+
+            return row;
+        }
+
+        private DataGridViewRow GetLoadRow()
+        {
+            DataGridViewRow row = new DataGridViewRow();
+
             row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[5].Value = "";
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[6].Value = "";
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[10].Value = OsLocalization.Trader.Label749;  // "Load bots";
 
             return row;
         }

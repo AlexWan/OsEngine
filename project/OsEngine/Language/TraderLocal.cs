@@ -2802,5 +2802,41 @@ namespace OsEngine.Language
         public string Label747 => OsLocalization.ConvertToLocString(
           "Eng:Journal common_" +
           "Ru:Журнал общий_");
+
+        public string Label748 => OsLocalization.ConvertToLocString(
+         "Eng:Save bots_" +
+         "Ru:Сохранить ботов_");
+
+        public string Label749 => OsLocalization.ConvertToLocString(
+          "Eng:Load bots_" +
+          "Ru:Загрузить ботов_");
+
+        public string Label750 => OsLocalization.ConvertToLocString(
+          "Eng:No bots to save_" +
+          "Ru:Нет роботов для сохранения_");
+
+        public string Label751 => OsLocalization.ConvertToLocString(
+          "Eng:Preset file not found_" +
+          "Ru:Файл preset не найден_");
+
+        public string Label752 => OsLocalization.ConvertToLocString(
+          "Eng:Load preset is available only in Robot Lite_" +
+          "Ru:Загрузка preset доступна только в Robot Lite_");
+
+        public string Label753 => OsLocalization.ConvertToLocString(
+          "Eng:Invalid preset file format_" +
+          "Ru:Неверный формат файла preset_");
+
+        public string Label754 => OsLocalization.ConvertToLocString(
+          "Eng:Bot \"{0}\" cannot be loaded. A robot with this name already exists._" +
+          "Ru:Робот \"{0}\" не может быть загружен. Робот с таким именем уже существует._");
+
+        public string Label755 => OsLocalization.ConvertToLocString(
+          "Eng:Preset saved: {0}_" +
+          "Ru:Preset сохранён: {0}_");
+
+        public string Label756 => OsLocalization.ConvertToLocString(
+          "Eng:Preset loaded: {0}_" +
+          "Ru:Preset загружен: {0}_");
     }
 }
