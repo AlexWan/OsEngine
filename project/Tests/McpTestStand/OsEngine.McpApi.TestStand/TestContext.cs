@@ -15,7 +15,19 @@ namespace OsEngine.McpApi.TestStand
     /// </summary>
     public class TestContext
     {
-        public McpApiClient Client { get; }
+        public McpApiClient Client { get; private set; }
+
+        public OsEngineProcessController ProcessController { get; }
+
+        public string OsEnginePath { get; }
+
+        public int Port { get; }
+
+        public string ApiKey { get; }
+
+        public int TimeoutSeconds { get; }
+
+        public TestSecrets Secrets { get; }
 
         public List<TestResult> Results { get; } = new List<TestResult>();
 
@@ -23,9 +35,27 @@ namespace OsEngine.McpApi.TestStand
 
         public int Failed { get; private set; }
 
-        public TestContext(McpApiClient client)
+        public TestContext(McpApiClient client, OsEngineProcessController processController,
+            string osEnginePath, int port, string apiKey, int timeoutSeconds, TestSecrets secrets)
         {
             Client = client ?? throw new ArgumentNullException(nameof(client));
+            ProcessController = processController ?? throw new ArgumentNullException(nameof(processController));
+            OsEnginePath = osEnginePath ?? throw new ArgumentNullException(nameof(osEnginePath));
+            Port = port;
+            ApiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
+            TimeoutSeconds = timeoutSeconds;
+            Secrets = secrets ?? throw new ArgumentNullException(nameof(secrets));
+        }
+
+        public void RestartOsEngine(string arguments)
+        {
+            ProcessController.Restart(arguments, TimeSpan.FromSeconds(TimeoutSeconds));
+            Client = ProcessController.Client ?? throw new InvalidOperationException("MCP client is not available after restart");
+        }
+
+        public void StopOsEngine()
+        {
+            ProcessController.Stop();
         }
 
         public void PrintHeader()
@@ -44,7 +74,7 @@ namespace OsEngine.McpApi.TestStand
         {
             Console.WriteLine($"[{module}] Method: {method}");
             Console.WriteLine("  Request:");
-            PrintIndentedJson(Serialize(request), "    ");
+            PrintIndentedJson(MaskSecrets(Serialize(request)), "    ");
         }
 
         public void PrintResponse(string response)
@@ -228,6 +258,106 @@ namespace OsEngine.McpApi.TestStand
             {
                 return false;
             }
+        }
+
+        private static string MaskSecrets(string json)
+        {
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(json))
+                {
+                    JsonElement masked = MaskSecrets(document.RootElement);
+
+                    return JsonSerializer.Serialize(masked, new JsonSerializerOptions
+                    {
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    });
+                }
+            }
+            catch
+            {
+                return json;
+            }
+        }
+
+        private static JsonElement MaskSecrets(JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    {
+                        using (var stream = new System.IO.MemoryStream())
+                        {
+                            using (var writer = new Utf8JsonWriter(stream))
+                            {
+                                writer.WriteStartObject();
+
+                                foreach (JsonProperty property in element.EnumerateObject())
+                                {
+                                    writer.WritePropertyName(property.Name);
+
+                                    if (IsSensitivePropertyName(property.Name))
+                                    {
+                                        writer.WriteStringValue("***");
+                                    }
+                                    else
+                                    {
+                                        JsonElement maskedValue = MaskSecrets(property.Value);
+                                        maskedValue.WriteTo(writer);
+                                    }
+                                }
+
+                                writer.WriteEndObject();
+                            }
+
+                            stream.Position = 0;
+
+                            using (JsonDocument doc = JsonDocument.Parse(stream))
+                            {
+                                return doc.RootElement.Clone();
+                            }
+                        }
+                    }
+
+                case JsonValueKind.Array:
+                    {
+                        using (var stream = new System.IO.MemoryStream())
+                        {
+                            using (var writer = new Utf8JsonWriter(stream))
+                            {
+                                writer.WriteStartArray();
+
+                                foreach (JsonElement item in element.EnumerateArray())
+                                {
+                                    JsonElement maskedItem = MaskSecrets(item);
+                                    maskedItem.WriteTo(writer);
+                                }
+
+                                writer.WriteEndArray();
+                            }
+
+                            stream.Position = 0;
+
+                            using (JsonDocument doc = JsonDocument.Parse(stream))
+                            {
+                                return doc.RootElement.Clone();
+                            }
+                        }
+                    }
+
+                default:
+                    return element.Clone();
+            }
+        }
+
+        private static bool IsSensitivePropertyName(string name)
+        {
+            string lower = name.ToLowerInvariant();
+
+            return lower.Contains("token")
+                || lower.Contains("key")
+                || lower.Contains("secret")
+                || lower.Contains("password");
         }
     }
 }

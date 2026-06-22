@@ -1,6 +1,6 @@
 /*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
- * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple.pdf
 */
 
 using System;
@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using OsEngine.McpApi.TestStand.Tests;
 
 namespace OsEngine.McpApi.TestStand
 {
@@ -35,93 +36,162 @@ namespace OsEngine.McpApi.TestStand
         {
             TestStandOptions options = ParseOptions(args);
 
-            string osEnginePath = options.OsEnginePath;
-
-            if (!File.Exists(osEnginePath))
+            if (!File.Exists(options.OsEnginePath))
             {
-                throw new FileNotFoundException($"OsEngine.exe not found: {osEnginePath}");
+                throw new FileNotFoundException($"OsEngine.exe not found: {options.OsEnginePath}");
             }
 
-            Console.WriteLine($"Starting OsEngine: {osEnginePath}");
-
-            Process? osEngineProcess = null;
-            McpApiClient? client = null;
-
-            try
+            using (var processController = new OsEngineProcessController(options.OsEnginePath, options.Port, options.ApiKey))
             {
-                string workingDirectory = Path.GetDirectoryName(osEnginePath) ?? string.Empty;
-
-                osEngineProcess = Process.Start(new ProcessStartInfo(osEnginePath)
-                {
-                    WorkingDirectory = workingDirectory,
-                    UseShellExecute = false,
-                    CreateNoWindow = false
-                }) ?? throw new InvalidOperationException("Failed to start OsEngine process");
-
-                client = new McpApiClient(options.BaseUrl, options.ApiKey);
-
-                Console.WriteLine("Waiting for MCP API ready...");
-
                 try
                 {
-                    client.WaitForReady(TimeSpan.FromSeconds(options.TimeoutSeconds));
-                }
-                catch (TimeoutException error)
-                {
-                    throw new TimeoutException($"MCP API readiness wait failed: {error.Message}", error);
-                }
+                    processController.Restart(options.OsEngineArgs, TimeSpan.FromSeconds(options.TimeoutSeconds));
 
-                Console.WriteLine("MCP API is ready. Running tests...");
-                Console.WriteLine();
+                    McpApiClient client = processController.Client
+                        ?? throw new InvalidOperationException("MCP client is not available after process restart");
 
-                var runner = new TestRunner(client);
-                List<TestResult> results = runner.RunAll();
+                    Console.WriteLine("Running tests...");
+                    Console.WriteLine();
 
-                int failed = 0;
+                    string testStandDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                    TestSecrets secrets = TestSecrets.Load(testStandDirectory);
 
-                foreach (TestResult result in results)
-                {
-                    if (!result.Success)
+                    var context = new TestContext(
+                        client,
+                        processController,
+                        options.OsEnginePath,
+                        options.Port,
+                        options.ApiKey,
+                        options.TimeoutSeconds,
+                        secrets);
+
+                    context.PrintHeader();
+
+                    List<TestResult> results = RunAllTests(context);
+
+                    int failed = 0;
+
+                    foreach (TestResult result in results)
                     {
-                        failed++;
+                        if (!result.Success)
+                        {
+                            failed++;
+                        }
+                    }
+
+                    if (!options.NoWait)
+                    {
+                        WaitIfRunByUser();
+                    }
+
+                    if (failed > 0)
+                    {
+                        throw new InvalidOperationException($"{failed} test(s) failed");
                     }
                 }
-
-                if (!options.NoWait)
+                finally
                 {
-                    WaitIfRunByUser();
+                    processController.Stop();
                 }
+            }
+        }
 
-                if (failed > 0)
+        private static List<TestResult> RunAllTests(TestContext context)
+        {
+            try
+            {
+                // Модуль: Protocol
+                // MCP API: initialize, notifications/initialized, tools/list.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "Protocol", string.Empty, () => new ProtocolTests(context).RunAll());
+
+                // Модуль: Logs
+                // MCP API: log_get_emergency_log, log_get_mcp_log.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "Logs", string.Empty, () => new LogsTests(context).RunAll());
+
+                // Модуль: Settings
+                // MCP API: prime_settings_get, prime_settings_set.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "Settings", string.Empty, () => new SettingsTests(context).RunAll());
+
+                // Модуль: Config
+                // MCP API: mcp_settings_get, mcp_settings_set.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "Config", string.Empty, () => new ConfigTests(context).RunAll());
+
+                // Модуль: ServerManagement
+                // MCP API: server_management_get_list, server_management_activate,
+                //          server_management_get_trade_connectors, server_management_get_data_connectors,
+                //          server_management_get_connector_permissions.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да (внутри активирует коннектор TInvest).
+                RunModule(context, "ServerManagement", string.Empty, () => new ServerManagementTests(context).RunAll());
+
+                // Модуль: ServerInstance
+                // MCP API: server_management_activate, server_instance_get_params,
+                //          server_instance_set_params, server_instance_create,
+                //          server_instance_delete, server_instance_connect,
+                //          server_instance_disconnect, server_instance_get_status,
+                //          server_instance_get_securities, server_instance_get_portfolios,
+                //          server_instance_get_log.
+                // События: server_instance.status_changed, server_instance.security.updated,
+                //          server_instance.portfolio.updated, server_instance.log.
+                // Запускает OsEngine перед собой: да, в режиме BotStationLight (-robotslight).
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "ServerInstance", "-robotslight", () => new ServerInstanceTests(context).RunAll());
+
+                // Модуль: SSE
+                // MCP API: GET /api/v1/events.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "SSE", string.Empty, () => new SseTests(context).RunAll());
+
+                // Модуль: Errors
+                // MCP API: POST /api/v1/mcp без ключа, прямой terminal_get_status,
+                //          tools/call unknown_tool, tools/call без name.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "Errors", string.Empty, () => new ErrorTests(context).RunAll());
+
+                // Модуль: Terminal
+                // MCP API: ping, terminal_get_status, terminal_launch, terminal_stop, terminal_kill.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да (terminal_stop / terminal_kill внутри модуля).
+                // Terminal tests are always last because launch/stop/kill
+                // terminate or restart the OsEngine process.
+                RunModule(context, "Terminal", string.Empty, () => new TerminalTests(context).RunAll());
+
+                context.PrintSummary();
+                return context.Results;
+            }
+            catch (Exception error)
+            {
+                return new List<TestResult>
                 {
-                    throw new InvalidOperationException($"{failed} test(s) failed");
-                }
+                    TestResult.Failed("RunAll", error.Message)
+                };
+            }
+        }
+
+        private static void RunModule(TestContext context, string name, string mode, Action run)
+        {
+            try
+            {
+                context.RestartOsEngine(mode);
+                run();
+            }
+            catch (Exception error)
+            {
+                Console.WriteLine($"[{name}] Module failed: {error.Message}");
             }
             finally
             {
-                try
-                {
-                    client?.Dispose();
-                }
-                catch (Exception error)
-                {
-                    Console.WriteLine($"Failed to dispose client: {error.Message}");
-                }
-
-                if (osEngineProcess != null && !osEngineProcess.HasExited)
-                {
-                    try
-                    {
-                        osEngineProcess.Kill();
-                        osEngineProcess.WaitForExit(5000);
-                    }
-                    catch (Exception error)
-                    {
-                        Console.WriteLine($"Failed to stop OsEngine: {error.Message}");
-                    }
-                }
-
-                osEngineProcess?.Dispose();
+                context.StopOsEngine();
             }
         }
 
@@ -136,7 +206,8 @@ namespace OsEngine.McpApi.TestStand
                 Port = 6500,
                 ApiKey = "osengine-mcp-default-key",
                 TimeoutSeconds = 60,
-                NoWait = false
+                NoWait = false,
+                OsEngineArgs = string.Empty
             };
 
             for (int i = 0; i < args.Length; i++)
@@ -165,6 +236,11 @@ namespace OsEngine.McpApi.TestStand
                 {
                     options.NoWait = true;
                 }
+                else if (arg == "--mode" && i + 1 < args.Length)
+                {
+                    string mode = args[++i];
+                    options.OsEngineArgs = ConvertModeToArgs(mode);
+                }
                 else if (!arg.StartsWith("--"))
                 {
                     options.OsEnginePath = Path.GetFullPath(arg);
@@ -173,6 +249,33 @@ namespace OsEngine.McpApi.TestStand
 
             options.BaseUrl = $"http://localhost:{options.Port}";
             return options;
+        }
+
+        private static string ConvertModeToArgs(string mode)
+        {
+            switch (mode?.ToLowerInvariant())
+            {
+                case "tester":
+                    return "-tester";
+                case "robots":
+                case "trader":
+                case "botstation":
+                    return "-robots";
+                case "robotslight":
+                case "botstationlight":
+                    return "-robotslight";
+                case "data":
+                    return "-data";
+                case "optimizer":
+                    return "-optimizer";
+                case "converter":
+                    return "-converter";
+                case "":
+                case null:
+                    return string.Empty;
+                default:
+                    throw new ArgumentException($"Unknown OsEngine mode: {mode}");
+            }
         }
 
         private static void WaitIfRunByUser()
@@ -209,6 +312,7 @@ namespace OsEngine.McpApi.TestStand
         private class TestStandOptions
         {
             public string OsEnginePath = string.Empty;
+            public string OsEngineArgs = string.Empty;
             public int Port;
             public string ApiKey = string.Empty;
             public string BaseUrl = string.Empty;

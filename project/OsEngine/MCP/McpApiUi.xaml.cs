@@ -1,6 +1,6 @@
 /*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
- * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple.pdf
 */
 
 using OsEngine.Language;
@@ -43,7 +43,7 @@ namespace OsEngine.MCP
             CheckBoxFullLog.Checked += CheckBoxFullLog_CheckedChanged;
             CheckBoxFullLog.Unchecked += CheckBoxFullLog_CheckedChanged;
 
-            _master.Log.StartPaint(HostRequests);
+            _master.Log.StartPaint(HostLog);
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
@@ -70,9 +70,9 @@ namespace OsEngine.MCP
 
                 _master?.Log?.StopPaint();
 
-                if (HostRequests != null)
+                if (HostLog != null)
                 {
-                    HostRequests.Child = null;
+                    HostLog.Child = null;
                 }
 
                 _master = null;

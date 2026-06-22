@@ -606,6 +606,14 @@ namespace OsEngine.MCP
 
                     case "server_instance_get_params":
                     case "server_instance_set_params":
+                    case "server_instance_create":
+                    case "server_instance_delete":
+                    case "server_instance_connect":
+                    case "server_instance_disconnect":
+                    case "server_instance_get_securities":
+                    case "server_instance_get_portfolios":
+                    case "server_instance_get_status":
+                    case "server_instance_get_log":
                         response = _serverInstanceApi.Handle(request);
                         break;
 

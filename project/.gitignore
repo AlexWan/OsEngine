@@ -1,0 +1,4 @@
+# MCP API test stand secrets
+# This file contains connector credentials and must never be committed.
+test-secrets.json
+Tests/McpTestStand/**/test-secrets.json
