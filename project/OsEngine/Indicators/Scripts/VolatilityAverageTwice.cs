@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("VolatilityAverageTwice")]
     public class VolatilityAverageTwice : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "VolatilityAverageTwice calculates volatility based on daily, weekly, or intra-candle ranges and simultaneously smooths it with two moving averages of different periods. " +
+                             "Traders use the crossover of fast and slow volatility averages to identify changes in market activity and prepare for strong moves.";
+
+                string ru = "VolatilityAverageTwice рассчитывает волатильность на основе дневных, недельных или внутрисвечных диапазонов и одновременно сглаживает её двумя скользящими средними с разными периодами. " +
+                            "Трейдеры используют пересечение быстрой и медленной средней волатильности для определения изменений рыночной активности и подготовки к сильным движениям.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterString _typeVolatilityPeriod;
 
         private IndicatorParameterString _typeVolatilityVariable;

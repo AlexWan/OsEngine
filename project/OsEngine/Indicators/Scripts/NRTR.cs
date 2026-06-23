@@ -1,12 +1,27 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("NRTR")]
     public class NRTR : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "NRTR tracks local highs and lows over a period and builds dynamic support/resistance levels with a set deviation, switching between bullish and bearish mode when a level is broken. " +
+                             "Traders use NRTR as a trend filter and for trailing stops: they follow the trend as long as price stays on the appropriate side of the line.";
+
+                string ru = "NRTR отслеживает локальные максимумы и минимумы за период и строит динамические уровни поддержки/сопротивления с заданным отклонением, переключаясь между бычьим и медвежьим режимом при пробое уровня. " +
+                            "Трейдеры применяют NRTR как трендовый фильтр и для trailing-stop: следуют за трендом, пока цена держится с соответствующей стороны линии.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorParameterDecimal _deviation;

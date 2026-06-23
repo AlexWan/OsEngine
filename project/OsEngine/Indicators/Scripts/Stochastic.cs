@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Stochastic")]
     public class Stochastic : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Stochastic compares the current closing price with the high/low range over a period, outputting the %K line and its smoothed %D line, showing price's position relative to recent extremes. " +
+                             "Traders use moves out of overbought/oversold zones, line crossovers, and divergences with price to find reversals.";
+
+                string ru = "Стохастик сравнивает текущую цену закрытия с диапазоном high/low за период, выводит линию %K и её сглаженную линию %D, показывая положение цены относительно недавних экстремумов. " +
+                            "Трейдеры используют выход линий из зон перекупленности/перепроданности, их пересечение и дивергенции с ценой для поиска разворотов.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         public IndicatorParameterInt Period1;
 
         public IndicatorParameterInt Period2;

@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagStochastic")]
     public class ZigZagStochastic : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagStochastic overlays a ZigZag on the Stochastic oscillator, highlighting %K and %D line extremes and building a channel. " +
+                             "Traders use it to find divergences between Stochastic and price, as well as to determine moments of exiting overbought/oversold zones.";
+
+                string ru = "ZigZagStochastic накладывает зигзаг на стохастик, выделяя экстремумы линий %K и %D и строя канал. " +
+                            "Трейдеры применяют его для поиска дивергенций между стохастиком и ценой, а также для определения моментов выхода из зон перекупленности/перепроданности.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _Stochastic;
 
         private IndicatorParameterInt _stochasticPeriod1;

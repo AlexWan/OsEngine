@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagSMI")]
     public class ZigZagSMI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagSMI combines the Stochastic Momentum Index with a ZigZag, revealing market momentum extremes and forming a channel. " +
+                             "Traders use it to find divergences between SMI and price, as well as to filter entry points in overbought/oversold zones.";
+
+                string ru = "ZigZagSMI комбинирует индекс стохастического моментума с зигзагом, выявляя экстремумы рыночного импульса и формируя канал. " +
+                            "Трейдеры используют индикатор для поиска дивергенций между SMI и ценой, а также для фильтрации точек входа в зонах перекупленности/перепроданности.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _SMI;
 
         private IndicatorParameterInt _stochasticPeriod1;

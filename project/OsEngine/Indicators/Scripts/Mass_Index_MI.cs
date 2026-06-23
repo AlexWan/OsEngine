@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("Mass_Index_MI")]
     public class Mass_Index_MI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Mass Index sums ratios of candle ranges smoothed by a double EMA and shows periods of narrowing and widening trading ranges, helping to predict a sharp impulse. " +
+                             "Traders use the indicator rising above 27 and then falling below 26.5 as a signal of a possible trend reversal after a volatility \"reversal bulge\".";
+
+                string ru = "Индекс массы суммирует отношения диапазонов свечей, сглаженных двойной EMA, и показывает периоды сужения и расширения торгового диапазона, помогая предсказать резкий импульс. " +
+                            "Трейдеры используют выход индикатора выше уровня 27 и последующее снижение ниже 26.5 как сигнал возможного разворота тренда после «взрыва» волатильности.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lengthEma;
 
         private IndicatorParameterInt _periodSum;

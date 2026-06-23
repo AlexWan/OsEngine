@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("UltimateOscilator")]
     public class UltimateOscilator:Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Ultimate Oscillator combines Buying Pressure and True Range over three different periods, weighting them to produce an oscillator that accounts for both short-term and long-term dynamics. " +
+                             "Traders use it to find divergences and moves out of overbought/oversold zones, considering it more reliable than single-period oscillators.";
+
+                string ru = "Ultimate Oscillator комбинирует Buying Pressure и True Range за три разных периода, взвешивая их и выводя осциллятор, который учитывает как краткосрочную, так и долгосрочную динамику. " +
+                            "Трейдеры применяют его для поиска дивергенций и выхода из зон перекупленности/перепроданности, считая его более надёжным, чем осцилляторы на одном периоде.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series1;
 
         private IndicatorParameterInt _period1;

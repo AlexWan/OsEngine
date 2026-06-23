@@ -98,6 +98,8 @@ namespace OsEngine.McpApi.TestStand
 
         private static List<TestResult> RunAllTests(TestContext context)
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             try
             {
                 // Модуль: Protocol
@@ -158,6 +160,18 @@ namespace OsEngine.McpApi.TestStand
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, "Errors", string.Empty, () => new ErrorTests(context).RunAll());
 
+                // Модуль: WikiRobots
+                // MCP API: wiki_robots_list, wiki_robot_info.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "WikiRobots", string.Empty, () => new WikiRobotsTests(context).RunAll());
+
+                // Модуль: WikiIndicators
+                // MCP API: wiki_indicators_list, wiki_indicator_info.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "WikiIndicators", string.Empty, () => new WikiIndicatorsTests(context).RunAll());
+
                 // Модуль: Terminal
                 // MCP API: ping, terminal_get_status, terminal_launch, terminal_stop, terminal_kill.
                 // Запускает OsEngine перед собой: да, без аргументов.
@@ -166,11 +180,14 @@ namespace OsEngine.McpApi.TestStand
                 // terminate or restart the OsEngine process.
                 RunModule(context, "Terminal", string.Empty, () => new TerminalTests(context).RunAll());
 
-                context.PrintSummary();
+                stopwatch.Stop();
+                context.PrintSummary(stopwatch.Elapsed);
                 return context.Results;
             }
             catch (Exception error)
             {
+                stopwatch.Stop();
+                context.PrintSummary(stopwatch.Elapsed);
                 return new List<TestResult>
                 {
                     TestResult.Failed("RunAll", error.Message)

@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,6 +10,20 @@ namespace OsEngine.Indicators
     [Indicator("MinMaxPriceForecaster")]
     public class MinMaxPriceForecaster : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "MinMaxPriceForecaster evaluates historical logarithmic returns and builds a confidence interval for expected minimum and maximum prices over a set number of bars ahead. " +
+                             "Traders use it to estimate potential price targets, place stop-losses and take-profits, and filter trades by probabilistic boundaries.";
+
+                string ru = "MinMaxPriceForecaster оценивает исторические логарифмические доходности и строит доверительный интервал для ожидаемых минимальных и максимальных цен на заданное число баров вперёд. " +
+                            "Трейдеры применяют его для оценки потенциальных целей движения, размещения стоп-лоссов и тейк-профитов, а также для фильтрации сделок по вероятностным границам.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lookBack;
         private IndicatorParameterInt _smoothPeriod;
         private IndicatorParameterInt _barsForecast;

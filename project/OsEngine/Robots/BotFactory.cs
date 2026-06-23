@@ -13,7 +13,7 @@ using System.Threading;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Robots.Engines;
-using System.Windows; // For MessageBox
+using OsEngine.Market;
 
 // Roslyn specific usings
 using Microsoft.CodeAnalysis;
@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
+using OsEngine.Logging;
 
 namespace OsEngine.Robots
 {
@@ -75,7 +76,8 @@ namespace OsEngine.Robots
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Error activating attribute-based bot '{nameClass}': {ex.Message}\nEnsure it has a constructor (string name, StartProgram startProgram).");
+                        ServerMaster.SendNewLogMessage($"Error activating attribute-based bot '{nameClass}': " +
+                            $"{ex.Message}\nEnsure it has a constructor (string name, StartProgram startProgram).", LogMessageType.Error);
                         // Optionally log ex.ToString()
                         return null;
                     }
@@ -101,8 +103,8 @@ namespace OsEngine.Robots
                     {
                        return GetStrategyForName(nameClass, nameInstance, startProgram, false);
                     }
-                  
-                    MessageBox.Show($"BotFactory. Script compilation/instantiation error for '{nameClass}': {e.ToString()}");
+
+                    ServerMaster.SendNewLogMessage($"BotFactory. Script compilation/instantiation error for '{nameClass}': {e.ToString()}", LogMessageType.Error);
                     return null;
                 }
             }

@@ -2,12 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("EaseOfMovement")]
     public class EaseOfMovement : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "EaseOfMovement calculates the ratio of average daily price movement to trading volume, showing how easily price advances at the current market activity. " +
+                             "Traders use EOM to assess trend strength and find divergences: rising price on falling EOM often signals weak buyers and a possible reversal.";
+
+                string ru = "EaseOfMovement рассчитывает отношение среднего дневного движения цены к объёму торгов, показывая, насколько легко цена продвигается при текущей активности рынка. " +
+                            "Трейдеры используют EOM для оценки силы тренда и поиска дивергенций: рост цены на падающем EOM часто сигнализирует о слабости быков и возможном развороте.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _seriesLine;
 
         private IndicatorDataSeries _seriesEomRaw;

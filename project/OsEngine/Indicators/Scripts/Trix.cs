@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Trix")]
     public class Trix:Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Trix applies triple exponential smoothing to price and shows the percentage change of the triple EMA, filtering out minor fluctuations and highlighting strong trends. " +
+                             "Traders use Trix crossing the zero line, divergences, and a signal line to find entry points and confirm direction.";
+
+                string ru = "Trix применяет тройное экспоненциальное сглаживание к цене и показывает процентное изменение тройной EMA, фильтруя мелкие колебания и выделяя сильные тренды. " +
+                            "Трейдеры используют пересечение Trix нулевой линии, дивергенции и сигнальную линию для поиска точек входа и подтверждения направления.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         public IndicatorDataSeries _series;
 
         public IndicatorParameterInt _period;

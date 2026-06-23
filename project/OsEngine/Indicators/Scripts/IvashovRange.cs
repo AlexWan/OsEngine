@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("IvashovRange")]
     public class IvashovRange: Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "IvashovRange assesses instrument volatility as the ratio of the average true range to the moving average price, showing what share of the price the typical bar movement represents. " +
+                             "Traders use it to compare volatility across instruments and filter trades: high values warn of elevated risk, low values indicate a calm market.";
+
+                string ru = "IvashovRange оценивает волатильность инструмента как отношение среднего истинного диапазона к скользящей средней цены, показывая, какую долю от цены составляет типичное движение за бар. " +
+                            "Трейдеры используют индикатор для сравнения волатильности разных инструментов и фильтрации сделок: высокое значение предупреждает о повышенном риске, низкое — о спокойном рынке.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series;
 
         private IndicatorParameterInt _lengthMa;

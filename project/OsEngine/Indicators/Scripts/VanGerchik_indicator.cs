@@ -1,11 +1,26 @@
 ﻿using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using System.Collections.Generic;
 using System.Drawing;
 
 [Indicator("VanGerchik_indicator")]
 public class VanGerchik_indicator : Aindicator
 {
+    public override string Description
+    {
+        get
+        {
+            string eng = "Van Gerchik's indicator builds a price channel from period highs and lows and marks points where price deviates from the channel boundaries by a set percentage, revealing extreme outliers. " +
+                         "Alexey Van uses this indicator to find a good entry point in a trend: buying from the upper deviation and selling from the lower deviation.";
+
+            string ru = "Индикатор Ван Герчика строит ценовой канал по максимумам и минимумам за период и отмечает точки отклонения цены от границ канала на заданный процент, выявляя экстремальные выбросы. " +
+                        "Алексей Ван использует этот индикатор как фильтр для определения хорошей точки входа в тренд, сверху покупаем, снизу продаём.";
+
+            return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+        }
+    }
+
     private IndicatorParameterInt _lenght;
 
     private IndicatorParameterDecimal _deviation;

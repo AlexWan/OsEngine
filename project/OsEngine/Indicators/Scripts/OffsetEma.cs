@@ -1,12 +1,27 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("OffsetEma")]
     public class OffsetEma : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "OffsetEma builds an exponential moving average and shifts it to the right by a set number of bars, visually carrying historical EMA values into the current chart area. " +
+                             "Traders use the shifted EMA to compare past levels with current price and find recurring support or resistance zones.";
+
+                string ru = "OffsetEma строит экспоненциальную скользящую среднюю и сдвигает её вправо на заданное число баров, визуально перенося исторические значения EMA в текущую область графика. " +
+                            "Трейдеры применяют сдвинутую EMA для сопоставления прошлых уровней с текущей ценой и поиска повторяющихся зон поддержки или сопротивления.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterInt _offSet;

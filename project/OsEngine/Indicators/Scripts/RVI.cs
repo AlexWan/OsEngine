@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("RVI")]
     public class RVI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "RVI evaluates the direction of the closing price relative to the candle's range and averages this ratio, creating a volatility oscillator that signals trend strength. " +
+                             "Traders use RVI to find divergences, signal-line crossovers, and confirm direction, especially in combination with trend indicators.";
+
+                string ru = "RVI оценивает направление закрытия цены относительно диапазона свечи и усредняет это соотношение, создавая осциллятор волатильности, который сигнализирует о силе тренда. " +
+                            "Трейдеры применяют RVI для поиска дивергенций, пересечения сигнальной линии и подтверждения направления движения, особенно в сочетании с трендовыми индикаторами.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _p1;
 
         private IndicatorDataSeries _seriesOne;

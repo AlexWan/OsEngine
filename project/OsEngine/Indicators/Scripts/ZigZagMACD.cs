@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagMACD")]
     public class ZigZagMACD : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagMACD combines MACD with a ZigZag, visualizing momentum extremes and building a channel based on them. " +
+                             "Traders use it to find divergences between MACD and price, as well as to determine key levels where momentum changes direction.";
+
+                string ru = "ZigZagMACD комбинирует MACD с зигзагом, визуализируя экстремумы импульса и строя канал на их основе. " +
+                            "Трейдеры используют индикатор для поиска дивергенций между MACD и ценой, а также для определения ключевых уровней, где импульс меняет направление.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _MACD;
 
         private IndicatorParameterInt _lengthFastLine;

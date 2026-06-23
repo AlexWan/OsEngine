@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("COG_CentreOfGravity_Oscr")]
     public class COG_CentreOfGravity_Oscr : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Center of Gravity (COG) calculates the weighted position of price over a period, showing how far the current price has deviated from its \"center of mass\" and helping to identify overbought/oversold moments. " +
+                             "Traders use COG to find potential reversal zones and divergences, especially in sideways markets where price oscillates around its average.";
+
+                string ru = "Центр тяжести (COG) рассчитывает взвешенное положение цены за период, показывая, насколько текущая цена отклонилась от своего «центра масс» и помогая определить моменты перекупленности/перепроданности. " +
+                            "Трейдеры применяют COG для поиска зон возможного разворота и дивергенций, особенно в боковых рынках, когда цена колеблется вокруг среднего значения.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorDataSeries _lastCOG_series;

@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("WilliamsRange")]
     public class WilliamsRange : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Williams %R measures the position of the current closing price relative to the high/low range over a period, outputting an oscillator from 0 to -100 as a mirror image of Stochastic. " +
+                             "Traders use the line moving into the 0–20 and -80–-100 zones to find overbought/oversold conditions and reversals.";
+
+                string ru = "Williams %R измеряет положение текущей цены закрытия относительно диапазона high/low за период, выводя осциллятор от 0 до -100 в зеркальном отображении к стохастику. " +
+                            "Трейдеры используют выход линии в зоны 0–20 и -80–-100 для поиска перекупленности/перепроданности и разворотов.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorDataSeries _series;

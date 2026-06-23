@@ -2,12 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Ema")]
     public class Ema : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "EMA smooths price data exponentially, giving more weight to recent bars and reacting faster to changes than a simple moving average. " +
+                             "Traders use EMA to determine trend direction, find entry points at crossovers of multiple EMAs with different periods, and set dynamic stop-losses.";
+
+                string ru = "EMA сглаживает ценовые данные экспоненциально, придавая больший вес последним барам и быстрее реагируя на изменения по сравнению с обычной скользящей средней. " +
+                            "Трейдеры применяют EMA для определения направления тренда, поиска точек входа на пересечении нескольких EMA с разными периодами и размещения динамических стоп-лоссов.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterString _candlePoint;

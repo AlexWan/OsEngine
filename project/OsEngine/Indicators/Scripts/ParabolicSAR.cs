@@ -2,12 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ParabolicSAR")]
     public class ParabolicSAR : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ParabolicSAR calculates points that follow price with acceleration, showing potential trailing-stop levels and trend reversal points. " +
+                             "Traders use ParabolicSAR to set dynamic stop-losses: while dots are below price the trend is bullish, above price it is bearish, and a dot flipping across price signals a direction change.";
+
+                string ru = "ParabolicSAR рассчитывает точки, которые следуют за ценой с ускорением, и показывает потенциальные уровни для trailing-stop и разворота тренда. " +
+                            "Трейдеры используют ParabolicSAR для установки динамических стоп-лоссов: пока точки находятся под ценой — тренд восходящий, над ценой — нисходящий, а перескакивание точки через цену сигнализирует о смене направления.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterDecimal _maxAf;
 
         private IndicatorParameterDecimal _af;

@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagAD")]
     public class ZigZagAD : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagAD overlays a ZigZag on the Accumulation/Distribution indicator, highlighting money flow extremes and building a channel based on them. " +
+                             "Traders use it to find divergences between volume dynamics and price, as well as to identify zones where money flow changes direction.";
+
+                string ru = "ZigZagAD накладывает зигзаг на индикатор накопления/распределения, выделяя экстремумы денежного потока и строя на их основе канал. " +
+                            "Трейдеры применяют его для поиска дивергенций между динамикой объёма и ценой, а также для определения зон, где денежный поток меняет направление.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _ad;
 
         private IndicatorDataSeries _seriesAD;

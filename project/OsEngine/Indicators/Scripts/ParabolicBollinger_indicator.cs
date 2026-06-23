@@ -1,5 +1,6 @@
 ﻿using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,6 +10,20 @@ using System.Threading.Tasks;
 
  public class ParabolicBollinger_indicator : Aindicator
 {
+    public override string Description
+    {
+        get
+        {
+            string eng = "ParabolicBollinger_indicator combines Bollinger Bands with a parabolic approach to adapting boundaries based on historical volatility over a day, week, or month. " +
+                         "Traders use it to find overbought/oversold zones and reversal signals when price moves outside the adapted parabolic boundaries.";
+
+            string ru = "ParabolicBollinger_indicator комбинирует полосы Боллинджера с параболическим подходом к адаптации границ на основе исторической волатильности за день, неделю или месяц. " +
+                        "Трейдеры используют индикатор для поиска зон перекупленности/перепроданности и сигналов разворота, когда цена выходит за адаптированные параболические границы.";
+
+            return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+        }
+    }
+
     private IndicatorParameterInt _lenght;
     private IndicatorParameterDecimal _deviation;
 

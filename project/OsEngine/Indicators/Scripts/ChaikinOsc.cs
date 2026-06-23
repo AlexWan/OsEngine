@@ -1,12 +1,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ChaikinOsc")]
     public class ChaikinOsc : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "The Chaikin Oscillator compares moving averages of the Accumulation/Distribution indicator with different periods, showing changes in money flow into the asset. " +
+                             "Traders use zero-line crossovers and divergences with price to confirm trend strength or get an early reversal signal.";
+
+                string ru = "Осциллятор Чайкина сравнивает скользящие средние индикатора накопления/распределения с разными периодами и показывает изменение денежного потока в актив. " +
+                            "Трейдеры используют пересечение осциллятора нулевой линии и дивергенции с ценой для подтверждения силы тренда или раннего сигнала о развороте.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _seriesLine;
 
         private IndicatorDataSeries _seriesVi;

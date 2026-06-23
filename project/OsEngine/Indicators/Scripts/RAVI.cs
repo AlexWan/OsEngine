@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("RAVI")]
     public class RAVI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "RAVI measures the percentage difference between fast and slow moving averages, helping to determine trend strength and direction. " +
+                             "Traders use RAVI as a trend filter: values above the upper level indicate a strong uptrend, below the lower level indicate a strong downtrend, and movement between levels signals a sideways market.";
+
+                string ru = "RAVI измеряет разницу между быстрой и медленной скользящими средними в процентах, помогая определить силу и направление тренда. " +
+                            "Трейдеры применяют RAVI как трендовый фильтр: значения выше верхнего уровня указывают на сильный восходящий тренд, ниже нижнего — на сильный нисходящий, а движение между уровнями сигнализирует о боковике.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lengthSlow;
 
         private IndicatorParameterInt _lengthFast;

@@ -1,12 +1,27 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("VWMA")]
     public class VWMA:Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "VWMA calculates a moving average weighted by trading volume, giving more weight to bars with high activity and less to illiquid bars. " +
+                             "Traders use VWMA to determine key support/resistance levels accounting for volume, and its crossovers with price or other averages.";
+
+                string ru = "VWMA рассчитывает скользящую среднюю, взвешенную по объёму торгов, придавая больший вес барам с высокой активностью и меньший — малоликвидным барам. " +
+                            "Трейдеры используют VWMA для определения ключевых уровней поддержки/сопротивления с учётом объёма и пересечения её с ценой или другими средними.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterString _candlePoint;

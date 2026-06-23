@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagChannel_indicator")]
     public class ZigZagChannel_indicator : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagChannel_indicator builds a classic price ZigZag and forms a price channel based on its significant highs and lows. " +
+                             "Traders use it to visualize market structure, determine current range boundaries, and find channel breakouts or bounces.";
+
+                string ru = "ZigZagChannel_indicator строит классический зигзаг по цене и формирует ценовой канал на основе его значимых максимумов и минимумов. " +
+                            "Трейдеры используют его для визуализации структуры рынка, определения границ текущего диапазона и поиска пробоев или отскоков от канала.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorDataSeries _seriesZigZag;

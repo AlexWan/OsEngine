@@ -1,12 +1,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("LinearRegressionLine")]
     public class LinearRegressionLine : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "The Linear Regression Line approximates price data with a straight line using the least squares method, showing the main direction of price movement over the selected period. " +
+                             "Traders use it as a trend filter: price above the line indicates bullish sentiment, below indicates bearish sentiment, and deviation from the line helps assess overbought/oversold conditions.";
+
+                string ru = "Линия линейной регрессии аппроксимирует ценовые данные прямой по методу наименьших квадратов, показывая основное направление движения цены за выбранный период. " +
+                            "Трейдеры применяют её как фильтр тренда: цена выше линии указывает на бычий настрой, ниже — на медвежий, а отклонение от линии помогает оценить перекупленность/перепроданность.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorDataSeries _seriesRegressionLine;

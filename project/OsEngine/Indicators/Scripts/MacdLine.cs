@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("MacdLine")]
     public class MacdLine : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "MacdLine calculates the classic MACD line as the difference between fast and slow EMAs and complements it with a signal line and histogram, visually displaying momentum and trend direction. " +
+                             "Traders use the MACD line crossing the signal line for trade entries and changes in the histogram sign to confirm the strength of a move.";
+
+                string ru = "MacdLine рассчитывает классическую линию MACD как разницу между быстрой и медленной EMA и дополняет её сигнальной линией и гистограммой, визуально отображая импульс и направление тренда. " +
+                            "Трейдеры используют пересечение линии MACD со сигнальной для входов в сделки и изменение знака гистограммы для подтверждения силы движения.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lengthFastLine;
 
         private IndicatorParameterInt _lengthSlowLine;

@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Momentum")]
     public class Momentum : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Momentum measures the speed of price change as the ratio of the current price to the price several bars ago multiplied by 100, showing the strength and direction of movement. " +
+                             "Traders use Momentum to find overbought/oversold conditions, divergences with price, and crossings of the 100 level as buy or sell signals.";
+
+                string ru = "Momentum измеряет скорость изменения цены как отношение текущей цены к цене несколько баров назад, умноженное на 100, и показывает силу и направление движения. " +
+                            "Трейдеры используют Momentum для поиска перекупленности/перепроданности, дивергенций с ценой и пересечения уровня 100 в качестве сигнала к покупке или продаже.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterString _candlePoint;

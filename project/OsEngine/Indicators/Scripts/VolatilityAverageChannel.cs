@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("VolatilityAverageChannel")]
     public class VolatilityAverageChannel : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "VolatilityAverageChannel builds a channel around fast and slow volatility moving averages, adapting channel width to current market instability. " +
+                             "Traders use the volatility line breaking outside the channel as a signal of a strong move starting or a low-volatility phase ending.";
+
+                string ru = "VolatilityAverageChannel строит канал вокруг быстрой и медленной скользящих средних волатильности, адаптируя ширину канала к текущей рыночной нестабильности. " +
+                            "Трейдеры используют выход линии волатильности за границы канала как сигнал о начале сильного движения или о завершении фазы низкой волатильности.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterString _typeVolatilityPeriod;
 
         private IndicatorParameterString _typeVolatilityVariable;

@@ -1,4 +1,5 @@
 using OsEngine.Entity;
+using OsEngine.Language;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -7,6 +8,20 @@ namespace OsEngine.Indicators
     [Indicator("DeltaByCandles")]
     public class DeltaByCandles : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "DeltaByCandles analyzes tick trades within each candle, sums buy and sell volumes, and calculates delta along with its smoothed value. " +
+                             "Traders use it to assess buyer or seller dominance, find delta divergences with price, and confirm the strength of a move before entering.";
+
+                string ru = "DeltaByCandles анализирует потоковые сделки внутри каждой свечи, суммирует объёмы покупок и продаж, вычисляет дельту и её сглаженное значение. " +
+                            "Трейдеры используют индикатор для оценки доминирования покупателей или продавцов, поиска дивергенций дельты с ценой и подтверждения силы движения перед входом.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _seriesSmaDelta;
 
         private IndicatorDataSeries _seriesTrade;

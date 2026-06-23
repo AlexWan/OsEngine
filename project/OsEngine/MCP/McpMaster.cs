@@ -50,6 +50,8 @@ namespace OsEngine.MCP
         private readonly McpConfigApi _configApi;
         private readonly ServerManagementApi _serverManagementApi;
         private readonly ServerInstanceApi _serverInstanceApi;
+        private readonly WikiRobotsApi _wikiRobotsApi;
+        private readonly WikiIndicatorsApi _wikiIndicatorsApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -109,6 +111,12 @@ namespace OsEngine.MCP
             _serverInstanceApi = new ServerInstanceApi(publishEvent);
             _serverInstanceApi.NewLogMessageEvent += ServerInstanceApi_NewLogMessageEvent;
 
+            _wikiRobotsApi = new WikiRobotsApi();
+            _wikiRobotsApi.NewLogMessageEvent += WikiRobotsApi_NewLogMessageEvent;
+
+            _wikiIndicatorsApi = new WikiIndicatorsApi();
+            _wikiIndicatorsApi.NewLogMessageEvent += WikiIndicatorsApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -118,6 +126,8 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_configApi);
             _protocolApi.RegisterToolProvider(_serverManagementApi);
             _protocolApi.RegisterToolProvider(_serverInstanceApi);
+            _protocolApi.RegisterToolProvider(_wikiRobotsApi);
+            _protocolApi.RegisterToolProvider(_wikiIndicatorsApi);
         }
 
         #endregion
@@ -255,6 +265,16 @@ namespace OsEngine.MCP
         }
 
         private void ServerInstanceApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void WikiRobotsApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void WikiIndicatorsApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
         }
@@ -615,6 +635,16 @@ namespace OsEngine.MCP
                     case "server_instance_get_status":
                     case "server_instance_get_log":
                         response = _serverInstanceApi.Handle(request);
+                        break;
+
+                    case "wiki_robots_list":
+                    case "wiki_robot_info":
+                        response = _wikiRobotsApi.Handle(request);
+                        break;
+
+                    case "wiki_indicators_list":
+                    case "wiki_indicator_info":
+                        response = _wikiIndicatorsApi.Handle(request);
                         break;
 
                     default:

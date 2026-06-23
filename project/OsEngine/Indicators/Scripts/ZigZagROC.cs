@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagROC")]
     public class ZigZagROC : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagROC overlays a ZigZag on the Rate of Change indicator, highlighting percentage price change extremes and forming a channel. " +
+                             "Traders use it to find divergences between ROC and price, as well as to determine moments of acceleration or deceleration.";
+
+                string ru = "ZigZagROC накладывает зигзаг на индикатор Rate of Change, выделяя экстремумы процентного изменения цены и формируя канал. " +
+                            "Трейдеры применяют его для поиска дивергенций между ROC и ценой, а также для определения моментов ускорения или замедления движения.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _ROC;
 
         private IndicatorDataSeries _seriesROC;

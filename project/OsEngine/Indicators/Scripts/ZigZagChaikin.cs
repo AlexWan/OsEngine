@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagChaikin")]
     public class ZigZagChaikin : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagChaikin overlays a ZigZag on the Chaikin Oscillator, revealing money flow extremes and building a channel to analyze their dynamics. " +
+                             "Traders use it to find divergences between money flow and price, as well as to determine moments of trend strengthening or weakening.";
+
+                string ru = "ZigZagChaikin накладывает зигзаг на осциллятор Чайкина, выявляя экстремумы денежного потока и строя канал для анализа их динамики. " +
+                            "Трейдеры применяют его для поиска дивергенций между денежным потоком и ценой, а также для определения моментов усиления или ослабления тренда.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _ChaikinOsc;
 
         private IndicatorDataSeries _seriesChaikin;

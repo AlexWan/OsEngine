@@ -2,12 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Bollinger")]
     public class Bollinger : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Bollinger Bands draw a channel around a moving average at a distance of several price standard deviations, visually displaying volatility and overbought/oversold zones. " +
+                             "Traders use price touching or breaking the bands, as well as channel squeezes and expansions, to find entry points and signals of an impending strong move.";
+
+                string ru = "Bollinger Bands строят полосу вокруг скользящей средней на расстоянии нескольких стандартных отклонений цены, визуально отображая волатильность и зоны перекупленности/перепроданности. " +
+                            "Трейдеры используют касание или выход цены за границы полосы, а также сжатие и расширение канала для поиска точек входа и сигналов о начале сильного движения.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterDecimal _deviation;

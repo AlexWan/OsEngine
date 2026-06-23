@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("PriceChannelAdaptive")]
     public class PriceChannelAdaptive : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "PriceChannelAdaptive changes the price channel length based on the ADX value: the channel lengthens in a strong trend and shortens in a weak one, adapting to current market structure. " +
+                             "Traders use it to more accurately determine movement boundaries in different market phases and filter false breakouts.";
+
+                string ru = "PriceChannelAdaptive изменяет длину ценового канала в зависимости от значения ADX: при сильном тренде канал удлиняется, при слабом — укорачивается, адаптируясь к текущей рыночной структуре. " +
+                            "Трейдеры используют его для более точного определения границ движения в разных фазах рынка и фильтрации ложных пробоев.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lengthAdx;
 
         private IndicatorParameterInt _ratio;

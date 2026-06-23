@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("OsMa")]
     public class OsMa : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "OsMa is a MACD oscillator built as the difference between MACD and its signal line, visualizing the result as a histogram with a signal line. " +
+                             "Traders use OsMa to find divergences, zero-line crossovers, and changes in histogram sign as entry or exit signals.";
+
+                string ru = "OsMa представляет собой осциллятор MACD, построенный на разнице между MACD и его сигнальной линией, и визуализирует результат в виде гистограммы с сигнальной линией. " +
+                            "Трейдеры используют OsMa для поиска дивергенций, пересечения нулевой линии и изменения знака гистограммы как сигналов к входу или выходу из позиции.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _seriesOsMa;
 
         private IndicatorDataSeries _seriesSignalLine;

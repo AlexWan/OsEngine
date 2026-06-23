@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("MFI")]
     public class MFI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "The Money Flow Index combines typical price and trading volume, comparing positive and negative money flow over a period, and outputs an oscillator similar to RSI but accounting for volume. " +
+                             "Traders use MFI to determine overbought/oversold conditions, find divergences, and confirm trend strength with volume.";
+
+                string ru = "Индекс денежного потока сочетает типичную цену и объём торгов, сравнивая положительный и отрицательный денежный поток за период, и выводит осциллятор, похожий на RSI, но с учётом объёма. " +
+                            "Трейдеры применяют MFI для определения перекупленности/перепроданности, поиска дивергенций и подтверждения силы тренда объёмом.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorDataSeries _series;

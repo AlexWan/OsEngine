@@ -1,12 +1,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Ichimoku")]
     public class Ichimoku : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "The Ichimoku indicator plots five lines — Tenkan, Kijun, Chinkou, Senkou A, and Senkou B — forming a cloud that simultaneously shows trend, momentum, support/resistance levels, and trading signals. " +
+                             "Traders use Tenkan-Kijun crossovers, price breaking out of the cloud, and Chinkou position to find entries and filter trades in the direction of the trend.";
+
+                string ru = "Индикатор Ишимоку строит пять линий — Tenkan, Kijun, Chinkou, Senkou A и Senkou B — формируя облако, которое одновременно показывает тренд, импульс, уровни поддержки/сопротивления и торговые сигналы. " +
+                            "Трейдеры используют пересечение Tenkan и Kijun, выход цены из облака и положение Chinkou для поиска входов и фильтрации сделок по направлению тренда.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _first;
         private IndicatorParameterInt _second;
         private IndicatorParameterInt _third;

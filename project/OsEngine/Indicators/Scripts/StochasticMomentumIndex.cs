@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("StochasticMomentumIndex")]
     public class StochasticMomentumIndex : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Stochastic Momentum Index combines elements of Stochastic and Momentum, calculating the difference between the closing price and the midpoint of the trading range with subsequent smoothing. " +
+                             "Traders use SMI to determine overbought/oversold conditions and find reversals on crossovers of the main and signal lines.";
+
+                string ru = "Индекс стохастического моментума сочетает в себе элементы стохастика и моментума, рассчитывая разницу между ценой закрытия и серединой торгового диапазона с последующим сглаживанием. " +
+                            "Трейдеры применяют SMI для определения перекупленности/перепроданности и поиска разворотов по пересечению основной и сигнальной линий.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         public IndicatorParameterInt Period1;
 
         public IndicatorParameterInt Period2;

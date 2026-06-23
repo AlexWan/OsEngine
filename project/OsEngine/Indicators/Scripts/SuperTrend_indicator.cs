@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("SuperTrend_indicator")]
     public class SuperTrend_indicator : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "SuperTrend builds trailing-stop levels based on ATR and the candle's central price, switching direction when price breaks the level, and visually displays the current trend. " +
+                             "Traders use SuperTrend as a trend filter and for trailing stops: buying when price is above the indicator line and selling when below.";
+
+                string ru = "SuperTrend строит trailing-stop уровни на основе ATR и центральной цены свечи, переключая направление при пробое уровня ценой, и визуально отображает текущий тренд. " +
+                            "Трейдеры используют SuperTrend как трендовый фильтр и для trailing-stop: покупают, когда цена выше линии индикатора, продают — когда ниже.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorParameterDecimal _deviation;

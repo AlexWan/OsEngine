@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("OBV")]
     public class OBV:Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "OBV accumulates trading volume, adding it when price rises and subtracting when price falls, showing where the overall money flow on the market is directed. " +
+                             "Traders use OBV to confirm trends and find divergences: rising OBV on falling price often warns of an impending upward reversal.";
+
+                string ru = "OBV накапливает объём торгов, добавляя его при росте цены и вычитая при падении, и показывает, куда направлен общий денежный поток на рынке. " +
+                            "Трейдеры используют OBV для подтверждения тренда и поиска дивергенций: растущий OBV на падающей цене часто предупреждает о скором развороте вверх.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series;
 
         public override void OnStateChange(IndicatorState state)

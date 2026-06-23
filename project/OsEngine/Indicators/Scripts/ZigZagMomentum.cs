@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagMomentum")]
     public class ZigZagMomentum : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagMomentum overlays a ZigZag on the Momentum oscillator, highlighting price change speed extremes and building a channel. " +
+                             "Traders use it to find divergences between momentum and price, as well as to determine possible trend reversal points.";
+
+                string ru = "ZigZagMomentum накладывает зигзаг на осциллятор Momentum, выделяя экстремумы скорости изменения цены и строя канал. " +
+                            "Трейдеры используют индикатор для поиска дивергенций между моментумом и ценой, а также для определения точек возможного разворота тренда.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _Momentum;
 
         private IndicatorDataSeries _seriesMomentum;

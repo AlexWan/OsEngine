@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagRsi")]
     public class ZigZagRsi : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagRsi overlays a ZigZag on the Relative Strength Index, highlighting overbought/oversold extremes and building a channel. " +
+                             "Traders use it to find divergences between RSI and price, as well as to determine key reversal levels.";
+
+                string ru = "ZigZagRsi накладывает зигзаг на индекс относительной силы RSI, выделяя экстремумы перекупленности/перепроданности и строя канал. " +
+                            "Трейдеры применяют его для поиска дивергенций между RSI и ценой, а также для определения ключевых уровней разворота.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _Rsi;
 
         private IndicatorDataSeries _seriesRsi;

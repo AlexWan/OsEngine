@@ -1,12 +1,27 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Fractal")]
     public class Fractal: Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "The Fractal indicator finds local extremes on the chart, marking points where a candle's high or low is higher/lower than neighboring bars on both sides. " +
+                             "Traders use fractals to determine support and resistance levels, draw trend lines, and find reversal points, especially in combination with other indicators such as Alligator.";
+
+                string ru = "Индикатор фракталов находит локальные экстремумы на графике, отмечая точки, где high или low свечи выше/ниже соседних баров с обеих сторон. " +
+                            "Трейдеры используют фракталы для определения уровней поддержки и сопротивления, построения линий тренда и поиска точек разворота, особенно в сочетании с другими индикаторами, например с Alligator.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _seriesUp;
 
         private IndicatorDataSeries _seriesDown;

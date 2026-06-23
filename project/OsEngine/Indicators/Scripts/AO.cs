@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("AO")]
     public class AO:Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "AO plots the difference between a fast (5 periods) and a slow (32 periods) smoothed typical price, displaying current market momentum as a histogram. " +
+                             "Traders use it to spot reversals via the saucer, zero-line cross, and twin peaks patterns, as well as to confirm trend strength before entering a trade.";
+
+                string ru = "AO строит разницу между быстрой (5 периодов) и медленной (32 периода) сглаженной типичной ценой, отображая текущий рыночный импульс в виде гистограммы. " +
+                            "Трейдеры применяют его для поиска разворотов по паттернам «блюдце», «пересечение нулевой линии» и двум пикам, а также для подтверждения силы тренда перед входом.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lengthFastLine;
 
         private IndicatorParameterInt _lengthSlowLine;

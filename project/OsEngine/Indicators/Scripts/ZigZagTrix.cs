@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagTrix")]
     public class ZigZagTrix : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagTrix combines the Trix oscillator with a ZigZag, visualizing triple exponential average extremes and building a channel. " +
+                             "Traders use it to find divergences between Trix and price, as well as to determine zero-line crossovers as reversal signals.";
+
+                string ru = "ZigZagTrix комбинирует осциллятор Trix с зигзагом, визуализируя экстремумы тройной экспоненциальной средней и строя канал. " +
+                            "Трейдеры используют индикатор для поиска дивергенций между Trix и ценой, а также для определения точек пересечения нулевой линии как сигналов разворота.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _trix;
 
         private IndicatorDataSeries _seriesTrix;

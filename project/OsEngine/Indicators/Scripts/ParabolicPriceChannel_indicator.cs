@@ -3,9 +3,24 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 
 public class ParabolicPriceChannel_indicator : Aindicator
 {
+    public override string Description
+    {
+        get
+        {
+            string eng = "ParabolicPriceChannel_indicator builds a price channel from local highs and lows and adapts its width to historical volatility over the selected period. " +
+                         "Traders use it to determine trend direction, find channel breakouts, and place stop-losses beyond adaptive boundaries.";
+
+            string ru = "ParabolicPriceChannel_indicator строит ценовой канал из локальных максимумов и минимумов и адаптирует его ширину к исторической волатильности за выбранный период. " +
+                        "Трейдеры применяют его для определения направления тренда, поиска пробоев канала и размещения стоп-лоссов за адаптивными границами.";
+
+            return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+        }
+    }
+
     private IndicatorParameterInt _lengthUp;
     private IndicatorParameterInt _lengthDown;
 

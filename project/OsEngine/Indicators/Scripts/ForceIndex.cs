@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ForceIndex")]
     public class ForceIndex:Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Elder's Force Index combines price change and trading volume, smoothing the result with an exponential average, and shows the strength of bulls or bears on each bar. " +
+                             "Traders use Force Index to find divergences with price, confirm breakouts, and filter signals: positive values indicate buyer dominance, negative values indicate seller dominance.";
+
+                string ru = "Индекс силы Элдера объединяет изменение цены и объём торгов, сглаживая результат экспоненциальной средней, и показывает силу быков или медведей на каждом баре. " +
+                            "Трейдеры применяют Force Index для поиска дивергенций с ценой, подтверждения пробоев и фильтрации сигналов: положительные значения указывают на доминирование покупателей, отрицательные — продавцов.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorDataSeries _series;

@@ -2,12 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ATR")]
     public class ATR : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ATR averages the true range of candles (the largest of high-low, high-previous close, and previous close-low) and shows the instrument's current volatility in absolute or percentage values. " +
+                             "Traders use ATR to calculate stop-loss, take-profit, and position size, accounting for the actual amplitude of price movement.";
+
+                string ru = "ATR усредняет истинный диапазон свечей (наибольшее из high-low, high-предыдущий close и предыдущий close-low) и показывает текущую волатильность инструмента в абсолютных или процентных значениях. " +
+                            "Трейдеры используют ATR для расчёта размера стоп-лосса, тейк-профита и размера позиции, чтобы учитывать реальную амплитуду движения цены.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterString _typeSeries;

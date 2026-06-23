@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("CCI")]
     public class CCI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "CCI compares the current price with the average price over a period and outputs an oscillator showing how far price deviates from its typical range. " +
+                             "Traders use CCI to find overbought/oversold conditions, divergences with price, and zero-line crossovers as confirmation of trade direction.";
+
+                string ru = "CCI сравнивает текущую цену со средней ценой за период и выводит осциллятор, показывающий отклонение цены от типичного диапазона. " +
+                            "Трейдеры используют CCI для поиска перекупленности/перепроданности, дивергенций с ценой и пробоя нулевой линии в качестве подтверждения направления сделки.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterString _candlePoint;

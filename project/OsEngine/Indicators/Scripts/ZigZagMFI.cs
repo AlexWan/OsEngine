@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagMFI")]
     public class ZigZagMFI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagMFI overlays a ZigZag on the Money Flow Index, highlighting money flow extremes accounting for volume and building a channel. " +
+                             "Traders use it to find divergences between money flow and price, as well as to identify overbought/oversold zones.";
+
+                string ru = "ZigZagMFI накладывает зигзаг на индекс денежного потока MFI, выделяя экстремумы денежного потока с учётом объёма и строя канал. " +
+                            "Трейдеры применяют его для поиска дивергенций между денежным потоком и ценой, а также для определения зон перекупленности/перепроданности.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _MFI;
 
         private IndicatorDataSeries _seriesMFI;

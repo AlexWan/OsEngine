@@ -2,12 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Envelops")]
     public class Envelops : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Envelopes build two parallel lines at a fixed percentage deviation from a central moving average, forming a channel around price. " +
+                             "Traders use Envelopes to find overbought/oversold zones when price approaches the upper or lower boundary, and to identify the bounds of a sideways range.";
+
+                string ru = "Конверты строят две параллельные линии на фиксированном процентном отклонении от центральной скользящей средней, формируя канал вокруг цены. " +
+                            "Трейдеры используют Envelopes для поиска зон перекупленности/перепроданности при подходе цены к верхней или нижней границе, а также для определения границ бокового диапазона.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterDecimal _deviation;

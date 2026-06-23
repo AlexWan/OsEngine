@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagBP")]
     public class ZigZagBP : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagBP combines the Bears Power indicator with a ZigZag, visualizing seller pressure extremes and a channel based on them. " +
+                             "Traders use it to find divergences between bear strength and price, as well as to identify strong resistance zones.";
+
+                string ru = "ZigZagBP комбинирует индикатор силы медведей с зигзагом, визуализируя экстремумы давления продавцов и канал на их основе. " +
+                            "Трейдеры используют его для поиска дивергенций между силой медведей и ценой, а также для определения зон сильного сопротивления.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _bP;
 
         private IndicatorParameterInt _lengthBP;

@@ -1,12 +1,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Ssma")]
     public class Ssma : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "SSMA smooths price data, giving more weight to recent values than a regular SMA but less than EMA, making the line smoother. " +
+                             "Traders use SSMA to determine trend direction and find entry points on crosses with price or other moving averages.";
+
+                string ru = "SSMA сглаживает ценовые данные, придавая больше веса последним значениям по сравнению с обычной SMA, но меньше, чем EMA, что делает линию более плавной. " +
+                            "Трейдеры используют SSMA для определения направления тренда и поиска точек входа на пересечении с ценой или другими скользящими средними.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterString _candlePoint;

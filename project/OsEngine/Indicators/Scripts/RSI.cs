@@ -2,12 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("RSI")]
     public class RSI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "RSI compares the average size of upward and downward price movements over a period and outputs an oscillator between 0 and 100, showing market overbought and oversold conditions. " +
+                             "Traders use RSI moves beyond 70 and 30, divergences with price, and crosses of the 50 midpoint to find entry points and filter trends.";
+
+                string ru = "RSI сравнивает средний размер восходящих и нисходящих движений цены за период и выводит осциллятор в диапазоне от 0 до 100, показывая перекупленность и перепроданность рынка. " +
+                            "Трейдеры используют выход RSI за уровни 70 и 30, дивергенции с ценой и пересечение средней линии 50 для поиска точек входа и фильтрации тренда.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorDataSeries _series;

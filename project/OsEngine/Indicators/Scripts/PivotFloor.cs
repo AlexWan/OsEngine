@@ -2,12 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("PivotFloor")]
     public class PivotFloor : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "PivotFloor calculates classic pivot levels from the previous period's prices — pivot point P, supports S1–S3, and resistances R1–R3 — for daily or weekly timeframes. " +
+                             "Traders use these levels as guides for entries, stop-losses, and targets when trading intraday or at the open of a new period.";
+
+                string ru = "PivotFloor рассчитывает классические уровни разворота по ценам прошлого периода — точку разворота P, поддержки S1–S3 и сопротивления R1–R3 — для дневных или недельных интервалов. " +
+                            "Трейдеры используют эти уровни как ориентиры для входов, стоп-лоссов и целей при торговле внутри дня или на открытии нового периода.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterString _period;
 
         private IndicatorDataSeries _seriesP;

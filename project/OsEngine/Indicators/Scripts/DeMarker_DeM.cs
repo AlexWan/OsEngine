@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -7,6 +8,20 @@ namespace OsEngine.Indicators
     [Indicator("DeMarker_DeM")]
     public class DeMarker_DeM : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "DeMarker compares the sizes of upward and downward price movements over a period and outputs an oscillator between 0 and 1, showing overbought and oversold zones. " +
+                             "Traders use moves above 0.7 and below 0.3 together with divergences to find reversals and filter entry signals.";
+
+                string ru = "DeMarker сравнивает размеры восходящих и нисходящих движений цены за период и выводит осциллятор в диапазоне от 0 до 1, показывая зоны перекупленности и перепроданности. " +
+                            "Трейдеры используют выход линии за уровни 0.7 и 0.3 вместе с дивергенциями для поиска разворотов и фильтрации сигналов на вход.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         public IndicatorParameterInt _lengthSma;
 
         public IndicatorParameterDecimal _upLineParam;

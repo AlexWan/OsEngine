@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("CMO")]
     public class CMO : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "CMO calculates a momentum index based on the difference between total positive and negative price changes over a period, displaying the strength of bulls and bears as an oscillator. " +
+                             "Traders use CMO to identify overbought and oversold conditions, filter trends, and find divergences with the price chart.";
+
+                string ru = "CMO рассчитывает индекс денежного потока на основе разницы между суммарными положительными и отрицательными изменениями цены за период, отображая силу быков и медведей в виде осциллятора. " +
+                            "Трейдеры применяют CMO для определения перекупленности и перепроданности, фильтрации тренда и поиска дивергенций с ценовым графиком.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series;
         private IndicatorParameterInt _period;
 

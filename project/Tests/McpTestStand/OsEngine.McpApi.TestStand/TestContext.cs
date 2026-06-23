@@ -107,7 +107,7 @@ namespace OsEngine.McpApi.TestStand
             Console.WriteLine();
         }
 
-        public void PrintSummary()
+        public void PrintSummary(TimeSpan elapsed)
         {
             Console.WriteLine("--- Module Summary ---");
 
@@ -142,7 +142,7 @@ namespace OsEngine.McpApi.TestStand
             }
 
             Console.WriteLine();
-            Console.WriteLine($"Total: {Passed}/{Passed + Failed} passed" + (Failed > 0 ? $" ({Failed} failed)" : ""));
+            Console.WriteLine($"Total: {Passed}/{Passed + Failed} passed" + (Failed > 0 ? $" ({Failed} failed)" : "") + $" in {elapsed.TotalSeconds:F1}s");
         }
 
         private static string Serialize(object value)

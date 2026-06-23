@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("EaseOfMovement_Watcher")]
     public class EaseOfMovement_Watcher : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "EaseOfMovement_Watcher builds signal columns based on the Ease of Movement index and adds standard deviation bands, visually highlighting abnormal spikes in buying or selling pressure. " +
+                             "Traders use it to find extremes of price pressure and points where volume does not confirm the directional move.";
+
+                string ru = "EaseOfMovement_Watcher строит сигнальные столбцы на основе индекса лёгкости движения цены и добавляет границы стандартного отклонения, визуально выделяя аномальные всплески покупательной или продавецкой активности. " +
+                            "Трейдеры применяют его для поиска экстремумов давления на цену и точек, где объём не подтверждает направленное движение.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         public IndicatorParameterInt _periodMA;
 
         public IndicatorParameterBool _isUseStandardDeviation;

@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("VolatilityStagesAW")]
     public class VolatilityStagesAW : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "VolatilityStagesAW classifies current volatility into 2, 3, or 4 stages relative to a volatility moving average channel, showing phases of low, medium, and high activity. " +
+                             "Traders use it to choose a trading strategy: looking for breakouts during low volatility and taking profit or abstaining from entries during high volatility.";
+
+                string ru = "VolatilityStagesAW классифицирует текущую волатильность на 2, 3 или 4 стадии относительно канала скользящих средних волатильности, показывая фазы низкой, средней и высокой активности. " +
+                            "Трейдеры применяют индикатор для выбора торговой стратегии: в фазе низкой волатильности ищут пробой, в высокой — фиксируют прибыль или воздерживаются от входов.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterString _volatilityStagesRegime;
 
         private IndicatorParameterString _typeVolatilityPeriod;

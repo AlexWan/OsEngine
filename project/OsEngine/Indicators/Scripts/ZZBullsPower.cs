@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZZBullsPower")]
     public class ZZBullsPower : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZZBullsPower combines the Bulls Power indicator with a ZigZag, highlighting buyer strength extremes and building a channel based on them. " +
+                             "Traders use it to find divergences between bull strength and price, as well as to determine key support and resistance levels at ZigZag extremes.";
+
+                string ru = "ZZBullsPower комбинирует индикатор силы быков с зигзагом, выделяя экстремумы силы покупателей и строя канал на их основе. " +
+                            "Трейдеры применяют его для поиска дивергенций между силой быков и ценой, а также для определения ключевых уровней поддержки и сопротивления по экстремумам зигзага.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _bullsPower;
 
         private IndicatorParameterInt _lengthBullsPower;

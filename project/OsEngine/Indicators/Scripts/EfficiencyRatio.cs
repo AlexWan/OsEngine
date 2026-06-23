@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("EfficiencyRatio")]
     public class EfficiencyRatio:Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Efficiency Ratio compares net price change over a period to the sum of all intra-period movements, showing how directional the movement was. " +
+                             "Traders use ER to assess trend strength and adapt parameters of other indicators: low values indicate noise and sideways movement, while high values indicate a sustained trend.";
+
+                string ru = "Коэффициент эффективности сравнивает чистое изменение цены за период с суммой всех внутрипериодных движений, показывая, насколько направленным было движение. " +
+                            "Трейдеры используют ER для оценки силы тренда и адаптации параметров других индикаторов: низкое значение указывает на шум и боковик, высокое — на устойчивый тренд.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series;
 
         private IndicatorParameterInt _length;

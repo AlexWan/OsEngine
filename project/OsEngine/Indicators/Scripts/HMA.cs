@@ -9,9 +9,24 @@ using System.Threading.Tasks;
 using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 
 public class HMA : Aindicator
 {
+    public override string Description
+    {
+        get
+        {
+            string eng = "Hull Moving Average combines weighted moving averages with different periods and applies the square root of the length for smoothing, allowing faster reaction to price changes while keeping the line smooth. " +
+                         "Traders use HMA to determine trend direction and entry points: changes in slope and price crossing the line often serve as trading signals.";
+
+            string ru = "Скользящая средняя Халла комбинирует взвешенные средние с разными периодами и применяет квадратный корень из длины для сглаживания, что позволяет быстрее реагировать на изменения цены при сохранении плавности линии. " +
+                        "Трейдеры используют HMA для определения направления тренда и точек входа: изменение наклона и пересечение ценой линии часто служат торговыми сигналами.";
+
+            return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+        }
+    }
+
     private IndicatorParameterInt _length;
 
     private IndicatorParameterString _candlePoint;

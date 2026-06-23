@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagOsMa")]
     public class ZigZagOsMa : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagOsMa overlays a ZigZag on the OsMa oscillator, revealing MACD histogram extremes and building a channel. " +
+                             "Traders use it to find divergences between OsMa and price, as well as to filter reversal signals based on histogram sign changes.";
+
+                string ru = "ZigZagOsMa накладывает зигзаг на осциллятор OsMa, выявляя экстремумы гистограммы MACD и строя канал. " +
+                            "Трейдеры используют индикатор для поиска дивергенций между OsMa и ценой, а также для фильтрации сигналов разворота по изменению знака гистограммы.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _OsMa;
 
         private IndicatorParameterInt _lengthFastLine;

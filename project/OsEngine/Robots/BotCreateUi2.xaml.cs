@@ -768,14 +768,14 @@ namespace OsEngine.Robots
         {
             List<BotDescription> descriptions = new List<BotDescription>();
 
-            if (!File.Exists(@"BotsDescriprion.txt"))
+            if (!File.Exists(@"BotsDescription.txt"))
             {
                 return descriptions;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"BotsDescriprion.txt"))
+                using (StreamReader reader = new StreamReader(@"BotsDescription.txt"))
                 {
                     while (reader.EndOfStream == false)
                     {
@@ -809,7 +809,7 @@ namespace OsEngine.Robots
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"BotsDescriprion.txt", false)
+                using (StreamWriter writer = new StreamWriter(@"BotsDescription.txt", false)
                     )
                 {
                     for (int i = 0; i < descriptions.Count; i++)

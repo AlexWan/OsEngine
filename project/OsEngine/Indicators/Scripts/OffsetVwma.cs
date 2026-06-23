@@ -1,12 +1,27 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("OffsetVwma")]
     public class OffsetVwma : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "OffsetVwma calculates a volume-weighted moving average and shifts it to the right by a set number of bars, carrying historical VWMA values into the current chart area. " +
+                             "Traders use the shifted VWMA to find zones where price historically interacted with the volume-weighted average, helping assess the strength of support or resistance.";
+
+                string ru = "OffsetVwma рассчитывает объёмно-взвешенную скользящую среднюю и сдвигает её вправо на заданное число баров, перенося исторические значения VWMA в текущую область графика. " +
+                            "Трейдеры используют сдвинутую VWMA для поиска зон, где цена в прошлом взаимодействовала со средней с учётом объёма, что помогает оценить силу поддержки или сопротивления.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lengthVwma;
 
         private IndicatorParameterInt _offset;

@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagCMO")]
     public class ZigZagCMO : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagCMO combines the CMO money flow oscillator with a ZigZag, marking bull and bear strength extremes and forming a channel. " +
+                             "Traders use it to find divergences between CMO and price, as well as to filter reversal points.";
+
+                string ru = "ZigZagCMO комбинирует осциллятор денежного потока CMO с зигзагом, отмечая экстремумы силы быков и медведей и формируя канал. " +
+                            "Трейдеры используют индикатор для поиска дивергенций между CMO и ценой, а также для фильтрации точек разворота.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _CMO;
 
         private IndicatorDataSeries _seriesCMO;

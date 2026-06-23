@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZag")]
     public class ZigZag : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZag filters minor price fluctuations and connects significant local highs and lows with a broken line, visualizing the main trend waves. " +
+                             "Traders use ZigZag to determine market structure, find support/resistance levels, and analyze Elliott waves.";
+
+                string ru = "ZigZag фильтрует мелкие колебания цены и соединяет значимые локальные максимумы и минимумы ломаной линией, визуализируя основные волны тренда. " +
+                            "Трейдеры используют ZigZag для определения структуры рынка, поиска уровней поддержки/сопротивления и анализа волн Эллиотта.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorDataSeries _seriesZigZag;

@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("QStick")]
     public class QStick : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "QStick smooths the difference between candle close and open prices with a selected moving average, showing the dominance of bulls or bears in the market. " +
+                             "Traders use QStick to find trend reversals: the line crossing zero and divergences with price often signal a shift in sentiment.";
+
+                string ru = "QStick сглаживает разницу между ценой закрытия и открытием свечей выбранной скользящей средней, показывая доминирование быков или медведей на рынке. " +
+                            "Трейдеры используют QStick для поиска разворотов тренда: переход линии через ноль и дивергенции с ценой часто сигнализируют о смене настроений.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterString _typeMA;

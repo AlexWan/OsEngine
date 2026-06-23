@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("LastDayMiddle")]
     public class LastDayMiddle : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "LastDayMiddle calculates the midpoint of the previous trading day's range — based on high/low or close — and builds deviation zones around it in percentage terms, carrying yesterday's levels onto the current chart. " +
+                             "Traders use it to identify key support and resistance levels at the open of a new day and to find reversals near these zones.";
+
+                string ru = "LastDayMiddle вычисляет середину торгового диапазона предыдущего дня — по high/low или close — и строит вокруг неё зоны отклонения в процентах, перенося уровни прошлой сессии на текущий график. " +
+                            "Трейдеры применяют индикатор для определения ключевых уровней поддержки и сопротивления на открытии нового дня и поиска разворотов около этих зон.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private decimal _high;
 
         private decimal _low;

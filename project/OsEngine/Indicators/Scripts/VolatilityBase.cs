@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("VolatilityBase")]
     public class VolatilityBase : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "VolatilityBase calculates the base volatility of an instrument from daily, weekly, or intra-candle ranges in absolute or percentage terms. " +
+                             "Traders use it as a foundation for assessing current market activity and comparing volatility across different trading sessions.";
+
+                string ru = "VolatilityBase вычисляет базовую волатильность инструмента по дневным, недельным или внутрисвечным диапазонам в абсолютных или процентных значениях. " +
+                            "Трейдеры применяют индикатор как основу для оценки текущей рыночной активности и сравнения волатильности разных торговых сессий.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterString _typeVolatilityPeriod;
 
         private IndicatorParameterString _typeVolatilityVariable;

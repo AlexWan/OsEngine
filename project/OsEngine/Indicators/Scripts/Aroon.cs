@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("Aroon")]
     public class Aroon : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Aroon calculates two lines — Aroon Up and Aroon Down — showing how much time has passed since the last high and low within the selected period, helping to determine trend strength and potential reversal. " +
+                             "Traders use Aroon to spot the start of upward or downward moves via line crossovers, and to identify sideways markets when both lines run low and parallel.";
+
+                string ru = "Aroon рассчитывает две линии — Aroon Up и Aroon Down — которые показывают, сколько времени прошло с момента последнего максимума и минимума за выбранный период, и помогает определить силу тренда и его возможный разворот. " +
+                            "Трейдеры применяют Aroon для поиска начала восходящего или нисходящего движения по пересечению линий, а также для выявления боковика, когда обе линии идут параллельно низко.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         public IndicatorParameterInt _lengthPeriod;
 
         public IndicatorParameterInt UpHorizontalLineLevel;

@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagFI")]
     public class ZigZagFI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagFI overlays a ZigZag on Elder's Force Index, highlighting trend strength extremes accounting for volume and building a channel. " +
+                             "Traders use it to find divergences between movement strength and price, as well as to determine possible reversal points.";
+
+                string ru = "ZigZagFI накладывает зигзаг на индекс силы Элдера, выделяя экстремумы силы тренда с учётом объёма и строя канал. " +
+                            "Трейдеры применяют его для поиска дивергенций между силой движения и ценой, а также для определения точек возможного разворота.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _FI;
 
         private IndicatorDataSeries _seriesFI;

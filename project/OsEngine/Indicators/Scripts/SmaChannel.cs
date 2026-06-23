@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("SmaChannel")]
     public class SmaChannel : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "SmaChannel builds a channel around a simple moving average, shifting the upper and lower boundaries by a set percentage of the average price. " +
+                             "Traders use this channel to identify overbought/oversold zones, find bounces from boundaries, and filter trend direction by the center line.";
+
+                string ru = "SmaChannel строит канал вокруг простой скользящей средней, смещая верхнюю и нижнюю границы на заданный процент от цены средней. " +
+                            "Трейдеры используют этот канал для определения зон перекупленности/перепроданности, поиска отскоков от границ и фильтрации направления тренда по центральной линии.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;
 
         private IndicatorParameterDecimal _deviation;

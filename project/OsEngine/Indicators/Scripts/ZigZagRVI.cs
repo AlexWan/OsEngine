@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagRVI")]
     public class ZigZagRVI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagRVI combines the Relative Vigor Index with a ZigZag, marking trend strength extremes and building a channel. " +
+                             "Traders use it to find divergences between RVI and price, as well as to confirm the direction of strong moves.";
+
+                string ru = "ZigZagRVI комбинирует индекс относительной волатильности с зигзагом, отмечая экстремумы силы тренда и строя канал. " +
+                            "Трейдеры используют индикатор для поиска дивергенций между RVI и ценой, а также для подтверждения направления сильных движений.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _RVI;
 
         private IndicatorDataSeries _seriesRVI;

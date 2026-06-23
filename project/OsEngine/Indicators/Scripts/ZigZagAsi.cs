@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagAsi")]
     public class ZigZagAsi : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagAsi overlays a ZigZag on the Accumulation Swing Index, revealing significant accumulation/distribution extremes and building a channel. " +
+                             "Traders use it to analyze the strength of long-term moves, find divergences, and identify levels where trend direction may change.";
+
+                string ru = "ZigZagAsi накладывает зигзаг на индикатор Accumulation Swing Index, выявляя значимые экстремумы накопления/распределения и строя канал. " +
+                            "Трейдеры применяют его для анализа силы долгосрочных движений, поиска дивергенций и определения уровней, где направление тренда может измениться.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _Asi;
 
         private IndicatorDataSeries _seriesAsi;

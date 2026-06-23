@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("FBD")]
     public class FBD : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "FBD calculates the deviation of the current price from the average price of the futures or underlying asset for the quarter, expressing it as a percentage and showing the contract's premium or discount. " +
+                             "Traders use it to assess fundamental overvaluation/undervaluation of the future and to find arbitrage opportunities between spot and derivative.";
+
+                string ru = "FBD рассчитывает отклонение текущей цены от средней цены фьючерса или базового актива за квартал, выражая его в процентах и показывая премию или дисконт контракта. " +
+                            "Трейдеры используют индикатор для оценки фундаментальной переоцененности/недооцененности фьючерса и поиска арбитражных возможностей между спотом и деривативом.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lookBack;
 
         private IndicatorParameterInt _lookUp;

@@ -3,9 +3,24 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 
 public class KeltnerChannel : Aindicator
 {
+    public override string Description
+    {
+        get
+        {
+            string eng = "Keltner Channel builds bands around a price EMA at a distance that is a multiple of ATR, forming an adaptive channel that widens with rising volatility and narrows when volatility falls. " +
+                         "Traders use price breaking outside the channel as a signal of a strong move, and a return inside the channel to take profit or find trend-following entries.";
+
+            string ru = "Канал Кельтнера строит полосы вокруг EMA цены на расстоянии, кратном ATR, формируя адаптивный канал, который расширяется при росте волатильности и сужается при её падении. " +
+                        "Трейдеры используют выход цены за границы канала как сигнал сильного движения, а возврат внутрь канала — для фиксации прибыли или поиска точек входа по тренду.";
+
+            return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+        }
+    }
+
     private IndicatorParameterInt _emaPeriod;
     private IndicatorParameterInt _atrPeriod;
     private IndicatorParameterInt _atrEmaPeriod;

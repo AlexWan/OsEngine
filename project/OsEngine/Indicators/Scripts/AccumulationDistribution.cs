@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("AccumulationDistribution")]
     public class AccumulationDistribution : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "The Accumulation/Distribution indicator sums candle volumes weighted by the position of the close within the bar's range, revealing whether money is flowing into or out of the asset. " +
+                             "Traders compare its dynamics with the price chart: a divergence often signals a potential reversal or weakening trend.";
+
+                string ru = "Индикатор накопления/распределения суммирует объёмы свечей с весом, зависящим от положения close внутри диапазона бара, и показывает, куда фактически уходят деньги — в актив или из него. " +
+                            "Трейдеры сравнивают его динамику с графиком цены: расхождение (дивергенция) часто сигнализирует о возможном развороте или ослаблении тренда.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series;
 
         public override void OnStateChange(IndicatorState state)

@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("KalmanFilter")]
     public class KalmanFilter:Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "KalmanFilter applies a Kalman filter to the price series, adaptively estimating the true price value and its rate of change based on the configured sharpness and K coefficient. " +
+                             "Traders use the smoothed line to filter market noise, determine trend direction, and find entry points when price deviates from the filter.";
+
+                string ru = "KalmanFilter применяет фильтр Калмана к ценовому ряду, адаптивно оценивая истинное значение цены и её скорость изменения с учётом заданной резкости и коэффициента K. " +
+                            "Трейдеры используют сглаженную линию для фильтрации рыночного шума, определения направления тренда и поиска точек входа при отклонении цены от фильтра.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series;
 
         private IndicatorParameterDecimal _sharpness;

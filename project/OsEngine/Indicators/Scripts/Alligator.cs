@@ -1,12 +1,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Alligator")]
     public class Alligator : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Alligator plots three displaced moving averages — jaw, teeth, and lips — that frame price bars and reveal the market phase: sleeping, awakening, and feeding. " +
+                             "Traders use line crossovers and their ordering to identify trend beginnings and entry zones.";
+
+                string ru = "Alligator строит три смещённые скользящие средние — челюсть, зубы и губы — которые обрамляют ценовые бары и показывают фазу рынка: сон, пробуждение, питание. " +
+                            "Трейдеры используют пересечения линий и направление их порядка для определения начала тренда и зон для входа в сделку.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lengthTeeth;
         private IndicatorParameterInt _lengthLips;
         private IndicatorParameterInt _lengthJaw;

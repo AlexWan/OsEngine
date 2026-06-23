@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -10,6 +11,20 @@ namespace OsEngine.Indicators
     [Indicator("MinMaxPriceForecasterBootstrap")]
     public class MinMaxPriceForecasterBootstrap : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "MinMaxPriceForecasterBootstrap uses a bootstrap approach to repeatedly simulate future price paths based on historical returns and outputs a confidence interval for minimums/maximums. " +
+                             "Traders use it to assess risk and movement potential, especially in unstable markets where classic distribution assumptions may not hold.";
+
+                string ru = "MinMaxPriceForecasterBootstrap использует бутстрап-подход для многократного моделирования будущих ценовых путей на основе исторических доходностей и выводит доверительный интервал минимумов/максимумов. " +
+                            "Трейдеры применяют индикатор для оценки риска и потенциала движения, особенно на нестабильных рынках, где классические предположения о распределении могут не работать.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lookBack;
         private IndicatorParameterInt _smoothPeriod;
         private IndicatorParameterInt _barsForecast;

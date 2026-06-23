@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagVolume")]
     public class ZigZagVolume : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagVolume combines the volume oscillator with a ZigZag, revealing trading activity extremes and building a channel. " +
+                             "Traders use it to find divergences between volume dynamics and price, as well as to determine moments of strengthening or weakening volume support.";
+
+                string ru = "ZigZagVolume комбинирует осциллятор объёма с зигзагом, выявляя экстремумы активности торгов и строя канал. " +
+                            "Трейдеры используют индикатор для поиска дивергенций между объёмной динамикой и ценой, а также для определения моментов усиления или ослабления объёмной поддержки.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _volumeOscillator;
 
         private IndicatorDataSeries _seriesVolume;

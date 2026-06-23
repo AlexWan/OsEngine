@@ -1,4 +1,5 @@
 using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("ADX")]
     public class ADX : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ADX calculates the Average Directional Movement Index from price bars and additionally plots +DI and -DI lines, showing both the strength and the direction of the current trend. " +
+                             "Traders use ADX to filter out sideways markets: a position entry is usually considered when ADX is rising and crosses a set level, such as 20 or 25.";
+
+                string ru = "ADX рассчитывает индекс среднего направленного движения по ценовым барам и дополнительно выводит линии +DI и −DI, показывая не только силу текущего тренда, но и его направление. " +
+                            "Трейдеры используют ADX для фильтрации боковых движений: вход в позицию обычно рассматривают, когда ADX растёт и пересекает установленный уровень, например 20 или 25.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         public IndicatorParameterInt _length;
 
         public IndicatorDataSeries _series;

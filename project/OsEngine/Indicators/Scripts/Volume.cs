@@ -1,12 +1,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("Volume")]
     public class Volume : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Volume displays trading volume on each bar as a histogram, showing market participant activity. " +
+                             "Traders analyze volume to confirm trend strength, identify abnormal spikes in activity, and find divergences between price and volume.";
+
+                string ru = "Volume отображает объём торгов на каждом баре в виде столбчатой диаграммы, показывая активность участников рынка. " +
+                            "Трейдеры анализируют объём для подтверждения силы тренда, выявления аномальных всплесков активности и поиска дивергенций между ценой и объёмом.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series;
 
         public override void OnStateChange(IndicatorState state)

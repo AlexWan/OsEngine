@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("LinearRegressionChannelFast_Indicator")]
     public class LinearRegressionChannelFast_Indicator : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "An analogue of LinearRegressionChannel, optimized for use in the tester and optimizer, without re-tuning historical channels. " +
+                             "Traders use bounces from the channel edges and breakouts to find entry points, and the direction of the center line as a trend filter.";
+
+                string ru = "Аналог LinearRegressionChannel, оптимизированные под работу в тестере и оптимизаторе, без перестнойки исторических каналов. " +
+                            "Трейдеры используют отбой от границ канала и выход за них для поиска точек входа, а также направление центральной линии как фильтр тренда.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorParameterDecimal _upDeviation;

@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagAO")]
     public class ZigZagAO : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagAO overlays a ZigZag on the Awesome Oscillator, highlighting market momentum extremes and building a channel based on them. " +
+                             "Traders use it to find divergences between AO momentum and price, as well as to determine key reversal levels.";
+
+                string ru = "ZigZagAO накладывает зигзаг на осциллятор Awesome Oscillator, выделяя экстремумы рыночного импульса и строя на их основе канал. " +
+                            "Трейдеры используют индикатор для поиска дивергенций между импульсом AO и ценой, а также для определения ключевых уровней разворота.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _aO;
 
         private IndicatorParameterInt _lengthFastLine;

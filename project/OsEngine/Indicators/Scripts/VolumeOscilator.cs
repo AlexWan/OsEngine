@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("VolumeOscilator")]
     public class VolumeOscilator : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Volume Oscillator calculates the percentage difference between fast and slow moving averages of volume, showing how current activity changes relative to its average level. " +
+                             "Traders use the oscillator crossing the zero line to assess strengthening or weakening volume support for the trend.";
+
+                string ru = "Volume Oscillator рассчитывает разницу между быстрой и медленной скользящими средними объёма в процентах, показывая изменение текущей активности относительно её среднего уровня. " +
+                            "Трейдеры используют пересечение осциллятора нулевой линии для оценки усиления или ослабления объёмной поддержки тренда.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series1;
 
         private IndicatorParameterInt _length1;

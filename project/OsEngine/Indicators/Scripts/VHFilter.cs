@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("VHFilter")]
     public class VHFilter: Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "VHFilter measures the ratio of the period's range to the sum of absolute price changes over the same period, showing how directional or \"noisy\" price movement was. " +
+                             "Traders use it to filter trending and sideways phases: high values indicate a stable trend, low values indicate a sideways market.";
+
+                string ru = "VHFilter измеряет соотношение размаха периода к сумме абсолютных изменений цены за этот же период, показывая, насколько ценовое движение было направленным или «шумным». " +
+                            "Трейдеры используют индикатор для фильтрации трендовых и боковых фаз: высокие значения указывают на устойчивый тренд, низкие — на боковик.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series;
 
         private IndicatorParameterInt _period;

@@ -1,4 +1,5 @@
 using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("VolatilityCandles")]
     public class VolatilityCandles : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "VolatilityCandles estimates volatility through the ratio of high to candle median with exponential smoothing, reacting to changes in candle body size. " +
+                             "Traders use it to find periods of rising or falling volatility and filter signals depending on the current bar amplitude.";
+
+                string ru = "VolatilityCandles оценивает волатильность через отношение high к median свечи с экспоненциальным сглаживанием, реагируя на изменения размера тел свечей. " +
+                            "Трейдеры используют индикатор для поиска периодов роста или падения волатильности и фильтрации сигналов в зависимости от текущей амплитуды баров.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _length;         
         
         private IndicatorParameterDecimal _koeff;      

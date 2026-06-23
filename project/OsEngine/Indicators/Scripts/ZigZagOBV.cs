@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagOBV")]
     public class ZigZagOBV : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagOBV combines the On-Balance Volume indicator with a ZigZag, visualizing money flow extremes and a channel based on them. " +
+                             "Traders use it to find divergences between volume and price, as well as to identify zones where money flow changes direction.";
+
+                string ru = "ZigZagOBV комбинирует индикатор балансового объёма с зигзагом, визуализируя экстремумы денежного потока и канал на их основе. " +
+                            "Трейдеры применяют его для поиска дивергенций между объёмом и ценой, а также для определения зон смены направления денежного потока.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _OBV;
 
         private IndicatorDataSeries _seriesOBV;

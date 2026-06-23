@@ -226,6 +226,8 @@ namespace OsEngine.Indicators
 
         public bool IsOn { get; set; } = true;
 
+        public virtual string Description => string.Empty;
+
         #endregion
 
         #region Parameters. Working with strategy parameters

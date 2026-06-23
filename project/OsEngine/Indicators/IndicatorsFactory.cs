@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Windows; // Used for MessageBox
 using OsEngine.Entity; // Assuming Aindicator and IndicatorAttribute are here
 
 // Roslyn specific usings
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using OsEngine.Market;
+using OsEngine.Logging;
 
 namespace OsEngine.Indicators
 {
@@ -77,6 +78,31 @@ namespace OsEngine.Indicators
             // Remove duplicates that might arise if a script has the same name as an attribute-based indicator
             // and then sort alphabetically.
             return allIndicatorNames.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(name => name).ToList();
+        }
+
+        /// <summary>
+        /// Get the description of the indicator by its type name.
+        /// Works for both precompiled and custom script indicators.
+        /// </summary>
+        public static string GetIndicatorDescription(string indicatorName)
+        {
+            try
+            {
+                Aindicator indicator = CreateIndicatorByName(indicatorName, "", false, StartProgram.IsOsOptimizer);
+
+                if (indicator != null)
+                {
+                    string description = indicator.Description;
+                    indicator.Delete();
+                    return description;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            return string.Empty;
         }
 
         private static readonly List<NamesFilesFromFolder> _filesInDirCache = new List<NamesFilesFromFolder>();
@@ -167,7 +193,7 @@ namespace OsEngine.Indicators
 
                     if (string.IsNullOrEmpty(scriptPath))
                     {
-                        MessageBox.Show($"Error! Indicator script '{nameClass}' not found in {scriptFolderPath}");
+                        ServerMaster.SendNewLogMessage($"Error! Indicator script '{nameClass}' not found in {scriptFolderPath}",LogMessageType.Error);
                         return null;
                     }
 
@@ -182,7 +208,7 @@ namespace OsEngine.Indicators
             }
             catch (Exception e)
             {
-                MessageBox.Show($"Error creating indicator '{nameClass}':\n{e.ToString()}");
+                ServerMaster.SendNewLogMessage($"Error creating indicator '{nameClass}':\n{e.ToString()}", LogMessageType.Error);
                 // Consider logging the exception or re-throwing specific exceptions
             }
 

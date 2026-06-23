@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ROC")]
     public class ROC:Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Rate of Change calculates the percentage price change over a selected period, showing the speed of an instrument's rise or fall. " +
+                             "Traders use ROC to find overbought/oversold conditions, divergences with price, and zero-line crossovers as signals of a direction change.";
+
+                string ru = "Rate of Change вычисляет процентное изменение цены за выбранный период, показывая скорость роста или падения инструмента. " +
+                            "Трейдеры используют ROC для поиска перекупленности/перепроданности, дивергенций с ценой и пересечения нулевой линии как сигнала к смене направления.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorParameterString _candlePoint;

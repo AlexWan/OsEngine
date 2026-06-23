@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
    [Indicator("LinearRegressionChannel")]
     public class LinearRegressionChannel : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Linear Regression Channel approximates price data with a straight line using the least squares method and builds parallel boundaries at a set deviation from it, showing the equilibrium price trajectory and overbought/oversold zones. " +
+                             "Traders use bounces from the channel edges and breakouts to find entry points, and the direction of the center line as a trend filter.";
+
+                string ru = "Канал линейной регрессии аппроксимирует ценовые данные прямой линией методом наименьших квадратов и строит параллельные границы на заданном отклонении от неё, показывая равновесную траекторию цены и зоны перекупленности/перепроданности. " +
+                            "Трейдеры используют отбой от границ канала и выход за них для поиска точек входа, а также направление центральной линии как фильтр тренда.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _period;
 
         private IndicatorParameterDecimal _upDeviation;

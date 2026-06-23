@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagCCI")]
     public class ZigZagCCI : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagCCI overlays a ZigZag on the CCI indicator, highlighting extremes of price deviation from its typical range and building a channel. " +
+                             "Traders use it to find divergences and determine key levels where CCI changes direction and confirms or contradicts price movement.";
+
+                string ru = "ZigZagCCI накладывает зигзаг на индикатор CCI, выделяя экстремумы отклонения цены от типичного диапазона и строя канал. " +
+                            "Трейдеры применяют его для поиска дивергенций и определения ключевых уровней, где CCI меняет направление и подтверждает или опровергает ценовое движение.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _CCI;
 
         private IndicatorDataSeries _seriesCCI;

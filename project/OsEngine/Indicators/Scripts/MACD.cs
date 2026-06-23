@@ -2,12 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("MACD")]
     public class MACD : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "MACD plots the difference between fast and slow exponential moving averages, adds a signal line, and a histogram reflecting the divergence between them. " +
+                             "Traders use MACD crossing the signal line, the histogram crossing zero, and divergences with price to find reversals and confirm trends.";
+
+                string ru = "MACD строит разницу между быстрой и медленной экспоненциальными скользящими средними, добавляет сигнальную линию и гистограмму, отражающую расхождение между ними. " +
+                            "Трейдеры используют пересечение MACD с сигнальной линией, выход гистограммы через ноль и дивергенции с ценой для поиска разворотов и подтверждения тренда.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterInt _lengthFastLine;
 
         private IndicatorParameterInt _lengthSlowLine;

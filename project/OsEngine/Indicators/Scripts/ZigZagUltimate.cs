@@ -3,12 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("ZigZagUltimate")]
     public class ZigZagUltimate : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "ZigZagUltimate overlays a ZigZag on the Ultimate Oscillator, highlighting multi-period buying pressure extremes and forming a channel. " +
+                             "Traders use it to find divergences between Ultimate Oscillator and price, as well as to determine reliable reversal zones.";
+
+                string ru = "ZigZagUltimate накладывает зигзаг на Ultimate Oscillator, выделяя экстремумы много периодного денежного давления и формируя канал. " +
+                            "Трейдеры применяют его для поиска дивергенций между Ultimate Oscillator и ценой, а также для определения надёжных зон разворота.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private Aindicator _ultimate;
 
         private IndicatorDataSeries _seriesUltimate;

@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,20 @@ namespace OsEngine.Indicators
     [Indicator("VolatilityAverage")]
     public class VolatilityAverage : Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "VolatilityAverage calculates volatility based on daily, weekly, or intra-candle ranges in absolute or percentage terms and smooths it with a moving average. " +
+                             "Traders use it to assess current volatility, compare it with historical average, and adjust position size and stop-losses.";
+
+                string ru = "VolatilityAverage рассчитывает волатильность на основе дневных, недельных или внутрисвечных диапазонов в абсолютных или процентных значениях и сглаживает её скользящей средней. " +
+                            "Трейдеры используют индикатор для оценки текущей волатильности, сравнения её с исторической средней и настройки размеров позиции и стоп-лоссов.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorParameterString _typeVolatilityPeriod;
 
         private IndicatorParameterString _typeVolatilityVariable;

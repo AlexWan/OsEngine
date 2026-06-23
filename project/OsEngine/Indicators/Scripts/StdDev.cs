@@ -2,12 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using OsEngine.Language;
 
 namespace OsEngine.Indicators
 {
     [Indicator("StdDev")]
     public class StdDev: Aindicator
     {
+        public override string Description
+        {
+            get
+            {
+                string eng = "Standard Deviation measures the dispersion of prices relative to the average value over a period, quantitatively displaying the current volatility of the instrument. " +
+                             "Traders use StdDev to assess oscillation amplitude, find periods of low volatility before an impulse, and adjust channel widths and stop-losses.";
+
+                string ru = "Standard Deviation измеряет разброс цен относительно среднего значения за период, количественно отображая текущую волатильность инструмента. " +
+                            "Трейдеры применяют StdDev для оценки амплитуды колебаний, поиска периодов низкой волатильности перед импульсом и настройки ширины каналов и стоп-лоссов.";
+
+                return OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
+            }
+        }
+
         private IndicatorDataSeries _series;
 
         private IndicatorParameterInt _period;
