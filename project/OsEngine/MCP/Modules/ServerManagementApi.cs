@@ -298,7 +298,10 @@ namespace OsEngine.MCP.Modules
                 };
             }
 
-            string permissionsJson = JsonSerializer.Serialize(permission);
+            string permissionsJson = JsonSerializer.Serialize(permission, new JsonSerializerOptions
+            {
+                IncludeFields = true
+            });
 
             using (var document = JsonDocument.Parse(permissionsJson))
             {

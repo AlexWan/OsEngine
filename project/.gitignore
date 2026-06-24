@@ -2,3 +2,9 @@
 # This file contains connector credentials and must never be committed.
 test-secrets.json
 Tests/McpTestStand/**/test-secrets.json
+
+# WikiConnectionTest build outputs and runtime settings
+Tests/WikiConnectionTest/**/bin/
+Tests/WikiConnectionTest/**/obj/
+Tests/WikiConnectionTest/**/connection-secrets.json
+Tests/WikiConnectionTest/**/app-settings.json

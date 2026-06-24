@@ -241,6 +241,11 @@ namespace OsEngine.MCP.Modules
                             {
                                 type = "string",
                                 description = "Optional filter by security code/name substring"
+                            },
+                            reload = new
+                            {
+                                type = "boolean",
+                                description = "Reload securities from server before returning"
                             }
                         },
                         required = new[] { "type" }
@@ -837,6 +842,7 @@ namespace OsEngine.MCP.Modules
 
             string classFilter = string.Empty;
             string codeFilter = string.Empty;
+            bool reload = false;
 
             if (parameters.ValueKind == JsonValueKind.Object)
             {
@@ -851,6 +857,17 @@ namespace OsEngine.MCP.Modules
                 {
                     codeFilter = filterElement.GetString();
                 }
+
+                if (parameters.TryGetProperty("reload", out JsonElement reloadElement)
+                    && reloadElement.ValueKind == JsonValueKind.True)
+                {
+                    reload = true;
+                }
+            }
+
+            if (reload)
+            {
+                server.ReloadSecurities();
             }
 
             List<Security> securities = server.Securities;

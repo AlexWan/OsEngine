@@ -1366,8 +1366,8 @@ namespace OsEngine.OsTrader.Grids
                 if (Tab.Security.PriceLimitHigh != 0
                  && Tab.Security.PriceLimitLow != 0)
                 {
-                    if (line.PriceExit > Tab.Security.PriceLimitHigh
-                        || line.PriceExit < Tab.Security.PriceLimitLow)
+                    if (pos.ProfitOrderPrice > Tab.Security.PriceLimitHigh
+                        || pos.ProfitOrderPrice < Tab.Security.PriceLimitLow)
                     {
                         continue;
                     }
@@ -1380,8 +1380,8 @@ namespace OsEngine.OsTrader.Grids
                     decimal maxPriceUp = lastPrice + lastPrice * (MaxDistanceToOrdersPercent / 100);
                     decimal minPriceDown = lastPrice - lastPrice * (MaxDistanceToOrdersPercent / 100);
 
-                    if (line.PriceExit > maxPriceUp
-                     || line.PriceExit < minPriceDown)
+                    if (pos.ProfitOrderPrice > maxPriceUp
+                     || pos.ProfitOrderPrice < minPriceDown)
                     {
                         continue;
                     }
