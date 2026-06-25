@@ -4305,7 +4305,8 @@ ContextMenuStrip menu)
             bool isMyValues = mySeries.Points.Count != 0 && Convert.ToDouble(values[0]) == mySeries.Points[0].YValues[0];
 
             if (mySeries.Points.Count != 0 &&
-               values.Count - 1 == mySeries.Points.Count
+               values.Count - 1 == mySeries.Points.Count &&
+                fullReloadOnNewCandle == false
                && isMyValues)
             {
                 // if draw only last point

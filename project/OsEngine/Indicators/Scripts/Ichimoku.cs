@@ -25,8 +25,8 @@ namespace OsEngine.Indicators
         private IndicatorParameterInt _first;
         private IndicatorParameterInt _second;
         private IndicatorParameterInt _third;
-        private IndicatorParameterInt _sdvig;
-        private IndicatorParameterInt _chinkou;
+        private IndicatorParameterInt _displacement;
+        private IndicatorParameterInt _chinkouSpan;
 
         private IndicatorDataSeries _seriesEtalon;
         private IndicatorDataSeries _seriesRoundet;
@@ -38,11 +38,11 @@ namespace OsEngine.Indicators
         {
             if (state == IndicatorState.Configure)
             {
-                _first = CreateParameterInt("Tenkan", 9);
-                _second = CreateParameterInt("Kijun", 26);
-                _third = CreateParameterInt("Sencou", 52);
-                _sdvig = CreateParameterInt("Chinkou", 26);
-                _chinkou = CreateParameterInt("Deviation", 26);
+                _first = CreateParameterInt("Tenkan Sen", 9);
+                _second = CreateParameterInt("Kijun Sen", 26);
+                _third = CreateParameterInt("Senkou Span B", 52);
+                _displacement = CreateParameterInt("Displacement", 26);
+                _chinkouSpan = CreateParameterInt("Chinkou Span", 26);
 
                 _seriesEtalon = CreateSeries("Tenkan", Color.BlueViolet, IndicatorChartPaintType.Line, true);
                 _seriesEtalon.CanReBuildHistoricalValues = false;
@@ -53,10 +53,10 @@ namespace OsEngine.Indicators
                 _seriesLate = CreateSeries("Chinkou", Color.DarkRed, IndicatorChartPaintType.Point, true);
                 _seriesLate.CanReBuildHistoricalValues = true;
 
-                _seriesFirst = CreateSeries("Sencou A", Color.LimeGreen, IndicatorChartPaintType.Line, true);
+                _seriesFirst = CreateSeries("Senkou A", Color.LimeGreen, IndicatorChartPaintType.Line, true);
                 _seriesFirst.CanReBuildHistoricalValues = false;
 
-                _seriesSecond = CreateSeries("Sencou B", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
+                _seriesSecond = CreateSeries("Senkou B", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
                 _seriesSecond.CanReBuildHistoricalValues = false;
 
             }
@@ -97,12 +97,12 @@ namespace OsEngine.Indicators
 
             RebuildInternalValues(candles);
 
-            _seriesEtalon.Values[index] = _valuesEtalonLine_Kejun_sen[index];
-            _seriesRoundet.Values[index] = _valuesLineRounded_Teken_sen[index];
+            _seriesEtalon.Values[index] = _valuesLineRounded_Teken_sen[index];
+            _seriesRoundet.Values[index] = _valuesEtalonLine_Kejun_sen[index];
 
-            if (index - _chinkou.ValueInt > 0)
+            if (index - _chinkouSpan.ValueInt > 0)
             {
-                _seriesLate.Values[index - _chinkou.ValueInt] = _valuesLineLate_Chinkou_span[index - _chinkou.ValueInt];
+                _seriesLate.Values[index - _chinkouSpan.ValueInt] = _valuesLineLate_Chinkou_span[index - _chinkouSpan.ValueInt];
             }
 
             _seriesFirst.Values[index] = _valuesLineFirst_Senkkou_span_A[index];
@@ -152,13 +152,13 @@ namespace OsEngine.Indicators
             _valuesEtalonLine_Kejun_sen.Add(GetLine(candles, candles.Count - 1, _second.ValueInt, 0));
             _valuesLineRounded_Teken_sen.Add(GetLine(candles, candles.Count - 1, _first.ValueInt, 0));
 
-            if (candles.Count - 1 >= _chinkou.ValueInt)
+            if (candles.Count - 1 >= _chinkouSpan.ValueInt)
             {
-                _valuesLineLate_Chinkou_span.Add(GetLineLate(candles, candles.Count - 1 - _chinkou.ValueInt));
+                _valuesLineLate_Chinkou_span.Add(GetLineLate(candles, candles.Count - 1 - _chinkouSpan.ValueInt));
             }
 
             _valuesLineFirst_Senkkou_span_A.Add(GetLineFirst(candles, candles.Count - 1));
-            _valuesLineSecond_Senkou_span_B.Add(GetLine(candles, candles.Count - 1, _third.ValueInt, _sdvig.ValueInt));
+            _valuesLineSecond_Senkou_span_B.Add(GetLine(candles, candles.Count - 1, _third.ValueInt, _displacement.ValueInt));
         }
 
         private void ProcessAll(List<Candle> candles)
@@ -180,13 +180,13 @@ namespace OsEngine.Indicators
                 _valuesEtalonLine_Kejun_sen.Add(GetLine(candles, i, _second.ValueInt, 0));
                 _valuesLineRounded_Teken_sen.Add(GetLine(candles, i, _first.ValueInt, 0));
 
-                if (i >= _chinkou.ValueInt)
+                if (i >= _chinkouSpan.ValueInt)
                 {
-                    _valuesLineLate_Chinkou_span.Add(GetLineLate(candles, i - _chinkou.ValueInt));
+                    _valuesLineLate_Chinkou_span.Add(GetLineLate(candles, i - _chinkouSpan.ValueInt));
                 }
 
                 _valuesLineFirst_Senkkou_span_A.Add(GetLineFirst(candles, i));
-                _valuesLineSecond_Senkou_span_B.Add(GetLine(candles, i, _third.ValueInt, _sdvig.ValueInt));
+                _valuesLineSecond_Senkou_span_B.Add(GetLine(candles, i, _third.ValueInt, _displacement.ValueInt));
             }
         }
 
@@ -202,16 +202,16 @@ namespace OsEngine.Indicators
             _valuesLineRounded_Teken_sen[_valuesLineRounded_Teken_sen.Count - 1] =
                 (GetLine(candles, candles.Count - 1, _first.ValueInt, 0));
 
-            if (candles.Count >= _chinkou.ValueInt)
+            if (candles.Count >= _chinkouSpan.ValueInt)
             {
                 _valuesLineLate_Chinkou_span[_valuesLineLate_Chinkou_span.Count - 1] =
-                    (GetLineLate(candles, candles.Count - 1 - _chinkou.ValueInt));
+                    (GetLineLate(candles, candles.Count - 1 - _chinkouSpan.ValueInt));
             }
 
             _valuesLineFirst_Senkkou_span_A[_valuesLineFirst_Senkkou_span_A.Count - 1] =
                 (GetLineFirst(candles, candles.Count - 1));
             _valuesLineSecond_Senkou_span_B[_valuesLineSecond_Senkou_span_B.Count - 1] =
-                (GetLine(candles, candles.Count - 1, _third.ValueInt, _sdvig.ValueInt));
+                (GetLine(candles, candles.Count - 1, _third.ValueInt, _displacement.ValueInt));
         }
 
         private decimal GetLine(List<Candle> candles, int index, int length, int shift)
@@ -244,24 +244,23 @@ namespace OsEngine.Indicators
 
         public decimal GetLineLate(List<Candle> candles, int index)
         {
-            if (index + _chinkou.ValueInt >= candles.Count)
+            if (index + _chinkouSpan.ValueInt >= candles.Count)
             {
                 return candles[candles.Count - 1].Close;
             }
 
-            return candles[index + _chinkou.ValueInt].Close;
+            return candles[index + _chinkouSpan.ValueInt].Close;
         }
 
         public decimal GetLineFirst(List<Candle> candles, int index)
         {
-            if (_sdvig.ValueInt >= index + 1 ||
+            if (_displacement.ValueInt >= index + 1 ||
                 _first.ValueInt >= index + 1 ||
-                index - _sdvig.ValueInt < _sdvig.ValueInt ||
-                index - _sdvig.ValueInt < _sdvig.ValueInt)
+                index - _displacement.ValueInt < _displacement.ValueInt)
             {
                 return 0;
             }
-            return (_valuesEtalonLine_Kejun_sen[index - _sdvig.ValueInt] + _valuesLineRounded_Teken_sen[index - _sdvig.ValueInt]) / 2;
+            return (_valuesEtalonLine_Kejun_sen[index - _displacement.ValueInt] + _valuesLineRounded_Teken_sen[index - _displacement.ValueInt]) / 2;
         }
     }
 }
