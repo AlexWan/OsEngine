@@ -722,9 +722,11 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
+            string messageUpdated = "ComparePositionsModule: " + message;
+
             if (LogMessageEvent != null)
             {
-                LogMessageEvent("ComparePositionsModule: " + message, type);
+                LogMessageEvent(messageUpdated, type);
             }
         }
 

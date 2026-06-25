@@ -4422,6 +4422,11 @@ namespace OsEngine.Market.Servers
             {
                 LogMessageEvent(message, type);
             }
+
+            if(message.Contains("ComparePositionsModule"))
+            {
+                ServerMaster.SendNewLogMessage(message, type);
+            }
         }
 
         /// <summary>
