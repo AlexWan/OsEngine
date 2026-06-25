@@ -52,6 +52,7 @@ namespace OsEngine.MCP
         private readonly ServerInstanceApi _serverInstanceApi;
         private readonly WikiRobotsApi _wikiRobotsApi;
         private readonly WikiIndicatorsApi _wikiIndicatorsApi;
+        private readonly WikiSecuritiesApi _wikiSecuritiesApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -117,6 +118,9 @@ namespace OsEngine.MCP
             _wikiIndicatorsApi = new WikiIndicatorsApi();
             _wikiIndicatorsApi.NewLogMessageEvent += WikiIndicatorsApi_NewLogMessageEvent;
 
+            _wikiSecuritiesApi = new WikiSecuritiesApi();
+            _wikiSecuritiesApi.NewLogMessageEvent += WikiSecuritiesApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -128,6 +132,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_serverInstanceApi);
             _protocolApi.RegisterToolProvider(_wikiRobotsApi);
             _protocolApi.RegisterToolProvider(_wikiIndicatorsApi);
+            _protocolApi.RegisterToolProvider(_wikiSecuritiesApi);
         }
 
         #endregion
@@ -275,6 +280,11 @@ namespace OsEngine.MCP
         }
 
         private void WikiIndicatorsApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void WikiSecuritiesApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
         }
@@ -645,6 +655,14 @@ namespace OsEngine.MCP
                     case "wiki_indicators_list":
                     case "wiki_indicator_info":
                         response = _wikiIndicatorsApi.Handle(request);
+                        break;
+
+                    case "wiki_securities_moex_iss":
+                    case "wiki_securities_tinvest":
+                    case "wiki_securities_alor":
+                    case "wiki_securities_qscalp":
+                    case "wiki_securities_mapping_info":
+                        response = _wikiSecuritiesApi.Handle(request);
                         break;
 
                     default:

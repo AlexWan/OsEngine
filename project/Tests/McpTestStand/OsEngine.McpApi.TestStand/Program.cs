@@ -172,6 +172,14 @@ namespace OsEngine.McpApi.TestStand
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, "WikiIndicators", string.Empty, () => new WikiIndicatorsTests(context).RunAll());
 
+                // Модуль: WikiSecurities
+                // MCP API: wiki_securities_moex_iss, wiki_securities_tinvest,
+                //          wiki_securities_alor, wiki_securities_qscalp,
+                //          wiki_securities_mapping_info.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "WikiSecurities", string.Empty, () => new WikiSecuritiesTests(context).RunAll());
+
                 // Модуль: Terminal
                 // MCP API: ping, terminal_get_status, terminal_launch, terminal_stop, terminal_kill.
                 // Запускает OsEngine перед собой: да, без аргументов.
