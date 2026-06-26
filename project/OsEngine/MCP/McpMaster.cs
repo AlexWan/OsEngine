@@ -54,6 +54,7 @@ namespace OsEngine.MCP
         private readonly WikiRobotsApi _wikiRobotsApi;
         private readonly WikiIndicatorsApi _wikiIndicatorsApi;
         private readonly WikiSecuritiesApi _wikiSecuritiesApi;
+        private readonly OsDataApi _osDataApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -128,6 +129,9 @@ namespace OsEngine.MCP
             _wikiSecuritiesApi = new WikiSecuritiesApi();
             _wikiSecuritiesApi.NewLogMessageEvent += WikiSecuritiesApi_NewLogMessageEvent;
 
+            _osDataApi = new OsDataApi(publishEvent, () => _osDataMaster);
+            _osDataApi.NewLogMessageEvent += OsDataApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -140,6 +144,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_wikiRobotsApi);
             _protocolApi.RegisterToolProvider(_wikiIndicatorsApi);
             _protocolApi.RegisterToolProvider(_wikiSecuritiesApi);
+            _protocolApi.RegisterToolProvider(_osDataApi);
         }
 
         #endregion
@@ -296,6 +301,11 @@ namespace OsEngine.MCP
             Log.ProcessMessage(message, type);
         }
 
+        private void OsDataApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
         private void ProtocolApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
@@ -352,7 +362,9 @@ namespace OsEngine.MCP
 
         public void SetOsDataMaster(OsDataMaster master)
         {
+            _osDataApi?.DetachFromMaster();
             _osDataMaster = master;
+            _osDataApi?.AttachToMaster();
         }
 
         #endregion
@@ -676,6 +688,21 @@ namespace OsEngine.MCP
                     case "wiki_securities_qscalp":
                     case "wiki_securities_mapping_info":
                         response = _wikiSecuritiesApi.Handle(request);
+                        break;
+
+                    case "data_get_sets":
+                    case "data_create_set":
+                    case "data_delete_set":
+                    case "data_set_settings_get":
+                    case "data_set_settings_set":
+                    case "data_set_securities_get":
+                    case "data_set_securities_add":
+                    case "data_set_securities_remove":
+                    case "data_set_on":
+                    case "data_set_off":
+                    case "data_get_set_status":
+                    case "data_get_security_status":
+                        response = _osDataApi.Handle(request);
                         break;
 
                     default:

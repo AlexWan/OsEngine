@@ -337,6 +337,149 @@ namespace OsEngine.OsData
             Save();
         }
 
+        /// <summary>
+        /// Find the active server instance that matches the set source settings.
+        /// </summary>
+        public IServer GetSourceServer()
+        {
+            List<IServer> servers = ServerMaster.GetServers();
+
+            if (servers == null || servers.Count == 0)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                IServer server = servers[i];
+
+                if (server == null || server.ServerType != BaseSettings.Source)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(BaseSettings.SourceName))
+                {
+                    return server;
+                }
+
+                if (!string.IsNullOrEmpty(server.ServerNameAndPrefix)
+                    && server.ServerNameAndPrefix.StartsWith(BaseSettings.SourceName))
+                {
+                    return server;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Add securities to the set. Duplicates are ignored.
+        /// </summary>
+        public int AddSecurities(List<Security> securities)
+        {
+            if (securities == null || securities.Count == 0)
+            {
+                return 0;
+            }
+
+            if (SecuritiesLoad == null)
+            {
+                SecuritiesLoad = new List<SecurityToLoad>();
+            }
+
+            int addedCount = 0;
+
+            for (int i = 0; i < securities.Count; i++)
+            {
+                Security security = securities[i];
+
+                if (security == null)
+                {
+                    continue;
+                }
+
+                string secId = security.NameId;
+
+                if (string.IsNullOrEmpty(secId))
+                {
+                    secId = security.Name;
+                }
+
+                if (string.IsNullOrEmpty(secId))
+                {
+                    continue;
+                }
+
+                if (SecuritiesLoad.Find(s => s.SecId == secId) != null)
+                {
+                    continue;
+                }
+
+                SecurityToLoad record = new SecurityToLoad();
+                record.SecName = security.Name ?? "";
+                record.SecId = secId;
+                record.SecClass = security.NameClass ?? "";
+                record.SecExchange = security.Exchange ?? "";
+                record.SecNameFull = security.NameFull ?? "";
+                record.SetName = SetName;
+                record.PriceStep = security.PriceStep;
+                record.VolumeStep = security.VolumeStep;
+                record.NewLogMessageEvent += SendNewLogMessage;
+                record.CopySettingsFromParam(BaseSettings);
+
+                SecuritiesLoad.Add(record);
+                addedCount++;
+            }
+
+            if (addedCount > 0)
+            {
+                Save();
+            }
+
+            return addedCount;
+        }
+
+        /// <summary>
+        /// Remove securities from the set by name.
+        /// </summary>
+        public int RemoveSecurities(List<string> names)
+        {
+            if (SecuritiesLoad == null || SecuritiesLoad.Count == 0)
+            {
+                return 0;
+            }
+
+            if (names == null || names.Count == 0)
+            {
+                return 0;
+            }
+
+            int removedCount = 0;
+
+            for (int i = SecuritiesLoad.Count - 1; i >= 0; i--)
+            {
+                if (string.IsNullOrEmpty(SecuritiesLoad[i].SecName))
+                {
+                    continue;
+                }
+
+                if (names.Contains(SecuritiesLoad[i].SecName))
+                {
+                    SecuritiesLoad[i].Delete();
+                    SecuritiesLoad.RemoveAt(i);
+                    removedCount++;
+                }
+            }
+
+            if (removedCount > 0)
+            {
+                Save();
+            }
+
+            return removedCount;
+        }
+
         public void ChangeCollapsedStateBySecurity(int index)
         {
             if (SecuritiesLoad == null ||
@@ -378,6 +521,114 @@ namespace OsEngine.OsData
             decimal result = loaded / onePerc;
 
             return Math.Round(result, 2);
+        }
+
+        /// <summary>
+        /// Whether the set has finished loading. A set is considered finished
+        /// when every security/timeframe loader has reached <see cref="SecurityLoadStatus.Load"/>.
+        /// This includes cases where some data pies could not be loaded after retries.
+        /// </summary>
+        public bool IsLoadFinished()
+        {
+            if (SecuritiesLoad == null ||
+                SecuritiesLoad.Count == 0)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < SecuritiesLoad.Count; i++)
+            {
+                SecurityToLoad security = SecuritiesLoad[i];
+
+                if (security.SecLoaders == null ||
+                    security.SecLoaders.Count == 0)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < security.SecLoaders.Count; j++)
+                {
+                    if (security.SecLoaders[j].Status != SecurityLoadStatus.Load)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Aggregated loading status of the whole set.
+        /// If any loader is still loading, the set is Loading.
+        /// If all loaders are in Load state, the set is Load.
+        /// </summary>
+        public SecurityLoadStatus GetAggregateStatus()
+        {
+            if (SecuritiesLoad == null ||
+                SecuritiesLoad.Count == 0)
+            {
+                return SecurityLoadStatus.Load;
+            }
+
+            bool hasLoading = false;
+            bool hasActivate = false;
+            bool hasNone = false;
+            bool hasLoad = false;
+
+            for (int i = 0; i < SecuritiesLoad.Count; i++)
+            {
+                SecurityToLoad security = SecuritiesLoad[i];
+
+                if (security.SecLoaders == null ||
+                    security.SecLoaders.Count == 0)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < security.SecLoaders.Count; j++)
+                {
+                    SecurityLoadStatus status = security.SecLoaders[j].Status;
+
+                    switch (status)
+                    {
+                        case SecurityLoadStatus.Load:
+                            hasLoad = true;
+                            break;
+                        case SecurityLoadStatus.Loading:
+                            hasLoading = true;
+                            break;
+                        case SecurityLoadStatus.Activate:
+                            hasActivate = true;
+                            break;
+                        case SecurityLoadStatus.None:
+                            hasNone = true;
+                            break;
+                    }
+                }
+            }
+
+            if (hasLoading)
+            {
+                return SecurityLoadStatus.Loading;
+            }
+
+            if (hasActivate)
+            {
+                return SecurityLoadStatus.Activate;
+            }
+
+            if (hasNone)
+            {
+                return SecurityLoadStatus.None;
+            }
+
+            if (hasLoad)
+            {
+                return SecurityLoadStatus.Load;
+            }
+
+            return SecurityLoadStatus.None;
         }
 
         private LqdtDataFakeServer _lqdtDataServer;

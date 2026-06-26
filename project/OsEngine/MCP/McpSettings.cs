@@ -90,7 +90,7 @@ namespace OsEngine.MCP
                 Save();
             }
         }
-        private static bool _isEnabled = true;
+        private static bool _isEnabled = false;
 
         public static bool IsFullLogEnabled
         {

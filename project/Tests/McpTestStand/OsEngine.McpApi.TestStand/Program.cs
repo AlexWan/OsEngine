@@ -180,6 +180,13 @@ namespace OsEngine.McpApi.TestStand
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, "WikiSecurities", string.Empty, () => new WikiSecuritiesTests(context).RunAll());
 
+                // Модуль: Data
+                // MCP API: data_get_sets.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Открывает режим OsData через terminal_open_mode.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "Data", string.Empty, () => new DataTests(context).RunAll());
+
                 // Модуль: Terminal
                 // MCP API: ping, terminal_get_status, terminal_launch, terminal_stop, terminal_kill.
                 // Запускает OsEngine перед собой: да, без аргументов.
