@@ -41,7 +41,7 @@ namespace OsEngine.MCP.Modules
 
         public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -126,7 +126,7 @@ namespace OsEngine.MCP.Modules
 
         private List<McpLogEntry> ConvertToMcpEntries(List<LogMessage> messages)
         {
-            var result = new List<McpLogEntry>(messages.Count);
+            List<McpLogEntry> result = new List<McpLogEntry>(messages.Count);
 
             for (int i = 0; i < messages.Count; i++)
             {

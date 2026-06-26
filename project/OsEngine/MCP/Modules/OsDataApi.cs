@@ -49,7 +49,7 @@ namespace OsEngine.MCP.Modules
 
         public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -368,7 +368,7 @@ namespace OsEngine.MCP.Modules
                 };
             }
 
-            var result = new List<object>();
+            List<object> result = new List<object>();
 
             try
             {
@@ -780,7 +780,7 @@ namespace OsEngine.MCP.Modules
                     };
                 }
 
-                var result = new List<object>();
+                List<object> result = new List<object>();
 
                 if (set.SecuritiesLoad != null)
                 {
@@ -887,7 +887,7 @@ namespace OsEngine.MCP.Modules
                     };
                 }
 
-                var securitiesToAdd = new List<Security>();
+                List<Security> securitiesToAdd = new List<Security>();
 
                 for (int i = 0; i < inputs.Count; i++)
                 {
@@ -974,7 +974,7 @@ namespace OsEngine.MCP.Modules
                     };
                 }
 
-                var names = new List<string>();
+                List<string> names = new List<string>();
 
                 foreach (JsonElement item in securitiesElement.EnumerateArray())
                 {
@@ -1025,7 +1025,7 @@ namespace OsEngine.MCP.Modules
                 throw new ArgumentException("Parameter 'securities' is required and must be an array of objects");
             }
 
-            var result = new List<SecurityInput>();
+            List<SecurityInput> result = new List<SecurityInput>();
 
             foreach (JsonElement item in securitiesElement.EnumerateArray())
             {
@@ -1040,7 +1040,7 @@ namespace OsEngine.MCP.Modules
                     throw new ArgumentException("Each security must have a 'name' string");
                 }
 
-                var input = new SecurityInput
+                SecurityInput input = new SecurityInput
                 {
                     Name = nameElement.GetString()
                 };

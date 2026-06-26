@@ -43,7 +43,7 @@ namespace OsEngine.MCP.Modules
 
         public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -176,7 +176,7 @@ namespace OsEngine.MCP.Modules
 
         private List<object> GetServerList()
         {
-            var result = new List<object>();
+            List<object> result = new List<object>();
             List<AServer> servers = ServerMaster.GetAServers();
 
             if (servers == null)
@@ -209,7 +209,7 @@ namespace OsEngine.MCP.Modules
                 return new List<string>();
             }
 
-            var result = new List<string>(serverTypes.Count);
+            List<string> result = new List<string>(serverTypes.Count);
 
             for (int i = 0; i < serverTypes.Count; i++)
             {
@@ -229,7 +229,7 @@ namespace OsEngine.MCP.Modules
                 return new List<string>();
             }
 
-            var result = new List<string>(dataTypes.Count);
+            List<string> result = new List<string>(dataTypes.Count);
 
             for (int i = 0; i < dataTypes.Count; i++)
             {
@@ -253,7 +253,7 @@ namespace OsEngine.MCP.Modules
 
         private static List<object> GetServerListByType(ServerType serverType)
         {
-            var result = new List<object>();
+            List<object> result = new List<object>();
             List<AServer> servers = ServerMaster.GetAServers();
 
             if (servers == null)
@@ -303,7 +303,7 @@ namespace OsEngine.MCP.Modules
                 IncludeFields = true
             });
 
-            using (var document = JsonDocument.Parse(permissionsJson))
+            using (JsonDocument document = JsonDocument.Parse(permissionsJson))
             {
                 return new
                 {

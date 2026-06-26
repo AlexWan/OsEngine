@@ -55,7 +55,7 @@ namespace OsEngine.MCP.Modules
 
         public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -128,7 +128,7 @@ namespace OsEngine.MCP.Modules
             string protocolVersion = SupportedProtocolVersion;
 
             if (parameters.ValueKind == JsonValueKind.Object
-                && parameters.TryGetProperty("protocolVersion", out var versionElement)
+                && parameters.TryGetProperty("protocolVersion", out JsonElement versionElement)
                 && versionElement.ValueKind == JsonValueKind.String)
             {
                 protocolVersion = versionElement.GetString();
@@ -164,7 +164,7 @@ namespace OsEngine.MCP.Modules
                 throw new ArgumentException("Parameters must be an object");
             }
 
-            if (!parameters.TryGetProperty("name", out var nameElement)
+            if (!parameters.TryGetProperty("name", out JsonElement nameElement)
                 || nameElement.ValueKind != JsonValueKind.String)
             {
                 throw new ArgumentException("Parameter 'name' is required");
@@ -173,7 +173,7 @@ namespace OsEngine.MCP.Modules
             string name = nameElement.GetString();
 
             JsonElement arguments = default;
-            if (parameters.TryGetProperty("arguments", out var argumentsElement)
+            if (parameters.TryGetProperty("arguments", out JsonElement argumentsElement)
                 && argumentsElement.ValueKind == JsonValueKind.Object)
             {
                 arguments = argumentsElement;
@@ -181,7 +181,7 @@ namespace OsEngine.MCP.Modules
 
             SendLog($"tools/call: {name}", LogMessageType.System);
 
-            var innerRequest = new McpJsonRpcRequest
+            McpJsonRpcRequest innerRequest = new McpJsonRpcRequest
             {
                 JsonRpc = "2.0",
                 Method = name,
@@ -222,7 +222,7 @@ namespace OsEngine.MCP.Modules
 
         private object ToolsList()
         {
-            var tools = new List<McpTool>
+            List<McpTool> tools = new List<McpTool>
             {
                 new McpTool { Name = "ping", Description = "Check MCP API availability", InputSchema = new { type = "object", properties = new { }, required = new string[0] } }
             };

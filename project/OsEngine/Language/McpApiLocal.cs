@@ -38,5 +38,29 @@ namespace OsEngine.Language
         public string ButtonRestart => OsLocalization.ConvertToLocString(
             "Eng:Restart_" +
             "Ru:Перезапустить_");
+
+        public string ButtonAddIp => OsLocalization.ConvertToLocString(
+            "Eng:Add_" +
+            "Ru:Добавить_");
+
+        public string ColumnIp => OsLocalization.ConvertToLocString(
+            "Eng:Ip_" +
+            "Ru:Ip_");
+
+        public string ColumnPort => OsLocalization.ConvertToLocString(
+            "Eng:Port_" +
+            "Ru:Port_");
+
+        public string ButtonDeleteIp => OsLocalization.ConvertToLocString(
+            "Eng:Delete_" +
+            "Ru:Удалить_");
+
+        public string TabLog => OsLocalization.ConvertToLocString(
+            "Eng:Log_" +
+            "Ru:Лог_");
+
+        public string TabAllowedIps => OsLocalization.ConvertToLocString(
+            "Eng:Allowed IPs_" +
+            "Ru:Разрешённые IP_");
     }
 }

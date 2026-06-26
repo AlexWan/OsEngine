@@ -1,10 +1,12 @@
 /*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
- * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple.pdf
 */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace OsEngine.MCP
 {
@@ -114,6 +116,34 @@ namespace OsEngine.MCP
         }
         private static bool _isFullLogEnabled = DefaultIsFullLogEnabled;
 
+        public static List<McpAllowedIp> AllowedIps
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _allowedIps;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    value = CreateDefaultAllowedIps();
+                }
+
+                if (_allowedIps != null && _allowedIps.SequenceEqual(value))
+                {
+                    return;
+                }
+
+                _allowedIps = value;
+                Save();
+            }
+        }
+        private static List<McpAllowedIp> _allowedIps = CreateDefaultAllowedIps();
+
         #endregion
 
         #region Save / Load
@@ -135,6 +165,7 @@ namespace OsEngine.MCP
                     writer.WriteLine(_apiKey);
                     writer.WriteLine(_isEnabled);
                     writer.WriteLine(_isFullLogEnabled);
+                    writer.WriteLine(SerializeAllowedIps(_allowedIps));
                     writer.Close();
                 }
             }
@@ -184,6 +215,9 @@ namespace OsEngine.MCP
                         _isFullLogEnabled = fullLogEnabled;
                     }
 
+                    string allowedIpsLine = reader.ReadLine();
+                    _allowedIps = DeserializeAllowedIps(allowedIpsLine);
+
                     reader.Close();
                 }
             }
@@ -191,6 +225,76 @@ namespace OsEngine.MCP
             {
                 // ignore, use defaults
             }
+        }
+
+        private static List<McpAllowedIp> CreateDefaultAllowedIps()
+        {
+            return new List<McpAllowedIp>
+            {
+                new McpAllowedIp { Ip = "127.0.0.1", Port = "any" },
+                new McpAllowedIp { Ip = "::1", Port = "any" }
+            };
+        }
+
+        private static string SerializeAllowedIps(List<McpAllowedIp> allowedIps)
+        {
+            if (allowedIps == null || allowedIps.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            List<string> parts = new List<string>();
+
+            for (int i = 0; i < allowedIps.Count; i++)
+            {
+                McpAllowedIp item = allowedIps[i];
+
+                if (string.IsNullOrWhiteSpace(item.Ip))
+                {
+                    continue;
+                }
+
+                string port = string.IsNullOrWhiteSpace(item.Port) ? "any" : item.Port;
+                parts.Add($"{item.Ip}|{port}");
+            }
+
+            return string.Join(";", parts);
+        }
+
+        private static List<McpAllowedIp> DeserializeAllowedIps(string line)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return CreateDefaultAllowedIps();
+            }
+
+            List<McpAllowedIp> result = new List<McpAllowedIp>();
+            string[] parts = line.Split(';');
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string part = parts[i];
+
+                if (string.IsNullOrWhiteSpace(part))
+                {
+                    continue;
+                }
+
+                string[] ipPort = part.Split('|');
+
+                if (string.IsNullOrWhiteSpace(ipPort[0]))
+                {
+                    continue;
+                }
+
+                result.Add(new McpAllowedIp
+                {
+                    Ip = ipPort[0].Trim(),
+                    Port = ipPort.Length > 1 ? ipPort[1].Trim() : "any"
+                });
+            }
+
+            return result.Count > 0 ? result : CreateDefaultAllowedIps();
         }
 
         #endregion

@@ -43,7 +43,7 @@ namespace OsEngine.MCP.Modules
 
         public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -114,45 +114,45 @@ namespace OsEngine.MCP.Modules
                 throw new ArgumentException("Parameters must be an object");
             }
 
-            if (parameters.TryGetProperty("errorLogMessageBoxIsActive", out var errorLogMessageBoxIsActive)
+            if (parameters.TryGetProperty("errorLogMessageBoxIsActive", out JsonElement errorLogMessageBoxIsActive)
                 && (errorLogMessageBoxIsActive.ValueKind == JsonValueKind.True || errorLogMessageBoxIsActive.ValueKind == JsonValueKind.False))
             {
                 PrimeSettingsMaster.ErrorLogMessageBoxIsActive = errorLogMessageBoxIsActive.GetBoolean();
             }
 
-            if (parameters.TryGetProperty("errorLogBeepIsActive", out var errorLogBeepIsActive)
+            if (parameters.TryGetProperty("errorLogBeepIsActive", out JsonElement errorLogBeepIsActive)
                 && (errorLogBeepIsActive.ValueKind == JsonValueKind.True || errorLogBeepIsActive.ValueKind == JsonValueKind.False))
             {
                 PrimeSettingsMaster.ErrorLogBeepIsActive = errorLogBeepIsActive.GetBoolean();
             }
 
-            if (parameters.TryGetProperty("transactionBeepIsActive", out var transactionBeepIsActive)
+            if (parameters.TryGetProperty("transactionBeepIsActive", out JsonElement transactionBeepIsActive)
                 && (transactionBeepIsActive.ValueKind == JsonValueKind.True || transactionBeepIsActive.ValueKind == JsonValueKind.False))
             {
                 PrimeSettingsMaster.TransactionBeepIsActive = transactionBeepIsActive.GetBoolean();
             }
 
-            if (parameters.TryGetProperty("rebootTradeUiLight", out var rebootTradeUiLight)
+            if (parameters.TryGetProperty("rebootTradeUiLight", out JsonElement rebootTradeUiLight)
                 && (rebootTradeUiLight.ValueKind == JsonValueKind.True || rebootTradeUiLight.ValueKind == JsonValueKind.False))
             {
                 PrimeSettingsMaster.RebootTradeUiLight = rebootTradeUiLight.GetBoolean();
             }
 
-            if (parameters.TryGetProperty("reportCriticalErrors", out var reportCriticalErrors)
+            if (parameters.TryGetProperty("reportCriticalErrors", out JsonElement reportCriticalErrors)
                 && (reportCriticalErrors.ValueKind == JsonValueKind.True || reportCriticalErrors.ValueKind == JsonValueKind.False))
             {
                 PrimeSettingsMaster.ReportCriticalErrors = reportCriticalErrors.GetBoolean();
             }
 
-            if (parameters.TryGetProperty("labelInHeaderBotStation", out var labelInHeaderBotStation)
+            if (parameters.TryGetProperty("labelInHeaderBotStation", out JsonElement labelInHeaderBotStation)
                 && labelInHeaderBotStation.ValueKind == JsonValueKind.String)
             {
                 PrimeSettingsMaster.LabelInHeaderBotStation = labelInHeaderBotStation.GetString();
             }
 
-            if (parameters.TryGetProperty("memoryCleanerRegime", out var memoryCleanerRegime)
+            if (parameters.TryGetProperty("memoryCleanerRegime", out JsonElement memoryCleanerRegime)
                 && memoryCleanerRegime.ValueKind == JsonValueKind.String
-                && Enum.TryParse<MemoryCleanerRegime>(memoryCleanerRegime.GetString(), out var regime))
+                && Enum.TryParse<MemoryCleanerRegime>(memoryCleanerRegime.GetString(), out MemoryCleanerRegime regime))
             {
                 PrimeSettingsMaster.MemoryCleanerRegime = regime;
             }

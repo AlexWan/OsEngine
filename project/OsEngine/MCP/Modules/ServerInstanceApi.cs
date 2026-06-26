@@ -51,7 +51,7 @@ namespace OsEngine.MCP.Modules
 
         public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -433,7 +433,7 @@ namespace OsEngine.MCP.Modules
 
         private static List<object> ConvertServerParameters(List<IServerParameter> parameters)
         {
-            var result = new List<object>();
+            List<object> result = new List<object>();
 
             if (parameters == null)
             {
@@ -529,7 +529,7 @@ namespace OsEngine.MCP.Modules
                 throw new ArgumentException("Parameter 'parameters' is required and must be an array");
             }
 
-            var validatedParams = new List<Tuple<IServerParameter, object>>();
+            List<Tuple<IServerParameter, object>> validatedParams = new List<Tuple<IServerParameter, object>>();
 
             foreach (JsonElement item in paramsArray.EnumerateArray())
             {
@@ -871,7 +871,7 @@ namespace OsEngine.MCP.Modules
             }
 
             List<Security> securities = server.Securities;
-            var result = new List<object>();
+            List<object> result = new List<object>();
 
             if (securities != null)
             {
@@ -951,7 +951,7 @@ namespace OsEngine.MCP.Modules
             }
 
             List<Portfolio> portfolios = server.Portfolios;
-            var result = new List<object>();
+            List<object> result = new List<object>();
 
             if (portfolios != null)
             {
@@ -972,7 +972,7 @@ namespace OsEngine.MCP.Modules
 
         private static object ConvertPortfolio(Portfolio portfolio)
         {
-            var positions = new List<object>();
+            List<object> positions = new List<object>();
 
             if (portfolio.PositionOnBoard != null)
             {
@@ -1035,7 +1035,7 @@ namespace OsEngine.MCP.Modules
                 messages = messages.Skip(messages.Count - count).ToList();
             }
 
-            var result = new List<object>(messages.Count);
+            List<object> result = new List<object>(messages.Count);
 
             for (int i = 0; i < messages.Count; i++)
             {
@@ -1097,7 +1097,7 @@ namespace OsEngine.MCP.Modules
                         throw new ArgumentException($"Parameter '{parameter.Name}' requires a string value");
                     }
                     string enumValue = valueElement.GetString();
-                    var enumParameter = (ServerParameterEnum)parameter;
+                    ServerParameterEnum enumParameter = (ServerParameterEnum)parameter;
                     if (enumParameter.EnumValues != null && !enumParameter.EnumValues.Contains(enumValue))
                     {
                         throw new ArgumentException($"Parameter '{parameter.Name}' value '{enumValue}' is not in allowed values");

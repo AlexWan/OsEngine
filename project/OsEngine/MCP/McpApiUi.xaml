@@ -33,7 +33,23 @@
 
         <!-- Request log -->
         <Grid Grid.Row="1" Margin="5,0,5,5">
-            <WindowsFormsHost Name="HostLog" Margin="0,0,0,0"/>
+            <TabControl Margin="0,0,0,0">
+                <TabItem x:Name="TabItemLog" Header="Log">
+                    <Grid>
+                        <WindowsFormsHost x:Name="HostLog" Margin="0,0,0,0"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="TabItemAllowedIps" Header="Allowed IPs">
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <WindowsFormsHost x:Name="HostAllowedIps" Grid.Row="0" Margin="0,0,0,0"/>
+                        <Button x:Name="ButtonAddIp" Grid.Row="1" Content="Add" HorizontalAlignment="Left" Margin="0,5,0,0" Width="80" Height="22"/>
+                    </Grid>
+                </TabItem>
+            </TabControl>
         </Grid>
     </Grid>
 </Window>

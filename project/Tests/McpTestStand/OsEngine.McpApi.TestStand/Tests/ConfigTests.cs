@@ -92,6 +92,31 @@ namespace OsEngine.McpApi.TestStand.Tests
                             return;
                         }
 
+                        if (!settings.TryGetProperty("AllowedIps", out JsonElement allowedIpsElement)
+                            || allowedIpsElement.ValueKind != System.Text.Json.JsonValueKind.Array
+                            || allowedIpsElement.GetArrayLength() == 0)
+                        {
+                            _context.RecordFail(Module, method, "AllowedIps missing or empty");
+                            return;
+                        }
+
+                        bool hasLocalhost = false;
+                        foreach (JsonElement ipItem in allowedIpsElement.EnumerateArray())
+                        {
+                            if (ipItem.TryGetProperty("Ip", out JsonElement ipValue)
+                                && ipValue.GetString() == "127.0.0.1")
+                            {
+                                hasLocalhost = true;
+                                break;
+                            }
+                        }
+
+                        if (!hasLocalhost)
+                        {
+                            _context.RecordFail(Module, method, "Default localhost IP not found in AllowedIps");
+                            return;
+                        }
+
                         _context.RecordPass(Module, method, "settings received");
                     }
                 }

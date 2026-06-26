@@ -203,7 +203,7 @@ namespace OsEngine.MCP
 
                 lock (_sseClientsLocker)
                 {
-                    foreach (var client in _sseClients)
+                    foreach (SseClient client in _sseClients)
                     {
                         try
                         {
@@ -227,7 +227,7 @@ namespace OsEngine.MCP
 
         private void SendEventToClient(SseClient client, string eventName, object payload)
         {
-            var message = new McpEvent
+            McpEvent message = new McpEvent
             {
                 Event = eventName,
                 Timestamp = DateTime.Now,
@@ -313,7 +313,7 @@ namespace OsEngine.MCP
 
         public void SendEvent(string eventName, object payload)
         {
-            var message = new McpEvent
+            McpEvent message = new McpEvent
             {
                 Event = eventName,
                 Timestamp = DateTime.Now,
@@ -328,7 +328,7 @@ namespace OsEngine.MCP
             {
                 for (int i = _sseClients.Count - 1; i >= 0; i--)
                 {
-                    var client = _sseClients[i];
+                    SseClient client = _sseClients[i];
                     try
                     {
                         client.Response.OutputStream.Write(bytes, 0, bytes.Length);
@@ -377,7 +377,7 @@ namespace OsEngine.MCP
             {
                 try
                 {
-                    var context = await _listener.GetContextAsync();
+                    HttpListenerContext context = await _listener.GetContextAsync();
                     _ = Task.Run(() => ProcessRequest(context), token);
                 }
                 catch (Exception error)
@@ -426,6 +426,13 @@ namespace OsEngine.MCP
                 {
                     string ip = request.RemoteEndPoint?.Address?.ToString();
                     Log.ProcessMessage($"[FullLog] Request {request.HttpMethod} {path} from {ip}", LogMessageType.System);
+                }
+
+                if (!IsIpAllowed(request))
+                {
+                    SendError(response, 403, "Forbidden: IP not allowed");
+                    LogRequest(request, response, path);
+                    return;
                 }
 
                 if (!IsAuthorized(request))
@@ -498,10 +505,62 @@ namespace OsEngine.MCP
             return apiKey == _apiKey;
         }
 
+        private bool IsIpAllowed(HttpListenerRequest request)
+        {
+            List<McpAllowedIp> allowedIps = McpSettings.AllowedIps;
+            if (allowedIps == null || allowedIps.Count == 0)
+            {
+                return false;
+            }
+
+            IPAddress remoteAddress = request.RemoteEndPoint?.Address;
+            if (remoteAddress == null)
+            {
+                return false;
+            }
+
+            int remotePort = request.RemoteEndPoint.Port;
+
+            foreach (McpAllowedIp allowed in allowedIps)
+            {
+                if (string.IsNullOrWhiteSpace(allowed.Ip))
+                {
+                    continue;
+                }
+
+                if (!IPAddress.TryParse(allowed.Ip, out IPAddress allowedAddress))
+                {
+                    continue;
+                }
+
+                bool addressMatch = remoteAddress.Equals(allowedAddress)
+                    || remoteAddress.MapToIPv6().Equals(allowedAddress.MapToIPv6());
+
+                if (!addressMatch)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(allowed.Port)
+                    || string.Equals(allowed.Port, "any", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (int.TryParse(allowed.Port, out int allowedPort)
+                    && allowedPort == remotePort)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void ProcessJsonRpc(HttpListenerRequest request, HttpListenerResponse response)
         {
             string body;
-            using (var reader = new StreamReader(request.InputStream, Encoding.UTF8))
+            using (StreamReader reader = new StreamReader(request.InputStream, Encoding.UTF8))
             {
                 body = reader.ReadToEnd();
             }
@@ -515,7 +574,7 @@ namespace OsEngine.MCP
 
             try
             {
-                var rpcRequest = JsonSerializer.Deserialize<McpJsonRpcRequest>(body);
+                McpJsonRpcRequest rpcRequest = JsonSerializer.Deserialize<McpJsonRpcRequest>(body);
 
                 if (rpcRequest == null)
                 {
@@ -562,7 +621,7 @@ namespace OsEngine.MCP
 
             if (McpSettings.IsFullLogEnabled)
             {
-                var logOptions = new JsonSerializerOptions
+                JsonSerializerOptions logOptions = new JsonSerializerOptions
                 {
                     Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
                 };
@@ -575,7 +634,7 @@ namespace OsEngine.MCP
 
         private McpJsonRpcResponse HandleMethod(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -614,7 +673,7 @@ namespace OsEngine.MCP
 
         private McpJsonRpcResponse ExecuteTool(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -751,7 +810,7 @@ namespace OsEngine.MCP
             response.StatusCode = 200;
             response.OutputStream.Flush();
 
-            var client = new SseClient { Response = response };
+            SseClient client = new SseClient { Response = response };
 
             lock (_sseClientsLocker)
             {

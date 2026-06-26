@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace OsEngine.MCP.Modules
 
         public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -93,7 +94,8 @@ namespace OsEngine.MCP.Modules
                 McpSettings.Port,
                 McpSettings.ApiKey,
                 McpSettings.IsEnabled,
-                McpSettings.IsFullLogEnabled
+                McpSettings.IsFullLogEnabled,
+                AllowedIps = McpSettings.AllowedIps.Select(i => new { i.Ip, i.Port }).ToList()
             };
         }
 
@@ -108,29 +110,51 @@ namespace OsEngine.MCP.Modules
             string oldApiKey = McpSettings.ApiKey;
             bool oldIsEnabled = McpSettings.IsEnabled;
 
-            if (parameters.TryGetProperty("port", out var portElement)
+            if (parameters.TryGetProperty("port", out JsonElement portElement)
                 && portElement.ValueKind == JsonValueKind.Number
                 && portElement.TryGetInt32(out int port))
             {
                 McpSettings.Port = port;
             }
 
-            if (parameters.TryGetProperty("apiKey", out var apiKeyElement)
+            if (parameters.TryGetProperty("apiKey", out JsonElement apiKeyElement)
                 && apiKeyElement.ValueKind == JsonValueKind.String)
             {
                 McpSettings.ApiKey = apiKeyElement.GetString();
             }
 
-            if (parameters.TryGetProperty("isEnabled", out var isEnabledElement)
+            if (parameters.TryGetProperty("isEnabled", out JsonElement isEnabledElement)
                 && (isEnabledElement.ValueKind == JsonValueKind.True || isEnabledElement.ValueKind == JsonValueKind.False))
             {
                 McpSettings.IsEnabled = isEnabledElement.GetBoolean();
             }
 
-            if (parameters.TryGetProperty("isFullLogEnabled", out var isFullLogEnabledElement)
+            if (parameters.TryGetProperty("isFullLogEnabled", out JsonElement isFullLogEnabledElement)
                 && (isFullLogEnabledElement.ValueKind == JsonValueKind.True || isFullLogEnabledElement.ValueKind == JsonValueKind.False))
             {
                 McpSettings.IsFullLogEnabled = isFullLogEnabledElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("allowedIps", out JsonElement allowedIpsElement)
+                && allowedIpsElement.ValueKind == JsonValueKind.Array)
+            {
+                List<McpAllowedIp> newAllowedIps = new List<McpAllowedIp>();
+                foreach (JsonElement item in allowedIpsElement.EnumerateArray())
+                {
+                    if (item.TryGetProperty("ip", out JsonElement ipElement)
+                        && ipElement.ValueKind == JsonValueKind.String)
+                    {
+                        newAllowedIps.Add(new McpAllowedIp
+                        {
+                            Ip = ipElement.GetString(),
+                            Port = item.TryGetProperty("port", out JsonElement allowedPortElement)
+                                && allowedPortElement.ValueKind == JsonValueKind.String
+                                    ? allowedPortElement.GetString()
+                                    : "any"
+                        });
+                    }
+                }
+                McpSettings.AllowedIps = newAllowedIps;
             }
 
             bool needRestart = McpSettings.Port != oldPort

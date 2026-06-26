@@ -86,6 +86,22 @@ catch (Exception error)
 }
 ```
 
+### 1.7. Явные типы: запрет на `var`
+
+В кодовой базе OsEngine не используй `var`. Всегда указывай тип явно — это упрощает ревью, ускоряет чтение кода в больших файлах и снижает риск неожиданного вывода типа.
+
+```csharp
+// Плохо
+var response = new McpJsonRpcResponse();
+var element = parameters.GetProperty("name");
+
+// Хорошо
+McpJsonRpcResponse response = new McpJsonRpcResponse();
+JsonElement element = parameters.GetProperty("name");
+```
+
+Исключений нет: даже для очевидных конструкторов (`new List<T>()`, `new Dictionary<string, object>()`) и `out var` в `TryParse`/`TryGetProperty` пиши явный тип.
+
 ---
 
 ## 2. Структура проекта и namespaces

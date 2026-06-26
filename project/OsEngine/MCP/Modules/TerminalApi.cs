@@ -60,7 +60,7 @@ namespace OsEngine.MCP.Modules
 
         public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -117,7 +117,7 @@ namespace OsEngine.MCP.Modules
         {
             try
             {
-                var payload = new
+                object payload = new
                 {
                     Status = GetTerminalStatusSafe(),
                     Reason = reason,
@@ -136,7 +136,7 @@ namespace OsEngine.MCP.Modules
         {
             try
             {
-                var payload = new
+                object payload = new
                 {
                     Mode = mode.ToString(),
                     Status = GetTerminalStatusSafe(),

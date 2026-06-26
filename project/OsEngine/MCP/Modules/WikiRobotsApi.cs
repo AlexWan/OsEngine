@@ -103,7 +103,7 @@ namespace OsEngine.MCP.Modules
 
         public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
         {
-            var response = new McpJsonRpcResponse
+            McpJsonRpcResponse response = new McpJsonRpcResponse
             {
                 JsonRpc = "2.0",
                 Id = request.Id
@@ -154,19 +154,19 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.ValueKind == JsonValueKind.Object)
             {
-                if (parameters.TryGetProperty("refresh", out var refreshEl)
+                if (parameters.TryGetProperty("refresh", out JsonElement refreshEl)
                     && refreshEl.ValueKind == JsonValueKind.True)
                 {
                     refresh = true;
                 }
 
-                if (parameters.TryGetProperty("location", out var locationEl)
+                if (parameters.TryGetProperty("location", out JsonElement locationEl)
                     && locationEl.ValueKind == JsonValueKind.String)
                 {
                     locationFilter = locationEl.GetString();
                 }
 
-                if (parameters.TryGetProperty("include_engines", out var enginesEl)
+                if (parameters.TryGetProperty("include_engines", out JsonElement enginesEl)
                     && enginesEl.ValueKind == JsonValueKind.False)
                 {
                     includeEngines = false;
@@ -260,13 +260,13 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.ValueKind == JsonValueKind.Object)
             {
-                if (parameters.TryGetProperty("class_name", out var classNameEl)
+                if (parameters.TryGetProperty("class_name", out JsonElement classNameEl)
                     && classNameEl.ValueKind == JsonValueKind.String)
                 {
                     className = classNameEl.GetString();
                 }
 
-                if (parameters.TryGetProperty("is_script", out var isScriptEl)
+                if (parameters.TryGetProperty("is_script", out JsonElement isScriptEl)
                     && (isScriptEl.ValueKind == JsonValueKind.True || isScriptEl.ValueKind == JsonValueKind.False))
                 {
                     isScript = isScriptEl.GetBoolean();
