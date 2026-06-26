@@ -92,6 +92,16 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
+                if (Application.Current.MainWindow is MainWindow mainWindow
+                    && mainWindow.IsProgrammaticClose)
+                {
+                    _painterServer.Dispose();
+                    _painterServer = null;
+                    _painter = null;
+                    _strategyKeeper.StopPaint();
+                    return;
+                }
+
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
                 ui.ShowDialog();
 
@@ -355,6 +365,12 @@ namespace OsEngine.OsTrader.Gui
 
         private void RobotsUiLightUnblock_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (Application.Current.MainWindow is MainWindow mainWindow
+                && mainWindow.IsProgrammaticClose)
+            {
+                return;
+            }
+
             if (BlockMaster.IsBlocked == true)
             {
                 ServerMaster.SendNewLogMessage("User block interface. Unblock it. ", Logging.LogMessageType.Error);

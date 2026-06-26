@@ -124,6 +124,13 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
+                if (Application.Current.MainWindow is MainWindow mainWindow
+                    && mainWindow.IsProgrammaticClose)
+                {
+                    _strategyKeeper.StopPaint();
+                    return;
+                }
+
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
                 ui.ShowDialog();
 

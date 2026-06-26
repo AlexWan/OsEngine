@@ -4,7 +4,9 @@
 */
 
 using System;
+using System.Diagnostics;
 using System.Text.Json;
+using System.Threading;
 
 namespace OsEngine.McpApi.TestStand.Tests
 {
@@ -28,8 +30,10 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestPing();
             TestGetStatus();
             TestLaunch();
+            TestOpenMode();
             TestStop();
             TestKill();
+            TestStopFromMode();
         }
 
         private void TestPing()
@@ -183,6 +187,32 @@ namespace OsEngine.McpApi.TestStand.Tests
             }
         }
 
+        private void TestOpenMode()
+        {
+            const string method = "terminal_open_mode";
+            object request = new { mode = "data" };
+
+            try
+            {
+                _context.PrintRequest(Module, method, request);
+                string response = _context.Client.ToolsCall(method, request);
+                _context.PrintResponse(response);
+
+                if (!response.Contains("Opening mode data"))
+                {
+                    _context.RecordFail(Module, method, "response does not contain 'Opening mode data'");
+                    return;
+                }
+
+                _context.RecordPass(Module, method, "operation accepted");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, error.Message);
+            }
+        }
+
         private void TestKill()
         {
             const string method = "terminal_kill";
@@ -206,6 +236,84 @@ namespace OsEngine.McpApi.TestStand.Tests
             {
                 _context.PrintResponse("");
                 _context.RecordFail(Module, method, error.Message);
+            }
+        }
+
+        private void TestStopFromMode()
+        {
+            string[] modes = new[]
+            {
+                "tester",
+                "testerlight",
+                "robots",
+                "robotslight",
+                "data",
+                "optimizer",
+                "converter"
+            };
+
+            foreach (string mode in modes)
+            {
+                TestStopFromMode(mode);
+            }
+        }
+
+        private void TestStopFromMode(string mode)
+        {
+            const string openMethod = "terminal_open_mode";
+            const string stopMethod = "terminal_stop";
+            object openRequest = new { mode };
+            object stopRequest = new { };
+            string testMethod = $"terminal_stop_from_mode_{mode}";
+
+            try
+            {
+                _context.RestartOsEngine(string.Empty);
+
+                _context.PrintRequest(Module, openMethod, openRequest);
+                string openResponse = _context.Client.ToolsCall(openMethod, openRequest);
+                _context.PrintResponse(openResponse);
+
+                if (!openResponse.Contains($"Opening mode {mode}"))
+                {
+                    _context.RecordFail(Module, testMethod, $"terminal_open_mode response does not contain 'Opening mode {mode}'");
+                    return;
+                }
+
+                Thread.Sleep(2000);
+
+                _context.PrintRequest(Module, stopMethod, stopRequest);
+                string stopResponse = _context.Client.ToolsCall(stopMethod, stopRequest);
+                _context.PrintResponse(stopResponse);
+
+                if (!stopResponse.Contains("Stopping terminal"))
+                {
+                    _context.RecordFail(Module, testMethod, "terminal_stop response does not contain 'Stopping terminal'");
+                    return;
+                }
+
+                Process? process = _context.ProcessController.CurrentProcess;
+
+                if (process == null)
+                {
+                    _context.RecordFail(Module, testMethod, "current process is not tracked");
+                    return;
+                }
+
+                bool exited = process.WaitForExit(30000);
+
+                if (!exited)
+                {
+                    _context.RecordFail(Module, testMethod, "process did not exit within 30 seconds");
+                    return;
+                }
+
+                _context.RecordPass(Module, testMethod, $"process exited gracefully from {mode} mode window");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, testMethod, error.Message);
             }
         }
     }

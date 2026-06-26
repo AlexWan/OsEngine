@@ -212,14 +212,17 @@ namespace OsEngine.OsOptimizer
         {
             try
             {
-
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
-                ui.ShowDialog();
-
-                if (ui.UserAcceptAction == false)
+                if (!(System.Windows.Application.Current.MainWindow is MainWindow mainWindow
+                      && mainWindow.IsProgrammaticClose))
                 {
-                    e.Cancel = true;
-                    return;
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptAction == false)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
                 }
 
                 _isClosed = true;

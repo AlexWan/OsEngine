@@ -23,9 +23,10 @@ namespace OsEngine.MCP.Modules
 
         private readonly Action<string, object> _publishEvent;
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
-        private readonly Action<StartProgram> _launchTerminal;
+        private readonly Action<string> _launchTerminal;
         private readonly Action _stopTerminal;
         private readonly Action _killTerminal;
+        private readonly Action<string> _openMode;
 
         #endregion
 
@@ -40,15 +41,17 @@ namespace OsEngine.MCP.Modules
         public TerminalApi(
             Action<string, object> publishEvent,
             Func<McpTerminalStatus> getTerminalStatus,
-            Action<StartProgram> launchTerminal,
+            Action<string> launchTerminal,
             Action stopTerminal,
-            Action killTerminal)
+            Action killTerminal,
+            Action<string> openMode = null)
         {
             _publishEvent = publishEvent;
             _getTerminalStatus = getTerminalStatus;
             _launchTerminal = launchTerminal;
             _stopTerminal = stopTerminal;
             _killTerminal = killTerminal;
+            _openMode = openMode;
         }
 
         #endregion
@@ -83,6 +86,10 @@ namespace OsEngine.MCP.Modules
 
                     case "terminal_kill":
                         response.Result = KillTerminalProgram();
+                        break;
+
+                    case "terminal_open_mode":
+                        response.Result = OpenTerminalMode(request.Params);
                         break;
 
                     default:
@@ -149,9 +156,10 @@ namespace OsEngine.MCP.Modules
             return new List<McpTool>
             {
                 new McpTool { Name = "terminal_get_status", Description = "Get current terminal status", InputSchema = new { type = "object", properties = new { }, required = new string[0] } },
-                new McpTool { Name = "terminal_launch", Description = "Launch terminal in specified mode", InputSchema = new { type = "object", properties = new { mode = new { type = "string", description = "Mode: tester, trader, robotslight, data, optimizer, converter" } }, required = new[] { "mode" } } },
+                new McpTool { Name = "terminal_launch", Description = "Launch terminal in specified mode", InputSchema = new { type = "object", properties = new { mode = new { type = "string", description = "Mode: tester, testerlight, robots, robotslight, data, optimizer, converter" } }, required = new[] { "mode" } } },
                 new McpTool { Name = "terminal_stop", Description = "Stop terminal gracefully", InputSchema = new { type = "object", properties = new { }, required = new string[0] } },
-                new McpTool { Name = "terminal_kill", Description = "Kill terminal process", InputSchema = new { type = "object", properties = new { }, required = new string[0] } }
+                new McpTool { Name = "terminal_kill", Description = "Kill terminal process", InputSchema = new { type = "object", properties = new { }, required = new string[0] } },
+                new McpTool { Name = "terminal_open_mode", Description = "Open a mode window from the running MainWindow without restarting the process", InputSchema = new { type = "object", properties = new { mode = new { type = "string", description = "Mode: tester, testerlight, robots, robotslight, data, optimizer, converter" } }, required = new[] { "mode" } } }
             };
         }
 
@@ -166,7 +174,12 @@ namespace OsEngine.MCP.Modules
                 return "Launch callback is not set";
             }
 
-            StartProgram mode = ParseLaunchMode(parameters);
+            string mode = ParseMode(parameters);
+
+            if (string.IsNullOrEmpty(mode))
+            {
+                return "Unknown or unsupported mode";
+            }
 
             Task.Run(() =>
             {
@@ -230,41 +243,64 @@ namespace OsEngine.MCP.Modules
             return "Killing terminal";
         }
 
-        private StartProgram ParseLaunchMode(JsonElement parameters)
+        private string OpenTerminalMode(JsonElement parameters)
+        {
+            if (_openMode == null)
+            {
+                return "Open mode callback is not set";
+            }
+
+            string mode = ParseMode(parameters);
+
+            if (string.IsNullOrEmpty(mode))
+            {
+                return "Unknown or unsupported mode";
+            }
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    Thread.Sleep(500);
+                    _openMode(mode);
+                }
+                catch (Exception error)
+                {
+                    SendLog($"terminal_open_mode failed: {error}", LogMessageType.Error);
+                }
+            });
+
+            return $"Opening mode {mode}";
+        }
+
+        private string ParseMode(JsonElement parameters)
         {
             try
             {
                 if (parameters.ValueKind == JsonValueKind.Object
                     && parameters.TryGetProperty("mode", out JsonElement modeElement))
                 {
-                    string mode = modeElement.GetString();
+                    string mode = modeElement.GetString()?.ToLowerInvariant();
 
-                    switch (mode?.ToLowerInvariant())
+                    switch (mode)
                     {
                         case "tester":
-                            return StartProgram.IsTester;
-                        case "trader":
+                        case "testerlight":
                         case "robots":
-                            return StartProgram.IsOsTrader;
-                        case "trader_light":
-                        case "robots_light":
                         case "robotslight":
-                            return StartProgram.IsOsTrader;
                         case "data":
-                            return StartProgram.IsOsData;
                         case "optimizer":
-                            return StartProgram.IsOsOptimizer;
                         case "converter":
-                            return StartProgram.IsOsConverter;
+                            return mode;
                     }
                 }
             }
             catch
             {
-                // ignore, use default
+                // ignore, return empty
             }
 
-            return StartProgram.IsMainWindow;
+            return string.Empty;
         }
 
         private McpTerminalStatus GetTerminalStatusSafe()

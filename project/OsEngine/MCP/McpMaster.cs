@@ -19,6 +19,7 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.MCP.Json;
 using OsEngine.MCP.Modules;
+using OsEngine.OsData;
 using OsEngine.PrimeSettings;
 
 namespace OsEngine.MCP
@@ -56,9 +57,12 @@ namespace OsEngine.MCP
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
-        private readonly Action<StartProgram> _launchTerminal;
+        private readonly Action<string> _launchTerminal;
         private readonly Action _stopTerminal;
         private readonly Action _killTerminal;
+        private readonly Action<string> _openMode;
+
+        private OsDataMaster _osDataMaster;
 
         /// <summary>
         /// Standard OsEngine log for MCP events and requests.
@@ -74,9 +78,10 @@ namespace OsEngine.MCP
             string apiKey,
             Action restartHost = null,
             Func<McpTerminalStatus> getTerminalStatus = null,
-            Action<StartProgram> launchTerminal = null,
+            Action<string> launchTerminal = null,
             Action stopTerminal = null,
-            Action killTerminal = null)
+            Action killTerminal = null,
+            Action<string> openMode = null)
         {
             _port = port;
             _apiKey = apiKey;
@@ -84,6 +89,7 @@ namespace OsEngine.MCP
             _launchTerminal = launchTerminal;
             _stopTerminal = stopTerminal;
             _killTerminal = killTerminal;
+            _openMode = openMode;
 
             Log = new Log("MCP", StartProgram.IsMainWindow);
 
@@ -94,7 +100,8 @@ namespace OsEngine.MCP
                 () => GetTerminalStatusSafe(),
                 _launchTerminal,
                 _stopTerminal,
-                _killTerminal);
+                _killTerminal,
+                _openMode);
             _terminalApi.NewLogMessageEvent += TerminalApi_NewLogMessageEvent;
 
             _logsApi = new LogsApi(Log);
@@ -341,6 +348,11 @@ namespace OsEngine.MCP
         public void SendTerminalModeChanged(StartProgram mode)
         {
             _terminalApi?.SendTerminalModeChanged(mode);
+        }
+
+        public void SetOsDataMaster(OsDataMaster master)
+        {
+            _osDataMaster = master;
         }
 
         #endregion
@@ -608,6 +620,7 @@ namespace OsEngine.MCP
                     case "terminal_launch":
                     case "terminal_stop":
                     case "terminal_kill":
+                    case "terminal_open_mode":
                         response = _terminalApi.Handle(request);
                         break;
 
