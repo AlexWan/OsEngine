@@ -13,7 +13,7 @@ using System.Net;
 using System.Windows;
 using System.Windows.Forms;
 
-namespace OsEngine.MCP
+namespace OsEngine.MCP 
 {
     /// <summary>
     /// Window for monitoring MCP API log and managing master host settings.

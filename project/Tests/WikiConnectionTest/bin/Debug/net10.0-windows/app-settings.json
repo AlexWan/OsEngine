@@ -1,0 +1,7 @@
+{
+  "OsEnginePath": "F:\\OsEngine\\project\\OsEngine\\bin\\Debug\\OsEngine.exe",
+  "McpBaseUrl": "http://localhost:6500",
+  "McpApiKey": "osengine-mcp-default-key",
+  "McpReadyTimeoutSeconds": 60,
+  "SecurityLoadTimeoutSeconds": 300
+}
