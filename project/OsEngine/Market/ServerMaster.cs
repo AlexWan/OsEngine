@@ -92,6 +92,7 @@ using OsEngine.Market.Servers.MetaTrader5;
 using OsEngine.Market.Servers.QscalpMarketDepth;
 using OsEngine.Market.Servers.TData;
 using OsEngine.Market.Servers.BitGetUnified;
+using OsEngine.Market.Servers.TwelveData;
 
 namespace OsEngine.Market
 {
@@ -383,6 +384,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BinanceData);
                 serverTypes.Add(ServerType.AscendexSpot);
                 serverTypes.Add(ServerType.BitGetUnified);
+                serverTypes.Add(ServerType.TwelveData);
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
 
@@ -514,6 +516,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MetaTrader5);
                 serverTypes.Add(ServerType.QscalpMarketDepth);
                 serverTypes.Add(ServerType.TDataHistory);
+                serverTypes.Add(ServerType.TwelveData);
 
                 return serverTypes;
             }
@@ -905,6 +908,10 @@ namespace OsEngine.Market
                     else if (type == ServerType.AscendexSpot)
                     {
                         newServer = new AscendexSpotServer(uniqueNum);
+                    }
+                    else if (type == ServerType.TwelveData)
+                    {
+                        newServer = new TwelveDataServer();
                     }
 
                     if (newServer == null)
@@ -1717,6 +1724,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.BitGetUnified)
                 {
                     serverPermission = new BitGetUnifiedServerPermission();
+                }
+                else if (type == ServerType.TwelveData)
+                {
+                    serverPermission = new TwelveDataPermission();
                 }
 
                 if (serverPermission != null)
@@ -2548,6 +2559,12 @@ namespace OsEngine.Market
         /// Unified API for exchange BitGet (spot and futures)
         /// Унифицированный API для биржи BitGet (спот и фьючерсы)
         /// </summary>
-        BitGetUnified
+        BitGetUnified,
+
+        /// <summary>
+        /// downloading historical data from T-Invest archives
+        /// скачивание исторических данных и трансляция данных в режиме реального времени с TwelveData
+        /// </summary>
+        TwelveData
     }
 }
