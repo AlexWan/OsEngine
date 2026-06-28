@@ -31,7 +31,7 @@ namespace OsEngine.Market.Servers.TwelveData
             CreateParameterBoolean("Use stocks India", false);
             CreateParameterBoolean("Use forex", false);
             CreateParameterBoolean("Use ETFs USA", false);
-            CreateParameterBoolean("Use ETFs London", false);
+            CreateParameterBoolean("Use ETFs UK", false);
             CreateParameterBoolean("Use commodities", false);
             CreateParameterEnum("Time zone", "Exchange", new List<string> { "Exchange", "UTC", "Msc" });
         }
@@ -131,8 +131,6 @@ namespace OsEngine.Market.Servers.TwelveData
                         //    {
                         //        ConnectEvent();
                         //    }
-
-                        //    SendLogMessage("TwelveData WebSocket connection open", LogMessageType.System);
                         //}
                     }
                     else
@@ -233,7 +231,7 @@ namespace OsEngine.Market.Servers.TwelveData
 
         private WebProxy _myProxy;
 
-        private RateGate _rateGateApiLimit = new RateGate(1, TimeSpan.FromMilliseconds(1200));
+        private RateGate _rateGateApiLimit = new RateGate(1, TimeSpan.FromMilliseconds(7550));
 
         private RateGate _rateGateDayLimitForBasic = new RateGate(800, TimeSpan.FromDays(1));
 
@@ -1279,11 +1277,6 @@ namespace OsEngine.Market.Servers.TwelveData
 
                 symbolsToSend.Add(symbol);
 
-                //if (symbolsToSend.Count >= 7)
-                //{
-                //    string symbolsString = string.Join(",", symbolsToSend);
-                //    string message = $"{{\r\n\"action\": \"subscribe\",\r\n\"params\": {{\r\n\"symbols\": \"{symbolsString}\"\r\n}}\r\n}}";
-
                 if (_webSocketPublic.Count == 0)
                 {
                     return;
@@ -1321,7 +1314,6 @@ namespace OsEngine.Market.Servers.TwelveData
                 {
                     webSocketPublic.SendAsync($"{{\"action\":\"subscribe\",\"params\":{{\"symbols\":\"{symbol}\"}}}}");
                 }
-                //}
             }
             catch (Exception ex)
             {
