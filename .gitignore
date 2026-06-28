@@ -77,7 +77,6 @@ Tests/WikiConnectionTest/**/app-settings.json
 
 # Block Logs and Temp files in Debug directory
 [Ee]ngine/
-[Aa]stsBridge/
 Plaza/Log/
 Data/
 lua/logs/
