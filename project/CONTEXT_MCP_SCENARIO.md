@@ -2,6 +2,30 @@
 
 Пошаговые сценарии. Каждая глава — отдельная пользовательская задача. Только действия.
 
+## Правила для ИИ-агентов
+
+> Эти правила помогут ИИ-агентам делать запросы к OsEngine напрямую из чата, не создавая временные скрипты.
+
+1. **Всегда используйте `localhost`, а не `127.0.0.1`.**  
+   OsEngine слушает `http://localhost:6500/`. `127.0.0.1` вернёт `400 Bad Request - Invalid Hostname`.
+
+2. **Все инструменты вызываются через `tools/call`.**  
+   Запрос должен содержать поле `id`. Без `id` сервер вернёт `202 Accepted` с пустым телом.
+
+3. **Результат инструмента находится в `result.Content[0].Text`.**  
+   Это JSON-строка. Её нужно распарсить отдельно. Не пытайтесь вытаскивать поля из ответа `grep`/`sed`/`awk` — кавычки могут быть экранированы как `\u0022`.
+
+4. **Из Git Bash используйте `mcp_call.sh`.**  
+   Он формирует JSON-RPC запрос и автоматически распаковывает `Content[0].Text`. Это работает даже без кириллицы и защищает от ошибок парсинга:
+
+   ```bash
+   cd OsEngine/bin/Debug
+   ./mcp_call.sh tester_get_status
+   ```
+
+5. **Не создавайте временные `.py` / `.sh` / `.ps1` файлы.**  
+   Если нужно подождать завершение длительной операции, делайте это серией прямых вызовов из чата или используйте SSE `/api/v1/events`.
+
 ## Способ передать Кириллицу через git bash в MCP API OsEngine
 
 `git bash` передаёт не-ASCII символы из командной строки в `curl` некорректно: вместо кириллицы сервер получает последовательность `��������`. Чтобы отправить запрос с кириллицей, JSON должен формироваться не в аргументах `curl`, а внутри shell-скрипта и передаваться `curl` через stdin (`-d @-`).
@@ -19,7 +43,7 @@ cd OsEngine/bin/Debug
 - если доступен PowerShell, извлекает `result.Content[0].Text` и выводит его как отформатированный JSON;
 - если PowerShell недоступен, выводит сырой ответ `curl`.
 
-Если в запросе нет кириллицы, скрипт не нужен — используйте обычный `curl -d '...'`.
+Для ИИ-агентов рекомендуется использовать `mcp_call.sh` даже без кириллицы, потому что он сразу возвращает готовый JSON из `Content[0].Text` и исключает ошибки ручного парсинга. Если `mcp_call.sh` недоступен, используйте `curl` с разбором через PowerShell.
 
 ### Как читать ответ MCP API
 
@@ -235,7 +259,7 @@ tasklist //FI "IMAGENAME eq OsEngine.exe"
 8. Создать сет:
    ```bash
    cd OsEngine/bin/Debug
-   ./mcp_call.sh data_create_set '{"name":"MyNewSet","source":"Finam","source_name":"Finam","timeframes":["Min5","Hour1","Day"],"date_from":"2024-01-01T00:00:00","date_to":"2024-12-31T00:00:00"}'
+   ./mcp_call.sh data_create_set '{"name":"MyNewSet","source":"Finam","source_name":"Finam","timeframes":["Min30"],"date_from":"2024-01-01T00:00:00","date_to":"2024-06-30T00:00:00"}'
    ```
 
    > Для имён на кириллице или других не-ASCII символах обязательно использовать `mcp_call.sh`, чтобы избежать искажения символов в `git bash`.
@@ -244,7 +268,7 @@ tasklist //FI "IMAGENAME eq OsEngine.exe"
    - `name` — должно быть `Set_<имя>`;
    - `regime` — должно быть `Off`;
    - `source` и `source_name` — должны совпадать с выбранным коннектором;
-   - `timeframes`, `date_from`, `date_to` — должны совпадать с запрошенными.
+   - `timeframes`, `date_from`, `date_to` — должны совпадать с запрошенными (отображаются фактически активные таймфреймы).
 
 10. Сообщить пользователю, что сет создан, и уточнить, нужно ли добавить в него бумаги (см. Сценарий 6 — добавление бумаг в сет).
 
@@ -347,7 +371,7 @@ tasklist //FI "IMAGENAME eq OsEngine.exe"
 6. **Спросить у пользователя параметры скачивания:**
    - имя нового сета;
    - список бумаг (тикеры);
-   - таймфреймы (например, `Min1`, `Min5`, `Hour1`, `Day`);
+   - таймфреймы (например, `Min1`, `Min30`, `Hour1`, `Day`);
    - период (`date_from`, `date_to`) в формате ISO 8601.
 
 7. Активировать выбранный коннектор, если он ещё не активирован:
@@ -379,7 +403,7 @@ tasklist //FI "IMAGENAME eq OsEngine.exe"
 9. Создать сет:
    ```bash
    cd OsEngine/bin/Debug
-   ./mcp_call.sh data_create_set '{"name":"MyDownloadSet","source":"MoexDataServer","source_name":"MoexDataServer","timeframes":["Min1","Min5"],"date_from":"2026-06-20T00:00:00","date_to":"2026-06-25T00:00:00"}'
+   ./mcp_call.sh data_create_set '{"name":"MyDownloadSet","source":"MoexDataServer","source_name":"MoexDataServer","timeframes":["Min30"],"date_from":"2024-01-01T00:00:00","date_to":"2024-06-30T00:00:00"}'
    ```
 
 10. **Перед добавлением бумаг запросить у коннектора доступные инструменты.** Это нужно, чтобы пользователь выбрал существующий тикер, а не придумал его.
@@ -445,4 +469,138 @@ tasklist //FI "IMAGENAME eq OsEngine.exe"
       -H "Content-Type: application/json" \
       -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"data_set_off","arguments":{"name":"MyDownloadSet"}},"id":1}' \
       http://localhost:6500/api/v1/mcp
+    ```
+
+## Сценарий 8. Пользователь просит посмотреть журнал робота после теста
+
+> Этот сценарий работает в режиме тестера (`IsTester`). Предполагается, что тест уже завершён (`tester_get_status` возвращает `regime: Pause` и `progress_percent: 100`).
+
+1. Получить список роботов:
+   ```bash
+   ./mcp_call.sh bot_get_list
+   ```
+
+2. Получить сводку по журналу (для одного робота или для всех):
+   ```bash
+   ./mcp_call.sh bot_journal_get_summary '{"bot_name":"ParabolicBollinger"}'
+   ```
+
+   Чтобы посмотреть сводку по всем роботам, передайте пустую строку или `null`:
+   ```bash
+   ./mcp_call.sh bot_journal_get_summary '{"bot_name":""}'
+   ```
+
+3. Получить кривую эквити:
+   ```bash
+   ./mcp_call.sh bot_journal_get_equity '{"bot_name":"ParabolicBollinger","chart_type":"DepositPercent"}'
+   ```
+
+   Доступные `chart_type`:
+   - `Absolute` — абсолютная прибыль;
+   - `Percent1Contract` — процент на одну сделку;
+   - `DepositPercent` — процент на депозит.
+
+4. Получить статистику:
+   ```bash
+   ./mcp_call.sh bot_journal_get_statistics '{"bot_name":"ParabolicBollinger","side":"All"}'
+   ```
+
+   `side` может быть `All`, `Long`, `Short`.
+
+5. Получить кривую просадки:
+   ```bash
+   ./mcp_call.sh bot_journal_get_drawdown '{"bot_name":"ParabolicBollinger"}'
+   ```
+
+6. Получить закрытые позиции:
+   ```bash
+   ./mcp_call.sh bot_journal_get_closed_positions '{"bot_name":"ParabolicBollinger","include_failed":false,"limit":100,"offset":0}'
+   ```
+
+7. Получить открытые позиции:
+   ```bash
+   ./mcp_call.sh bot_journal_get_open_positions '{"bot_name":"ParabolicBollinger","limit":100,"offset":0}'
+   ```
+
+8. Если нужно изменить настройки журнала (группировка, мультипликатор, вкл/выкл):
+   ```bash
+   ./mcp_call.sh bot_journal_set_settings '{"bot_name":"ParabolicBollinger","group":"NewGroup","mult":1.0,"is_on":true}'
+   ```
+
+   После изменения настроек журнала повторите нужные `bot_journal_get_*` запросы, чтобы увидеть пересчитанные значения.
+
+## Сценарий 9. Пользователь просит настроить скринер в тестере
+
+> Этот сценарий работает в режиме тестера (`IsTester`). Он настраивает робота-скринер, подключает к нему все бумаги из загруженного сета данных, включает робота и запускает тест.
+
+1. Открыть режим тестера, если он ещё не открыт:
+   ```bash
+   ./mcp_call.sh terminal_open_mode '{"mode":"tester"}'
+   ```
+
+2. Дождаться готовности тестера:
+   ```bash
+   ./mcp_call.sh tester_data_get_config
+   ```
+
+3. Загрузить сет данных (если он ещё не загружен):
+   ```bash
+   ./mcp_call.sh tester_data_set_config '{"source_type":"Set","set_name":"McpReleaseSet","type_tester_data":"Candle","date_from":"2024-01-01T00:00:00","date_to":"2024-06-30T00:00:00","delete_trades_from_memory":true}'
+   ```
+
+4. Получить список бумаг, доступных в тестере:
+   ```bash
+   ./mcp_call.sh tester_get_securities
+   ```
+
+   Если бумаг нет — дальнейшая настройка скринера невозможна.
+
+5. Создать робота-скринер:
+   ```bash
+   ./mcp_call.sh bot_create '{"strategy_name":"AlgoStart1LinearRegression"}'
+   ```
+
+6. Найти имя вкладки-скринера через `bot_get_sources`:
+   ```bash
+   ./mcp_call.sh bot_get_sources '{"bot_id":"AlgoStart1LinearRegression_1"}'
+   ```
+
+7. Настроить скринер: подключить все бумаги из сета, задать портфель и таймфрейм:
+   ```bash
+   ./mcp_call.sh bot_set_config_tab_screener '{"bot_id":"AlgoStart1LinearRegression_1","tab_name":"AlgoStart1LinearRegression_1tab0","server_type":"Tester","server_name":"Tester","portfolio_name":"GodMode","emulator_is_on":true,"time_frame":"Min30","securities":[{"name":"SBER","class_name":"","is_on":true},{"name":"GAZP","class_name":"","is_on":true}]}'
+   ```
+
+8. Проверить конфигурацию скринера и дождаться, пока `tabs_count` станет равен количеству бумаг:
+   ```bash
+   ./mcp_call.sh bot_get_config_tab_screener '{"bot_id":"AlgoStart1LinearRegression_1","tab_name":"AlgoStart1LinearRegression_1tab0"}'
+   ```
+
+   В ответе должны быть:
+   - `tabs_count` — количество созданных дочерних вкладок (равно количеству бумаг);
+   - `securities` — список подключённых бумаг;
+   - `time_frame` — выбранный таймфрейм.
+
+9. Включить робота. При использовании `AlgoStart1LinearRegression` с небольшим числом бумаг отключите волатильностный кластер, иначе фильтр не допустит ни одной сделки:
+   ```bash
+   ./mcp_call.sh bot_set_params '{"bot_id":"AlgoStart1LinearRegression_1","parameters":{"Regime":"On","Volatility cluster to trade":0}}'
+   ```
+
+10. Запустить тест:
+    ```bash
+    ./mcp_call.sh tester_start '{"fast_forward":true}'
+    ```
+
+11. Дождаться окончания теста, периодически запрашивая `tester_get_status`, пока `regime` не станет `Pause` и `time_now` не дойдёт до `time_end`.
+
+12. Получить статистику по журналу:
+    ```bash
+    ./mcp_call.sh bot_journal_get_statistics '{"bot_name":"AlgoStart1LinearRegression_1","side":"All"}'
+    ```
+
+    Если `deals_count` больше 0 — скринер торговал, тест прошёл успешно.
+
+13. Остановить тестер и удалить робота:
+    ```bash
+    ./mcp_call.sh tester_stop
+    ./mcp_call.sh bot_delete '{"bot_id":"AlgoStart1LinearRegression_1"}'
     ```

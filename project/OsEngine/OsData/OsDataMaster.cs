@@ -226,6 +226,20 @@ namespace OsEngine.OsData
                 set.BaseSettings.TimeStart = timeStart;
                 set.BaseSettings.TimeEnd = timeEnd;
 
+                // A folder from a previous run may still exist. Reset every timeframe
+                // flag and clear stale securities so the set is created exactly with
+                // the requested configuration.
+                ResetAllTimeFrameFlags(set.BaseSettings);
+
+                if (set.SecuritiesLoad != null)
+                {
+                    set.SecuritiesLoad.Clear();
+                }
+                else
+                {
+                    set.SecuritiesLoad = new List<SecurityToLoad>();
+                }
+
                 for (int i = 0; i < timeframes.Count; i++)
                 {
                     SetTimeFrameFlag(set.BaseSettings, timeframes[i], true);
@@ -391,6 +405,34 @@ namespace OsEngine.OsData
             NeedUpDateTableEvent?.Invoke();
 
             return true;
+        }
+
+        public static void ResetAllTimeFrameFlags(SettingsToLoadSecurity settings)
+        {
+            if (settings == null)
+            {
+                return;
+            }
+
+            settings.Tf1SecondIsOn = false;
+            settings.Tf2SecondIsOn = false;
+            settings.Tf5SecondIsOn = false;
+            settings.Tf10SecondIsOn = false;
+            settings.Tf15SecondIsOn = false;
+            settings.Tf20SecondIsOn = false;
+            settings.Tf30SecondIsOn = false;
+            settings.Tf1MinuteIsOn = false;
+            settings.Tf2MinuteIsOn = false;
+            settings.Tf5MinuteIsOn = false;
+            settings.Tf10MinuteIsOn = false;
+            settings.Tf15MinuteIsOn = false;
+            settings.Tf30MinuteIsOn = false;
+            settings.Tf1HourIsOn = false;
+            settings.Tf2HourIsOn = false;
+            settings.Tf4HourIsOn = false;
+            settings.TfDayIsOn = false;
+            settings.TfTickIsOn = false;
+            settings.TfMarketDepthIsOn = false;
         }
 
         public static bool IsTimeFrameSupportedByServer(TimeFrame timeFrame, IServerPermission permission)

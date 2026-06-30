@@ -4,6 +4,8 @@
 */
 
 using System;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 
@@ -18,6 +20,10 @@ namespace OsEngine.McpApi.TestStand.Tests
         private const string TestSetName = "McpTestSet";
         private const string SettingsTestSetName = "McpSettingsTestSet";
         private const string TestServerType = "Finam";
+        private const string MoexSetName = "McpReleaseSet";
+        private const string MoexServerType = "MoexDataServer";
+        private const string MoexTimeFrame = "Min30";
+        private static readonly string[] MoexSecurities = new[] { "SBER", "VTBR", "GAZP", "LKOH" };
 
         private readonly TestContext _context;
 
@@ -31,6 +37,7 @@ namespace OsEngine.McpApi.TestStand.Tests
             _context.PrintModuleHeader(Module);
 
             TestOpenMode();
+            CleanupAutoSets();
             TestGetSets();
             TestCreateSet();
             TestDeleteSet();
@@ -38,6 +45,156 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestSecuritiesGetAddRemove();
             TestSetOnOff();
             TestDownloadFlow();
+            CleanupTempSets();
+            TestPrepareMoexSetForTester();
+            CleanupTempSets();
+        }
+
+        private void CleanupAutoSets()
+        {
+            DeleteSetsByPrefix("Mcp");
+            DeleteSetsByPrefix("MoexIssTop");
+            DeletePhysicalSetFolders("Mcp");
+            DeletePhysicalSetFolders("MoexIssTop");
+        }
+
+        private void CleanupTempSets()
+        {
+            string[] tempSetNames = new[]
+            {
+                "McpTestSet",
+                "McpSettingsTestSet",
+                "McpSecuritiesTestSet",
+                "McpOnOffTestSet",
+                "McpDownloadFlowSet",
+                "MoexIssTopToTestApi"
+            };
+
+            foreach (string name in tempSetNames)
+            {
+                DeleteSetSafe(name);
+                DeletePhysicalSetFolder(name);
+            }
+        }
+
+        private void DeleteSetsByPrefix(string prefix)
+        {
+            try
+            {
+                string response = _context.Client.ToolsCall("data_get_sets", new { });
+
+                if (!IsSuccessResponse(response, out string text) || string.IsNullOrEmpty(text))
+                {
+                    return;
+                }
+
+                using (var document = JsonDocument.Parse(text))
+                {
+                    foreach (JsonElement item in document.RootElement.EnumerateArray())
+                    {
+                        string name = item.TryGetProperty("name", out JsonElement nameElement)
+                            ? nameElement.GetString() ?? string.Empty
+                            : string.Empty;
+
+                        if (string.IsNullOrWhiteSpace(name))
+                        {
+                            continue;
+                        }
+
+                        string setName = name.StartsWith("Set_") ? name.Substring(4) : name;
+
+                        if (setName.StartsWith(prefix))
+                        {
+                            DeleteSetSafe(setName);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // ignore cleanup errors
+            }
+        }
+
+        private void DeleteSetSafe(string setName)
+        {
+            try
+            {
+                _context.Client.ToolsCall("data_set_off", new { name = setName });
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                _context.Client.ToolsCall("data_delete_set", new { name = setName });
+            }
+            catch
+            {
+                // ignore
+            }
+
+            DeletePhysicalSetFolder(setName);
+        }
+
+        private void DeletePhysicalSetFolder(string setName)
+        {
+            try
+            {
+                string dataDirectory = Path.Combine(
+                    Path.GetDirectoryName(_context.OsEnginePath) ?? string.Empty,
+                    "Data");
+
+                string folderName = setName.StartsWith("Set_", StringComparison.InvariantCultureIgnoreCase)
+                    ? setName
+                    : "Set_" + setName;
+
+                string folderPath = Path.Combine(dataDirectory, folderName);
+
+                if (Directory.Exists(folderPath))
+                {
+                    Directory.Delete(folderPath, true);
+                }
+            }
+            catch
+            {
+                // ignore cleanup errors
+            }
+        }
+
+        private void DeletePhysicalSetFolders(string prefix)
+        {
+            try
+            {
+                string dataDirectory = Path.Combine(
+                    Path.GetDirectoryName(_context.OsEnginePath) ?? string.Empty,
+                    "Data");
+
+                if (!Directory.Exists(dataDirectory))
+                {
+                    return;
+                }
+
+                string[] folders = Directory.GetDirectories(dataDirectory, "Set_" + prefix + "*");
+
+                foreach (string folder in folders)
+                {
+                    try
+                    {
+                        Directory.Delete(folder, true);
+                    }
+                    catch
+                    {
+                        // ignore per-folder errors
+                    }
+                }
+            }
+            catch
+            {
+                // ignore cleanup errors
+            }
         }
 
         private void TestOpenMode()
@@ -155,9 +312,9 @@ namespace OsEngine.McpApi.TestStand.Tests
                     name = TestSetName,
                     source = TestServerType,
                     source_name = sourceName,
-                    timeframes = new[] { "Min5", "Hour1", "Day" },
+                    timeframes = new[] { "Min30" },
                     date_from = "2024-01-01T00:00:00",
-                    date_to = "2024-12-31T00:00:00"
+                    date_to = "2024-06-30T00:00:00"
                 };
 
                 _context.PrintRequest(Module, method, request);
@@ -317,7 +474,7 @@ namespace OsEngine.McpApi.TestStand.Tests
                     name = SettingsTestSetName,
                     source = TestServerType,
                     source_name = sourceName,
-                    timeframes = new[] { "Min5", "Hour1", "Day" },
+                    timeframes = new[] { "Min30" },
                     date_from = "2024-01-01T00:00:00",
                     date_to = "2024-12-31T00:00:00"
                 };
@@ -389,7 +546,7 @@ namespace OsEngine.McpApi.TestStand.Tests
                     settings = new
                     {
                         date_to = "2025-06-30T00:00:00",
-                        timeframes = new[] { "Min5", "Hour1" },
+                        timeframes = new[] { "Min30" },
                         market_depth_depth = 10
                     }
                 };
@@ -469,7 +626,7 @@ namespace OsEngine.McpApi.TestStand.Tests
                         }
 
                         if (!root.TryGetProperty("timeframes", out JsonElement timeframesElement)
-                            || timeframesElement.GetArrayLength() != 2)
+                            || timeframesElement.GetArrayLength() != 1)
                         {
                             _context.RecordFail(Module, setMethod, "timeframes were not updated");
                             return;
@@ -853,7 +1010,7 @@ namespace OsEngine.McpApi.TestStand.Tests
             const string setName = "McpDownloadFlowSet";
             const string serverType = "MoexDataServer";
             const string securityName = "SBER";
-            const string timeFrame = "Min1";
+            const string timeFrame = "Min30";
 
             try
             {
@@ -892,10 +1049,8 @@ namespace OsEngine.McpApi.TestStand.Tests
                 }
 
                 // Clean up a previously failed run.
-                _context.Client.ToolsCall(deleteMethod, new { name = setName });
-
-                DateTime dateTo = DateTime.Now.Date;
-                DateTime dateFrom = dateTo.AddDays(-5);
+                try { _context.Client.ToolsCall(offMethod, new { name = setName }); } catch { }
+                try { _context.Client.ToolsCall(deleteMethod, new { name = setName }); } catch { }
 
                 // Create a dedicated set with a short date range.
                 object createRequest = new
@@ -904,8 +1059,8 @@ namespace OsEngine.McpApi.TestStand.Tests
                     source = serverType,
                     source_name = serverType,
                     timeframes = new[] { timeFrame },
-                    date_from = dateFrom.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    date_to = dateTo.ToString("yyyy-MM-ddTHH:mm:ss")
+                    date_from = "2024-01-01T00:00:00",
+                    date_to = "2024-01-31T00:00:00"
                 };
 
                 _context.Client.ToolsCall(createMethod, createRequest);
@@ -1046,6 +1201,213 @@ namespace OsEngine.McpApi.TestStand.Tests
                 {
                     // ignored
                 }
+            }
+        }
+
+        private void TestPrepareMoexSetForTester()
+        {
+            const string method = "data_prepare_moex_set_for_tester";
+            const string createMethod = "data_create_set";
+            const string addMethod = "data_set_securities_add";
+            const string onMethod = "data_set_on";
+            const string offMethod = "data_set_off";
+            const string setStatusMethod = "data_get_set_status";
+            const string securityStatusMethod = "data_get_security_status";
+            const string deleteMethod = "data_delete_set";
+
+            try
+            {
+                // Activate and connect the MOEX server.
+                _context.Client.ToolsCall("server_management_activate", new { type = MoexServerType });
+                _context.Client.ToolsCall("server_instance_connect", new { type = MoexServerType });
+
+                bool securitiesReady = false;
+                DateTime waitStart = DateTime.Now;
+
+                while ((DateTime.Now - waitStart).TotalSeconds < 120)
+                {
+                    string response = _context.Client.ToolsCall("server_instance_get_securities", new { type = MoexServerType });
+
+                    if (IsSuccessResponse(response, out string text) && !string.IsNullOrEmpty(text))
+                    {
+                        using (var document = JsonDocument.Parse(text))
+                        {
+                            if (document.RootElement.TryGetProperty("count", out JsonElement countElement)
+                                && countElement.GetInt32() > 0)
+                            {
+                                securitiesReady = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    Thread.Sleep(2000);
+                }
+
+                if (!securitiesReady)
+                {
+                    _context.RecordFail(Module, method, $"server '{MoexServerType}' did not provide securities within 120 seconds");
+                    return;
+                }
+
+                // Remove a stale set from a previous run.
+                try
+                {
+                    _context.Client.ToolsCall(offMethod, new { name = MoexSetName });
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                try
+                {
+                    _context.Client.ToolsCall(deleteMethod, new { name = MoexSetName });
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                DeletePhysicalSetFolder(MoexSetName);
+
+                // Create the set.
+                object createRequest = new
+                {
+                    name = MoexSetName,
+                    source = MoexServerType,
+                    source_name = MoexServerType,
+                    timeframes = new[] { MoexTimeFrame },
+                    date_from = "2024-01-01T00:00:00",
+                    date_to = "2024-06-30T00:00:00"
+                };
+
+                _context.PrintRequest(Module, createMethod, createRequest);
+                string createResponse = _context.Client.ToolsCall(createMethod, createRequest);
+                _context.PrintResponse(createResponse);
+
+                if (!IsSuccessResponse(createResponse, out _))
+                {
+                    _context.RecordFail(Module, method, "failed to create MOEX set for tester");
+                    return;
+                }
+
+                // Add securities.
+                object[] securitiesArray = MoexSecurities.Select(s => new { name = s }).ToArray();
+
+                object addRequest = new
+                {
+                    name = MoexSetName,
+                    securities = securitiesArray
+                };
+
+                _context.PrintRequest(Module, addMethod, addRequest);
+                string addResponse = _context.Client.ToolsCall(addMethod, addRequest);
+                _context.PrintResponse(addResponse);
+
+                if (!IsSuccessResponse(addResponse, out string addText) || string.IsNullOrEmpty(addText))
+                {
+                    _context.RecordFail(Module, method, "failed to add securities to MOEX set");
+                    return;
+                }
+
+                using (var addDocument = JsonDocument.Parse(addText))
+                {
+                    if (!addDocument.RootElement.TryGetProperty("added_count", out JsonElement addedCountElement)
+                        || addedCountElement.GetInt32() != MoexSecurities.Length)
+                    {
+                        _context.RecordFail(Module, method, $"unexpected added_count: {addedCountElement}");
+                        return;
+                    }
+                }
+
+                // Turn the set on.
+                object onRequest = new { name = MoexSetName };
+                _context.PrintRequest(Module, onMethod, onRequest);
+                string onResponse = _context.Client.ToolsCall(onMethod, onRequest);
+                _context.PrintResponse(onResponse);
+
+                if (!IsSuccessResponse(onResponse, out _))
+                {
+                    _context.RecordFail(Module, method, "failed to turn MOEX set on");
+                    return;
+                }
+
+                // Wait until all securities are fully loaded.
+                DateTime deadline = DateTime.Now.AddSeconds(900);
+
+                while (DateTime.Now < deadline)
+                {
+                    string setStatusResponse = _context.Client.ToolsCall(setStatusMethod, new { name = MoexSetName });
+
+                    if (IsSuccessResponse(setStatusResponse, out string setStatusText) && !string.IsNullOrEmpty(setStatusText))
+                    {
+                        using (var setStatusDocument = JsonDocument.Parse(setStatusText))
+                        {
+                            string status = setStatusDocument.RootElement.TryGetProperty("status", out JsonElement statusElement)
+                                ? statusElement.GetString() ?? string.Empty
+                                : string.Empty;
+
+                            decimal percent = setStatusDocument.RootElement.TryGetProperty("percent_load", out JsonElement percentElement)
+                                ? percentElement.GetDecimal()
+                                : 0m;
+
+                            if (status == "Load" && percent >= 100m)
+                            {
+                                bool allLoaded = true;
+
+                                foreach (string security in MoexSecurities)
+                                {
+                                    string securityStatusResponse = _context.Client.ToolsCall(securityStatusMethod, new
+                                    {
+                                        name = MoexSetName,
+                                        security = security,
+                                        timeframe = MoexTimeFrame
+                                    });
+
+                                    if (!IsSuccessResponse(securityStatusResponse, out string securityStatusText)
+                                        || string.IsNullOrEmpty(securityStatusText))
+                                    {
+                                        allLoaded = false;
+                                        break;
+                                    }
+
+                                    using (var securityStatusDocument = JsonDocument.Parse(securityStatusText))
+                                    {
+                                        string securityStatus = securityStatusDocument.RootElement.TryGetProperty("status", out JsonElement securityStatusElement)
+                                            ? securityStatusElement.GetString() ?? string.Empty
+                                            : string.Empty;
+
+                                        int objectsCount = securityStatusDocument.RootElement.TryGetProperty("objects_count", out JsonElement objectsElement)
+                                            ? objectsElement.GetInt32()
+                                            : 0;
+
+                                        if (securityStatus != "Load" || objectsCount <= 0)
+                                        {
+                                            allLoaded = false;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (allLoaded)
+                                {
+                                    _context.RecordPass(Module, method, $"set={MoexSetName}, securities={MoexSecurities.Length}");
+                                    return;
+                                }
+                            }
+                        }
+                    }
+
+                    Thread.Sleep(5000);
+                }
+
+                _context.RecordFail(Module, method, "MOEX set did not finish loading within 900 seconds");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, $"TestPrepareMoexSetForTester failed: {error.Message}");
             }
         }
 

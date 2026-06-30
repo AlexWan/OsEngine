@@ -55,6 +55,8 @@ namespace OsEngine.MCP
         private readonly WikiIndicatorsApi _wikiIndicatorsApi;
         private readonly WikiSecuritiesApi _wikiSecuritiesApi;
         private readonly OsDataApi _osDataApi;
+        private readonly TesterApi _testerApi;
+        private readonly RobotsApi _robotsApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -132,6 +134,12 @@ namespace OsEngine.MCP
             _osDataApi = new OsDataApi(publishEvent, () => _osDataMaster);
             _osDataApi.NewLogMessageEvent += OsDataApi_NewLogMessageEvent;
 
+            _testerApi = new TesterApi(publishEvent);
+            _testerApi.NewLogMessageEvent += TesterApi_NewLogMessageEvent;
+
+            _robotsApi = new RobotsApi(publishEvent);
+            _robotsApi.NewLogMessageEvent += RobotsApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -145,6 +153,8 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_wikiIndicatorsApi);
             _protocolApi.RegisterToolProvider(_wikiSecuritiesApi);
             _protocolApi.RegisterToolProvider(_osDataApi);
+            _protocolApi.RegisterToolProvider(_testerApi);
+            _protocolApi.RegisterToolProvider(_robotsApi);
         }
 
         #endregion
@@ -302,6 +312,16 @@ namespace OsEngine.MCP
         }
 
         private void OsDataApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void TesterApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void RobotsApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
         }
@@ -764,12 +784,49 @@ namespace OsEngine.MCP
                         response = _osDataApi.Handle(request);
                         break;
 
+                    case "bot_get_list":
+                    case "bot_create":
+                    case "bot_delete":
+                    case "bot_get_params":
+                    case "bot_set_params":
+                    case "bot_get_sources":
+                    case "bot_get_config_tab_simple":
+                    case "bot_set_config_tab_simple":
+                    case "bot_get_config_tab_screener":
+                    case "bot_set_config_tab_screener":
+                        response = _robotsApi.Handle(request);
+                        break;
+
+                    case "tester_data_get_config":
+                    case "tester_data_get_available_sets":
+                    case "tester_get_securities":
+                    case "tester_data_set_config":
+                    case "tester_execution_get_config":
+                    case "tester_execution_set_config":
+                    case "tester_portfolio_get_config":
+                    case "tester_portfolio_set_config":
+                    case "tester_start":
+                    case "tester_pause":
+                    case "tester_fast_forward":
+                    case "tester_step_forward":
+                    case "tester_stop":
+                    case "tester_get_status":
+                        response = _testerApi.Handle(request);
+                        break;
+
                     default:
-                        response.Error = new McpJsonRpcError
+                        if (request.Method != null && request.Method.StartsWith("bot_"))
                         {
-                            Code = -32601,
-                            Message = $"Tool '{request.Method}' not found"
-                        };
+                            response = _robotsApi.Handle(request);
+                        }
+                        else
+                        {
+                            response.Error = new McpJsonRpcError
+                            {
+                                Code = -32601,
+                                Message = $"Tool '{request.Method}' not found"
+                            };
+                        }
                         break;
                 }
             }

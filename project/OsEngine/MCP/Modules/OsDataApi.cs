@@ -466,7 +466,7 @@ namespace OsEngine.MCP.Modules
                     regime = set.BaseSettings.Regime.ToString(),
                     source = set.BaseSettings.Source.ToString(),
                     source_name = set.BaseSettings.SourceName,
-                    timeframes = timeframes.ConvertAll(tf => tf.ToString()),
+                    timeframes = OsDataMaster.GetActiveTimeFrames(set.BaseSettings).ConvertAll(tf => tf.ToString()),
                     date_from = set.BaseSettings.TimeStart,
                     date_to = set.BaseSettings.TimeEnd
                 };
@@ -684,7 +684,7 @@ namespace OsEngine.MCP.Modules
                             }
                         }
 
-                        ResetTimeFrameFlags(settings);
+                        OsDataMaster.ResetAllTimeFrameFlags(settings);
 
                         for (int i = 0; i < timeframes.Count; i++)
                         {
@@ -1459,29 +1459,6 @@ namespace OsEngine.MCP.Modules
             public string Id;
             public string Class;
             public string Exchange;
-        }
-
-        private void ResetTimeFrameFlags(SettingsToLoadSecurity settings)
-        {
-            settings.Tf1SecondIsOn = false;
-            settings.Tf2SecondIsOn = false;
-            settings.Tf5SecondIsOn = false;
-            settings.Tf10SecondIsOn = false;
-            settings.Tf15SecondIsOn = false;
-            settings.Tf20SecondIsOn = false;
-            settings.Tf30SecondIsOn = false;
-            settings.Tf1MinuteIsOn = false;
-            settings.Tf2MinuteIsOn = false;
-            settings.Tf5MinuteIsOn = false;
-            settings.Tf10MinuteIsOn = false;
-            settings.Tf15MinuteIsOn = false;
-            settings.Tf30MinuteIsOn = false;
-            settings.Tf1HourIsOn = false;
-            settings.Tf2HourIsOn = false;
-            settings.Tf4HourIsOn = false;
-            settings.TfDayIsOn = false;
-            settings.TfTickIsOn = false;
-            settings.TfMarketDepthIsOn = false;
         }
 
         private OsDataMaster GetOsDataMaster()

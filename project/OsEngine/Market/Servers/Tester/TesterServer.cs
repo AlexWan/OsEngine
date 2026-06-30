@@ -2840,6 +2840,28 @@ namespace OsEngine.Market.Servers.Tester
             Save();
         }
 
+        public void SetFolderPath(string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                return;
+            }
+
+            if (_pathToFolder == folderPath)
+            {
+                return;
+            }
+
+            SendLogMessage(OsLocalization.Market.Message27 + folderPath, LogMessageType.System);
+            _pathToFolder = folderPath;
+
+            if (_sourceDataType == TesterSourceDataType.Folder)
+            {
+                ReloadSecurities();
+            }
+            Save();
+        }
+
         public void ReloadSecurities()
         {
             // clear all data and disconnect / чистим все данные, отключаемся

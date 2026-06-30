@@ -45,6 +45,10 @@ namespace OsEngine.McpApi.TestStand
             {
                 try
                 {
+                    // Remove stale auto-created data folders before starting OsEngine so
+                    // previous failed runs cannot pollute the test sets.
+                    CleanupAutoDataSets(options.OsEnginePath);
+
                     processController.Restart(options.OsEngineArgs, TimeSpan.FromSeconds(options.TimeoutSeconds));
 
                     McpApiClient client = processController.Client
@@ -69,6 +73,8 @@ namespace OsEngine.McpApi.TestStand
 
                     List<TestResult> results = RunAllTests(context);
 
+                    CleanupAutoDataSets(options.OsEnginePath);
+
                     int failed = 0;
 
                     foreach (TestResult result in results)
@@ -92,7 +98,45 @@ namespace OsEngine.McpApi.TestStand
                 finally
                 {
                     processController.Stop();
+                    CleanupAutoDataSets(options.OsEnginePath);
                 }
+            }
+        }
+
+        private static void CleanupAutoDataSets(string osEnginePath)
+        {
+            try
+            {
+                string dataDirectory = Path.Combine(Path.GetDirectoryName(osEnginePath) ?? string.Empty, "Data");
+
+                if (!Directory.Exists(dataDirectory))
+                {
+                    return;
+                }
+
+                string[] patterns = new[] { "Set_Mcp*", "Set_MoexIssTop*" };
+
+                foreach (string pattern in patterns)
+                {
+                    string[] folders = Directory.GetDirectories(dataDirectory, pattern);
+
+                    foreach (string folder in folders)
+                    {
+                        try
+                        {
+                            Directory.Delete(folder, true);
+                            Console.WriteLine($"Cleaned up data set folder: {folder}");
+                        }
+                        catch (Exception cleanupError)
+                        {
+                            Console.WriteLine($"Failed to cleanup data set folder {folder}: {cleanupError.Message}");
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // ignore cleanup errors
             }
         }
 
@@ -186,6 +230,15 @@ namespace OsEngine.McpApi.TestStand
                 // Открывает режим OsData через terminal_open_mode.
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, "Data", string.Empty, () => new DataTests(context).RunAll());
+
+                // Модуль: Tester
+                // MCP API: tester_data_get_config, tester_data_set_config,
+                //          tester_execution_get_config, tester_execution_set_config,
+                //          tester_portfolio_get_config, tester_portfolio_set_config.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Открывает режим Tester через terminal_open_mode.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "Tester", string.Empty, () => new TesterTests(context).RunAll());
 
                 // Модуль: Terminal
                 // MCP API: ping, terminal_get_status, terminal_launch, terminal_stop, terminal_kill.
