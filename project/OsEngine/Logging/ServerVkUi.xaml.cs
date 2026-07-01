@@ -3,8 +3,10 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
 using System.Windows;
 using OsEngine.Language;
+using OsEngine.Market;
 
 namespace OsEngine.Logging
 {
@@ -19,7 +21,7 @@ namespace OsEngine.Logging
             ServerVk serverVk = ServerVk.GetServer();
 
             TextBoxAccessToken.Text = serverVk.AccessToken;
-            TextBoxUserId.Text = serverVk.UserId.ToString();
+            TextBoxUserId.Text = string.Join(", ", serverVk.UserIds);
             CheckBoxProcessingCommand.IsChecked = serverVk.ProcessingCommand;
 
             Title = OsLocalization.Logging.Label32;
@@ -35,18 +37,26 @@ namespace OsEngine.Logging
 
         private void buttonAccept_Click(object sender, RoutedEventArgs e)
         {
-            ServerVk serverVk = ServerVk.GetServer();
-            serverVk.AccessToken = TextBoxAccessToken.Text;
+            try
+            {
+                ServerVk serverVk = ServerVk.GetServer();
+                serverVk.AccessToken = TextBoxAccessToken.Text;
+                serverVk.UserIds = serverVk.ParseUserIds(TextBoxUserId.Text);
 
-            if (long.TryParse(TextBoxUserId.Text, out serverVk.UserId))
-            {
-                serverVk.ProcessingCommand = CheckBoxProcessingCommand.IsChecked == true;
-                serverVk.Save();
-                Close();
+                if (serverVk.UserIds.Count > 0)
+                {
+                    serverVk.ProcessingCommand = CheckBoxProcessingCommand.IsChecked == true;
+                    serverVk.Save();
+                    Close();
+                }
+                else
+                {
+                    Label35.Visibility = Visibility.Visible;
+                }
             }
-            else
+            catch (Exception error)
             {
-                Label35.Visibility = Visibility.Visible;
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
     }
