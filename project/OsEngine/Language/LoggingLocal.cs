@@ -188,11 +188,11 @@ namespace OsEngine.Language
             "Ru:Ключ доступа_");
 
         public string Label34 => OsLocalization.ConvertToLocString(
-            "Eng:User ID_" +
+            "Eng:User IDs_" +
             "Ru:ID пользователя_");
 
         public string Label35 => OsLocalization.ConvertToLocString(
-           "Eng:Check User ID. Only numbers are acceptable_" +
-           "Ru:Проверьте ID пользователя. Допустимы только цифры_");
+           "Eng:Check User IDs. Only numbers separated by comma, semicolon or space are acceptable_" +
+           "Ru:Проверьте ID пользователя. Допускаются только цифры, разделённые запятой_");
     }
 }
