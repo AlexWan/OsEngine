@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -104,6 +104,7 @@ namespace OsEngine.Logging
             Load();
 
             _httpClient = new HttpClient();
+            _httpClient.Timeout = TimeSpan.FromSeconds(60);
 
             Thread worker1 = new Thread(PullMessages);
             worker1.CurrentCulture = new CultureInfo("ru-RU");
@@ -469,6 +470,12 @@ namespace OsEngine.Logging
                     }
 
                     Thread.Sleep(500);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Long Poll connection was broken or request timed out.
+                    // This is a normal situation for a persistent connection — just reconnect.
+                    Thread.Sleep(5000);
                 }
                 catch (Exception error)
                 {
