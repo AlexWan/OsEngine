@@ -193,6 +193,8 @@ namespace OsEngine.Market.Servers.TData
             _candlesArchivesInfoFut.Clear();
             _candlesArchivesInfoSpot.Clear();
             _candlesArchivesInfoBond.Clear();
+            _candlesArchivesInfoEtf.Clear();
+
             _datesArchives.Clear();
 
             DisposeHttpClient();
@@ -269,6 +271,8 @@ namespace OsEngine.Market.Servers.TData
 
         private Dictionary<string, TSecurityResponse> _candlesArchivesInfoBond = [];
 
+        private Dictionary<string, TSecurityResponse> _candlesArchivesInfoEtf = [];
+
         private DateTime _startTimeCandleArchive = new DateTime(2018, 03, 07);
 
         private DateTime _startTimeTradeArchive = new DateTime(2018, 12, 19);
@@ -304,10 +308,11 @@ namespace OsEngine.Market.Servers.TData
                 GetCurrencySecurities();
 
                 GetBondSecurities();
+
+                GetEtfSecurities();
             }
             catch (Exception ex)
             {
-
                 SendLogMessage($"Securities downloading error. Error: {ex.Message}", LogMessageType.Error);
             }
 
@@ -472,6 +477,58 @@ namespace OsEngine.Market.Servers.TData
                         _candlesArchivesInfoFut = root.Instruments;
 
                         CombineDataBySecurities(_candlesArchivesInfoFut, futSecCandles);
+                    }
+                }
+            }
+            else
+            {
+                SendLogMessage($"Securities futures downloading error", LogMessageType.Error);
+            }
+        }
+
+        private void GetEtfSecurities()
+        {
+            string response = GetStringRequest("/trades-instruments-index/instrument-type/etf");
+
+            if (response != null)
+            {
+                RootResponse root = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(response);
+
+                List<TSecurityResponse> futures = new List<TSecurityResponse>(root.Instruments.Values);
+
+                for (int i = 0; i < futures.Count; i++)
+                {
+                    TSecurityResponse item = futures[i];
+
+                    Security newSecurity = new Security();
+
+                    newSecurity.Exchange = "MOEX";
+                    newSecurity.Name = item.Ticker;
+                    newSecurity.NameFull = item.Name;
+                    newSecurity.NameClass = item.ClassCode;
+                    newSecurity.NameId = item.Ticker;
+                    newSecurity.SecurityType = SecurityType.Fund;
+                    newSecurity.PriceStep = 0;
+                    newSecurity.PriceStepCost = 0;
+                    newSecurity.Lot = 1;
+
+                    _securities.Add(newSecurity);
+                }
+
+                // получить информацию по свечным архивам
+                string candlesInfoResponse = GetStringRequest("/candles-instruments-index/instrument-type/etf");
+
+                if (candlesInfoResponse != null)
+                {
+                    RootResponse candlesRoot = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(candlesInfoResponse);
+
+                    List<TSecurityResponse> etfSecCandles = new List<TSecurityResponse>(candlesRoot.Instruments.Values);
+
+                    if (etfSecCandles.Count > 0)
+                    {
+                        _candlesArchivesInfoEtf = root.Instruments;
+
+                        CombineDataBySecurities(_candlesArchivesInfoEtf, etfSecCandles);
                     }
                 }
             }
@@ -692,6 +749,14 @@ namespace OsEngine.Market.Servers.TData
                 else if (security.SecurityType == SecurityType.Bond)
                 {
                     if (!_candlesArchivesInfoBond.TryGetValue(secKey, out securityCandlesInfo))
+                    {
+                        SendLogMessage($"No archive with candles for {secKey}", LogMessageType.System);
+                        return null;
+                    }
+                }
+                else if (security.SecurityType == SecurityType.Fund)
+                {
+                    if (!_candlesArchivesInfoEtf.TryGetValue(secKey, out securityCandlesInfo))
                     {
                         SendLogMessage($"No archive with candles for {secKey}", LogMessageType.System);
                         return null;

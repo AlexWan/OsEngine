@@ -788,6 +788,12 @@ namespace OsEngine.OsTrader
                 for (int i = 0; i < sortPositions.Count; i++)
                 {
                     Position pos = sortPositions[i];
+
+                    if(pos == null)
+                    {
+                        continue;
+                    }
+
                     int number = pos.Number;
 
                     if (rowsByNumber.TryGetValue(number, out DataGridViewRow existingRow))
