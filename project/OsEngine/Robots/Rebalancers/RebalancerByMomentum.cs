@@ -316,7 +316,9 @@ namespace OsEngine.Robots.Rebalancers
                     return;
                 }
 
-                if (tabs.Count == 0 
+                if (tabs == null
+                    || tabs.Count == 0
+                    || tabs[0].CandlesAll == null
                     || tabs[0].CandlesAll.Count < 10)
                 {
                     return;

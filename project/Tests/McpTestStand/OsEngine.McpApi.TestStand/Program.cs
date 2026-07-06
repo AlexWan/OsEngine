@@ -224,6 +224,13 @@ namespace OsEngine.McpApi.TestStand
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, "WikiSecurities", string.Empty, () => new WikiSecuritiesTests(context).RunAll());
 
+                // Модуль: WikiDividends
+                // MCP API: wiki_dividends_get_history, wiki_dividends_get_future,
+                //          wiki_dividends_get_nearest, wiki_dividends_search_by_date.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, "WikiDividends", string.Empty, () => new WikiDividendsTests(context).RunAll());
+
                 // Модуль: Data
                 // MCP API: data_get_sets.
                 // Запускает OsEngine перед собой: да, без аргументов.

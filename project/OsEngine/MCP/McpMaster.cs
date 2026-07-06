@@ -54,6 +54,7 @@ namespace OsEngine.MCP
         private readonly WikiRobotsApi _wikiRobotsApi;
         private readonly WikiIndicatorsApi _wikiIndicatorsApi;
         private readonly WikiSecuritiesApi _wikiSecuritiesApi;
+        private readonly WikiDividendsApi _wikiDividendsApi;
         private readonly OsDataApi _osDataApi;
         private readonly TesterApi _testerApi;
         private readonly RobotsApi _robotsApi;
@@ -131,6 +132,9 @@ namespace OsEngine.MCP
             _wikiSecuritiesApi = new WikiSecuritiesApi();
             _wikiSecuritiesApi.NewLogMessageEvent += WikiSecuritiesApi_NewLogMessageEvent;
 
+            _wikiDividendsApi = new WikiDividendsApi();
+            _wikiDividendsApi.NewLogMessageEvent += WikiDividendsApi_NewLogMessageEvent;
+
             _osDataApi = new OsDataApi(publishEvent, () => _osDataMaster);
             _osDataApi.NewLogMessageEvent += OsDataApi_NewLogMessageEvent;
 
@@ -152,6 +156,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_wikiRobotsApi);
             _protocolApi.RegisterToolProvider(_wikiIndicatorsApi);
             _protocolApi.RegisterToolProvider(_wikiSecuritiesApi);
+            _protocolApi.RegisterToolProvider(_wikiDividendsApi);
             _protocolApi.RegisterToolProvider(_osDataApi);
             _protocolApi.RegisterToolProvider(_testerApi);
             _protocolApi.RegisterToolProvider(_robotsApi);
@@ -307,6 +312,11 @@ namespace OsEngine.MCP
         }
 
         private void WikiSecuritiesApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void WikiDividendsApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
         }
@@ -767,6 +777,13 @@ namespace OsEngine.MCP
                     case "wiki_securities_qscalp":
                     case "wiki_securities_mapping_info":
                         response = _wikiSecuritiesApi.Handle(request);
+                        break;
+
+                    case "wiki_dividends_get_history":
+                    case "wiki_dividends_get_future":
+                    case "wiki_dividends_get_nearest":
+                    case "wiki_dividends_search_by_date":
+                        response = _wikiDividendsApi.Handle(request);
                         break;
 
                     case "data_get_sets":

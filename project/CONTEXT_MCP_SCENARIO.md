@@ -604,3 +604,54 @@ tasklist //FI "IMAGENAME eq OsEngine.exe"
     ./mcp_call.sh tester_stop
     ./mcp_call.sh bot_delete '{"bot_id":"AlgoStart1LinearRegression_1"}'
     ```
+
+## Сценарий 10. Пользователь просит посмотреть дивиденды по акции
+
+> Дивиденды читаются из готовых markdown-файлов `Wiki/Dividends/{ticker}.md`. Для этого не нужен ни коннектор, ни режим терминала — достаточно, чтобы OsEngine был запущен и MCP API включён.
+
+1. Убедиться, что терминал запущен (см. Сценарий 1).
+
+2. Получить историю дивидендов по тикеру:
+   ```bash
+   ./mcp_call.sh wiki_dividends_get_history '{"ticker":"SBER"}'
+   ```
+
+   В ответе смотреть:
+   - `historical` — массив выплаченных дивидендов;
+   - `count` — количество записей;
+   - `source` — ссылка на источник (Smart-Lab);
+   - `last_updated` — дата последнего обновления файла.
+
+3. Чтобы посмотреть дивиденды на конкретную дату в прошлом, передайте параметр `date`:
+   ```bash
+   ./mcp_call.sh wiki_dividends_get_history '{"ticker":"SBER","date":"01.01.2020"}'
+   ```
+
+   В ответе вернутся только записи с `registry_close_date <= 01.01.2020`.
+
+4. Получить будущие отсечки:
+   ```bash
+   ./mcp_call.sh wiki_dividends_get_future '{"ticker":"SBER"}'
+   ```
+
+5. Получить ближайшую предстоящую отсечку:
+   ```bash
+   ./mcp_call.sh wiki_dividends_get_nearest '{"ticker":"SBER"}'
+   ```
+
+   Чтобы искать отсечку от конкретной даты, используйте `from_date`:
+   ```bash
+   ./mcp_call.sh wiki_dividends_get_nearest '{"ticker":"SBER","from_date":"01.01.2025"}'
+   ```
+
+6. Найти дивиденд по точной дате закрытия реестра:
+   ```bash
+   ./mcp_call.sh wiki_dividends_search_by_date '{"ticker":"SBER","date":"18.07.2025"}'
+   ```
+
+   В ответе `matches` содержит все записи с указанной датой (обычно 0 или 1).
+
+7. Если нужно обновить кэш после ручного редактирования файлов, передайте `refresh=true`:
+   ```bash
+   ./mcp_call.sh wiki_dividends_get_history '{"ticker":"SBER","refresh":true}'
+   ```

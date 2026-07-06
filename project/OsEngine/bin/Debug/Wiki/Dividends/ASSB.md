@@ -1,0 +1,22 @@
+﻿# Dividends: ASSB
+
+## Metadata
+
+| Field | Value |
+|---|---|
+| Security | ASSB |
+| LastUpdated | 06.07.2026 |
+| Source | https://smart-lab.ru/q/ASSB/dividend/ |
+
+## Historical Dividends
+
+| Year | RegistryCloseDate | DividendAmount | DividendYield |
+|---|---|---|---|
+| 2017 | 03.06.2018 | 0.015104 | 3.6 |
+| 2018 | 03.06.2019 | 0.12 | 11.4 |
+| 2019 | 09.07.2020 | 0.06 | 6.9 |
+
+## Future Registry Close Dates
+
+| Year | RegistryCloseDate | DividendAmount | DividendYield |
+|---|---|---|---|
