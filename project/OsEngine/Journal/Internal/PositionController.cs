@@ -12,14 +12,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using static OsEngine.Market.Servers.Deribit.Entity.ResponseChannelUserChanges;
-using static OsEngine.OsTrader.GlobalPositionViewer;
 
 namespace OsEngine.Journal.Internal
 {
@@ -73,7 +69,7 @@ namespace OsEngine.Journal.Internal
                 {
                     // ignore
                 }
-                await Task.Delay(1000);
+                await Task.Delay(3000);
             }
         }
 
@@ -455,12 +451,15 @@ namespace OsEngine.Journal.Internal
                 if (_deals == null)
                 {
                     _deals = new List<Position>();
-                    _deals.Add(newPosition);
                 }
-                else
+
+                if (_startProgram == StartProgram.IsOsTrader
+                    && _deals.Find(pos => pos != null && pos.Number == newPosition.Number) != null)
                 {
-                    _deals.Add(newPosition);
+                    return;
                 }
+
+                _deals.Add(newPosition);
 
                 for (int i = 0; i < _deals.Count; i++)
                 {
@@ -1596,8 +1595,64 @@ namespace OsEngine.Journal.Internal
                     }
                 }
 
+                // saving the current selection so that the table does not jump to the top after redrawing
+                // сохраняем текущее выделение, чтобы таблица не прыгала в начало после перерисовки
+                int savedNumber = -1;
+                int savedScroll = -1;
+                int savedColumn = 0;
+
+                try
+                {
+                    if (grid.CurrentCell != null
+                    && grid.CurrentCell.RowIndex >= 0
+                    && grid.CurrentCell.RowIndex < grid.Rows.Count)
+                    {
+
+                        savedNumber = Convert.ToInt32(grid.Rows[grid.CurrentCell.RowIndex].Cells[0].Value);
+                        savedScroll = grid.FirstDisplayedScrollingRowIndex;
+                        savedColumn = grid.CurrentCell.ColumnIndex;
+
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 grid.Rows.Clear();
                 grid.Rows.AddRange(rows.ToArray());
+
+                // restore selection and scroll position
+                // восстанавливаем выделение и позицию скролла
+                if (savedNumber != -1)
+                {
+                    try
+                    {
+                        for (int i = 0; i < grid.Rows.Count; i++)
+                        {
+
+                            if (Convert.ToInt32(grid.Rows[i].Cells[0].Value) == savedNumber)
+                            {
+                                int col = savedColumn >= 0 && savedColumn < grid.Columns.Count
+                                    ? savedColumn
+                                    : 0;
+
+                                grid.CurrentCell = grid.Rows[i].Cells[col];
+
+                                if (savedScroll >= 0 && savedScroll < grid.Rows.Count)
+                                {
+                                    grid.FirstDisplayedScrollingRowIndex = savedScroll;
+                                }
+                                break;
+                            }
+
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
             }
             catch (Exception ex)
             {
