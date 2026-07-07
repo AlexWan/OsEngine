@@ -781,7 +781,7 @@ namespace OsEngine.MCP
 
                     case "wiki_dividends_get_history":
                     case "wiki_dividends_get_future":
-                    case "wiki_dividends_get_nearest":
+                    case "wiki_dividends_get_past":
                     case "wiki_dividends_search_by_date":
                         response = _wikiDividendsApi.Handle(request);
                         break;

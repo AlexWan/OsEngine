@@ -35,7 +35,8 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestGetHistoryWithDate();
             TestGetFutureKnownTicker();
             TestGetFutureWithDate();
-            TestGetNearestKnownTicker();
+            TestGetPastKnownTicker();
+            TestGetPastWithDate();
             TestSearchByDateKnown();
             TestSearchByDateNotFound();
             TestGetHistoryUnknownTicker();
@@ -72,7 +73,7 @@ namespace OsEngine.McpApi.TestStand.Tests
                     {
                         "wiki_dividends_get_history",
                         "wiki_dividends_get_future",
-                        "wiki_dividends_get_nearest",
+                        "wiki_dividends_get_past",
                         "wiki_dividends_search_by_date"
                     };
 
@@ -219,13 +220,20 @@ namespace OsEngine.McpApi.TestStand.Tests
                         return;
                     }
 
-                    if (!root.TryGetProperty("future", out JsonElement future))
+                    if (!root.TryGetProperty("future", out JsonElement future)
+                        || future.ValueKind == JsonValueKind.Null)
                     {
-                        _context.RecordFail(Module, method, "future dividends missing");
+                        _context.RecordFail(Module, method, "future dividend missing");
                         return;
                     }
 
-                    _context.RecordPass(Module, method, $"count={future.GetArrayLength()}");
+                    if (!future.TryGetProperty("registry_close_date", out _))
+                    {
+                        _context.RecordFail(Module, method, "future registry_close_date missing");
+                        return;
+                    }
+
+                    _context.RecordPass(Module, method, "future dividend found");
                 }
             }
             catch (Exception error)
@@ -260,24 +268,21 @@ namespace OsEngine.McpApi.TestStand.Tests
                     }
 
                     if (!root.TryGetProperty("future", out JsonElement future)
-                        || future.GetArrayLength() == 0)
+                        || future.ValueKind == JsonValueKind.Null)
                     {
-                        _context.RecordFail(Module, method, "future dividends missing or empty");
+                        _context.RecordFail(Module, method, "future dividend missing or empty");
                         return;
                     }
 
-                    foreach (JsonElement record in future.EnumerateArray())
+                    string futureRegistryCloseDate = GetStringProperty(future, "registry_close_date");
+                    if (!TryParseDate(futureRegistryCloseDate, out DateTime futureRecordDate)
+                        || futureRecordDate < new DateTime(2025, 1, 1))
                     {
-                        string registryCloseDate = GetStringProperty(record, "registry_close_date");
-                        if (!TryParseDate(registryCloseDate, out DateTime recordDate)
-                            || recordDate < new DateTime(2025, 1, 1))
-                        {
-                            _context.RecordFail(Module, method, $"record before reference date: {registryCloseDate}");
-                            return;
-                        }
+                        _context.RecordFail(Module, method, $"future record before reference date: {futureRegistryCloseDate}");
+                        return;
                     }
 
-                    _context.RecordPass(Module, method, $"count={future.GetArrayLength()}");
+                    _context.RecordPass(Module, method, $"registry_close_date={futureRegistryCloseDate}");
                 }
             }
             catch (Exception error)
@@ -287,9 +292,9 @@ namespace OsEngine.McpApi.TestStand.Tests
             }
         }
 
-        private void TestGetNearestKnownTicker()
+        private void TestGetPastKnownTicker()
         {
-            const string method = "wiki_dividends_get_nearest";
+            const string method = "wiki_dividends_get_past";
             object request = new { ticker = KnownTicker };
 
             try
@@ -310,20 +315,69 @@ namespace OsEngine.McpApi.TestStand.Tests
                         return;
                     }
 
-                    if (!root.TryGetProperty("nearest", out JsonElement nearest)
-                        || nearest.ValueKind == JsonValueKind.Null)
+                    if (!root.TryGetProperty("past", out JsonElement past)
+                        || past.ValueKind == JsonValueKind.Null)
                     {
-                        _context.RecordFail(Module, method, "nearest dividend missing");
+                        _context.RecordFail(Module, method, "past dividend missing");
                         return;
                     }
 
-                    if (!nearest.TryGetProperty("registry_close_date", out _))
+                    if (!past.TryGetProperty("registry_close_date", out _))
                     {
-                        _context.RecordFail(Module, method, "nearest registry_close_date missing");
+                        _context.RecordFail(Module, method, "past registry_close_date missing");
                         return;
                     }
 
-                    _context.RecordPass(Module, method, "nearest dividend found");
+                    _context.RecordPass(Module, method, "past dividend found");
+                }
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, error.Message);
+            }
+        }
+
+        private void TestGetPastWithDate()
+        {
+            const string method = "wiki_dividends_get_past";
+            object request = new { ticker = KnownTicker, date = "01.01.2025" };
+
+            try
+            {
+                _context.PrintRequest(Module, method, request);
+                string response = _context.Client.ToolsCall(method, request);
+                _context.PrintResponse(response);
+
+                string resultJson = ExtractToolResult(response);
+
+                using (JsonDocument document = JsonDocument.Parse(resultJson))
+                {
+                    JsonElement root = document.RootElement;
+
+                    if (!root.TryGetProperty("date", out JsonElement dateElement)
+                        || !string.Equals(dateElement.GetString(), "01.01.2025"))
+                    {
+                        _context.RecordFail(Module, method, "date missing or mismatch");
+                        return;
+                    }
+
+                    if (!root.TryGetProperty("past", out JsonElement past)
+                        || past.ValueKind == JsonValueKind.Null)
+                    {
+                        _context.RecordFail(Module, method, "past dividend missing or empty");
+                        return;
+                    }
+
+                    string pastRegistryCloseDate = GetStringProperty(past, "registry_close_date");
+                    if (!TryParseDate(pastRegistryCloseDate, out DateTime pastRecordDate)
+                        || pastRecordDate > new DateTime(2025, 1, 1))
+                    {
+                        _context.RecordFail(Module, method, $"past record after reference date: {pastRegistryCloseDate}");
+                        return;
+                    }
+
+                    _context.RecordPass(Module, method, $"registry_close_date={pastRegistryCloseDate}");
                 }
             }
             catch (Exception error)
@@ -418,18 +472,34 @@ namespace OsEngine.McpApi.TestStand.Tests
                 string response = _context.Client.ToolsCall(method, request);
                 _context.PrintResponse(response);
 
-                using (JsonDocument document = JsonDocument.Parse(response))
+                string resultJson = ExtractToolResult(response);
+
+                using (JsonDocument document = JsonDocument.Parse(resultJson))
                 {
                     JsonElement root = document.RootElement;
 
-                    if (!root.TryGetProperty("IsError", out JsonElement isError)
-                        || isError.ValueKind != JsonValueKind.True)
+                    if (!root.TryGetProperty("ticker", out JsonElement ticker)
+                        || !string.Equals(ticker.GetString(), UnknownTicker))
                     {
-                        _context.RecordFail(Module, method, "expected IsError=true for unknown ticker");
+                        _context.RecordFail(Module, method, "ticker missing or mismatch");
                         return;
                     }
 
-                    _context.RecordPass(Module, method, "unknown ticker returned error");
+                    if (!root.TryGetProperty("historical", out JsonElement historical)
+                        || historical.GetArrayLength() != 0)
+                    {
+                        _context.RecordFail(Module, method, "expected empty historical");
+                        return;
+                    }
+
+                    if (!root.TryGetProperty("count", out JsonElement count)
+                        || count.GetInt32() != 0)
+                    {
+                        _context.RecordFail(Module, method, "expected count=0");
+                        return;
+                    }
+
+                    _context.RecordPass(Module, method, "unknown ticker returned empty history");
                 }
             }
             catch (Exception error)

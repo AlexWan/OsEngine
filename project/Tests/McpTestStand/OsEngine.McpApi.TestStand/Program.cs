@@ -226,7 +226,7 @@ namespace OsEngine.McpApi.TestStand
 
                 // Модуль: WikiDividends
                 // MCP API: wiki_dividends_get_history, wiki_dividends_get_future,
-                //          wiki_dividends_get_nearest, wiki_dividends_search_by_date.
+                //          wiki_dividends_get_past, wiki_dividends_search_by_date.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, "WikiDividends", string.Empty, () => new WikiDividendsTests(context).RunAll());

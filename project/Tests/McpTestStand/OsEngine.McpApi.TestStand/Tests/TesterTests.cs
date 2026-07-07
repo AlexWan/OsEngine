@@ -88,6 +88,7 @@ namespace OsEngine.McpApi.TestStand.Tests
         {
             TestExecutionGetConfig();
             TestExecutionSetConfig();
+            CleanupExecutionConfig();
         }
 
         private void TestPortfolioConfiguration()
@@ -448,6 +449,60 @@ namespace OsEngine.McpApi.TestStand.Tests
                 }
 
                 _context.RecordPass(Module, method, "config set and verified");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, error.Message);
+            }
+        }
+
+        private void CleanupExecutionConfig()
+        {
+            const string method = "tester_execution_set_config";
+
+            object request = new
+            {
+                slippage_to_simple_order = 0,
+                slippage_to_stop_order = 0,
+                order_execution_type = "Touch",
+                non_trade_periods = new object[0]
+            };
+
+            try
+            {
+                _context.PrintRequest(Module, method, request);
+                string response = _context.Client.ToolsCall(method, request);
+                _context.PrintResponse(response);
+
+                if (!TryParseConfig(response, method, out JsonElement config))
+                {
+                    _context.RecordFail(Module, method, "cleanup failed: could not parse config response");
+                    return;
+                }
+
+                if (!config.TryGetProperty("slippage_to_stop_order", out JsonElement slippageStop)
+                    || slippageStop.GetInt32() != 0)
+                {
+                    _context.RecordFail(Module, method, "cleanup failed: slippage_to_stop_order not zero");
+                    return;
+                }
+
+                if (!config.TryGetProperty("order_execution_type", out JsonElement orderExecutionType)
+                    || orderExecutionType.GetString() != "Touch")
+                {
+                    _context.RecordFail(Module, method, "cleanup failed: order_execution_type not Touch");
+                    return;
+                }
+
+                if (!config.TryGetProperty("non_trade_periods", out JsonElement periods)
+                    || periods.GetArrayLength() != 0)
+                {
+                    _context.RecordFail(Module, method, "cleanup failed: non_trade_periods not empty");
+                    return;
+                }
+
+                _context.RecordPass(Module, method, "execution config cleaned up");
             }
             catch (Exception error)
             {

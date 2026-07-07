@@ -629,20 +629,24 @@ tasklist //FI "IMAGENAME eq OsEngine.exe"
 
    В ответе вернутся только записи с `registry_close_date <= 01.01.2020`.
 
-4. Получить будущие отсечки:
+4. Получить ближайшую будущую отсечку:
    ```bash
    ./mcp_call.sh wiki_dividends_get_future '{"ticker":"SBER"}'
    ```
 
-5. Получить ближайшую предстоящую отсечку:
+   В ответе `future` — одна запись с ближайшей `registry_close_date >= сегодня` или `null`.
+
+5. Получить ближайшую прошлую отсечку:
    ```bash
-   ./mcp_call.sh wiki_dividends_get_nearest '{"ticker":"SBER"}'
+   ./mcp_call.sh wiki_dividends_get_past '{"ticker":"SBER"}'
    ```
 
-   Чтобы искать отсечку от конкретной даты, используйте `from_date`:
+   Чтобы искать отсечку от конкретной даты, используйте `date`:
    ```bash
-   ./mcp_call.sh wiki_dividends_get_nearest '{"ticker":"SBER","from_date":"01.01.2025"}'
+   ./mcp_call.sh wiki_dividends_get_past '{"ticker":"SBER","date":"01.01.2025"}'
    ```
+
+   В ответе `past` — одна запись с ближайшей `registry_close_date <= date` или `null`.
 
 6. Найти дивиденд по точной дате закрытия реестра:
    ```bash

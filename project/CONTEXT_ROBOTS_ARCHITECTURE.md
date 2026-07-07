@@ -546,4 +546,5 @@ decimal last = sma.DataSeries[0].Last;
 - Этот файл — база (архитектура, шаблоны, выбор таба)
 - `CONTEXT_ROBOTS.md` — каталог готовых роботов для заимствования кода
 - `CONTEXT_INDICATORS.md` — написание и использование индикаторов
+- `CONTEXT_DIVIDENDS.md` — использование дивидендов в роботах
 - `CONTEXT_PAIRS_AND_FUTURES.md` — парный арбитраж, фьючерсы, контанго

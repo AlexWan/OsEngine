@@ -22,9 +22,9 @@ namespace OsEngine.MCP.Modules
     {
         #region Fields
 
-        private readonly object _cacheLocker = new object();
-        private Dictionary<string, DividendSecurityFile> _cache;
-        private bool _cacheLoaded;
+        private static readonly object _cacheLocker = new object();
+        private static Dictionary<string, DividendSecurityFile> _cache;
+        private static bool _cacheLoaded;
 
         #endregion
 
@@ -71,7 +71,7 @@ namespace OsEngine.MCP.Modules
                 new McpTool
                 {
                     Name = "wiki_dividends_get_future",
-                    Description = "Get dividend registry close dates on or after the reference date",
+                    Description = "Get the nearest future dividend registry close date on or after the reference date",
                     InputSchema = new
                     {
                         type = "object",
@@ -98,8 +98,8 @@ namespace OsEngine.MCP.Modules
                 },
                 new McpTool
                 {
-                    Name = "wiki_dividends_get_nearest",
-                    Description = "Get the nearest upcoming dividend registry close date for a Russian stock",
+                    Name = "wiki_dividends_get_past",
+                    Description = "Get the nearest past dividend registry close date on or before the reference date",
                     InputSchema = new
                     {
                         type = "object",
@@ -110,10 +110,10 @@ namespace OsEngine.MCP.Modules
                                 type = "string",
                                 description = "Stock ticker, e.g. SBER"
                             },
-                            from_date = new
+                            date = new
                             {
                                 type = "string",
-                                description = "Optional reference date in dd.MM.yyyy format (default: today)"
+                                description = "Reference date in dd.MM.yyyy format (default: today)"
                             },
                             refresh = new
                             {
@@ -179,8 +179,8 @@ namespace OsEngine.MCP.Modules
                         response.Result = GetFuture(request.Params);
                         break;
 
-                    case "wiki_dividends_get_nearest":
-                        response.Result = GetNearest(request.Params);
+                    case "wiki_dividends_get_past":
+                        response.Result = GetPast(request.Params);
                         break;
 
                     case "wiki_dividends_search_by_date":
@@ -226,6 +226,11 @@ namespace OsEngine.MCP.Modules
 
             DividendSecurityFile file = LoadFile(ticker, refresh);
 
+            if (file == null)
+            {
+                return CreateEmptyHistoryResponse(ticker, date);
+            }
+
             List<DividendRecord> historical = GetAllRecords(file)
                 .Where(r => r.RegistryCloseDate.Date <= date.Date)
                 .OrderBy(r => r.RegistryCloseDate)
@@ -256,10 +261,15 @@ namespace OsEngine.MCP.Modules
 
             DividendSecurityFile file = LoadFile(ticker, refresh);
 
-            List<DividendRecord> future = GetAllRecords(file)
+            if (file == null)
+            {
+                return CreateEmptyFutureResponse(ticker, date);
+            }
+
+            DividendRecord future = GetAllRecords(file)
                 .Where(r => r.RegistryCloseDate.Date >= date.Date)
                 .OrderBy(r => r.RegistryCloseDate)
-                .ToList();
+                .FirstOrDefault();
 
             return new
             {
@@ -267,8 +277,7 @@ namespace OsEngine.MCP.Modules
                 date = date.ToString("dd.MM.yyyy"),
                 source = file.Source,
                 last_updated = file.LastUpdated,
-                future = future.Select(ToApiRecord).ToList(),
-                count = future.Count
+                future = future != null ? ToApiRecord(future) : null
             };
         }
 
@@ -279,40 +288,85 @@ namespace OsEngine.MCP.Modules
             return records;
         }
 
-        private object GetNearest(JsonElement parameters)
+        private object CreateEmptyHistoryResponse(string ticker, DateTime date)
+        {
+            return new
+            {
+                ticker = ticker,
+                date = date.ToString("dd.MM.yyyy"),
+                source = string.Empty,
+                last_updated = string.Empty,
+                historical = new List<object>(),
+                count = 0
+            };
+        }
+
+        private object CreateEmptyFutureResponse(string ticker, DateTime date)
+        {
+            return new
+            {
+                ticker = ticker,
+                date = date.ToString("dd.MM.yyyy"),
+                source = string.Empty,
+                last_updated = string.Empty,
+                future = (object)null
+            };
+        }
+
+        private object CreateEmptyPastResponse(string ticker, DateTime date)
+        {
+            return new
+            {
+                ticker = ticker,
+                date = date.ToString("dd.MM.yyyy"),
+                source = string.Empty,
+                last_updated = string.Empty,
+                past = (object)null
+            };
+        }
+
+        private object CreateEmptySearchResponse(string ticker, DateTime date)
+        {
+            return new
+            {
+                ticker = ticker,
+                date = date.ToString("dd.MM.yyyy"),
+                matches = new List<object>(),
+                count = 0
+            };
+        }
+
+        private object GetPast(JsonElement parameters)
         {
             string ticker = GetStringParameter(parameters, "ticker");
-            string fromDateString = GetStringParameter(parameters, "from_date");
+            string dateString = GetStringParameter(parameters, "date");
             bool refresh = GetBoolParameter(parameters, "refresh");
 
-            DateTime fromDate = ParseDate(fromDateString);
-            if (fromDate == DateTime.MinValue)
+            DateTime date = ParseDate(dateString);
+            if (date == DateTime.MinValue)
             {
-                fromDate = DateTime.Today;
+                date = DateTime.Today;
             }
 
             DividendSecurityFile file = LoadFile(ticker, refresh);
 
-            DividendRecord nearest = GetAllRecords(file)
-                .Where(r => r.RegistryCloseDate >= fromDate)
-                .OrderBy(r => r.RegistryCloseDate)
-                .FirstOrDefault();
-
-            if (nearest == null)
+            if (file == null)
             {
-                return new
-                {
-                    ticker = file.Security,
-                    from_date = fromDate.ToString("dd.MM.yyyy"),
-                    nearest = (object)null
-                };
+                return CreateEmptyPastResponse(ticker, date);
             }
+
+            DividendRecord past = GetAllRecords(file)
+                .Where(r => r.RegistryCloseDate.Date <= date.Date)
+                .OrderByDescending(r => r.RegistryCloseDate)
+                .FirstOrDefault();
 
             return new
             {
                 ticker = file.Security,
-                from_date = fromDate.ToString("dd.MM.yyyy"),
-                nearest = ToApiRecord(nearest)
+                date = date.ToString("dd.MM.yyyy"),
+                source = file.Source,
+                last_updated = file.LastUpdated,
+                past = past != null ? ToApiRecord(past) : null
             };
         }
 
@@ -334,6 +388,11 @@ namespace OsEngine.MCP.Modules
             }
 
             DividendSecurityFile file = LoadFile(ticker, refresh);
+
+            if (file == null)
+            {
+                return CreateEmptySearchResponse(ticker, searchDate);
+            }
 
             List<DividendRecord> matches = GetAllRecords(file)
                 .Where(r => r.RegistryCloseDate.Date == searchDate.Date)
@@ -371,7 +430,7 @@ namespace OsEngine.MCP.Modules
 
             if (!File.Exists(filePath))
             {
-                throw new InvalidOperationException($"Dividend data for ticker '{normalizedTicker}' not found");
+                return null;
             }
 
             DividendSecurityFile file = ParseMarkdownFile(filePath);

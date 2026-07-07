@@ -1382,7 +1382,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     TimeFrame currentTf;
 
-                    if (Enum.TryParse(row.Cells[1].Value.ToString(), out currentTf) == false)
+                    if (row.Cells == null
+                        || row.Cells.Count <= 2
+                        || Enum.TryParse(row.Cells[1].Value.ToString(), out currentTf) == false)
                     {
                         continue;
                     }

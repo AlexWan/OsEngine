@@ -39,9 +39,9 @@ namespace OsEngine.MCP.Modules
                 { "qscalp", "QscalpMarketDepth" }
             };
 
-        private readonly object _cacheLocker = new object();
-        private Dictionary<string, WikiSecurityFile> _cache;
-        private bool _cacheLoaded;
+        private static readonly object _cacheLocker = new object();
+        private static Dictionary<string, WikiSecurityFile> _cache;
+        private static bool _cacheLoaded;
 
         #endregion
 

@@ -301,6 +301,7 @@ namespace OsEngine.Robots
             colum1.HeaderText = "#";
             colum1.ReadOnly = true;
             colum1.Width = 30;
+            colum1.SortMode = DataGridViewColumnSortMode.NotSortable;
             _grid.Columns.Add(colum1);
 
             DataGridViewColumn colum2 = new DataGridViewColumn();
@@ -308,6 +309,7 @@ namespace OsEngine.Robots
             colum2.HeaderText = OsLocalization.Trader.Label60;
             colum2.ReadOnly = true;
             colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colum2.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             _grid.Columns.Add(colum2);
 
@@ -315,6 +317,7 @@ namespace OsEngine.Robots
             colum3.CellTemplate = cell0;
             colum3.HeaderText = OsLocalization.Trader.Label295;
             colum3.Width = 110;
+            colum3.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             _grid.Columns.Add(colum3);
 
@@ -323,6 +326,7 @@ namespace OsEngine.Robots
             colum4.HeaderText = OsLocalization.Trader.Label296;
             colum4.ReadOnly = true;
             colum4.Width = 90;
+            colum4.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             _grid.Columns.Add(colum4);
 
@@ -331,6 +335,7 @@ namespace OsEngine.Robots
             colum5.HeaderText = OsLocalization.Trader.Label298;
             colum5.ReadOnly = true;
             colum5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colum5.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             _grid.Columns.Add(colum5);
 
@@ -339,6 +344,7 @@ namespace OsEngine.Robots
             colum6.HeaderText = OsLocalization.Trader.Label297;
             colum6.ReadOnly = true;
             colum6.Width = 90;
+            colum6.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             _grid.Columns.Add(colum6);
 
@@ -760,6 +766,18 @@ namespace OsEngine.Robots
                 }
 
             }
+
+            sortDescription.Sort((a, b) =>
+            {
+                int locationComparison = a.Location.CompareTo(b.Location);
+
+                if (locationComparison != 0)
+                {
+                    return locationComparison;
+                }
+
+                return string.Compare(a.ClassName, b.ClassName, StringComparison.OrdinalIgnoreCase);
+            });
 
             return sortDescription;
         }
