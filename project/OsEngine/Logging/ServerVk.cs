@@ -405,8 +405,8 @@ namespace OsEngine.Logging
                                                   $"access_token={AccessToken}" +
                                                   $"&v=5.131";
 
-                    HttpResponseMessage response = _httpClient.GetAsync(getLongPollServerUrl).Result;
-                    string responseContent = response.Content.ReadAsStringAsync().Result;
+                    HttpResponseMessage response = _httpClient.GetAsync(getLongPollServerUrl).GetAwaiter().GetResult();
+                    string responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
                     dynamic longPollServer = JsonConvert.DeserializeObject(responseContent);
 
@@ -427,8 +427,8 @@ namespace OsEngine.Logging
 
                     string longPollUrl = $"{server}?act=a_check&key={key}&ts={ts}&wait=25&mode=2&version=3";
 
-                    HttpResponseMessage longPollResponse = _httpClient.GetAsync(longPollUrl).Result;
-                    string longPollContent = longPollResponse.Content.ReadAsStringAsync().Result;
+                    HttpResponseMessage longPollResponse = _httpClient.GetAsync(longPollUrl).GetAwaiter().GetResult();
+                    string longPollContent = longPollResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
                     dynamic updates = JsonConvert.DeserializeObject(longPollContent);
 
