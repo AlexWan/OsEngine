@@ -63,6 +63,14 @@
                             <TextBox Name="TextBoxFailOpenOrdersCountFact" HorizontalAlignment="Center" Margin="190,70,11,0" TextWrapping="Wrap"  Width="129" VerticalAlignment="Top"/>
                         </Grid>
                     </TabItem>
+                    <TabItem Header="Synchronization">
+                        <Grid >
+                            <WindowsFormsHost Name="HostSynchPosesTable" Margin="0,0,0,23"/>
+                            <Button Name="ButtonHowSynchronizationWork" Content="???" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="48" Click="ButtonHowSynchronizationWork_Click"/>
+
+
+                        </Grid>
+                    </TabItem>
                 </TabControl>
 
 

@@ -751,9 +751,9 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
-                if (_gridRobots.InvokeRequired)
+                if (_gridSlave.InvokeRequired)
                 {
-                    _gridRobots.Invoke(new Action(UpdateGridSlave));
+                    _gridSlave.Invoke(new Action(UpdateGridSlave));
                     return;
                 }
 

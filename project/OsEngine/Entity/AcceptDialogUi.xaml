@@ -6,6 +6,8 @@
         <Rectangle Margin="5,5,5,40"/>
         <Button Name="ButtonAccept" Content="Accept" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="235" Click="ButtonAccept_Click" />
         <Button Name="ButtonCancel" Content="Don't do it"  FontWeight="Bold" Margin="5,0,245,10" VerticalAlignment="Bottom" Click="ButtonCancel_Click" />
-        <TextBox Name="TextBoxMessage" Margin="5,5,6,40" TextWrapping="Wrap" Text="TextBox" Height="NaN" FontStretch="Expanded" IsReadOnly="True" TextAlignment="Center" FontSize="15" FontWeight="Bold"/>
+        <ScrollViewer Margin="5,5,6,40" VerticalScrollBarVisibility="Auto">
+            <TextBox Name="TextBoxMessage" TextWrapping="Wrap" Text="TextBox" Height="NaN" FontStretch="Expanded" IsReadOnly="True" TextAlignment="Center" FontSize="15" FontWeight="Bold" BorderThickness="0" Background="Transparent"/>
+        </ScrollViewer>
     </Grid>
 </Window>

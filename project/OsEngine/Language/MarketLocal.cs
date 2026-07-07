@@ -2015,5 +2015,33 @@ namespace OsEngine.Language
         public string LabelIgnorSec => OsLocalization.ConvertToLocString(
          "Eng: Ignored securities _" +
          "Ru: Игнорируемые инструменты _");
+
+        public string Label325 => OsLocalization.ConvertToLocString(
+         "Eng:Synchronization_" +
+         "Ru:Синхронизация_");
+
+        public string Label326 => OsLocalization.ConvertToLocString(
+         "Eng:Instrument_" +
+         "Ru:Инструмент_");
+
+        public string Label327 => OsLocalization.ConvertToLocString(
+         "Eng:Copy journal_" +
+         "Ru:Копи-журнал_");
+
+        public string Label328 => OsLocalization.ConvertToLocString(
+         "Eng:Slave portfolio_" +
+         "Ru:Ведомый портфель_");
+
+        public string Label329 => OsLocalization.ConvertToLocString(
+         "Eng:Difference_" +
+         "Ru:Разница_");
+
+        public string Label330 => OsLocalization.ConvertToLocString(
+         "Eng:Synchronize_" +
+         "Ru:Синхронизировать_");
+
+        public string Label331 => OsLocalization.ConvertToLocString(
+         "Eng:Position synchronization aligns the volume of the instrument between the copy journal and the real slave portfolio. If the difference is non-zero, click the Sync button in the row - a market order for the difference will be sent._" +
+         "Ru:Синхронизация позиций выравнивает объём по инструменту между копи-журналом и реальным ведомым портфелем. Если разница не нулевая, нажмите кнопку Sync в строке — будет отправлен рыночный ордер на разницу._");
     }
 }

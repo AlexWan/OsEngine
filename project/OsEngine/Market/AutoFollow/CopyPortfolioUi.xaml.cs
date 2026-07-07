@@ -7,6 +7,7 @@ using OsEngine.Entity;
 using OsEngine.Journal;
 using OsEngine.Language;
 using OsEngine.Layout;
+using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.OsData;
 using System;
@@ -103,6 +104,7 @@ namespace OsEngine.Market.AutoFollow
             ButtonShowJournal.Content = OsLocalization.Market.Label229;
             ((TabItem)TabControlVolumeSettings.Items[0]).Header = OsLocalization.Market.Label230;
             ((TabItem)TabControlVolumeSettings.Items[1]).Header = OsLocalization.Market.Label231;
+            ((TabItem)TabControlVolumeSettings.Items[2]).Header = OsLocalization.Market.Label325;
 
             CheckBoxFailOpenOrdersReactionIsOn.Content = OsLocalization.Market.Label234;
             LabelFailOpenOrdersCountToReaction.Content = OsLocalization.Market.Label232;
@@ -126,10 +128,16 @@ namespace OsEngine.Market.AutoFollow
             CreateSecuritiesGrid();
             UpdateGridSecurities();
 
+            CreateSynchronizationGrid();
+            UpdateSynchronizationGrid();
+
             LoadPanelsPositions();
 
             Thread worker = new Thread(PaintFormThreadArea);
             worker.Start();
+
+            Thread synchWorker = new Thread(SynchronizationPaintThreadArea);
+            synchWorker.Start();
         }
 
         private void CopyPortfolioUi_Closed(object sender, EventArgs e)
@@ -169,6 +177,19 @@ namespace OsEngine.Market.AutoFollow
                     _gridSecurities.DataSource = null;
                     _gridSecurities.Dispose();
                     _gridSecurities = null;
+                }
+
+                if (_gridSynchronization != null)
+                {
+                    _gridSynchronization.CellClick -= _gridSynchronization_CellClick;
+                    _gridSynchronization.DataError -= _gridSynchronization_DataError;
+                    HostSynchPosesTable.Child = null;
+                    DataGridFactory.ClearLinks(_gridSynchronization);
+                    _gridSynchronization.Rows.Clear();
+                    _gridSynchronization.Columns.Clear();
+                    _gridSynchronization.DataSource = null;
+                    _gridSynchronization.Dispose();
+                    _gridSynchronization = null;
                 }
 
                 _portfolioToCopy.LogCopyTrader.StopPaint();
@@ -584,6 +605,253 @@ namespace OsEngine.Market.AutoFollow
             catch
             {
                 // ignore
+            }
+        }
+
+        #endregion
+
+        #region Synchronization
+
+        private DataGridView _gridSynchronization;
+
+        private void CreateSynchronizationGrid()
+        {
+            try
+            {
+                _gridSynchronization = DataGridFactory.GetDataGridView(
+                    DataGridViewSelectionMode.FullRowSelect,
+                    DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
+
+                _gridSynchronization.ScrollBars = ScrollBars.Vertical;
+                _gridSynchronization.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                _gridSynchronization.RowsDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                DataGridViewTextBoxCell cellTemplate = new DataGridViewTextBoxCell();
+
+                DataGridViewColumn column1 = new DataGridViewColumn();
+                column1.CellTemplate = cellTemplate;
+                column1.HeaderText = OsLocalization.Market.Label326;
+                column1.ReadOnly = true;
+                column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                _gridSynchronization.Columns.Add(column1);
+
+                DataGridViewColumn column2 = new DataGridViewColumn();
+                column2.CellTemplate = cellTemplate;
+                column2.HeaderText = OsLocalization.Market.Label327;
+                column2.ReadOnly = true;
+                column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                _gridSynchronization.Columns.Add(column2);
+
+                DataGridViewColumn column3 = new DataGridViewColumn();
+                column3.CellTemplate = cellTemplate;
+                column3.HeaderText = OsLocalization.Market.Label328;
+                column3.ReadOnly = true;
+                column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                _gridSynchronization.Columns.Add(column3);
+
+                DataGridViewColumn column4 = new DataGridViewColumn();
+                column4.CellTemplate = cellTemplate;
+                column4.HeaderText = OsLocalization.Market.Label329;
+                column4.ReadOnly = true;
+                column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                _gridSynchronization.Columns.Add(column4);
+
+                DataGridViewColumn column5 = new DataGridViewColumn();
+                column5.CellTemplate = new DataGridViewButtonCell();
+                column5.HeaderText = "";
+                column5.ReadOnly = true;
+                column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                _gridSynchronization.Columns.Add(column5);
+
+                HostSynchPosesTable.Child = _gridSynchronization;
+
+                _gridSynchronization.CellClick += _gridSynchronization_CellClick;
+                _gridSynchronization.DataError += _gridSynchronization_DataError;
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdateSynchronizationGrid()
+        {
+            try
+            {
+                if (_gridSynchronization == null)
+                {
+                    return;
+                }
+
+                if (_gridSynchronization.InvokeRequired)
+                {
+                    _gridSynchronization.Invoke(new Action(UpdateSynchronizationGrid));
+                    return;
+                }
+
+                List<SynchronizationRow> rows = _portfolioToCopy.GetSynchronizationRows();
+
+                List<DataGridViewRow> rowsNow = new List<DataGridViewRow>();
+
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    rowsNow.Add(GetSynchronizationRow(rows[i]));
+                }
+
+                if (rowsNow.Count != _gridSynchronization.Rows.Count)
+                {
+                    _gridSynchronization.Rows.Clear();
+
+                    for (int i = 0; i < rowsNow.Count; i++)
+                    {
+                        _gridSynchronization.Rows.Add(rowsNow[i]);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < _gridSynchronization.Rows.Count; i++)
+                    {
+                        TryRePaintSynchronizationRow(_gridSynchronization.Rows[i], rowsNow[i]);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private DataGridViewRow GetSynchronizationRow(SynchronizationRow row)
+        {
+            DataGridViewRow nRow = new DataGridViewRow();
+            nRow.Tag = row.SecurityClass;
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[0].Value = row.SecurityName;
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[1].Value = row.CopyJournalVolume;
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[2].Value = row.SlavePortfolioVolume;
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[3].Value = row.Difference;
+
+            if (row.Difference > 0)
+            {
+                nRow.Cells[3].Style.ForeColor = System.Drawing.Color.LimeGreen;
+            }
+            else if (row.Difference < 0)
+            {
+                nRow.Cells[3].Style.ForeColor = System.Drawing.Color.Red;
+            }
+            else
+            {
+                nRow.Cells[3].Style.ForeColor = _gridSynchronization.DefaultCellStyle.ForeColor;
+            }
+
+            DataGridViewButtonCell buttonCell = new DataGridViewButtonCell();
+            buttonCell.Value = OsLocalization.Market.Label330;
+            buttonCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            nRow.Cells.Add(buttonCell);
+
+            return nRow;
+        }
+
+        private void TryRePaintSynchronizationRow(DataGridViewRow actualRow, DataGridViewRow virtualRow)
+        {
+            for (int i = 0; i < actualRow.Cells.Count; i++)
+            {
+                if (i == 4)
+                {
+                    continue;
+                }
+
+                if (actualRow.Cells[i].Value == null
+                    && virtualRow.Cells[i].Value == null)
+                {
+                    continue;
+                }
+
+                if (actualRow.Cells[i].Value == null
+                    || virtualRow.Cells[i].Value == null
+                    || actualRow.Cells[i].Value.ToString() != virtualRow.Cells[i].Value.ToString())
+                {
+                    actualRow.Cells[i].Value = virtualRow.Cells[i].Value;
+                }
+            }
+
+            actualRow.Cells[3].Style.ForeColor = virtualRow.Cells[3].Style.ForeColor;
+        }
+
+        private void _gridSynchronization_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
+
+                if (row < 0 || row >= _gridSynchronization.Rows.Count)
+                {
+                    return;
+                }
+
+                if (column != 4)
+                {
+                    return;
+                }
+
+                string securityName = _gridSynchronization.Rows[row].Cells[0].Value.ToString();
+                string securityClass = _gridSynchronization.Rows[row].Tag?.ToString() ?? string.Empty;
+                decimal volumeOrder = Convert.ToDecimal(_gridSynchronization.Rows[row].Cells[3].Value);
+                decimal volumeInPortfolio = Convert.ToDecimal(_gridSynchronization.Rows[row].Cells[2].Value);
+
+                _portfolioToCopy.Synchronization(securityName, securityClass, volumeOrder, volumeInPortfolio);
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _gridSynchronization_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _portfolioToCopy?.SendLogMessage(e.ToString(), LogMessageType.Error);
+        }
+
+        private void SynchronizationPaintThreadArea()
+        {
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(5000);
+
+                    if (_formIsClosed == true)
+                    {
+                        return;
+                    }
+
+                    UpdateSynchronizationGrid();
+                }
+                catch (Exception ex)
+                {
+                    _portfolioToCopy?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ButtonHowSynchronizationWork_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label331);
+                ui.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1292,5 +1560,6 @@ namespace OsEngine.Market.AutoFollow
         }
 
         #endregion
+
     }
 }

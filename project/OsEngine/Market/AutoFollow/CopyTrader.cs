@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -273,6 +274,24 @@ namespace OsEngine.Market.AutoFollow
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Row for synchronization table between copy journal and slave portfolio
+    /// </summary>
+    public class SynchronizationRow
+    {
+        public string SecurityName;
+
+        public string SecurityClass;
+
+        public decimal CopyJournalVolume;
+
+        public decimal SlavePortfolioVolume;
+
+        public decimal Difference;
+
+        public bool IsSynchronized;
     }
 
     public class PortfolioToCopy
@@ -1562,6 +1581,27 @@ namespace OsEngine.Market.AutoFollow
             return null;
         }
 
+        private Security GetSecurityByNameAndClass(string name, string classCode)
+        {
+            if (string.IsNullOrEmpty(classCode))
+            {
+                return null;
+            }
+
+            List<Security> securityList = MyCopyServer.Securities;
+
+            for (int i = 0; i < securityList.Count; i++)
+            {
+                if (securityList[i].Name == name
+                    && securityList[i].NameClass == classCode)
+                {
+                    return securityList[i];
+                }
+            }
+
+            return null;
+        }
+
         private Portfolio GetPortfolioByName(string name)
         {
             List<Portfolio> portfoliosList = MyCopyServer.Portfolios;
@@ -1715,6 +1755,392 @@ namespace OsEngine.Market.AutoFollow
             }
 
             return true;
+        }
+
+        #endregion
+
+        #region Synchronization
+
+        public List<SynchronizationRow> GetSynchronizationRows()
+        {
+            List<SynchronizationRow> result = new List<SynchronizationRow>();
+
+            try
+            {
+                // 1 gather copy journal volumes grouped by security
+                Dictionary<string, decimal> copyVolumes = new Dictionary<string, decimal>();
+
+                if (MyJournal != null && MyJournal.OpenPositions != null)
+                {
+                    List<Position> positions = MyJournal.OpenPositions;
+
+                    for (int i = 0; i < positions.Count; i++)
+                    {
+                        Position position = positions[i];
+
+                        if (position == null)
+                        {
+                            continue;
+                        }
+
+                        string securityName = position.SecurityName;
+
+                        if (string.IsNullOrEmpty(securityName))
+                        {
+                            continue;
+                        }
+
+                        if (IsCurrency(securityName))
+                        {
+                            continue;
+                        }
+
+                        decimal volume = position.OpenVolume;
+
+                        if (position.Direction == Side.Sell)
+                        {
+                            volume = -volume;
+                        }
+
+                        if (copyVolumes.ContainsKey(securityName))
+                        {
+                            copyVolumes[securityName] += volume;
+                        }
+                        else
+                        {
+                            copyVolumes.Add(securityName, volume);
+                        }
+                    }
+                }
+
+                // 2 gather slave portfolio volumes and classes grouped by security
+                Dictionary<string, decimal> slaveVolumes = new Dictionary<string, decimal>();
+                Dictionary<string, string> slaveClasses = new Dictionary<string, string>();
+
+                if (MyCopyServer != null && MyCopyServer.Portfolios != null)
+                {
+                    Portfolio portfolioSlave = null;
+
+                    for (int i = 0; i < MyCopyServer.Portfolios.Count; i++)
+                    {
+                        Portfolio currentPortfolio = MyCopyServer.Portfolios[i];
+
+                        if (currentPortfolio != null && currentPortfolio.Number == PortfolioName)
+                        {
+                            portfolioSlave = currentPortfolio;
+                            break;
+                        }
+                    }
+
+                    if (portfolioSlave != null)
+                    {
+                        List<PositionOnBoard> assets = portfolioSlave.GetPositionOnBoard();
+
+                        if (assets != null)
+                        {
+                            for (int i = 0; i < assets.Count; i++)
+                            {
+                                PositionOnBoard asset = assets[i];
+
+                                if (asset == null || string.IsNullOrEmpty(asset.SecurityNameCode))
+                                {
+                                    continue;
+                                }
+
+                                if (IsCurrency(asset.SecurityNameCode))
+                                {
+                                    continue;
+                                }
+
+                                if (slaveVolumes.ContainsKey(asset.SecurityNameCode))
+                                {
+                                    slaveVolumes[asset.SecurityNameCode] += asset.ValueCurrent;
+                                }
+                                else
+                                {
+                                    slaveVolumes.Add(asset.SecurityNameCode, asset.ValueCurrent);
+                                    slaveClasses.Add(asset.SecurityNameCode, asset.SecurityNameClass);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 3 merge into rows
+                HashSet<string> allSecurities = new HashSet<string>(copyVolumes.Keys);
+                allSecurities.UnionWith(slaveVolumes.Keys);
+
+                foreach (string securityName in allSecurities)
+                {
+                    decimal copyVolume = copyVolumes.ContainsKey(securityName) ? copyVolumes[securityName] : 0;
+                    decimal slaveVolume = slaveVolumes.ContainsKey(securityName) ? slaveVolumes[securityName] : 0;
+
+                    string securityClass = string.Empty;
+
+                    if (slaveClasses.ContainsKey(securityName))
+                    {
+                        securityClass = slaveClasses[securityName];
+                    }
+                    else if (MyJournal != null && MyJournal.OpenPositions != null)
+                    {
+                        List<Position> positions = MyJournal.OpenPositions;
+
+                        for (int i = 0; i < positions.Count; i++)
+                        {
+                            if (positions[i] != null
+                                && positions[i].SecurityName == securityName)
+                            {
+                                if (positions[i].OpenOrders != null
+                                    && positions[i].OpenOrders.Count != 0
+                                    && positions[i].OpenOrders[0] != null)
+                                {
+                                    securityClass = positions[i].OpenOrders[0].SecurityClassCode;
+                                }
+                                else if (positions[i].CloseOrders != null
+                                    && positions[i].CloseOrders.Count != 0
+                                    && positions[i].CloseOrders[0] != null)
+                                {
+                                    securityClass = positions[i].CloseOrders[0].SecurityClassCode;
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    SynchronizationRow row = new SynchronizationRow();
+                    row.SecurityName = securityName;
+                    row.SecurityClass = securityClass;
+                    row.CopyJournalVolume = copyVolume;
+                    row.SlavePortfolioVolume = slaveVolume;
+                    row.Difference = copyVolume - slaveVolume;
+                    row.IsSynchronized = row.Difference == 0;
+
+                    result.Add(row);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
+            return result;
+        }
+
+        private bool IsCurrency(string securityName)
+        {
+            if (string.IsNullOrEmpty(securityName))
+            {
+                return false;
+            }
+
+            string upper = securityName.ToUpper();
+
+            return upper == "RUB"
+                || upper == "USD"
+                || upper == "EUR"
+                || upper == "USDT"
+                || upper == "USDC";
+        }
+
+        public void Synchronization(string securityNameInSlave, string securityClassInSlave, decimal volumeOrder, decimal volumeInPortfolio)
+        {
+            try
+            {
+                // 1 determine order condition type
+                OrderPositionConditionType conditionType;
+
+                if (volumeInPortfolio == 0)
+                {
+                    conditionType = OrderPositionConditionType.Open;
+                }
+                else if(volumeOrder > 0 && volumeInPortfolio > 0)
+                {
+                    conditionType = OrderPositionConditionType.Open;
+                }
+                else if (volumeOrder > 0 && volumeInPortfolio < 0)
+                {
+                    conditionType = OrderPositionConditionType.Close;
+                }
+                else if (volumeOrder < 0 && volumeInPortfolio < 0)
+                {
+                    conditionType = OrderPositionConditionType.Open;
+                }
+                else if (volumeOrder < 0 && volumeInPortfolio > 0)
+                {
+                    conditionType = OrderPositionConditionType.Close;
+                }
+                else
+                {
+                    conditionType = OrderPositionConditionType.Close;
+                }
+
+                // 1.2 inform user and ask for confirmation
+                string actionTextEng;
+                string actionTextRu;
+
+                if (volumeOrder == 0)
+                {
+                    actionTextEng = "No mismatch. Action not required.";
+                    actionTextRu = "Расхождения нет. Действие не требуется.";
+                }
+                else if (conditionType == OrderPositionConditionType.Open)
+                {
+                    actionTextEng = "A position will be opened or increased.";
+                    actionTextRu = "Позиция будет открыта или увеличена.";
+                }
+                else
+                {
+                    actionTextEng = "A position will be reduced or closed.";
+                    actionTextRu = "Позиция будет уменьшена или закрыта.";
+                }
+
+                string messageEng = "Synchronize " + securityNameInSlave + "?\n"
+                    + "Order volume " + volumeOrder + ". Portfolio volume " + volumeInPortfolio + "\n"
+                    + actionTextEng + "\n"
+                    + "Continue?";
+
+                string messageRu = "Синхронизировать " + securityNameInSlave + "?\n"
+                    + "Объём ордера " + volumeOrder + ". Объём в портфеле " + volumeInPortfolio + "\n"
+                    + actionTextRu + "\n"
+                    + "Продолжить?";
+
+                string message = OsLocalization.ConvertToLocString(
+                    "Eng:" + messageEng + "_Ru:" + messageRu + "_");
+
+                AcceptDialogUi ui = new AcceptDialogUi(message);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                if (volumeOrder == 0)
+                {
+                    return;
+                }
+
+                // 3 check slave server connection
+                if (MyCopyServer == null)
+                {
+                    SendLogMessage(GetLocMessage(
+                        "Synchronization canceled. Copy portfolio server not found.",
+                        "Синхронизация отменена. Сервер копи-портфеля не найден."), LogMessageType.Error);
+                    return;
+                }
+
+                if (MyCopyServer.ServerStatus != ServerConnectStatus.Connect)
+                {
+                    SendLogMessage(GetLocMessage(
+                        "Synchronization canceled. Copy portfolio server is not connected.",
+                        "Синхронизация отменена. Сервер копи-портфеля не подключен."), LogMessageType.Error);
+                    return;
+                }
+
+                // 4 check slave portfolio connection
+                Portfolio portfolioSlave = GetPortfolioByName(PortfolioName);
+
+                if (portfolioSlave == null)
+                {
+                    SendLogMessage(GetLocMessage(
+                        "Synchronization canceled. Copy portfolio account not found.",
+                        "Синхронизация отменена. Портфель копи-портфеля не найден."), LogMessageType.Error);
+                    return;
+                }
+
+                // 5 check non-trade periods
+                DateTime copyServerTime = MyCopyServer.ServerTime;
+
+                if (copyServerTime == DateTime.MinValue)
+                {
+                    copyServerTime = DateTime.Now;
+                }
+
+                if (TradePeriodsSettings != null &&
+                    TradePeriodsSettings.CanTradeThisTime(copyServerTime) == false)
+                {
+                    SendLogMessage(GetLocMessage(
+                        "Synchronization canceled. Now is non-trading time.",
+                        "Синхронизация отменена. Сейчас неторговое время."), LogMessageType.Error);
+                    return;
+                }
+
+                // 6 form and send order
+                Security security = MyCopyServer.GetSecurityForName(securityNameInSlave, securityClassInSlave);
+
+                if (security == null && string.IsNullOrEmpty(securityClassInSlave) == false)
+                {
+                    SendLogMessage(GetLocMessage(
+                        "Synchronization warning. Security found by name only. Class not matched. Security " + securityNameInSlave + ", class " + securityClassInSlave,
+                        "Синхронизация. Бумага найдена только по имени. Класс не сопоставлен. Бумага " + securityNameInSlave + ", класс " + securityClassInSlave), LogMessageType.System);
+
+                    security = MyCopyServer.GetSecurityForName(securityNameInSlave, string.Empty);
+                }
+
+                if (security == null)
+                {
+                    SendLogMessage(GetLocMessage(
+                        "Synchronization canceled. Security " + securityNameInSlave + " not found on the server",
+                        "Синхронизация отменена. Бумага " + securityNameInSlave + " не найдена на сервере"), LogMessageType.Error);
+                    return;
+                }
+
+                decimal volumeToTrade = Math.Round(volumeOrder, security.DecimalsVolume);
+
+                if (volumeToTrade == 0)
+                {
+                    SendLogMessage(GetLocMessage(
+                        "Synchronization canceled. Trade volume is zero after rounding. Security " + securityNameInSlave,
+                        "Синхронизация отменена. Объём для торговли равен нулю после округления. Бумага " + securityNameInSlave), LogMessageType.Error);
+                    return;
+                }
+
+                // 7 create order
+                Side direction = volumeToTrade > 0 ? Side.Buy : Side.Sell;
+                decimal absVolume = Math.Abs(volumeToTrade);
+
+                Order order = _dealCreator.CreateOrder(
+                    security,
+                    direction,
+                    0,
+                    absVolume,
+                    OrderPriceType.Market,
+                    TimeSpan.FromSeconds(60),
+                    StartProgram.IsOsTrader,
+                    conditionType,
+                    OrderTypeTime.GTC,
+                    MyCopyServer.ServerNameUnique,
+                    false,
+                    0);
+
+                order.PortfolioNumber = PortfolioName;
+
+                // 8 send order to slave server
+                try
+                {
+                    MyCopyServer.ExecuteOrder(order);
+
+                    SendLogMessage(GetLocMessage(
+                        "Synchronization order sent. Security " + securityNameInSlave + ", direction " + direction + ", volume " + absVolume,
+                        "Ордер синхронизации отправлен. Бумага " + securityNameInSlave + ", направление " + direction + ", объём " + absVolume), LogMessageType.System);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(GetLocMessage(
+                        "Synchronization canceled. Order was not sent. Security " + securityNameInSlave + ", volume " + volumeToTrade,
+                        "Синхронизация отменена. Ордер не был отправлен. Бумага " + securityNameInSlave + ", объём " + volumeToTrade), LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private string GetLocMessage(string eng, string ru)
+        {
+            return OsLocalization.ConvertToLocString("Eng:" + eng + "_Ru:" + ru + "_");
         }
 
         #endregion
