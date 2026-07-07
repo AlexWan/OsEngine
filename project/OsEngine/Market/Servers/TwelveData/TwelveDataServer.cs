@@ -798,7 +798,7 @@ namespace OsEngine.Market.Servers.TwelveData
                 string startDateStr = requestStartTime.ToString("yyyy-MM-dd HH:mm:ss");
                 string endDateStr = currentEndTime.ToString("yyyy-MM-dd HH:mm:ss");
 
-                List<Candle> newCandles = RequestCandleHistory(security.Name, nameSecurity, interval, startDateStr, endDateStr);
+                List<Candle> newCandles = RequestCandleHistoryWithRetries(security.Name, nameSecurity, interval, startDateStr, endDateStr, 3);
 
                 if (newCandles == null || newCandles.Count == 0)
                 {
@@ -860,11 +860,8 @@ namespace OsEngine.Market.Servers.TwelveData
         {
             try
             {
-                _rateGateApiLimit.WaitToProceed();
-
                 string requestStr = $"/time_series?symbol={nameSecurity}&interval={interval}&start_date={startDate}&end_date={endDate}&timezone={_timezone}&apikey={_apiKey}";
 
-                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
                 RestClient client = new RestClient(_baseUrl);
 
                 if (_myProxy != null)
@@ -872,6 +869,9 @@ namespace OsEngine.Market.Servers.TwelveData
                     client.Proxy = _myProxy;
                 }
 
+                _rateGateApiLimit.WaitToProceed();
+
+                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -917,11 +917,6 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
-                    if (!response.Content.StartsWith("{\"code\":400,\"message\":\"No data is available on the specified dates. "))
-                    {
-                        SendLogMessage($"Candle history error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
-                    }
-
                     return null;
                 }
             }
@@ -930,6 +925,25 @@ namespace OsEngine.Market.Servers.TwelveData
                 SendLogMessage($"Candles data error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 return null;
             }
+        }
+
+        private List<Candle> RequestCandleHistoryWithRetries(string securityName, string nameSecurity, string interval, string startDate, string endDate, int retries)
+        {
+            List<Candle> result = null;
+
+            for (int i = 0; i < retries; i++)
+            {
+                result = RequestCandleHistory(securityName, nameSecurity, interval, startDate, endDate);
+
+                if (result != null)
+                {
+                    break;
+                }
+
+                Thread.Sleep(1000);
+            }
+
+            return result;
         }
 
         private DateTime SkipWeekends(DateTime date)
