@@ -5,7 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -14,6 +17,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsOptimizer;
+using OsEngine.Wiki;
 
 namespace OsEngine.Market.Servers.Optimizer
 {
@@ -109,6 +113,16 @@ namespace OsEngine.Market.Servers.Optimizer
             TextBoxSlippageStop.Text = master.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
             TextBoxSlippageStop.TextChanged += TextBoxSlippageStop_TextChanged;
 
+            LabelTabItemDividends.Header = OsLocalization.Market.LabelTabItemDividends;
+            LabelDividendsPaymentTableHeader.Content = OsLocalization.Market.Label332;
+            CheckBoxDividendsIsOn.Content = OsLocalization.Market.LabelDividendsIsOn;
+            ButtonOpenDataBaseDividends.Content = OsLocalization.Market.Label337;
+            ButtonDivsUpdateBase.Content = OsLocalization.Market.Label338;
+
+            CheckBoxDividendsIsOn.IsChecked = _server.DividendsIsOn;
+            CheckBoxDividendsIsOn.Checked += CheckBoxDividendsIsOn_Checked;
+            CheckBoxDividendsIsOn.Unchecked += CheckBoxDividendsIsOn_Unchecked;
+
             Title = OsLocalization.Optimizer.Label62;
 
             Label22.Header = OsLocalization.Market.Label22;
@@ -154,6 +168,9 @@ namespace OsEngine.Market.Servers.Optimizer
                 CheckBoxSlippageStopOn.Checked -= CheckBoxSlippageStopOn_Checked;
 
                 ButtonSetDataFromPath.Click -= ButtonSetDataFromPath_Click;
+
+                CheckBoxDividendsIsOn.Checked -= CheckBoxDividendsIsOn_Checked;
+                CheckBoxDividendsIsOn.Unchecked -= CheckBoxDividendsIsOn_Unchecked;
 
                 if (_server != null)
                 {
@@ -1084,6 +1101,101 @@ namespace OsEngine.Market.Servers.Optimizer
             _gridNonTradePeriods.DataSource = null;
             _gridNonTradePeriods.Dispose();
             _gridNonTradePeriods = null;
+        }
+
+        #endregion
+
+        #region Dividends
+
+        private void CheckBoxDividendsIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_server != null)
+                {
+                    _server.DividendsIsOn = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CheckBoxDividendsIsOn_Unchecked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_server != null)
+                {
+                    _server.DividendsIsOn = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonOpenDataBaseDividends_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string path = Path.Combine(baseDir, "Wiki", "Dividends");
+
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage($"ButtonOpenDataBaseDividends_Click error: {ex}", LogMessageType.Error);
+            }
+        }
+
+        private async void ButtonDivsUpdateBase_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (WikiMaster.IsUpdating)
+                {
+                    return;
+                }
+
+                AcceptDialogUi dialog = new AcceptDialogUi(OsLocalization.Market.Label339);
+                dialog.ShowDialog();
+
+                if (!dialog.UserAcceptAction)
+                {
+                    return;
+                }
+
+                ButtonDivsUpdateBase.IsEnabled = false;
+
+                await Task.Run(() => WikiMaster.UpdateDividendsBase());
+
+                if (IsLoaded)
+                {
+                    ButtonDivsUpdateBase.IsEnabled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (IsLoaded)
+                {
+                    ButtonDivsUpdateBase.IsEnabled = true;
+                }
+
+                _master?.SendLogMessage($"ButtonDivsUpdateBase_Click error: {ex}", LogMessageType.Error);
+            }
         }
 
         #endregion

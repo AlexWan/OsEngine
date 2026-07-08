@@ -2477,9 +2477,6 @@ namespace OsEngine.Market.Servers.Tester
 
         #region Dividends
 
-        // тут должна быть создана коллекция DividendInfo. В которую должны добавляться записи о дивидендах, которые начисляются на роботов. В окне тестера должна быть кнопка, которая открывает окно с этой коллекцией.
-        // В окне должны быть колонки: название инструмента, дата начисления, сумма начисления, название робота, на который произошло начисление.
-
         private DateTime _lastCheckDividendDay;
 
         private void CheckDividends(DateTime currentServerTime)
@@ -2715,6 +2712,8 @@ namespace OsEngine.Market.Servers.Tester
                     return;
                 }
 
+                decimal yieldAfterTax = Math.Round(yield * 0.87m, 6);
+
                 decimal syntheticVolume = baseVolume;
 
                 if (syntheticVolume == 0)
@@ -2722,9 +2721,9 @@ namespace OsEngine.Market.Servers.Tester
                     return;
                 }
 
-                CreateDividendPosition(bot, tab, position, currentPrice, syntheticVolume, yield, currentServerTime);
+                CreateDividendPosition(bot, tab, position, currentPrice, syntheticVolume, yieldAfterTax, currentServerTime);
 
-                decimal dividendSum = Math.Round(baseVolume * currentPrice * yield / 100, 2);
+                decimal dividendSum = Math.Round(baseVolume * currentPrice * yieldAfterTax / 100, 2);
 
                 lock (DividendPayments)
                 {

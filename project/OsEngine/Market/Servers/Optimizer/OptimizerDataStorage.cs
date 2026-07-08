@@ -93,6 +93,22 @@ namespace OsEngine.Market.Servers.Optimizer
         }
         private TesterDataType _typeTesterData;
 
+        public bool DividendsIsOn
+        {
+            get { return _dividendsIsOn; }
+            set
+            {
+                if (value == _dividendsIsOn)
+                {
+                    return;
+                }
+
+                _dividendsIsOn = value;
+                Save();
+            }
+        }
+        private bool _dividendsIsOn;
+
         private void Load()
         {
             if (!File.Exists(@"Engine\" + _name + @"OptimizerDataStorage.txt"))
@@ -108,6 +124,11 @@ namespace OsEngine.Market.Servers.Optimizer
                     Enum.TryParse(reader.ReadLine(), out _typeTesterData);
                     Enum.TryParse(reader.ReadLine(), out _sourceDataType);
                     _pathToFolder = reader.ReadLine();
+
+                    if(reader.EndOfStream == false)
+                    {
+                        _dividendsIsOn = Convert.ToBoolean(reader.ReadLine());
+                    }
 
                     reader.Close();
                 }
@@ -128,6 +149,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     writer.WriteLine(_typeTesterData);
                     writer.WriteLine(_sourceDataType);
                     writer.WriteLine(_pathToFolder);
+                    writer.WriteLine(_dividendsIsOn);
                     writer.Close();
                 }
             }

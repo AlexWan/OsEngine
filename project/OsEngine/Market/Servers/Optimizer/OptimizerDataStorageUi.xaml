@@ -58,6 +58,15 @@
                     <WindowsFormsHost Name="Host" Foreground="Black" Margin="0,10,0,0" />
                 </Grid>
             </TabItem>
+            <TabItem Name="LabelTabItemDividends" Header=" Dividends " FontSize="14">
+                <Grid >
+                    <CheckBox Name="CheckBoxDividendsIsOn" Content="Is On" Margin="184,65,0,0" HorizontalAlignment="Left" Width="131" Height="23" VerticalAlignment="Top"/>
+                    <Label Name="LabelDividendsPaymentTableHeader" Content="Выплаты" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top"/>
+                    <Button Name="ButtonOpenDataBaseDividends" Content="Open data base" HorizontalAlignment="Right" Margin="0,63,164,0" VerticalAlignment="Top" Width="149" Click="ButtonOpenDataBaseDividends_Click" />
+                    <Button Name="ButtonDivsUpdateBase" Content="Update data base" HorizontalAlignment="Right" Margin="0,63,10,0" VerticalAlignment="Top" Width="149" Click="ButtonDivsUpdateBase_Click" />
+
+                </Grid>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

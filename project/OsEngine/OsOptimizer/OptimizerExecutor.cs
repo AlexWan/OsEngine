@@ -1009,6 +1009,8 @@ namespace OsEngine.OsOptimizer
 
             try
             {
+                server.MyRobot = bot;
+
                 for (int i = 0; i < parameters.Count; i++)
                 {
                     IIStrategyParameter par = null;

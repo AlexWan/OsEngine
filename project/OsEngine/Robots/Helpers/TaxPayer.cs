@@ -501,6 +501,11 @@ namespace OsEngine.Robots.Helpers
                             continue;
                         }
 
+                        if (IsDividendPosition(curJournal.CloseAllPositions[i2]))
+                        {
+                            continue;
+                        }
+
                         if (IsCommodityFuture(curJournal.CloseAllPositions[i2]))
                         {
                             profitBotCommodity += curJournal.CloseAllPositions[i2].ProfitPortfolioAbs;
@@ -620,6 +625,23 @@ namespace OsEngine.Robots.Helpers
 
                 taxBot.TabsSimple[0].OrderFakeExecute(closeOrder, new DateTime(year, 12, 31, 23, 59, 59));
             }
+        }
+
+        private bool IsDividendPosition(Position position)
+        {
+            if (position == null)
+            {
+                return false;
+            }
+
+            string securityName = position.SecurityName;
+
+            if (string.IsNullOrWhiteSpace(securityName))
+            {
+                return false;
+            }
+
+            return securityName.EndsWith("_divs");
         }
 
         private bool IsCommodityFuture(Position position)

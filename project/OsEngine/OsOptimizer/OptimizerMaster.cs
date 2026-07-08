@@ -500,6 +500,7 @@ namespace OsEngine.OsOptimizer
             }
 
             ServerToTestBot = ServerMaster.CreateNextOptimizerServer(Storage, -1, 10000);
+            ServerToTestBot.MyRobot = BotToTest;
         }
 
         public void CopyManualSupportSettings(BotManualControl manualControlTo)
