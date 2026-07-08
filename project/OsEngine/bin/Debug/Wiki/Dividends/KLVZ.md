@@ -5,14 +5,14 @@
 | Field | Value |
 |---|---|
 | Security | KLVZ |
-| LastUpdated | 06.07.2026 |
+| LastUpdated | 08.07.2026 |
 | Source | https://smart-lab.ru/q/KLVZ/dividend/ |
 
 ## Historical Dividends
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2024 | 02.07.2025 | 0.05 | 1.4 |
+| 2024 | 01.07.2025 | 0.05 | 1.4 |
 
 ## Future Registry Close Dates
 

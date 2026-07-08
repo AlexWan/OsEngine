@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -24,6 +26,14 @@ namespace OsEngine.Wiki
 
         private static readonly WikiDividendsApi DividendsApi = new WikiDividendsApi();
         private static readonly WikiSecuritiesApi SecuritiesApi = new WikiSecuritiesApi();
+
+        private static readonly object _updateLock = new object();
+        private static bool _isUpdating;
+
+        /// <summary>
+        /// Returns true if dividend data update is currently in progress.
+        /// </summary>
+        public static bool IsUpdating => _isUpdating;
 
         private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
         {
@@ -175,6 +185,96 @@ namespace OsEngine.Wiki
                     matches = new List<WikiDividendRecord>(),
                     count = 0
                 };
+            }
+        }
+
+        public static void UpdateDividendsBase()
+        {
+            lock (_updateLock)
+            {
+                if (_isUpdating)
+                {
+                    ServerMaster.SendNewLogMessage("Dividend data update is already in progress", LogMessageType.System);
+                    return;
+                }
+
+                _isUpdating = true;
+            }
+
+            try
+            {
+                ServerMaster.SendNewLogMessage("Started updating dividend data", LogMessageType.System);
+
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string updaterPath = Path.GetFullPath(
+                    Path.Combine(baseDir, "..", "..", "..", "Tests", "DividendsUpdater", "bin", "Debug", "net10.0-windows", "DividendsUpdater.exe"));
+
+                if (!File.Exists(updaterPath))
+                {
+                    updaterPath = FindDividendsUpdater(baseDir);
+                }
+
+                if (!File.Exists(updaterPath))
+                {
+                    ServerMaster.SendNewLogMessage("DividendsUpdater.exe not found", LogMessageType.Error);
+                    return;
+                }
+
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = updaterPath,
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                };
+
+                using (Process process = Process.Start(startInfo))
+                {
+                    if (process == null)
+                    {
+                        ServerMaster.SendNewLogMessage("Failed to start DividendsUpdater", LogMessageType.Error);
+                        return;
+                    }
+
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                    {
+                        ServerMaster.SendNewLogMessage($"DividendsUpdater exited with code {process.ExitCode}", LogMessageType.Error);
+                    }
+                    else
+                    {
+                        WikiDividendsApi.ClearCache();
+                        ServerMaster.SendNewLogMessage("Finished updating dividend data", LogMessageType.System);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage($"WikiMaster.UpdateDividendsBase error: {error}", LogMessageType.Error);
+            }
+            finally
+            {
+                _isUpdating = false;
+            }
+        }
+
+        private static string FindDividendsUpdater(string baseDir)
+        {
+            try
+            {
+                string testsDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "Tests"));
+
+                if (!Directory.Exists(testsDir))
+                {
+                    return string.Empty;
+                }
+
+                string[] files = Directory.GetFiles(testsDir, "DividendsUpdater.exe", SearchOption.AllDirectories);
+                return files.Length > 0 ? files[0] : string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
 

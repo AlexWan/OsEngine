@@ -57,7 +57,8 @@ public class SmartLabParser : IDisposable
                     continue;
                 }
 
-                string cutOffDateText = StripHtml(cells[2]).Trim();
+                // cells[1] = "дата Т-1" — last day to be in position for the dividend.
+                string cutOffDateText = StripHtml(cells[1]).Trim();
                 string periodText = StripHtml(cells[3]).Trim();
                 string dividendText = StripHtml(cells[4]).Trim();
                 string yieldText = StripHtml(cells[6]).Trim();

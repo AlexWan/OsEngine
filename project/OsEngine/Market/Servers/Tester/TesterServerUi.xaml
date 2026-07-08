@@ -93,6 +93,16 @@
                     <WindowsFormsHost Name="Host" Foreground="Black" Margin="0,10,0,0" />
                 </Grid>
             </TabItem>
+            <TabItem Name="LabelTabItemDividends" Header=" Dividends " FontSize="14">
+                <Grid>
+                    <CheckBox Name="CheckBoxDividendsIsOn" Content="Is On" Margin="184,10,0,0" HorizontalAlignment="Left" Width="131" Height="23" VerticalAlignment="Top"/>
+                    <WindowsFormsHost Name="HostDividends" Foreground="Black" Margin="0,38,0,0" />
+                    <Label Name="LabelDividendsPaymentTableHeader" Content="Выплаты" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <Button Name="ButtonOpenDataBaseDividends" Content="Open data base" HorizontalAlignment="Right" Margin="0,8,164,0" VerticalAlignment="Top" Width="149" Click="ButtonOpenDataBaseDividends_Click"/>
+                    <Button Name="ButtonDivsUpdateBase" Content="Update data base" HorizontalAlignment="Right" Margin="0,8,10,0" VerticalAlignment="Top" Width="149" Click="ButtonDivsUpdateBase_Click"/>
+                </Grid>
+            </TabItem>
+
         </TabControl>
         <Button Grid.Row="0" Name="ButtonGoTo" Content="&gt;&gt;go to" Margin="0,55,5,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonGoTo_Click" Height="25"/>
         <Button Grid.Row="0" Name="ButtonNextPos" Content="&gt;&gt;next pos" Margin="0,55,99,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonNextPos_Click" Height="25"/>

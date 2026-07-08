@@ -34,6 +34,23 @@ namespace OsEngine.MCP.Modules
 
         #endregion
 
+        #region Cache management
+
+        /// <summary>
+        /// Clears the in-memory cache of dividend files.
+        /// Next call will reload files from disk.
+        /// </summary>
+        public static void ClearCache()
+        {
+            lock (_cacheLocker)
+            {
+                _cache = null;
+                _cacheLoaded = false;
+            }
+        }
+
+        #endregion
+
         #region IMcpToolProvider
 
         public List<McpTool> GetTools()

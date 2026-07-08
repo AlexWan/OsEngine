@@ -5,9 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -18,6 +21,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
 using OsEngine.Logging;
+using OsEngine.Wiki;
 using Color = System.Drawing.Color;
 
 namespace OsEngine.Market.Servers.Tester
@@ -85,6 +89,7 @@ namespace OsEngine.Market.Servers.Tester
             _server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
             _server.TestRegimeChangeEvent += _server_TestRegimeChangeEvent;
             _server.TestingFastEvent += _server_TestingFastEvent;
+            _server.DividendPaymentsChangedEvent += _server_DividendPaymentsChangedEvent;
 
             CreateGrid();
             PaintGrid();
@@ -173,6 +178,22 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxRemoveTrades.IsChecked = _server.RemoveTradesFromMemory;
             CheckBoxRemoveTrades.Click += CheckBoxRemoveTrades_Click;
 
+            // dividends
+
+            CreateDividendsGrid();
+            PaintDividendsGrid();
+
+            if (_server.DividendsIsOn)
+            {
+                CheckBoxDividendsIsOn.IsChecked = true;
+            }
+            else
+            {
+                CheckBoxDividendsIsOn.IsChecked = false;
+            }
+
+            CheckBoxDividendsIsOn.Click += CheckBoxDividendsIsOn_Click;
+
             // data for test
 
             ComboBoxDataType.Items.Add(TesterDataType.Candle);
@@ -217,6 +238,11 @@ namespace OsEngine.Market.Servers.Tester
             ButtonNextPos.Content = OsLocalization.Market.Label62;
             ButtonGoTo.Content = OsLocalization.Market.Label63;
             CheckBoxRemoveTrades.Content = OsLocalization.Market.Label130;
+            LabelTabItemDividends.Header = OsLocalization.Market.LabelTabItemDividends;
+            LabelDividendsPaymentTableHeader.Content = OsLocalization.Market.Label332;
+            CheckBoxDividendsIsOn.Content = OsLocalization.Market.LabelDividendsIsOn;
+            ButtonOpenDataBaseDividends.Content = OsLocalization.Market.Label337;
+            ButtonDivsUpdateBase.Content = OsLocalization.Market.Label338;
 
             if (InteractiveInstructions.TesterLightPosts.AllInstructionsInClass == null
              || InteractiveInstructions.TesterLightPosts.AllInstructionsInClass.Count == 0)
@@ -236,6 +262,10 @@ namespace OsEngine.Market.Servers.Tester
 
             Thread profitChartUpdater = new Thread(ResizeWorker);
             profitChartUpdater.Start();
+
+            Thread dividendsGridUpdater = new Thread(DividendsGridPainterWorkerPlace);
+            dividendsGridUpdater.IsBackground = true;
+            dividendsGridUpdater.Start();
 
             this.Activate();
             this.Focus();
@@ -359,6 +389,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 CheckBoxOnOffMarketPortfolio.Click -= CheckBoxOnOffMarketPortfolio_Checked;
                 CheckBoxRemoveTrades.Click -= CheckBoxRemoveTrades_Click;
+                CheckBoxDividendsIsOn.Click -= CheckBoxDividendsIsOn_Click;
                 CheckBoxSlippageLimitOff.Checked -= CheckBoxSlippageLimitOff_Checked;
                 CheckBoxSlippageLimitOn.Checked -= CheckBoxSlippageLimitOn_Checked;
                 CheckBoxSlippageStopOff.Checked -= CheckBoxSlippageStopOff_Checked;
@@ -372,6 +403,7 @@ namespace OsEngine.Market.Servers.Tester
                     _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
                     _server.TestRegimeChangeEvent -= _server_TestRegimeChangeEvent;
                     _server.TestingFastEvent -= _server_TestingFastEvent;
+                    _server.DividendPaymentsChangedEvent -= _server_DividendPaymentsChangedEvent;
                     _server.LoadSecurityEvent -= _server_LoadSecurityEvent;
                 }
 
@@ -2096,5 +2128,212 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         #endregion
+
+        #region Dividends
+
+        private DataGridView _gridDividends;
+        private bool _needToRePaintDividendsGrid;
+
+        private void CheckBoxDividendsIsOn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _server.DividendsIsOn = CheckBoxDividendsIsOn.IsChecked.Value;
+            }
+            catch (Exception ex)
+            {
+                _server?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonOpenDataBaseDividends_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string path = AppDomain.CurrentDomain.BaseDirectory + "Wiki\\Dividends";
+
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = path,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                _server?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private async void ButtonDivsUpdateBase_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (WikiMaster.IsUpdating)
+                {
+                    return;
+                }
+
+                AcceptDialogUi dialog = new AcceptDialogUi(OsLocalization.Market.Label339);
+                dialog.ShowDialog();
+
+                if (!dialog.UserAcceptAction)
+                {
+                    return;
+                }
+
+                ButtonDivsUpdateBase.IsEnabled = false;
+
+                await Task.Run(() => WikiMaster.UpdateDividendsBase());
+
+                if (IsLoaded)
+                {
+                    ButtonDivsUpdateBase.IsEnabled = true;
+                    PaintDividendsGrid();
+                }
+            }
+            catch (Exception error)
+            {
+                if (IsLoaded)
+                {
+                    ButtonDivsUpdateBase.IsEnabled = true;
+                }
+
+                _server?.SendLogMessage($"ButtonDivsUpdateBase_Click error: {error}", LogMessageType.Error);
+            }
+        }
+
+        public void CreateDividendsGrid()
+        {
+            _gridDividends = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
+            _gridDividends.ScrollBars = ScrollBars.Vertical;
+            _gridDividends.Dock = DockStyle.Fill;
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = _gridDividends.DefaultCellStyle;
+
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = OsLocalization.Market.Label333;
+            column0.ReadOnly = true;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column0.FillWeight = 25;
+            column0.MinimumWidth = 80;
+            _gridDividends.Columns.Add(column0);
+
+            DataGridViewColumn column1 = new DataGridViewColumn();
+            column1.CellTemplate = cell0;
+            column1.HeaderText = OsLocalization.Market.Label334;
+            column1.ReadOnly = true;
+            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column1.FillWeight = 20;
+            column1.MinimumWidth = 90;
+            _gridDividends.Columns.Add(column1);
+
+            DataGridViewColumn column2 = new DataGridViewColumn();
+            column2.CellTemplate = cell0;
+            column2.HeaderText = OsLocalization.Market.Label335;
+            column2.ReadOnly = true;
+            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column2.FillWeight = 25;
+            column2.MinimumWidth = 90;
+            _gridDividends.Columns.Add(column2);
+
+            DataGridViewColumn column3 = new DataGridViewColumn();
+            column3.CellTemplate = cell0;
+            column3.HeaderText = OsLocalization.Market.Label336;
+            column3.ReadOnly = true;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column3.FillWeight = 30;
+            _gridDividends.Columns.Add(column3);
+
+            HostDividends.Child = _gridDividends;
+        }
+
+        public void PaintDividendsGrid()
+        {
+            try
+            {
+                if (_gridDividends.InvokeRequired)
+                {
+                    _gridDividends.Invoke(new Action(PaintDividendsGrid));
+                    return;
+                }
+
+                _gridDividends.Rows.Clear();
+
+                List<DividendInfo> payments;
+
+                lock (_server.DividendPayments)
+                {
+                    payments = new List<DividendInfo>(_server.DividendPayments);
+                }
+
+                payments = payments.OrderByDescending(p => p.PaymentDate).ToList();
+
+                for (int i = 0; i < payments.Count; i++)
+                {
+                    DividendInfo payment = payments[i];
+
+                    DataGridViewRow row = new DataGridViewRow();
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                    row.Cells[0].Value = payment.SecurityName;
+
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                    row.Cells[1].Value = payment.PaymentDate.ToString("dd.MM.yyyy", _currentCulture);
+
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                    row.Cells[2].Value = payment.Sum.ToString(_currentCulture);
+
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                    row.Cells[3].Value = payment.BotName;
+
+                    _gridDividends.Rows.Add(row);
+                }
+            }
+            catch (Exception error)
+            {
+                try
+                {
+                    _server.SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        private void _server_DividendPaymentsChangedEvent()
+        {
+            _needToRePaintDividendsGrid = true;
+        }
+
+        private void DividendsGridPainterWorkerPlace()
+        {
+            while (true)
+            {
+                Thread.Sleep(5000);
+
+                if (_uiIsClosed)
+                {
+                    return;
+                }
+
+                if (_needToRePaintDividendsGrid)
+                {
+                    _needToRePaintDividendsGrid = false;
+                    PaintDividendsGrid();
+                }
+            }
+        }
+
+        #endregion
+
     }
 }

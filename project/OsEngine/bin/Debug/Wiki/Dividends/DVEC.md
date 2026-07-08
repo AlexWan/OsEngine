@@ -5,15 +5,15 @@
 | Field | Value |
 |---|---|
 | Security | DVEC |
-| LastUpdated | 06.07.2026 |
+| LastUpdated | 08.07.2026 |
 | Source | https://smart-lab.ru/q/DVEC/dividend/ |
 
 ## Historical Dividends
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2024 | 25.06.2025 | 0.1666772938 | 7.4 |
-| 2025 | 25.06.2026 | 0.1040391366 | 6.8 |
+| 2024 | 24.06.2025 | 0.1666772938 | 7.4 |
+| 2025 | 24.06.2026 | 0.1040391366 | 6.8 |
 
 ## Future Registry Close Dates
 

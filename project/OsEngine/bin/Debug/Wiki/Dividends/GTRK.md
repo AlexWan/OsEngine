@@ -5,14 +5,14 @@
 | Field | Value |
 |---|---|
 | Security | GTRK |
-| LastUpdated | 06.07.2026 |
+| LastUpdated | 08.07.2026 |
 | Source | https://smart-lab.ru/q/GTRK/dividend/ |
 
 ## Historical Dividends
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2019 | 28.06.2019 | 1.72 | 2.5 |
+| 2019 | 26.06.2019 | 1.72 | 2.5 |
 
 ## Future Registry Close Dates
 

@@ -2043,5 +2043,49 @@ namespace OsEngine.Language
         public string Label331 => OsLocalization.ConvertToLocString(
          "Eng:Position synchronization aligns the volume of the instrument between the copy journal and the real slave portfolio. If the difference is non-zero, click the Sync button in the row - a market order for the difference will be sent._" +
          "Ru:Синхронизация позиций выравнивает объём по инструменту между копи-журналом и реальным ведомым портфелем. Если разница не нулевая, нажмите кнопку Sync в строке — будет отправлен рыночный ордер на разницу._");
+
+        public string Label332 => OsLocalization.ConvertToLocString(
+         "Eng:Dividends_" +
+         "Ru:Дивиденды_");
+
+        public string Label333 => OsLocalization.ConvertToLocString(
+         "Eng:Security_" +
+         "Ru:Бумага_");
+
+        public string Label334 => OsLocalization.ConvertToLocString(
+         "Eng:Date_" +
+         "Ru:Дата_");
+
+        public string Label335 => OsLocalization.ConvertToLocString(
+         "Eng:Sum_" +
+         "Ru:Сумма_");
+
+        public string Label336 => OsLocalization.ConvertToLocString(
+         "Eng:Bot_" +
+         "Ru:Робот_");
+
+        public string Label337 => OsLocalization.ConvertToLocString(
+         "Eng:Open data base_" +
+         "Ru:Открыть базу данных_");
+
+        public string Label338 => OsLocalization.ConvertToLocString(
+         "Eng:Update data base_" +
+         "Ru:Обновить базу данных_");
+
+        public string Label339 => OsLocalization.ConvertToLocString(
+         "Eng:Updating dividend data can take 5 minutes or more and requires a stable internet connection. Continue?_" +
+         "Ru:Обновление данных по дивидендам может занять 5 и более минут и требует стабильного интернета. Продолжить?_");
+
+        public string Label340 => OsLocalization.ConvertToLocString(
+         "Eng:Updating dividend data. Please wait..._" +
+         "Ru:Обновление данных по дивидендам. Пожалуйста, подождите..._");
+
+        public string LabelTabItemDividends => OsLocalization.ConvertToLocString(
+         "Eng: Dividends _" +
+         "Ru: Дивиденды _");
+
+        public string LabelDividendsIsOn => OsLocalization.ConvertToLocString(
+         "Eng:Is On_" +
+         "Ru:Включено_");
     }
 }

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | BTBR |
-| LastUpdated | 06.07.2026 |
+| LastUpdated | 08.07.2026 |
 | Source | https://smart-lab.ru/q/BTBR/dividend/ |
 
 ## Historical Dividends
@@ -17,4 +17,4 @@
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2026 | 11.07.2026 | 5.19 | 4.1 |
+| 2026 | 09.07.2026 | 5.19 | 4.2 |
