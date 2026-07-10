@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | AVAN |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 10.07.2026 |
 | Source | https://smart-lab.ru/q/AVAN/dividend/ |
 
 ## Historical Dividends

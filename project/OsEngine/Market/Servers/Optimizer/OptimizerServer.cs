@@ -40,6 +40,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             DividendPayments = new List<DividendInfo>();
             _processedDividendKeys = new HashSet<string>();
+            _pendingDividendPayments = new List<PendingDividendPayment>();
 
             CreatePortfolio(portfolioStratValue);
             NumberServer = num;
@@ -186,6 +187,11 @@ namespace OsEngine.Market.Servers.Optimizer
             if (_processedDividendKeys != null)
             {
                 _processedDividendKeys.Clear();
+            }
+
+            if (_pendingDividendPayments != null)
+            {
+                _pendingDividendPayments.Clear();
             }
 
             TimeNow = _storages[0].TimeStart;
@@ -351,6 +357,12 @@ namespace OsEngine.Market.Servers.Optimizer
                         {
                             _processedDividendKeys.Clear();
                             _processedDividendKeys = null;
+                        }
+
+                        if (_pendingDividendPayments != null)
+                        {
+                            _pendingDividendPayments.Clear();
+                            _pendingDividendPayments = null;
                         }
 
                         return;
@@ -2195,6 +2207,10 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private HashSet<string> _processedDividendKeys;
 
+        private List<PendingDividendPayment> _pendingDividendPayments;
+
+        private const int DividendsPaymentDelayDays = 7;
+
         private DateTime _lastCheckDividendDay;
 
         private void CheckDividends(DateTime currentServerTime)
@@ -2217,6 +2233,8 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
 
                 _lastCheckDividendDay = currentServerTime;
+
+                ProcessPendingDividendPayments(currentServerTime);
 
                 List<BotTabSimple> tabs = GetAllBotTabs(MyRobot);
                 Dictionary<string, WikiDividendRecord> tickerDividendRecordCache = new Dictionary<string, WikiDividendRecord>();
@@ -2286,8 +2304,23 @@ namespace OsEngine.Market.Servers.Optimizer
                             continue;
                         }
 
-                        ProcessDividendForPosition(MyRobot, tab, position, dividendRecord, currentServerTime);
+                        decimal dividendSum = ProcessDividendForPosition(MyRobot, tab, position, dividendRecord, currentServerTime);
                         _processedDividendKeys.Add(key);
+
+                        if (dividendSum > 0)
+                        {
+                            _pendingDividendPayments.Add(new PendingDividendPayment
+                            {
+                                Ticker = ticker,
+                                BotName = MyRobot.NameStrategyUniq,
+                                RegistryCloseDate = exDivDate,
+                                PositionCreateDate = currentServerTime,
+                                ExpectedPaymentDate = exDivDate.AddDays(DividendsPaymentDelayDays),
+                                Volume = position.OpenVolume,
+                                Sum = dividendSum,
+                                DividendRecord = dividendRecord
+                            });
+                        }
                     }
                 }
             }
@@ -2357,7 +2390,7 @@ namespace OsEngine.Market.Servers.Optimizer
             return result;
         }
 
-        private void ProcessDividendForPosition(BotPanel bot, BotTabSimple tab, Position position,
+        private decimal ProcessDividendForPosition(BotPanel bot, BotTabSimple tab, Position position,
             WikiDividendRecord dividendRecord, DateTime currentServerTime)
         {
             try
@@ -2367,7 +2400,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 if (string.IsNullOrWhiteSpace(ticker)
                     || dividendRecord == null)
                 {
-                    return;
+                    return 0m;
                 }
 
                 decimal currentPrice = tab.PriceBestAsk;
@@ -2384,21 +2417,21 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (currentPrice == 0)
                 {
-                    return;
+                    return 0m;
                 }
 
                 decimal baseVolume = position.OpenVolume;
 
                 if (baseVolume == 0)
                 {
-                    return;
+                    return 0m;
                 }
 
                 decimal yield = dividendRecord.dividend_yield;
 
                 if (yield == 0)
                 {
-                    return;
+                    return 0m;
                 }
 
                 decimal yieldAfterTax = Math.Round(yield * 0.87m, 6);
@@ -2407,22 +2440,59 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (syntheticVolume == 0)
                 {
-                    return;
+                    return 0m;
                 }
 
                 CreateDividendPosition(bot, tab, position, currentPrice, syntheticVolume, yieldAfterTax, currentServerTime);
 
                 decimal dividendSum = Math.Round(baseVolume * currentPrice * yieldAfterTax / 100, 2);
 
+                return dividendSum;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"ProcessDividendForPosition error for {position.SecurityName}: {error}", LogMessageType.Error);
+                return 0m;
+            }
+        }
+
+        private void ProcessPendingDividendPayments(DateTime currentServerTime)
+        {
+            try
+            {
+                for (int i = _pendingDividendPayments.Count - 1; i >= 0; i--)
+                {
+                    PendingDividendPayment pending = _pendingDividendPayments[i];
+
+                    if (currentServerTime.Date >= pending.ExpectedPaymentDate)
+                    {
+                        AddDividendToPortfolio(pending, currentServerTime);
+                        _pendingDividendPayments.RemoveAt(i);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"ProcessPendingDividendPayments error: {error}", LogMessageType.Error);
+            }
+        }
+
+        private void AddDividendToPortfolio(PendingDividendPayment pending, DateTime currentServerTime)
+        {
+            try
+            {
+                this.AddProfit(pending.Sum);
+
                 lock (DividendPayments)
                 {
                     DividendPayments.Add(new DividendInfo
                     {
                         PaymentDate = currentServerTime,
-                        SecurityName = ticker,
-                        BotName = bot.NameStrategyUniq,
-                        Volume = baseVolume,
-                        Sum = dividendSum
+                        PositionCreateDate = pending.PositionCreateDate,
+                        SecurityName = pending.Ticker,
+                        BotName = pending.BotName,
+                        Volume = pending.Volume,
+                        Sum = pending.Sum
                     });
                 }
 
@@ -2430,7 +2500,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
             catch (Exception error)
             {
-                SendLogMessage($"ProcessDividendForPosition error for {position.SecurityName}: {error}", LogMessageType.Error);
+                SendLogMessage($"AddDividendToPortfolio error for {pending.Ticker}: {error}", LogMessageType.Error);
             }
         }
 
@@ -2995,5 +3065,17 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
+    }
+
+    internal class PendingDividendPayment
+    {
+        public string Ticker;
+        public string BotName;
+        public DateTime RegistryCloseDate;
+        public DateTime PositionCreateDate;
+        public DateTime ExpectedPaymentDate;
+        public decimal Volume;
+        public decimal Sum;
+        public WikiDividendRecord DividendRecord;
     }
 }

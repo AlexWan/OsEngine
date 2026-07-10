@@ -49,12 +49,6 @@ public static class AppSettingsService
 
     private static string GetDefaultOsEnginePath()
     {
-        string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        string defaultPath = Path.GetFullPath(Path.Combine(
-            baseDirectory,
-            "..", "..", "..", "..", "..",
-            "OsEngine", "bin", "Debug", "OsEngine.exe"));
-
-        return defaultPath;
+        return OsEnginePathResolver.Resolve(string.Empty);
     }
 }

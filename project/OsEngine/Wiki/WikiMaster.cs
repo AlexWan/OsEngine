@@ -206,12 +206,12 @@ namespace OsEngine.Wiki
                 ServerMaster.SendNewLogMessage("Started updating dividend data", LogMessageType.System);
 
                 string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                string updaterPath = Path.GetFullPath(
-                    Path.Combine(baseDir, "..", "..", "..", "Tests", "DividendsUpdater", "bin", "Debug", "net10.0-windows", "DividendsUpdater.exe"));
+                string updaterPath = FindDividendsUpdater(baseDir);
 
                 if (!File.Exists(updaterPath))
                 {
-                    updaterPath = FindDividendsUpdater(baseDir);
+                    updaterPath = Path.GetFullPath(
+                        Path.Combine(baseDir, "..", "..", "..", "Tests", "DividendsUpdater", "bin", "Debug", "net10.0-windows", "DividendsUpdater.exe"));
                 }
 
                 if (!File.Exists(updaterPath))
@@ -262,6 +262,13 @@ namespace OsEngine.Wiki
         {
             try
             {
+                string localUpdater = Path.GetFullPath(Path.Combine(baseDir, "DividendsUpdater.exe"));
+
+                if (File.Exists(localUpdater))
+                {
+                    return localUpdater;
+                }
+
                 string testsDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "Tests"));
 
                 if (!Directory.Exists(testsDir))

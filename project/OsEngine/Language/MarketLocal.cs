@@ -2080,6 +2080,10 @@ namespace OsEngine.Language
          "Eng:Updating dividend data. Please wait..._" +
          "Ru:Обновление данных по дивидендам. Пожалуйста, подождите..._");
 
+        public string LabelPaymentDate => OsLocalization.ConvertToLocString(
+         "Eng:Payment date_" +
+         "Ru:Дата выплаты_");
+
         public string LabelTabItemDividends => OsLocalization.ConvertToLocString(
          "Eng: Dividends _" +
          "Ru: Дивиденды _");

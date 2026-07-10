@@ -17,6 +17,16 @@ public static class Program
                 AppSettingsService.Save(settings);
             }
 
+            string resolvedOsEnginePath = OsEnginePathResolver.Resolve(settings.OsEnginePath);
+
+            if (string.IsNullOrWhiteSpace(resolvedOsEnginePath))
+            {
+                Console.WriteLine("[Error] OsEngine.exe not found. Cannot determine dividends output folder.");
+                return 1;
+            }
+
+            settings.OsEnginePath = resolvedOsEnginePath;
+
             List<string>? tickers = null;
             int tickerIndex = Array.IndexOf(args, "--ticker");
 

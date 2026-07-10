@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | AFLT |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 10.07.2026 |
 | Source | https://smart-lab.ru/q/AFLT/dividend/ |
 
 ## Historical Dividends
@@ -21,4 +21,4 @@
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 16.07.2026 | 5.29 | 13.7 |
+| 2025 | 16.07.2026 | 5.29 | 14.4 |

@@ -19,6 +19,11 @@ namespace OsEngine.Entity
         public DateTime PaymentDate { get; set; }
 
         /// <summary>
+        /// Position creation date / Дата создания синтетической позиции
+        /// </summary>
+        public DateTime PositionCreateDate { get; set; }
+
+        /// <summary>
         /// Security name / Название инструмента
         /// </summary>
         public string SecurityName { get; set; }

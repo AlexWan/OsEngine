@@ -6991,11 +6991,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
                             + position.PositionSpecification, LogMessageType.Trade);
 
-                            ((TesterServer)_connector.MyServer).AddProfit(profit);
+                            if(position.SecurityName.EndsWith("_divs") == false)
+                            {
+                                ((TesterServer)_connector.MyServer).AddProfit(profit);
+                            }
                         }
                         else if (_connector.ServerType == ServerType.Optimizer)
                         {
-                            ((OptimizerServer)_connector.MyServer).AddProfit(profit);
+                            if (position.SecurityName.EndsWith("_divs") == false)
+                            {
+                                ((OptimizerServer)_connector.MyServer).AddProfit(profit);
+                            }
                         }
                     }
                 }

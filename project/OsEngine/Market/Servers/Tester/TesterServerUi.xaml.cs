@@ -2237,7 +2237,7 @@ namespace OsEngine.Market.Servers.Tester
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = OsLocalization.Market.Label335;
+            column2.HeaderText = OsLocalization.Market.LabelPaymentDate;
             column2.ReadOnly = true;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             column2.FillWeight = 25;
@@ -2246,11 +2246,21 @@ namespace OsEngine.Market.Servers.Tester
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
-            column3.HeaderText = OsLocalization.Market.Label336;
+            column3.HeaderText = OsLocalization.Market.Label335;
             column3.ReadOnly = true;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            column3.FillWeight = 30;
+            column3.FillWeight = 25;
+            column3.MinimumWidth = 90;
             _gridDividends.Columns.Add(column3);
+
+            DataGridViewColumn column4 = new DataGridViewColumn();
+            column4.CellTemplate = cell0;
+            column4.HeaderText = OsLocalization.Market.Label336;
+            column4.ReadOnly = true;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column4.FillWeight = 25;
+            column4.MinimumWidth = 90;
+            _gridDividends.Columns.Add(column4);
 
             HostDividends.Child = _gridDividends;
         }
@@ -2285,13 +2295,16 @@ namespace OsEngine.Market.Servers.Tester
                     row.Cells[0].Value = payment.SecurityName;
 
                     row.Cells.Add(new DataGridViewTextBoxCell());
-                    row.Cells[1].Value = payment.PaymentDate.ToString("dd.MM.yyyy", _currentCulture);
+                    row.Cells[1].Value = payment.PositionCreateDate.ToString("dd.MM.yyyy", _currentCulture);
 
                     row.Cells.Add(new DataGridViewTextBoxCell());
-                    row.Cells[2].Value = payment.Sum.ToString(_currentCulture);
+                    row.Cells[2].Value = payment.PaymentDate.ToString("dd.MM.yyyy", _currentCulture);
 
                     row.Cells.Add(new DataGridViewTextBoxCell());
-                    row.Cells[3].Value = payment.BotName;
+                    row.Cells[3].Value = payment.Sum.ToString(_currentCulture);
+
+                    row.Cells.Add(new DataGridViewTextBoxCell());
+                    row.Cells[4].Value = payment.BotName;
 
                     _gridDividends.Rows.Add(row);
                 }

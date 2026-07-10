@@ -7,4 +7,18 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <Target Name="CopyDividendsUpdaterToOsEngineBin" AfterTargets="Build">
+    <PropertyGroup>
+      <OsEngineBinDir>$(ProjectDir)..\..\OsEngine\bin\Debug\</OsEngineBinDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <UpdaterArtifacts Include="$(TargetDir)$(TargetName).exe" />
+      <UpdaterArtifacts Include="$(TargetDir)$(TargetName).dll" />
+      <UpdaterArtifacts Include="$(TargetDir)$(TargetName).runtimeconfig.json" />
+      <UpdaterArtifacts Include="$(TargetDir)$(TargetName).deps.json" />
+      <UpdaterArtifacts Include="$(TargetDir)$(TargetName).pdb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(UpdaterArtifacts)" DestinationFolder="$(OsEngineBinDir)" SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>
