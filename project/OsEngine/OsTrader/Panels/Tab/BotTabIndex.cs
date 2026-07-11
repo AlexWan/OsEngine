@@ -984,6 +984,37 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     _chartMaster.SetCandles(Candles);
 
+                    if(Candles.Count > 1
+                        && _chartMaster.Indicators != null 
+                        && _chartMaster.Indicators.Count > 0)
+                    {
+                        if (_lastStartCandle != DateTime.MinValue
+                            && _lastStartCandle != Candles[0].TimeStart)
+                        {
+                            // вызываем полное обновление индикаторов. Индекс сдвинулся
+
+                            for(int i = 0;i < _chartMaster.Indicators.Count;i++)
+                            {
+                                IIndicator indicator = _chartMaster.Indicators[i];
+
+                                if(indicator == null)
+                                {
+                                    continue;
+                                }
+
+                                string baseClass = indicator.GetType().BaseType.Name;
+
+                                if(baseClass == "Aindicator")
+                                {
+                                    Aindicator aIndicator = indicator as Aindicator;
+
+                                    aIndicator.Reload();
+                                }
+                            }
+                        }
+                        _lastStartCandle = Candles[0].TimeStart;
+                    }
+
                     if (SpreadChangeEvent != null && EventsIsOn == true)
                     {
                         SpreadChangeEvent(Candles);
@@ -995,6 +1026,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         private int _iteration = 0;
 
         DateTime _lastRecalculateTime = DateTime.MinValue;
+
+        private DateTime _lastStartCandle = DateTime.MinValue;
 
         /// <summary>
         /// recalculate values to index. Recursive function that parses the formula and calculates the index.
