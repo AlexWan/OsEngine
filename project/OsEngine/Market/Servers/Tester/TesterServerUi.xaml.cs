@@ -238,8 +238,8 @@ namespace OsEngine.Market.Servers.Tester
             ButtonNextPos.Content = OsLocalization.Market.Label62;
             ButtonGoTo.Content = OsLocalization.Market.Label63;
             CheckBoxRemoveTrades.Content = OsLocalization.Market.Label130;
+            LabelTabItemAccrualsAndCharge.Header = OsLocalization.Market.LabelAccrualsAndCharges;
             LabelTabItemDividends.Header = OsLocalization.Market.LabelTabItemDividends;
-            LabelDividendsPaymentTableHeader.Content = OsLocalization.Market.Label332;
             CheckBoxDividendsIsOn.Content = OsLocalization.Market.LabelDividendsIsOn;
             ButtonOpenDataBaseDividends.Content = OsLocalization.Market.Label337;
             ButtonDivsUpdateBase.Content = OsLocalization.Market.Label338;

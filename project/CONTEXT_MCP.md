@@ -1177,6 +1177,10 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 ./OsEngine.McpApi.TestStand.exe
 ```
 
+> **Важно:** стенд запускать только с **явного разрешения пользователя**.
+>
+> Стенд работает в foreground. При запуске из Kimi Shell он создаёт собственное видимое консольное окно, а вывод дублируется в это окно, в исходный stdout и в лог-файл `mcp-test-stand-yyyyMMdd-HHmmss.log` рядом с `.exe`. Запрещено использовать `run_in_background=true`. Длительность прогона — около 4 минут; дожидаться завершения через `TaskOutput(block=true)` или автоматическое уведомление.
+
 ### Аргументы командной строки
 
 | Аргумент | Описание |
@@ -1228,11 +1232,12 @@ ERRORS:            4/4 passed
 WIKI_ROBOTS:       6/6 passed
 WIKI_INDICATORS:   7/7 passed
 WIKI_SECURITIES:  12/12 passed
-DATA:             15/15 passed
-TESTER:           17/17 passed
+WIKI_DIVIDENDS:   12/12 passed
+DATA:             16/16 passed
+TESTER:           23/23 passed
 TERMINAL:         13/13 passed
 
-Total: 95/95 passed in 190.1s
+Total: 114/114 passed in 235.4s
 ```
 
 Если стенд запущен двойным кликом из проводника, окно консоли остаётся открытым до нажатия клавиши.

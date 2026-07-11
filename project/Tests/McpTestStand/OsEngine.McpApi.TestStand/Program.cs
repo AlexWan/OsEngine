@@ -8,19 +8,119 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
+using Microsoft.Win32.SafeHandles;
 using OsEngine.McpApi.TestStand.Tests;
 
 namespace OsEngine.McpApi.TestStand
 {
     class Program
     {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool FreeConsole();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool AllocConsole();
+
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetConsoleWindow();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool SetStdHandle(int nStdHandle, IntPtr hHandle);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern SafeFileHandle CreateFile(
+            string lpFileName,
+            uint dwDesiredAccess,
+            uint dwShareMode,
+            IntPtr lpSecurityAttributes,
+            uint dwCreationDisposition,
+            uint dwFlagsAndAttributes,
+            IntPtr hTemplateFile);
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        private const int SW_SHOW = 5;
+        private const int STD_OUTPUT_HANDLE = -11;
+        private const int STD_ERROR_HANDLE = -12;
+        private const uint GENERIC_WRITE = 0x40000000;
+        private const uint FILE_SHARE_WRITE = 0x00000002;
+        private const uint OPEN_EXISTING = 3;
+
         static int Main(string[] args)
         {
+            string logPath = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                $"mcp-test-stand-{DateTime.Now:yyyyMMdd-HHmmss}.log");
+
+            StreamWriter? fileWriter = null;
+            TextWriter? originalOut = null;
+            TextWriter? originalError = null;
+            SafeFileHandle? hConOut = null;
+
             try
             {
-                Console.OutputEncoding = System.Text.Encoding.UTF8;
-                Console.InputEncoding = System.Text.Encoding.UTF8;
+                Stream originalStdoutStream = Console.OpenStandardOutput();
+                Stream originalStderrStream = Console.OpenStandardError();
+                originalOut = new StreamWriter(originalStdoutStream, Encoding.UTF8) { AutoFlush = true };
+                originalError = new StreamWriter(originalStderrStream, Encoding.UTF8) { AutoFlush = true };
+
+                CleanupOldLogFiles(logPath);
+
+                fileWriter = new StreamWriter(logPath, false, Encoding.UTF8)
+                {
+                    AutoFlush = true
+                };
+
+                FreeConsole();
+                AllocConsole();
+
+                hConOut = CreateFile(
+                    "CONOUT$",
+                    GENERIC_WRITE,
+                    FILE_SHARE_WRITE,
+                    IntPtr.Zero,
+                    OPEN_EXISTING,
+                    0,
+                    IntPtr.Zero);
+
+                if (hConOut != null && !hConOut.IsInvalid)
+                {
+                    SetStdHandle(STD_OUTPUT_HANDLE, hConOut.DangerousGetHandle());
+                    SetStdHandle(STD_ERROR_HANDLE, hConOut.DangerousGetHandle());
+                }
+
+                IntPtr hWnd = GetConsoleWindow();
+                if (hWnd != IntPtr.Zero)
+                {
+                    ShowWindow(hWnd, SW_SHOW);
+                    SetForegroundWindow(hWnd);
+                }
+
+                Console.Title = "OsEngine MCP API Test Stand";
+                Console.OutputEncoding = Encoding.UTF8;
+                Console.InputEncoding = Encoding.UTF8;
+
+                TextWriter consoleOut = hConOut != null && !hConOut.IsInvalid
+                    ? new StreamWriter(new FileStream(hConOut, FileAccess.Write), Encoding.UTF8) { AutoFlush = true }
+                    : new StreamWriter(Console.OpenStandardOutput(), Encoding.UTF8) { AutoFlush = true };
+
+                TextWriter consoleError = hConOut != null && !hConOut.IsInvalid
+                    ? new StreamWriter(new FileStream(hConOut, FileAccess.Write), Encoding.UTF8) { AutoFlush = true }
+                    : new StreamWriter(Console.OpenStandardError(), Encoding.UTF8) { AutoFlush = true };
+
+                var multiWriter = new MultiTextWriter(originalOut, consoleOut, fileWriter);
+                var multiError = new MultiTextWriter(originalError, consoleError, fileWriter);
+
+                Console.SetOut(multiWriter);
+                Console.SetError(multiError);
+
+                Console.WriteLine($"Log file: {logPath}");
 
                 RunTestStand(args);
                 return 0;
@@ -29,6 +129,91 @@ namespace OsEngine.McpApi.TestStand
             {
                 Console.WriteLine($"Test stand failed: {error}");
                 return 1;
+            }
+            finally
+            {
+                if (originalOut != null)
+                {
+                    try { Console.SetOut(originalOut); } catch { }
+                }
+                if (originalError != null)
+                {
+                    try { Console.SetError(originalError); } catch { }
+                }
+                fileWriter?.Dispose();
+                hConOut?.Dispose();
+            }
+        }
+
+        private static void CleanupOldLogFiles(string currentLogPath)
+        {
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                foreach (string oldLog in Directory.GetFiles(baseDir, "mcp-test-stand-*.log"))
+                {
+                    if (string.Equals(oldLog, currentLogPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        File.Delete(oldLog);
+                    }
+                    catch
+                    {
+                        // ignore files that are locked or otherwise undeletable
+                    }
+                }
+            }
+            catch
+            {
+                // ignore cleanup errors so the test stand can still run
+            }
+        }
+
+        private class MultiTextWriter : TextWriter
+        {
+            private readonly TextWriter[] _writers;
+
+            public MultiTextWriter(params TextWriter[] writers)
+            {
+                _writers = writers ?? Array.Empty<TextWriter>();
+            }
+
+            public override Encoding Encoding => Encoding.UTF8;
+
+            public override void Write(char value)
+            {
+                foreach (TextWriter writer in _writers)
+                {
+                    try { writer.Write(value); } catch { }
+                }
+            }
+
+            public override void Write(string? value)
+            {
+                foreach (TextWriter writer in _writers)
+                {
+                    try { writer.Write(value); } catch { }
+                }
+            }
+
+            public override void WriteLine(string? value)
+            {
+                foreach (TextWriter writer in _writers)
+                {
+                    try { writer.WriteLine(value); } catch { }
+                }
+            }
+
+            public override void Flush()
+            {
+                foreach (TextWriter writer in _writers)
+                {
+                    try { writer.Flush(); } catch { }
+                }
             }
         }
 

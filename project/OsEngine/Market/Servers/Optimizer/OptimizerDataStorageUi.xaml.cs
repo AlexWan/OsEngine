@@ -113,6 +113,7 @@ namespace OsEngine.Market.Servers.Optimizer
             TextBoxSlippageStop.Text = master.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
             TextBoxSlippageStop.TextChanged += TextBoxSlippageStop_TextChanged;
 
+            LabelTabItemAccrualsAndCharge.Header = OsLocalization.Market.LabelAccrualsAndCharges;
             LabelTabItemDividends.Header = OsLocalization.Market.LabelTabItemDividends;
             LabelDividendsPaymentTableHeader.Content = OsLocalization.Market.Label332;
             CheckBoxDividendsIsOn.Content = OsLocalization.Market.LabelDividendsIsOn;

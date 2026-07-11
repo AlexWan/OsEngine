@@ -29,7 +29,11 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 ./OsEngine.McpApi.TestStand.exe
 ```
 
-Цель стенда: **78/78 passed**.
+Цель стенда: **114/114 passed**.
+
+**Важно:** тестовый стенд MCP API (`OsEngine.McpApi.TestStand.exe`) запускать только с **явного разрешения пользователя**.
+
+Стенд работает в foreground. При запуске из Kimi Shell он создаёт собственное видимое консольное окно; вывод дублируется в это окно, в исходный stdout и в лог-файл `mcp-test-stand-yyyyMMdd-HHmmss.log` рядом с `.exe`. Запрещено использовать `run_in_background=true`. Длительность прогона — около 4 минут; дожидаться завершения через `TaskOutput(block=true)` или автоматическое уведомление.
 
 ## Исследование кода
 

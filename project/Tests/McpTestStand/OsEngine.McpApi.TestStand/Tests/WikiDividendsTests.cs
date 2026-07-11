@@ -16,7 +16,7 @@ namespace OsEngine.McpApi.TestStand.Tests
     {
         private const string Module = "WIKI_DIVIDENDS";
         private const string KnownTicker = "SBER";
-        private const string KnownRegistryDate = "18.07.2025";
+        private const string KnownRegistryDate = "17.07.2025";
         private const string UnknownTicker = "ThisTickerDoesNotExist12345";
 
         private readonly TestContext _context;

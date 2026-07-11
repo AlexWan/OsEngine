@@ -2091,5 +2091,9 @@ namespace OsEngine.Language
         public string LabelDividendsIsOn => OsLocalization.ConvertToLocString(
          "Eng:Is On_" +
          "Ru:Включено_");
+
+        public string LabelAccrualsAndCharges => OsLocalization.ConvertToLocString(
+         "Eng:Accruals & Charges_" +
+         "Ru:Начисления и списания_");
     }
 }
