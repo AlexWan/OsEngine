@@ -506,14 +506,18 @@ namespace OsEngine.Market.Servers.Finam
 
             for (int i = 0; i < _finamSecurities.Count; i++)
             {
-                if (_finamSecurities[i].Name == "")
+                string securityCode = _finamSecurities[i].Code;
+                string securityName = _finamSecurities[i].Name;
+
+                if (string.IsNullOrWhiteSpace(securityName)
+                    && string.IsNullOrWhiteSpace(securityCode))
                 {
                     continue;
                 }
 
                 Security sec = new Security();
-                sec.NameFull = _finamSecurities[i].Code;
-                sec.Name = _finamSecurities[i].Name;
+                sec.Name = string.IsNullOrWhiteSpace(securityCode) ? securityName : securityCode;
+                sec.NameFull = string.IsNullOrWhiteSpace(securityCode) ? "" : securityName;
                 sec.NameId = _finamSecurities[i].Id;
                 sec.NameClass = _finamSecurities[i].Market;
                 sec.PriceStep = 0;
